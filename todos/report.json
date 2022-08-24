@@ -1004,18 +1004,6 @@
     ]
   },
   {
-    "path": "AasxPluginUaNetClient\\UASampleClient.cs",
-    "records": [
-      {
-        "prefix": "TODO",
-        "suffix": " (MIHO, 2020-08-06): lookup SOURCE!",
-        "line": 0,
-        "column": 0,
-        "status": "ok"
-      }
-    ]
-  },
-  {
     "path": "AasxPluginUaNetServer\\Plugin.cs",
     "records": [
       {

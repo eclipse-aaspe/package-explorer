@@ -1039,16 +1039,6 @@ MIHO,
 
     AasxPlugPlotting does not allow all options
 
-## AasxPluginUaNetClient\UASampleClient.cs
-
-[Line 1, column 1](
-https://github.com/admin-shell-io/aasx-package-explorer/blob/master/src/AasxPluginUaNetClient/UASampleClient.cs#L1
-), 
-MIHO,
-2020-08-06
-
-    lookup SOURCE!
-
 ## AasxPluginUaNetServer\Plugin.cs
 
 [Line 45, column 9](
