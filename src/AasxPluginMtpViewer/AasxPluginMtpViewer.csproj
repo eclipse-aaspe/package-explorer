@@ -17,9 +17,6 @@
     <Resource Include="LICENSE.TXT" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\LICENSE.TXT" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\AasxCsharpLibrary\AasxCsharpLibrary.csproj" />
     <ProjectReference Include="..\AasxIntegrationBaseWpf\AasxIntegrationBaseWpf.csproj" />
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
