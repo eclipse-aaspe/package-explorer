@@ -1,6 +1,6 @@
 {
   "homepages": [],
-  "source_base_path": "D:/a/aasx-package-explorer/aasx-package-explorer/docdev/docfx_project",
+  "source_base_path": "D:/a/aaspe/aaspe/docdev/docfx_project",
   "xrefmap": "xrefmap.yml",
   "files": [
     {
@@ -21,7 +21,7 @@
       "output": {
         ".html": {
           "relative_path": "api/index.html",
-          "hash": "05eQrvr5oeJ5h3H1m6IBhg=="
+          "hash": "ygdaLCLFJ1qIEvwsnXIz9g=="
         }
       },
       "is_incremental": false,
@@ -33,7 +33,7 @@
       "output": {
         ".html": {
           "relative_path": "getting-started/continuous-integration.html",
-          "hash": "57vbLnGaCQTM/BzQtgUmmw=="
+          "hash": "Yh1UACKwxOkR097L38kPzQ=="
         }
       },
       "is_incremental": false,
@@ -45,7 +45,7 @@
       "output": {
         ".html": {
           "relative_path": "getting-started/development-workflow.html",
-          "hash": "v2Pn1SXAKiCuCgxkBtuPfg=="
+          "hash": "dunB1PuB/GkU8ouQvUjzHQ=="
         }
       },
       "is_incremental": false,
@@ -57,7 +57,7 @@
       "output": {
         ".html": {
           "relative_path": "getting-started/installing-the-dependencies.html",
-          "hash": "Vp13jEhc7B1SbC3+FZMDYg=="
+          "hash": "fZjbQwJ16UF0oapCtshNIQ=="
         }
       },
       "is_incremental": false,
@@ -69,7 +69,7 @@
       "output": {
         ".html": {
           "relative_path": "getting-started/intro.html",
-          "hash": "NpW4kYqjpe4aKSNJQim/yg=="
+          "hash": "OjbA7cwnri/q78vz6SLMTQ=="
         }
       },
       "is_incremental": false,
@@ -81,7 +81,7 @@
       "output": {
         ".html": {
           "relative_path": "getting-started/licenses-and-copyrights.html",
-          "hash": "q1V4EFfbXXsA8Key2PWWyg=="
+          "hash": "5yT9L2+aVD7YBfyLGDWYKg=="
         }
       },
       "is_incremental": false,
@@ -93,7 +93,7 @@
       "output": {
         ".html": {
           "relative_path": "getting-started/releasing.html",
-          "hash": "dmj1QcoPt6sVq/4K1BMY+g=="
+          "hash": "PJBjJyzn6zj7WSEyNdBPAA=="
         }
       },
       "is_incremental": false,
@@ -117,7 +117,7 @@
       "output": {
         ".html": {
           "relative_path": "getting-started/troubleshooting.html",
-          "hash": "wJZAMEiLRCZwpYGeqZueuw=="
+          "hash": "II6eIe+1BAJJTDIcv+xf1Q=="
         }
       },
       "is_incremental": false,
@@ -184,7 +184,7 @@
       "output": {
         ".html": {
           "relative_path": "index.html",
-          "hash": "QBT4MVBdf0Ua0bzO+XYYyA=="
+          "hash": "M38La5xT/OSwjccCr7oGSg=="
         }
       },
       "is_incremental": false,
