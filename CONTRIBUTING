@@ -1,0 +1,44 @@
+# CONTRIBUTING
+
+## Description
+
+Eclipse AASX Package Explorer™ is a C# based viewer and editor for the Asset Administration Shell.
+
+## Documentation
+
+API documentation is available at https://admin-shell-io.github.io/aasx-package-explorer/devdoc/api/index.html.
+
+## How to contribute
+
+Mechanics of how to actually contribute (e.g., merge/pull requests) are described in [AASX Project Explorer Devdoc](https://admin-shell-io.github.io/aasx-package-explorer/devdoc/getting-started/intro.html).
+
+To help you familiarize with the concept of Asset Administration Shell we provide the screencasts (both in English and German) at: https://admin-shell-io.com/screencasts/.
+
+For further information about the Asset Administration Shell, see the publication Details of the Asset Administration Shell by Plattform Industrie 4.0.
+
+We provide a couple of sample admin shells (packaged as .aasx) for you to test and play with the software at: http://www.admin-shell-io.com/samples/
+
+## Terms of Use
+
+This Eclipse Foundation open project is governed by the Eclipse Foundation
+Development Process and all its source code as well as the released binaries are subject to Eclipse Foundation’s Terms of Use, available at https://www.eclipse.org/legal/termsofuse.php.
+
+## Communication
+
+*A link to the primary Communication channel (how do potential contributors contact the project team?)*
+
+Communication between contributors takes place predominantly through project issues and repository mailing list [admin-shell-io/aasx-server](aasx-server@noreply.github.com).
+
+## Repositories
+
+Source code is publically available in the https://github.com/eclipse-aaspe/aaspe repository.
+
+## ECA
+
+Contributors are required to electronically sign the Eclipse Contributor Agreement (https://www.eclipse.org/legal/ECA.php) to contribute to Eclipse AASX Package Explorer™.
+
+Commits that are provided by non-committers must contain a Signed-off-by field in
+the footer indicating that the author is aware of the terms by which the
+contribution has been provided to the project. The non-committer must
+additionally have an Eclipse Foundation account and must have a signed Eclipse
+Contributor Agreement (ECA) on file.
