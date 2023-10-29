@@ -875,7 +875,7 @@ namespace AasxPackageLogic
                             minWidth: 250,
                             items: new[] {
                             "List index", "idShort", "Identification", "By AasSubmodel",
-                            "By SubmodelElements"
+                            "By SubmodelElements", "Structured"
                         }),
                         (o) =>
                         {
