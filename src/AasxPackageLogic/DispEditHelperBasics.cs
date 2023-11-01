@@ -303,7 +303,9 @@ namespace AasxPackageLogic
             AnyUiLambdaActionBase takeOverLambdaAction = null,
             bool limitToOneRowForNoEdit = false,
             int comboBoxMinWidth = -1,
-			bool noFirstColumnWidth = false)
+			bool noFirstColumnWidth = false,
+			int maxLines = -1,
+			bool keyVertCenter = false)
         {
             AddKeyValue(
                 view, key, value, nullValue, repo, setValue, comboBoxItems, comboBoxIsEditable,
@@ -312,7 +314,9 @@ namespace AasxPackageLogic
                 (value == null) ? 0 : value.GetHashCode(), containingObject: containingObject,
                 limitToOneRowForNoEdit: limitToOneRowForNoEdit,
                 comboBoxMinWidth: comboBoxMinWidth,
-                noFirstColumnWidth: noFirstColumnWidth);
+                noFirstColumnWidth: noFirstColumnWidth,
+                maxLines: maxLines,
+                keyVertCenter: keyVertCenter);
         }
 
         /// <summary>
@@ -349,7 +353,9 @@ namespace AasxPackageLogic
             object containingObject = null,
             bool limitToOneRowForNoEdit = false,
             int comboBoxMinWidth = -1,
-            bool noFirstColumnWidth = false)
+            bool noFirstColumnWidth = false,
+            int maxLines = -1,
+            bool keyVertCenter = false)
         {
             // draw anyway?
             if (repo != null && value == null)
@@ -401,7 +407,13 @@ namespace AasxPackageLogic
                 }
 
             // Label for key
-            AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "" + key + ":");
+            var klb = AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "" + key + ":");
+            if (keyVertCenter)
+            {
+                klb.VerticalAlignment = AnyUiVerticalAlignment.Center;
+                klb.VerticalContentAlignment = AnyUiVerticalAlignment.Center;
+                klb.Margin = new AnyUiThickness(0, -1, 0, 0);
+            }
 
             // Label / TextBox for value
             if (repo == null)
@@ -445,6 +457,8 @@ namespace AasxPackageLogic
             {
                 // use plain text box
                 var tb = AddSmallTextBoxTo(g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2), text: "" + value);
+                if (maxLines > 0)
+                    tb.MaxLines = maxLines;
                 AnyUiUIElement.RegisterControl(tb,
                     setValue, takeOverLambda: takeOverLambdaAction);
 
@@ -479,8 +493,6 @@ namespace AasxPackageLogic
             // in total
             view.Children.Add(g);
         }
-
-
 
         public void AddKeyDropTarget(
             AnyUiStackPanel view, string key, string value, string nullValue = null,
