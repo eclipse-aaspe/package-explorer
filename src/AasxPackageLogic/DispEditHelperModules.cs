@@ -3554,7 +3554,7 @@ namespace AasxPackageLogic
             if (collPtr != null && (collPtr.NodeType == NodeType.Uri || collPtr.NodeType == NodeType.Literal))
             {
 				// only a single member is given
-				lsr.Add(createInstance?.Invoke(RdfHelper.GetLiteralStrValue(collPtr), false));
+				lsr.Add(createInstance?.Invoke(RdfHelper.GetTerminalStrValue(collPtr), false));
 			}
             else
             {
@@ -3610,7 +3610,21 @@ namespace AasxPackageLogic
 
         public static class RdfHelper
         {
-            public static string GetLiteralStrValue(INode node)
+			/// <summary>
+			/// Dirty. Used for the generation of names of nodes for anonymouse node instances
+			/// of the parsed graph.
+			/// </summary>
+			private static int _anonymousNodeIndex = 1;
+
+			public static bool IsTerminalNode(INode node)
+            {
+                if (node == null)
+                    return false;
+                return node.NodeType == NodeType.Uri
+                    || node.NodeType == NodeType.Literal;
+            }
+
+			public static string GetTerminalStrValue(INode node)
             {
                 if (node == null)
                     return "";
@@ -3618,7 +3632,14 @@ namespace AasxPackageLogic
                     return ln.Value;
                 return node.ToSafeString();
             }
+
+            public static string GenerateAnonymousId(string topic)
+            {
+                return $"SAMM_auto_{(_anonymousNodeIndex++):00000}";
+            }
         }
+
+
 
         public static void ImportSammModelToConceptDescriptions(
 			Aas.Environment env, 
@@ -3650,7 +3671,7 @@ namespace AasxPackageLogic
                 }
 
 			// find all potential SAMM elements " :xxx a bamm:XXXX"
-			foreach (var trpSammElem in g.GetTriplesWithPredicate(new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")))
+			foreach (var trpSammElem in g.GetTriplesWithPredicate(new Uri(Samm.Constants.PredicateA)))
 			{
                 // check, if there is a SAMM type behind the object
                 var sammElemUri = trpSammElem.Object.ToString();
@@ -3699,9 +3720,10 @@ namespace AasxPackageLogic
 						pred: new VDS.RDF.UriNode(new Uri(propSearchUri))))
                     {
                         // now let the property type decide, how to 
-                        // put in the property
+                        // put data into the property
 
-                        var objStr = RdfHelper.GetLiteralStrValue(trpProp.Object);
+                        var objStr = RdfHelper.GetTerminalStrValue(trpProp.Object);
+                        var isTerminalNode = RdfHelper.IsTerminalNode(trpProp.Object);
 
 						// List of Samm.LangString
 						if (pii.PropertyType.IsAssignableTo(typeof(List<Samm.LangString>)))
@@ -3766,8 +3788,33 @@ namespace AasxPackageLogic
 						// just SammReference
 						if (pii.PropertyType.IsAssignableTo(typeof(Samm.SammReference)))
 						{
-                            // simply set the value
-							pii.SetValue(sammInst, new SammReference(objStr));
+                            // anonymous node or note
+                            if (isTerminalNode)
+                            {
+                                // simply set the value
+                                pii.SetValue(sammInst, new SammReference(objStr));
+                            }
+                            else
+                            {
+                                // in order to be valid anonymous node, there needs to
+                                // the "a" relationship behind it
+								var trpA = g.GetTriplesWithSubjectPredicate(
+                                    subj: trpProp.Object,
+									pred: new UriNode(new Uri(Samm.Constants.PredicateA)))?.FirstOrDefault();
+
+                                if (trpA == null)
+                                    continue;
+
+								// assume to have an anonymous node behind the node
+								// make a nice id
+								var newNodeid = RdfHelper.GenerateAnonymousId("");
+
+								// set this as reference ..
+								pii.SetValue(sammInst, new SammReference(newNodeid));
+
+                                // and recurse with this node as a starting point
+                                ;
+							}
 						}
 
 						// just string
@@ -3830,7 +3877,7 @@ namespace AasxPackageLogic
                         subj: trpSammElem.Subject,
                         pred: new VDS.RDF.UriNode(new Uri(elemPred))))
                 {
-                    elemName = RdfHelper.GetLiteralStrValue(trpProp.Object);
+                    elemName = RdfHelper.GetTerminalStrValue(trpProp.Object);
 				}
 
 				// Aspect is another special case
