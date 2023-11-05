@@ -1242,8 +1242,8 @@ namespace AasxPackageLogic
                 }
 
                 // SAMM?
-                var sammType = DispEditHelperModules.CheckReferableForSammExtensionType(theCD);
-				var sammName = DispEditHelperModules.CheckReferableForSammExtensionTypeName(sammType);
+                var sammType = DispEditHelperSammModules.CheckReferableForSammExtensionType(theCD);
+				var sammName = DispEditHelperSammModules.CheckReferableForSammExtensionTypeName(sammType);
                 if (sammName?.HasContent() == true)
                 {
                     // completely reformat the Caption
@@ -1920,7 +1920,7 @@ namespace AasxPackageLogic
                     _cdReferred.Add(cd, tiCD);
 
 					// look for descendants
-					foreach (var me in DispEditHelperModules.CheckReferableForSammElements(cd))
+					foreach (var me in DispEditHelperSammModules.CheckReferableForSammElements(cd))
 						if (me is Samm.ISammStructureModel ssm)
                             foreach (var sr in ssm.DescendOnce())
                             {
@@ -1936,7 +1936,7 @@ namespace AasxPackageLogic
 
                 // visit top nodes to start the lambda
 				foreach (var cd in env.ConceptDescriptions)
-                    foreach (var me in DispEditHelperModules.CheckReferableForSammElements(cd))
+                    foreach (var me in DispEditHelperSammModules.CheckReferableForSammElements(cd))
                         if (me is Samm.ISammStructureModel ssm && ssm.IsTopElement())
                         {
                             // add && recurse
