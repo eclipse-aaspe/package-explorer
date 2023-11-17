@@ -303,7 +303,7 @@ namespace AasxPackageLogic
             AnyUiLambdaActionBase takeOverLambdaAction = null,
             bool limitToOneRowForNoEdit = false,
             int comboBoxMinWidth = -1,
-			bool noFirstColumnWidth = false,
+			int firstColumnWidth = -1, // -1 = Standard
 			int maxLines = -1,
 			bool keyVertCenter = false)
         {
@@ -314,7 +314,7 @@ namespace AasxPackageLogic
                 (value == null) ? 0 : value.GetHashCode(), containingObject: containingObject,
                 limitToOneRowForNoEdit: limitToOneRowForNoEdit,
                 comboBoxMinWidth: comboBoxMinWidth,
-                noFirstColumnWidth: noFirstColumnWidth,
+				firstColumnWidth: firstColumnWidth,
                 maxLines: maxLines,
                 keyVertCenter: keyVertCenter);
         }
@@ -353,7 +353,7 @@ namespace AasxPackageLogic
             object containingObject = null,
             bool limitToOneRowForNoEdit = false,
             int comboBoxMinWidth = -1,
-            bool noFirstColumnWidth = false,
+            int firstColumnWidth = -1, // -1 = Standard
             int maxLines = -1,
             bool keyVertCenter = false)
         {
@@ -391,7 +391,9 @@ namespace AasxPackageLogic
             g.Margin = new AnyUiThickness(0, 1, 0, 1);
             var gc1 = new AnyUiColumnDefinition();
             gc1.Width = AnyUiGridLength.Auto;
-            if (!noFirstColumnWidth)
+            if (firstColumnWidth >= 0)
+                gc1.MinWidth = firstColumnWidth;
+            if (firstColumnWidth == -1)
                 gc1.MinWidth = this.GetWidth(FirstColumnWidth.Standard);
             g.ColumnDefinitions.Add(gc1);
             var gc2 = new AnyUiColumnDefinition();
@@ -617,8 +619,12 @@ namespace AasxPackageLogic
             view.Children.Add(g);
         }
 
-        public void AddCheckBox(AnyUiStackPanel panel, string key, bool initialValue, string additionalInfo = "",
-                Action<bool> valueChanged = null)
+        public void AddSmallCheckBox(
+            AnyUiStackPanel panel, string key, 
+            bool value,             
+			Func<bool, AnyUiLambdaActionBase> setValue = null,
+			string additionalInfo = "",
+			string[] boolTexts = null)
         {
             // make grid
             var g = this.AddSmallGrid(1, 2, new[] { "" + this.GetWidth(FirstColumnWidth.Standard) + ":", "*" },
@@ -628,20 +634,25 @@ namespace AasxPackageLogic
             this.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: key);
 
             // Column 1 = Check box or info
-            if (repo == null || valueChanged == null)
+            if (repo == null || setValue == null)
             {
-                this.AddSmallLabelTo(g, 0, 1, padding: new AnyUiThickness(2, 0, 0, 0),
-                        content: initialValue ? "True" : "False");
+				// label
+				var strVal = (value) ? "True" : "False";
+				if (boolTexts != null && boolTexts.Length >= 2)
+					strVal = (value) ? boolTexts[1] : boolTexts[0];
+
+				this.AddSmallLabelTo(g, 0, 1, padding: new AnyUiThickness(2, 0, 0, 0),
+                        content: strVal);
             }
             else
             {
                 AnyUiUIElement.RegisterControl(this.AddSmallCheckBoxTo(g, 0, 1, margin: new AnyUiThickness(2, 2, 2, 2),
                     content: additionalInfo, verticalContentAlignment: AnyUiVerticalAlignment.Center,
-                    isChecked: initialValue),
+                    isChecked: value),
                         (o) =>
                         {
-                            if (o is bool)
-                                valueChanged((bool)o);
+                            if (o is bool && setValue != null)
+                                return setValue((bool)o);
                             return new AnyUiLambdaActionNone();
                         });
             }
@@ -650,7 +661,7 @@ namespace AasxPackageLogic
             panel.Children.Add(g);
         }
 
-        public void AddActionPanel(
+		public void AddActionPanel(
             AnyUiPanel view, string key, string[] actionStr = null, ModifyRepo repo = null,
             Func<int, AnyUiLambdaActionBase> action = null,
             string[] actionTags = null,
