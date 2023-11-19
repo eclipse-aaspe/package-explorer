@@ -1873,7 +1873,7 @@ namespace AasxPackageLogic
                 });
         }
 
-        public static Aas.ISubmodel DispEditHelperCreateSubmodelFromSmtSamm(
+        public static Tuple<Aas.ISubmodel, Aas.IReference> DispEditHelperCreateSubmodelFromSmtSamm(
             PackageCentral.PackageCentral packages,
             Aas.IEnvironment env,
             Aas.IConceptDescription rootCd,
@@ -1892,8 +1892,12 @@ namespace AasxPackageLogic
             env.Submodels.Add(submodel);
 
             var aas1 = env?.AssetAdministrationShells?.FirstOrDefault();
+            Aas.IReference smres = null;
             if (aas1 != null)
-                aas1.Submodels.Add(submodel.GetReference());
+            {
+                smres = submodel.GetReference();
+                aas1.Submodels.Add(smres);
+            }
 
             // lambda to recurse
             int numAdded = 0;
@@ -1955,7 +1959,7 @@ namespace AasxPackageLogic
             Log.Singleton.Info($"Added {numAdded}. {numErrors} errors.");
 
             // ok 
-            return submodel;
+            return new Tuple<ISubmodel, IReference>(submodel, smres);
         }
 
     }

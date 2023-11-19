@@ -1447,7 +1447,7 @@ namespace AasxPackageLogic
                 }
 
                 // perfom dialogue
-                if (!DisplayContext.StartFlyoverModal(uc)
+                if (!(await DisplayContext.StartFlyoverModalAsync(uc))
                     || !uc.Result || uc.ResultItem == null)
                     return;
 
@@ -1467,8 +1467,8 @@ namespace AasxPackageLogic
                         Log.Singleton.Error("Error creating new Submodel from accessible ConceptDescriptions.");
                     else
                     {
-                        Log.Singleton.Info($"Submodel {sm.IdShort} created");
-                        ticket.SetNextFocus = sm;
+                        Log.Singleton.Info($"Submodel {sm.Item1.IdShort} created");
+                        ticket.SetNextFocus = sm.Item2;
                     }
                 }
                 catch (Exception ex)
