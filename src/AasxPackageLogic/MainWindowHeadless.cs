@@ -1420,6 +1420,9 @@ namespace AasxPackageLogic
 
                 uc.AlternativeSelectButtons = new[] { "Create root", "Create root and all childs" };
 
+                // re-index
+                PackageCentral.ReIndexIdentifiables();
+
                 // populate rows
                 foreach (var cd in PackageCentral.FindAllReferables<Aas.IConceptDescription>())
                 {

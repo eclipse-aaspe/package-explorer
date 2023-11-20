@@ -2545,7 +2545,7 @@ namespace AasxPackageExplorer
                 _mainTimer_PendingReIndexElements = false;
 
                 // be modest for the time being
-                PackageCentral.MainItem?.Container?.ReIndexIdentifiables();
+                PackageCentral.ReIndexIdentifiables();
 
                 // Info
                 Log.Singleton.Info("Re-indexing Identifiables for faster access.");
