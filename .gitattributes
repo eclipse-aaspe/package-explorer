@@ -1,2 +1,5 @@
+*   text=auto
+*   autocrlf=true
+
 *.cs text eol=crlf
 .xaml diff
