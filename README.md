@@ -1,4 +1,13 @@
-# AASX Package Explorer
+> [!NOTE]
+> Welcome to the new home of **Eclipse AASX Package Explorer**, previously at [admin-shell-io/aasx-package-explorer](https://github.com/admin-shell-io/aasx-package-explorer).  
+> All the development has been moved here and the admin-shell-io repository will be archived.  
+> See [CONTRIBUTING](CONTRIBUTING) for details on how to migrate your development.
+
+> [!IMPORTANT]
+> Current development of AASX Package Explorer only supports AAS V3.  
+> If you need to view AAS V2 files, see the archived releases at [admin-shell-io](https://github.com/admin-shell-io/aasx-package-explorer/releases).
+
+# Eclipse AASX Package Explorer
 
 ![Build-test-inspect](
 https://github.com/admin-shell-io/aasx-package-explorer/actions/workflows/build-test-inspect.yml/badge.svg
