@@ -5,7 +5,7 @@
 
 > [!IMPORTANT]
 > Current development of AASX Package Explorer only supports AAS V3.  
-> If you need to view AAS V2 files, see the archived releases at [admin-shell-io](https://github.com/admin-shell-io/aasx-package-explorer/releases).
+> If you need to view AAS V2 files, see the branch [here](https://github.com/eclipse-aaspe/aaspe/tree/V2).
 
 # Eclipse AASX Package Explorer™
 
