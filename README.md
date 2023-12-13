@@ -1,3 +1,14 @@
+<p align="center">
+  <b>❗DEPRECATED❗</b>
+</p>
+
+
+> [!WARNING]
+> This version supports only the V2 AAS Metamodel and is deprecated.  
+> Current development of AASX Package Explorer only supports V3 AAS Metamodel.  
+> Please consider upgrading to V3.
+
+
 # AASX Package Explorer
 
 ![Build-test-inspect](
