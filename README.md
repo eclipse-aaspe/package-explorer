@@ -1,4 +1,13 @@
-# AASX Package Explorer
+> [!NOTE]
+> Welcome to the new home of **Eclipse AASX Package Explorer**, previously at [admin-shell-io/aasx-package-explorer](https://github.com/admin-shell-io/aasx-package-explorer).  
+> All the development has been moved here and the admin-shell-io repository will be archived.  
+> See [CONTRIBUTING](CONTRIBUTING) for details on how to migrate your development.
+
+> [!IMPORTANT]
+> Current development of AASX Package Explorer only supports AAS V3.  
+> If you need to view AAS V2 files, see the branch [here](https://github.com/eclipse-aaspe/aaspe/tree/V2).
+
+# Eclipse AASX Package Explorer™
 
 ![Build-test-inspect](
 https://github.com/admin-shell-io/aasx-package-explorer/actions/workflows/build-test-inspect.yml/badge.svg
@@ -28,7 +37,7 @@ https://admin-shell-io.github.io/aasx-package-explorer/todos/badges/HACKs.svg
 https://github.com/admin-shell-io/aasx-package-explorer/blob/gh-pages/todos/task-list/task-list-by-file.md
 )
 
-AASX Package Explorer is a C# based viewer / editor for the 
+Eclipse AASX Package Explorer™ is a C# based viewer and editor for the 
 Asset Administration Shell.
 
 ![screenshot](
