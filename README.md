@@ -1,6 +1,5 @@
 > [!NOTE]
-> Welcome to the new home of **Eclipse AASX Package Explorer**, previously at [admin-shell-io/aasx-package-explorer](https://github.com/admin-shell-io/aasx-package-explorer).  
-> All the development has been moved here and the admin-shell-io repository will be archived.  
+> Welcome to the new home of **Eclipse AASX Package Explorer**!
 > See [CONTRIBUTING](CONTRIBUTING) for details on how to migrate your development.
 
 > [!IMPORTANT]
