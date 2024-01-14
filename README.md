@@ -1,6 +1,6 @@
 > [!NOTE]
 > Welcome to the new home of **Eclipse AASX Package Explorer**!
-> See [CONTRIBUTING](CONTRIBUTING) for details on how to migrate your development.
+> See [CONTRIBUTING](CONTRIBUTING.md) for details on how to migrate your development.
 
 > [!IMPORTANT]
 > Current development of AASX Package Explorer only supports AAS V3.  
