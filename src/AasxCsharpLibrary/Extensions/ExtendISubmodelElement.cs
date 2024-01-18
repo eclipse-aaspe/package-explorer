@@ -491,6 +491,10 @@ namespace Extensions
 
                     outputSubmodelElement = new Operation(inputVariables: newInputVariables, outputVariables: newOutputVariables, inoutputVariables: newInOutVariables);
                 }
+                else if (sourceSubmodelElement is AdminShellV20.Capability)
+                {
+                    outputSubmodelElement = new Capability();
+                }
 
                 outputSubmodelElement.BasicConversionFromV20(sourceSubmodelElement);
             }
