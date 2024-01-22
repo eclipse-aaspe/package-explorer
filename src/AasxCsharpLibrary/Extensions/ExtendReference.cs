@@ -243,7 +243,7 @@ namespace Extensions
 
         public static Key GetAsExactlyOneKey(this IReference reference)
         {
-            if (reference.Keys == null || reference.Keys.Count != 1)
+            if (reference?.Keys == null || reference.Keys.Count != 1)
             {
                 return null;
             }
