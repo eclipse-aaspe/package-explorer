@@ -11,15 +11,16 @@ The [Contribution guildelines](#contribution-guidelines) section includes genera
 AASX Package Explorer is an Eclipse Foundation incubated project and therefore needs to adhere to Eclipse Foundation rules.
 This introduces a slight overhead for every contributor, at least at the very beginning, but it's worth it!
 
-Here are the steps to become a Contributor in Eclipse AASX Package Explorer (and any other project under the Eclipse Foundation umbrella):
+Follow these steps to become a Contributor in Eclipse AASX Package Explorer (and any other project under the Eclipse Foundation umbrella):
 
 1. Create an Eclipse Foundation Account at https://accounts.eclipse.org/ 
 1. Log in to your Eclipse account and digitally sign the [Eclipse Contributor Agreement](https://www.eclipse.org/projects/handbook/#contributing-eca);
 1. Make sure to add your github name (`Edit my account` > `Social Media Links` > `GitHub Username`)
-1. Fork the repository and create an initial commit
+1. Clone or fork the repository and create an initial commit
     - if you have preexisting work that you'd like to include, see TBD
     - ensure that the author credentials on the commit record match the email address and/or GitHub username associated with the Eclipse Foundation Account
 1. Create a pull request and work with the project team to merge the contribution
+    - your request will need to be reviewed and approved by an Eclipse Contributor (GitHub Maintainer role) 
 1. Happily develop ever after!
     - or contact a Project Lead or a Committer to be nominated to a Committer yourself (and receive more repository priviledges, such as the ability to merge)
 
