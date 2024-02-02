@@ -110,5 +110,5 @@ shells targeting tech-savvy and less technically-inclined users alike.
 The AASX Package Explorer also includes an internal REST server and OPC UA
 server for the loaded .AASX. Based on this a separate AASX Server is
 available (https://github.com/admin-shell-io/aasx-server) which can host
-several .AASX simultanously (see example https://example.admin-shell-io.com).
+several .AASX simultaneously (see example https://example.admin-shell-io.com).
 
