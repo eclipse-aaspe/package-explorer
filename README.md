@@ -72,13 +72,11 @@ https://github.com/admin-shell-io/aasx-package-explorer/issues/new/choose).
 
 ## Contributing
 
-The latest documentation for developers is available [on this page](
-https://admin-shell-io.github.io/aasx-package-explorer/devdoc/
-).
+Please see [CONTRIBUTING](CONTRIBUTING.md) for instructions on joining the development and general contribution guidelines.
 
-If you want to contribute in code, see [Section "Getting started"](
-https://admin-shell-io.github.io/aasx-package-explorer/devdoc/getting-started/intro.html
-).
+The documentation for developers is still available at [admin-shell-io](
+https://admin-shell-io.github.io/aasx-package-explorer/devdoc/
+) and will be migrated to eclipse-aaspe in the near future. 
 
 ## Other Open Source Implementations of AAS
 
@@ -112,5 +110,5 @@ shells targeting tech-savvy and less technically-inclined users alike.
 The AASX Package Explorer also includes an internal REST server and OPC UA
 server for the loaded .AASX. Based on this a separate AASX Server is
 available (https://github.com/admin-shell-io/aasx-server) which can host
-several .AASX simultanously (see example https://admin-shell-io.com/5001/).
+several .AASX simultanously (see example https://example.admin-shell-io.com).
 
