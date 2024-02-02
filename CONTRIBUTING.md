@@ -2,7 +2,7 @@
 
 Welcome to the Eclipse AASX Package Explorer repository. 
 
-If you are joining the project from the previous repository at admin-shell-io/aasx-package-explorer, please see the [Joining Development](#joining-development) section below to get started in the new repository.
+Whether you're new to the project or joining from the previous repository at admin-shell-io, please see the [Joining Development](#joining-development) section below to get started in the new repository.
 
 The [Contribution guildelines](#contribution-guidelines) section includes general guidelines as well as additional quirks specific to Eclipse Foundation projects, so it is definitely worth a read as well.
 
