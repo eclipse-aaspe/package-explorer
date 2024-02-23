@@ -1,6 +1,8 @@
 > [!WARNING]
-> We are working on transferring all the content from admin-shell-io/aasx-package-explorer, including the issues.  
-> We expect to finalize the transfer mid-February, after which admin-shell-io/aasx-package-explorer will be archived.
+> Transfer of the primary content (incl. the issues) from admin-shell-io/aasx-package-explorer is finished!  
+> Admin-shell-io/aasx-package-explorer will be archived. (date TBA)
+> If there is content remaining in admin-shell-io/aasx-package-explore branches that you want our assistance with transferring,
+> please start an issue here.
 
 > [!NOTE]
 > Welcome to the new home of **Eclipse AASX Package Explorer**!
