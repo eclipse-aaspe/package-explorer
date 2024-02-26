@@ -773,7 +773,7 @@ namespace AdminShellNS
                             System.Net.Mime.MediaTypeNames.Text.Plain, CompressionOption.Maximum);
                         using (var s = originPart.GetStream(FileMode.Create))
                         {
-                            var bytes = System.Text.Encoding.ASCII.GetBytes("Intentionally empty.");
+                            var bytes = System.Text.Encoding.ASCII.GetBytes("Intentionally empty");
                             s.Write(bytes, 0, bytes.Length);
                         }
                         package.CreateRelationship(
