@@ -990,7 +990,7 @@ namespace AasxPluginDigitalNameplate
                 statement: ((plate.DateOfManufacture?.HasContent() == true)
                     ? new IndexStatement(Quality.Good, statement: "Is given.")
                     : new IndexStatement(Quality.Warn, statement: "Should be given."))
-                    .Set(description: "SerialNumber:\n" +
+                    .Set(description: "DateOfManufacture:\n" +
                         "Date from which the production and / or development process is completed or " +
                         "from which a service is provided completely."));
 
