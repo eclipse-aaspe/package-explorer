@@ -1086,8 +1086,11 @@ namespace AdminShellNS
             finally
             {
                 // even after failing of the lambda, the package shall be re-opened
-                _openPackage = Package.Open(Filename, FileMode.OpenOrCreate);
-            }
+                if (Filename.ToLower().EndsWith(".aasx"))
+                {
+                    _openPackage = Package.Open(Filename, FileMode.OpenOrCreate);
+
+                }            }
         }
 
         private int BackupIndex = 0;

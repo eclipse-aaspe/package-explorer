@@ -135,21 +135,24 @@ namespace Extensions
             {
                 foreach (var submodelRef in sourceAas.submodelRefs)
                 {
-                    var keyList = new List<IKey>();
-                    foreach (var refKey in submodelRef.Keys)
+                    if (!submodelRef.IsEmpty)
                     {
-                        var keyType = Stringification.KeyTypesFromString(refKey.type);
-                        if (keyType != null)
+                        var keyList = new List<IKey>();
+                        foreach (var refKey in submodelRef.Keys)
                         {
-                            keyList.Add(new Key((KeyTypes)keyType, refKey.value));
+                            var keyType = Stringification.KeyTypesFromString(refKey.type);
+                            if (keyType != null)
+                            {
+                                keyList.Add(new Key((KeyTypes)keyType, refKey.value));
+                            }
+                            else
+                            {
+                                Console.WriteLine($"KeyType value {refKey.type} not found.");
+                            }
                         }
-                        else
-                        {
-                            Console.WriteLine($"KeyType value {refKey.type} not found.");
-                        }
+                        assetAdministrationShell.Submodels ??= new List<IReference>();
+                        assetAdministrationShell.Submodels.Add(new Reference(ReferenceTypes.ModelReference, keyList)); 
                     }
-                    assetAdministrationShell.Submodels ??= new List<IReference>();
-                    assetAdministrationShell.Submodels.Add(new Reference(ReferenceTypes.ModelReference, keyList));
                 }
             }
 
@@ -220,21 +223,24 @@ namespace Extensions
             {
                 foreach (var submodelRef in sourceAas.submodelRefs)
                 {
-                    var keyList = new List<IKey>();
-                    foreach (var refKey in submodelRef.Keys)
+                    if (!submodelRef.IsEmpty)
                     {
-                        var keyType = Stringification.KeyTypesFromString(refKey.type);
-                        if (keyType != null)
+                        var keyList = new List<IKey>();
+                        foreach (var refKey in submodelRef.Keys)
                         {
-                            keyList.Add(new Key((KeyTypes)keyType, refKey.value));
+                            var keyType = Stringification.KeyTypesFromString(refKey.type);
+                            if (keyType != null)
+                            {
+                                keyList.Add(new Key((KeyTypes)keyType, refKey.value));
+                            }
+                            else
+                            {
+                                Console.WriteLine($"KeyType value {refKey.type} not found.");
+                            }
                         }
-                        else
-                        {
-                            Console.WriteLine($"KeyType value {refKey.type} not found.");
-                        }
+                        assetAdministrationShell.Submodels ??= new List<IReference>();
+                        assetAdministrationShell.Submodels.Add(new Reference(ReferenceTypes.ModelReference, keyList)); 
                     }
-                    assetAdministrationShell.Submodels ??= new List<IReference>();
-                    assetAdministrationShell.Submodels.Add(new Reference(ReferenceTypes.ModelReference, keyList));
                 }
             }
 

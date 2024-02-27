@@ -261,8 +261,7 @@ namespace Extensions
                     var newSecond = ExtensionsUtil.ConvertReferenceFromV10(sourceRelationshipElement.second, ReferenceTypes.ModelReference);
                     outputSubmodelElement = new RelationshipElement(newFirst, newSecond);
                 }
-
-                if (sourceSubmodelElement is AdminShellV10.Operation sourceOperation)
+                else if (sourceSubmodelElement is AdminShellV10.Operation sourceOperation)
                 {
                     var newInputVariables = new List<IOperationVariable>();
                     var newOutputVariables = new List<IOperationVariable>();
@@ -280,6 +279,7 @@ namespace Extensions
                             }
                         }
                     }
+
                     if (!sourceOperation.valueOut.IsNullOrEmpty())
                     {
                         foreach (var outputVariable in sourceOperation.valueOut)
@@ -297,8 +297,10 @@ namespace Extensions
                     outputSubmodelElement = new Operation(inputVariables: newInputVariables, outputVariables: newOutputVariables);
                 }
 
-
-                outputSubmodelElement.BasicConversionFromV10(sourceSubmodelElement);
+                if (outputSubmodelElement != null)
+                {
+                    outputSubmodelElement.BasicConversionFromV10(sourceSubmodelElement); 
+                }
             }
 
             return outputSubmodelElement;
@@ -491,8 +493,15 @@ namespace Extensions
 
                     outputSubmodelElement = new Operation(inputVariables: newInputVariables, outputVariables: newOutputVariables, inoutputVariables: newInOutVariables);
                 }
+                else if(sourceSubmodelElement is AdminShellV20.Capability)
+                {
+                    outputSubmodelElement = new Capability();
+                }
 
-                outputSubmodelElement.BasicConversionFromV20(sourceSubmodelElement);
+                if (outputSubmodelElement != null)
+                {
+                    outputSubmodelElement.BasicConversionFromV20(sourceSubmodelElement); 
+                }
             }
 
             return outputSubmodelElement;
