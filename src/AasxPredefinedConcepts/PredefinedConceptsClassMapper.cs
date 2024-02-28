@@ -568,6 +568,27 @@ namespace AasxPredefinedConcepts
             }
 
             //
+            // List<ILangStringTextType>
+            // 
+
+            if (t.IsGenericType
+                && t.GetGenericTypeDefinition() == typeof(List<>)
+                && t.GenericTypeArguments.Count() > 0
+                && t.GenericTypeArguments[0].IsAssignableTo(typeof(IAbstractLangString))
+                && sme is Aas.IMultiLanguageProperty mlp
+                && mlp.Value != null)
+            {
+                // values
+                var v = mlp.Value.Copy();
+
+                // set it
+                f.SetValue(obj, v);
+
+                // done
+                return;
+            }
+
+            //
             // Reference
             //
 
@@ -650,6 +671,19 @@ namespace AasxPredefinedConcepts
 
                 // ok
                 return;
+            }
+
+            //
+            // List<ILangStringTextType>
+            // 
+
+            if (t.IsGenericType
+                && t.GetGenericTypeDefinition() == typeof(List<>)
+                && t.GenericTypeArguments.Count() > 0
+                && t.GenericTypeArguments[0].IsAssignableTo(typeof(IAbstractLangString))
+                && sme is Aas.IMultiLanguageProperty mlp)
+            {
+                ;
             }
 
             //
