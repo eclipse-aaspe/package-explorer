@@ -295,6 +295,25 @@ if (reference.Keys == null || reference.Keys.Count == 0 || otherReference?.Keys 
   => Ask Andreas/ Jui
   - JSON schema export taken over
 
+## Projects, currently unloaded
+
+These projects are not migrated or integrated, yet:
+
+* AasxCsharpLibrary.Tests
+* AasxDictionaryImport.Tests
+* AasxFileServerRestLibrary (already migrated) -> introduce Aas. NS
+* AasxOpenidClient ??
+* AasxRestServerLibrary <- to be replaced by AASX Server sources
+* AasxSchemaExport.Tests
+* AasxUaNetServer
+* AasxIntegrationEmptrySample
+* AasxRestConsoleServer
+* AasxToolkit (already migrated) -> introduce Aas. NS
+* AasxToolkit.Tests
+* AasxUaNetConsoleServer
+* AasxPackageExplorer.GuiTests
+* AasxPackageExplorer.Tests
+* BlazorUI
 
 ## Notes, w.r.t. to procedures
 
