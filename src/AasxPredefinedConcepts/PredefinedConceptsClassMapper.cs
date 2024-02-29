@@ -43,11 +43,22 @@ namespace AasxPredefinedConcepts
 
     /// <summary>
     /// This class is used in auto-generated files by <c>AasxPredefinedConcepts.PredefinedConceptsClassMapper</c>
+    /// It holds min/max information with particular type information.
     /// </summary>
     public class AasClassMapperRange<T>
     {
         public T Min;
         public T Max;
+    }
+
+    /// <summary>
+    /// This class is used in auto-generated files by <c>AasxPredefinedConcepts.PredefinedConceptsClassMapper</c>
+    /// It "replicates" the important information.
+    /// </summary>
+    public class AasClassMapperFile
+    {
+        public string Value = null;
+        public string ContentType = "";
     }
 
     /// <summary>
@@ -209,6 +220,8 @@ namespace AasxPredefinedConcepts
             if (idsff.HasContent() != true)
                 return;
 
+            if (idsff.Contains("ChangeTitle")) { ; }
+
             //
             // check Qualifiers/ Extensions
             //
@@ -267,7 +280,7 @@ namespace AasxPredefinedConcepts
             // Property
             //
 
-            if (rf is Aas.Property prop)
+            if (rf is Aas.IProperty prop)
             {
                 var dt = CSharpTypeFrom(prop.ValueType);
                 declareLambda(dt, true, idsff);
@@ -277,17 +290,26 @@ namespace AasxPredefinedConcepts
             // Range
             //
 
-            if (rf is Aas.Range rng)
+            if (rf is Aas.IRange rng)
             {
                 var dt = CSharpTypeFrom(rng.ValueType);
                 declareLambda($"AasClassMapperRange<{dt}>", false, idsff);
             }
 
             //
+            // File
+            //
+
+            if (rf is Aas.IFile fl)
+            {
+                declareLambda($"AasClassMapperFile", false, idsff);
+            }
+
+            //
             // MultiLanguageProperty
             //
 
-            if (rf is MultiLanguageProperty mlp)
+            if (rf is Aas.IMultiLanguageProperty mlp)
             {
                 declareLambda("List<ILangStringTextType>", false, idsff);
             }
@@ -296,7 +318,7 @@ namespace AasxPredefinedConcepts
             // Reference
             //
 
-            if (rf is ReferenceElement rfe)
+            if (rf is Aas.IReferenceElement rfe)
             {
                 declareLambda("AasClassMapperHintedReference", false, idsff);
             }
@@ -305,7 +327,7 @@ namespace AasxPredefinedConcepts
             // Relation
             //
 
-            if (rf is RelationshipElement rle)
+            if (rf is Aas.IRelationshipElement rle)
             {
                 declareLambda("AasClassMapperHintedRelation", false, idsff);
             }
@@ -578,7 +600,7 @@ namespace AasxPredefinedConcepts
                 && sme is Aas.IMultiLanguageProperty mlp
                 && mlp.Value != null)
             {
-                // values
+                // create usable values
                 var v = mlp.Value.Copy();
 
                 // set it
@@ -683,7 +705,10 @@ namespace AasxPredefinedConcepts
                 && t.GenericTypeArguments[0].IsAssignableTo(typeof(IAbstractLangString))
                 && sme is Aas.IMultiLanguageProperty mlp)
             {
-                ;
+                /* TODO (MIHO, 2024-02-28): check if this case could happen:
+                   Having a List<List<IAbstractLangString>> */
+                throw new NotImplementedException(
+                    "PredefinedConceptClassMapper to add List<ILangStringTextType>");
             }
 
             //
@@ -739,7 +764,10 @@ namespace AasxPredefinedConcepts
             //
 
             {
-                AdminShellUtil.AddToListLazyValue(obj, sme.ValueAsText());
+                /* TODO (MIHO, 2024-02-29): check if it is OK to *NOT* check, if the                
+                 * list is NULL */
+                var listObj = f.GetValue(obj);
+                AdminShellUtil.AddToListLazyValue(listObj, sme.ValueAsText());
             }
         }
 
@@ -750,8 +778,7 @@ namespace AasxPredefinedConcepts
             if (eai?.Fi == null || eai.Attr == null || sme == null)
                 return;
 
-            if (sme?.IdShort == "ManufacturerName")
-            { ; }
+            if (sme?.IdShort == "PcnChangeInformation") { ; }
            
             // straight?
             if (!sme.IsStructured())

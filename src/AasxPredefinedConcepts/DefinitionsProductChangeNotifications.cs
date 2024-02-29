@@ -187,8 +187,12 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnChangeInformation/1/0")]
     public class CD_PcnChangeInformation
     {
+        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnChangeInformation/ChangeTitle/1/0", 
+            Card = AasxPredefinedCardinality.One)]
         public List<ILangStringTextType> ChangeTitle = new List<ILangStringTextType>();
 
+        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnChangeInformation/ChangeDetail/1/0", 
+            Card = AasxPredefinedCardinality.One)]
         public List<ILangStringTextType> ChangeDetail = new List<ILangStringTextType>();
 
         // auto-generated informations
@@ -198,6 +202,9 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/AdditionalInformation/List/1/0")]
     public class CD_AdditionalInformations
     {
+        [AasConcept(Cd = "0173-1#01-ADN356#009", 
+            Card = AasxPredefinedCardinality.ZeroToMany)]
+        public List<AasClassMapperFile> AdditionalInformation = new List<AasClassMapperFile>();
 
         // auto-generated informations
         public AasClassMapperInfo __Info__ = null;

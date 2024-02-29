@@ -918,7 +918,7 @@ namespace AdminShellNS
         }
 
         /// <summary>
-        /// Rathhe sepcialised: adding a type-specific value to a list
+        /// Rather specialised: adding a type-specific value to a list
         /// of type-specific values. 
         /// Works for most scalars, dateTime, string.
         /// </summary>
