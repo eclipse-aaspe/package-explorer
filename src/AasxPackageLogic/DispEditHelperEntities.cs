@@ -1307,7 +1307,8 @@ namespace AasxPackageLogic
                             if (ks != null)
                             {
                                 // create ref
-                                var smr = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>(ks));
+                                //var smr = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>(ks));
+                                var smr = new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>(ks));
                                 aas.Submodels.Add(smr);
 
                                 // event for AAS

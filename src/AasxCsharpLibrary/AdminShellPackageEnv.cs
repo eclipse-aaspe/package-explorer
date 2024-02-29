@@ -773,7 +773,7 @@ namespace AdminShellNS
                             System.Net.Mime.MediaTypeNames.Text.Plain, CompressionOption.Maximum);
                         using (var s = originPart.GetStream(FileMode.Create))
                         {
-                            var bytes = System.Text.Encoding.ASCII.GetBytes("Intentionally empty.");
+                            var bytes = System.Text.Encoding.ASCII.GetBytes("Intentionally empty");
                             s.Write(bytes, 0, bytes.Length);
                         }
                         package.CreateRelationship(
@@ -1086,8 +1086,11 @@ namespace AdminShellNS
             finally
             {
                 // even after failing of the lambda, the package shall be re-opened
-                _openPackage = Package.Open(Filename, FileMode.OpenOrCreate);
-            }
+                if (Filename.ToLower().EndsWith(".aasx"))
+                {
+                    _openPackage = Package.Open(Filename, FileMode.OpenOrCreate);
+
+                }            }
         }
 
         private int BackupIndex = 0;
