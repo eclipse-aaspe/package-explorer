@@ -36,6 +36,9 @@ The components below are used in AASX Package Explorer.
 The related licenses are listed for information purposes only.
 Some licenses may only apply to their related plugins.
 
+When using eCl@ss or IEC CDD data, please check the corresponding license
+conditions.
+
 The browser functionality is licensed under the cefSharp license.
 
 The Newtonsoft.JSON serialization is licensed under the MIT License.
