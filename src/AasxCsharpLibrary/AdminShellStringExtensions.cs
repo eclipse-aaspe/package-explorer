@@ -24,9 +24,31 @@ namespace AdminShellNS
 {
     public static class AdminShellStringExtensions
     {
+        /// <summary>
+        /// Check if real content is in a string
+        /// </summary>
         public static bool HasContent(this string str)
         {
             return str != null && str.Trim() != "";
+        }
+
+        /// <summary>
+        /// Multiple a string into a iterable list
+        /// </summary>
+        public static IEnumerable<string> Times(this string str, int num = 1)
+        {
+            for (int i= 0; i < num; i++)
+                yield return str;
+        }
+
+        /// <summary>
+        /// Adds an items to a sequence of strings.
+        /// </summary>
+        public static IEnumerable<string> Add(this IEnumerable<string> seq, string str)
+        {
+            foreach (var s in seq)
+                yield return s;
+            yield return str;
         }
 
         public static string SubstringMax(this string str, int pos, int len)
