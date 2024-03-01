@@ -55,6 +55,16 @@ namespace AasxPredefinedConcepts
     /// This class is used in auto-generated files by <c>AasxPredefinedConcepts.PredefinedConceptsClassMapper</c>
     /// It "replicates" the important information.
     /// </summary>
+    public class AasClassMapperBlob
+    {
+        public string Value = null;
+        public string ContentType = "";
+    }
+
+    /// <summary>
+    /// This class is used in auto-generated files by <c>AasxPredefinedConcepts.PredefinedConceptsClassMapper</c>
+    /// It "replicates" the important information.
+    /// </summary>
     public class AasClassMapperFile
     {
         public string Value = null;
@@ -590,6 +600,48 @@ namespace AasxPredefinedConcepts
             }
 
             //
+            // Blob
+            //
+
+            if (t == typeof(AasClassMapperBlob)
+                && sme is Aas.IBlob blb)
+            {
+                // create generic instance
+                var flObj = new AasClassMapperFile()
+                {
+                    Value = System.Text.Encoding.Default.GetString(blb.Value),
+                    ContentType = blb.ContentType
+                };
+
+                // set it
+                f.SetValue(obj, flObj);
+
+                // done
+                return;
+            }
+
+            //
+            // File
+            //
+
+            if (t == typeof(AasClassMapperFile)
+                && sme is Aas.IFile fl)
+            {
+                // create generic instance
+                var flObj = new AasClassMapperFile()
+                {
+                    Value = fl.Value,
+                    ContentType = fl.ContentType
+                };
+
+                // set it
+                f.SetValue(obj, flObj);
+
+                // done
+                return;
+            }
+
+            //
             // List<ILangStringTextType>
             // 
 
@@ -680,6 +732,9 @@ namespace AasxPredefinedConcepts
             // Range
             //
 
+            /* TODO (MIHO, 2024-02-29): I am pretty sure that this "if" needs to be
+             * reworked according to the file section below */
+
             if (t.IsGenericType
                 && t.GetGenericTypeDefinition() == typeof(AasClassMapperRange<>)
                 && sme is Aas.IRange rng)
@@ -690,6 +745,56 @@ namespace AasxPredefinedConcepts
                 // add it
                 var listObj = f.GetValue(obj);
                 listObj.GetType().GetMethod("Add").Invoke(listObj, new[] { rngObj });
+
+                // ok
+                return;
+            }
+
+            //
+            // Blob
+            //
+
+            if (t.IsGenericType
+                && t.GetGenericTypeDefinition() == typeof(List<>)
+                && t.GenericTypeArguments.Count() > 0
+                && t.GenericTypeArguments[0].IsAssignableTo(typeof(AasClassMapperFile))
+                && sme is Aas.IBlob blb)
+            {
+                // create generic instance
+                var flObj = new AasClassMapperFile()
+                {
+                    Value = System.Text.Encoding.Default.GetString(blb.Value),
+                    ContentType = blb.ContentType
+                };
+
+                // add it
+                var listObj = f.GetValue(obj);
+                listObj.GetType().GetMethod("Add").Invoke(listObj, new[] { flObj });
+
+                // ok
+                return;
+            }
+
+            //
+            // File
+            //
+
+            if (t.IsGenericType
+                && t.GetGenericTypeDefinition() == typeof(List<>)
+                && t.GenericTypeArguments.Count() > 0
+                && t.GenericTypeArguments[0].IsAssignableTo(typeof(AasClassMapperFile))
+                && sme is Aas.IFile fl)
+            {
+                // create generic instance
+                var flObj = new AasClassMapperFile()
+                {
+                    Value = fl.Value,
+                    ContentType = fl.ContentType
+                };
+
+                // add it
+                var listObj = f.GetValue(obj);
+                listObj.GetType().GetMethod("Add").Invoke(listObj, new[] { flObj });
 
                 // ok
                 return;
@@ -778,7 +883,7 @@ namespace AasxPredefinedConcepts
             if (eai?.Fi == null || eai.Attr == null || sme == null)
                 return;
 
-            if (sme?.IdShort == "PcnChangeInformation") { ; }
+            if (sme?.IdShort == "AdditionalInformation{00}") { ; }
            
             // straight?
             if (!sme.IsStructured())
