@@ -18,6 +18,7 @@ using Extensions;
 using AnyUi;
 using Newtonsoft.Json;
 using AasxPredefinedConcepts;
+using System.Reflection.PortableExecutable;
 
 namespace AasxPluginProductChangeNotifications
 {
@@ -46,6 +47,8 @@ namespace AasxPluginProductChangeNotifications
 
         protected int _selectedLangIndex = 0;
         protected string _selectedLangStr = null;
+
+        protected int _pcnIndex = 0;
 
         #endregion
 
@@ -147,7 +150,7 @@ namespace AasxPluginProductChangeNotifications
             AdminShellPackageEnv package,
             Aas.Submodel sm)
         {
-            // make an outer grid, very simple grid of two rows: header & body
+            // make an outer grid, very simple grid of three rows: header, list, details
             var outer = view.Add(uitk.AddSmallGrid(rows: 7, cols: 1, colWidths: new[] { "*" }));
 
             //
@@ -163,10 +166,44 @@ namespace AasxPluginProductChangeNotifications
                 foreground: AnyUiBrushes.DarkBlue,
                 fontSize: 1.5f,
                 setBold: true,
-                content: $"Product Change Notifications");
+                content: $"PCN #{_pcnIndex:D3}");
+
+            Func<int, AnyUiLambdaActionBase> lambdaButtonClick = (i) => {
+                // mode change
+                switch (i)
+                {
+                    case 0:
+                        _pcnIndex = 0;
+                        break;
+                    case 1:
+                        _pcnIndex = Math.Max(0, _pcnIndex - 1);
+                        break;
+                    case 2:
+                        _pcnIndex = Math.Min(5, _pcnIndex + 1);
+                        break;
+                    case 3:
+                        _pcnIndex = 5;
+                        break;
+                }
+
+                //redisplay
+                PushUpdateEvent();
+                return new AnyUiLambdaActionNone();
+            };
+
+            for (int i = 0; i < 4; i++)
+            {
+                var thisI = i;
+                AnyUiUIElement.RegisterControl(
+                    uitk.AddSmallButtonTo(bluebar, 0, 1 + i,
+                        margin: new AnyUiThickness(2), setHeight: 21,
+                        padding: new AnyUiThickness(2, 0, 2, 0),
+                        content: (new[] { "\u2759\u25c0", "\u25c0", "\u25b6", "\u25b6\u2759" })[i]),
+                        (o) => lambdaButtonClick(thisI));
+            }
 
             //
-            // Scroll area
+            // Scroll area (list)
             //
 
             // small spacer
@@ -235,6 +272,43 @@ namespace AasxPluginProductChangeNotifications
 
             var grid = view.Add(uitk.AddSmallGrid(rows: 5, cols: 2, colWidths: new[] { "110:", "*" }));
 
+        }
+
+        #endregion
+
+        #region Event handling
+        //=============
+
+        private Action<AasxPluginEventReturnBase> _menuSubscribeForNextEventReturn = null;
+
+        protected void PushUpdateEvent(AnyUiRenderMode mode = AnyUiRenderMode.All)
+        {
+            // bring it to the panel by redrawing the plugin
+            _eventStack?.PushEvent(new AasxPluginEventReturnUpdateAnyUi()
+            {
+                // get the always currentplugin name
+                PluginName = _plugin?.GetPluginName(),
+                Session = _session,
+                Mode = mode,
+                UseInnerGrid = true
+            });
+        }
+
+        public void HandleEventReturn(AasxPluginEventReturnBase evtReturn)
+        {
+            // demands from shelf
+            if (_menuSubscribeForNextEventReturn != null)
+            {
+                // delete first
+                var tempLambda = _menuSubscribeForNextEventReturn;
+                _menuSubscribeForNextEventReturn = null;
+
+                // execute
+                tempLambda(evtReturn);
+
+                // finish
+                return;
+            }
         }
 
         #endregion
