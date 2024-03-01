@@ -212,6 +212,11 @@ namespace AnyUi
                 Convert.ToByte(level0 * c0.B + level1 * c1.B)
             );
         }
+
+        public Single Blackness()
+        {
+            return ScA * (1.0f - 0.3333f * (ScR + ScG + ScB));
+        }
     }
 
     public class AnyUiColors
@@ -245,6 +250,11 @@ namespace AnyUi
             solidColorBrush = new AnyUiColor(c);
         }
 
+        public AnyUiBrush(string st)
+        {
+            solidColorBrush = AnyUiColor.FromString(st);   
+        }
+
         public string HtmlRgb()
         {
             return "rgb(" +
@@ -260,7 +270,7 @@ namespace AnyUi
                 solidColorBrush.G + ", " +
                 solidColorBrush.B + ", " +
                 string.Format(CultureInfo.InvariantCulture, "{0:0.00}", 1.0 * solidColorBrush.A / 255.0) + ")";
-        }
+        }        
     }
 
     public class AnyUiBrushes

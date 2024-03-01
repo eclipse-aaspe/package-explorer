@@ -20,6 +20,13 @@ using Newtonsoft.Json;
 using AasxPredefinedConcepts;
 using System.Reflection.PortableExecutable;
 
+using PDPCN = AasxPredefinedConcepts.ProductChangeNotifications;
+using System.Windows.Documents;
+using System.Linq;
+using System.Globalization;
+using System.Windows.Controls;
+using AasxIntegrationBaseGdi;
+
 namespace AasxPluginProductChangeNotifications
 {
     public class PcnAnyUiControl
@@ -35,6 +42,8 @@ namespace AasxPluginProductChangeNotifications
         private PluginSessionBase _session = null;
         private AnyUiStackPanel _panel = null;
         private AasxPluginBase _plugin = null;
+
+        private PDPCN.CD_ProductChangeNotifications _pcnData = new PDPCN.CD_ProductChangeNotifications();
 
         protected AnyUiSmallWidgetToolkit _uitk = new AnyUiSmallWidgetToolkit();
 
@@ -135,20 +144,21 @@ namespace AasxPluginProductChangeNotifications
                 foundRecs.Add(rec);
 
             // try decode
-            var pcnSm = new AasxPredefinedConcepts.ProductChangeNotifications.CD_ProductChangeNotifications();
+            _pcnData = new PDPCN.CD_ProductChangeNotifications();
             PredefinedConceptsClassMapper.ParseAasElemsToObject(
-                sm, pcnSm, 
+                sm, _pcnData, 
                 lambdaLookupReference: (rf) => package?.AasEnv?.FindReferableByReference(rf));
 
             // render
-            RenderPanelOutside(view, uitk, foundRecs, package, sm);
+            RenderPanelOutside(view, uitk, foundRecs, package, sm, _pcnData);
         }
 
         protected void RenderPanelOutside(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             IEnumerable<PcnOptionsRecord> foundRecs,
             AdminShellPackageEnv package,
-            Aas.Submodel sm)
+            Aas.Submodel sm,
+            PDPCN.CD_ProductChangeNotifications data)
         {
             // make an outer grid, very simple grid of three rows: header, list, details
             var outer = view.Add(uitk.AddSmallGrid(rows: 7, cols: 1, colWidths: new[] { "*" }));
@@ -170,21 +180,22 @@ namespace AasxPluginProductChangeNotifications
 
             Func<int, AnyUiLambdaActionBase> lambdaButtonClick = (i) => {
                 // mode change
-                switch (i)
-                {
-                    case 0:
-                        _pcnIndex = 0;
-                        break;
-                    case 1:
-                        _pcnIndex = Math.Max(0, _pcnIndex - 1);
-                        break;
-                    case 2:
-                        _pcnIndex = Math.Min(5, _pcnIndex + 1);
-                        break;
-                    case 3:
-                        _pcnIndex = 5;
-                        break;
-                }
+                if (data?.Records?.Record != null)
+                    switch (i)
+                    {
+                        case 0:
+                            _pcnIndex = 0;
+                            break;
+                        case 1:
+                            _pcnIndex = Math.Max(0, _pcnIndex - 1);
+                            break;
+                        case 2:
+                            _pcnIndex = Math.Min(data.Records.Record.Count - 1, _pcnIndex + 1);
+                            break;
+                        case 3:
+                            _pcnIndex = data.Records.Record.Count - 1;
+                            break;
+                    }
 
                 //redisplay
                 PushUpdateEvent();
@@ -240,7 +251,9 @@ namespace AasxPluginProductChangeNotifications
 
             if (foundRecs != null)
                 foreach (var rec in foundRecs)
-                    RenderPanelInner(inner, uitk, rec, package, sm);
+                    if (data?.Records?.Record != null
+                        && _pcnIndex >= 0 && _pcnIndex < data.Records.Record.Count)
+                        RenderPanelInner(inner, uitk, rec, package, sm, data.Records.Record[_pcnIndex]);
         }
 
         #endregion
@@ -260,17 +273,261 @@ namespace AasxPluginProductChangeNotifications
             };
         }
 
+        protected int _innerDocumentCols = 6;
+
+        protected int InnerDocGetNewRow(AnyUiGrid grid)
+        {
+            if (grid == null)
+                return 0;
+            int row = grid.RowDefinitions.Count;
+            grid.RowDefinitions.Add(new AnyUiRowDefinition());
+            return row;
+        }
+
+        protected void InnerDocAddHeadline(
+            AnyUiSmallWidgetToolkit uitk,
+            AnyUiGrid grid, int col,
+            string heading, int level,
+            int assignRow = -1)
+        {
+            // access and add row
+            if (grid == null)
+                return;
+            int row = (assignRow >= 0) ? assignRow : InnerDocGetNewRow(grid);
+
+            var bg = AnyUi.AnyUiBrushes.DarkBlue;
+            var fg = AnyUi.AnyUiBrushes.White;
+            var bold = true;
+
+            if (level == 2)
+            {
+                bg = AnyUi.AnyUiBrushes.LightBlue;
+                fg = AnyUi.AnyUiBrushes.Black;
+                bold = true;
+            }
+
+            uitk.Set(
+                uitk.AddSmallBasicLabelTo(grid, row, col,
+                    colSpan: _innerDocumentCols - col,
+                    background: bg,
+                    foreground: fg,
+                    content: heading,
+                    setBold: bold),
+                margin: new AnyUiThickness(0, 14, 0, 6));
+        }
+
+        protected void InnerDocAddText(
+            AnyUiSmallWidgetToolkit uitk,
+            AnyUiGrid grid, int col, int keyCols,
+            string key,
+            string text)
+        {
+            // access and add row
+            if (grid == null)
+                return;
+            int row = InnerDocGetNewRow(grid);
+
+            // key
+            uitk.AddSmallBasicLabelTo(grid, row, col,
+                colSpan: _innerDocumentCols - col,
+                content: key,
+                setBold: true);
+
+            // text
+            uitk.AddSmallBasicLabelTo(grid, row, col + keyCols,
+                colSpan: _innerDocumentCols - col - keyCols,
+                content: text,
+                setBold: false);
+        }
+
+        protected void InnerDocAddLifeCycleMilestones(
+            AnyUiSmallWidgetToolkit uitk,
+            AnyUiGrid grid, int col, 
+            IList<PDPCN.CD_LifeCycleMilestone> milestones)
+        {
+            // access and add row
+            if (grid == null || milestones == null || milestones.Count < 1)
+                return;
+            int row = InnerDocGetNewRow(grid);
+
+            // make inner grid
+            var inner = uitk.Set(
+                uitk.AddSmallGridTo(grid, row, col, 
+                    rows: 1, cols: milestones.Count + 1,
+                    colWidths: "#".Times(milestones.Count).Add("*").ToArray()),
+                colSpan: _innerDocumentCols - col);
+
+            // have milestone name to color mapping
+            var x = new Dictionary<string, AnyUiBrush>();
+            x.Add("SOP",  new AnyUiBrush("#0128CB"));
+            x.Add("NRND", new AnyUiBrush("#F9F871"));
+            x.Add("PCN",  new AnyUiBrush("#00B9CD"));
+            x.Add("PDN",  new AnyUiBrush("#FFBA44"));
+            x.Add("EOS",  new AnyUiBrush("#FF724F"));
+            x.Add("EOP",  new AnyUiBrush("#FF0076"));
+            x.Add("LTD",  new AnyUiBrush("#B10000"));
+            x.Add("EOSR", new AnyUiBrush("#C400A6"));
+
+            // single "boxes"
+            for (int ci=0; ci<milestones.Count; ci++) 
+            {
+                // make the border
+                var brd = uitk.AddSmallBorderTo(inner, 0, ci,
+                                margin: (ci == 0) ? new AnyUiThickness(0, -1, 0, 0)
+                                                  : new AnyUiThickness(-1, -1, 0, 0),
+                                borderThickness: new AnyUiThickness(1.0), 
+                                borderBrush: AnyUiBrushes.Black);
+
+                // find a nice color coding
+                var bg = AnyUiBrushes.Transparent;
+                var lookup = ("" + milestones[ci].MilestoneClassification).ToUpper().Trim();
+                if (x.ContainsKey(lookup))
+                    bg = x[lookup];
+                var fg = AnyUiBrushes.Black;
+                if (bg.Color.Blackness() > 0.5)
+                    fg = AnyUiBrushes.White;
+
+                // provide a nice date
+                var vd = "" + milestones[ci].DateOfValidity;
+                if (DateTime.TryParseExact(vd,
+                    "yyyy-MM-dd'T'HH:mm:ssZ", CultureInfo.InvariantCulture,
+                        DateTimeStyles.AdjustToUniversal, out DateTime dt))
+                {
+                    var delta = dt - DateTime.UtcNow;
+                    var sign = (delta > TimeSpan.Zero) ? "in" : "ago";
+                    var days = Convert.ToInt32(Math.Abs(delta.TotalDays));
+                    var years = 0;
+                    if (days > 365)
+                    {
+                        years = days / 365;
+                        days = days % 365;
+                    }
+                    vd = $"{sign} {(years > 0 ? $"{years} yrs " : "")} {days} days";
+                }
+
+                // make the 2 row content grid
+                var mg = uitk.AddSmallGrid(2, 1, new[] { "110:" }, new[] { "40:", "#" },
+                background: bg,
+                margin: new AnyUiThickness(2));
+                brd.Child = mg;
+
+                uitk.AddSmallBasicLabelTo(mg, 0, 0,   
+                    foreground: fg,
+                    fontSize: 1.5f,
+                    setBold: true,
+                    horizontalAlignment: AnyUiHorizontalAlignment.Center,
+                    horizontalContentAlignment: AnyUiHorizontalAlignment.Center,
+                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                    verticalContentAlignment: AnyUiVerticalAlignment.Center,
+                    content: "" + milestones[ci].MilestoneClassification);
+
+                uitk.AddSmallBasicLabelTo(mg, 1, 0,
+                    foreground: fg,
+                    fontSize: 0.8f,
+                    setBold: false,
+                    horizontalAlignment: AnyUiHorizontalAlignment.Center,
+                    horizontalContentAlignment: AnyUiHorizontalAlignment.Center,
+                    content: vd,
+                    margin: new AnyUiThickness(0, 0, 0, 4));
+            }
+        }
+
         protected void RenderPanelInner(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             PcnOptionsRecord rec,
             AdminShellPackageEnv package,
-            Aas.Submodel sm)
+            Aas.Submodel sm,
+            PDPCN.CD_Record data)
         {
             // access
             if (view == null || uitk == null || sm == null || rec == null)
                 return;
 
-            var grid = view.Add(uitk.AddSmallGrid(rows: 5, cols: 2, colWidths: new[] { "110:", "*" }));
+            // 
+            // Document approach via Grid.
+            // Basically one large grid, which helps synchronizing multiple identation levels.
+            //
+
+            var grid = view.Add(uitk.AddSmallGrid(rows: 5, cols: _innerDocumentCols, 
+                colWidths: new[] { "70:", "70:", "70:", "70:", "70:", "*" }));
+
+            // Manufacturer
+            if (data.Manufacturer != null)
+            {
+                InnerDocAddHeadline(uitk, grid, 0, "Manufacturer", 1);
+                
+                InnerDocAddText(uitk, grid, 0, 2, "ManufacturerName", 
+                    data.Manufacturer.ManufacturerName?.GetDefaultString(_selectedLangStr));
+
+                InnerDocAddText(uitk, grid, 0, 2, "AdressInformation",
+                    "<TBD>");
+
+                InnerDocAddText(uitk, grid, 0, 2, "ManufacturerChangeID",
+                    "" + data.ManufacturerChangeID);
+            }
+
+            // Life cylce mile stones
+            if (data.LifeCycleData?.Milestone != null && data.LifeCycleData.Milestone.Count > 0)
+            {
+                InnerDocAddHeadline(uitk, grid, 0, "Life cycle mile stones", 1);
+
+                InnerDocAddLifeCycleMilestones(uitk, grid, 0, data.LifeCycleData.Milestone);
+            }
+
+            // asset, partnumbers, items
+            if (data.ItemOfChange != null)
+            {
+                InnerDocAddHeadline(uitk, grid, 0, "Identfication of changed item", 1);
+
+                InnerDocAddText(uitk, grid, 0, 2, "ManufacturerAssetID",
+                    "" + data.ItemOfChange.ManufacturerAssetID?.Value?.ToStringExtended(1));
+
+                // make a grid for two columns
+                int row = InnerDocGetNewRow(grid);
+                var twoColGrid =
+                    uitk.Set(
+                        uitk.AddSmallGridTo(grid, row, 0, rows: 1, cols: 2, new[] { "1*", "2*" }),
+                        colSpan: _innerDocumentCols);
+
+                // access asset information
+                if (data.ItemOfChange.ManufacturerAssetID?.ValueHint is Aas.IAssetAdministrationShell aas
+                    && aas.AssetInformation is Aas.IAssetInformation ai
+                    && ai.DefaultThumbnail?.Path != null)
+                {
+                    var img = AnyUiGdiHelper.LoadBitmapInfoFromPackage(package, ai.DefaultThumbnail.Path);
+
+                    uitk.Set(
+                        uitk.AddSmallImageTo(twoColGrid, 0, 0,
+                            margin: new AnyUiThickness(2, 8, 2, 2),
+                            stretch: AnyUiStretch.Uniform,
+                            bitmap: img),
+                    maxHeight: 400, maxWidth: 400,
+                    rowSpan:2,
+                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
+                    verticalAlignment: AnyUiVerticalAlignment.Stretch);
+                }
+
+                // identification info
+                if (true)
+                {
+                    var colTwoGrid =
+                    uitk.Set(
+                        uitk.AddSmallGridTo(twoColGrid, 0, 1,
+                            rows: 1, cols: 3, new[] { "70:", "70:", "*" }));
+
+                    InnerDocAddHeadline(uitk, colTwoGrid, 0, "ItemOfChange", 1,
+                        assignRow: 0);
+
+                    InnerDocAddText(uitk, colTwoGrid, 0, 2, "Mfg.Prod.Family",
+                        data.ItemOfChange.ManufacturerProductFamily?.GetDefaultString(_selectedLangStr));
+
+                    InnerDocAddText(uitk, colTwoGrid, 0, 2, "Mfg.Prod.Deign.",
+                        data.ItemOfChange.ManufacturerProductDesignation?.GetDefaultString(_selectedLangStr));
+
+                    InnerDocAddText(uitk, colTwoGrid, 0, 2, "Order Code Mfg.",
+                        data.ItemOfChange.OrderCodeOfManufacturer?.GetDefaultString(_selectedLangStr));
+                }
+            }
 
         }
 
