@@ -1112,6 +1112,34 @@ namespace AdminShellNS
             return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
         }
 
+        /// <summary>
+        /// Tries to add scheme etc. to form a valid URI.
+        /// <c>uri</c> with starting '/' are left untouched.
+        /// If not can to convert to <c>Uri()</c>, will return <c>false</c>.
+        /// </summary>
+        public static bool TryReFormatAsValidUri(ref string uri)
+        {
+            // basic checks
+            if (uri?.HasContent() != true)
+                return false;
+            uri = uri.Trim();
+            if (uri.StartsWith('/'))
+                return true;
+
+            // if no scheme, default is https://
+            if (!uri.Contains("://"))
+                uri = "https://" + uri;
+
+            // do the litmus test
+            if (Uri.TryCreate(uri, UriKind.Absolute, out var myUri))
+            {
+                // use that uri
+                uri = myUri.ToString();
+                return true;
+            }
+            return false;
+        }
+
         public static bool CheckIfAsciiOnly(byte[] data, int bytesToCheck = int.MaxValue)
         {
             if (data == null)
