@@ -47,6 +47,12 @@ namespace AasxPluginProductChangeNotifications
 
         protected AnyUiSmallWidgetToolkit _uitk = new AnyUiSmallWidgetToolkit();
 
+        protected static Dictionary<string, PDPCN.PcnReasonDescription> _dictIdToReason =
+            PDPCN.PcnReasonDescription.BuildDict();
+
+        protected static Dictionary<string, PDPCN.PcnItemDescription> _dictIdToItem =
+            PDPCN.PcnItemDescription.BuildDict();
+
         #endregion
 
         #region Members to be kept for state/ update
@@ -312,32 +318,60 @@ namespace AasxPluginProductChangeNotifications
                     background: bg,
                     foreground: fg,
                     content: heading,
-                    setBold: bold),
+                    setBold: bold,
+                    padding: new AnyUiThickness(2,0,0,0)),
                 margin: new AnyUiThickness(0, 14, 0, 6));
         }
 
         protected void InnerDocAddText(
             AnyUiSmallWidgetToolkit uitk,
             AnyUiGrid grid, int col, int keyCols,
-            string key,
-            string text)
+            string[] texts,            
+            int[] bold = null,
+            int[] wrap = null)
         {
             // access and add row
-            if (grid == null)
+            if (grid == null || texts == null)
                 return;
             int row = InnerDocGetNewRow(grid);
 
             // key
-            uitk.AddSmallBasicLabelTo(grid, row, col,
-                colSpan: _innerDocumentCols - col,
-                content: key,
-                setBold: true);
+            if (texts.Length > 0)
+            {
+                uitk.AddSmallBasicLabelTo(grid, row, col,
+                    colSpan: _innerDocumentCols - col,
+                    content: texts[0],
+                    setBold: bold != null && bold.Contains(0),
+                    textWrapping: (wrap != null && wrap.Contains(0)) 
+                        ? AnyUiTextWrapping.Wrap : null);
+            }
 
-            // text
-            uitk.AddSmallBasicLabelTo(grid, row, col + keyCols,
-                colSpan: _innerDocumentCols - col - keyCols,
-                content: text,
-                setBold: false);
+            // text(s)
+            for (int i = 1; i < texts.Length; i++)
+            {
+                uitk.AddSmallBasicLabelTo(grid, row, col + keyCols + i - 1,
+                    colSpan: (i != texts.Length - 1) 
+                        ? 1 
+                        : _innerDocumentCols - col - keyCols - (texts.Length - 2),
+                    content: texts[i],
+                    setBold: bold != null && bold.Contains(i),
+                    textWrapping: (wrap != null && wrap.Contains(i))
+                        ? AnyUiTextWrapping.Wrap : null);
+            }
+        }
+
+        protected void InnerDocAddText(
+            AnyUiSmallWidgetToolkit uitk,
+            AnyUiGrid grid, int col, int keyCols,
+            string key,
+            string text,
+            AnyUiTextWrapping? wrapText = null)
+        {
+            InnerDocAddText(
+                uitk, grid, col, keyCols,
+                new[] { key, text },
+                bold: new[] { 0 },
+                wrap: (wrapText != AnyUiTextWrapping.Wrap) ? null : (new[] { 1 }));
         }
 
         protected void InnerDocAddLifeCycleMilestones(
@@ -432,6 +466,196 @@ namespace AasxPluginProductChangeNotifications
             }
         }
 
+        protected void InnerDocAddAffectedPartNumbers(
+            AnyUiSmallWidgetToolkit uitk,
+            AnyUiGrid grid, int col,
+            IList<string> partNumbers)
+        {
+            // access and add row
+            if (grid == null || partNumbers == null || partNumbers.Count < 1)
+                return;
+            int row = InnerDocGetNewRow(grid);
+
+            // set layout
+            var numRows = 1 + partNumbers.Count / 3;
+
+            // make inner grid
+            var inner = uitk.Set(
+                uitk.AddSmallGridTo(grid, row, col,
+                    rows: numRows, cols: 3,
+                    colWidths: "*".Times(3).ToArray()),
+                colSpan: _innerDocumentCols - col);
+
+            // single "boxes"
+            for (int i = 0; i < partNumbers.Count; i++)
+            {
+                // row, col
+                var ri = i % numRows;
+                var ci = i / numRows;
+
+                // make the border
+                var brd = uitk.AddSmallBorderTo(inner, ri, ci,
+                    margin: (ci == 0) ? new AnyUiThickness(0, -1, 0, 0)
+                                        : new AnyUiThickness(-1, -1, 0, 0),
+                    borderThickness: new AnyUiThickness(1.0),
+                    borderBrush: AnyUiBrushes.Black);
+
+                brd.Child = new AnyUiSelectableTextBlock()
+                {
+                    Text = "" + partNumbers[i],
+                    Padding = new AnyUiThickness(1),
+                    FontSize = 0.9f,
+                    TextWrapping = AnyUiTextWrapping.Wrap,
+                    HorizontalAlignment = AnyUiHorizontalAlignment.Center,
+                    HorizontalContentAlignment = AnyUiHorizontalAlignment.Center,
+                    VerticalAlignment = AnyUiVerticalAlignment.Center,
+                    VerticalContentAlignment = AnyUiVerticalAlignment.Center
+                };
+            }
+        }
+
+        protected void InnerDocDisplaySaveFile(
+            string uri, string contentType, bool display, bool save)
+        {
+            // first check
+            if (uri == null || uri.Trim().Length < 1
+                || _eventStack == null)
+                return;
+
+            try
+            {
+                // temp input
+                var inputFn = uri;
+                try
+                {
+                    if (!inputFn.ToLower().Trim().StartsWith("http://")
+                            && !inputFn.ToLower().Trim().StartsWith("https://"))
+                        inputFn = _package?.MakePackageFileAvailableAsTempFile(inputFn);
+                }
+                catch (Exception ex)
+                {
+                    _log?.Error(ex, "Making local file available");
+                }
+
+                // give over to event stack
+                _eventStack?.PushEvent(new AasxPluginResultEventDisplayContentFile()
+                {
+                    SaveInsteadDisplay = save,
+                    ProposeFn = System.IO.Path.GetFileName(uri),
+                    Session = _session,
+                    fn = inputFn,
+                    mimeType = contentType
+                });
+            }
+            catch (Exception ex)
+            {
+                _log?.Error(ex, "when executing file action");
+            }
+        }
+
+        protected void InnerDocAddAdditionalInfo(
+            AnyUiSmallWidgetToolkit uitk,
+            AnyUiGrid grid, int col,
+            IList<AasClassMapperFile> addInfo)
+        {
+            // access and add row
+            if (grid == null || addInfo == null || addInfo.Count < 1)
+                return;
+            int row = InnerDocGetNewRow(grid);
+
+            // make inner grid
+            var inner = uitk.Set(
+                uitk.AddSmallGridTo(grid, row, col,
+                    rows: addInfo.Count, cols: 3,
+                    colWidths: new[] { "#", "*", "#" }),
+                colSpan: _innerDocumentCols - col);
+
+            // single "boxes"
+            for (int i = 0; i < addInfo.Count; i++)
+            {
+                // handle good & bad path values as uri
+                var uriStr = addInfo[i].Value;
+                var contentType = addInfo[i].ContentType;
+                var uriValid = AdminShellUtil.TryReFormatAsValidUri(ref uriStr);
+
+                // border: symbol
+                var brdSymbol = uitk.AddSmallBorderTo(inner, i, 0,
+                    margin: (true) ? new AnyUiThickness(0, -1, 0, 0)
+                                        : new AnyUiThickness(-1, -1, 0, 0),
+                    borderThickness: new AnyUiThickness(1.0),
+                    background: AnyUiBrushes.DarkGray,
+                    borderBrush: AnyUiBrushes.DarkGray);
+
+                // child: symbol
+                brdSymbol.Child = new AnyUiSelectableTextBlock()
+                {
+                    Text = "\U0001F5CE",
+                    Background = AnyUiBrushes.DarkGray,
+                    Foreground = AnyUiBrushes.White,
+                    Padding = new AnyUiThickness(4, 2, 4, 2),
+                    FontSize = 1.0f,
+                    FontWeight = AnyUiFontWeight.Bold,
+                    HorizontalAlignment = AnyUiHorizontalAlignment.Center,
+                    HorizontalContentAlignment = AnyUiHorizontalAlignment.Center,
+                    VerticalAlignment = AnyUiVerticalAlignment.Center,
+                    VerticalContentAlignment = AnyUiVerticalAlignment.Center
+                };
+
+                // border: inner link
+                var brdLink = uitk.AddSmallBorderTo(inner, i, 1,
+                    margin: (false) ? new AnyUiThickness(0, -1, 0, 0)
+                                        : new AnyUiThickness(-1, -1, 0, 0),
+                    borderThickness: new AnyUiThickness(1.0),
+                    borderBrush: AnyUiBrushes.DarkGray);
+
+                // child: inner link
+                brdLink.Child =
+                    AnyUiUIElement.RegisterControl(
+                        new AnyUiSelectableTextBlock()
+                        {
+                            Text = "" + uriStr,
+                            Padding = new AnyUiThickness(4, 2, 4, 2),
+                            FontSize = 1.0f,
+                            TextWrapping = AnyUiTextWrapping.Wrap,
+                            TextAsHyperlink = uriValid,
+                            VerticalAlignment = AnyUiVerticalAlignment.Center,
+                            VerticalContentAlignment = AnyUiVerticalAlignment.Center
+                        },
+                        setValue: (o) =>
+                        {
+                            InnerDocDisplaySaveFile(uriStr, contentType,
+                                display: true, save: false);
+                            return new AnyUiLambdaActionNone();
+                        });
+
+                // border: button
+                var brdBtn = uitk.AddSmallBorderTo(inner, i, 2,
+                    margin: (false) ? new AnyUiThickness(0, -1, 0, 0)
+                                        : new AnyUiThickness(-1, -1, 0, 0),
+                    borderThickness: new AnyUiThickness(1.0),
+                    borderBrush: AnyUiBrushes.DarkGray);
+
+                // child: button
+                brdBtn.Child =
+                    AnyUiUIElement.RegisterControl(
+                        new AnyUiButton()
+                        {
+                            Content = "\U0001f80b",
+                            Padding = new AnyUiThickness(2, -3, 2, -3),
+                            Margin = new AnyUiThickness(2),
+                            FontSize = 0.8f,
+                            HorizontalAlignment = AnyUiHorizontalAlignment.Center,
+                            HorizontalContentAlignment = AnyUiHorizontalAlignment.Center
+                        },
+                        setValue: (o) =>
+                        {
+                            InnerDocDisplaySaveFile(uriStr, contentType,
+                                display: false, save: true);
+                            return new AnyUiLambdaActionNone();
+                        });
+            }
+        }
+
         protected void RenderPanelInner(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             PcnOptionsRecord rec,
@@ -451,42 +675,67 @@ namespace AasxPluginProductChangeNotifications
             var grid = view.Add(uitk.AddSmallGrid(rows: 5, cols: _innerDocumentCols, 
                 colWidths: new[] { "70:", "70:", "70:", "70:", "70:", "*" }));
 
+            // Start
+            InnerDocAddHeadline(uitk, grid, 0, "Record", 1);
+
+            InnerDocAddText(uitk, grid, 0, 2, "DateOfRecord:",
+                    "" + data.DateOfRecord);
+
             // Manufacturer
             if (data.Manufacturer != null)
             {
-                InnerDocAddHeadline(uitk, grid, 0, "Manufacturer", 1);
+                InnerDocAddHeadline(uitk, grid, 0, "Manufacturer", 2);
                 
-                InnerDocAddText(uitk, grid, 0, 2, "ManufacturerName", 
+                InnerDocAddText(uitk, grid, 0, 2, "ManufacturerName:", 
                     data.Manufacturer.ManufacturerName?.GetDefaultString(_selectedLangStr));
 
-                InnerDocAddText(uitk, grid, 0, 2, "AdressInformation",
+                InnerDocAddText(uitk, grid, 0, 2, "AdressInformation:",
                     "<TBD>");
 
-                InnerDocAddText(uitk, grid, 0, 2, "ManufacturerChangeID",
+                InnerDocAddText(uitk, grid, 0, 2, "ManufacturerChangeID:",
                     "" + data.ManufacturerChangeID);
             }
 
-            // Life cylce mile stones
+            // Life cycle mile stones
             if (data.LifeCycleData?.Milestone != null && data.LifeCycleData.Milestone.Count > 0)
             {
-                InnerDocAddHeadline(uitk, grid, 0, "Life cycle mile stones", 1);
+                InnerDocAddHeadline(uitk, grid, 0, "Life cycle mile stones changed by this notification", 2);
 
                 InnerDocAddLifeCycleMilestones(uitk, grid, 0, data.LifeCycleData.Milestone);
+            }
+
+            // Reasons of change
+            if (data.ReasonsOfChange?.ReasonOfChange != null && data.ReasonsOfChange.ReasonOfChange.Count > 0)
+            {
+                InnerDocAddHeadline(uitk, grid, 0, "Reasons of change", 2);
+
+                foreach (var roc in data.ReasonsOfChange.ReasonOfChange)
+                {
+                    var rid = ("" + roc.ReasonId).ToUpper().Trim();
+                    if (_dictIdToReason.ContainsKey(rid))
+                    {
+                        var rd = _dictIdToReason[rid];
+                        InnerDocAddText(uitk, grid, 0, 1, rd.Id,
+                            rd.Description,
+                            wrapText: AnyUiTextWrapping.Wrap);
+                    }
+                    else
+                    {
+                        InnerDocAddText(uitk, grid, 0, 1, "" + roc.ReasonId,
+                            ("" + roc.ReasonClassificationSystem)
+                            .AddWithDelimiter("" + roc.VersionOfClassificationSystem, delimter: ":"));
+                    }
+                }
             }
 
             // asset, partnumbers, items
             if (data.ItemOfChange != null)
             {
-                InnerDocAddHeadline(uitk, grid, 0, "Identfication of changed item", 1);
-
-                InnerDocAddText(uitk, grid, 0, 2, "ManufacturerAssetID",
-                    "" + data.ItemOfChange.ManufacturerAssetID?.Value?.ToStringExtended(1));
-
                 // make a grid for two columns
                 int row = InnerDocGetNewRow(grid);
                 var twoColGrid =
                     uitk.Set(
-                        uitk.AddSmallGridTo(grid, row, 0, rows: 1, cols: 2, new[] { "1*", "2*" }),
+                        uitk.AddSmallGridTo(grid, row, 0, rows: 1, cols: 2, new[] { "2*", "1*" }),
                         colSpan: _innerDocumentCols);
 
                 // access asset information
@@ -497,12 +746,11 @@ namespace AasxPluginProductChangeNotifications
                     var img = AnyUiGdiHelper.LoadBitmapInfoFromPackage(package, ai.DefaultThumbnail.Path);
 
                     uitk.Set(
-                        uitk.AddSmallImageTo(twoColGrid, 0, 0,
+                        uitk.AddSmallImageTo(twoColGrid, 0, 1,
                             margin: new AnyUiThickness(2, 8, 2, 2),
                             stretch: AnyUiStretch.Uniform,
                             bitmap: img),
-                    maxHeight: 400, maxWidth: 400,
-                    rowSpan:2,
+                    maxHeight: 300, maxWidth: 300,
                     horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
                     verticalAlignment: AnyUiVerticalAlignment.Stretch);
                 }
@@ -512,23 +760,117 @@ namespace AasxPluginProductChangeNotifications
                 {
                     var colTwoGrid =
                     uitk.Set(
-                        uitk.AddSmallGridTo(twoColGrid, 0, 1,
+                        uitk.AddSmallGridTo(twoColGrid, 0, 0,
                             rows: 1, cols: 3, new[] { "70:", "70:", "*" }));
 
-                    InnerDocAddHeadline(uitk, colTwoGrid, 0, "ItemOfChange", 1,
+                    InnerDocAddHeadline(uitk, colTwoGrid, 0, "ItemOfChange (1)", 1,
                         assignRow: 0);
 
-                    InnerDocAddText(uitk, colTwoGrid, 0, 2, "Mfg.Prod.Family",
+                    InnerDocAddText(uitk, colTwoGrid, 0, 2, "ManufacturerAssetID:",
+                        "" + data.ItemOfChange.ManufacturerAssetID?.Value?.ToStringExtended(1),
+                        wrapText: AnyUiTextWrapping.Wrap);
+
+                    InnerDocAddText(uitk, colTwoGrid, 0, 2, "Mfg.Prod.Family:",
                         data.ItemOfChange.ManufacturerProductFamily?.GetDefaultString(_selectedLangStr));
 
-                    InnerDocAddText(uitk, colTwoGrid, 0, 2, "Mfg.Prod.Deign.",
+                    InnerDocAddText(uitk, colTwoGrid, 0, 2, "Mfg.Prod.Deign.:",
                         data.ItemOfChange.ManufacturerProductDesignation?.GetDefaultString(_selectedLangStr));
 
-                    InnerDocAddText(uitk, colTwoGrid, 0, 2, "Order Code Mfg.",
+                    InnerDocAddText(uitk, colTwoGrid, 0, 2, "Order Code Mfg.:",
                         data.ItemOfChange.OrderCodeOfManufacturer?.GetDefaultString(_selectedLangStr));
+
+                    InnerDocAddText(uitk, grid, 0, 2, "HardwareVersion:",
+                        "" + data.ItemOfChange.HardwareVersion);
                 }
             }
 
+            // part numbers
+            if (data.AffectedPartNumbers?.AffectedPartNumber != null 
+                && data.AffectedPartNumbers.AffectedPartNumber.Count >= 0)
+            {
+                InnerDocAddHeadline(uitk, grid, 0, "Affected part numbers", 2);
+
+                InnerDocAddAffectedPartNumbers(uitk, grid, 0,
+                    data.AffectedPartNumbers.AffectedPartNumber);
+            }
+
+            // Item categories
+            if (data.ItemCategories?.ItemCategory != null && data.ItemCategories.ItemCategory.Count > 0)
+            {
+                InnerDocAddHeadline(uitk, grid, 0, "Item categories", 2);
+
+                foreach (var ic in data.ItemCategories.ItemCategory)
+                {
+                    var cid = ("" + ic.ItemCategory).ToUpper().Trim();
+                    if (_dictIdToItem.ContainsKey(cid))
+                    {
+                        var cd = _dictIdToItem[cid];
+                        InnerDocAddText(uitk, grid, 0, 1, cd.Id,
+                            cd.Description,
+                            wrapText: AnyUiTextWrapping.Wrap);
+                    }
+                    else
+                    {
+                        InnerDocAddText(uitk, grid, 0, 1, "" + ic.ItemCategory,
+                            ("" + ic.ItemClassificationSystem)
+                            .AddWithDelimiter("" + ic.VersionOfClassificationSystem, delimter: ":"));
+                    }
+                }
+            }
+
+            // human readable infos
+            if (true)
+            {
+                InnerDocAddHeadline(uitk, grid, 0, "Human readable change information", 2);
+
+                InnerDocAddText(uitk, grid, 0, 2, "PcnChg.Info/Title:",
+                    "" + data.PcnChangeInformation?.ChangeTitle?.GetDefaultString(_selectedLangStr));
+
+                InnerDocAddText(uitk, grid, 0, 2, "PcnChg.Info/Details:",
+                    "" + data.PcnChangeInformation?.ChangeDetail?.GetDefaultString(_selectedLangStr),
+                    wrapText: AnyUiTextWrapping.Wrap);
+
+                InnerDocAddText(uitk, grid, 0, 2, "PcnReasonComment:",
+                    "" + data.PcnReasonComment?.GetDefaultString(_selectedLangStr),
+                    wrapText: AnyUiTextWrapping.Wrap);
+
+            }
+
+            // additional infos
+            if (data.AdditionalInformations?.AdditionalInformation != null
+                && data.AdditionalInformations.AdditionalInformation.Count >= 0)
+            {
+                InnerDocAddHeadline(uitk, grid, 0, "Additional information provided by documents", 2);
+
+                InnerDocAddAdditionalInfo(uitk, grid, 0,
+                    data.AdditionalInformations.AdditionalInformation);
+            }
+
+            // further of item of change
+            if (data.ItemOfChange != null)
+            {
+                InnerDocAddHeadline(uitk, grid, 0, "ItemOfChange (2)", 1);
+
+                InnerDocAddHeadline(uitk, grid, 0, "Remaining stock information", 2);
+
+                InnerDocAddText(uitk, grid, 0, 2, "Rem.AmountAvail.:",
+                    "" + data.ItemOfChange.RemainingAmountAvailable);
+                
+                // Reasons of change
+                if (data.ItemOfChange.ProductClassifications?.ProductClassification != null 
+                    && data.ItemOfChange.ProductClassifications.ProductClassification.Count > 0)
+                {
+                    InnerDocAddHeadline(uitk, grid, 0, "Product classification(s)", 2);
+
+                    foreach (var pc in data.ItemOfChange.ProductClassifications.ProductClassification)
+                    {
+                        InnerDocAddText(uitk, grid, 0, 1, "" + pc.ProductClassId,
+                            ("" + pc.ClassificationSystem)
+                            .AddWithDelimiter("" + pc.VersionOfClassificationSystem, delimter: ":"));
+                    }
+                }
+
+            }
         }
 
         #endregion

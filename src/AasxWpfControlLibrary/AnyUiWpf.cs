@@ -792,7 +792,7 @@ namespace AnyUi
                         {
                             var hl = new System.Windows.Documents.Hyperlink()
                             {
-                                NavigateUri = new Uri(cntl.Text),
+                                NavigateUri = new Uri(cntl.Text, UriKind.RelativeOrAbsolute),
                             };
                             hl.Inlines.Add(cntl.Text);
                             hl.RequestNavigate += (sender, e) =>
