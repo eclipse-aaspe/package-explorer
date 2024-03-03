@@ -26,6 +26,7 @@ using System.Linq;
 using System.Globalization;
 using System.Windows.Controls;
 using AasxIntegrationBaseGdi;
+using System.Windows;
 
 namespace AasxPluginProductChangeNotifications
 {
@@ -374,6 +375,51 @@ namespace AasxPluginProductChangeNotifications
                 wrap: (wrapText != AnyUiTextWrapping.Wrap) ? null : (new[] { 1 }));
         }
 
+        protected void InnerDocAddGridCells(
+            AnyUiSmallWidgetToolkit uitk,
+            AnyUiGrid grid,
+            string[] cell,
+            int[] bold = null,
+            int[] wrap = null,
+            int[] centered = null)
+        {
+            // access and add row
+            if (grid == null || cell == null)
+                return;
+            int row = InnerDocGetNewRow(grid);
+
+            // text(s)
+            for (int i = 0; i < cell.Length; i++)
+            {
+                // make the border
+                var brd = uitk.AddSmallBorderTo(grid, row, i,
+                    margin: (i == 0) ? new AnyUiThickness(0, -1, 0, 0)
+                                     : new AnyUiThickness(-1, -1, 0, 0),
+                    borderThickness: new AnyUiThickness(1.0),
+                    borderBrush: AnyUiBrushes.Black);
+
+                var stb = new AnyUiSelectableTextBlock()
+                {
+                    Text = "" + cell[i],
+                    Padding = new AnyUiThickness(1),
+                    FontWeight = (bold != null && bold.Contains(i))
+                        ? AnyUiFontWeight.Bold : null,
+                    TextWrapping = (wrap != null && wrap.Contains(i))
+                        ? AnyUiTextWrapping.Wrap : null,
+                    VerticalAlignment = AnyUiVerticalAlignment.Center,
+                    VerticalContentAlignment = AnyUiVerticalAlignment.Center
+                };
+
+                brd.Child = stb;
+
+                if (centered != null && centered.Contains(i))
+                {
+                    stb.HorizontalAlignment = AnyUiHorizontalAlignment.Center;
+                    stb.HorizontalContentAlignment = AnyUiHorizontalAlignment.Center;
+                }
+            }
+        }
+
         protected void InnerDocAddLifeCycleMilestones(
             AnyUiSmallWidgetToolkit uitk,
             AnyUiGrid grid, int col, 
@@ -656,6 +702,30 @@ namespace AasxPluginProductChangeNotifications
             }
         }
 
+        protected void InnerDocAddTechnicalDataChanges(
+            AnyUiSmallWidgetToolkit uitk,
+            AnyUiGrid grid, int col,
+            AasClassMapperInfo info)
+        {
+            // access and add row
+            if (grid == null 
+                || !(info?.Referable is Aas.ISubmodelElementCollection smc))
+                return;
+            int row = InnerDocGetNewRow(grid);
+
+            // make inner grid
+            var inner = uitk.Set(
+                uitk.AddSmallGridTo(grid, row, col,
+                    rows: 0, cols: 3,
+                    colWidths: new[] { "#", "*", "#" }),
+                colSpan: _innerDocumentCols - col);
+
+            // add head line
+            InnerDocAddGridCells(uitk, inner,
+                cell: new[] { "IdShort", "SemanticId", "New value" },
+                bold: new[] { 0, 1, 2 });
+        }
+
         protected void RenderPanelInner(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             PcnOptionsRecord rec,
@@ -870,6 +940,15 @@ namespace AasxPluginProductChangeNotifications
                     }
                 }
 
+            }
+
+            // technical data - changes
+            if (data.ItemOfChange?.TechnicalData_Changes != null)
+            {
+                InnerDocAddHeadline(uitk, grid, 0, "Given changes of technical data for the item of change", 2);
+
+                InnerDocAddTechnicalDataChanges(uitk, grid, 0,
+                    data.ItemOfChange.TechnicalData_Changes.__Info__);
             }
         }
 
