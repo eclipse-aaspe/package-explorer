@@ -25,7 +25,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Media;
 using Aas = AasCore.Aas3_0;
-using AasxPredefinedConcepts;
+using AasxPredefinedConcepts.Qualifiers;
 
 // ReSharper disable PossiblyMistakenUseOfParamsMethod .. issue, even if according to samples of Word API
 

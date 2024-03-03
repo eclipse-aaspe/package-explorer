@@ -7,7 +7,18 @@ semanticIds and class structures. These concepts could be used on
 *source code level* to avoid having semanticIds as sttring constants.
 
 Nearly everything here was produced by the export function:
-AASPE / File / Export / Export predefined concepts
+AASPE / File / Export / Export predefined concepts.
+
+Multiple low level SDK function are designed for using these symbols, e.g.
+
+```
+foreach (var srcLst in this.theSubmodel.SubmodelElements
+    .FindAllSemanticIdAs<Aas.SubmodelElementCollection>(
+        this.defsMtp.CD_SourceList?.GetReference(), MatchMode.Relaxed))
+{
+    ...
+}
+```
 
 ## Programmers note
 
@@ -18,6 +29,18 @@ seem to be loaded on demand by the class loader.
 However, when using "Add predefined .." button in References dialogue, the user 
 has to wait some 8sec for the first results, as *ALL* classes are firstly 
 instantiated for this scan.
+
+## Namespaces
+
+Currently, the folder names do not influence the namespaces of the classes, because
+handling would even get longer.
+
+## BaseTopUtil
+
+These classes are either base classes, utility functions or the root definitions,
+where all others are linked to.
+
+Note: New definition classes shall be linked within `DefinitionsPool.cs`.
 
 ## Concept model
 

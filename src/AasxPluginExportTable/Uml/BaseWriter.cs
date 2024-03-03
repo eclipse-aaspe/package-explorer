@@ -24,7 +24,7 @@ using Newtonsoft.Json;
 using Aas = AasCore.Aas3_0;
 using AdminShellNS;
 using Extensions;
-using AasxPredefinedConcepts;
+using AasxPredefinedConcepts.Qualifiers;
 
 namespace AasxPluginExportTable.Uml
 {

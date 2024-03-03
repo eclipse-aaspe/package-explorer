@@ -21,7 +21,7 @@ using Aas = AasCore.Aas3_0;
 // reSharper disable UnusedType.Global
 // reSharper disable ClassNeverInstantiated.Global
 
-namespace AasxPredefinedConcepts
+namespace AasxPredefinedConcepts.Qualifiers
 {
     /// <summary>
     /// This class provides handles specific qualifiers, extensions
@@ -64,105 +64,105 @@ namespace AasxPredefinedConcepts
             ReadOnly
         };
 
-        public static Aas.IQualifier CreateQualifierSmtCardinality(SmtCardinality card)
+        public static IQualifier CreateQualifierSmtCardinality(SmtCardinality card)
         {
-            return new Aas.Qualifier(
+            return new Qualifier(
                 type: "SMT/Cardinality",
                 valueType: DataTypeDefXsd.String,
                 kind: QualifierKind.TemplateQualifier,
-                semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
-                    (new Aas.IKey[] {
-                        new Aas.Key(KeyTypes.GlobalReference,
+                semanticId: new Reference(ReferenceTypes.ExternalReference,
+                    (new IKey[] {
+                        new Key(KeyTypes.GlobalReference,
                             "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0")
                     }).ToList()),
                 value: "" + card);
         }
 
-        public static Aas.IQualifier CreateQualifierSmtAllowedValue(string regex)
+        public static IQualifier CreateQualifierSmtAllowedValue(string regex)
         {
-            return new Aas.Qualifier(
+            return new Qualifier(
                 type: "SMT/AllowedValue",
                 valueType: DataTypeDefXsd.String,
                 kind: QualifierKind.TemplateQualifier,
-                semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
-                    (new Aas.IKey[] {
-                        new Aas.Key(KeyTypes.GlobalReference,
+                semanticId: new Reference(ReferenceTypes.ExternalReference,
+                    (new IKey[] {
+                        new Key(KeyTypes.GlobalReference,
                             "https://admin-shell.io/SubmodelTemplates/AllowedValue/1/0")
                     }).ToList()),
                 value: "" + regex);
         }
 
-        public static Aas.IQualifier CreateQualifierSmtExampleValue(string exampleValue)
+        public static IQualifier CreateQualifierSmtExampleValue(string exampleValue)
         {
-            return new Aas.Qualifier(
+            return new Qualifier(
                 type: "SMT/ExampleValue",
                 valueType: DataTypeDefXsd.String,
                 kind: QualifierKind.TemplateQualifier,
-                semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
-                    (new Aas.IKey[] {
-                        new Aas.Key(KeyTypes.GlobalReference,
+                semanticId: new Reference(ReferenceTypes.ExternalReference,
+                    (new IKey[] {
+                        new Key(KeyTypes.GlobalReference,
                             "https://admin-shell.io/SubmodelTemplates/ExampleValue/1/0")
                     }).ToList()),
                 value: "" + exampleValue);
         }
 
-        public static Aas.IQualifier CreateQualifierSmtDefaultValue(string defaultValue)
+        public static IQualifier CreateQualifierSmtDefaultValue(string defaultValue)
         {
-            return new Aas.Qualifier(
+            return new Qualifier(
                 type: "SMT/DefaultValue",
                 valueType: DataTypeDefXsd.String,
                 kind: QualifierKind.TemplateQualifier,
-                semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
-                    (new Aas.IKey[] {
-                        new Aas.Key(KeyTypes.GlobalReference,
+                semanticId: new Reference(ReferenceTypes.ExternalReference,
+                    (new IKey[] {
+                        new Key(KeyTypes.GlobalReference,
                             "https://admin-shell.io/SubmodelTemplates/DefaultValue/1/0")
                     }).ToList()),
                 value: "" + defaultValue);
         }
 
-        public static Aas.IQualifier CreateQualifierSmtEitherOr(string equivalencyClass)
+        public static IQualifier CreateQualifierSmtEitherOr(string equivalencyClass)
         {
-            return new Aas.Qualifier(
+            return new Qualifier(
                 type: "SMT/EitherOr",
                 valueType: DataTypeDefXsd.String,
                 kind: QualifierKind.TemplateQualifier,
-                semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
-                    (new Aas.IKey[] {
-                        new Aas.Key(KeyTypes.GlobalReference,
+                semanticId: new Reference(ReferenceTypes.ExternalReference,
+                    (new IKey[] {
+                        new Key(KeyTypes.GlobalReference,
                             "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0")
                     }).ToList()),
                 value: "" + equivalencyClass);
         }
 
-        public static Aas.IQualifier CreateQualifierSmtRequiredLang(string reqLang)
+        public static IQualifier CreateQualifierSmtRequiredLang(string reqLang)
         {
-            return new Aas.Qualifier(
+            return new Qualifier(
                 type: "SMT/RequiredLang",
                 valueType: DataTypeDefXsd.String,
                 kind: QualifierKind.TemplateQualifier,
-                semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
-                    (new Aas.IKey[] {
-                        new Aas.Key(KeyTypes.GlobalReference,
+                semanticId: new Reference(ReferenceTypes.ExternalReference,
+                    (new IKey[] {
+                        new Key(KeyTypes.GlobalReference,
                             "https://admin-shell.io/SubmodelTemplates/RequiredLang/1/0")
                     }).ToList()),
                 value: "" + reqLang);
         }
 
-        public static Aas.IQualifier CreateQualifierSmtAccessMode(AccessMode mode)
+        public static IQualifier CreateQualifierSmtAccessMode(AccessMode mode)
         {
-            return new Aas.Qualifier(
+            return new Qualifier(
                 type: "SMT/AccessMode",
                 valueType: DataTypeDefXsd.String,
                 kind: QualifierKind.TemplateQualifier,
-                semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
-                    (new Aas.IKey[] {
-                        new Aas.Key(KeyTypes.GlobalReference,
+                semanticId: new Reference(ReferenceTypes.ExternalReference,
+                    (new IKey[] {
+                        new Key(KeyTypes.GlobalReference,
                             "https://admin-shell.io/SubmodelTemplates/AccessMode/1/0")
                     }).ToList()),
                 value: "" + mode);
         }
 
-        public static Aas.IQualifier[] AllSmtQualifiers =
+        public static IQualifier[] AllSmtQualifiers =
         {
             CreateQualifierSmtCardinality(SmtCardinality.One),
             CreateQualifierSmtAllowedValue(""),
@@ -177,11 +177,11 @@ namespace AasxPredefinedConcepts
         /// Find either <c>type</c> or <c>semanticId</c> and returns the link
         /// to a STATIC IQualifier (not to be changed!).
         /// </summary>
-        public static Aas.IQualifier FindQualifierTypeInst(
-            string type, Aas.IReference semanticId, bool relaxed = true)
+        public static IQualifier FindQualifierTypeInst(
+            string type, IReference semanticId, bool relaxed = true)
         {
             // at best: tries to find semanticId
-            Aas.IQualifier res = null;
+            IQualifier res = null;
             foreach (var qti in AllSmtQualifiers)
                 if (semanticId?.IsValid() == true && semanticId.Matches(qti.SemanticId, MatchMode.Relaxed))
                     res = qti;
@@ -210,7 +210,7 @@ namespace AasxPredefinedConcepts
         /// <summary>
         /// Ask for different Qualifier names for cardinality and give a match back.
         /// </summary>
-        public static Aas.IQualifier FindSmtCardinalityQualfier(IEnumerable<IQualifier> qualifiers)
+        public static IQualifier FindSmtCardinalityQualfier(IEnumerable<IQualifier> qualifiers)
         {
             // TODO (MIHO, 2024-02-20): In future, check semanticIds as well?
 
@@ -234,7 +234,7 @@ namespace AasxPredefinedConcepts
             if (p >= 0)
                 multiStr = multiStr.Substring(p).Trim('[', ']');
 #else
-            switch (card) 
+            switch (card)
             {
                 case SmtCardinality.ZeroToOne:
                     switch (format)
