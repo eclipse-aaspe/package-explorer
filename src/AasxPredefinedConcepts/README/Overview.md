@@ -14,7 +14,8 @@ Multiple low level SDK function are designed for using these symbols, e.g.
 ```
 foreach (var srcLst in this.theSubmodel.SubmodelElements
     .FindAllSemanticIdAs<Aas.SubmodelElementCollection>(
-        this.defsMtp.CD_SourceList?.GetReference(), MatchMode.Relaxed))
+        AasxPredefinedConcepts.DefinitionsMTP.ModuleTypePackage.CD_SourceList?.GetReference(), 
+        MatchMode.Relaxed))
 {
     ...
 }
