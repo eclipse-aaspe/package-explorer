@@ -1343,7 +1343,7 @@ namespace AasxPackageLogic
                                     Options.Curr.TemplateIdSubmodelInstance);
 
                             // create ref
-                            var smr = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>() { new Aas.Key(Aas.KeyTypes.Submodel, submodel.Id) });
+                            var smr = new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>() { new Aas.Key(Aas.KeyTypes.Submodel, submodel.Id) });
                             aas.Submodels.Add(smr);
 
                             // event for AAS
