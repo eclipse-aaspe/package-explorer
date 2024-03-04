@@ -322,6 +322,9 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications
 
         public List<ILangStringTextType> OrderCodeOfManufacturer = new List<ILangStringTextType>();
 
+        [AasConcept(Cd = "0173-10029#02-ABF978#001", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public AasClassMapperHintedReference ManufacturerAssetID = null;
+
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ProductClassification/List/1/0", Card = AasxPredefinedCardinality.ZeroToOne)]
         public CD_ProductClassifications ProductClassifications = null;
 
@@ -353,7 +356,7 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications
         public AasClassMapperInfo __Info__ = null;
     }
 
-    [AasConcept(Cd = "0173-10029#01-XFB008#001")]
+    [AasConcept(Cd = "0173-10029#01-XFB008#001")]   
     public class CD_TechnicalData_Fit
     {
         [AasConcept(Cd = "0173-10029#02-ABF980#001", Card = AasxPredefinedCardinality.ZeroToOne)]
