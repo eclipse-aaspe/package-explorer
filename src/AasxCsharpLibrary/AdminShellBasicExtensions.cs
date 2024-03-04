@@ -22,7 +22,11 @@ using System.Text.RegularExpressions;
 
 namespace AdminShellNS
 {
-    public static class AdminShellStringExtensions
+    /// <summary>
+    /// Holds some extensions which are very fundamental in order to
+    /// shortcut some hanlding of basic datat types.
+    /// </summary>
+    public static class AdminShellBasicExtensions
     {
         /// <summary>
         /// Check if real content is in a string
@@ -35,21 +39,38 @@ namespace AdminShellNS
         /// <summary>
         /// Multiple a string into a iterable list
         /// </summary>
-        public static IEnumerable<string> Times(this string str, int num = 1)
+        public static IEnumerable<T> Times<T>(this T value, int num = 1)
         {
             for (int i= 0; i < num; i++)
-                yield return str;
+                yield return value;
         }
 
         /// <summary>
-        /// Adds an items to a sequence of strings.
+        /// Adds an item to a sequence of strings.
         /// </summary>
-        public static IEnumerable<string> Add(this IEnumerable<string> seq, string str)
+        public static IEnumerable<T> Add<T>(this IEnumerable<T> seq, T value)
         {
             foreach (var s in seq)
                 yield return s;
-            yield return str;
+            yield return value;
         }
+
+        /// <summary>
+        /// Adds items to a sequence of strings.
+        /// </summary>
+        public static IEnumerable<T> Add<T>(this IEnumerable<T> seq, IEnumerable<T> others)
+        {
+            foreach (var s in seq.AsNotNull())
+                yield return s;
+            foreach (var s in others.AsNotNull())
+                yield return s;
+        }
+
+        //public static IEnumerable<T> Times<T>(T value, int num = 1) where T : class
+        //{
+        //    for(int i = 0; i < num; i++)
+        //        yield return value;
+        //}
 
         public static string SubstringMax(this string str, int pos, int len)
         {
@@ -80,5 +101,9 @@ namespace AdminShellNS
             return res;
         }
 
+        public static IEnumerable<T> AsNotNull<T>(this IEnumerable<T> original)
+        {
+            return original ?? Enumerable.Empty<T>();
+        }
     }
 }
