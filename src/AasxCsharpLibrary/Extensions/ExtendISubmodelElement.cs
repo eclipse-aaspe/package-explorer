@@ -991,6 +991,8 @@ namespace Extensions
             IKey semId, MatchMode matchMode = MatchMode.Strict)
                 where T : ISubmodelElement
         {
+            if (submodelELements.IsNullOrEmpty())
+                yield return default(T);
             foreach (var submodelElement in submodelELements)
                 if (submodelElement != null && submodelElement is T
                     && submodelElement.SemanticId != null)
