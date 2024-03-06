@@ -806,9 +806,8 @@ namespace AasxPackageLogic
                                 });
                         }
 
-                        // which content is possible?
                         var cntByDs = ExtendIDataSpecificationContent.GuessContentTypeFor(
-                                        hasDataSpecification[i].DataSpecification);
+                                        hasDataSpecification[i].DataSpecificationContent);
 
                         AddHintBubble(
                             stack, hintMode, new[] {
