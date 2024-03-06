@@ -112,8 +112,11 @@ namespace Extensions
 
             // check
             submodel.BaseValidation(results);
-            submodel.Kind.Value.Validate(results, submodel);
-            submodel.SemanticId.Keys.Validate(results, submodel);
+            submodel.Kind?.Validate(results, submodel);
+            if (submodel.SemanticId != null && !submodel.SemanticId.IsEmpty())
+            {
+                submodel.SemanticId.Keys.Validate(results, submodel); 
+            }
         }
 
         public static Submodel ConvertFromV10(this Submodel submodel, AasxCompatibilityModels.AdminShellV10.Submodel sourceSubmodel, bool shallowCopy = false)
