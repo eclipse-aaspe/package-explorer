@@ -470,7 +470,9 @@ namespace AdminShellNS
         /// <code doctest="true">Assert.AreEqual("someName", AdminShellUtil.FilterFriendlyName("someName"));</code>
         /// <code doctest="true">Assert.AreEqual("some__name", AdminShellUtil.FilterFriendlyName("some!;name"));</code>
         /// </example>
-        public static string FilterFriendlyName(string src, bool pascalCase = false)
+        public static string FilterFriendlyName(string src, 
+            bool pascalCase = false,
+            bool fixMoreBlanks = false)
         {
             if (src == null)
                 return null;
@@ -478,7 +480,17 @@ namespace AdminShellNS
             if (pascalCase && src.Length > 0)
                 src = char.ToUpper(src[0]) + src.Substring(1);
 
-            return Regex.Replace(src, @"[^a-zA-Z0-9\-_]", "_");
+            src = Regex.Replace(src, @"[^a-zA-Z0-9\-_]", "_");
+
+            if (fixMoreBlanks)
+            {
+                src = src.Trim('_');
+                // stupid
+                for (int i=0; i<9; i++)
+                    src = src.Replace("__", "_");
+            }
+
+            return src;
         }
 
         /// <example>

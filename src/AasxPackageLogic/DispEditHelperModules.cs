@@ -177,9 +177,23 @@ namespace AasxPackageLogic
                     this.AddDiaryEntry(referable, new DiaryEntryStructChange(), diaryReference: dr);
                     return new AnyUiLambdaActionNone();
                 },
-                auxButtonTitles: DispEditInjectAction.GetTitles(null, injectToIdShort),
-                auxButtonToolTips: DispEditInjectAction.GetToolTips(null, injectToIdShort),
-                auxButtonLambda: injectToIdShort?.auxLambda,
+                auxButtonTitles: DispEditInjectAction.GetTitles(new[] { "Fix" } , injectToIdShort),
+                auxButtonToolTips: DispEditInjectAction.GetToolTips(
+                    new[] { "Fix characters of idShort to be in the allowed ranges." }, 
+                    injectToIdShort),
+                auxButtonLambda: (i) =>
+                {
+                    if (i == 0)
+                    {
+                        var dr = new DiaryReference(referable);
+                        referable.IdShort = AdminShellUtil.FilterFriendlyName(referable.IdShort, 
+                            pascalCase: true, fixMoreBlanks: true);
+                        this.AddDiaryEntry(referable, new DiaryEntryStructChange(), diaryReference: dr);
+                        return new AnyUiLambdaActionRedrawEntity();
+                    }
+                    else
+                        return injectToIdShort?.auxLambda(i-1);
+                },
                 takeOverLambdaAction: new AnyUiLambdaActionRedrawAllElements(nextFocus: referable)
                 );
 
