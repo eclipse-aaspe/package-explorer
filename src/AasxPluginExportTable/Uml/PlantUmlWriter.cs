@@ -152,12 +152,21 @@ namespace AasxPluginExportTable.Uml
                 stereotype = "<<" + stereotype + ">>";
 
             // check if using SMT dropin
-            if (rf is Aas.IHasSemantics ihs
-                && ihs.SupplementalSemanticIds?.MatchesAnyWithExactlyOneKey(
+            if (rf is Aas.IHasSemantics ihs)
+            {
+                if (ihs.SupplementalSemanticIds?.MatchesAnyWithExactlyOneKey(
+                    AasxPredefinedConcepts.SmtAdditions.Static.Key_SmtDropinDefinition,
+                    MatchMode.Relaxed) == true)
+                {
+                    stereotype += " <<smt-dropin-definition>>";
+                }
+
+                if (ihs.SupplementalSemanticIds?.MatchesAnyWithExactlyOneKey(
                     AasxPredefinedConcepts.SmtAdditions.Static.Key_SmtDropinUse,
                     MatchMode.Relaxed) == true)
-            {
-                stereotype += " <<smt-dropin-use>>";
+                {
+                    stereotype += " <<smt-dropin-use>>";
+                }
             }
 
             // add detail information

@@ -81,6 +81,7 @@ namespace AasxPackageExplorer
 		public AasxMenuWpf MainMenu = new AasxMenuWpf();
 
         private string showContentPackageUri = null;
+        private Aas.IBlob showContentEditBlob = null;
         private string showContentPackageMime = null;
         private VisualElementGeneric currentEntityForUpdate = null;
         private IFlyoutControl currentFlyoutControl = null;
@@ -649,13 +650,25 @@ namespace AasxPackageExplorer
                 Dispatcher.BeginInvoke((Action)(() => ElementTabControl.SelectedIndex = 0));
 
             // some entities require special handling
-            if (entities?.ExactlyOne == true && entities.First() is VisualElementSubmodelElement sme &&
-                sme?.theWrapper is Aas.File file)
-            {
-                ShowContent.IsEnabled = true;
-                this.showContentPackageUri = file.Value;
-                this.showContentPackageMime = file.ContentType;
-                DragSource.Foreground = Brushes.Black;
+            if (entities?.ExactlyOne == true && entities.First() is VisualElementSubmodelElement sme)
+            { 
+                if (sme?.theWrapper is Aas.IFile file)
+                {
+                    ShowContent.IsEnabled = true;
+                    this.showContentPackageUri = file.Value;
+                    this.showContentPackageMime = file.ContentType;
+                    DragSource.Foreground = Brushes.Black;
+                }
+
+                if (sme?.theWrapper is Aas.IBlob blb
+                    && editMode
+                    && AdminShellUtil.CheckForTextContentType(blb.ContentType))
+                {
+                    ShowContent.IsEnabled = true;
+                    this.showContentPackageUri = null;
+                    this.showContentPackageMime = blb.ContentType;
+                    DragSource.Foreground = Brushes.Black;
+                }
             }
 
             if (entities?.ExactlyOne == true
