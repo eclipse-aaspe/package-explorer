@@ -27,7 +27,7 @@ As many (!) classes and attributes are declared, these classes seem contribute
 significantly to the loading time of AASPE in general. Basically, these classes
 seem to be loaded on demand by the class loader.
 
-However, when using "Add predefined .." button in References dialogue, the user 
+However, when using "Add known .." button in References dialogue, the user 
 has to wait some 8sec for the first results, as *ALL* classes are firstly 
 instantiated for this scan.
 
@@ -63,7 +63,7 @@ ConceptDescriptions (CDs) in the Resource JSON files and the source code
 links against it.
 
 This is the *preferred approach* to realize predefined data for the AASPE,
-as many functions ("Add predefined ..", "New Submodel ..") can use these
+as many functions ("Add known ..", "New Submodel ..") can use these
 data automatically.
 
 In order the be properly linked, the classes need to be listed in
@@ -75,6 +75,10 @@ Note: It is recommended, to *NOT* include all symbols by
 Note: For the sake of shorter source code symbols, the classes in the 
 `DefinitionsXXX` are cut to `XXX` because preferable preceded by 
 `AasxPredefinedConcepts.`.
+
+Note: some of the older definition classes rely on an instatiation
+on-the-fly, while the new ones provide a singleton `Static`. The
+latter is the recommened practice.
 
 ## Mapping
 

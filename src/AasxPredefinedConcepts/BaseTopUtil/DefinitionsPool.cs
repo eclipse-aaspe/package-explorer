@@ -119,7 +119,9 @@ namespace AasxPredefinedConcepts
 
 			thePool.IndexDefinitions(AasxPredefinedConcepts.IdtaContactInformationV10.Static);
 
-			thePool.IndexDefinitions(AasxPredefinedConcepts.IdtaHandoverDocumentationV12.Static);
+            thePool.IndexDefinitions(AasxPredefinedConcepts.IdtaProductChangeNotificationsV10.Static);
+
+            thePool.IndexDefinitions(AasxPredefinedConcepts.IdtaHandoverDocumentationV12.Static);
 
 			thePool.IndexDefinitions(AasxPredefinedConcepts.AasEvents.Static);
 
