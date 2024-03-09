@@ -567,6 +567,10 @@ namespace AasxPackageLogic
                         EntityListMultipleUpDownDeleteHelper<Aas.ISubmodelElement>(stack, repo,
                             smec.Value, bos, indexInfo, reFocus: true, superMenu: superMenu);
 
+                    if (bos.Count > 0 && parent is Aas.SubmodelElementList smel)
+                        EntityListMultipleUpDownDeleteHelper<Aas.ISubmodelElement>(stack, repo,
+                            smel.Value, bos, indexInfo, reFocus: true, superMenu: superMenu);
+
                     DispMultiElementCutCopyPasteHelper(stack, repo, sme.theEnv, parent, this.theCopyPaste,
                         entities, superMenu: superMenu);
                 }
