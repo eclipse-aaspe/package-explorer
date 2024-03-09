@@ -1121,6 +1121,9 @@ namespace Extensions
                     if (current is SubmodelElementCollection smc)
                         smc.Value?.RecurseOnReferables(state, parents, lambda);
 
+                    if (current is SubmodelElementList sml)
+                        sml.Value?.RecurseOnReferables(state, parents, lambda);
+
                     if (current is Entity ent)
                         ent.Statements?.RecurseOnReferables(state, parents, lambda);
 

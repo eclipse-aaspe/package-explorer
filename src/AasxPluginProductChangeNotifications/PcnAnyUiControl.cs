@@ -27,6 +27,11 @@ using System.Globalization;
 using System.Windows.Controls;
 using AasxIntegrationBaseGdi;
 using System.Windows;
+using System.Threading.Tasks;
+using System.Xml.Linq;
+using System.Xml.XPath;
+using System.Xml;
+using AasCore.Aas3_0;
 
 namespace AasxPluginProductChangeNotifications
 {
@@ -43,6 +48,7 @@ namespace AasxPluginProductChangeNotifications
         private PluginSessionBase _session = null;
         private AnyUiStackPanel _panel = null;
         private AasxPluginBase _plugin = null;
+        private AnyUiContextBase _displayContext = null;
 
         private PDPCN.CD_ProductChangeNotifications _pcnData = new PDPCN.CD_ProductChangeNotifications();
 
@@ -87,7 +93,8 @@ namespace AasxPluginProductChangeNotifications
             PluginEventStack eventStack,
             PluginSessionBase session,
             AnyUiStackPanel panel,
-            AasxPluginBase plugin)
+            AasxPluginBase plugin,
+            AnyUiContextBase displayContext)
         {
             // internal members
             _log = log;
@@ -98,6 +105,7 @@ namespace AasxPluginProductChangeNotifications
             _session = session;
             _panel = panel;
             _plugin = plugin;
+            _displayContext = displayContext;
 
             // fill given panel
             RenderFullView(_panel, _uitk, _package, _submodel);
@@ -110,7 +118,8 @@ namespace AasxPluginProductChangeNotifications
             PluginEventStack eventStack,
             PluginSessionBase session,
             object opanel,
-            AasxPluginBase plugin)
+            AasxPluginBase plugin,
+            AnyUiContextBase displayContext)
         {
             // access
             var package = opackage as AdminShellPackageEnv;
@@ -124,7 +133,7 @@ namespace AasxPluginProductChangeNotifications
 
             // factory this object
             var aidCntl = new PcnAnyUiControl();
-            aidCntl.Start(log, package, sm, options, eventStack, session, panel, plugin);
+            aidCntl.Start(log, package, sm, options, eventStack, session, panel, plugin, displayContext);
 
             // return shelf
             return aidCntl;
@@ -174,7 +183,7 @@ namespace AasxPluginProductChangeNotifications
             // Bluebar
             //
 
-            var bluebar = uitk.AddSmallGridTo(outer, 0, 0, 1, cols: 5, colWidths: new[] { "*", "#", "#", "#", "#" });
+            var bluebar = uitk.AddSmallGridTo(outer, 0, 0, 1, cols: 6, colWidths: new[] { "*", "#", "#", "#", "#", "#" });
 
             bluebar.Margin = new AnyUiThickness(0);
             bluebar.Background = AnyUiBrushes.LightBlue;
@@ -183,7 +192,20 @@ namespace AasxPluginProductChangeNotifications
                 foreground: AnyUiBrushes.DarkBlue,
                 fontSize: 1.5f,
                 setBold: true,
-                content: $"PCN #{_pcnIndex:D3}");
+                content: $"PCN #{_pcnIndex:D3} {AdminShellUtil.ShortenWithEllipses(""+sm?.IdShort, 20)}");
+
+            AnyUiUIElement.RegisterControl(
+                    uitk.AddSmallButtonTo(bluebar, 0, 1,
+                        margin: new AnyUiThickness(2), setHeight: 21,
+                        padding: new AnyUiThickness(2, 0, 2, 0),
+                        content: "Add .."),
+                        setValueAsync: async (o) =>
+                        {
+                            if (await AddFromSmartPcnXml(package, sm))
+                                return new AnyUiLambdaActionRedrawEntity();
+                            else
+                                return new AnyUiLambdaActionNone();
+                        });
 
             Func<int, AnyUiLambdaActionBase> lambdaButtonClick = (i) => {
                 // mode change
@@ -213,7 +235,7 @@ namespace AasxPluginProductChangeNotifications
             {
                 var thisI = i;
                 AnyUiUIElement.RegisterControl(
-                    uitk.AddSmallButtonTo(bluebar, 0, 1 + i,
+                    uitk.AddSmallButtonTo(bluebar, 0, 2 + i,
                         margin: new AnyUiThickness(2), setHeight: 21,
                         padding: new AnyUiThickness(2, 0, 2, 0),
                         content: (new[] { "\u2759\u25c0", "\u25c0", "\u25b6", "\u25b6\u2759" })[i]),
@@ -1188,8 +1210,15 @@ namespace AasxPluginProductChangeNotifications
             {
                 InnerDocAddHeadline(uitk, grid, 0, "Affected part numbers", 2);
 
-                InnerDocAddAffectedPartNumbers(uitk, grid, 0,
-                    data.AffectedPartNumbers.AffectedPartNumber);
+                // if partnumbers are split by ';', split the further
+                var innerList = new List<string>();
+                foreach (var pn in data.AffectedPartNumbers.AffectedPartNumber)
+                    if (pn?.HasContent() == true)
+                        foreach (var x in pn.Split(';', 
+                            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                            innerList.Add(x);
+
+                InnerDocAddAffectedPartNumbers(uitk, grid, 0, innerList);
             }
 
             // Item categories
@@ -1281,7 +1310,7 @@ namespace AasxPluginProductChangeNotifications
 
             // now, for all recommended items
             int rin = 0;
-            foreach (var ri in data.RecommendedItems?.RecommendedItem.AsNotNull()) 
+            foreach (var ri in (data.RecommendedItems?.RecommendedItem).AsNotNull()) 
             {
                 // weird numeric loop
                 var riIndex = rin++;
@@ -1422,8 +1451,223 @@ namespace AasxPluginProductChangeNotifications
 
         #endregion
 
-        #region STUFF
-        //=====================
+        #region Add records
+        //=================
+
+        protected async Task<bool> AddFromSmartPcnXml(
+            AdminShellPackageEnv package,
+            Aas.Submodel sm)
+        {
+            // access
+            if (!(_displayContext is AnyUiContextPlusDialogs cpd))
+                return false;
+
+            // records
+            var theDefs = AasxPredefinedConcepts.IdtaProductChangeNotificationsV10.Static;
+            var smlRecs = sm?.SubmodelElements?.FindFirstSemanticIdAs<Aas.ISubmodelElementList>(
+                theDefs.CD_RecordsOfPcn, MatchMode.Relaxed);
+            if (smlRecs == null)
+            {
+                _log?.Error("For importing new PCN, do not find the SML Records! Aborting.");
+                return false;
+            }
+            smlRecs.Value = smlRecs.Value ?? new List<ISubmodelElement>();
+
+            // ask for filename
+            var ofData = await cpd.MenuSelectOpenFilenameAsync(
+                ticket: null, argName: null,
+                caption: "Select SmartPCN XML file to load ..",
+                proposeFn: "",
+                filter: "SmartPCN XML file (*.xml)|*.xml|All files (*.*)|*.*",
+                msg: "Not found",
+                requireNoFlyout: true);
+            if (ofData?.Result != true)
+                return false;
+
+            // load new data
+            try
+            {
+                var xdoc = XDocument.Load(ofData.TargetFileName);
+                
+                var recs = CreateRecordFromXml(xdoc);
+
+                foreach (var rec in recs.AsNotNull())
+                {
+                    // just a test
+                    var test = PredefinedConceptsClassMapper.SerializeToAasElem(rec);
+                    if (test != null)
+                    {
+                        smlRecs.Value.Add(test);
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _log?.Error(ex, "when loading plugin preset data");
+            }
+            return true;
+        }
+
+        protected IEnumerable<PDPCN.CD_Record> CreateRecordFromXml(XDocument xdoc)
+        {
+            // access
+            if (xdoc == null)
+                return null;
+            var res = new List<PDPCN.CD_Record>();
+
+            // prepare for namespace crazyness
+            var ns = "http://www.smartpcn.org/images/files/VDMA24903Schema/PCNbody";
+            XNamespace xns = ns;
+            var nst = new XmlNamespaceManager(new NameTable());
+            nst.AddNamespace("x", ns);
+
+            // first: identify <ItemNumbers> in the SmartPCN, as these will give
+            // INDEPENDENT records to be add
+            var itemNumToProcess = new List<XElement>();
+            var elemsItNums = xdoc.XPathSelectElement("/x:PCNbody/x:ItemNumbers", nst);
+            if (elemsItNums != null)
+                foreach (var it in elemsItNums.Descendants(xns + "ItemNumber"))
+                    itemNumToProcess.Add(it);
+
+            // access body
+            var elBody = xdoc.Element(xns + "PCNbody");
+
+            // create result list and approach single records
+            foreach (var it in itemNumToProcess)
+            {
+                // create a new record
+                var rec = new PDPCN.CD_Record();
+
+                // access some sub structures
+                var elMaster = elBody.Element(xns + "masterData");
+                var elDiff = elBody.Element(xns + "difference");
+                var elItem = it;
+                var elLCD = elBody.Element(xns + "pcnLifeCycleData");
+                if (elMaster == null || elDiff == null || elItem == null)
+                    // makes no sense without these data portions
+                    continue;
+
+                // a little top to down w.r.t UML of SMT
+                // top
+                rec.Manufacturer.ManufacturerName = ExtendILangStringTextType.CreateFrom(
+                    elMaster.Element(xns + "pcnMfrName")?.Value);
+
+                rec.ManufacturerChangeID = elMaster.Element(xns + "pcnNumber")?.Value;
+
+                // life cycle data 
+                rec.LifeCycleData = new PDPCN.CD_LifeCycleData();
+                if (elLCD.HasElements)
+                {
+                    Action<string, string, string> checkLambda = (xElName, value, valueId) =>
+                    {
+                        // get date?
+                        var date = elLCD.Element(xns + xElName)?.Value;
+                        if (date == null)
+                            return;
+                        if (!date.Contains("T"))
+                            date += "T12:00Z";
+
+                        // add
+                        var ms = new PDPCN.CD_LifeCycleMilestone()
+                        {
+                            MilestoneClassification = "" + valueId,
+                            // valueId for later extension
+                            DateOfValidity = date,
+                        };
+                        rec.LifeCycleData.Milestone.Add(ms);
+                    };
+                    checkLambda("pcnSOP",           "SOP",  "0173-10029#07-ABO117#001");
+                    checkLambda("pcnEOS",           "EOS",  "0173-10029#07-ABO121#001");
+                    checkLambda("pcnEOPeffDate",    "EOS",  "0173-10029#07-ABO122#001");
+                    checkLambda("pcnLTD",           "LTD",  "0173-10029#07-ABO123#001");
+                    checkLambda("pcnEOSR",          "EOSR", "00173-10029#07-ABO124#001");
+                }
+
+                // reasons of change
+                rec.ReasonsOfChange = new PDPCN.CD_ReasonsOfChange();
+                var elChanges = elItem.Element(xns + "itemChanges");
+                if (elChanges != null && elChanges.HasElements) 
+                    foreach (var x in elChanges.Elements(xns + "itemChange"))
+                    {
+                        var itc = x?.Attribute("itemChangeType");
+                        if (itc?.Value?.HasContent() == true)
+                        {
+                            var res1 = new PDPCN.CD_ReasonOfChange();
+                            rec.ReasonsOfChange.ReasonOfChange.Add(res1);
+                            res1.ReasonClassificationSystem = "VDMA24903";
+                            res1.VersionOfClassificationSystem = "2017";
+                            res1.ReasonId = itc?.Value;
+                        }
+                    }
+                
+                // item categories
+                rec.ItemCategories = new PDPCN.CD_ItemCategories();
+                var cat1 = new PDPCN.CD_ItemCategory();
+                rec.ItemCategories.ItemCategory.Add(cat1);
+                cat1.ItemClassificationSystem = "VDMA24903";
+                cat1.VersionOfClassificationSystem = "2017";
+                cat1.ItemCategory = "" + elItem.Element(xns + "itemCategory")?.Value;
+
+                // affected part numbers
+                // There is a certain difference between smartPCN item numbers and
+                // affected part numbers. However, to provide data of all sorts, 
+                // integrate them as well.
+                rec.AffectedPartNumbers = new PDPCN.CD_AffectedPartNumbers();
+                foreach (var it2 in itemNumToProcess)
+                    rec.AffectedPartNumbers.AffectedPartNumber.Add(""
+                        + it2?.Element(xns + "itemMfrNumber")?.Value);
+
+                rec.PcnReasonComment = ExtendILangStringTextType.CreateFrom(
+                    elMaster.Element(xns + "pcnTitle")?.Value);
+
+                rec.PcnChangeInformation.ChangeTitle = ExtendILangStringTextType.CreateFrom(
+                    elDiff.Element(xns + "pcnChangeTitle")?.Value);
+
+                rec.PcnChangeInformation.ChangeDetail = ExtendILangStringTextType.CreateFrom(
+                    "" + elDiff.Element(xns + "pcnChangeDetail")?.Value
+                    + " "
+                    + elDiff.Element(xns + "pcnChangeIdentificationMethod")?.Value);
+
+                rec.DateOfRecord = "" + elMaster.Element(xns + "pcnIssueDate")?.Value;
+                if (!rec.DateOfRecord.Contains("T"))
+                    rec.DateOfRecord += "T12:00Z";
+
+                // now, add the item of change
+                // (smartPCN concern solely about item of change and not about 
+                // recommendations)
+                var ioc = rec.ItemOfChange;
+
+                // only fair level of product data
+                ioc.ManufacturerProductFamily = ExtendILangStringTextType.CreateFrom(
+                    elItem.Element(xns + "itemMfrTypeIdent")?.Value);
+
+                ioc.ManufacturerProductDesignation = ExtendILangStringTextType.CreateFrom(
+                    elItem.Element(xns + "itemMfrTypeIdent")?.Value);
+
+                ioc.OrderCodeOfManufacturer = ExtendILangStringTextType.CreateFrom(
+                    elItem.Element(xns + "itemMfrNumber")?.Value);
+
+                ioc.HardwareVersion = elItem.Element(xns + "itemRev")?.Value;
+
+                // add an empty classification for ECLASS
+                ioc.ProductClassifications = new PDPCN.CD_ProductClassifications();
+                var pc1 = new PDPCN.CD_ProductClassification();
+                ioc.ProductClassifications.ProductClassification.Add(pc1);
+                pc1.ClassificationSystem = "ECLASS";
+                pc1.VersionOfClassificationSystem = "14.0 (BASIC)";
+                pc1.ProductClassId = "00-00-00-00";
+
+                // add 
+                res.Add(rec);
+
+                break;
+                
+            }
+
+            return res;
+        }
         
         #endregion
 

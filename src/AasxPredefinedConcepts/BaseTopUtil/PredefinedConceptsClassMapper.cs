@@ -15,7 +15,9 @@ using Extensions;
 using Namotion.Reflection;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Intrinsics.X86;
@@ -883,7 +885,7 @@ namespace AasxPredefinedConcepts
             if (eai?.Fi == null || eai.Attr == null || sme == null)
                 return;
 
-            if (sme?.IdShort == "AdditionalInformation{00}") { ; }
+            if (sme?.IdShort == "ItemCategory") { ; }
            
             // straight?
             if (!sme.IsStructured())
@@ -1018,6 +1020,133 @@ namespace AasxPredefinedConcepts
                     }
 
             }
+        }
+
+        public static Aas.ISubmodelElement SerializeToAasElem(object obj,
+            AasConceptAttribute externalAttr = null,
+            string externalFieldName = null)
+        {
+            // determine type of object
+            if (obj == null)
+                return null;
+            var t = obj.GetType();
+
+            var nameIdShort = "" + ((externalFieldName != null) ? externalFieldName : t.Name);
+
+            if (t.Name == "CD_LifeCycleData") { ; }
+            
+            // if there is not semantic, there is no point to care about?
+            var attrCd = (externalAttr != null) ? externalAttr 
+                : t.GetCustomAttribute<AasConceptAttribute>();
+            if (attrCd == null)
+                return null;
+            var semId = new Aas.Reference(ReferenceTypes.ExternalReference,
+                        (new[] { new Aas.Key(KeyTypes.GlobalReference, attrCd.Cd) })
+                        .Cast<Aas.IKey>().ToList());
+
+            //
+            // Scalar -> Property
+            //
+
+            if (!t.IsGenericType
+                && (new[] { typeof(string), typeof(int), typeof(double) }).Contains(t))
+            {
+                // scalar -> property
+                var prop = new Aas.Property(
+                    idShort: nameIdShort,
+                    semanticId: semId,
+                    valueType: DataTypeDefXsd.String,
+                    value: "" + System.Convert.ToString(obj, CultureInfo.InvariantCulture));
+                return prop;
+            }
+
+            //
+            // List<ILangStringTextType> -> MLP
+            // 
+
+            if (t.IsGenericType
+                && t.GetGenericTypeDefinition() == typeof(List<>)
+                && t.GenericTypeArguments.Count() > 0
+                && t.GenericTypeArguments[0].IsAssignableTo(typeof(IAbstractLangString)))
+            {
+                var mlp = new Aas.MultiLanguageProperty(
+                    idShort: nameIdShort,
+                    semanticId: semId,
+                    value: obj as List<Aas.ILangStringTextType>);
+                return mlp;
+            }
+
+            //
+            // List of other objects -> SML over SME
+            //
+
+            if (t.IsGenericType
+                && t.GetGenericTypeDefinition() == typeof(List<>)
+                && t.GenericTypeArguments.Count() > 0)
+            {
+                // SML
+                var sml = new Aas.SubmodelElementList(
+                    idShort: nameIdShort,
+                    semanticId: semId,
+                    typeValueListElement: AasSubmodelElements.SubmodelElementCollection,
+                    value: new List<ISubmodelElement>());
+
+                // can cast to IEnumerable
+                var ie = obj as IEnumerable;
+                if (ie != null)
+                    foreach (var io in ie)
+                    {
+                        // get an individual list element, with the CD attribute of the list
+                        var sme = SerializeToAasElem(io, attrCd);
+                        if (sme != null)
+                            sml.Value.Add(sme);
+                    }
+
+                // ok
+                return sml;
+            }
+
+            //
+            // Class -> SMC
+            //
+
+            if (!t.IsGenericType
+                && t.IsClass)
+            {
+                // try construct a class == SMC
+                var smc = new Aas.SubmodelElementCollection(
+                    idShort: nameIdShort,
+                    semanticId: semId,
+                    value: new List<ISubmodelElement>());
+
+                // identify fields of the obj
+                var l = t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                foreach (var f in l)
+                {
+                    // special case
+                    if (f.FieldType == typeof(AasClassMapperInfo))
+                    {
+                        continue;
+                    }
+
+                    if (f.Name == "ItemCategories") { ; }
+
+                    // try create an SME
+                    var sme = SerializeToAasElem(f.GetValue(obj), 
+                        externalAttr: f.GetCustomAttribute<AasConceptAttribute>(),
+                        externalFieldName: f.Name);
+                    if (sme != null && f.Name != "AffectedPartNumbers")
+                        smc.Value.Add(sme);
+                    else
+                    {
+                        ;
+                    }
+                }
+
+                return smc;
+            }
+
+            return null;
         }
     }
 }

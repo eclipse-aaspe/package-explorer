@@ -130,7 +130,8 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 // create session and call
                 var session = _sessions.CreateNewSession<Session>(args[4]);
                 session.AnyUiControl = PcnAnyUiControl.FillWithAnyUiControls(
-                    _log, args[0], args[1], _options, _eventStack, session, args[2], this);
+                    _log, args[0], args[1], _options, _eventStack, session, args[2], this, 
+                    args[3] as AnyUiContextBase);
 
                 // give object back
                 var res = new AasxPluginResultBaseObject();
