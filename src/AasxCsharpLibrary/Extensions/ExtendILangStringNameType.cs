@@ -14,6 +14,11 @@ namespace Extensions
 {
     public static class ExtendILangStringNameType
     {
+        public static string GetDefaultString(this List<ILangStringNameType> langStringSet, string defaultLang = null)
+        {
+            return ExtendLangString.GetDefaultStringGen(langStringSet, defaultLang);
+        }
+
         public static string ToStringExtended(this ILangStringNameType ls, int fmt)
         {
             if (fmt == 2)
