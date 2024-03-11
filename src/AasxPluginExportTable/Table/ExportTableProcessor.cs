@@ -76,6 +76,17 @@ namespace AasxPluginExportTable.Table
     {
         protected ImportExportTableRecord Record = null;
 
+        /// <summary>
+        /// If exported to XML, HTML, LaTex, Markdown, AsciiDoc .. will specify
+        /// the element id of the overall export.
+        /// </summary>
+        public string IdOfExport = null;
+
+        /// <summary>
+        /// If exported and supported by file format, will add an title to the export (table).
+        /// </summary>
+        public string TitleOfExport = null;
+
         //
         // Constructurs
         //
@@ -1641,7 +1652,7 @@ namespace AasxPluginExportTable.Table
 
         public bool ExportAsciiDoc(
             string fn,
-            List<ExportTableAasEntitiesList> iterateAasEntities)
+            List<ExportTableAasEntitiesList> iterateAasEntities = null)
         {
             // access
             if (Record?.IsValid() != true)
@@ -1687,7 +1698,9 @@ namespace AasxPluginExportTable.Table
                         else
                             colSpeci.Add("1");
                     }
-                    f.WriteLine($"[width=\"100%\", cols=\"{string.Join(",", colSpeci)}\"]");
+                    var idStr = (IdOfExport == null) ? "" : $" id=\"{IdOfExport}\",";
+                    var titStr = (TitleOfExport == null) ? "" : $" title=\"{TitleOfExport}\",";
+                    f.WriteLine($"[width=\"100%\",{idStr}{titStr} cols=\"{string.Join(",", colSpeci)}\"]");
                     f.WriteLine("|===");
 
                     // figure out background of the wholew table (top is for top and bottom)

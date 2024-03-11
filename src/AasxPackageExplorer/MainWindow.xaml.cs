@@ -37,6 +37,7 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using static AasxPackageLogic.DispEditHelperBasics;
 using Aas = AasCore.Aas3_0;
 using ExhaustiveMatch = ExhaustiveMatching.ExhaustiveMatch;
 
@@ -80,9 +81,7 @@ namespace AasxPackageExplorer
 		
 		public AasxMenuWpf MainMenu = new AasxMenuWpf();
 
-        private string showContentPackageUri = null;
-        private Aas.IBlob showContentEditBlob = null;
-        private string showContentPackageMime = null;
+        private Aas.ISubmodelElement showContentElement = null;
         private VisualElementGeneric currentEntityForUpdate = null;
         private IFlyoutControl currentFlyoutControl = null;
 
@@ -154,7 +153,7 @@ namespace AasxPackageExplorer
             else
             {
                 // open externally
-                Log.Singleton.Info($"Displaying {this.showContentPackageUri} with mimeType {"" + mimeType} " +
+                Log.Singleton.Info($"Displaying {url} with mimeType {"" + mimeType} " +
                     $"remotely in external viewer ..");
 
                 Process proc = new Process();
@@ -643,7 +642,7 @@ namespace AasxPackageExplorer
             ShowContent.IsEnabled = false;
             DragSource.Foreground = Brushes.DarkGray;
             UpdateContent.IsEnabled = false;
-            this.showContentPackageUri = null;
+            this.showContentElement = null;
 
             // show it
             if (ElementTabControl.SelectedIndex != 0)
@@ -655,18 +654,15 @@ namespace AasxPackageExplorer
                 if (sme?.theWrapper is Aas.IFile file)
                 {
                     ShowContent.IsEnabled = true;
-                    this.showContentPackageUri = file.Value;
-                    this.showContentPackageMime = file.ContentType;
+                    this.showContentElement = file;
                     DragSource.Foreground = Brushes.Black;
                 }
 
                 if (sme?.theWrapper is Aas.IBlob blb
-                    && editMode
                     && AdminShellUtil.CheckForTextContentType(blb.ContentType))
                 {
                     ShowContent.IsEnabled = true;
-                    this.showContentPackageUri = null;
-                    this.showContentPackageMime = blb.ContentType;
+                    this.showContentElement = blb;
                     DragSource.Foreground = Brushes.Black;
                 }
             }
@@ -2977,31 +2973,59 @@ namespace AasxPackageExplorer
 
         private void ShowContent_Click(object sender, RoutedEventArgs e)
         {
-            if (sender == ShowContent && this.showContentPackageUri != null && PackageCentral.MainAvailable)
+            if (sender == ShowContent && this.showContentElement != null && PackageCentral.MainAvailable)
             {
-                Log.Singleton.Info("Trying display content {0} ..", this.showContentPackageUri);
-                try
+                if (this.showContentElement is Aas.IFile scFile)
                 {
-                    var contentUri = this.showContentPackageUri;
-
-                    // if local in the package, then make a tempfile
-                    if (!this.showContentPackageUri.ToLower().Trim().StartsWith("http://")
-                        && !this.showContentPackageUri.ToLower().Trim().StartsWith("https://"))
+                    Log.Singleton.Info("Trying display content {0} ..", scFile.Value);
+                    try
                     {
-                        // make it as file
-                        contentUri = PackageCentral.Main.MakePackageFileAvailableAsTempFile(
-                            this.showContentPackageUri);
-                    }
+                        var contentUri = scFile.Value;
 
-                    BrowserDisplayLocalFile(contentUri, this.showContentPackageMime);
+                        // if local in the package, then make a tempfile
+                        if (!contentUri.ToLower().Trim().StartsWith("http://")
+                            && !contentUri.ToLower().Trim().StartsWith("https://"))
+                        {
+                            // make it as file
+                            contentUri = PackageCentral.Main.MakePackageFileAvailableAsTempFile(contentUri);
+                        }
+
+                        BrowserDisplayLocalFile(contentUri, scFile.ContentType);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Singleton.Error(
+                            ex, $"When displaying content {scFile.Value}, an error occurred");
+                        return;
+                    }
+                    Log.Singleton.Info("Content {0} displayed.", scFile.Value);
                 }
-                catch (Exception ex)
+
+                if (this.showContentElement is Aas.IBlob blb
+                    && MainMenu?.IsChecked("EditMenu") == true
+                    && AdminShellUtil.CheckForTextContentType(blb.ContentType))
                 {
-                    Log.Singleton.Error(
-                        ex, $"When displaying content {this.showContentPackageUri}, an error occurred");
-                    return;
+                    Log.Singleton.Info("Trying edit multiline content from {0} ..", blb.IdShort);
+                    try
+                    {
+                        var uc = new AnyUiDialogueDataTextEditor(
+                                                    caption: $"Edit Blob '{"" + blb.IdShort}'",
+                                                    mimeType: blb.ContentType,
+                                                    text: Encoding.Default.GetString(blb.Value ?? new byte[0]));
+                        if (this.DisplayContext.StartFlyoverModal(uc))
+                        {
+                            blb.Value = Encoding.Default.GetBytes(uc.Text);
+                            RedrawElementView();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Singleton.Error(
+                            ex, $"When editing content from {blb.IdShort}, an error occurred");
+                        return;
+                    }
+                    Log.Singleton.Info("Content from {0} edited.", blb.IdShort);
                 }
-                Log.Singleton.Info("Content {0} displayed.", this.showContentPackageUri);
             }
         }
 
@@ -3507,15 +3531,16 @@ namespace AasxPackageExplorer
         {
             // MIHO 2020-09-14: removed this from the check below
             //// && (Math.Abs(dragStartPoint.X) < 0.001 && Math.Abs(dragStartPoint.Y) < 0.001)
-            if (e.LeftButton == MouseButtonState.Pressed && !isDragging && this.showContentPackageUri != null &&
-                PackageCentral.MainAvailable)
+            if (e.LeftButton == MouseButtonState.Pressed && !isDragging
+                && PackageCentral.MainAvailable
+                && this.showContentElement is Aas.IFile scFile)
             {
                 Point position = e.GetPosition(null);
                 if (Math.Abs(position.X - dragStartPoint.X) > SystemParameters.MinimumHorizontalDragDistance ||
                     Math.Abs(position.Y - dragStartPoint.Y) > SystemParameters.MinimumVerticalDragDistance)
                 {
                     // check if it an address in the package only
-                    if (!this.showContentPackageUri.Trim().StartsWith("/"))
+                    if (!scFile.Value.Trim().StartsWith("/"))
                         return;
 
                     // lock
@@ -3526,7 +3551,7 @@ namespace AasxPackageExplorer
                     {
                         // hastily prepare temp file ..
                         var tempfile = PackageCentral.Main.MakePackageFileAvailableAsTempFile(
-                            this.showContentPackageUri, keepFilename: true);
+                            scFile.Value, keepFilename: true);
 
                         // Package the data.
                         DataObject data = new DataObject();
@@ -3538,7 +3563,7 @@ namespace AasxPackageExplorer
                     catch (Exception ex)
                     {
                         Log.Singleton.Error(
-                            ex, $"When dragging content {this.showContentPackageUri}, an error occurred");
+                            ex, $"When dragging content {scFile.Value}, an error occurred");
                         return;
                     }
 
