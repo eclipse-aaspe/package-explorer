@@ -224,7 +224,7 @@ namespace AasxPluginExportTable.Smt
 
             // include file into AsciiDoc
             _adoc.AppendLine("");
-            _adoc.AppendLine($"[plantuml, {pumlName}, svg, {astr}]");
+            _adoc.AppendLine($"[plantuml, {pumlName}, svg, id=\"{pumlName}\", {astr}]");
             _adoc.AppendLine("----");
             _adoc.AppendLine("include::" + pumlFn + "[]");
             _adoc.AppendLine("----");
@@ -287,7 +287,9 @@ namespace AasxPluginExportTable.Smt
 
             AnyUiDialogueTable.Export(
                 _optionsAll, optionsTable, absTableFn,
-                target, _package?.AasEnv, ticket, _log, maxDepth: processDepth);
+                target, _package?.AasEnv, ticket, _log, maxDepth: processDepth,
+                idOfElem: refel.IdShort,
+                titleOfTable: refel.Description?.GetDefaultString());
 
             // include file into AsciiDoc
             if (_optionsSmt.IncludeTables)

@@ -565,9 +565,18 @@ namespace AasxPackageLogic
                         // user feedback
                         Log.Singleton.Info($"Pasting {cpb.Items.Count} SubmodelElements from paste buffer");
 
+                        // the sequence of adding childs might by altered in order to preserve
+                        // original order of elements
+                        var itemsInOrder = cpb.Items;
+                        if (buttonNdx != 2)
+                        {
+                            // paste below, paste into will use reversing
+                            itemsInOrder.Reverse();
+                        }
+
                         // loop over items
                         object nextBusObj = null;
-                        foreach (var it in cpb.Items)
+                        foreach (var it in itemsInOrder)
                         {
                             // access
                             var item = it as CopyPasteItemSME;
