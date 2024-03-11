@@ -398,7 +398,7 @@
         "Tool(\"LocationPush\");",
         "Select(\"Submodel\", \"First\");",
         "Select(\"Submodel\", \"Next\");",
-        "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\HOMI\\Develop\\Aasx\\repo\\contactv11\\new.zip\");",
+        "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\HOMI\\Develop\\Aasx\\repo\\dnp30\\new.zip\");",
         "Tool(\"LocationPop\");"
       ]
     }

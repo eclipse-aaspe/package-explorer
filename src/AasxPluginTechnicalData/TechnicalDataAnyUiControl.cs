@@ -584,7 +584,7 @@ namespace AasxPluginTechnicalData
                 // prepare information about displayName, semantics unit
                 var semantics = "-";
                 var unit = "";
-                // make up property name (1)
+                // make up property name (prio 4)
                 var dispName = "" + sme.IdShort;
                 var dispNameWithCD = dispName;
 
@@ -599,7 +599,7 @@ namespace AasxPluginTechnicalData
                         // the semantics display
                         semantics = "" + sme.SemanticId?.ToStringExtended(2);
 
-                        // find better property name (2)
+                        // find better property name (prio 2 and prio 3)
                         var cd = package?.AasEnv?.FindConceptDescriptionByReference(sme.SemanticId);
                         if (cd != null)
                         {
@@ -618,12 +618,21 @@ namespace AasxPluginTechnicalData
                     }
                 }
 
-                // make up even better better property name (3)
+                // make up even better better property name (prio 1b)
                 var descDef = "" + sme.Description?.GetDefaultString(defaultLang);
                 if (descDef.HasContent())
                 {
                     dispName = descDef;
                     dispNameWithCD = dispName;
+                }
+
+                // make up even better better display name (prio 1a), this is the 
+                // highest priority
+                var dNameSme = "" + sme.DisplayName?.GetDefaultString(defaultLang);
+                if (dNameSme.HasContent())
+                {
+                    dispName = dNameSme;
+                    dispNameWithCD = dNameSme;
                 }
 
                 // special function?
