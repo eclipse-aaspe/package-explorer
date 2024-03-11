@@ -1024,7 +1024,9 @@ namespace AasxPredefinedConcepts
 
         public static Aas.ISubmodelElement SerializeToAasElem(object obj,
             AasConceptAttribute externalAttr = null,
-            string externalFieldName = null)
+            AasConceptAttribute listElemAttr = null,
+            string externalFieldName = null,
+            string listElemName = null)
         {
             // determine type of object
             if (obj == null)
@@ -1033,7 +1035,7 @@ namespace AasxPredefinedConcepts
 
             var nameIdShort = "" + ((externalFieldName != null) ? externalFieldName : t.Name);
 
-            if (t.Name == "CD_LifeCycleData") { ; }
+            if (t.Name == "AffectedPartNumbers") { ; }
             
             // if there is not semantic, there is no point to care about?
             var attrCd = (externalAttr != null) ? externalAttr 
@@ -1096,8 +1098,12 @@ namespace AasxPredefinedConcepts
                 if (ie != null)
                     foreach (var io in ie)
                     {
-                        // get an individual list element, with the CD attribute of the list
-                        var sme = SerializeToAasElem(io, attrCd);
+                        // get an individual list element
+                        // (this time: take the attribute/ name from the element itself!)
+                        var sme = SerializeToAasElem(
+                            io, 
+                            externalAttr: listElemAttr, 
+                            externalFieldName: "" /* listElemName */);
                         if (sme != null)
                             sml.Value.Add(sme);
                     }
@@ -1113,37 +1119,93 @@ namespace AasxPredefinedConcepts
             if (!t.IsGenericType
                 && t.IsClass)
             {
-                // try construct a class == SMC
-                var smc = new Aas.SubmodelElementCollection(
-                    idShort: nameIdShort,
-                    semanticId: semId,
-                    value: new List<ISubmodelElement>());
-
-                // identify fields of the obj
+                // do a reflection loop first in order to do some statistics
+                int numMapInfo = 0, numOther = 0;
+                var listCdFields = new List<FieldInfo>();
                 var l = t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                 foreach (var f in l)
                 {
-                    // special case
                     if (f.FieldType == typeof(AasClassMapperInfo))
                     {
+                        numMapInfo++;
                         continue;
                     }
 
-                    if (f.Name == "ItemCategories") { ; }
-
-                    // try create an SME
-                    var sme = SerializeToAasElem(f.GetValue(obj), 
-                        externalAttr: f.GetCustomAttribute<AasConceptAttribute>(),
-                        externalFieldName: f.Name);
-                    if (sme != null && f.Name != "AffectedPartNumbers")
-                        smc.Value.Add(sme);
-                    else
+                    if (null != f.GetCustomAttribute<AasConceptAttribute>())
                     {
-                        ;
+                        listCdFields.Add(f);
+                        continue;
+                    }
+
+                    numOther++;
+                }
+
+                // Now can decide, if there is a special case: class with exactly one List inside.
+                // In this case, no __sourrounding__ class is required
+                var smlCase = false;
+                if (numMapInfo == 1 && listCdFields.Count == 1 && numOther == 0)
+                {
+                    var t2 = listCdFields[0].FieldType;
+                    if (t2.IsGenericType
+                        && t2.GetGenericTypeDefinition() == typeof(List<>)
+                        && t2.GenericTypeArguments.Count() > 0)
+                    {
+                        smlCase = true;
                     }
                 }
 
-                return smc;
+                // now, finally
+                if (smlCase)
+                {
+                    // can pass this single field on to get constructed as SML
+                    // Note: the cd attribute / name comes from the superior field!
+                    var f2 = listCdFields[0];
+                    return SerializeToAasElem(
+                        f2.GetValue(obj),
+                        externalAttr: externalAttr,
+                        listElemAttr: f2.GetCustomAttribute<AasConceptAttribute>(),                        
+                        externalFieldName: externalFieldName,
+                        listElemName: f2.Name);
+
+                    // MIHO considers this already as a design flaw of the export of
+                    // the mappings: the double classes (class + class with list) seem
+                    // to be pointless.
+                    // A rework would affect all the (manually adjusted) exported classes
+                    // and the source code using the mapped classes and is therefore 
+                    // desirable but time consuming
+                    /* TODO (MIHO, 2024-03-09): do the above mentioned rework for exporting
+                     * the mapping classes */
+                }
+                else
+                {
+                    // try construct a class == SMC
+                    var smc = new Aas.SubmodelElementCollection(
+                        idShort: nameIdShort,
+                        semanticId: semId,
+                        value: new List<ISubmodelElement>());
+
+                    // identify fields of the obj
+                    l = t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    foreach (var f in l)
+                    {
+                        // special case
+                        if (f.FieldType == typeof(AasClassMapperInfo))
+                        {
+                            continue;
+                        }
+
+                        if (f.Name == "AffectedPartNumbers") { ; }
+
+                        // try create an SME
+                        var sme = SerializeToAasElem(f.GetValue(obj),
+                            externalAttr: f.GetCustomAttribute<AasConceptAttribute>(),                            
+                            externalFieldName: f.Name);
+                        if (sme != null)
+                            smc.Value.Add(sme);
+                    }
+
+                    return smc;
+                }
             }
 
             return null;

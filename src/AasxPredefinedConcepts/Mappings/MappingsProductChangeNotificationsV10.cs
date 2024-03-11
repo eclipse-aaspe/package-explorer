@@ -434,12 +434,12 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications
             lambda("MANAQ", "Acquisition", "Transfer of a unit, portfolio or production from one production from one manufacturer to another");
             lambda("ALERT", "Alarm", "The manufacturer warns of changes and restrictions that he has detected in a product. For example, functional limitations on the units themselves, but also descriptions of unexpected behavior under certain conditions and also temporary interruptions in the production of the units.");
             lambda("SOFTW", "Change of the software", "Change of the software");
-            lambda("LABEL", "Labeling", "Change the labeling of the unit and or Packing");
+            lambda("LABEL", "Labeling", "Change the labeling of the unit and or packing");
             lambda("CHARA", "Characteristics", "Characteristics such as attribute values of the unit are omitted, are added or changed. They can be electrical, mechanical, thermal or other characteristics kind");
             lambda("DOCUM", "Documentation", "General summary of changes made to the changes made. It does not change characteristics of the units are changed.");
             lambda("NRND", "Restriction of the Recommendation for use", "Official recommendation to no longer use the unit for new developments");
             lambda("FIT", "Fit", "Describes a change in the units of fit and fit with respect to other units connected in the units connected in the product.");
-            lambda("FORM", "Shape and Appearance", "Describes a change in the outward appearance of the units. This concerns the spatial dimensions and from, but also colors and surface textures.");
+            lambda("FORM", "Shape and Appearance", "Describes a change in the outward appearance of the units. This concerns the spatial dimensions and form, but also colors and surface textures.");
             lambda("FUNCT", "Function", "Changes or effects from operation and performance");
             lambda("INSOL", "Insolvency", "insolvency of the manufacturer");
             lambda("CORR", "Correction", "Correction of documentation without change to the unit");

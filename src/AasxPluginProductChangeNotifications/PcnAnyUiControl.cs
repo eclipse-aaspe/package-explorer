@@ -180,6 +180,19 @@ namespace AasxPluginProductChangeNotifications
             var outer = view.Add(uitk.AddSmallGrid(rows: 7, cols: 1, colWidths: new[] { "*" }));
 
             //
+            // Dialogue is always pointing to a certain index record
+            //
+
+            PDPCN.CD_Record currRec = null;
+            if (data?.Records?.Record != null
+                && _pcnIndex >= 0 && _pcnIndex < data.Records.Record.Count)
+                currRec = data.Records.Record[_pcnIndex];
+
+            var recTit = "";
+            if (currRec?.__Info__?.Referable?.IdShort?.HasContent() == true)
+                recTit = currRec.__Info__.Referable.IdShort;
+
+            //
             // Bluebar
             //
 
@@ -192,7 +205,7 @@ namespace AasxPluginProductChangeNotifications
                 foreground: AnyUiBrushes.DarkBlue,
                 fontSize: 1.5f,
                 setBold: true,
-                content: $"PCN #{_pcnIndex:D3} {AdminShellUtil.ShortenWithEllipses(""+sm?.IdShort, 20)}");
+                content: $"PCN #{_pcnIndex:D3} {AdminShellUtil.ShortenWithEllipses(recTit, 20)}");
 
             AnyUiUIElement.RegisterControl(
                     uitk.AddSmallButtonTo(bluebar, 0, 1,
@@ -202,7 +215,12 @@ namespace AasxPluginProductChangeNotifications
                         setValueAsync: async (o) =>
                         {
                             if (await AddFromSmartPcnXml(package, sm))
+                            {
+                                // add event
+                                PushRedrawAllEvent();
+                                // seems to be not working
                                 return new AnyUiLambdaActionRedrawEntity();
+                            }
                             else
                                 return new AnyUiLambdaActionNone();
                         });
@@ -278,11 +296,8 @@ namespace AasxPluginProductChangeNotifications
             };
             scroll.Content = inner;
 
-            if (foundRecs != null)
-                foreach (var rec in foundRecs)
-                    if (data?.Records?.Record != null
-                        && _pcnIndex >= 0 && _pcnIndex < data.Records.Record.Count)
-                        RenderPanelInner(inner, uitk, rec, package, sm, data.Records.Record[_pcnIndex]);
+            if (currRec != null)
+                RenderPanelInner(inner, uitk, null, package, sm, currRec);
         }
 
         #endregion
@@ -1087,7 +1102,7 @@ namespace AasxPluginProductChangeNotifications
                 InnerDocAddText(uitk, colTwoGrid, 0, 2, "Mfg.Prod.Family:",
                     "" + manufacturerProductFamily);
 
-                InnerDocAddText(uitk, colTwoGrid, 0, 2, "Mfg.Prod.Deign.:",
+                InnerDocAddText(uitk, colTwoGrid, 0, 2, "Mfg.Prod.Design.:",
                     "" + manufacturerProductDesignation);
 
                 InnerDocAddText(uitk, colTwoGrid, 0, 2, "Order Code Mfg.:",
@@ -1124,7 +1139,7 @@ namespace AasxPluginProductChangeNotifications
             PDPCN.CD_Record data)
         {
             // access
-            if (view == null || uitk == null || sm == null || rec == null)
+            if (view == null || uitk == null || sm == null)
                 return;
 
             // 
@@ -1412,6 +1427,15 @@ namespace AasxPluginProductChangeNotifications
             });
         }
 
+        protected void PushRedrawAllEvent(AnyUiRenderMode mode = AnyUiRenderMode.All)
+        {
+            // bring it to the panel by redrawing the plugin
+            _eventStack?.PushEvent(new AasxPluginResultEventRedrawAllElements()
+            {
+                Session = _session,
+            });
+        }
+
         public void HandleEventReturn(AasxPluginEventReturnBase evtReturn)
         {
             // demands from shelf
@@ -1572,7 +1596,7 @@ namespace AasxPluginProductChangeNotifications
                         // add
                         var ms = new PDPCN.CD_LifeCycleMilestone()
                         {
-                            MilestoneClassification = "" + valueId,
+                            MilestoneClassification = "" + value,
                             // valueId for later extension
                             DateOfValidity = date,
                         };
@@ -1580,7 +1604,7 @@ namespace AasxPluginProductChangeNotifications
                     };
                     checkLambda("pcnSOP",           "SOP",  "0173-10029#07-ABO117#001");
                     checkLambda("pcnEOS",           "EOS",  "0173-10029#07-ABO121#001");
-                    checkLambda("pcnEOPeffDate",    "EOS",  "0173-10029#07-ABO122#001");
+                    checkLambda("pcnEOPeffDate",    "EOP",  "0173-10029#07-ABO122#001");
                     checkLambda("pcnLTD",           "LTD",  "0173-10029#07-ABO123#001");
                     checkLambda("pcnEOSR",          "EOSR", "00173-10029#07-ABO124#001");
                 }
@@ -1661,9 +1685,6 @@ namespace AasxPluginProductChangeNotifications
 
                 // add 
                 res.Add(rec);
-
-                break;
-                
             }
 
             return res;
