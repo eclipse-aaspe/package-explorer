@@ -260,13 +260,19 @@ namespace Extensions
 
             if (srcCD.IsCaseOf != null && srcCD.IsCaseOf.Count != 0)
             {
-                if (cd.IsCaseOf == null)
-                {
-                    cd.IsCaseOf = new List<IReference>();
-                }
                 foreach (var caseOf in srcCD.IsCaseOf)
                 {
-                    cd.IsCaseOf.Add(ExtensionsUtil.ConvertReferenceFromV20(caseOf, ReferenceTypes.ModelReference));
+                    IReference newCaseOf = null;
+                    if(caseOf != null && !caseOf.IsEmpty)
+                    {
+                        newCaseOf = ExtensionsUtil.ConvertReferenceFromV20(caseOf, ReferenceTypes.ModelReference);
+                    }
+
+                    if(newCaseOf != null)
+                    {
+                        cd.IsCaseOf ??= new List<IReference>();
+                        cd.IsCaseOf.Add(newCaseOf);
+                    }
                 }
             }
 

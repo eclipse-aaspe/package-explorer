@@ -1090,7 +1090,8 @@ namespace AdminShellNS
                 {
                     _openPackage = Package.Open(Filename, FileMode.OpenOrCreate);
 
-                }            }
+                }            
+            }
         }
 
         private int BackupIndex = 0;

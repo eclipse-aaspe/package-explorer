@@ -29,7 +29,10 @@ namespace Extensions
         public static Blob ConvertFromV20(this Blob blob, AasxCompatibilityModels.AdminShellV20.Blob sourceBlob)
         {
             blob.ContentType = sourceBlob.mimeType;
-            blob.Value = Encoding.ASCII.GetBytes(sourceBlob.value);
+            if (!string.IsNullOrEmpty(sourceBlob.value))
+            {
+                blob.Value = Encoding.ASCII.GetBytes(sourceBlob.value);
+            }            
             return blob;
         }
 

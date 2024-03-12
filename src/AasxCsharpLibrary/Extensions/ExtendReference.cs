@@ -203,6 +203,17 @@ namespace Extensions
                 return reference.Keys[0].Value;
             }
 
+            //TODO (jtikekar, 2024-03-06): Refactor, added w.r.t. GitHub issue 11
+            if(reference.Type == ReferenceTypes.ModelReference)
+            {
+                if (reference.Keys == null || reference.Keys.Count < 1)
+                {
+                    return null;
+                }
+
+                return reference.Keys[0].Value;
+            }
+
             return null;
         }
 

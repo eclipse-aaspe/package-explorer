@@ -557,16 +557,15 @@ namespace Extensions
 
             if (sourceSubmodelElement.hasDataSpecification != null && sourceSubmodelElement.hasDataSpecification.Count > 0)
             {
-                //TODO (jtikekar, 0000-00-00): EmbeddedDataSpecification?? (as per old implementation)
-                submodelElement.EmbeddedDataSpecifications ??= new List<IEmbeddedDataSpecification>();
-
-                //TODO (jtikekar, 0000-00-00): DataSpecificationContent?? (as per old implementation)
-                foreach (var sourceDataSpec in sourceSubmodelElement.hasDataSpecification)
+                foreach (var sourceEmbeddedDataSpec in sourceSubmodelElement.hasDataSpecification)
                 {
-                    submodelElement.EmbeddedDataSpecifications.Add(
-                        new EmbeddedDataSpecification(
-                            ExtensionsUtil.ConvertReferenceFromV20(sourceDataSpec.dataSpecification, ReferenceTypes.ExternalReference),
-                            null));
+                    var newEmbeddedDataSpec = new EmbeddedDataSpecification (null, null);
+                    newEmbeddedDataSpec.ConvertFromV20(sourceEmbeddedDataSpec);
+                    if(newEmbeddedDataSpec.DataSpecification != null || newEmbeddedDataSpec.DataSpecificationContent != null)
+                    {
+                        submodelElement.EmbeddedDataSpecifications ??= new List<IEmbeddedDataSpecification>();
+                        submodelElement.EmbeddedDataSpecifications.Add(newEmbeddedDataSpec);
+                    }
                 }
             }
 
@@ -991,6 +990,8 @@ namespace Extensions
             IKey semId, MatchMode matchMode = MatchMode.Strict)
                 where T : ISubmodelElement
         {
+            if (submodelELements.IsNullOrEmpty())
+                yield return default(T);
             foreach (var submodelElement in submodelELements)
                 if (submodelElement != null && submodelElement is T
                     && submodelElement.SemanticId != null)
