@@ -406,9 +406,17 @@ namespace AasxPackageLogic
                 if (ve.GetMainDataObject() is Aas.IReferable rf)
                 {
                     // add a key and go up ..
-                    res.Insert(
-                        0,
-                        new Aas.Key((Aas.KeyTypes)Aas.Stringification.KeyTypesFromString(rf.GetSelfDescription().AasElementName), rf.IdShort));
+                    IKey key;
+                    if (ve.Parent.GetMainDataObject() is ISubmodelElementList smeList)
+                    {
+                        var index = smeList.Value.IndexOf((ISubmodelElement)rf);
+                        key = new Aas.Key((Aas.KeyTypes)Aas.Stringification.KeyTypesFromString(rf.GetSelfDescription().AasElementName), index.ToString());
+                    }
+                    else
+                    {
+                        key = new Aas.Key((Aas.KeyTypes)Aas.Stringification.KeyTypesFromString(rf.GetSelfDescription().AasElementName), rf.IdShort);
+                    }
+                    res.Insert(0,key);
                 }
                 else
                 // uups!

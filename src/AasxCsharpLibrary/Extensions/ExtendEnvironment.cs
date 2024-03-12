@@ -748,11 +748,24 @@ namespace Extensions
                     }
             }
 
+            
+
             if (firstKeyType.IsSME() && submodelElems != null)
             {
-                var submodelElement = submodelElems.Where(
+                ISubmodelElement submodelElement;
+                //check if key.value is index 
+                bool isIndex = int.TryParse(firstKeyId, out int index);
+                if (isIndex)
+                {
+                    var smeList = submodelElems.ToList();
+                    submodelElement = smeList[index];
+                }
+                else
+                {
+                    submodelElement = submodelElems.Where(
                     sme => sme.IdShort.Equals(keyList[keyIndex].Value,
                         StringComparison.OrdinalIgnoreCase)).First();
+                }
 
                 //This is required element
                 if (keyIndex + 1 >= keyList.Count)
