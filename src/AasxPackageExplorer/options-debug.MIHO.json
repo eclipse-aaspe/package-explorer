@@ -41,7 +41,8 @@
   // "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\smt_pcn\\SMT_ProductChangeNotification_Draft_play_02.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\dnp30\\IDTA 02006-3-0_Template_Digital Nameplate_AsciiDoc_Draft_v06.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\contactv11\\IDTA 02002-1-1_Template_ContactInformation_AsciiDoc_Draft_v04.aasx",
-  "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\smt_pcn\\SMT_PCN_Examples_v03.aasx",
+  // "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\smt_pcn\\SMT_PCN_Examples_v03.aasx",
+  "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\SMT_PCN_Examples_v06.aasx",
   "WindowLeft": 200,
   "WindowTop": -1,
   "WindowWidth": 900,
@@ -398,7 +399,7 @@
         "Tool(\"LocationPush\");",
         "Select(\"Submodel\", \"First\");",
         "Select(\"Submodel\", \"Next\");",
-        "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\HOMI\\Develop\\Aasx\\repo\\dnp30\\new.zip\");",
+        "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\new.zip\");",
         "Tool(\"LocationPop\");"
       ]
     }
