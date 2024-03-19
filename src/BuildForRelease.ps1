@@ -54,6 +54,7 @@ function Main
         "AasxPluginUaNetClient",
         "AasxPluginUaNetServer",
         "AasxPluginWebBrowser",
+        "AasxPluginAssetInterfaceDesc"
         "BlazorExplorer"
         )
 
