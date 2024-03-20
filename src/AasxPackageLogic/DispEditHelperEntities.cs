@@ -60,11 +60,24 @@ namespace AasxPackageLogic
             this.AddHintBubble(stack, hintMode, new[] {
                 new HintCheck(
                     () => string.IsNullOrEmpty(asset.GlobalAssetId) == true,
-                    "It is strobly encouraged to have the AAS associated with an global asset id from the " +
-                    "very beginning. If the AAS describes a product, the individual asset id should to be " +
+                    "It is strongly encouraged to have the AAS associated with a global asset id from the " +
+                    "very beginning. If the AAS describes a product, the individual asset id should be " +
                     "found on its name plate. " +
                     "This  attribute  is  required  as  soon  as  the  AAS  is exchanged via partners in " +
                     "the life cycle of the asset.",
+                    severityLevel: HintCheck.Severity.High),
+                new HintCheck(
+                    () =>
+                    {
+                        int count = 0;
+                        foreach(var aas in env.AssetAdministrationShells)
+                        {
+                            if(aas.AssetInformation.GlobalAssetId == asset.GlobalAssetId)
+                                count++;
+                        }
+                        return (count>=2?true:false);
+                    },
+                    "It is not allowed to have duplicate GlobalAssetIds in the same file. This will break functionality and we strongly encoure to make the Id unique!",
                     severityLevel: HintCheck.Severity.High)
             });
 
@@ -1455,7 +1468,7 @@ namespace AasxPackageLogic
 
             // Identifiable
             this.DisplayOrEditEntityIdentifiable(
-                stack, aas,
+                stack, env, aas,
                 Options.Curr.TemplateIdAas,
                 null);
 
@@ -1968,7 +1981,7 @@ namespace AasxPackageLogic
 
                 // Identifiable
                 this.DisplayOrEditEntityIdentifiable(
-                    stack, submodel,
+                    stack, env, submodel,
                     (submodel.Kind == Aas.ModellingKind.Template)
                         ? Options.Curr.TemplateIdSubmodelTemplate
                         : Options.Curr.TemplateIdSubmodelInstance,
@@ -2147,7 +2160,7 @@ namespace AasxPackageLogic
             // Identifiable
 
             this.DisplayOrEditEntityIdentifiable(
-                stack, cd,
+                stack, env, cd,
                 Options.Curr.TemplateIdConceptDescription,
                 new DispEditHelperModules.DispEditInjectAction(
                 new[] { "Rename" },
