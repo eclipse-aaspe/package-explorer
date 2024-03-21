@@ -9,6 +9,7 @@
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Aaspe.AasCore" Version="1.0.1" />
     <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
   </ItemGroup>
 </Project>

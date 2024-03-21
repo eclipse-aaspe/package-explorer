@@ -14,6 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aaspe.AasCore" Version="1.0.1" />
     <PackageReference Include="AvalonEdit" Version="6.2.0.78" />
   </ItemGroup>
 

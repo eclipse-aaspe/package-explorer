@@ -60,6 +60,7 @@
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Aaspe.AasCore" Version="1.0.1" />
     <PackageReference Include="CefSharp.Common.NETCore" Version="115.3.110" />
     <PackageReference Include="CefSharp.Wpf.NETCore" Version="115.3.110" />
     <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />

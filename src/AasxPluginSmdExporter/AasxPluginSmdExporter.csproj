@@ -31,6 +31,7 @@
         </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
+        <PackageReference Include="Aaspe.AasCore" Version="1.0.1" />
         <PackageReference Include="CsvHelper" Version="29.0.0" />
         <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
         <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />

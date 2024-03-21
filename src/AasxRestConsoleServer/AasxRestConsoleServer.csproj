@@ -13,4 +13,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Aaspe.AasCore" Version="1.0.1" />
+  </ItemGroup>
 </Project>

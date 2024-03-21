@@ -8,7 +8,7 @@
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 	<ItemGroup>
-		<Using Include="AasCore.Aas3_0"/>
+		<Using Include="AasCore.Aas3_0" />
 	</ItemGroup>
   <ItemGroup>
     <None Update="data\CopyExternalData.bat">
@@ -105,6 +105,7 @@
     <ProjectReference Include="..\AasxPredefinedConcepts\AasxPredefinedConcepts.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Aaspe.AasCore" Version="1.0.1" />
     <PackageReference Include="ExhaustiveMatching.Analyzer" Version="0.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
