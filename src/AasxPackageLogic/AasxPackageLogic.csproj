@@ -51,7 +51,6 @@
     <ProjectReference Include="..\AasxSchemaExport\AasxSchemaExport.csproj" />
     <ProjectReference Include="..\AasxSignature\AasxSignature.csproj" />
     <ProjectReference Include="..\AnyUi\AnyUi.csproj" />
-    <ProjectReference Include="..\SSIExtension\SSIExtension.csproj" />
     
     <!--
     <ProjectReference Include="..\AasxRestServerLibrary\AasxRestServerLibrary.csproj" />
