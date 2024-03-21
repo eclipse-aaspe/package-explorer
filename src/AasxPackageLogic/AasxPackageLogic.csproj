@@ -50,7 +50,6 @@
     <ProjectReference Include="..\AasxSchemaExport\AasxSchemaExport.csproj" />
     <ProjectReference Include="..\AasxSignature\AasxSignature.csproj" />
     <ProjectReference Include="..\AnyUi\AnyUi.csproj" />
-    <ProjectReference Include="..\jsoncanonicalizer\jsoncanonicalizer.csproj" />
     <ProjectReference Include="..\SSIExtension\SSIExtension.csproj" />
     
     <!--
