@@ -85,6 +85,7 @@ namespace AasxDictionaryImport.Cdd
         {
 
             using var stream = File.Open(filename, FileMode.Open, FileAccess.Read);
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
             using var reader = ExcelReaderFactory.CreateReader(stream);
 
             if (reader.FieldCount == 0)
