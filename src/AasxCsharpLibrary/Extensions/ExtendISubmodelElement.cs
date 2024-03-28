@@ -1099,19 +1099,28 @@ namespace Extensions
                     {
                         SubmodelElementCollection opVariableCollection = new SubmodelElementCollection();
                         opVariableCollection.Value = new List<ISubmodelElement>();
-                        foreach (var inputVariable in operation.InputVariables)
+                        if (operation.InputVariables != null && operation.InputVariables.Count > 0)
                         {
-                            opVariableCollection.Value.Add(inputVariable.Value);
+                            foreach (var inputVariable in operation.InputVariables)
+                            {
+                                opVariableCollection.Value.Add(inputVariable.Value);
+                            } 
                         }
 
-                        foreach (var outputVariable in operation.OutputVariables)
+                        if (operation.OutputVariables != null && operation.OutputVariables.Count > 0)
                         {
-                            opVariableCollection.Value.Add(outputVariable.Value);
+                            foreach (var outputVariable in operation.OutputVariables)
+                            {
+                                opVariableCollection.Value.Add(outputVariable.Value);
+                            } 
                         }
 
-                        foreach (var inOutVariable in operation.InoutputVariables)
+                        if (operation.InoutputVariables != null && operation.InoutputVariables.Count > 0)
                         {
-                            opVariableCollection.Value.Add(inOutVariable.Value);
+                            foreach (var inOutVariable in operation.InoutputVariables)
+                            {
+                                opVariableCollection.Value.Add(inOutVariable.Value);
+                            }
                         }
 
                         opVariableCollection.Value.RecurseOnReferables(state, parents, lambda);
@@ -1120,7 +1129,7 @@ namespace Extensions
                     if (current is AnnotatedRelationshipElement annotatedRelationshipElement)
                     {
                         var annotationElements = new List<ISubmodelElement>();
-                        if (annotatedRelationshipElement.Annotations != null)
+                        if (annotatedRelationshipElement.Annotations != null && annotatedRelationshipElement.Annotations.Count > 0)
                             foreach (var annotation in annotatedRelationshipElement.Annotations)
                             {
                                 annotationElements.Add(annotation);
@@ -1167,19 +1176,28 @@ namespace Extensions
                 if (current is Operation operation)
                 {
                     SubmodelElementCollection opVariableCollection = new SubmodelElementCollection();
-                    foreach (var inputVariable in operation.InputVariables)
+                    if (!operation.InputVariables.IsNullOrEmpty())
                     {
-                        opVariableCollection.Value.Add(inputVariable.Value);
+                        foreach (var inputVariable in operation.InputVariables)
+                        {
+                            opVariableCollection.Value.Add(inputVariable.Value);
+                        }
                     }
 
-                    foreach (var outputVariable in operation.OutputVariables)
+                    if (!operation.OutputVariables.IsNullOrEmpty())
                     {
-                        opVariableCollection.Value.Add(outputVariable.Value);
+                        foreach (var outputVariable in operation.OutputVariables)
+                        {
+                            opVariableCollection.Value.Add(outputVariable.Value);
+                        }
                     }
 
-                    foreach (var inOutVariable in operation.InoutputVariables)
+                    if (!operation.InoutputVariables.IsNullOrEmpty())
                     {
-                        opVariableCollection.Value.Add(inOutVariable.Value);
+                        foreach (var inOutVariable in operation.InoutputVariables)
+                        {
+                            opVariableCollection.Value.Add(inOutVariable.Value);
+                        }
                     }
 
                     opVariableCollection.Value.RecurseOnSubmodelElements(state, parents, lambda);
