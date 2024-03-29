@@ -320,6 +320,7 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications
         [AasConcept(Cd = "0173-1#02-AAW338#001", Card = AasxPredefinedCardinality.One)]
         public List<ILangStringTextType> ManufacturerProductDesignation = new List<ILangStringTextType>();
 
+        [AasConcept(Cd = "0173-1#02-AAO227#002", Card = AasxPredefinedCardinality.ZeroToOne)]
         public List<ILangStringTextType> OrderCodeOfManufacturer = new List<ILangStringTextType>();
 
         [AasConcept(Cd = "0173-10029#02-ABF978#001", Card = AasxPredefinedCardinality.ZeroToOne)]

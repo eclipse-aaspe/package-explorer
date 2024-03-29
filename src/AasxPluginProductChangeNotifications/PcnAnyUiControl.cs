@@ -1683,6 +1683,33 @@ namespace AasxPluginProductChangeNotifications
                 pc1.VersionOfClassificationSystem = "14.0 (BASIC)";
                 pc1.ProductClassId = "00-00-00-00";
 
+                // check for recommended items
+                var elItReps = elItem.Element(xns + "itemReplacements");
+                if (elItReps != null && elItReps.HasElements)
+                    foreach (var elrep in elItReps.Elements(xns + "itemReplacement"))
+                    {
+                        var repNr = elrep?.Element(xns + "itemMfrReplNumber")?.Value;
+                        var repIdent = elrep?.Element(xns + "itemMfrReplTypeIdent")?.Value;
+                        var repName = elrep?.Element(xns + "itemMfrReplName")?.Value;
+
+                        if (repNr?.HasContent() == true || repIdent?.HasContent() == true 
+                            || repName?.HasContent() == true)
+                        {
+                            // make a new one
+                            var ri = new PDPCN.CD_RecommendedItem();
+                            rec.RecommendedItems = rec.RecommendedItems ?? new PDPCN.CD_RecommendedItems();
+                            rec.RecommendedItems.RecommendedItem.Add(ri);
+
+                            // add, what is there
+                            ri.ManufacturerProductFamily = ExtendILangStringTextType.CreateFrom(repName);
+
+                            ri.ManufacturerProductDesignation = ExtendILangStringTextType.CreateFrom(repIdent);
+
+                            ri.OrderCodeOfManufacturer = ExtendILangStringTextType.CreateFrom(repNr);
+                        }
+                    }
+
+
                 // add 
                 res.Add(rec);
             }
