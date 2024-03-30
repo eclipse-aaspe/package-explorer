@@ -128,6 +128,7 @@ namespace AasxPredefinedConcepts
 			thePool.IndexDefinitions(AasxPredefinedConcepts.SmtAdditions.Static);
 
 			thePool.IndexDefinitions(AasxPredefinedConcepts.ZveiTimeSeriesDataV10.Static);
+            thePool.IndexDefinitions(AasxPredefinedConcepts.IdtaTimeSeriesDataV11.Static);
         }
 
         //

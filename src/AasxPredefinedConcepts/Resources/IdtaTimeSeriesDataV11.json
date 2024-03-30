@@ -1,0 +1,1231 @@
+﻿{
+  /* "Version": "AAS2.0", */
+  "SM_TimeSeries": {
+    "idShort": "TimeSeries",
+    "description": [
+      {
+        "language": "de",
+        "text": "Enth\u00E4lt Zeitreihendaten und Referenzen auf Zeitreihendaten, um diese entlang des Asset Lebenszyklus aufzufinden und semantisch zu beschreiben."
+      },
+      {
+        "language": "en",
+        "text": "Contains time series data and references to time series data to discover and semantically describe them along the asset lifecycle."
+      }
+    ],
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/1/1",
+    "kind": "Template",
+    "semanticId": {
+      "type": "ExternalReference",
+      "keys": [
+        {
+          "type": "GlobalReference",
+          "value": "https://admin-shell.io/idta/TimeSeries/1/1"
+        }
+      ]
+    },
+    "modelType": "Submodel"
+  },
+  "CD_Metadata": {
+    "idShort": "Metadata",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Metadata/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Zeitreihen Metadaten"
+            },
+            {
+              "language": "en",
+              "text": "time series metadata"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "de",
+              "text": "Metadaten"
+            },
+            {
+              "language": "en",
+              "text": "metadata"
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Eine Reihe von Daten, welche die Zeitreihe beschreiben und \u00FCber sie Auskunft geben"
+            },
+            {
+              "language": "en",
+              "text": "A set of data describing and providing information about the time series"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_Name": {
+    "idShort": "Name",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Metadata/Name/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Name der Zeitreihe"
+            },
+            {
+              "language": "en",
+              "text": "Name of the time series"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "de",
+              "text": "Name"
+            },
+            {
+              "language": "en",
+              "text": "Name"
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Aussagekr\u00E4ftiger Name zur Beschriftung"
+            },
+            {
+              "language": "en",
+              "text": "Meaningful name for labeling"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_Description": {
+    "idShort": "Description",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Metadata/Description/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Beschreibung der Zeitreihe"
+            },
+            {
+              "language": "en",
+              "text": "Description of the time series"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "de",
+              "text": "Beschreibung"
+            },
+            {
+              "language": "en",
+              "text": "Description"
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Kurze Beschreibung der Zeitreihendaten"
+            },
+            {
+              "language": "en",
+              "text": "Short description of the time series"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_Record": {
+    "idShort": "Record",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Record/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Zeitreihen-Datensatz"
+            },
+            {
+              "language": "en",
+              "text": "Time series record"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "de",
+              "text": "Datensatz"
+            },
+            {
+              "language": "en",
+              "text": "Record"
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Ein Zeitreihen-Datensatz ist durch seine ID innerhalb der Zeitreihe eindeutig und beinhaltet die auf die ID referenzierten Zeitstempel und Variablenwerte. Vergleichbar mit einer Zeile in einer Tabelle"
+            },
+            {
+              "language": "en",
+              "text": "A time series record is unique by its ID within the time series and contains the timestamps and variable values referenced to the ID. Similar to a row in a table"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_RelativeTimePoint": {
+    "idShort": "RelativeTimePoint",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/RelativePointInTime/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Zeitstempel"
+            },
+            {
+              "language": "en",
+              "text": "Timestamp"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "de",
+              "text": "Zeit"
+            },
+            {
+              "language": "en",
+              "text": "Time"
+            }
+          ],
+          "unit": "s",
+          "symbol": "t",
+          "definition": [
+            {
+              "language": "de",
+              "text": "Zeitpunktangabe in Sekunden. Zeitpunkte referenzieren auf die Startzeit des Zeitreihensegments."
+            },
+            {
+              "language": "en",
+              "text": "Point of Time in seconds. Time points refer to the start time of the time series segment."
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "isCaseOf": [
+      {
+        "type": "ModelReference",
+        "keys": []
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_Segments": {
+    "idShort": "Segments",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Segments/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Zeitreihensegmente"
+            },
+            {
+              "language": "en",
+              "text": "time series segments"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "de",
+              "text": "Segmente"
+            },
+            {
+              "language": "en",
+              "text": "segments"
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Enth\u00E4lt Segmente einer Zeitreihe"
+            },
+            {
+              "language": "en",
+              "text": "Contains segments of a time series"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ExternalSegment": {
+    "idShort": "ExternalSegment",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Segments/ExternalSegment/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Externes Zeitreihensegment"
+            },
+            {
+              "language": "en",
+              "text": "External time series segment"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "de",
+              "text": "Segment"
+            },
+            {
+              "language": "en",
+              "text": "Segment"
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Referenz auf eine Datei von Datenpunkten in aufeinanderfolgender Reihenfolge \u00FCber einen bestimmten Zeitraum"
+            },
+            {
+              "language": "en",
+              "text": "Reference to a file of data points in sequential order over a period of time"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_RecordCount": {
+    "idShort": "RecordCount",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Segment/RecordCount/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Anzahl der Datens\u00E4tze"
+            },
+            {
+              "language": "en",
+              "text": "Record count"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": ""
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Gibt an, wie viele Datens\u00E4tze in einem Segment vorhanden sind."
+            },
+            {
+              "language": "en",
+              "text": "Indicates how many records are present in a segment."
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_StartTime": {
+    "idShort": "StartTime",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Segment/StartTime/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Startzeit"
+            },
+            {
+              "language": "en",
+              "text": "Start time"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": ""
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Enth\u00E4lt den ersten aufgezeichneten Zeitstempel des Zeitreihensegments und stellt somit den Anfang einer Zeitreihe dar. Zeitformat und -skala entspricht dem der Zeitreihe."
+            },
+            {
+              "language": "en",
+              "text": "Contains the first recorded timestamp of the time series segment and thus represents the beginning of a time series. Time format and scale corresponds to that of the time series."
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_EndTime": {
+    "idShort": "EndTime",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Segment/EndTime/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Endzeit"
+            },
+            {
+              "language": "en",
+              "text": "End time"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": ""
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Enth\u00E4lt den letzten aufgezeichneten Zeitstempel des Zeitreihensegments und stellt somit das Ende einer Zeitreihe dar. Zeitformat und -skala entspricht dem der Zeitreihe."
+            },
+            {
+              "language": "en",
+              "text": "Contains the last recorded timestamp of the time series segment and thus represents the end of a time series. Time format and scale corresponds to that of the time series."
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_Duration": {
+    "idShort": "Duration",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Segment/Duration/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Dauer"
+            },
+            {
+              "language": "en",
+              "text": "duration"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": ""
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Zeitraum den das Segment umfasst, dargestellt nach ISO 8601 durch das Format P[n]Y[n]M[n]DT[n]H[n]M[n]S"
+            },
+            {
+              "language": "en",
+              "text": "Period covered by the segment, represented according to ISO 8601 by the format P[n]Y[n]M[n]DT[n]H[n]M[n]S"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_SamplingInterval": {
+    "idShort": "SamplingInterval",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Segment/SamplingInterval/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Abtastintervall"
+            },
+            {
+              "language": "en",
+              "text": "Sampling interval"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": ""
+            }
+          ],
+          "unit": "s",
+          "symbol": "t",
+          "definition": [
+            {
+              "language": "de",
+              "text": "Der zeitliche Abstand zwischen zwei Datenpunkten (L\u00E4nge eines Zyklus)."
+            },
+            {
+              "language": "en",
+              "text": "The time period between two time series records (Length of cycle)."
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_SamplingRate": {
+    "idShort": "SamplingRate",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Segment/SamplingRate/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Abtastrate"
+            },
+            {
+              "language": "en",
+              "text": "Sampling rate"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": ""
+            }
+          ],
+          "unit": "Hz",
+          "definition": [
+            {
+              "language": "de",
+              "text": "Definiert die Anzahl der Abtastungen pro Sekunde f\u00FCr eine regelm\u00E4\u00DFige Zeitreihe in Hz."
+            },
+            {
+              "language": "en",
+              "text": "Defines the number of samples per second for a regular time series in Hz."
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_State": {
+    "idShort": "State",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Segment/State/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Status"
+            },
+            {
+              "language": "en",
+              "text": "State"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": ""
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Zustand der Zeitreihe bezogen auf ihren Fortschritt"
+            },
+            {
+              "language": "en",
+              "text": "State of the time series related to its progress"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_LastUpdate": {
+    "idShort": "LastUpdate",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Segment/LastUpdate/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Letzte Aktualisierung"
+            },
+            {
+              "language": "en",
+              "text": "Last update"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": ""
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Zeitpunkt der letzten Ver\u00E4nderung"
+            },
+            {
+              "language": "en",
+              "text": "Time of the last chance"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_File": {
+    "idShort": "File",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/File/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Zeitreihen Datendatei"
+            },
+            {
+              "language": "en",
+              "text": "time series data file"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": ""
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Abfolge von Datenpunkten in aufeinanderfolgender Reihenfolge \u00FCber einen bestimmten Zeitraum innerhalb eines ausgelagerten Datenfiles"
+            },
+            {
+              "language": "en",
+              "text": "Sequence of data points in sequential order over a period of time within a paged data file"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_Blob": {
+    "idShort": "Blob",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Blob/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Zeitreihen Blob"
+            },
+            {
+              "language": "en",
+              "text": "time series Blob"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": ""
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Abfolge von Datenpunkten in aufeinanderfolgender Reihenfolge \u00FCber einen bestimmten Zeitraum innerhalb eines BLOBs"
+            },
+            {
+              "language": "en",
+              "text": "Sequence of data points in sequential order over a period of time within a BLOB"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_LinkedSegment": {
+    "idShort": "LinkedSegment",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Segments/LinkedSegment/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Verkn\u00FCpftes Zeitreihensegment"
+            },
+            {
+              "language": "en",
+              "text": "Linked time series segment"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "de",
+              "text": "Segment"
+            },
+            {
+              "language": "en",
+              "text": "segment"
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Referenz auf einen Endpunkt von Datenpunkten in aufeinanderfolgender Reihenfolge \u00FCber einen bestimmten Zeitraum"
+            },
+            {
+              "language": "en",
+              "text": "Reference to an endpoint of data points in sequential order over a period of time"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_Endpoint": {
+    "idShort": "Endpoint",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Endpoint/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Zeitreihen API Endpunkt "
+            },
+            {
+              "language": "en",
+              "text": "time series API endpoint"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "de",
+              "text": "Endpunkt"
+            },
+            {
+              "language": "en",
+              "text": "Endpoint"
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Gibt einen Standort einer Ressource auf einen API-Server an, \u00FCber den Zeitreihen angefragt werden k\u00F6nnen"
+            },
+            {
+              "language": "en",
+              "text": "Specifies a location of a resource on an API server through which time series can be requested"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_Query": {
+    "idShort": "Query",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Query/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Zeitreihen API Query"
+            },
+            {
+              "language": "en",
+              "text": "time series API Query"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "de",
+              "text": "Query"
+            },
+            {
+              "language": "en",
+              "text": "Query"
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "generische Abfrage zum Lesen von Zeitreihen-Daten aus einer API"
+            },
+            {
+              "language": "en",
+              "text": "generic query component to read time series data from an API"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_InternalSegment": {
+    "idShort": "InternalSegment",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Segments/InternalSegment/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Zeitreihensegment"
+            },
+            {
+              "language": "en",
+              "text": "time series segment"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "de",
+              "text": "Segment"
+            },
+            {
+              "language": "en",
+              "text": "segment"
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Gruppierte abfolge von Datenpunkten in aufeinanderfolgender Reihenfolge \u00FCber einen bestimmten Zeitraum"
+            },
+            {
+              "language": "en",
+              "text": "Grouped sequence of data points in successive order over a specified period of time"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_Records": {
+    "idShort": "Records",
+    "administration": {
+      "version": "1",
+      "revision": "1"
+    },
+    "id": "https://admin-shell.io/idta/TimeSeries/Records/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "de",
+              "text": "Zeitreihen-Datens\u00E4tze"
+            },
+            {
+              "language": "en",
+              "text": "Time series records"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": ""
+            }
+          ],
+          "definition": [
+            {
+              "language": "de",
+              "text": "Gruppe von Datenpunkten in aufeinanderfolgender Reihenfolge \u00FCber einen bestimmten Zeitraum"
+            },
+            {
+              "language": "en",
+              "text": "Group of data points in successive order over a specified period of time"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  }
+}

@@ -98,11 +98,23 @@ namespace AasxPluginAdvancedTextEditor
                     break;
                 }
 
-            // set word wrap accordingly
+            // set flags accordingly
             var mt = mimeType.ToLower().Trim();
             var isWordWrap = mt.Contains("markdown") || mt.Contains("asciidoc") 
                 || mt.Contains("xml") || mt.Contains("json");
-            textEditor.WordWrap = isWordWrap;
+            var isControlChars = mt.Contains("tab-separated-value") || mt.Contains("tsv")
+                || mt.Contains("csv");
+            
+            // realize flags
+            textEditor.WordWrap = isWordWrap;            
+            if (isControlChars)
+            {
+                textEditor.Options.ShowSpaces = true;
+                textEditor.Options.ShowTabs = true;
+                textEditor.Options.ShowEndOfLine = true;
+                textEditor.Options.ShowColumnRuler = true;
+                textEditor.Options.ShowBoxForControlCharacters = true;
+            }
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)

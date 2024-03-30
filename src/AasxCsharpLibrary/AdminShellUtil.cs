@@ -278,7 +278,10 @@ namespace AdminShellNS
                     "text/markdown",
                     "text/asciidoc",
                     "application/json",
-                    "application/rdf+xml"
+                    "application/rdf+xml",
+                    "text/tab-separated-values",
+                    "text/tsv",
+                    "text/csv"
                 })
                 if (input.Contains(tst.ToLower()))
                     return true;
