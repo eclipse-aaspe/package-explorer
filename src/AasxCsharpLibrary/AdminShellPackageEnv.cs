@@ -673,16 +673,14 @@ namespace AdminShellNS
                         //    sw.Close();
                         //}
                         // dead-csharp on
-                        using (var wr = new System.Text.Json.Utf8JsonWriter(s))
+                        var jsonWriterOptions = new System.Text.Json.JsonWriterOptions
                         {
-                            Jsonization.Serialize.ToJsonObject(_aasEnv).WriteTo(wr,
-                                new System.Text.Json.JsonSerializerOptions()
-                                {
-                                    WriteIndented = true
-                                });
-                            wr.Flush();
-                            s.Flush();
-                        }
+                            Indented = true
+                        };
+                        using var wr = new System.Text.Json.Utf8JsonWriter(s, jsonWriterOptions);
+                        Jsonization.Serialize.ToJsonObject(_aasEnv).WriteTo(wr);
+                        wr.Flush();
+                        s.Flush();
                     }
                     finally
                     {
