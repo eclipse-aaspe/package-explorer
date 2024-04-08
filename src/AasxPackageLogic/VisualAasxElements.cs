@@ -188,6 +188,16 @@ namespace AasxPackageLogic
             // to be overloaded for sub-classes!
         }
 
+        //TODO (jtikekar, 2024-04-05): Find proper solution
+        /// <summary>
+        /// This method verifies if there are any erros in the AAS Element.
+        /// </summary>
+        public virtual IEnumerable<Reporting.Error> Verify()
+        {
+            // To be overloaded by sub-classes!
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Gets/sets whether the TreeViewItem
         /// associated with this object is expanded.
@@ -427,6 +437,8 @@ namespace AasxPackageLogic
 
             return res;
         }
+
+        
 
         //
         // Lazy loading
@@ -697,6 +709,11 @@ namespace AasxPackageLogic
             return theAas;
         }
 
+        public override IEnumerable<Reporting.Error> Verify()
+        {
+            return Verification.Verify(theAas);
+        }
+
         public override void RefreshFromMainData()
         {
             if (theAas != null)
@@ -854,6 +871,11 @@ namespace AasxPackageLogic
         public override object GetMainDataObject()
         {
             return theSubmodel;
+        }
+
+        public override IEnumerable<Reporting.Error> Verify()
+        {
+            return Verification.Verify(theSubmodel);
         }
 
         public override void RefreshFromMainData()
@@ -1022,6 +1044,11 @@ namespace AasxPackageLogic
                 info = caption + " " + info;
                 caption = $"#{indexPos:D2}";
             }
+        }
+
+        public override IEnumerable<Reporting.Error> Verify()
+        {
+            return Verification.Verify(theWrapper);
         }
 
         public override void RefreshFromMainData()
@@ -1210,6 +1237,11 @@ namespace AasxPackageLogic
         public override string GetFilterElementInfo()
         {
             return "ConceptDescription";
+        }
+
+        public override IEnumerable<Reporting.Error> Verify()
+        {
+            return Verification.Verify(theCD);
         }
 
         public override object GetMainDataObject()
@@ -1883,18 +1915,21 @@ namespace AasxPackageLogic
             // create 
             //
 
-            foreach (var cd in env.ConceptDescriptions)
+            if (env != null && env.ConceptDescriptions != null)
             {
-                // stop criteria for adding?
-                if (tiCDs.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySme
-                    && _cdReferred.ContainsKey(cd))
-                    continue;
+                foreach (var cd in env.ConceptDescriptions)
+                {
+                    // stop criteria for adding?
+                    if (tiCDs.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySme
+                        && _cdReferred.ContainsKey(cd))
+                        continue;
 
-                if (tiCDs.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySubmodel
-                    && _cdToSm.ContainsKey(cd))
-                    continue;
+                    if (tiCDs.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySubmodel
+                        && _cdToSm.ContainsKey(cd))
+                        continue;
 
-                GenerateVisualElementsForSingleCD(cache, env, cd, tiCDs);
+                    GenerateVisualElementsForSingleCD(cache, env, cd, tiCDs);
+                } 
             }
 
             //
@@ -2011,24 +2046,27 @@ namespace AasxPackageLogic
                 }
 
                 // over all Admin shells
-                foreach (var aas in env.AssetAdministrationShells)
+                if (env != null && env.AssetAdministrationShells != null)
                 {
-                    // item
-                    var tiAas = GenerateVisuElemForAAS(aas, cache, env, package, editMode);
-
-                    // add item
-                    if (tiAas != null)
+                    foreach (var aas in env.AssetAdministrationShells)
                     {
-                        if (editMode)
+                        // item
+                        var tiAas = GenerateVisuElemForAAS(aas, cache, env, package, editMode);
+
+                        // add item
+                        if (tiAas != null)
                         {
-                            tiAas.Parent = tiShells;
-                            tiShells.Members.Add(tiAas);
+                            if (editMode)
+                            {
+                                tiAas.Parent = tiShells;
+                                tiShells.Members.Add(tiAas);
+                            }
+                            else
+                            {
+                                res.Add(tiAas);
+                            }
                         }
-                        else
-                        {
-                            res.Add(tiAas);
-                        }
-                    }
+                    } 
                 }
 
                 // if edit mode, then display further ..
@@ -2055,35 +2093,41 @@ namespace AasxPackageLogic
                     tiEnv.Members.Add(tiAllSubmodels);
 
                     // show all Submodels
-                    foreach (var sm in env.Submodels)
+                    if (env != null && env.Submodels != null)
                     {
-                        // Submodel
-                        var tiSm = new VisualElementSubmodel(tiAllSubmodels, cache, env, sm);
-                        tiSm.SetIsExpandedIfNotTouched(expandMode > 1);
-                        tiAllSubmodels.Members.Add(tiSm);
-
-                        // render ConceptDescriptions?
-                        if (tiCDs.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySubmodel)
+                        foreach (var sm in env.Submodels)
                         {
-                            foreach (var cd in env.ConceptDescriptions)
-                            {
-                                var found = false;
-                                if (_cdToSm.ContainsKey(cd))
-                                    foreach (var x in _cdToSm[cd])
-                                        if (x == sm)
-                                        {
-                                            found = true;
-                                            break;
-                                        }
+                            // Submodel
+                            var tiSm = new VisualElementSubmodel(tiAllSubmodels, cache, env, sm);
+                            tiSm.SetIsExpandedIfNotTouched(expandMode > 1);
+                            tiAllSubmodels.Members.Add(tiSm);
 
-                                if (found)
+                            // render ConceptDescriptions?
+                            if (tiCDs.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySubmodel)
+                            {
+                                if (env.ConceptDescriptions != null)
                                 {
-                                    // item
-                                    var tiCD = new VisualElementConceptDescription(tiSm, cache, env, cd);
-                                    tiSm.Members.Add(tiCD);
+                                    foreach (var cd in env.ConceptDescriptions)
+                                    {
+                                        var found = false;
+                                        if (_cdToSm.ContainsKey(cd))
+                                            foreach (var x in _cdToSm[cd])
+                                                if (x == sm)
+                                                {
+                                                    found = true;
+                                                    break;
+                                                }
+
+                                        if (found)
+                                        {
+                                            // item
+                                            var tiCD = new VisualElementConceptDescription(tiSm, cache, env, cd);
+                                            tiSm.Members.Add(tiCD);
+                                        }
+                                    } 
                                 }
                             }
-                        }
+                        } 
                     }
 
                     //

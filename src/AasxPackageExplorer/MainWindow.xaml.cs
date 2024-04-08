@@ -2943,11 +2943,37 @@ namespace AasxPackageExplorer
                 // some copy/paste operation seems to leave the DisplayElements-sate in the wrong state
                 x = DisplayElements.TrySynchronizeToInternalTreeState();
             }
+            if (sender is Button button && button.Name == "ContentTakeOver")
+            {
+                Verify(x);
+            }
             x?.RefreshFromMainData();
             DisplayElements.Refresh();
 
             // re-enable
             TakeOverContentEnable(false);
+        }
+
+        private void Verify(VisualElementGeneric x)
+        {
+            var errorList = x?.Verify();
+            if (errorList.Any())
+            {
+                List<AasVerificationResult> result = new();
+                foreach (var error in errorList)
+                {
+                    var cause = error.Cause.Replace("\n", " ");
+                    result.Add(new AasVerificationResult(cause, Reporting.GenerateJsonPath(error.PathSegments)));
+                }
+                var uc = new ShowVerificationResultsFlyout();
+                uc.VerificationItems = result;
+                this.StartFlyoverModal(uc);
+                if (uc.ContinueSelected)
+                {
+                    Log.Singleton.Info("Errors being ignored");
+
+                }
+            }
         }
 
         private void DispEditEntityPanel_ContentsChanged(object sender, int kind)
