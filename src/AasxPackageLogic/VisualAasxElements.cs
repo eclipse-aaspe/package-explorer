@@ -821,6 +821,11 @@ namespace AasxPackageLogic
             return theSubmodel;
         }
 
+        public override IEnumerable<Reporting.Error> Verify()
+        {
+            return Verification.Verify(theSubmodel);
+        }
+
         public override void RefreshFromMainData()
         {
             if (theSubmodel != null)

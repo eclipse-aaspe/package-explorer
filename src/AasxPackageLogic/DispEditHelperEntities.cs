@@ -1220,7 +1220,8 @@ namespace AasxPackageLogic
                 return;
 
             // Entities
-            if (editMode && aas?.Submodels != null)
+            //if (editMode && aas?.Submodels != null)
+            if (editMode)
             {
                 this.AddGroup(stack, "Editing of entities", this.levelColors.MainSection);
 
@@ -1277,7 +1278,7 @@ namespace AasxPackageLogic
                     stack, hintMode,
                     new[] {
                         new HintCheck(
-                            () => { return aas.Submodels.Count < 1;  },
+                            () => { return aas.Submodels == null || aas.Submodels.Count < 1;  },
                             "You have no Submodels referenced by this Administration Shell. " +
                                 "This is rather unusual, as the Submodels are the actual carriers of information. " +
                                 "Most likely, you want to click 'Create new Submodel of kind Instance'. " +
@@ -1338,6 +1339,7 @@ namespace AasxPackageLogic
                                 : Options.Curr.TemplateIdSubmodelInstance);
                             this.AddDiaryEntry(submodel,
                                     new DiaryEntryStructChange(StructuralChangeReason.Create));
+                            env.Submodels ??= new List<ISubmodel>();
                             env.Submodels.Add(submodel);
 
                             // directly create identification, as we need it!
@@ -1353,6 +1355,7 @@ namespace AasxPackageLogic
 
                             // create ref
                             var smr = new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>() { new Aas.Key(Aas.KeyTypes.Submodel, submodel.Id) });
+                            aas.Submodels ??= new List<IReference>();
                             aas.Submodels.Add(smr);
 
                             // event for AAS
