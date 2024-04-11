@@ -915,6 +915,11 @@ namespace AasxPackageLogic
                             (o) =>
                             {
                                 langStr.RemoveAt(currentI);
+                                if(langStr.Count == 0 && relatedReferable is MultiLanguageProperty mlp)
+                                {
+                                    langStr = null;
+                                    mlp.Value = null;
+                                }
                                 emitCustomEvent?.Invoke(relatedReferable);
                                 return new AnyUiLambdaActionRedrawEntity();
                             });
