@@ -10,7 +10,7 @@
 		<Using Include="AasCore.Aas3_0" />
 	</ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Aaspe.AasCore" Version="1.0.1" />
+    <PackageReference Include="Aaspe.Common" Version="1.1.0" />
     <PackageReference Include="JsonSubTypes" Version="1.9.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

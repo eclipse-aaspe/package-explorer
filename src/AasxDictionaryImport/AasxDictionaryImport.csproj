@@ -15,7 +15,6 @@
     <ProjectReference Include="..\AasxWpfControlLibrary\AasxWpfControlLibrary.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Aaspe.AasCore" Version="1.0.1" />
     <PackageReference Include="ExcelDataReader" Version="3.6.0" />
   </ItemGroup>
 </Project>

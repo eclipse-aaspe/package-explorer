@@ -76,7 +76,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aaspe.AasCore" Version="1.0.1" />
     <PackageReference Include="Blazor.Extensions.Canvas" Version="1.1.1" />
     <PackageReference Include="BlazorInputFile" Version="0.2.0" />
     <PackageReference Include="System.Text.Json" Version="6.0.6" />

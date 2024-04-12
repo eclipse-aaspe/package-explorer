@@ -9,9 +9,6 @@
     <UseWPF>true</UseWPF>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Aaspe.AasCore" Version="1.0.1" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AnyUi\AnyUi.csproj" />

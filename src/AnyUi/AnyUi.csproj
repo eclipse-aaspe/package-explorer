@@ -23,11 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aaspe.AasCore" Version="1.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\AasxCsharpLibrary\AasxCsharpLibrary.csproj" />
+    <PackageReference Include="Aaspe.Common" Version="1.1.0" />
   </ItemGroup>
 
 </Project>
