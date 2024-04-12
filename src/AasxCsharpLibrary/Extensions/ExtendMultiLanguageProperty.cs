@@ -41,7 +41,7 @@ namespace Extensions
                 return null;
             }
 
-            if (sourceProperty.valueId != null)
+            if (sourceProperty.valueId != null && !sourceProperty.valueId.IsEmpty)
             {
                 var keyList = new List<IKey>();
                 foreach (var refKey in sourceProperty.valueId.Keys)

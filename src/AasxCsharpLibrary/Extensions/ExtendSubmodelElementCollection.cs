@@ -7,6 +7,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 using AdminShellNS;
+using AdminShellNS.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -77,21 +78,24 @@ namespace Extensions
             if (sourceSmeCollection == null)
                 return null;
 
-            submodelElementCollection.Value ??= new List<ISubmodelElement>();
-
-            if (!shallowCopy)
+            if (!sourceSmeCollection.value.IsNullOrEmpty())
             {
-                foreach (var submodelElementWrapper in sourceSmeCollection.value)
-                {
-                    var sourceSubmodelElement = submodelElementWrapper.submodelElement;
-                    ISubmodelElement outputSubmodelElement = null;
-                    if (sourceSubmodelElement != null)
-                    {
-                        outputSubmodelElement = outputSubmodelElement.ConvertFromV10(sourceSubmodelElement, shallowCopy);
-                    }
+                submodelElementCollection.Value ??= new List<ISubmodelElement>();
 
-                    submodelElementCollection.Value.Add(outputSubmodelElement);
-                }
+                if (!shallowCopy)
+                {
+                    foreach (var submodelElementWrapper in sourceSmeCollection.value)
+                    {
+                        var sourceSubmodelElement = submodelElementWrapper.submodelElement;
+                        ISubmodelElement outputSubmodelElement = null;
+                        if (sourceSubmodelElement != null)
+                        {
+                            outputSubmodelElement = outputSubmodelElement.ConvertFromV10(sourceSubmodelElement, shallowCopy);
+                        }
+
+                        submodelElementCollection.Value.Add(outputSubmodelElement);
+                    }
+                } 
             }
 
             return submodelElementCollection;
@@ -102,21 +106,24 @@ namespace Extensions
             if (sourceSmeCollection == null)
                 return null;
 
-            submodelElementCollection.Value ??= new List<ISubmodelElement>();
-
-            if (!shallowCopy)
+            if (!sourceSmeCollection.value.IsNullOrEmpty())
             {
-                foreach (var submodelElementWrapper in sourceSmeCollection.value)
-                {
-                    var sourceSubmodelElement = submodelElementWrapper.submodelElement;
-                    ISubmodelElement outputSubmodelElement = null;
-                    if (sourceSubmodelElement != null)
-                    {
-                        outputSubmodelElement = outputSubmodelElement.ConvertFromV20(sourceSubmodelElement, shallowCopy);
-                    }
+                submodelElementCollection.Value ??= new List<ISubmodelElement>();
 
-                    submodelElementCollection.Value.Add(outputSubmodelElement);
-                }
+                if (!shallowCopy)
+                {
+                    foreach (var submodelElementWrapper in sourceSmeCollection.value)
+                    {
+                        var sourceSubmodelElement = submodelElementWrapper.submodelElement;
+                        ISubmodelElement outputSubmodelElement = null;
+                        if (sourceSubmodelElement != null)
+                        {
+                            outputSubmodelElement = outputSubmodelElement.ConvertFromV20(sourceSubmodelElement, shallowCopy);
+                        }
+
+                        submodelElementCollection.Value.Add(outputSubmodelElement);
+                    }
+                } 
             }
 
             return submodelElementCollection;

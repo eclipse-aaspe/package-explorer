@@ -127,7 +127,10 @@ namespace Extensions
                         Console.WriteLine($"KeyType value {sourceProperty.valueType} not found for property {property.IdShort}");
                     }
                 }
-                property.ValueId = new Reference(ReferenceTypes.ExternalReference, keyList);
+                if (keyList.Count > 0)
+                {
+                    property.ValueId = new Reference(ReferenceTypes.ExternalReference, keyList); 
+                }
             }
 
             return property;

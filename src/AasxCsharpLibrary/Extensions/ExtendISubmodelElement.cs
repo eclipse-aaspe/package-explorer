@@ -318,7 +318,7 @@ namespace Extensions
                 submodelElement.Category = sourceSubmodelElement.category;
             }
 
-            if (sourceSubmodelElement.description != null)
+            if (sourceSubmodelElement.description != null && !sourceSubmodelElement.description.langString.IsNullOrEmpty())
             {
                 submodelElement.Description = ExtensionsUtil.ConvertDescriptionFromV10(sourceSubmodelElement.description);
             }
@@ -427,8 +427,17 @@ namespace Extensions
                 }
                 else if (sourceSubmodelElement is AdminShellV20.RelationshipElement sourceRelationshipElement)
                 {
-                    var newFirst = ExtensionsUtil.ConvertReferenceFromV20(sourceRelationshipElement.first, ReferenceTypes.ModelReference);
-                    var newSecond = ExtensionsUtil.ConvertReferenceFromV20(sourceRelationshipElement.second, ReferenceTypes.ModelReference);
+                    IReference newFirst = null; IReference newSecond = null;
+                    if (sourceRelationshipElement.first != null && !sourceRelationshipElement.first.IsEmpty)
+                    {
+                        newFirst = ExtensionsUtil.ConvertReferenceFromV20(sourceRelationshipElement.first, ReferenceTypes.ModelReference);
+
+                    }
+                    if (sourceRelationshipElement.second != null && !sourceRelationshipElement.second.IsEmpty)
+                    {
+                        newSecond = ExtensionsUtil.ConvertReferenceFromV20(sourceRelationshipElement.second, ReferenceTypes.ModelReference);
+
+                    }                    
                     outputSubmodelElement = new RelationshipElement(newFirst, newSecond);
                 }
                 else if (sourceSubmodelElement is AdminShellV20.BasicEvent sourceBasicEvent)
@@ -446,12 +455,12 @@ namespace Extensions
                 }
                 else if (sourceSubmodelElement is AdminShellV20.Operation sourceOperation)
                 {
-                    var newInputVariables = new List<IOperationVariable>();
-                    var newOutputVariables = new List<IOperationVariable>();
-                    var newInOutVariables = new List<IOperationVariable>();
+                    List<IOperationVariable> newInputVariables = null;
+                    List<IOperationVariable> newOutputVariables = null;
+                    List<IOperationVariable> newInOutVariables = null;
                     if (!sourceOperation.inputVariable.IsNullOrEmpty())
                     {
-
+                        newInputVariables = new List<IOperationVariable>();
                         foreach (var inputVariable in sourceOperation.inputVariable)
                         {
                             if (inputVariable.value.submodelElement != null)
@@ -465,6 +474,7 @@ namespace Extensions
                     }
                     if (!sourceOperation.outputVariable.IsNullOrEmpty())
                     {
+                        newOutputVariables = new List<IOperationVariable>();
                         foreach (var outputVariable in sourceOperation.outputVariable)
                         {
                             if (outputVariable.value.submodelElement != null)
@@ -479,6 +489,7 @@ namespace Extensions
 
                     if (!sourceOperation.inoutputVariable.IsNullOrEmpty())
                     {
+                        newInOutVariables = new List<IOperationVariable>();
                         foreach (var inOutVariable in sourceOperation.inoutputVariable)
                         {
                             if (inOutVariable.value.submodelElement != null)
@@ -515,7 +526,7 @@ namespace Extensions
             if (!string.IsNullOrEmpty(sourceSubmodelElement.category))
                 submodelElement.Category = sourceSubmodelElement.category;
 
-            if (sourceSubmodelElement.description != null)
+            if (sourceSubmodelElement.description != null && !sourceSubmodelElement.description.langString.IsNullOrEmpty())
                 submodelElement.Description = ExtensionsUtil.ConvertDescriptionFromV20(sourceSubmodelElement.description);
 
             if (sourceSubmodelElement.semanticId != null && !sourceSubmodelElement.semanticId.IsEmpty)
@@ -524,6 +535,11 @@ namespace Extensions
                 foreach (var refKey in sourceSubmodelElement.semanticId.Keys)
                 {
                     var keyType = Stringification.KeyTypesFromString(refKey.type);
+                    if(keyType == null && refKey.type.Equals("ConceptDictionary"))
+                    {
+                        keyType = KeyTypes.GlobalReference;
+                    }
+
                     if (keyType != null)
                     {
                         // DECISION: After phone call with Birgit, set all CD to GlobalReference
