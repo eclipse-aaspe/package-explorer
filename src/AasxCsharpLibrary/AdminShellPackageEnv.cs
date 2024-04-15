@@ -411,6 +411,7 @@ namespace AdminShellNS
                         throw (new Exception("Unable to find AASX origin. Aborting!"));
 
                 // get the specs from the package
+                //first try to find it without www, the "updated" ns
                 PackagePart specPart = null;
                 xs = originPart.GetRelationshipsByType("http://admin-shell.io/aasx/relationships/aas-spec");
                 foreach (var x in xs)
@@ -424,7 +425,9 @@ namespace AdminShellNS
                     break;
                 }
 
-                if (specPart == null)
+                //if its still null, then try with the old
+                //this is to make it backwards compatible
+                if (specPart == null) { 
                     xs = originPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-spec");
                     foreach (var x in xs)
                     {
@@ -438,7 +441,7 @@ namespace AdminShellNS
                     }
                     if (specPart == null)
                         throw (new Exception("Unable to find AASX spec(s). Aborting!"));
-
+                }
                 // open spec part to read
                 try
                 {
@@ -840,7 +843,7 @@ namespace AdminShellNS
                         }
                         //delete old type, because its not according to spec or something
                         //then replace with the current type
-                        package.DeleteRelationship(x.Id);
+                        originPart.DeleteRelationship(x.Id);
                         originPart.CreateRelationship(
                             specPart.Uri, TargetMode.Internal,
                             "http://admin-shell.io/aasx/relationships/aas-spec");
@@ -951,7 +954,10 @@ namespace AdminShellNS
                         var found = false;
 
                         // normal files
-                        xs = specPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-suppl");
+                        xs = specPart.GetRelationshipsByType("http://admin-shell.io/aasx/relationships/aas-suppl");
+                        //if its not found, use the "old" namespace, this is to make it backwards compatible
+                        if(xs == null) xs = specPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-suppl");
+                        
                         foreach (var x in xs)
                             if (x.TargetUri == psfDel.Uri)
                             {
@@ -1001,8 +1007,8 @@ namespace AdminShellNS
                             PackagePart filePart = null;
                             if (psfAdd.SpecialHandling == AdminShellPackageSupplementaryFile.SpecialHandlingType.None)
                             {
-                                xs = specPart.GetRelationshipsByType(
-                                    "http://www.admin-shell.io/aasx/relationships/aas-suppl");
+                                xs = specPart.GetRelationshipsByType("http://admin-shell.io/aasx/relationships/aas-suppl");
+                                if(xs == null) xs = specPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-suppl");
                                 foreach (var x in xs)
                                     if (x.TargetUri == psfAdd.Uri)
                                     {
@@ -1052,7 +1058,7 @@ namespace AdminShellNS
                                     AdminShellPackageSupplementaryFile.SpecialHandlingType.None)
                                     specPart.CreateRelationship(
                                         filePart.Uri, TargetMode.Internal,
-                                        "http://www.admin-shell.io/aasx/relationships/aas-suppl");
+                                        "http://admin-shell.io/aasx/relationships/aas-suppl");
                                 if (psfAdd.SpecialHandling ==
                                     AdminShellPackageSupplementaryFile.SpecialHandlingType.EmbedAsThumbnail)
                                     package.CreateRelationship(
@@ -1535,6 +1541,7 @@ namespace AdminShellNS
                     {
                         // get the supplementaries from the package, derived from spec
                         xs = specPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-suppl");
+                        if(xs == null) xs = specPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-suppl");
                         foreach (var x in xs)
                         {
                             result.Add(
