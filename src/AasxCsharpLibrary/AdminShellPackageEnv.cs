@@ -946,6 +946,34 @@ namespace AdminShellNS
                         }
                     }
 
+                    //Handling of aas_suppl namespace from v2 to v3
+                    //Need to check/test in detail, with thumbnails as well
+                    if(specPart != null)
+                    {
+                        
+                        xs = specPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-suppl");
+                        if(xs != null)
+                        {
+                            foreach(var x in xs.ToList())
+                            {
+                                var uri = x.TargetUri;
+                                PackagePart filePart = null;
+                                var absoluteURI = PackUriHelper.ResolvePartUri(x.SourceUri, x.TargetUri);
+                                if (package.PartExists(absoluteURI))
+                                {
+                                    filePart = package.GetPart(absoluteURI);
+                                }
+                                //delete old type, because its not according to spec or something
+                                //then replace with the current type
+                                specPart.DeleteRelationship(x.Id);
+                                specPart.CreateRelationship(
+                                    filePart.Uri, TargetMode.Internal,
+                                    "http://admin-shell.io/aasx/relationships/aas-suppl");
+                            }
+                        }
+                    }
+
+
                     // there might be pending files to be deleted (first delete, then add,
                     // in case of identical files in both categories)
                     foreach (var psfDel in _pendingFilesToDelete)
