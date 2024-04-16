@@ -22,6 +22,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Aaspe.Common" Version="1.1.1" />
     <PackageReference Include="IdentityModel" Version="6.0.0" />
     <PackageReference Include="jose-jwt" Version="4.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
@@ -30,6 +31,5 @@
   <ItemGroup>
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
     <ProjectReference Include="..\AnyUi\AnyUi.csproj" />
-    <ProjectReference Include="..\SSIExtension\SSIExtension.csproj" />
   </ItemGroup>
 </Project>

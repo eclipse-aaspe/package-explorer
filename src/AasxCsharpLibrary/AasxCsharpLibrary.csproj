@@ -32,14 +32,12 @@
     <EmbeddedResource Include="Resources\schemaV201\aas.json" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Aaspe.AasCore" Version="1.0.1" />
     <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
     <PackageReference Include="Namotion.Reflection" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NJsonSchema" Version="10.8.0" />
     <PackageReference Include="System.ComponentModel.Composition" Version="6.0.0" />
     <PackageReference Include="System.IO.Packaging" Version="6.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AasCore.Aas3_0\AasCore.Aas3_0.csproj" />
   </ItemGroup>
 </Project>
