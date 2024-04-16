@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aaspe.Common" Version="1.1.0" />
+    <PackageReference Include="Aaspe.Common" Version="1.1.1" />
   </ItemGroup>
 
 </Project>
