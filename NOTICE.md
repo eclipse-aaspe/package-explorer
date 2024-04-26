@@ -74,6 +74,8 @@ The ExcelDataReader is licensed under the MIT license.
 Portions copyright (c) by OPC Foundation, Inc. and licensed under the
 Reciprocal Community License.
 
+The OPCFoundation.NetStandard.Opc.Ua libraries are licensed under the Reciprocal Community License (RCL) for OPC Foundation Corporate Members and under GPL 2.0 otherwise.
+
 The OPC UA Example Code of OPC UA Standard is licensed under the MIT license.
 
 The MSAGL (Microsoft Automatic Graph Layout) is licensed under the MIT license.
