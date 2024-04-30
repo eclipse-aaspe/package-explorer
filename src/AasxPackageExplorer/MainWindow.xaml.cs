@@ -3785,5 +3785,23 @@ namespace AasxPackageExplorer
                 Logic?.LocationHistory?.Pop();
             }
         }
+
+        public void DisplayVerificationResult(IEnumerable<Reporting.Error> errors)
+        {
+            List<AasVerificationResult> result = new();
+            foreach (var error in errors)
+            {
+                var cause = error.Cause.Replace("\n", " ");
+                result.Add(new AasVerificationResult(cause, Reporting.GenerateJsonPath(error.PathSegments)));
+            }
+            var uc = new ShowEnvVerficationResultsAtSaveFlyout();
+            uc.VerificationItems = result;
+            this.StartFlyoverModal(uc);
+            if (uc.SaveTemp)
+            {
+                Log.Singleton.Info("Errors being ignored");
+
+            }
+        }
     }
 }
