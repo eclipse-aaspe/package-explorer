@@ -16,6 +16,8 @@ using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using AnyUi;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace AasxPackageExplorer
 {
@@ -171,5 +173,7 @@ namespace AasxPackageExplorer
         {
             return null;
         }
+
+        public void DisplayVerificationResult(IEnumerable<Reporting.Error> errors);
     }
 }

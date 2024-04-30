@@ -289,6 +289,19 @@ namespace AasxPackageLogic
                     if (ucsf.FilterIndex == 2)
                         prefFmt = AdminShellPackageEnv.SerializationFormat.Json;
 
+                    //Verification of the environment before saving
+                    if(PackageCentral.MainItem.Container.Env.AasEnv != null)
+                    {
+                        var aasEnv = PackageCentral.MainItem.Container.Env.AasEnv;
+                        var errorList = Verification.Verify(aasEnv);
+                        if(errorList.Any())
+                        {
+                            Log.Singleton.Error("Error found!!!!");
+                            MainWindow.DisplayVerificationResult(errorList);
+                            
+                        }
+                    }
+
                     // save 
                     DisplayContextPlus.RememberForInitialDirectory(ucsf.TargetFileName);
                     await PackageCentral.MainItem.SaveAsAsync(ucsf.TargetFileName, prefFmt: prefFmt,
