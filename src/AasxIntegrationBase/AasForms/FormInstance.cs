@@ -57,22 +57,25 @@ namespace AasxIntegrationBase.AasForms
     public static class FormInstanceHelper
     {
         /// <summary>
-        /// Check if <c>smw.IdShort</c>c> contains something like "{0:00}" and iterate index to make it unique
+        /// Check if <c>smw.IdShort</c>c> contains something like "{00}" and iterate index to make it unique
         /// </summary>
         public static void MakeIdShortUnique(
             List<Aas.ISubmodelElement> collection, Aas.ISubmodelElement sme)
         {
             // access
-            if (collection == null || sme == null)
+            if (sme == null)
+                return;
+            collection = collection ?? new List<ISubmodelElement>();
+
+            // check for a dynamic template
+            var dyntpl = ExtendISubmodelElement.AdoptIdShortDynamicTemplate(sme.IdShort);
+            if (dyntpl == null)
                 return;
 
             // check, if to make idShort unique?
-            if (sme.IdShort.Contains("{0"))
-            {
-                var newIdShort = collection.IterateIdShortTemplateToBeUnique(sme.IdShort, 999);
-                if (newIdShort != null)
-                    sme.IdShort = newIdShort;
-            }
+            var newIdShort = collection.IterateIdShortTemplateToBeUnique(dyntpl, 999);
+            if (newIdShort != null)
+                sme.IdShort = newIdShort;
         }
 
         /// <summary>

@@ -174,7 +174,7 @@ namespace AasxIntegrationBase.AasForms
                         // adopt presetIdShort
                         if (tsme.Multiplicity == FormMultiplicity.ZeroToMany ||
                             tsme.Multiplicity == FormMultiplicity.OneToMany)
-                            tsme.PresetIdShort += "{0:00}";
+                            tsme.PresetIdShort += "{00}";
 
                         // Ignore this element
                         q = qs?.FindQualifierOfType("FormIgnore");

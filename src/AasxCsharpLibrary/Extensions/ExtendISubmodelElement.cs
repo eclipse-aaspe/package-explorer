@@ -12,6 +12,7 @@ using AdminShellNS.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Extensions
 {
@@ -1417,6 +1418,32 @@ namespace Extensions
                 where T : ISubmodelElement
         {
             return smes.FindAllSemanticIdAs<T>(cd, matchMode).FirstOrDefault<T>();
+        }
+
+        /// <summary>
+        /// As multiple dynamic id versions might by possible ({00}, __00__))
+        /// adopt to a version which can be send to String.Format().
+        /// Returns <c>null</c>, if NO dynamic template is found.
+        /// Note: the result of this function shall only be put back to 
+        /// idShort, if a successfull numbering was taking place.
+        /// </summary>
+        public static string AdoptIdShortDynamicTemplate(string idShort)
+        {
+            // quick reply?
+            if (idShort == null
+                || !(idShort.Contains("{0") || idShort.Contains("__0")))
+                return null;
+
+            // substitution of formats
+            if (Regex.IsMatch(idShort, @"__(\d{2,4})__"))
+                return Regex.Replace(idShort, @"__(\d{2,4})__", @"{0:$1}");
+
+            // "{}" format, but correct?
+            if (Regex.IsMatch(idShort, @"{(\d{2,4})}"))
+                return Regex.Replace(idShort, @"{(\d{2,4})}", @"{0:$1}");
+
+            // if unsure, be negative
+            return null;
         }
 
         public static string IterateIdShortTemplateToBeUnique(this List<ISubmodelElement> submodelElements, string idShortTemplate, int maxNum)
