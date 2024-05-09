@@ -331,7 +331,7 @@ namespace AasxIntegrationBase.AasForms
                 // ok, perform the actual add or update procedure
                 var lst = pair.instances.AddOrUpdateSameElementsToCollection(elements, packageEnv, addFilesToPackage);
 
-                // for newly added elements, shaping of idSHort might be required
+                // for newly added elements, shaping of idShort might be required
                 if (lst != null)
                     foreach (var sme in lst)
                     {
@@ -1198,10 +1198,13 @@ namespace AasxIntegrationBase.AasForms
                 if (doAdd)
                 {
                     // add to elements (this is the real transaction)
-                    collectionNewElements.Add(sme.Copy());
+                    // Note MIHO/24-05-09: change behavior, do not 
+                    // double copy, but add reference tracing information
+                    var sme2 = sme.Copy();
+                    collectionNewElements.Add(sme2);
 
                     // add to the tracing information for new elements
-                    res.Add(sme.Copy());
+                    res.Add(sme2);
                 }
             }
 
