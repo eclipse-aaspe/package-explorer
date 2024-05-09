@@ -398,6 +398,18 @@ namespace AdminShellNS
                         break;
                     }
 
+                // fix for new package format
+                if (originPart == null)
+                {
+                    foreach (var x in package.GetRelationshipsByType(
+                        "http://admin-shell.io/aasx/relationships/aasx-origin"))
+                        if (x.SourceUri.ToString() == "/")
+                        {
+                            originPart = package.GetPart(x.TargetUri);
+                            break;
+                        }
+                }
+
                 if (originPart == null)
                     xs = package.GetRelationshipsByType(
                         "http://www.admin-shell.io/aasx/relationships/aasx-origin");
@@ -430,23 +442,20 @@ namespace AdminShellNS
                     break;
                 }
 
-                //if its still null, then try with the old
-                //this is to make it backwards compatible
-                if (specPart == null) { 
-                    xs = originPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-spec");
-                    foreach (var x in xs)
+                // quick fix for new package format
+                if (specPart == null)
+                {
+                    foreach (var x in originPart.GetRelationshipsByType(
+                        "http://admin-shell.io/aasx/relationships/aas-spec"))
                     {
-                        //specPart = package.GetPart(x.TargetUri);
-                        var absoluteURI = PackUriHelper.ResolvePartUri(x.SourceUri, x.TargetUri);
-                        if (package.PartExists(absoluteURI))
-                        {
-                            specPart = package.GetPart(absoluteURI);
-                        }
+                        specPart = package.GetPart(x.TargetUri);
                         break;
                     }
-                    if (specPart == null)
-                        throw (new Exception("Unable to find AASX spec(s). Aborting!"));
                 }
+
+                if (specPart == null)
+                    throw (new Exception("Unable to find AASX spec(s). Aborting!"));
+
                 // open spec part to read
                 try
                 {

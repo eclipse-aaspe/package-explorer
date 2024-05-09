@@ -783,9 +783,11 @@ namespace AasxPluginAssetInterfaceDescription
                             ifcItem.MapOutputItems = lst;
 
                         // directly recurse?
+                        /*
                         if (propName?.Properties?.Property != null)
                             foreach (var child in propName.Properties.Property)
                                 recurseProp(location + " . " + ifcItem.DisplayName, child);
+                        */
                     };
 
                     if (ifx.InterfaceMetadata?.Properties?.Property == null)

@@ -55,9 +55,10 @@ namespace AasxPackageLogic.PackageCentral
 
 			// populate
 			foreach (var odItem in _originalData)
-				foreach (var idf in odItem)
-					if (idf?.Id != null)
-						_lookup.Add(idf.Id, idf);
+				if (odItem != null)
+					foreach (var idf in odItem)
+						if (idf?.Id != null)
+							_lookup.Add(idf.Id, idf);
 		}
 
 		/// <summary>

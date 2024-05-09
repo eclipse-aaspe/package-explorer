@@ -88,6 +88,7 @@ namespace AasxPluginAssetInterfaceDescription
                     }
                 } catch (Exception ex)
                 {
+                    // set breakpoint in order to get failed connections!
                     ;
                 }
             }

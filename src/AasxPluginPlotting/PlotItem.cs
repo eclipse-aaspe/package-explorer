@@ -26,8 +26,6 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using AasxIntegrationBase;
 using AasxIntegrationBase.AdminShellEvents;
-using AasxPredefinedConcepts;
-using AasxPredefinedConcepts.ConceptModel;
 using Aas = AasCore.Aas3_0;
 using AdminShellNS;
 using Extensions;
