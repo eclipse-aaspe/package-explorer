@@ -2230,26 +2230,29 @@ namespace AasxPackageLogic
                 _cdToSm.Clear();
                 _cdInStructure.Clear();
 
-				foreach (var aas in env.AssetAdministrationShells)
-                    if (aas != null)
-                    {
-                        aas.Parent = env;
-                        _idToReferable.Add(aas.Id, aas);
-                    }
+                if (env.AssetAdministrationShells != null)
+                    foreach (var aas in env.AssetAdministrationShells)
+                        if (aas != null)
+                        {
+                            aas.Parent = env;
+                            _idToReferable.Add(aas.Id, aas);
+                        }
 
-                foreach (var sm in env.Submodels)
-                    if (sm != null)
-                    {
-                        sm.Parent = env;
-						_idToReferable.Add(sm.Id, sm);
-					}
+                if (env.Submodels != null)
+                    foreach (var sm in env.Submodels)
+                        if (sm != null)
+                        {
+                            sm.Parent = env;
+						    _idToReferable.Add(sm.Id, sm);
+					    }
 
-				foreach (var cd in env.ConceptDescriptions)
-                    if (cd != null)
-                    {
-                        cd.Parent = env;
-						_idToReferable.Add(cd.Id, cd);
-					}
+                if (env.ConceptDescriptions != null)
+				    foreach (var cd in env.ConceptDescriptions)
+                        if (cd != null)
+                        {
+                            cd.Parent = env;
+						    _idToReferable.Add(cd.Id, cd);
+					    }
 			}
 
             // many operations

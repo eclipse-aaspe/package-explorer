@@ -602,7 +602,7 @@ namespace Extensions
             if (string.IsNullOrEmpty(cdId))
                 return null;
 
-            var conceptDescription = env.ConceptDescriptions.Where(c => c.Id.Equals(cdId)).FirstOrDefault();
+            var conceptDescription = env.ConceptDescriptions?.Where(c => c.Id.Equals(cdId)).FirstOrDefault();
             return conceptDescription;
         }
 

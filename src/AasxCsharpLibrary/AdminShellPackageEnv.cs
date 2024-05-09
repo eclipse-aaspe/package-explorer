@@ -389,6 +389,18 @@ namespace AdminShellNS
                         break;
                     }
 
+                // fix for new package format
+                if (originPart == null)
+                {
+                    foreach (var x in package.GetRelationshipsByType(
+                        "http://admin-shell.io/aasx/relationships/aasx-origin"))
+                        if (x.SourceUri.ToString() == "/")
+                        {
+                            originPart = package.GetPart(x.TargetUri);
+                            break;
+                        }
+                }
+
                 if (originPart == null)
                     throw (new Exception("Unable to find AASX origin. Aborting!"));
 
@@ -399,6 +411,17 @@ namespace AdminShellNS
                 {
                     specPart = package.GetPart(x.TargetUri);
                     break;
+                }
+
+                // quick fix for new package format
+                if (specPart == null)
+                {
+                    foreach (var x in originPart.GetRelationshipsByType(
+                        "http://admin-shell.io/aasx/relationships/aas-spec"))
+                    {
+                        specPart = package.GetPart(x.TargetUri);
+                        break;
+                    }
                 }
 
                 if (specPart == null)
