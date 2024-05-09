@@ -138,9 +138,10 @@ namespace AasxPackageLogic
 
         public enum FirstColumnWidth { Standard, Small, Large }
 
+        public const int valueFieldsMinWidth = 50;
+
         public bool editMode = false;
         public bool hintMode = false;
-
 
         public ModifyRepo repo = null;
 
@@ -397,6 +398,8 @@ namespace AasxPackageLogic
             var gc2 = new AnyUiColumnDefinition();
             gc2.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Star);
             g.ColumnDefinitions.Add(gc2);
+            // 2024-05-09: add a minimum width to these kinds of fields
+            gc2.MinWidth = valueFieldsMinWidth;
 
             if (auxButton)
                 for (int i = 0; i < intButtonTitles.Count; i++)
@@ -457,8 +460,10 @@ namespace AasxPackageLogic
             {
                 // use plain text box
                 var tb = AddSmallTextBoxTo(g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2), text: "" + value);
+                // multiple lines
                 if (maxLines > 0)
                     tb.MaxLines = maxLines;
+                // events
                 AnyUiUIElement.RegisterControl(tb,
                     setValue, takeOverLambda: takeOverLambdaAction);
 
