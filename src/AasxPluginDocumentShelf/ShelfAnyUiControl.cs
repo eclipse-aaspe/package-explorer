@@ -1261,10 +1261,10 @@ namespace AasxPluginDocumentShelf
                     var newSmc = (_formDoc.FormInstance as FormInstanceSubmodelElementCollection)?.sme
                             as Aas.SubmodelElementCollection;
 
-                    // if not update, put them into the Document's Submodel
+                    // if not update, put them into the document's Submodel
                     if (!_formDoc.InUpdateMode && currentElements != null && newSmc != null)
                     {
-                        // make newSmc unique in the cotext of the Submodel                        
+                        // make newSmc unique in the context of the Submodel                        
                         FormInstanceHelper.MakeIdShortUnique(_submodel.SubmodelElements, newSmc);
 
                         // add the elements
