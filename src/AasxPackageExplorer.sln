@@ -141,6 +141,7 @@ Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "AasxPackageExplorerSetup", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Projektmappenelemente", "{087C80D2-F815-401C-96ED-3BD61A768FF3}"
 	ProjectSection(SolutionItems) = preProject
+		Notes_Bugfixes.md = Notes_Bugfixes.md
 		Notes_V3.md = Notes_V3.md
 	EndProjectSection
 EndProject

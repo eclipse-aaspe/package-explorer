@@ -202,19 +202,6 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 // ReSharper enable UnusedVariable
             }
 
-            if (action == "get-list-new-submodel")
-            {
-                // prepare list
-                var list = new List<string>();
-                list.Add("Document (recommended version)");
-                list.Add("Document (development version V1.1)");
-
-                // make result
-                var res = new AasxPluginResultBaseObject();
-                res.obj = list;
-                return res;
-            }            
-
             // default
             return null;
         }
