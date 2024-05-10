@@ -44,3 +44,8 @@ W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/23
 * The button "Add entity .." was copy/paste artifact from anoher plugin. It was useless.
 * Clicking the button lead to a un-intended and misbehavin partial update of the plugin panel.
 * [deleted] the button.
+
+W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/10
+
+* see also: https://github.com/eclipse-aaspe/aaspe/issues/193
+* using "Workspace / Create / New Submodel from plugin .. " now provides a V1.2 option.
