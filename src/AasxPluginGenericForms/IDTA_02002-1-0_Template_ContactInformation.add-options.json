@@ -24,7 +24,7 @@
             "FormInfo": "The SMC “ContactInformation” contains information on how to contact the manufacturer or an authorised service provider, e.g. when a maintenance service is required\r\nThe SMC “ContactInformation” contains information on how to contact the manufacturer or an authorised service provider, e.g. when a maintenance service is required",
             "FormEditIdShort": false,
             "FormEditDescription": false,
-            "PresetIdShort": "ContactInformation{0:00}",
+            "PresetIdShort": "ContactInformation{00}",
             "PresetCategory": "",
             "KeySemanticId": {
               "type": "GlobalReference",
@@ -73,7 +73,7 @@
                 "FormInfo": "Available language\r\nNote: language codes defined accord. to ISO 639-1. Note: as per ECLASS definition, Expression and representation of thoughts, information, feelings, ideas through characters.",
                 "FormEditIdShort": false,
                 "FormEditDescription": false,
-                "PresetIdShort": "Language{0:00}",
+                "PresetIdShort": "Language{00}",
                 "PresetCategory": "",
                 "KeySemanticId": {
                   "type": "GlobalReference",
@@ -358,7 +358,7 @@
                 "FormInfo": "ContactInformation/IPCommunication IP-based communication channels, e.g. chat or video call",
                 "FormEditIdShort": false,
                 "FormEditDescription": false,
-                "PresetIdShort": "IPCommunication{0:00}",
+                "PresetIdShort": "IPCommunication{00}",
                 "PresetCategory": "",
                 "KeySemanticId": {
                   "type": "GlobalReference",

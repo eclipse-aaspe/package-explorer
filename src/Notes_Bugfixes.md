@@ -14,9 +14,19 @@ W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/193
 * Note: this forms functionality is really demanding (lots of recursions etc.), therefore it is hard to provide best quality of outcome
 * What is open is the question to (overall) change notation IdShort "{00}" to "__00__"
 
+W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/35
+
+* already done, tested
+
 W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/170
 
 * for the normal key/value pairs edited in AASPE, I've added a tiny minimum width to the respective column in the (invisible) grid for such attributes
 * thus, a tiny fraction of the field remains on screen, to indicate presence in any case
 * dynamic wrapping of buttons would cause major refactoring (needs to work for WPF and HTML)
 * I could add all buttons to a hamburger menu, but this doubles the clicks, therefore a abstain from this idea in general
+
+W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/33
+
+* [changed] .aad.json-options file for ContactInformation (manually)
+* export code: AasFormUtils.cs:ExportAsGenericFormsOptions()
+* tested
