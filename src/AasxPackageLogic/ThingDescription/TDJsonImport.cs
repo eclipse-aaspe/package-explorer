@@ -932,7 +932,10 @@ namespace AasxPackageExplorer
         // AAS Semantic ID
         public static Aas.Reference createSemanticID(string tdType)
         {
-            Aas.Reference tdSemanticId = new(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>() { new Aas.Key((Aas.KeyTypes)Aas.Stringification.KeyTypesFromString(tdType), TDSemanticId.getSemanticID(tdType)) });
+            var key = Aas.Stringification.KeyTypesFromString(tdType);
+            Aas.Reference tdSemanticId = new(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>() {
+                new Aas.Key(key == null ? Aas.KeyTypes.GlobalReference : (Aas.KeyTypes)key,
+                    TDSemanticId.getSemanticID(tdType))});
 
             return tdSemanticId;
         }
