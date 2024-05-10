@@ -37,4 +37,10 @@ W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/30
 * The alternative approach is to copy/ paste all kind of JSON element data via the normal windows (text) clipboard
 * [tested] copy&paste of Submodel JSON data works (surrounding square brackets for a JSON list might be required)
 * I've tried to rework the old function as intended by the issuer
-* [tested] Read Submodel as JSON with AAS selected or Submodel seleted (to be replace)
+* [tested] Read Submodel as JSON with AAS selected or Submodel seleted (to be replaced)
+
+W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/23
+
+* The button "Add entity .." was copy/paste artifact from anoher plugin. It was useless.
+* Clicking the button lead to a un-intended and misbehavin partial update of the plugin panel.
+* [deleted] the button.
