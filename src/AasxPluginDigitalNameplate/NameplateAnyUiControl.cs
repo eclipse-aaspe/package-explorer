@@ -190,21 +190,6 @@ namespace AasxPluginDigitalNameplate
                 setBold: true,
                 content: $"Digital Nameplate");
 
-            if (_opContext?.IsDisplayModeEditOrAdd == true)
-                AnyUiUIElement.RegisterControl(
-                    uitk.AddSmallButtonTo(header, 0, 1,
-                        margin: new AnyUiThickness(2), setHeight: 21,
-                        padding: new AnyUiThickness(2, 0, 2, 0),
-                        content: "Add Entity .."),
-                    (o) =>
-                    {
-                        // to do
-
-                        //redisplay
-                        PushUpdateEvent();
-                        return new AnyUiLambdaActionNone();
-                    });
-
             //
             // Scroll area
             //
