@@ -1235,8 +1235,16 @@ namespace AasxPackageLogic
             // Entities
             if (editMode)
             {
+                this.AddHintBubble(
+                    stack, hintMode,
+                    new HintCheck(
+                        () => { return aas.Submodels == null; },
+                            "The AAS.Submodels collection is set to NULL. This may be the default " +
+                            "initializer by the framework. Empty lists are not foreseen. Therefore " +
+                            "the list needs to be created and populated by at least one element.",
+                        severityLevel: HintCheck.Severity.High));
                 if (this.SafeguardAccess(
-                    stack, repo, aas.DerivedFrom, "SubmodelRefs:", "Create data element!",
+                    stack, repo, aas.Submodels, "SubmodelRefs:", "Create data element!",
                     v =>
                     {
                         aas.Submodels = new List<IReference>();

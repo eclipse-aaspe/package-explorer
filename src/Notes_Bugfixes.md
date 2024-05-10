@@ -30,3 +30,11 @@ W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/33
 * [changed] .aad.json-options file for ContactInformation (manually)
 * export code: AasFormUtils.cs:ExportAsGenericFormsOptions()
 * tested
+
+W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/30
+
+* The respective functionality is very, very old (the original use case is unknown)
+* The alternative approach is to copy/ paste all kind of JSON element data via the normal windows (text) clipboard
+* [tested] copy&paste of Submodel JSON data works (surrounding square brackets for a JSON list might be required)
+* I've tried to rework the old function as intended by the issuer
+* [tested] Read Submodel as JSON with AAS selected or Submodel seleted (to be replace)

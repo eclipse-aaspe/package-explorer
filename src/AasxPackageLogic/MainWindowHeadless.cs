@@ -323,17 +323,17 @@ namespace AasxPackageLogic
             if (cmd == "submodelread")
             {
                 // arguments
-                if (ticket.Submodel == null || ticket.Env == null ||
-                    !(ticket["File"] is string fn) || fn.HasContent() != true)
+                if (ticket.Env == null 
+                    || !(ticket["File"] is string fn) || fn.HasContent() != true)
                 {
                     LogErrorToTicket(ticket,
-                        "Submodel Read: No valid Submodel, Env, source file selected");
+                        "Submodel Read: No valid Env, source file selected");
                     return;
                 }
 
                 try
                 {
-                    Tool_ReadSubmodel(ticket.Submodel, ticket.Env, fn, ticket);
+                    Tool_ReadSubmodel(ticket.Env, ticket.AAS, ticket.Submodel, fn, ticket);
                 }
                 catch (Exception ex)
                 {

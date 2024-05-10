@@ -975,49 +975,50 @@ namespace AasxPackageExplorer
         /// Note: check if there is a business case for this
         /// </summary>
         public void Tool_ReadSubmodel(
-            Aas.ISubmodel sm,
             Aas.Environment env,
+            Aas.IAssetAdministrationShell aas,
+            Aas.ISubmodel sm,
             string sourceFn,
             AasxMenuActionTicket ticket = null)
         {
+            // try to fix AAS from SM
+            aas = aas ?? env.FindAasWithSubmodelId(sm.Id);
+
             // access
-            if (sm == null || env == null)
+            if (aas == null || env == null)
             {
-                LogErrorToTicket(ticket, "Read Aas.Submodel: invalid Submodel or Environment.");
+                LogErrorToTicket(ticket, "Import Submodel from JSON: invalid AAS or Environment.");
                 return;
             }
 
             try
             {
-                // locate AAS?
-                var aas = env.FindAasWithSubmodelId(sm.Id);
-
                 // de-serialize Submodel
-                Aas.Submodel submodel = null;
+                Aas.Submodel readSm = null;
 
                 using (var file = System.IO.File.OpenRead(sourceFn))
                 {
                     var node = System.Text.Json.Nodes.JsonNode.Parse(file);
-                    submodel = Aas.Jsonization.Deserialize.SubmodelFrom(node);
+                    readSm = Aas.Jsonization.Deserialize.SubmodelFrom(node);
                 }
 
                 // need id for idempotent behaviour
-                if (submodel == null || submodel.Id == null)
+                if (readSm == null || readSm.Id == null)
                 {
                     LogErrorToTicket(ticket,
-                        "Submodel Read: Identification of SubModel is (null).");
+                        "Import Submodel from JSON: Identification of SubModel is (null).");
                     return;
                 }
 
                 // add Submodel
-                var existingSm = env.FindSubmodelById(submodel.Id);
+                var existingSm = env.FindSubmodelById(readSm.Id);
                 if (existingSm != null)
                     env.Submodels.Remove(existingSm);
-                env.Submodels.Add(submodel);
+                env.Submodels.Add(readSm);
 
                 // add SubmodelRef to AAS
                 // access the AAS
-                var newsmr = ExtendReference.CreateFromKey(new Aas.Key(Aas.KeyTypes.Submodel, submodel.Id));
+                var newsmr = ExtendReference.CreateFromKey(new Aas.Key(Aas.KeyTypes.Submodel, readSm.Id));
                 var existsmr = aas.HasSubmodelReference(newsmr);
                 if (!existsmr)
                     aas.AddSubmodelReference(newsmr);
@@ -1025,7 +1026,7 @@ namespace AasxPackageExplorer
             catch (Exception ex)
             {
                 LogErrorToTicket(ticket, ex,
-                    "Submodel Read: Can not read SubModel.");
+                    "Import Submodel from JSON: Can not read Submodel.");
             }
         }
 
