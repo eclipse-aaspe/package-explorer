@@ -202,7 +202,7 @@ namespace AasxPluginExportTable.Table
             if (!cell.HasContent())
                 return null;
 
-            var key = ExtendKey.Parse(cell, Aas.KeyTypes.ConceptDescription,
+            var key = ExtendKey.Parse(cell, Aas.KeyTypes.GlobalReference,
                         allowFmtAll: true);
             if (key == null)
                 return null;

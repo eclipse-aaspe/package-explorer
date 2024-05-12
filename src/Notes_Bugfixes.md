@@ -78,3 +78,4 @@ W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/112
 * [fix] after importing, call re-display to show imported data
 * [fix] found real bug blocking the functionality itself
 * [enhance] added better debug messages, which could help understanding import failures
+* [fix] imported semanticIds are created as "ExternalReference / GlobalReference" instead of "ModelReference / ConceptDescription".
