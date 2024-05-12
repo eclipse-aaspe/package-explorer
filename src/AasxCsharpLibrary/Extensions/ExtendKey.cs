@@ -68,9 +68,13 @@ namespace Extensions
             if (matchMode == MatchMode.Strict)
                 return key.Type == otherKey.Type && key.Value.Replace("*01", "") == otherKey.Value.Replace("*01", "");
 
-            if (matchMode == MatchMode.Relaxed)
+            if (matchMode == MatchMode.Relaxed
+                || matchMode == MatchMode.RelaxedIgnoreCase)
                 return (key.Type == otherKey.Type || key.Type == KeyTypes.GlobalReference || otherKey.Type == KeyTypes.GlobalReference)
-                    && (key.Value.Replace("*01", "") == otherKey.Value.Replace("*01", ""));
+                    && ((key.Value.Replace("*01", "")).Equals(
+                        otherKey.Value.Replace("*01", ""),
+                        (matchMode == MatchMode.RelaxedIgnoreCase) 
+                            ? StringComparison.InvariantCultureIgnoreCase : 0));
 
             if (matchMode == MatchMode.Identification)
                 return key.Value.Replace("*01", "") == otherKey.Value.Replace("*01", "");

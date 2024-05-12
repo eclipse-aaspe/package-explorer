@@ -45,6 +45,11 @@ namespace Extensions
 
     public static class ExtendEmbeddedDataSpecification
     {
+        // see: https://github.com/eclipse-aaspe/aaspe/issues/196
+        // assume case sensitivity, follow the spec 
+        public const string UriDataSpecificationIEC61360 =
+            "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0";
+
         public static EmbeddedDataSpecification ConvertFromV20(this EmbeddedDataSpecification embeddedDataSpecification, AasxCompatibilityModels.AdminShellV20.EmbeddedDataSpecification sourceEmbeddedSpec)
         {
             if (sourceEmbeddedSpec != null)
@@ -57,7 +62,7 @@ namespace Extensions
 					"http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360",
 					"www.admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360"
 				};
-                var newid = "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0";
+                var newid = UriDataSpecificationIEC61360;
 
                 // map all "usable" old ids to new one ..
                 foreach (var oi in oldid)

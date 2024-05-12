@@ -79,3 +79,11 @@ W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/112
 * [fix] found real bug blocking the functionality itself
 * [enhance] added better debug messages, which could help understanding import failures
 * [fix] imported semanticIds are created as "ExternalReference / GlobalReference" instead of "ModelReference / ConceptDescription".
+
+W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/196
+
+* It seems to be pretty severe bug. According to the latest spec, it is not only about case-mismatch of "IEC" vs "Iec", but also the scheme changed from scheme "http://" to "https://" (Spec 01003-a-3-0 from March 2023).
+* I would assume, that the Package Explorer implemented the (pre-liminary) URI and the spec changed this during the process without noticing.
+* As a result, I assume that a large number of wrong data specs are now in the wild.
+* For the current branch (MIHO/Post_XMAS2023_Bugfixes) I've now changed this. The AASPE uses the correct URI as a preset and takes both variants ("http://" and "https://") with case-insensitive matching.
+

@@ -18,7 +18,7 @@ namespace Extensions
         public static Key GetKeyForIec61360()
         {
             return new Key(KeyTypes.GlobalReference,
-                "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0");
+                ExtendEmbeddedDataSpecification.UriDataSpecificationIEC61360);
         }
 
         public static Reference GetReferencForIec61360()
@@ -41,6 +41,19 @@ namespace Extensions
             return null;
         }
 
+        public static IEnumerable<Key> GetAllAlternativeKeysFor(ContentTypes ct)
+        {
+            if (ct == ContentTypes.Iec61360)
+            {
+                yield return GetKeyForIec61360();
+                yield return new Key(KeyTypes.GlobalReference,
+                    "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0");
+            }
+            else
+                // take it easy for now
+                yield return GetKeyFor(ct);
+        }
+
         public static IDataSpecificationContent ContentFactoryFor(ContentTypes ct)
         {
             if (ct == ContentTypes.Iec61360)
@@ -57,8 +70,9 @@ namespace Extensions
         public static ContentTypes GuessContentTypeFor(IReference rf)
         {
             foreach (var v in AdminShellUtil.GetEnumValues<ContentTypes>(new[] { ContentTypes.NoInfo }))
-                if (rf?.MatchesExactlyOneKey(GetKeyFor(v)) == true)
-                    return v;
+                foreach (var k in GetAllAlternativeKeysFor(v))
+                    if (rf?.MatchesExactlyOneKey(k, MatchMode.RelaxedIgnoreCase) == true)
+                        return v;
             return ContentTypes.NoInfo;
         }
 
