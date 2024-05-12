@@ -1672,10 +1672,16 @@ namespace AasxPackageLogic
                     if (res is AasxPluginResultCallMenuItem aprcmi
                         && aprcmi.RenderWpfContent != null)
                     {
+                        // TODO (MIHO, 2024-05-11): code damaged due to refactor?
                         Log.Singleton.Info("Try displaying external entity control from plugin command..");
                         // dead-csharp off
                         // MainWindow?.DisplayExternalEntity(aprcmi.RenderWpfContent);
                         // dead-csharp on
+                    }
+                    else
+                    if (res is AasxPluginResultEventRedrawAllElements aprrae)
+                    {
+                        MainWindow.CommandExecution_RedrawAll();
                     }
                 }
                 catch (Exception ex)

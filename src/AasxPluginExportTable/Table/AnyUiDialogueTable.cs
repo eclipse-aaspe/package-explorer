@@ -43,7 +43,7 @@ namespace AasxPluginExportTable.Table
             // check preconditions
             if (ticket.Env == null || ticket.Submodel == null || ticket.SubmodelElement != null)
             {
-                log?.Error("Import time series: A Submodel has to be selected!");
+                log?.Error("Import table: A Submodel has to be selected!");
                 return;
             }
 
