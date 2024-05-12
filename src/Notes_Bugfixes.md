@@ -49,3 +49,32 @@ W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/10
 
 * see also: https://github.com/eclipse-aaspe/aaspe/issues/193
 * using "Workspace / Create / New Submodel from plugin .. " now provides a V1.2 option.
+
+W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/167
+
+Waiting for Kazeems branch to be integrated.
+
+W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/152
+
+* Should be fixed
+* Waiting for feedback
+
+W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/145
+
+* Waiting for feedback
+
+W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/143
+
+* old code
+* asking issuer if to delete menu item
+
+W.r.t https://github.com/eclipse-aaspe/aaspe/issues/138
+
+* [done] was already fixed
+
+W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/112
+
+* [fix] menu command to call funtion in plug-in
+* [fix] after importing, call re-display to show imported data
+* [fix] found real bug blocking the functionality itself
+* [enhance] added better debug messages, which could help understanding import failures
