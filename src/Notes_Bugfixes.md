@@ -87,3 +87,6 @@ W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/196
 * As a result, I assume that a large number of wrong data specs are now in the wild.
 * For the current branch (MIHO/Post_XMAS2023_Bugfixes) I've now changed this. The AASPE uses the correct URI as a preset and takes both variants ("http://" and "https://") with case-insensitive matching.
 
+W.r.t. https://github.com/eclipse-aaspe/aaspe/issues/174
+
+* [quick fix] depending of length of product classification class id text, display the text larger (1.4x) or not (1.0x)

@@ -428,12 +428,7 @@ namespace AasxPluginTechnicalData
             //
             // also Section: Product Classifications
             //
-            // dead-csharp off
-            //var smcClassifications =
-            //    sm.SubmodelElements.FindFirstSemanticIdAs<Aas.SubmodelElementCollection>(
-            //        theDefs.CD_ProductClassifications.GetSingleKey(), MatchMode.Relaxed);
-            //if (smcClassifications != null)
-            // dead-csharp on
+
             foreach (var childProdClass in sm.SubmodelElements.GetChildListsFromAllSemanticId(
                 theDefs.CD_ProductClassifications.GetSingleKey(), MatchMode.Relaxed))
             {
@@ -492,10 +487,11 @@ namespace AasxPluginTechnicalData
                             setBold: false,
                             content: clr[i].Version);
 
+                        // note: adopt to the length of class id
                         uitk.AddSmallBasicLabelTo(clrgi, 1, 0, margin: new AnyUiThickness(1),
                             horizontalAlignment: AnyUiHorizontalAlignment.Center,
                             horizontalContentAlignment: AnyUiHorizontalAlignment.Center,
-                            fontSize: 1.4f,
+                            fontSize: (clr[i].ClassTxt.Length <= 12) ? 1.4f : 1.0f,
                             setBold: true,
                             colSpan: 2,
                             content: clr[i].ClassTxt);
