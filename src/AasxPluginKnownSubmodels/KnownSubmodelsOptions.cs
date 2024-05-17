@@ -34,6 +34,7 @@ namespace AasxPluginKnownSubmodels
         /// <summary>
         /// Create a set of minimal options
         /// </summary>
+        /// Adding a comment to be removed once my PR successfully create a branch at eclipse/package-explorer. 
         public static KnownSubmodelsOptions CreateDefault()
         {
             var opt = new KnownSubmodelsOptions();
