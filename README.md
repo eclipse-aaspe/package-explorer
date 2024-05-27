@@ -98,14 +98,13 @@ implementations of asset administration shells (AAS):
   various modules to cover a broad scope of Industrie 4.0 (including AAS).
   Hence its substantially more complex architecture. 
   
-* **PyI40AAS** (https://git.rwth-aachen.de/acplt/pyi40aas) is a Python 
-  module for manipulating and validating AAS. 
+* **Eclipse BaSyx Python SDK** (https://github.com/eclipse-basyx/basyx-python-sdk) project focuses on providing a Python implementation of the Asset Administration Shell (AAS) for Industry 4.0 Systems. 
   
 * **SAP AAS Service** (https://github.com/SAP/i40-aas) provides a system based
   on Docker images implementing the RAMI 4.0 reference architecture (including
-  AAS).
+  AAS). Repo archived on Jun 13, 2022.
 
-*	**NOVAAS** (https://gitlab.com/gidouninova/novaas) provides an implementation
+*	**NOVAAS** (https://gitlab.com/novaas/catalog/nova-school-of-science-and-technology/novaas) provides an implementation
   of the AAS concept by using JavaScript and Low-code development platform (LCDP)
   Node-Red.
 
