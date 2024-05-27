@@ -294,18 +294,19 @@ namespace AasxPackageLogic
                     if (ucsf.FilterIndex == 2)
                         prefFmt = AdminShellPackageEnv.SerializationFormat.Json;
 
+                    //TODO (jtikekar, 2024-05-27): Remove
                     //Verification of the environment before saving
-                    if(PackageCentral.MainItem.Container.Env.AasEnv != null)
-                    {
-                        var aasEnv = PackageCentral.MainItem.Container.Env.AasEnv;
-                        var errorList = Verification.Verify(aasEnv);
-                        if(errorList.Any())
-                        {
-                            Log.Singleton.Error("Error found!!!!");
-                            MainWindow.DisplayVerificationResult(errorList);
+                    //if(PackageCentral.MainItem.Container.Env.AasEnv != null)
+                    //{
+                    //    var aasEnv = PackageCentral.MainItem.Container.Env.AasEnv;
+                    //    var errorList = Verification.Verify(aasEnv);
+                    //    if(errorList.Any())
+                    //    {
+                    //        Log.Singleton.Error("Error found!!!!");
+                    //        MainWindow.DisplayVerificationResult(errorList);
                             
-                        }
-                    }
+                    //    }
+                    //}
 
                     // save 
                     DisplayContextPlus.RememberForInitialDirectory(ucsf.TargetFileName);
@@ -1676,11 +1677,20 @@ namespace AasxPackageLogic
 
         private void CommandBinding_FixAndFinalize()
         {
-            var env = PackageCentral.Main?.AasEnv;
-            if (env != null) 
+            try
             {
-                var visitor = new EmptyListVisitor();
-                env = (Aas.Environment)visitor.Transform(env);
+                var env = PackageCentral.Main?.AasEnv;
+                if (env != null)
+                {
+                    var visitor = new EmptyListVisitor();
+                    var newEnv = (Aas.Environment)visitor.Transform(env);
+                    PackageCentral.Main.SetEnvironment(newEnv);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(ex.Message);
+                Log.Singleton.Error(ex.StackTrace);
             }
 
         }

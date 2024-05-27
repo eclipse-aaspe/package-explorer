@@ -12,6 +12,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AdminShellNS.Extensions;
 using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace AasxPackageLogic
 {
@@ -25,6 +26,9 @@ namespace AasxPackageLogic
                 {
                     that.Creator = (IReference)Transform(that.Creator);
                 }
+
+                if(that.Version == null && that.Revision == null && string.IsNullOrEmpty(that.TemplateId) && that.Creator == null)
+                    that = null;
             }
 
             return that;
@@ -331,7 +335,36 @@ namespace AasxPackageLogic
 
         public override IClass TransformExtension(IExtension that)
         {
-            throw new System.NotImplementedException();
+            if(that != null)
+            {
+                if(that.SemanticId != null)
+                {
+                    that.SemanticId = (IReference)Transform(that.SemanticId);
+                }
+
+                TransformSupplimentalSemanticIds(that.SupplementalSemanticIds);
+
+                if (that.RefersTo.IsNullOrEmpty())
+                {
+                    that.RefersTo = null;
+                }
+                else
+                {
+                    List<IReference> newRefersTo = null;
+                    foreach (var reference in that.RefersTo)
+                    {
+                        IReference newReference = (IReference)Transform(reference);
+                        if (newReference != null)
+                        {
+                            newRefersTo ??= new List<IReference>();
+                            newRefersTo.Add(newReference);
+                        }
+                    }
+
+                    that.RefersTo = newRefersTo;
+                }
+            }
+            return that;
         }
 
         public override IClass TransformFile(IFile that)
@@ -341,7 +374,14 @@ namespace AasxPackageLogic
 
         public override IClass TransformKey(IKey that)
         {
-            throw new System.NotImplementedException();
+            if(that != null)
+            {
+                if(string.IsNullOrEmpty(that.Value))
+                {
+                    return null;
+                }
+            }
+            return that;
         }
 
         public override IClass TransformLangStringDefinitionTypeIec61360(ILangStringDefinitionTypeIec61360 that)
@@ -426,6 +466,28 @@ namespace AasxPackageLogic
                 {
                     that = null;
                 }
+                else
+                {
+                    List<IKey> newKeys = null;
+                    foreach (var key in that.Keys)
+                    {
+                        IKey newKey = (IKey)Transform(key);
+                        if (newKey != null)
+                        {
+                            newKeys ??= new List<IKey>();
+                            newKeys.Add(newKey);
+                        }
+                    }
+
+                    if (!newKeys.IsNullOrEmpty())
+                    {
+                        that.Keys = newKeys; 
+                    }
+                    else
+                    {
+                        that = null;
+                    }
+                }
             }
             return that;
         }
@@ -454,27 +516,9 @@ namespace AasxPackageLogic
                     that.SemanticId = (IReference)Transform(that.SemanticId);
                 }
 
-                if (that.SupplementalSemanticIds.IsNullOrEmpty())
-                {
-                    that.SupplementalSemanticIds = null;
-                }
-                else
-                {
-                    List<IReference> newSupplSemIds = null;
-                    foreach (var suppSemId in that.SupplementalSemanticIds)
-                    {
-                        IReference newSuppSemId = (IReference)Transform(suppSemId);
-                        if (newSuppSemId != null)
-                        {
-                            newSupplSemIds ??= new List<IReference>();
-                            newSupplSemIds.Add(newSuppSemId);
-                        }
-                    }
+                TransformSupplimentalSemanticIds(that.SupplementalSemanticIds);
 
-                    that.SupplementalSemanticIds = newSupplSemIds;
-                }
-
-                if(that.ExternalSubjectId != null)
+                if (that.ExternalSubjectId != null)
                 {
                     that.ExternalSubjectId = (IReference)Transform(that.ExternalSubjectId);
                 }
@@ -532,6 +576,33 @@ namespace AasxPackageLogic
             }
             return that;
         }
+
+        #region Private Methods
+
+        private List<IReference> TransformSupplimentalSemanticIds(List<IReference> that)
+        {
+            if (that.IsNullOrEmpty())
+            {
+                return null;
+            }
+            else
+            {
+                List<IReference> newSupplSemIds = null;
+                foreach (var suppSemId in that)
+                {
+                    IReference newSuppSemId = (IReference)Transform(suppSemId);
+                    if (newSuppSemId != null)
+                    {
+                        newSupplSemIds ??= new List<IReference>();
+                        newSupplSemIds.Add(newSuppSemId);
+                    }
+                }
+
+                return newSupplSemIds;
+            }
+        }
+
+        #endregion
 
     }
 }

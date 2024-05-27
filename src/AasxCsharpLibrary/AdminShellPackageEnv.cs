@@ -303,6 +303,11 @@ namespace AdminShellNS
             }
         }
 
+        public void SetEnvironment(AasCore.Aas3_0.Environment environment)
+        {
+            _aasEnv = environment; 
+        }
+
         private static AasCore.Aas3_0.Environment LoadXml(string fn)
         {
             try
