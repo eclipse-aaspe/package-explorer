@@ -23,7 +23,7 @@ namespace AasxPackageLogic
             {
                 if (that.Creator != null)
                 {
-                    that.Creator= (IReference)Transform(that.Creator);
+                    that.Creator = (IReference)Transform(that.Creator);
                 }
             }
 
@@ -128,6 +128,25 @@ namespace AasxPackageLogic
                 if(that.AssetInformation != null)
                 {
                     that.AssetInformation = (IAssetInformation)Transform(that.AssetInformation);
+                }
+
+                if (that.Submodels.IsNullOrEmpty())
+                {
+                    that.Submodels = null;
+                }
+                else
+                {
+                    List<IReference> newSubmodelRefs = null;
+                    foreach (var submodelRef in that.Submodels)
+                    {
+                        IReference newSubmodelRef = (IReference)Transform(submodelRef);
+                        if (newSubmodelRef != null)
+                        {
+                            newSubmodelRefs ??= new List<IReference>();
+                            newSubmodelRefs.Add(newSubmodelRef);
+                        }
+                    }
+                    that.Submodels = newSubmodelRefs;
                 }
             }
 
@@ -453,6 +472,11 @@ namespace AasxPackageLogic
                     }
 
                     that.SupplementalSemanticIds = newSupplSemIds;
+                }
+
+                if(that.ExternalSubjectId != null)
+                {
+                    that.ExternalSubjectId = (IReference)Transform(that.ExternalSubjectId);
                 }
             }
             return that;
