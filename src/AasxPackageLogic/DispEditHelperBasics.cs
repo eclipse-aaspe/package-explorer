@@ -16,6 +16,7 @@ using AnyUi;
 using Extensions;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -819,6 +820,25 @@ namespace AasxPackageLogic
                     (o) =>
                     {
                         langStr.Add<T>("", "");
+                        this.AddHintBubble(
+                        view, hintMode,
+                        new HintCheck(
+                            () =>
+                            {
+                                foreach (var lang in langStr)
+                                {
+                                    if (lang != null)
+                                    {
+                                        if (string.IsNullOrEmpty(lang.Language)
+                                        || string.IsNullOrEmpty(lang.Text))
+                                            return true;
+                                    }
+                                };
+
+                                return false;
+                            },
+                            "Display name cannot be empty. ",
+                            severityLevel: HintCheck.Severity.High));
 
                         emitCustomEvent?.Invoke(relatedReferable);
 

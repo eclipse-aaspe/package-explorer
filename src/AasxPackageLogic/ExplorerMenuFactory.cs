@@ -54,6 +54,7 @@ namespace AasxPackageExplorer
                 .AddWpfBlazor(name: "ConnectIntegrated", header: "Connect …", inputGesture: "Ctrl+Shift+I")
                 .AddWpfBlazor(name: "Save", header: "_Save", inputGesture: "Ctrl+S")
                 .AddWpfBlazor(name: "SaveAs", header: "_Save as …")
+                .AddWpfBlazor(name: "FixAndFinalize", header: "Fix and Finalize ...")
                 .AddWpfBlazor(name: "Close", header: "_Close …")
                 .AddWpfBlazor(name: "CheckAndFix", header: "Check, validate and fix …")
                 .AddMenu(header: "Security …", childs: (new AasxMenu())

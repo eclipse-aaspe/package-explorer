@@ -9,6 +9,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AasxIntegrationBase;
 using AdminShellNS;
+using AdminShellNS.Extensions;
 using AnyUi;
 using Extensions;
 using Newtonsoft.Json;
@@ -17,6 +18,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using static AasxPackageLogic.DispEditHelperBasics;
 using Aas = AasCore.Aas3_0;
 
 namespace AasxPackageLogic
@@ -183,9 +185,38 @@ namespace AasxPackageLogic
                 return new AnyUiLambdaActionRedrawEntity();
             }))
             {
+                this.AddHintBubble(stack, hintMode, new[] {
+                    new HintCheck(
+                        () =>
+                        {
+                            return referable.DisplayName == null
+                            || referable.DisplayName.Count < 1;
+                        },
+                        "Please add some display names in your main languages here to help consumers " +
+                            "of your Administration shell to understand your intentions.",
+                        severityLevel: HintCheck.Severity.High),
+                    new HintCheck(
+                        () =>
+                        {
+                            if (referable.DisplayName.Count > 0)
+                            {
+                                foreach (var name in referable.DisplayName)
+                                {
+                                    if (string.IsNullOrEmpty(name.Language) || string.IsNullOrEmpty(name.Text))
+                                        return true;
+                                }
+                            };
+                            return false;
+                        },
+                        "Display name cannot be empty.",
+                        severityLevel: HintCheck.Severity.High)
+                    });
+
                 this.AddKeyListLangStr<ILangStringNameType>(stack, "displayName", referable.DisplayName,
                     repo, relatedReferable: referable);
             }
+
+
 
             // category deprecated
             this.AddHintBubble(

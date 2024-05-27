@@ -150,6 +150,11 @@ namespace AasxPackageLogic
                 }
             }
 
+            if(cmd == "fixandfinalize")
+            {
+                CommandBinding_FixAndFinalize();
+            }
+
             if (cmd == "save")
             {
                 // start
@@ -1666,6 +1671,17 @@ namespace AasxPackageLogic
                         Log.Singleton.Error(ex, "when executing script");
                     }
                 }
+
+        }
+
+        private void CommandBinding_FixAndFinalize()
+        {
+            var env = PackageCentral.Main?.AasEnv;
+            if (env != null) 
+            {
+                var visitor = new EmptyListVisitor();
+                env = (Aas.Environment)visitor.Transform(env);
+            }
 
         }
 
