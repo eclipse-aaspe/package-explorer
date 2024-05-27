@@ -1695,6 +1695,17 @@ namespace AasxPackageLogic
 
         }
 
+        private void CommandBinding_FixAndFinalize()
+        {
+            var env = PackageCentral.Main?.AasEnv;
+            if (env != null) 
+            {
+                var visitor = new EmptyListVisitor();
+                env = (Aas.Environment)visitor.Transform(env);
+            }
+
+        }
+
         //
         // some functions in close relation to UI menu functions
         //

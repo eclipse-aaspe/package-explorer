@@ -477,7 +477,7 @@ namespace AasxPackageLogic
                             newKeys ??= new List<IKey>();
                             newKeys.Add(newKey);
                         }
-                    }
+            }
 
                     if (!newKeys.IsNullOrEmpty())
                     {
