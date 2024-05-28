@@ -22,12 +22,27 @@ namespace AasxPackageLogic
         {
             if (that != null)
             {
+                if(string.IsNullOrWhiteSpace(that.Version))
+                {
+                    that.Version = null;
+                }
+                
+                if(string.IsNullOrWhiteSpace(that.Revision))
+                {
+                    that.Revision = null;
+                }
+
                 if (that.Creator != null)
                 {
                     that.Creator = (IReference)Transform(that.Creator);
                 }
 
-                if(that.Version == null && that.Revision == null && string.IsNullOrEmpty(that.TemplateId) && that.Creator == null)
+                if (string.IsNullOrWhiteSpace(that.TemplateId))
+                {
+                    that.TemplateId = null;
+                }
+
+                if (that.Version == null && that.Revision == null && string.IsNullOrEmpty(that.TemplateId) && that.Creator == null)
                     that = null;
             }
 
@@ -43,86 +58,28 @@ namespace AasxPackageLogic
         {
             if (that != null)
             {
-                if (that.Extensions.IsNullOrEmpty())
+                that.Extensions = TransformExtensions(that.Extensions);
+
+                if (string.IsNullOrWhiteSpace(that.Category))
                 {
-                    that.Extensions = null;
-                }
-                else
-                {
-                    List<IExtension> newExtensions = null;
-                    foreach (var ext in that.Extensions)
-                    {
-                        IExtension newExtension = (IExtension)Transform(ext);
-                        if (newExtension != null)
-                        {
-                            newExtensions ??= new List<IExtension>();
-                            newExtensions.Add(newExtension);
-                        }
-                    }
-                    that.Extensions = newExtensions;
+                    that.Category = null;
                 }
                 
-                if (that.DisplayName.IsNullOrEmpty())
+                if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.DisplayName = null;
+                    that.IdShort = null;
                 }
-                else
-                {
-                    List<ILangStringNameType> newDisplayName = null;
-                    foreach (var name in that.DisplayName)
-                    {
-                        ILangStringNameType newName = (ILangStringNameType)Transform(name);
-                        if (newName != null)
-                        {
-                            newDisplayName ??= new List<ILangStringNameType>();
-                            newDisplayName.Add(newName);
-                        }
-                    }
-                    that.DisplayName = newDisplayName;
-                }
+
+                that.DisplayName = TransformDisplayName(that.DisplayName);
                 
-                if (that.Description.IsNullOrEmpty())
-                {
-                    that.Description = null;
-                }
-                else
-                {
-                    List<ILangStringTextType> newDescription = null;
-                    foreach (var desc in that.Description)
-                    {
-                        ILangStringTextType newDesc = (ILangStringTextType)Transform(desc);
-                        if (newDesc != null)
-                        {
-                            newDescription ??= new List<ILangStringTextType>();
-                            newDescription.Add(newDesc);
-                        }
-                    }
-                    that.Description = newDescription;
-                }
+                that.Description = TransformDescription(that.Description);
 
                 if (that.Administration != null)
                 {
                     that.Administration = (IAdministrativeInformation)Transform(that.Administration);
                 }
 
-                if(that.EmbeddedDataSpecifications.IsNullOrEmpty())
-                {
-                    that.EmbeddedDataSpecifications = null;
-                }
-                else
-                {
-                    List<IEmbeddedDataSpecification> newEmbeddedDataSpecs = null;
-                    foreach (var embDataSpec in that.EmbeddedDataSpecifications)
-                    {
-                        IEmbeddedDataSpecification newEmbDataSpec = (IEmbeddedDataSpecification)Transform(embDataSpec);
-                        if (newEmbDataSpec != null)
-                        {
-                            newEmbeddedDataSpecs ??= new List<IEmbeddedDataSpecification>();
-                            newEmbeddedDataSpecs.Add(newEmbDataSpec);
-                        }
-                    }
-                    that.EmbeddedDataSpecifications = newEmbeddedDataSpecs;
-                }
+                that.EmbeddedDataSpecifications = TransformEmbeddedDataSpecifications(that.EmbeddedDataSpecifications);
 
                 if(that.DerivedFrom != null)
                 {
@@ -134,6 +91,7 @@ namespace AasxPackageLogic
                     that.AssetInformation = (IAssetInformation)Transform(that.AssetInformation);
                 }
 
+                //TODO (jtikekar, 2024-05-28): Refactor, single method for list if references
                 if (that.Submodels.IsNullOrEmpty())
                 {
                     that.Submodels = null;
@@ -161,6 +119,11 @@ namespace AasxPackageLogic
         {
             if (that != null)
             {
+                if (string.IsNullOrWhiteSpace(that.GlobalAssetId))
+                {
+                    that.GlobalAssetId = null;
+                }
+
                 if (that.SpecificAssetIds.IsNullOrEmpty())
                 {
                     that.SpecificAssetIds = null;
@@ -178,6 +141,16 @@ namespace AasxPackageLogic
                         }
                     }
                     that.SpecificAssetIds = newSpecificAssetIds;
+                }
+
+                if (string.IsNullOrWhiteSpace(that.AssetType))
+                {
+                    that.AssetType = null;
+                }
+
+                if (that.DefaultThumbnail != null)
+                {
+                    that.DefaultThumbnail = (IResource)Transform(that.DefaultThumbnail);
                 }
             }
             return that;
@@ -245,9 +218,24 @@ namespace AasxPackageLogic
                     that.ShortName = newShortNames;
                 }
 
+                if (string.IsNullOrWhiteSpace(that.Unit))
+                {
+                    that.Unit = null;
+                }
+
                 if (that.UnitId != null)
                 {
                     that.UnitId = (IReference)Transform(that.UnitId);
+                }
+
+                if (string.IsNullOrWhiteSpace(that.SourceOfDefinition))
+                {
+                    that.SourceOfDefinition = null;
+                }
+
+                if (string.IsNullOrWhiteSpace(that.Symbol))
+                {
+                    that.Symbol = null;
                 }
 
                 if (that.Definition.IsNullOrEmpty())
@@ -269,9 +257,30 @@ namespace AasxPackageLogic
                     that.Definition = newDefinitions;
                 }
 
-                if(that.ValueList != null)
+                if (string.IsNullOrWhiteSpace(that.ValueFormat))
+                {
+                    that.ValueFormat = null;
+                }
+
+                if (that.ValueList != null)
                 {
                     that.ValueList = (IValueList)Transform(that.ValueList);
+                }
+
+                if (string.IsNullOrWhiteSpace(that.Value))
+                {
+                    that.Value = null;
+                }
+
+                if (that.PreferredName == null && that.ShortName == null 
+                    && that.UnitId == null && that.Definition == null
+                    && that.ValueList == null && string.IsNullOrEmpty(that.Unit)
+                    && string.IsNullOrEmpty(that.SourceOfDefinition)
+                    && string.IsNullOrEmpty(that.Symbol)
+                    && string.IsNullOrEmpty(that.ValueFormat)
+                    && string.IsNullOrEmpty(that.Value))
+                {
+                    that = null;
                 }
             }
             return that;
@@ -288,8 +297,13 @@ namespace AasxPackageLogic
 
                 if(that.DataSpecificationContent != null)
                 {
-                    //TODO (jtikekar, 2024-05-24): Implement
                     that.DataSpecificationContent = (IDataSpecificationContent)Transform(that.DataSpecificationContent);
+                }
+
+                if(that.DataSpecification == null 
+                    && that.DataSpecificationContent == null)
+                {
+                    that = null; 
                 }
             }
             
@@ -324,6 +338,46 @@ namespace AasxPackageLogic
 
                     that.AssetAdministrationShells = newAasList;
                 }
+                
+                if(that.Submodels.IsNullOrEmpty())
+                {
+                    that.Submodels = null;
+                }
+                else
+                {
+                    List<ISubmodel> newSubmodelList = null;
+                    foreach(var submodel in that.Submodels)
+                    {
+                        ISubmodel newSubmodel = (ISubmodel)Transform(submodel);
+                        if(newSubmodel != null)
+                        {
+                            newSubmodelList ??= new List<ISubmodel>();
+                            newSubmodelList.Add(newSubmodel);
+                        }
+                    }
+
+                    that.Submodels = newSubmodelList;
+                }
+                
+                if(that.ConceptDescriptions.IsNullOrEmpty())
+                {
+                    that.ConceptDescriptions = null;
+                }
+                else
+                {
+                    List<IConceptDescription> newCDList = null;
+                    foreach(var cd in that.ConceptDescriptions)
+                    {
+                        IConceptDescription newCd = (IConceptDescription)Transform(cd);
+                        if(newCd != null)
+                        {
+                            newCDList ??= new List<IConceptDescription>();
+                            newCDList.Add(newCd);
+                        }
+                    }
+
+                    that.ConceptDescriptions = newCDList;
+                }
             }
             return that;
         }
@@ -342,7 +396,12 @@ namespace AasxPackageLogic
                     that.SemanticId = (IReference)Transform(that.SemanticId);
                 }
 
-                TransformSupplimentalSemanticIds(that.SupplementalSemanticIds);
+                that.SupplementalSemanticIds = TransformSupplimentalSemanticIds(that.SupplementalSemanticIds);
+
+                if (string.IsNullOrWhiteSpace(that.Value))
+                {
+                    that.Value = null;
+                }
 
                 if (that.RefersTo.IsNullOrEmpty())
                 {
@@ -450,7 +509,26 @@ namespace AasxPackageLogic
 
         public override IClass TransformQualifier(IQualifier that)
         {
-            throw new System.NotImplementedException();
+            if(that != null)
+            {
+                if(that.SemanticId != null)
+                {
+                    that.SemanticId = (IReference)Transform(that.SemanticId);
+                }
+                  
+                that.SupplementalSemanticIds = TransformSupplimentalSemanticIds(that.SupplementalSemanticIds);
+
+                if (string.IsNullOrWhiteSpace(that.Value))
+                {
+                    that.Value = null;
+                }
+
+                if (that.ValueId != null)
+                {
+                    that.ValueId = (IReference)Transform(that.ValueId);
+                }
+            }
+            return that;
         }
 
         public override IClass TransformRange(IRange that)
@@ -504,7 +582,15 @@ namespace AasxPackageLogic
 
         public override IClass TransformResource(IResource that)
         {
-            throw new System.NotImplementedException();
+            if(that != null)
+            {
+                if (string.IsNullOrWhiteSpace(that.ContentType))
+                {
+                    that.ContentType = null;
+                }
+            }
+            
+            return that;
         }
 
         public override IClass TransformSpecificAssetId(ISpecificAssetId that)
@@ -528,7 +614,61 @@ namespace AasxPackageLogic
 
         public override IClass TransformSubmodel(ISubmodel that)
         {
-            throw new System.NotImplementedException();
+            if(that != null)
+            {
+                that.Extensions = TransformExtensions(that.Extensions);
+
+                if(string.IsNullOrWhiteSpace(that.Category))
+                {
+                    that.Category = null;
+                }
+                
+                if(string.IsNullOrWhiteSpace(that.IdShort))
+                {
+                    that.IdShort = null;
+                }
+
+                that.DisplayName = TransformDisplayName(that.DisplayName);
+
+                that.Description = TransformDescription(that.Description);
+
+                if (that.Administration != null)
+                {
+                    that.Administration = (IAdministrativeInformation)Transform(that.Administration);
+                }
+
+                if(that.SemanticId != null)
+                {
+                    that.SemanticId = (IReference)Transform(that.SemanticId);
+                }
+
+                that.SupplementalSemanticIds = TransformSupplimentalSemanticIds(that.SupplementalSemanticIds);
+
+                that.Qualifiers = TransformQualifiers(that.Qualifiers);
+
+                that.EmbeddedDataSpecifications = TransformEmbeddedDataSpecifications(that.EmbeddedDataSpecifications);
+
+                if (that.SubmodelElements.IsNullOrEmpty())
+                {
+                    that.SubmodelElements = null;
+                }
+                else
+                {
+                    List<ISubmodelElement> newSubmodelElements = null;
+                    foreach (var submodelElement in that.SubmodelElements)
+                    {
+                        ISubmodelElement newSubmodelElement = (ISubmodelElement)Transform(submodelElement);
+                        if (newSubmodelElement != null)
+                        {
+                            newSubmodelElements ??= new List<ISubmodelElement>();
+                            newSubmodelElements.Add(newSubmodelElement);
+                        }
+                    }
+
+                    that.SubmodelElements = newSubmodelElements;
+                }
+            }
+            return that;
         }
 
         public override IClass TransformSubmodelElementCollection(ISubmodelElementCollection that)
@@ -600,6 +740,126 @@ namespace AasxPackageLogic
 
                 return newSupplSemIds;
             }
+        }
+
+        private List<IExtension> TransformExtensions(List<IExtension> that)
+        {
+            if (that.IsNullOrEmpty())
+            {
+                that = null;
+            }
+            else
+            {
+                List<IExtension> newExtensions = null;
+                foreach (var ext in that)
+                {
+                    IExtension newExtension = (IExtension)Transform(ext);
+                    if (newExtension != null)
+                    {
+                        newExtensions ??= new List<IExtension>();
+                        newExtensions.Add(newExtension);
+                    }
+                }
+                that = newExtensions;
+            }
+
+            return that;
+        }
+
+        private List<ILangStringNameType> TransformDisplayName(List<ILangStringNameType> that)
+        {
+            if (that.IsNullOrEmpty())
+            {
+                that = null;
+            }
+            else
+            {
+                List<ILangStringNameType> newDisplayName = null;
+                foreach (var name in that)
+                {
+                    ILangStringNameType newName = (ILangStringNameType)Transform(name);
+                    if (newName != null)
+                    {
+                        newDisplayName ??= new List<ILangStringNameType>();
+                        newDisplayName.Add(newName);
+                    }
+                }
+                that = newDisplayName;
+            }
+
+            return that;
+        }
+
+        private List<ILangStringTextType> TransformDescription(List<ILangStringTextType> that)
+        {
+            if (that.IsNullOrEmpty())
+            {
+                that = null;
+            }
+            else
+            {
+                List<ILangStringTextType> newDescription = null;
+                foreach (var desc in that)
+                {
+                    ILangStringTextType newDesc = (ILangStringTextType)Transform(desc);
+                    if (newDesc != null)
+                    {
+                        newDescription ??= new List<ILangStringTextType>();
+                        newDescription.Add(newDesc);
+                    }
+                }
+                that = newDescription;
+            }
+
+            return that;
+        }
+        
+        private List<IQualifier> TransformQualifiers(List<IQualifier> that)
+        {
+            if (that.IsNullOrEmpty())
+            {
+                that = null;
+            }
+            else
+            {
+                List<IQualifier> newQualifiers = null;
+                foreach (var qualifier in that)
+                {
+                    IQualifier newQualifier = (IQualifier)Transform(qualifier);
+                    if (newQualifier != null)
+                    {
+                        newQualifiers ??= new List<IQualifier>();
+                        newQualifiers.Add(newQualifier);
+                    }
+                }
+                that = newQualifiers;
+            }
+
+            return that;
+        }
+
+        private List<IEmbeddedDataSpecification> TransformEmbeddedDataSpecifications(List<IEmbeddedDataSpecification> that)
+        {
+            if (that.IsNullOrEmpty())
+            {
+                that = null;
+            }
+            else
+            {
+                List<IEmbeddedDataSpecification> newEmbeddedDataSpecs = null;
+                foreach (var embDataSpec in that)
+                {
+                    IEmbeddedDataSpecification newEmbDataSpec = (IEmbeddedDataSpecification)Transform(embDataSpec);
+                    if (newEmbDataSpec != null)
+                    {
+                        newEmbeddedDataSpecs ??= new List<IEmbeddedDataSpecification>();
+                        newEmbeddedDataSpecs.Add(newEmbDataSpec);
+                    }
+                }
+                that = newEmbeddedDataSpecs;
+            }
+
+            return that;
         }
 
         #endregion
