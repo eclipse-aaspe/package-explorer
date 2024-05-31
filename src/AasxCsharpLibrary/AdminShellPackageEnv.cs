@@ -253,6 +253,26 @@ namespace AdminShellNS
     /// </summary>
     public class AdminShellPackageEnv : IDisposable
     {
+        // Note: the first array element [0] should be conforming the actual spec (for saving)
+        protected static string[] relTypesOrigin = new[] {
+            "http://admin-shell.io/aasx/relationships/aasx-origin",
+            "http://www.admin-shell.io/aasx/relationships/aasx-origin"
+        };
+
+        protected static string[] relTypesSpec = new[] {
+            "http://admin-shell.io/aasx/relationships/aas-spec",
+            "http://www.admin-shell.io/aasx/relationships/aas-spec"
+        };
+
+        protected static string[] relTypesSuppl = new[] {
+            "http://admin-shell.io/aasx/relationships/aas-suppl",
+            "http://www.admin-shell.io/aasx/relationships/aas-suppl"
+        };
+
+        protected static string[] relTypesThumb = new[] {
+            "http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail"
+        };
+
         private string _fn = "New Package";
 
         private string _tempFn = null;
@@ -302,6 +322,20 @@ namespace AdminShellNS
             {
                 return _aasEnv;
             }
+        }
+
+        private static IEnumerable<PackageRelationship> FindAllRelationships(Package package, string[] relTypes)
+        {
+            foreach (var rt in relTypes)
+                foreach (var x in package.GetRelationshipsByType(rt))
+                    yield return x;
+        }
+
+        private static IEnumerable<PackageRelationship> FindAllRelationships(PackagePart part, string[] relTypes)
+        {
+            foreach (var rt in relTypes)
+                foreach (var x in part.GetRelationshipsByType(rt))
+                    yield return x;
         }
 
         private static AasCore.Aas3_0.Environment LoadXml(string fn)
@@ -380,48 +414,22 @@ namespace AdminShellNS
             {
                 // get the origin from the package
                 PackagePart originPart = null;
-                var xs = package.GetRelationshipsByType(
-                    "http://www.admin-shell.io/aasx/relationships/aasx-origin");
-                foreach (var x in xs)
+                foreach (var x in FindAllRelationships(package, relTypesOrigin))
                     if (x.SourceUri.ToString() == "/")
                     {
                         originPart = package.GetPart(x.TargetUri);
                         break;
                     }
 
-                // fix for new package format
-                if (originPart == null)
-                {
-                    foreach (var x in package.GetRelationshipsByType(
-                        "http://admin-shell.io/aasx/relationships/aasx-origin"))
-                        if (x.SourceUri.ToString() == "/")
-                        {
-                            originPart = package.GetPart(x.TargetUri);
-                            break;
-                        }
-                }
-
                 if (originPart == null)
                     throw (new Exception("Unable to find AASX origin. Aborting!"));
 
                 // get the specs from the package
                 PackagePart specPart = null;
-                xs = originPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-spec");
-                foreach (var x in xs)
+                foreach (var x in FindAllRelationships(originPart, relTypesSpec))
                 {
                     specPart = package.GetPart(x.TargetUri);
                     break;
-                }
-
-                // quick fix for new package format
-                if (specPart == null)
-                {
-                    foreach (var x in originPart.GetRelationshipsByType(
-                        "http://admin-shell.io/aasx/relationships/aas-spec"))
-                    {
-                        specPart = package.GetPart(x.TargetUri);
-                        break;
-                    }
                 }
 
                 if (specPart == null)
@@ -766,14 +774,22 @@ namespace AdminShellNS
 
                     // get the origin from the package
                     PackagePart originPart = null;
-                    var xs = package.GetRelationshipsByType(
-                        "http://www.admin-shell.io/aasx/relationships/aasx-origin");
-                    foreach (var x in xs)
+                    foreach (var x in FindAllRelationships(package, relTypesOrigin))
                         if (x.SourceUri.ToString() == "/")
                         {
                             originPart = package.GetPart(x.TargetUri);
                             break;
                         }
+
+                    // MIHO, 2024-05-29
+                    // fix the case, that part exists but is not really associated by a
+                    // relationship
+                    var uriOrigin = new Uri("/aasx/aasx-origin", UriKind.RelativeOrAbsolute);
+                    if (package.PartExists(uriOrigin))
+                    {
+                        originPart = package.GetPart(uriOrigin);
+                    }
+
                     if (originPart == null)
                     {
                         // create, as not existing
@@ -787,14 +803,13 @@ namespace AdminShellNS
                         }
                         package.CreateRelationship(
                             originPart.Uri, TargetMode.Internal,
-                            "http://www.admin-shell.io/aasx/relationships/aasx-origin");
+                            relTypesOrigin.FirstOrDefault());
                     }
 
                     // get the specs from the package
                     PackagePart specPart = null;
                     PackageRelationship specRel = null;
-                    xs = originPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-spec");
-                    foreach (var x in xs)
+                    foreach (var x in FindAllRelationships(originPart, relTypesSpec))
                     {
                         specRel = x;
                         specPart = package.GetPart(x.TargetUri);
@@ -842,7 +857,7 @@ namespace AdminShellNS
                             System.Net.Mime.MediaTypeNames.Text.Xml, CompressionOption.Maximum);
                         originPart.CreateRelationship(
                             specPart.Uri, TargetMode.Internal,
-                            "http://www.admin-shell.io/aasx/relationships/aas-spec");
+                            relTypesSpec.FirstOrDefault());
                     }
 
                     // now, specPart shall be != null!
@@ -889,8 +904,7 @@ namespace AdminShellNS
                         var found = false;
 
                         // normal files
-                        xs = specPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-suppl");
-                        foreach (var x in xs)
+                        foreach (var x in FindAllRelationships(specPart, relTypesSuppl))
                             if (x.TargetUri == psfDel.Uri)
                             {
                                 // try to delete
@@ -901,9 +915,7 @@ namespace AdminShellNS
                             }
 
                         // thumbnails
-                        xs = package.GetRelationshipsByType(
-                            "http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail");
-                        foreach (var x in xs)
+                        foreach (var x in FindAllRelationships(package, relTypesThumb))
                             if (x.TargetUri == psfDel.Uri)
                             {
                                 // try to delete
@@ -939,21 +951,24 @@ namespace AdminShellNS
                             PackagePart filePart = null;
                             if (psfAdd.SpecialHandling == AdminShellPackageSupplementaryFile.SpecialHandlingType.None)
                             {
-                                xs = specPart.GetRelationshipsByType(
-                                    "http://www.admin-shell.io/aasx/relationships/aas-suppl");
-                                foreach (var x in xs)
+                                foreach (var x in FindAllRelationships(specPart, relTypesSuppl))
                                     if (x.TargetUri == psfAdd.Uri)
                                     {
                                         filePart = package.GetPart(x.TargetUri);
                                         break;
                                     }
+
+                                // try to fix?
+                                if (filePart == null && package.PartExists(psfAdd.Uri))
+                                {
+                                    // brutally delete old one?
+                                    package.DeletePart(psfAdd.Uri);
+                                }
                             }
                             if (psfAdd.SpecialHandling ==
                                 AdminShellPackageSupplementaryFile.SpecialHandlingType.EmbedAsThumbnail)
                             {
-                                xs = package.GetRelationshipsByType(
-                                    "http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail");
-                                foreach (var x in xs)
+                                foreach (var x in FindAllRelationships(package, relTypesThumb))
                                     if (x.SourceUri.ToString() == "/" && x.TargetUri == psfAdd.Uri)
                                     {
                                         filePart = package.GetPart(x.TargetUri);
@@ -980,13 +995,12 @@ namespace AdminShellNS
                                     AdminShellPackageSupplementaryFile.SpecialHandlingType.None)
                                     specPart.CreateRelationship(
                                         filePart.Uri, TargetMode.Internal,
-                                        "http://www.admin-shell.io/aasx/relationships/aas-suppl");
+                                        relTypesSuppl.FirstOrDefault());
                                 if (psfAdd.SpecialHandling ==
                                     AdminShellPackageSupplementaryFile.SpecialHandlingType.EmbedAsThumbnail)
                                     package.CreateRelationship(
                                         filePart.Uri, TargetMode.Internal,
-                                        "http://schemas.openxmlformats.org/package/2006/" +
-                                        "relationships/metadata/thumbnail");
+                                        relTypesThumb.FirstOrDefault());
                             }
 
                             // now should be able to write
@@ -1347,9 +1361,7 @@ namespace AdminShellNS
                 throw (new Exception(string.Format($"AASX Package {_fn} not opened. Aborting!")));
             // get the thumbnail over the relationship
             PackagePart thumbPart = null;
-            var xs = _openPackage.GetRelationshipsByType(
-                "http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail");
-            foreach (var x in xs)
+            foreach (var x in FindAllRelationships(_openPackage, relTypesThumb))
                 if (x.SourceUri.ToString() == "/")
                 {
                     thumbPart = _openPackage.GetPart(x.TargetUri);
@@ -1396,11 +1408,8 @@ namespace AdminShellNS
             // access
             if (_openPackage != null)
             {
-
                 // get the thumbnail(s) from the package
-                var xs = _openPackage.GetRelationshipsByType(
-                    "http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail");
-                foreach (var x in xs)
+                foreach (var x in FindAllRelationships(_openPackage, relTypesThumb))
                     if (x.SourceUri.ToString() == "/")
                     {
                         result.Add(new AdminShellPackageSupplementaryFile(
@@ -1411,9 +1420,7 @@ namespace AdminShellNS
 
                 // get the origin from the package
                 PackagePart originPart = null;
-                xs = _openPackage.GetRelationshipsByType(
-                    "http://www.admin-shell.io/aasx/relationships/aasx-origin");
-                foreach (var x in xs)
+                foreach (var x in FindAllRelationships(_openPackage, relTypesOrigin))
                     if (x.SourceUri.ToString() == "/")
                     {
                         originPart = _openPackage.GetPart(x.TargetUri);
@@ -1424,8 +1431,7 @@ namespace AdminShellNS
                 {
                     // get the specs from the origin
                     PackagePart specPart = null;
-                    xs = originPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-spec");
-                    foreach (var x in xs)
+                    foreach (var x in FindAllRelationships(originPart, relTypesSpec))
                     {
                         specPart = _openPackage.GetPart(x.TargetUri);
                         break;
@@ -1434,8 +1440,7 @@ namespace AdminShellNS
                     if (specPart != null)
                     {
                         // get the supplementaries from the package, derived from spec
-                        xs = specPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-suppl");
-                        foreach (var x in xs)
+                        foreach (var x in FindAllRelationships(specPart, relTypesSuppl))
                         {
                             result.Add(
                                 new AdminShellPackageSupplementaryFile(

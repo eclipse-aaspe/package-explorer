@@ -3084,7 +3084,7 @@ namespace AasxPackageExplorer
             // some more "OK, good to go" 
             CheckIfToFlushEvents();
 
-            // refresh display
+            // refresh display of the tree
             var x = DisplayElements.SelectedItem;
             if (x == null)
             {
@@ -3094,6 +3094,9 @@ namespace AasxPackageExplorer
             }
             x?.RefreshFromMainData();
             DisplayElements.Refresh();
+
+            // new (MIHO, 2024-05-23): testwise redisplay also element panel
+            RedrawElementView();
 
             // re-enable
             TakeOverContentEnable(false);

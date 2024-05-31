@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using static System.Net.WebRequestMethods;
 using Aas = AasCore.Aas3_0;
 
 namespace AasxPackageLogic
@@ -808,6 +809,7 @@ namespace AasxPackageLogic
         public void AddKeyListLangStr<T>(
             AnyUiStackPanel view, string key, List<T> langStr, ModifyRepo repo = null,
             Aas.IReferable relatedReferable = null,
+            Action setNullList = null,
 			Func<Aas.IReferable, AnyUiLambdaActionBase> emitCustomEvent = null) where T : IAbstractLangString
         {
             // sometimes needless to show
@@ -883,7 +885,7 @@ namespace AasxPackageLogic
                         colSpan: 3),
                     (o) =>
                     {
-                        langStr.Add<T>("", "");
+                        langStr.Add<T>(language: ExtendLangString.LANG_DEFAULT, text: "");
 
 						emitCustomEvent?.Invoke(relatedReferable);
 						return new AnyUiLambdaActionRedrawEntity();
@@ -1021,6 +1023,8 @@ namespace AasxPackageLogic
                                             {
                                                 case 0:
                                                     langStr.RemoveAt(currentI);
+                                                    if (langStr.Count < 1)
+                                                        setNullList?.Invoke();
                                                     action = true;
                                                     break;
                                                 case 1:
@@ -2741,8 +2745,7 @@ namespace AasxPackageLogic
                 return;
 
             // check, if something to do. Execute all predicates
-            List<string> textsToShow = new List<string>();
-            HintCheck.Severity highestSev = HintCheck.Severity.Notice;
+            var textsToShow = new List<Tuple<string, HintCheck.Severity>>();
             foreach (var hc in hints)
                 if (hc.CheckPred != null && hc.TextToShow != null)
                 {
@@ -2750,18 +2753,16 @@ namespace AasxPackageLogic
                     {
                         if (hc.CheckPred())
                         {
-                            textsToShow.Add(hc.TextToShow);
-                            if (hc.SeverityLevel == HintCheck.Severity.High)
-                                highestSev = HintCheck.Severity.High;
+                            textsToShow.Add(new Tuple<string, HintCheck.Severity>(hc.TextToShow, hc.SeverityLevel));
                             if (hc.BreakIfTrue)
                                 break;
                         }
                     }
                     catch (Exception ex)
                     {
-                        textsToShow.Add(
-                            $"Error while checking hints: {ex.Message} at {AdminShellUtil.ShortLocation(ex)}");
-                        highestSev = HintCheck.Severity.High;
+                        textsToShow.Add(new Tuple<string, HintCheck.Severity>(
+                            $"Error while checking hints: {ex.Message} at {AdminShellUtil.ShortLocation(ex)}", 
+                            HintCheck.Severity.High));
                     }
                 }
 
@@ -2770,21 +2771,24 @@ namespace AasxPackageLogic
                 return;
 
             // show!
-            var bubble = new AnyUiHintBubble();
-            bubble.FontSize = 0.8f;
-            bubble.Margin = new AnyUiThickness(2, 4, 2, 0);
-            bubble.Text = string.Join("\r\n", textsToShow);
-            if (highestSev == HintCheck.Severity.High)
+            foreach (var tts in textsToShow)
             {
-                bubble.Background = levelColors?.HintSeverityHigh.Bg;
-                bubble.Foreground = levelColors?.HintSeverityHigh.Fg;
+                var bubble = new AnyUiHintBubble();
+                bubble.FontSize = 0.8f;
+                bubble.Margin = new AnyUiThickness(2, 4, 2, 0);
+                bubble.Text = tts.Item1;
+                if (tts.Item2 == HintCheck.Severity.High)
+                {
+                    bubble.Background = levelColors?.HintSeverityHigh.Bg;
+                    bubble.Foreground = levelColors?.HintSeverityHigh.Fg;
+                }
+                if (tts.Item2 == HintCheck.Severity.Notice)
+                {
+                    bubble.Background = levelColors?.HintSeverityNotice.Bg;
+                    bubble.Foreground = levelColors?.HintSeverityNotice.Fg;
+                }
+                view.Children.Add(bubble);
             }
-            if (highestSev == HintCheck.Severity.Notice)
-            {
-                bubble.Background = levelColors?.HintSeverityNotice.Bg;
-                bubble.Foreground = levelColors?.HintSeverityNotice.Fg;
-            }
-            view.Children.Add(bubble);
         }
 
         public void AddHintBubble(AnyUiStackPanel view, bool hintMode, HintCheck hint)
