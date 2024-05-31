@@ -600,6 +600,17 @@ namespace AasxPackageLogic
                     that.DataSpecificationContent = (IDataSpecificationContent)Transform(that.DataSpecificationContent);
                 }
 
+
+                //This is a workaround to support the interoperability,
+                //in case of old AASX Files (V1, V2 or intermediatary V3 versions),
+                //where DSContent exists, but not DS
+                if(that.DataSpecification == null 
+                    && that.DataSpecificationContent != null)
+                {
+                    that.DataSpecification = new Reference(ReferenceTypes.ExternalReference, new List<IKey>() 
+                    { new Key(KeyTypes.GlobalReference, "EMPTY") });
+                }
+                
                 if(that.DataSpecification == null 
                     && that.DataSpecificationContent == null)
                 {
