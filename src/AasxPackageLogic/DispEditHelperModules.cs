@@ -185,33 +185,6 @@ namespace AasxPackageLogic
                 return new AnyUiLambdaActionRedrawEntity();
             }))
             {
-                this.AddHintBubble(stack, hintMode, new[] {
-                    new HintCheck(
-                        () =>
-                        {
-                            return referable.DisplayName == null
-                            || referable.DisplayName.Count < 1;
-                        },
-                        "Please add some display names in your main languages here to help consumers " +
-                            "of your Administration shell to understand your intentions.",
-                        severityLevel: HintCheck.Severity.High),
-                    new HintCheck(
-                        () =>
-                        {
-                            if (referable.DisplayName.Count > 0)
-                            {
-                                foreach (var name in referable.DisplayName)
-                                {
-                                    if (string.IsNullOrEmpty(name.Language) || string.IsNullOrEmpty(name.Text))
-                                        return true;
-                                }
-                            };
-                            return false;
-                        },
-                        "Display name cannot be empty.",
-                        severityLevel: HintCheck.Severity.High)
-                    });
-
                 this.AddKeyListLangStr<ILangStringNameType>(stack, "displayName", referable.DisplayName,
                     repo, relatedReferable: referable);
             }

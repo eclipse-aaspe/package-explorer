@@ -173,7 +173,5 @@ namespace AasxPackageExplorer
         {
             return null;
         }
-
-        public void DisplayVerificationResult(IEnumerable<Reporting.Error> errors);
     }
 }

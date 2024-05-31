@@ -612,11 +612,6 @@ namespace BlazorUI.Data
                 new Program.NewDataAvailableArgs(
                     Program.DataRedrawMode.None, SessionId));
         }
-
-        public void DisplayVerificationResult(IEnumerable<Reporting.Error> errors)
-        {
-            throw new NotImplementedException();
-        }
     }
 
 }

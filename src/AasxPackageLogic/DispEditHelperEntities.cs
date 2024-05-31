@@ -2740,6 +2740,7 @@ namespace AasxPackageLogic
                                 Options.Curr.TemplateIdConceptDescription));
 
                             // store in AAS enviroment
+                            env.ConceptDescriptions ??= new List<IConceptDescription>();
                             env.ConceptDescriptions.Add(cd);
 
                             // go over to ISubmodelElement

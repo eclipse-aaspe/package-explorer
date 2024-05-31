@@ -152,7 +152,7 @@ namespace AasxPackageLogic
 
             if(cmd == "fixandfinalize")
             {
-                CommandBinding_FixAndFinalize();
+                await CommandBinding_FixAndFinalizeAsync(ticket);
             }
 
             if (cmd == "save")
@@ -293,20 +293,6 @@ namespace AasxPackageLogic
                         prefFmt = AdminShellPackageEnv.SerializationFormat.Xml;
                     if (ucsf.FilterIndex == 2)
                         prefFmt = AdminShellPackageEnv.SerializationFormat.Json;
-
-                    //TODO (jtikekar, 2024-05-27): Remove
-                    //Verification of the environment before saving
-                    //if(PackageCentral.MainItem.Container.Env.AasEnv != null)
-                    //{
-                    //    var aasEnv = PackageCentral.MainItem.Container.Env.AasEnv;
-                    //    var errorList = Verification.Verify(aasEnv);
-                    //    if(errorList.Any())
-                    //    {
-                    //        Log.Singleton.Error("Error found!!!!");
-                    //        MainWindow.DisplayVerificationResult(errorList);
-                            
-                    //    }
-                    //}
 
                     // save 
                     DisplayContextPlus.RememberForInitialDirectory(ucsf.TargetFileName);
@@ -1675,7 +1661,7 @@ namespace AasxPackageLogic
 
         }
 
-        private void CommandBinding_FixAndFinalize()
+        private async Task CommandBinding_FixAndFinalizeAsync(AasxMenuActionTicket ticket)
         {
             try
             {
@@ -1685,7 +1671,51 @@ namespace AasxPackageLogic
                     var visitor = new EmptyListVisitor();
                     var newEnv = (Aas.Environment)visitor.Transform(env);
                     PackageCentral.Main.SetEnvironment(newEnv);
+                    Log.Singleton.Info("Fixed issues of AASX: {0}", PackageCentral.MainItem.Filename);             
                 }
+
+                //Save
+                // start
+                ticket.StartExec();
+
+                // open?
+                if (!PackageCentral.MainStorable)
+                {
+                    LogErrorToTicket(ticket, "No open AASX file to be saved.");
+                    return;
+                }
+
+                // do
+                try
+                {
+                    // save
+                    await PackageCentral.MainItem.SaveAsAsync(runtimeOptions: PackageCentral.CentralRuntimeOptions);
+
+                    // backup
+                    if (Options.Curr.BackupDir != null)
+                        PackageCentral.MainItem.Container.BackupInDir(
+                            System.IO.Path.GetFullPath(Options.Curr.BackupDir),
+                            Options.Curr.BackupFiles,
+                            PackageContainerBase.BackupType.FullCopy);
+
+                    // may be was saved to index
+                    if (PackageCentral?.MainItem?.Container?.Env?.AasEnv != null)
+                        PackageCentral.MainItem.Container.SignificantElements
+                            = new IndexOfSignificantAasElements(PackageCentral.MainItem.Container.Env.AasEnv);
+
+                    // may be was saved to flush events
+                    MainWindow.CheckIfToFlushEvents();
+
+                    // as saving changes the structure of pending supplementary files, re-display
+                    MainWindow.RedrawAllAasxElements(keepFocus: true);
+                }
+                catch (Exception ex)
+                {
+                    LogErrorToTicket(ticket, ex, "when saving AASX");
+                    return;
+                }
+
+                Log.Singleton.Info("Fixed the issues and successfully saved AASX: {0}", PackageCentral.MainItem.Filename);
             }
             catch (Exception ex)
             {

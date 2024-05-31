@@ -820,26 +820,6 @@ namespace AasxPackageLogic
                     (o) =>
                     {
                         langStr.Add<T>("", "");
-                        this.AddHintBubble(
-                        view, hintMode,
-                        new HintCheck(
-                            () =>
-                            {
-                                foreach (var lang in langStr)
-                                {
-                                    if (lang != null)
-                                    {
-                                        if (string.IsNullOrEmpty(lang.Language)
-                                        || string.IsNullOrEmpty(lang.Text))
-                                            return true;
-                                    }
-                                };
-
-                                return false;
-                            },
-                            "Display name cannot be empty. ",
-                            severityLevel: HintCheck.Severity.High));
-
                         emitCustomEvent?.Invoke(relatedReferable);
 
                         return new AnyUiLambdaActionRedrawEntity();
@@ -935,11 +915,6 @@ namespace AasxPackageLogic
                             (o) =>
                             {
                                 langStr.RemoveAt(currentI);
-                                if(langStr.Count == 0 && relatedReferable is MultiLanguageProperty mlp)
-                                {
-                                    langStr = null;
-                                    mlp.Value = null;
-                                }
                                 emitCustomEvent?.Invoke(relatedReferable);
                                 return new AnyUiLambdaActionRedrawEntity();
                             });

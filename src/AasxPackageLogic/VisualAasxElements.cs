@@ -188,16 +188,6 @@ namespace AasxPackageLogic
             // to be overloaded for sub-classes!
         }
 
-        //TODO (jtikekar, 2024-04-05): Find proper solution
-        /// <summary>
-        /// This method verifies if there are any erros in the AAS Element.
-        /// </summary>
-        public virtual IEnumerable<Reporting.Error> Verify()
-        {
-            // To be overloaded by sub-classes!
-            throw new NotImplementedException();
-        }
-
         /// <summary>
         /// Gets/sets whether the TreeViewItem
         /// associated with this object is expanded.
@@ -709,11 +699,6 @@ namespace AasxPackageLogic
             return theAas;
         }
 
-        public override IEnumerable<Reporting.Error> Verify()
-        {
-            return Verification.Verify(theAas);
-        }
-
         public override void RefreshFromMainData()
         {
             if (theAas != null)
@@ -821,11 +806,6 @@ namespace AasxPackageLogic
             return theSubmodel;
         }
 
-        public override IEnumerable<Reporting.Error> Verify()
-        {
-            return Verification.Verify(theSubmodel);
-        }
-
         public override void RefreshFromMainData()
         {
             if (theSubmodel != null)
@@ -876,11 +856,6 @@ namespace AasxPackageLogic
         public override object GetMainDataObject()
         {
             return theSubmodel;
-        }
-
-        public override IEnumerable<Reporting.Error> Verify()
-        {
-            return Verification.Verify(theSubmodel);
         }
 
         public override void RefreshFromMainData()
@@ -1049,11 +1024,6 @@ namespace AasxPackageLogic
                 info = caption + " " + info;
                 caption = $"#{indexPos:D2}";
             }
-        }
-
-        public override IEnumerable<Reporting.Error> Verify()
-        {
-            return Verification.Verify(theWrapper);
         }
 
         public override void RefreshFromMainData()
@@ -1242,11 +1212,6 @@ namespace AasxPackageLogic
         public override string GetFilterElementInfo()
         {
             return "ConceptDescription";
-        }
-
-        public override IEnumerable<Reporting.Error> Verify()
-        {
-            return Verification.Verify(theCD);
         }
 
         public override object GetMainDataObject()
