@@ -41,5 +41,16 @@ namespace Extensions
             res.Add(new LangStringTextType(lang, text));
             return res;
         }
+
+        public static bool IsValid(this List<ILangStringTextType> elems)
+        {
+            if (elems == null || elems.Count < 1)
+                return false;
+            foreach (var ls in elems)
+                if (ls?.Language == null || ls.Language.Trim().Length < 1
+                    || ls.Text == null || ls.Text.Trim().Length < 1)
+                    return false;
+            return true;
+        }
     }
 }

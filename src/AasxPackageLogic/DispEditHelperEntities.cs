@@ -3746,6 +3746,7 @@ namespace AasxPackageLogic
 					this.AddKeyListLangStr<Aas.ILangStringTextType>(
                         stack, "value", mlp.Value, repo,
                         relatedReferable: mlp,
+                        setNullList: () => mlp.Value = null,
                         emitCustomEvent: (rf) => {
                             // primary
 							this.AddDiaryEntry(rf, new DiaryEntryUpdateValue());

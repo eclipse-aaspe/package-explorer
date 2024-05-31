@@ -218,8 +218,10 @@ namespace AasxPackageLogic
                 return new AnyUiLambdaActionRedrawEntity();
             }))
             {
-                this.AddKeyListLangStr<ILangStringNameType>(stack, "displayName", referable.DisplayName,
-                    repo, relatedReferable: referable);
+                this.AddKeyListLangStr<ILangStringNameType>(
+                    stack, "displayName", referable.DisplayName,
+                    repo, relatedReferable: referable,
+                    setNullList: () => referable.DisplayName = null);
             }
 
 
@@ -245,6 +247,11 @@ namespace AasxPackageLogic
                 stack, hintMode,
                 new[] {
                     new HintCheck(
+                        () => referable.Description != null && referable.Description.IsValid() != true,
+                        "According to the specification, an existing list of elements shall contain " +
+                        "at least one element and for each element all mandatory fields shall be " +
+                        "not empty."),
+                    new HintCheck(
                         () => {
                             return referable.Description == null || referable.Description == null ||
                                 referable.Description.Count < 1;
@@ -260,7 +267,8 @@ namespace AasxPackageLogic
             });
             if (this.SafeguardAccess(stack, repo, referable.Description, "description:", "Create data element!", v =>
             {
-                referable.Description = new List<Aas.ILangStringTextType>();
+                referable.Description = ExtendILangStringTextType.CreateFrom(
+                    lang: ExtendLangString.LANG_DEFAULT, text: "");
                 return new AnyUiLambdaActionRedrawEntity();
             }))
             {
@@ -275,8 +283,10 @@ namespace AasxPackageLogic
                         "Please add some descriptions in your main languages here to help consumers " +
                             "of your Administration shell to understand your intentions.",
                         severityLevel: HintCheck.Severity.Notice));
-                this.AddKeyListLangStr<ILangStringTextType>(stack, "description", referable.Description,
-                    repo, relatedReferable: referable);
+                this.AddKeyListLangStr<ILangStringTextType>(
+                    stack, "description", referable.Description,
+                    repo, relatedReferable: referable,
+                    setNullList: () => referable.Description = null);
             }
 
             // Checksum
@@ -1463,8 +1473,10 @@ namespace AasxPackageLogic
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
-                AddKeyListLangStr<ILangStringPreferredNameTypeIec61360>(stack, "preferredName", dsiec.PreferredName,
-                    repo, relatedReferable: relatedReferable);
+                AddKeyListLangStr<ILangStringPreferredNameTypeIec61360>(
+                    stack, "preferredName", dsiec.PreferredName,
+                    repo, relatedReferable: relatedReferable,
+                    setNullList: () => dsiec.PreferredName = null);
 
             // ShortName
 
@@ -1496,8 +1508,10 @@ namespace AasxPackageLogic
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
-                AddKeyListLangStr<ILangStringShortNameTypeIec61360>(stack, "shortName", dsiec.ShortName,
-                    repo, relatedReferable: relatedReferable);
+                AddKeyListLangStr<ILangStringShortNameTypeIec61360>(
+                    stack, "shortName", dsiec.ShortName,
+                    repo, relatedReferable: relatedReferable,
+                    setNullList: () => dsiec.ShortName = null);
 
             // Unit
 
@@ -1649,8 +1663,10 @@ namespace AasxPackageLogic
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
-                this.AddKeyListLangStr<ILangStringDefinitionTypeIec61360>(stack, "definition", dsiec.Definition,
-                    repo, relatedReferable: relatedReferable);
+                this.AddKeyListLangStr<ILangStringDefinitionTypeIec61360>(
+                    stack, "definition", dsiec.Definition,
+                    repo, relatedReferable: relatedReferable,
+                    setNullList: () => dsiec.Definition = null);
 
             // ValueFormat
 

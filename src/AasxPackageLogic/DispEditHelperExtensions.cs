@@ -618,6 +618,7 @@ namespace AasxPackageLogic
 						// edit fields
 						AddKeyListLangStr<Aas.ILangStringTextType>(
 							stack, "" + pii.Name, forth, repo, relatedReferable,
+							setNullList: () => lambdaSetValue(null),
 							emitCustomEvent: (rf) =>
 							{
 								lambdaSetValue(forth);

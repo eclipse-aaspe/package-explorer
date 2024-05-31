@@ -549,19 +549,36 @@ namespace AasxPackageLogic
 						"Create data element!",
 						v =>
 						{
-							lambdaSetValue(new List<Aas.ILangStringTextType>());
+							lambdaSetValue(ExtendILangStringTextType.CreateFrom(
+								lang: ExtendLangString.LANG_DEFAULT, text: ""));
 							return new AnyUiLambdaActionRedrawEntity();
 						}))
 					{
+                        // get data (again)
+                        lls = (List<LangString>)pii.GetValue(sammInst);
+                        
 						// get values
-						var forth = lls?.Select(
+                        var forth = lls?.Select(
 								(ls) => (new Aas.LangStringTextType(ls.Language, ls.Text)) 
 								as Aas.ILangStringTextType).ToList();
+
+						AddHintBubble(
+							stack, hintMode,
+							new HintCheck(
+								() => forth != null && forth.IsValid() != true,
+								"According to the specification, an existing list of elements shall contain " +
+								"at least one element and for each element all mandatory fields shall be " +
+								"not empty."));
 
 						// edit fields
 						AddKeyListLangStr<Aas.ILangStringTextType>(
 							stack, "" + pii.Name, forth, repo, relatedReferable,
-							emitCustomEvent: (rf) =>
+                            setNullList: () =>
+							{
+								forth = null;
+								lambdaSetValue(forth);
+							},
+                            emitCustomEvent: (rf) =>
 							{
 								lambdaSetValue(forth);
 								return new AnyUiLambdaActionNone();
