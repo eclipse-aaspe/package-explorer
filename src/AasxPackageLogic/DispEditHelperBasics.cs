@@ -16,6 +16,7 @@ using AnyUi;
 using Extensions;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -819,7 +820,6 @@ namespace AasxPackageLogic
                     (o) =>
                     {
                         langStr.Add<T>("", "");
-
                         emitCustomEvent?.Invoke(relatedReferable);
 
                         return new AnyUiLambdaActionRedrawEntity();

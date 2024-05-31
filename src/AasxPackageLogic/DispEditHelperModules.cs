@@ -9,6 +9,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AasxIntegrationBase;
 using AdminShellNS;
+using AdminShellNS.Extensions;
 using AnyUi;
 using Extensions;
 using Newtonsoft.Json;
@@ -17,6 +18,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using static AasxPackageLogic.DispEditHelperBasics;
 using Aas = AasCore.Aas3_0;
 
 namespace AasxPackageLogic
@@ -186,6 +188,8 @@ namespace AasxPackageLogic
                 this.AddKeyListLangStr<ILangStringNameType>(stack, "displayName", referable.DisplayName,
                     repo, relatedReferable: referable);
             }
+
+
 
             // category deprecated
             this.AddHintBubble(

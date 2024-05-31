@@ -256,7 +256,7 @@ namespace AdminShellNS
 
         private string _tempFn = null;
 
-        private AasCore.Aas3_0.Environment _aasEnv = new AasCore.Aas3_0.Environment(new List<IAssetAdministrationShell>(), new List<ISubmodel>(), new List<IConceptDescription>());
+        private AasCore.Aas3_0.Environment _aasEnv = new AasCore.Aas3_0.Environment();
         private Package _openPackage = null;
         private readonly ListOfAasSupplementaryFile _pendingFilesToAdd = new ListOfAasSupplementaryFile();
         private readonly ListOfAasSupplementaryFile _pendingFilesToDelete = new ListOfAasSupplementaryFile();
@@ -301,6 +301,11 @@ namespace AdminShellNS
             {
                 return _aasEnv;
             }
+        }
+
+        public void SetEnvironment(AasCore.Aas3_0.Environment environment)
+        {
+            _aasEnv = environment; 
         }
 
         private static AasCore.Aas3_0.Environment LoadXml(string fn)

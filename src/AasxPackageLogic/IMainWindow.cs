@@ -16,6 +16,8 @@ using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using AnyUi;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace AasxPackageExplorer
 {
