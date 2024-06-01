@@ -284,11 +284,11 @@ namespace AasxPackageExplorer
                     args: new AasxMenuListOfArgDefs()
                         .AddFromReflection(new AasxSearchUtil.SearchOptions())
                         .Add("Do", "Either do 'stay', 'forward' or 'all'."))
-                .AddWpf(name: "ToolsFindForward", header: "Find Forward", inputGesture: "F3", isHidden: true)
-                .AddWpf(name: "ToolsFindBackward", header: "Find Backward", inputGesture: "Shift+F3", isHidden: true)
-                .AddWpf(name: "ToolsReplaceStay", header: "Replace and stay", isHidden: true)
-                .AddWpf(name: "ToolsReplaceForward", header: "Replace and stay", isHidden: true)
-                .AddWpf(name: "ToolsReplaceAll", header: "Replace all", isHidden: true)
+                .AddWpf(name: "ToolsFindForward", header: "Find Forward", inputGesture: "F3", hidden: true)
+                .AddWpf(name: "ToolsFindBackward", header: "Find Backward", inputGesture: "Shift+F3", hidden: true)
+                .AddWpf(name: "ToolsReplaceStay", header: "Replace and stay", hidden: true)
+                .AddWpf(name: "ToolsReplaceForward", header: "Replace and stay", hidden: true)
+                .AddWpf(name: "ToolsReplaceAll", header: "Replace all", hidden: true)
                 .AddSeparator()
                 .AddMenu(header: "Navigation …", childs: (new AasxMenu())
                     .AddWpfBlazor(name: "NavigateBack", header: "Back", inputGesture: "Ctrl+Shift+Left")
@@ -385,6 +385,14 @@ namespace AasxPackageExplorer
 
             for (int i = 0; i < 9; i++)
                 menu.AddHotkey(name: $"LaunchScript{i}", gesture: $"Ctrl+Shift+{i}");
+
+            //
+            // invisible commands
+            //
+
+            menu.AddMenu(header: "", hidden: true,
+                childs: (new AasxMenu())
+                .AddWpfBlazor(name: "WinMaximize", header: "", hidden: true));
 
             //
             // Try attach plugins

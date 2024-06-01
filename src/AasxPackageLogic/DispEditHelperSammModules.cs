@@ -380,82 +380,66 @@ namespace AasxPackageLogic
 						},
 						createInstance: createInstance);
 
-					if (false)
-					{
-						// remove button
-						AnyUiUIElement.RegisterControl(
-							AddSmallButtonTo(sg, 1 + lsri, 1,
-							margin: new AnyUiThickness(2, 2, 2, 2),
-							padding: new AnyUiThickness(5, 0, 5, 0),
-							content: "-"),
-							(v) =>
+					// button [hamburger]
+					AddSmallContextMenuItemTo(
+						sg, 1 + lsri, 1,
+						"\u22ee",
+						repo, new[] {
+							"\u2702", "Delete",
+							"\u25b2", "Move Up",
+							"\u25bc", "Move Down",
+							"\U0001F4D1", "Select from preset",
+							"\U0001F517", "Select from existing CDs",
+							"\U0001f516", "Create new CD for SAMM",
+							"\U0001f872", "Jump to"
+						},
+						margin: new AnyUiThickness(2, 2, 2, 2),
+						padding: new AnyUiThickness(5, 0, 5, 0),
+						menuItemLambda: (o) =>
+						{
+							var action = false;
+
+							if (o is int ti)
+								switch (ti)
+								{
+									case 0:
+										value.RemoveAt(theLsri);
+										if (value.Count < 1)
+											value = null;
+										action = true;
+										break;
+									case 1:
+										MoveElementInListUpwards<T>(value, value[theLsri]);
+										action = true;
+										break;
+									case 2:
+										MoveElementInListDownwards<T>(value, value[theLsri]);
+										action = true;
+										break;
+									case 3:
+									case 4:
+									case 5:
+									case 6:
+										return SammExtensionHelperSammReferenceAction<T>(
+											env, idSet, relatedReferable,
+											sr: value[theLsri],
+											actionIndex: ti - 3,
+											presetList: null,
+											setValue: (srv) =>
+											{
+												value[theLsri] = srv;
+												setValue?.Invoke(value);
+											},
+											createInstance: createInstance);
+								}
+
+							if (action)
 							{
-								value.RemoveAt(theLsri);
 								setValue?.Invoke(value);
 								return new AnyUiLambdaActionRedrawEntity();
-							});
-					}
-					else
-					{
-						// button [hamburger]
-						AddSmallContextMenuItemTo(
-							sg, 1 + lsri, 1,
-							"\u22ee",
-							repo, new[] {
-								"\u2702", "Delete",
-								"\u25b2", "Move Up",
-								"\u25bc", "Move Down",
-								"\U0001F4D1", "Select from preset",
-								"\U0001F517", "Select from existing CDs",
-								"\U0001f516", "Create new CD for SAMM",
-								"\U0001f872", "Jump to"
-							},
-							margin: new AnyUiThickness(2, 2, 2, 2),
-							padding: new AnyUiThickness(5, 0, 5, 0),
-							menuItemLambda: (o) =>
-							{
-								var action = false;
-
-								if (o is int ti)
-									switch (ti)
-									{
-										case 0:
-											value.RemoveAt(theLsri);
-											action = true;
-											break;
-										case 1:
-											MoveElementInListUpwards<T>(value, value[theLsri]);
-											action = true;
-											break;
-										case 2:
-											MoveElementInListDownwards<T>(value, value[theLsri]);
-											action = true;
-											break;
-										case 3:
-										case 4:
-										case 5:
-										case 6:
-											return SammExtensionHelperSammReferenceAction<T>(
-												env, idSet, relatedReferable,
-												sr: value[theLsri],
-												actionIndex: ti - 3,
-												presetList: null,
-												setValue: (srv) =>
-												{
-													value[theLsri] = srv;
-													setValue?.Invoke(value);
-												},
-												createInstance: createInstance);
-									}
-
-								if (action)
-								{
-									setValue?.Invoke(value);
-									return new AnyUiLambdaActionRedrawEntity();
-								}
-								return new AnyUiLambdaActionNone();
-							});
-					}
+							}
+							return new AnyUiLambdaActionNone();
+						});
 				}
 			}
 
@@ -603,7 +587,9 @@ namespace AasxPackageLogic
 						"Create data element!",
 						v =>
 						{
-							lambdaSetValue(new Samm.NamespaceMap());
+							var nsm = new Samm.NamespaceMap();
+							nsm.AddOrIgnore(":", "");
+                            lambdaSetValue(nsm);
 							return new AnyUiLambdaActionRedrawEntity();
 						}))
 					{
@@ -666,6 +652,8 @@ namespace AasxPackageLogic
 								(v) =>
 								{
 									lsr.RemoveAt(theLsri);
+									if (lsr.Count() < 1)
+										lsr = null;
 									pii.SetValue(sammInst, lsr);
 									setValue?.Invoke(sammInst);
 									return new AnyUiLambdaActionRedrawEntity();
@@ -713,58 +701,67 @@ namespace AasxPackageLogic
 					this.AddVerticalSpace(stack);
 
 					var ls = (List<string>)pii.GetValue(sammInst);
-					if (ls == null)
+
+					if (this.SafeguardAccess(stack, repo, ls, "" + pii.Name + ":",
+						"Create data element!",
+						v =>
+						{
+							ls = new List<string>(new[] { "" });
+							pii.SetValue(sammInst, ls);
+							setValue?.Invoke(sammInst);
+							return new AnyUiLambdaActionRedrawEntity();
+						}))
 					{
-						// Log.Singleton.Error("Internal error in SAMM element. Aborting.");
-						continue;
-					}
-
-					var sg = this.AddSubGrid(stack, "" + pii.Name + ":",
-						rows: 1 + ls.Count, cols: 2,
-						minWidthFirstCol: GetWidth(FirstColumnWidth.Standard),
-						paddingCaption: new AnyUiThickness(5, 0, 0, 0),
-						colWidths: new[] { "*", "#" });
-
-					AnyUiUIElement.RegisterControl(
-						AddSmallButtonTo(sg, 0, 1,
-							margin: new AnyUiThickness(2, 2, 2, 2),
-							padding: new AnyUiThickness(5, 0, 5, 0),
-							content: "Add blank"),
-							(v) =>
-							{
-								ls.Add("");
-								pii.SetValue(sammInst, ls);
-								setValue?.Invoke(sammInst);
-								return new AnyUiLambdaActionRedrawEntity();
-							});
-
-					for (int lsi = 0; lsi < ls.Count; lsi++)
-					{
-						var theLsi = lsi;
-						var tb = AnyUiUIElement.RegisterControl(
-							AddSmallTextBoxTo(sg, 1 + lsi, 0,
-								text: ls[lsi],
-								margin: new AnyUiThickness(2, 2, 2, 2)),
-								(v) =>
-								{
-									ls[theLsi] = (string)v;
-									pii.SetValue(sammInst, ls);
-									setValue?.Invoke(sammInst);
-									return new AnyUiLambdaActionRedrawEntity();
-								});
+						// edit
+						var sg = this.AddSubGrid(stack, "" + pii.Name + ":",
+							rows: 1 + ls.Count, cols: 2,
+							minWidthFirstCol: GetWidth(FirstColumnWidth.Standard),
+							paddingCaption: new AnyUiThickness(5, 0, 0, 0),
+							colWidths: new[] { "*", "#" });
 
 						AnyUiUIElement.RegisterControl(
-							AddSmallButtonTo(sg, 1 + lsi, 1,
+							AddSmallButtonTo(sg, 0, 1,
 								margin: new AnyUiThickness(2, 2, 2, 2),
 								padding: new AnyUiThickness(5, 0, 5, 0),
-								content: "-"),
+								content: "Add blank"),
 								(v) =>
 								{
-									ls.RemoveAt(theLsi);
+									ls.Add("");
 									pii.SetValue(sammInst, ls);
 									setValue?.Invoke(sammInst);
 									return new AnyUiLambdaActionRedrawEntity();
 								});
+
+						for (int lsi = 0; lsi < ls.Count; lsi++)
+						{
+							var theLsi = lsi;
+							var tb = AnyUiUIElement.RegisterControl(
+								AddSmallTextBoxTo(sg, 1 + lsi, 0,
+									text: ls[lsi],
+									margin: new AnyUiThickness(2, 2, 2, 2)),
+									(v) =>
+									{
+										ls[theLsi] = (string)v;
+										pii.SetValue(sammInst, ls);
+										setValue?.Invoke(sammInst);
+										return new AnyUiLambdaActionRedrawEntity();
+									});
+
+							AnyUiUIElement.RegisterControl(
+								AddSmallButtonTo(sg, 1 + lsi, 1,
+									margin: new AnyUiThickness(2, 2, 2, 2),
+									padding: new AnyUiThickness(5, 0, 5, 0),
+									content: "-"),
+									(v) =>
+									{
+										ls.RemoveAt(theLsi);
+										if (ls.Count < 1)
+											ls = null;
+										pii.SetValue(sammInst, ls);
+										setValue?.Invoke(sammInst);
+										return new AnyUiLambdaActionRedrawEntity();
+									});
+						}
 					}
 				}
 

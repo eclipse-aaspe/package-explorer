@@ -878,11 +878,10 @@ namespace AasCore.Samm2_2_0
 		[SammPropertyUri("bamm-c:values", SammVersion.V_1_0_0)]
 		[SammPropertyUri("samm-c:values", SammVersion.V_2_0_0)]
 		[SammPropertyUri("samm-c:values", SammVersion.V_2_1_0)]
-		public List<string> Values { get; set; }
+		public List<string>? Values { get; set; } = null;
 
 		public Enumeration()
 		{
-			Values = new List<string>();
 		}
 	}
 
@@ -1119,12 +1118,11 @@ namespace AasCore.Samm2_2_0
 		[SammPropertyUri("bamm-c:elements", SammVersion.V_1_0_0)]
 		[SammPropertyUri("samm-c:elements", SammVersion.V_2_0_0)]
 		[SammPropertyUri("samm-c:elements", SammVersion.V_2_1_0)]
-		public List<string> Elements { get; set; }
+		public List<string>? Elements { get; set; }
 
 		public StructuredValue()
 		{
 			DeconstructionRule = "";
-			Elements = new List<string>();
 		}
 	}
 
@@ -1198,8 +1196,7 @@ namespace AasCore.Samm2_2_0
 		[SammCollectionContentUri("bamm:property", SammVersion.V_1_0_0)]
 		[SammCollectionContentUri("samm:property", SammVersion.V_2_0_0)]
 		[SammCollectionContentUri("samm:property", SammVersion.V_2_1_0)]
-		public List<OptionalSammReference> Properties { get; set; } 
-			   = new List<OptionalSammReference>();
+		public List<OptionalSammReference>? Properties { get; set; } = null;
 	}
 
 	/// <summary>
@@ -1227,7 +1224,7 @@ namespace AasCore.Samm2_2_0
 		/// <summary>
 		/// The namespaces/ prefix definitions of the SAMM models are attached to the Aspect.
 		/// </summary>
-		public NamespaceMap Namespaces { get; set; } = new NamespaceMap();
+		public NamespaceMap? Namespaces { get; set; } = null;
 
 		/// <summary>
 		/// Multiline string with comments (for the whole SAMM file).
@@ -1245,7 +1242,7 @@ namespace AasCore.Samm2_2_0
 		[SammCollectionContentUri("bamm:property", SammVersion.V_1_0_0)]
 		[SammCollectionContentUri("samm:property", SammVersion.V_2_0_0)]
 		[SammCollectionContentUri("samm:property", SammVersion.V_2_1_0)]
-		public List<OptionalSammReference> Properties { get; set; } = new List<OptionalSammReference>();
+		public List<OptionalSammReference>? Properties { get; set; } = null;
 
 		/// <summary>
 		/// An Event is a model element that represents a single occurence where the timing is important. 
@@ -1256,7 +1253,7 @@ namespace AasCore.Samm2_2_0
 		[SammCollectionContentUri("bamm:event", SammVersion.V_1_0_0)]
 		[SammCollectionContentUri("samm:event", SammVersion.V_2_0_0)]
 		[SammCollectionContentUri("samm:event", SammVersion.V_2_1_0)]
-		public List<OptionalSammReference> Events { get; set; } = new List<OptionalSammReference>();
+		public List<OptionalSammReference>? Events { get; set; } = null;
 
 		/// <summary>
 		/// An Operation represents an action that can be triggered on the Aspect. 
@@ -1267,7 +1264,7 @@ namespace AasCore.Samm2_2_0
 		[SammCollectionContentUri("bamm:operation", SammVersion.V_1_0_0)]
 		[SammCollectionContentUri("samm:operation", SammVersion.V_2_0_0)]
 		[SammCollectionContentUri("samm:operation", SammVersion.V_2_1_0)]
-		public List<OptionalSammReference> Operations { get; set; } = new List<OptionalSammReference>();
+		public List<OptionalSammReference>? Operations { get; set; } = null;
 	}
 
 	public class Unit : ModelElement, ISammSelfDescription
