@@ -441,7 +441,7 @@ namespace AasxIntegrationBase
             string inputGesture = null,
             bool onlyDisplay = false,
             bool isCheckable = false, bool isChecked = false,
-            bool isHidden = false,
+            bool hidden = false,
             AasxMenuArgReqInfo reqs = AasxMenuArgReqInfo.None,
             AasxMenuListOfArgDefs args = null)
         {
@@ -457,7 +457,7 @@ namespace AasxIntegrationBase
                 GestureOnlyDisplay = onlyDisplay,
                 IsCheckable = isCheckable,
                 IsChecked = isChecked,
-                Hidden = isHidden,
+                Hidden = hidden,
                 RequiredInfos = reqs,
                 ArgDefs = args
             });
@@ -473,6 +473,7 @@ namespace AasxIntegrationBase
             string inputGesture = null,
             bool onlyDisplay = false,
             bool isCheckable = false, bool isChecked = false,
+            bool hidden = false,
             AasxMenuArgReqInfo reqs = AasxMenuArgReqInfo.None,
             AasxMenuListOfArgDefs args = null)
         {
@@ -487,6 +488,7 @@ namespace AasxIntegrationBase
                 InputGesture = inputGesture,
                 GestureOnlyDisplay = onlyDisplay,
                 IsCheckable = isCheckable,
+                Hidden = hidden,
                 IsChecked = isChecked,
                 RequiredInfos = reqs,
                 ArgDefs = args
@@ -562,6 +564,7 @@ namespace AasxIntegrationBase
 
         public AasxMenu AddMenu(
             string header,
+            bool hidden = false,
             AasxMenuFilter filter = AasxMenuFilter.WpfBlazor,
             AasxMenu childs = null,
             string attachPoint = null)
@@ -569,6 +572,7 @@ namespace AasxIntegrationBase
             this.Add(new AasxMenuItem()
             {
                 Header = header,
+                Hidden = hidden,
                 Filter = filter,
                 Childs = childs,
                 AttachPoint = attachPoint

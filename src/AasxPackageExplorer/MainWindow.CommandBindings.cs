@@ -362,8 +362,16 @@ namespace AasxPackageExplorer
             if (cmd == "attachfileassoc" || cmd == "removefileassoc")
                 await CommandBinding_RegistryTools(cmd, ticket);
 
-            // pass dispatch on to next (lower) level of menu functions
-            await Logic.CommandBinding_GeneralDispatchAnyUiDialogs(cmd, menuItem, ticket);
+            // new hidden commands
+            if (cmd == "winmaximize")
+            {
+                // Note: this is experimental and a duplicate to OptionsInformation.WindowMaximized.
+                // Thinkink, what is the better way.
+                this.WindowState = WindowState.Maximized;
+            }
+
+			// pass dispatch on to next (lower) level of menu functions
+			await Logic.CommandBinding_GeneralDispatchAnyUiDialogs(cmd, menuItem, ticket);
         }
 
         public bool PanelConcurrentCheckIsVisible()

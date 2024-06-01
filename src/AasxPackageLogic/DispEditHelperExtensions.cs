@@ -497,6 +497,8 @@ namespace AasxPackageLogic
 								{
 									case 0:
 										value.RemoveAt(theLsri);
+										if (value.Count < 1)
+											value = null;
 										action = true;
 										break;
 									case 1:
@@ -606,7 +608,8 @@ namespace AasxPackageLogic
 						"Create data element!",
 						v =>
 						{
-							lambdaSetValue(new List<Aas.ILangStringTextType>());
+							lambdaSetValue(ExtendILangStringTextType.CreateFrom(
+								lang: ExtendLangString.LANG_DEFAULT, text: ""));
 							return new AnyUiLambdaActionRedrawEntity();
 						}))
 					{
@@ -641,7 +644,7 @@ namespace AasxPackageLogic
 						"Create data element!",
 						v =>
 						{
-							pii.SetValue(recInst, (new List<Aas.ILangStringTextType>()));
+							pii.SetValue(recInst, (new List<string>(new[] { "" })));
 							setValue?.Invoke(recInst);
 							return new AnyUiLambdaActionRedrawEntity();
 						}))
@@ -960,7 +963,7 @@ namespace AasxPackageLogic
 
 					var singleEnumType = pii.PropertyType.GenericTypeArguments[0];
 
-					// var enumList = (List<object>)pii.GetValue(recInst);
+					// get the current list values
 					var enumList = pii.GetValue(recInst) as IList;
 
 					// hint?
@@ -970,8 +973,9 @@ namespace AasxPackageLogic
 						"Create data element!",
 						v =>
 						{
-							var x = Activator.CreateInstance(pii.PropertyType);
-							pii.SetValue(recInst, x);
+							var newList = Activator.CreateInstance(pii.PropertyType) as IList;
+                            newList.Add((int)0);
+                            pii.SetValue(recInst, newList);
 							setValue?.Invoke(recInst);
 							return new AnyUiLambdaActionRedrawEntity();
 						}))
@@ -1022,6 +1026,8 @@ namespace AasxPackageLogic
 									(v) =>
 									{
 										enumList.RemoveAt(theLsi);
+										if (enumList.Count < 1)
+											enumList = null;
 										pii.SetValue(recInst, enumList);
 										setValue?.Invoke(recInst);
 										return new AnyUiLambdaActionRedrawEntity();
