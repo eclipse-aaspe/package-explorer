@@ -186,6 +186,14 @@ namespace Extensions
             return match;
         }
 
+        public static bool Matches(this IReference reference, IConceptDescription cd, MatchMode matchMode = MatchMode.Strict)
+        {
+            var cdrf = cd?.GetReference();
+            if (cdrf == null)
+                return false;
+            return Matches(reference, cdrf, matchMode);
+        }
+
         /// <summary>
         /// Useful, if the searched reference will have only on key (e.g. ECLASS properties)
         /// </summary>

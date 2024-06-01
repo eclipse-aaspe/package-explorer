@@ -253,8 +253,8 @@
     ],
     "modelType": "ConceptDescription"
   },
-  "CD_RelativeTimePoint": {
-    "idShort": "RelativeTimePoint",
+  "CD_RelativePointInTime": {
+    "idShort": "RelativePointInTime",
     "administration": {
       "version": "1",
       "revision": "1"
@@ -1222,6 +1222,293 @@
             }
           ],
           "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_UtcTimeIdta": {
+    "idShort": "UtcTimeIdta",
+    "id": "https://admin-shell.io/idta/TimeSeries/UtcTime/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Timestamp UTC"
+            },
+            {
+              "language": "de",
+              "text": "Zeitstempel UTC"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Timestamp according to ISO 8601 on the timescale ccordinated universal time (UTC)"
+            },
+            {
+              "language": "de",
+              "text": "Zeitstempel nach ISO 8601 auf der Zeitskala der koordinierten Weltzeit (UTC)"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_UtcTimeIecCdd": {
+    "idShort": "UtcTimeIecCdd",
+    "id": "0112/2///61360_4#ADA387#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Timestamp UTC"
+            },
+            {
+              "language": "de",
+              "text": "Zeitstempel UTC"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Timestamp according to ISO 8601 on the timescale ccordinated universal time (UTC)"
+            },
+            {
+              "language": "de",
+              "text": "Zeitstempel nach ISO 8601 auf der Zeitskala der koordinierten Weltzeit (UTC)"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_TaiTimeIdta": {
+    "idShort": "TaiTimeIdta",
+    "id": "https://admin-shell.io/idta/TimeSeries/TaiTime/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Timestamp TAI"
+            },
+            {
+              "language": "de",
+              "text": "Zeitstempel TAI"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Timestamp according to ISO 8601 on the timescale international atomic time (TAI)"
+            },
+            {
+              "language": "de",
+              "text": "Zeitstempel nach ISO 8601 auf der Zeitskala internationale Atomzeit (TAI)"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_TaiTimeIecCdd": {
+    "idShort": "TaiTimeIecCdd",
+    "id": "0112/2///61360_4#ADA386#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Timestamp TAI"
+            },
+            {
+              "language": "de",
+              "text": "Zeitstempel TAI"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Timestamp according to ISO 8601 on the timescale international atomic time (TAI)"
+            },
+            {
+              "language": "de",
+              "text": "Zeitstempel nach ISO 8601 auf der Zeitskala internationale Atomzeit (TAI)"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_RelativeTimePoint": {
+    "idShort": "RelativeTimePoint",
+    "id": "https://admin-shell.io/idta/TimeSeries/RelativeTimePoint/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Timestamp"
+            },
+            {
+              "language": "de",
+              "text": "Zeitstempel"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Point of Time in seconds. Time points refer to the start time of the time series segment. "
+            },
+            {
+              "language": "de",
+              "text": "Zeitpunktangabe in Sekunden.  Zeitpunkte referenzieren auf die Startzeit des Zeitreihensegments"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_RelativeTimeDurationIdta": {
+    "idShort": "RelativeTimeDurationIdta",
+    "id": "https://admin-shell.io/idta/TimeSeries/RelativeTimeDuration/1/1",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Timeduration"
+            },
+            {
+              "language": "de",
+              "text": "Zeitdauer"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Time duration specification in seconds (number of seconds). Time durations refer to the previous entry in the time series segment"
+            },
+            {
+              "language": "de",
+              "text": "Angabe der zeitlichen Dauer in Sekunden (Anzahl der Sekunden). Zeitdauern referenzieren auf den jeweils vorangegangenen Eintrag im Zeitreihensegment"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_RelativeTimeDurationIecCdd": {
+    "idShort": "RelativeTimeDurationIecCdd",
+    "id": "0112/2///61360_4#AAE028#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Timeduration"
+            },
+            {
+              "language": "de",
+              "text": "Zeitdauer"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Time duration specification in seconds (number of seconds). Time durations refer to the previous entry in the time series segment"
+            },
+            {
+              "language": "de",
+              "text": "Angabe der zeitlichen Dauer in Sekunden (Anzahl der Sekunden). Zeitdauern referenzieren auf den jeweils vorangegangenen Eintrag im Zeitreihensegment"
+            }
+          ],
           "modelType": "DataSpecificationIec61360"
         }
       }

@@ -23,14 +23,14 @@ namespace AasxPredefinedConcepts
         public static IdtaTimeSeriesDataV11 Static = new IdtaTimeSeriesDataV11();
 
         public Aas.Submodel
-            SM_TimeSeriesData;
+            SM_TimeSeries;
 
         public Aas.ConceptDescription
             CD_Metadata,
             CD_Name,
             CD_Description,
             CD_Record,
-            CD_RelativeTimePoint,
+            CD_RelativePointInTime,
             CD_Segments,
             CD_ExternalSegment,
             CD_RecordCount,
@@ -47,7 +47,14 @@ namespace AasxPredefinedConcepts
             CD_Endpoint,
             CD_Query,
             CD_InternalSegment,
-            CD_Records;
+            CD_Records,
+            CD_UtcTimeIdta,
+            CD_UtcTimeIecCdd,
+            CD_TaiTimeIdta,
+            CD_TaiTimeIecCdd,
+            CD_RelativeTimePoint,
+            CD_RelativeTimeDurationIdta,
+            CD_RelativeTimeDurationIecCdd;
 
         public IdtaTimeSeriesDataV11()
         {

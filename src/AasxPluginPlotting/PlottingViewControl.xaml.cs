@@ -217,7 +217,11 @@ namespace AasxPluginPlotting
 
             try
             {
-                TimeSeriesStartFromSubmodel(_submodel);
+                _timeSeriesReader = TimeSeriesReaderBase.GetReader(_submodel);
+                if (_timeSeriesReader != null )
+                {
+                    _timeSeriesData = _timeSeriesReader.TimeSeriesStartFromSubmodel(_package?.AasEnv, _submodel);
+                }                
             }
             catch (Exception ex)
             {
@@ -551,7 +555,7 @@ namespace AasxPluginPlotting
         {
             public string DataSetId = "";
             public TimeSeriesTimeAxis TimeAxis;
-            public Aas.Property DataPoint;
+            public Aas.ISubmodelElement DataPoint;
             public Aas.IConceptDescription DataPointCD;
 
             public PlotArguments Args = null;
@@ -562,6 +566,8 @@ namespace AasxPluginPlotting
             public TimeSeriesMinMaxDouble ValueLimits = TimeSeriesMinMaxDouble.Invalid;
 
             protected TimeSeriesMinMaxInt _dataLimits;
+            public int MaxIndex { get { return (_dataLimits != null) ? _dataLimits.Max : 0; } }
+
             protected double[] data = new[] { 0.0 };
             public double[] Data { get { return data; } }
 
@@ -785,11 +791,39 @@ namespace AasxPluginPlotting
 
                 return res;
             }
+
+            public IEnumerable<TimeSeriesDataSet> FindAllTimeDatSet(TimeSeriesTimeAxis timeSpec)
+            {
+                foreach (var ds in this)
+                    if (ds.TimeAxis == timeSpec)
+                        yield return ds;
+            }
+
+            public TimeSeriesDataSet FindDataSetId(string id)
+            {
+                if (id.HasContent() != true)
+                    return null;
+                id = id.Trim().ToLower();
+
+                foreach (var ds in this)
+                    if (ds.DataSetId?.Trim().ToLower() == id)
+                        return ds;
+
+                return null;
+            }
+
+            public int GetMaxIndex()
+            {
+                int max = 0;
+                foreach (var ds in this)
+                    max = Math.Max(max, ds.MaxIndex);
+                return max;
+            }
         }
 
         public class TimeSeriesData
         {
-            public Aas.SubmodelElementCollection SourceTimeSeries;
+            public Aas.IReferable SourceTimeSeries;
 
             public PlotArguments Args;
 
@@ -1430,228 +1464,8 @@ namespace AasxPluginPlotting
             }
         }
 
+        protected TimeSeriesReaderBase _timeSeriesReader = null;
         protected ListOfTimeSeriesData _timeSeriesData = new ListOfTimeSeriesData();
-
-        protected double? SpecifiedTimeToDouble(
-            TimeSeriesTimeAxis timeAxis, string bufValue)
-        {
-            if (timeAxis == TimeSeriesTimeAxis.Utc || timeAxis == TimeSeriesTimeAxis.Tai)
-            {
-                // strict time string
-                if (DateTime.TryParseExact(bufValue,
-                    "yyyy-MM-dd'T'HH:mm:ssZ", CultureInfo.InvariantCulture,
-                    DateTimeStyles.AdjustToUniversal, out DateTime dt))
-                {
-                    return dt.ToOADate();
-                }
-            }
-
-            // plain time or plain value
-            if (double.TryParse(bufValue, NumberStyles.Float,
-                    CultureInfo.InvariantCulture, out double fValue))
-                return fValue;
-
-            // no?
-            return null;
-        }
-
-        protected Tuple<TimeSeriesTimeAxis, Aas.Property>
-            DetectTimeSpecifier(
-                ZveiTimeSeriesDataV10 pcts,
-                MatchMode mm,
-                Aas.SubmodelElementCollection smc)
-        {
-            // access
-            if (smc?.Value == null || pcts == null)
-                return null;
-
-            // detect
-            Aas.Property prop = null;
-            prop = smc.Value.FindFirstSemanticIdAs<Aas.Property>(pcts.CD_UtcTime.GetReference(), mm);
-            if (prop != null)
-                return new Tuple<TimeSeriesTimeAxis, Aas.Property>(TimeSeriesTimeAxis.Utc, prop);
-
-            prop = smc.Value.FindFirstSemanticIdAs<Aas.Property>(pcts.CD_TaiTime.GetReference(), mm);
-            if (prop != null)
-                return new Tuple<TimeSeriesTimeAxis, Aas.Property>(TimeSeriesTimeAxis.Tai, prop);
-
-            prop = smc.Value.FindFirstSemanticIdAs<Aas.Property>(pcts.CD_Time.GetReference(), mm);
-            if (prop != null)
-                return new Tuple<TimeSeriesTimeAxis, Aas.Property>(TimeSeriesTimeAxis.Plain, prop);
-
-            prop = smc.Value.FindFirstSemanticIdAs<Aas.Property>(pcts.CD_TimeDuration.GetReference(), mm);
-            if (prop != null)
-                return new Tuple<TimeSeriesTimeAxis, Aas.Property>(TimeSeriesTimeAxis.Plain, prop);
-
-            // no
-            return null;
-        }
-
-        /// <summary>
-        /// This functions add new data from a segment.
-        /// In case of no data set existing, this function will add new datasets, as well.
-        /// It is able to understand time series record and variable modes.
-        /// </summary>
-        private void TimeSeriesAddSegmentData(
-            ZveiTimeSeriesDataV10 pcts,
-            MatchMode mm,
-            TimeSeriesData tsd,
-            Aas.SubmodelElementCollection smcseg)
-        {
-            // access
-            if (pcts == null || smcseg == null)
-                return;
-
-            // challenge is to select SMes, which are NOT from a known semantic id!
-            var tsvAllowed = new[]
-            {
-                pcts.CD_RecordId.GetSingleKey(),
-                pcts.CD_UtcTime.GetSingleKey(),
-                pcts.CD_TaiTime.GetSingleKey(),
-                pcts.CD_Time.GetSingleKey(),
-                pcts.CD_TimeDuration.GetSingleKey(),
-                pcts.CD_ValueArray.GetSingleKey(),
-                pcts.CD_ExternalDataFile.GetSingleKey()
-            };
-
-            var tsrAllowed = new[]
-            {
-                pcts.CD_RecordId.GetSingleKey(),
-                pcts.CD_UtcTime.GetSingleKey(),
-                pcts.CD_TaiTime.GetSingleKey(),
-                pcts.CD_Time.GetSingleKey(),
-                pcts.CD_TimeDuration.GetSingleKey(),
-                pcts.CD_ValueArray.GetSingleKey()
-            };
-
-            // find variables?
-            foreach (var smcvar in smcseg.Value.FindAllSemanticIdAs<Aas.SubmodelElementCollection>(
-                pcts.CD_TimeSeriesVariable.GetReference(), mm))
-            {
-                // makes only sense with record id
-                var recid = "" + smcvar.Value.FindFirstSemanticIdAs<Aas.Property>(
-                    pcts.CD_RecordId.GetReference(), mm)?.Value?.Trim();
-                if (recid.Length < 1)
-                    continue;
-
-                // add need a value array as well!
-                var valarr = "" + smcvar.Value.FindFirstSemanticIdAs<Aas.Blob>(
-                    pcts.CD_ValueArray.GetReference(), mm)?.Value;
-                if (valarr.Length < 1)
-                    continue;
-
-                // already have a dataset with that id .. or make new?
-                var ds = tsd.FindDataSetById(recid);
-                if (ds == null)
-                {
-                    // add
-                    ds = new TimeSeriesDataSet() { DataSetId = recid };
-                    tsd.DataSet.Add(ds);
-
-                    // at this very moment, check if this is a time series
-                    var timeSpec = DetectTimeSpecifier(pcts, mm, smcvar);
-                    if (timeSpec != null)
-                        ds.TimeAxis = timeSpec.Item1;
-
-                    // find a DataPoint description?
-                    var pdp = smcvar.Value.FindFirstAnySemanticId<Aas.Property>(tsvAllowed, mm,
-                        invertAllowed: true);
-                    if (pdp != null && ds.DataPoint == null)
-                    {
-                        ds.DataPoint = pdp;
-                        ds.DataPointCD = _package?.AasEnv?.FindConceptDescriptionByReference(pdp.SemanticId);
-                    }
-
-                    // plot arguments for record?
-                    ds.Args = PlotArguments.Parse(smcvar.HasExtensionOfName("TimeSeries.Args")?.Value);
-                }
-
-                // now try add the value array
-                ds.DataAdd(valarr, fillTimeGaps: ds.TimeAxis != TimeSeriesTimeAxis.None);
-            }
-
-            // find records?
-            foreach (var smcrec in smcseg.Value.FindAllSemanticIdAs<Aas.SubmodelElementCollection>(
-                pcts.CD_TimeSeriesRecord.GetReference(), mm))
-            {
-                // makes only sense with a numerical record id
-                var recid = "" + smcrec.Value.FindFirstSemanticIdAs<Aas.Property>(
-                    pcts.CD_RecordId.GetReference(), mm)?.Value?.Trim();
-                if (recid.Length < 1)
-                    continue;
-                if (!int.TryParse(recid, out var dataIndex))
-                    continue;
-
-                // to prevent attacks, restrict index
-                if (dataIndex < 0 || dataIndex > 16 * 1024 * 1024)
-                    continue;
-
-                // but, in this case, the dataset id's and data comes from individual
-                // data points
-                foreach (var pdp in smcrec.Value.FindAllSemanticId<Aas.Property>(tsrAllowed,
-                        invertedAllowed: true))
-                {
-                    // the dataset id is?
-                    var dsid = "" + pdp.IdShort;
-                    if (!dsid.HasContent())
-                        continue;
-
-                    // query avilable information on the time
-                    var timeSpec = DetectTimeSpecifier(pcts, mm, smcrec);
-                    if (timeSpec == null)
-                        continue;
-
-                    // already have a dataset with that id .. or make new?
-                    var ds = tsd.FindDataSetById(dsid);
-                    if (ds == null)
-                    {
-                        // add
-                        ds = new TimeSeriesDataSet() { DataSetId = dsid };
-                        tsd.DataSet.Add(ds);
-
-                        // find a DataPoint description? .. store it!
-                        if (ds.DataPoint == null)
-                        {
-                            ds.DataPoint = pdp;
-                            ds.DataPointCD = _package?.AasEnv?.FindConceptDescriptionByReference(pdp.SemanticId);
-                        }
-
-                        // now fix (one time!) the time data set for this data set
-                        if (tsd.TimeDsLookup.ContainsKey(timeSpec.Item1))
-                            ds.AssignedTimeDS = tsd.TimeDsLookup[timeSpec.Item1];
-                        else
-                        {
-                            // create this
-                            ds.AssignedTimeDS = new TimeSeriesDataSet()
-                            {
-                                DataSetId = "Time_" + timeSpec.Item1.ToString()
-                            };
-                            tsd.TimeDsLookup[timeSpec.Item1] = ds.AssignedTimeDS;
-                        }
-
-                        // plot arguments for datapoint?
-                        ds.Args = PlotArguments.Parse(pdp.HasExtensionOfName("TimeSeries.Args")?.Value);
-                    }
-
-                    // now access the value of the data point as float value
-                    if (!double.TryParse(pdp.Value, NumberStyles.Float,
-                            CultureInfo.InvariantCulture, out var dataValue))
-                        continue;
-
-                    // TimeDS and time is required
-                    if (ds.AssignedTimeDS == null)
-                        continue;
-
-                    var tm = SpecifiedTimeToDouble(timeSpec.Item1, timeSpec.Item2.Value);
-                    if (!tm.HasValue)
-                        continue;
-
-                    // ok, push the data into the dataset
-                    ds.AssignedTimeDS.DataAdd(dataIndex, tm.Value);
-                    ds.DataAdd(dataIndex, dataValue);
-                }
-            }
-        }
 
         /// <summary>
         /// This functions update new data to an already existing segment.
@@ -1693,67 +1507,6 @@ namespace AasxPluginPlotting
                 // now try add the value array
                 ds.DataAdd(valarr, fillTimeGaps: ds.TimeAxis != TimeSeriesTimeAxis.None);
             }
-        }
-
-        protected void TimeSeriesStartFromSubmodel(Aas.Submodel sm)
-        {
-            // access
-            if (sm?.SubmodelElements == null)
-                return;
-            var pcts = AasxPredefinedConcepts.ZveiTimeSeriesDataV10.Static;
-            var mm = MatchMode.Relaxed;
-
-            // clear
-            _timeSeriesData.Clear();
-
-            // find SMC for TimeSeries itself -> this will result in a plot
-            foreach (var smcts in sm.SubmodelElements.FindAllSemanticIdAs<Aas.SubmodelElementCollection>(
-                pcts.CD_TimeSeries.GetReference(), mm))
-            {
-                // make initial data for time series
-                var tsd = new TimeSeriesData() { SourceTimeSeries = smcts };
-                _timeSeriesData.Add(tsd);
-
-                // plot arguments for time series
-                tsd.Args = PlotArguments.Parse(smcts.HasExtensionOfName("TimeSeries.Args")?.Value);
-
-                var tssReference = pcts.CD_TimeSeriesSegment.GetReference();
-                var smcAllValues = smcts.Value.
-                    FindAllSemanticIdAs<Aas.SubmodelElementCollection>(tssReference, mm);
-
-                // If we have a SubmodelCollection where the TimeSeries data is at the properties level
-                // this loop iterates through it and adds the data to the time series plot. Otherwise, if no
-                // SubmodelCollections were found (count = 0), it will look one level deeper and check if elements
-                // from type SubmodelElementCollection are found there, adding them to the plot afterwards too.
-                // resharper disable once PossibleMultipleEnumeration
-                if (smcAllValues.Count() != 0)
-                {
-                    // find segments
-                    // resharper disable once PossibleMultipleEnumeration
-                    foreach (var smcseg in smcAllValues)
-                    {
-                        TimeSeriesAddSegmentData(pcts, mm, tsd, smcseg);
-                    }
-                }
-                else
-                {
-                    foreach (var v in smcts.Value)
-                    {
-                        if (v is Aas.SubmodelElementCollection sme)
-                        {
-                            smcAllValues = sme.Value.
-                                FindAllSemanticIdAs<Aas.SubmodelElementCollection>(tssReference, mm);
-                            // find segements
-                            foreach (var smcseg in smcAllValues)
-                            {
-                                TimeSeriesAddSegmentData(pcts, mm, tsd, smcseg);
-                            }
-                        }
-                    }
-                }
-            }
-
-            ;
         }
 
         public void SafelyRefreshRenderedTimeSeries()
@@ -1984,7 +1737,7 @@ namespace AasxPluginPlotting
 
                 // ok, add / udate data to time series
                 if (segmentsToProcess[smcseg] == _segmentProcessType.InspectAdd)
-                    TimeSeriesAddSegmentData(pcts, mm, tsd, smcseg);
+                    _timeSeriesReader?.TimeSeriesAddSegmentData(_package?.AasEnv, mm, tsd, smcseg);
 
                 if (segmentsToProcess[smcseg] == _segmentProcessType.Update)
                     TimeSeriesUpdateSegmentData(pcts, mm, tsd, smcseg);

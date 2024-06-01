@@ -1281,6 +1281,43 @@ namespace Extensions
             }
         }
 
+        public static IEnumerable<T> FindAllSemanticId<T>(
+            this List<ISubmodelElement> smes,
+            IReference[] allowedSemanticIds,
+            MatchMode mm = MatchMode.Strict, 
+            bool invertedAllowed = false) where T : ISubmodelElement
+        {
+            if (allowedSemanticIds == null || allowedSemanticIds.Length < 1)
+                yield break;
+
+            foreach (var sme in smes)
+            {
+                if (sme == null || !(sme is T))
+                    continue;
+
+                if (sme.SemanticId == null || sme.SemanticId.Keys.Count < 1)
+                {
+                    if (invertedAllowed)
+                        yield return (T)sme;
+                    continue;
+                }
+
+                var found = false;
+                foreach (var semanticId in allowedSemanticIds)
+                    if (sme.SemanticId.Matches(semanticId, mm))
+                    {
+                        found = true;
+                        break;
+                    }
+
+                if (invertedAllowed)
+                    found = !found;
+
+                if (found)
+                    yield return (T)sme;
+            }
+        }
+
         public static T FindFirstAnySemanticId<T>(
             this List<ISubmodelElement> submodelElements, string[] allowedSemanticIds,
             bool invertAllowed = false) where T : ISubmodelElement
@@ -1377,6 +1414,61 @@ namespace Extensions
                 where T : ISubmodelElement
         {
             return smes.FindAllSemanticIdAs<T>(cd, matchMode).FirstOrDefault<T>();
+        }
+
+        public class ElemEnumerable
+        {
+            public ISubmodelElement Sme;
+            public List<ISubmodelElement> Value;
+        }
+
+        /// <summary>
+        /// Very specific: help to return either SMC, SML
+        /// </summary>
+        public static IEnumerable<ElemEnumerable> FindAllSemanticIdAsEnumerable(
+            this List<ISubmodelElement> smes,
+            IReference rf, MatchMode matchMode = MatchMode.Strict)
+        {
+            foreach (var sme in smes.FindAllSemanticIdAs<ISubmodelElement>(rf, matchMode))
+            {
+                if (sme is ISubmodelElementCollection smc)
+                    yield return new ElemEnumerable() { Sme = sme, Value = smc.Value };
+                if (sme is ISubmodelElementList sml)
+                    yield return new ElemEnumerable() { Sme = sme, Value = sml.Value };
+            }
+        }
+
+        /// <summary>
+        /// Very specific: help to return either SMC, SML
+        /// </summary>
+        public static ElemEnumerable FindFirstSemanticIdAsEnumerable(
+            this List<ISubmodelElement> smes,
+            IReference rf, MatchMode matchMode = MatchMode.Strict)
+        {
+            return FindAllSemanticIdAsEnumerable(smes, rf, matchMode)?.FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Very specific: help to return either SMC, SML
+        /// </summary>
+        public static IEnumerable<ElemEnumerable> FindAllSemanticIdAsEnumerable(
+            this List<ISubmodelElement> smes,
+            IConceptDescription cd, MatchMode matchMode = MatchMode.Strict)
+        { 
+            var rf = cd?.GetReference();
+            if (rf != null)
+                foreach (var x in FindAllSemanticIdAsEnumerable(smes, rf, matchMode))
+                    yield return x;
+        }
+
+        /// <summary>
+        /// Very specific: help to return either SMC, SML
+        /// </summary>
+        public static ElemEnumerable FindFirstSemanticIdAsEnumerable(
+            this List<ISubmodelElement> smes,
+            IConceptDescription cd, MatchMode matchMode = MatchMode.Strict)
+        {
+            return FindAllSemanticIdAsEnumerable(smes, cd, matchMode)?.FirstOrDefault();
         }
 
         public static string IterateIdShortTemplateToBeUnique(this List<ISubmodelElement> submodelElements, string idShortTemplate, int maxNum)

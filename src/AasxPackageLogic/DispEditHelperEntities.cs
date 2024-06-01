@@ -1217,7 +1217,7 @@ namespace AasxPackageLogic
             if (editMode)
             {
                 if (this.SafeguardAccess(
-                    stack, repo, aas.DerivedFrom, "SubmodelRefs:", "Create data element!",
+                    stack, repo, aas.Submodels, "SubmodelRefs:", "Create data element!",
                     v =>
                     {
                         aas.Submodels = new List<IReference>();

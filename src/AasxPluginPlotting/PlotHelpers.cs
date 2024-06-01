@@ -111,22 +111,23 @@ namespace AasxPluginPlotting
         }
 
         public static string EvalDisplayText(
-                string minmalText, Aas.ISubmodelElement sme,
+                string minimalText, Aas.IReferable rf,
                 Aas.IConceptDescription cd = null,
                 bool addMinimalTxt = false,
                 string defaultLang = null,
                 bool useIdShort = true)
         {
-            var res = "" + minmalText;
-            if (sme != null)
+            var res = "" + minimalText;
+            
+            if (rf != null)
             {
                 // best option: description of the SME itself
-                string better = sme.Description?.GetDefaultString(defaultLang);
+                string better = rf.Description?.GetDefaultString(defaultLang);
 
                 // if still none, simply use idShort
                 // SME specific non-multi-lang found better than CD multi-lang?!
                 if (!better.HasContent() && useIdShort)
-                    better = sme.IdShort;
+                    better = rf.IdShort;
 
                 // no? then look for CD information
                 if (cd != null)
@@ -143,9 +144,10 @@ namespace AasxPluginPlotting
                 {
                     res = better;
                     if (addMinimalTxt)
-                        res += $" ({minmalText})";
+                        res += $" ({minimalText})";
                 }
             }
+
             return res;
         }
     }
