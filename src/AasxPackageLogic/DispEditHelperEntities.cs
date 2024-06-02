@@ -1553,7 +1553,9 @@ namespace AasxPackageLogic
                 };
 
                 this.AddKeyReference(
-                    stack, "derivedFrom", aas.DerivedFrom, repo,
+                    stack, "derivedFrom", 
+                    aas.DerivedFrom, () => aas.DerivedFrom = null,
+                    repo,
                     packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo, "AssetAdministrationShell",
                     showRefSemId: false,
                     jumpLambda: lambda, noEditJumpLambda: lambda, relatedReferable: aas,
@@ -1624,7 +1626,10 @@ namespace AasxPackageLogic
         public void DisplayOrEditAasEntitySubmodelOrRef(
             PackageCentral.PackageCentral packages, Aas.Environment env,
             Aas.IAssetAdministrationShell aas,
-            Aas.IReference smref, Aas.ISubmodel submodel, bool editMode,
+            Aas.IReference smref, 
+            Action setSmRefNull,
+            Aas.ISubmodel submodel, 
+            bool editMode,
             AnyUiStackPanel stack, bool hintMode = false, bool checkSmt = false,
 			AasxMenu superMenu = null)
         {
@@ -1640,7 +1645,9 @@ namespace AasxPackageLogic
                  };
 
                 this.AddKeyListKeys(
-                    stack, "submodelRef", smref.Keys, repo,
+                    stack, "submodelRef", 
+                    smref.Keys, setSmRefNull,
+                    repo,
                     packages, PackageCentral.PackageCentral.Selector.Main, "Reference Submodel ",
                     takeOverLambdaAction: new AnyUiLambdaActionRedrawAllElements(smref),
                     jumpLambda: lambda, relatedReferable: aas);
@@ -3696,7 +3703,9 @@ namespace AasxPackageLogic
                     this.AddGroup(stack, "ValueId:", this.levelColors.SubSection);
 
                     this.AddKeyReference(
-                        stack, "valueId", p.ValueId, repo,
+                        stack, "valueId", 
+                        p.ValueId, () => p.ValueId = null,
+                        repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All", // no restriction
                         relatedReferable: p,
@@ -3737,7 +3746,9 @@ namespace AasxPackageLogic
                         stack, repo, mlp.Value, "value:", "Create data element!",
                         v =>
                         {
-							mlp.Value = new List<Aas.ILangStringTextType>();
+							mlp.Value = ExtendILangStringTextType.CreateFrom(
+                                lang: AdminShellUtil.GetDefaultLngIso639(), 
+                                text: Options.Curr.DefaultEmptyLangText);
                             this.AddDiaryEntry(mlp, new DiaryEntryUpdateValue());
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
@@ -3774,18 +3785,30 @@ namespace AasxPackageLogic
 
                 // ValueId
 
+                this.AddHintBubble(
+                    stack, hintMode,
+                    new[] {
+                    new HintCheck(
+                        () => mlp.ValueId != null && mlp.ValueId.IsValid() != true,
+                        "According to the specification, an existing list of elements shall contain " +
+                        "at least one element and for each element all mandatory fields shall be " +
+                        "not empty.")
+                });
+
                 if (this.SafeguardAccess(
                         stack, repo, mlp.ValueId, "valueId:", "Create data element!",
                         v =>
                         {
-                            mlp.ValueId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                            mlp.ValueId = Options.Curr.GetDefaultEmptyReference(); 
                             this.AddDiaryEntry(mlp, new DiaryEntryUpdateValue());
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
                 {
                     this.AddGroup(stack, "ValueID", this.levelColors.SubSection);
                     this.AddKeyListKeys(
-                        stack, "valueId", mlp.ValueId.Keys, repo,
+                        stack, "valueId", 
+                        mlp.ValueId.Keys, () => mlp.ValueId = null,
+                        repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         Aas.Stringification.ToString(Aas.KeyTypes.GlobalReference),
                         relatedReferable: mlp,
@@ -4143,7 +4166,9 @@ namespace AasxPackageLogic
                         return new AnyUiLambdaActionNavigateTo(
                             new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>(kl)), translateAssetToAAS: true);
                     };
-                    this.AddKeyReference(stack, "value", rfe.Value, repo,
+                    this.AddKeyReference(stack, "value", 
+                        rfe.Value, () => rfe.Value = null,
+                        repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All", // no restriction
                         addPresetNames: bufferKeys.Item1,
@@ -4195,7 +4220,9 @@ namespace AasxPackageLogic
                         }))
                 {
                     this.AddKeyReference(
-                        stack, "first", rele.First, repo,
+                        stack, "first", 
+                        rele.First, () => rele.First = null,                        
+                        repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All", // no restriction
                         addPresetNames: bufferKeys.Item1,
@@ -4232,7 +4259,9 @@ namespace AasxPackageLogic
                         }))
                 {
                     this.AddKeyReference(
-                        stack, "second", rele.Second, repo,
+                        stack, "second", 
+                        rele.Second, () => rele.Second = null,
+                        repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All", // no restriction
                         addPresetNames: bufferKeys.Item1,
@@ -4353,7 +4382,9 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
                     AddKeyReference(
-                        stack, "semanticIdListElement", sml.SemanticIdListElement, repo,
+                        stack, "semanticIdListElement", 
+                        sml.SemanticIdListElement, () => sml.SemanticIdListElement = null,
+                        repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAux,
                         showRefSemId: false,
                         addExistingEntities: "Submodel SubmodelElement ConceptDescription ", addFromKnown: true,
@@ -4557,8 +4588,10 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
                 {
-                    this.AddKeyListKeys(stack, "observed", bev.Observed.Keys, repo,
-                        packages, PackageCentral.PackageCentral.Selector.Main,
+                    this.AddKeyListKeys(stack, "observed", 
+                        bev.Observed.Keys, () => bev.Observed = null,
+                        repo,
+                        packages, PackageCentral.PackageCentral.Selector.Main, 
                         addExistingEntities: "All",
                         addPresetNames: bufferKeys.Item1,
                         addPresetKeyLists: bufferKeys.Item2,
@@ -4667,14 +4700,27 @@ namespace AasxPackageLogic
 
                 // edit
                 DisplayOrEditAasEntitySubmodelOrRef(
-                    packages, vesmref.theEnv, aas, vesmref.theSubmodelRef, vesmref.theSubmodel, editMode, stack,
+                    packages, vesmref.theEnv, aas, 
+                    vesmref.theSubmodelRef, 
+                    () =>
+                    {
+                        // challenge to remove the reference to the Submodel
+                        if (vesmref.theAas?.Submodels == null)
+                            return;
+                        vesmref.theAas.Submodels.Remove(vesmref.theSubmodelRef);
+                        if (vesmref.theAas.Submodels.Count < 1)
+                            vesmref.theAas.Submodels = null;
+                    },
+                    vesmref.theSubmodel, editMode, stack,
                     hintMode: hintMode, checkSmt: checkSmt,
 					superMenu: superMenu);
             }
             else if (entity is VisualElementSubmodel vesm && vesm.theSubmodel != null)
             {
                 DisplayOrEditAasEntitySubmodelOrRef(
-                    packages, vesm.theEnv, null, null, vesm.theSubmodel, editMode, stack,
+                    packages, vesm.theEnv, 
+                    aas: null, smref: null, setSmRefNull: null, 
+                    submodel: vesm.theSubmodel, editMode: editMode, stack: stack,
                     hintMode: hintMode, checkSmt: checkSmt,
 					superMenu: superMenu);
             }

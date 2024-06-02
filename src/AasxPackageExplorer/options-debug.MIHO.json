@@ -62,6 +62,8 @@
   "TemplateIdConceptDescription": "www.example.com/ids/cd/DDDD_DDDD_DDDD_DDDD",
   "EclassDir": ".\\eclass\\",
   "DefaultLang": "en,de",
+  "DefaultEmptyLangText": "", /* change for having a preset when creating new language lists */
+  "DefaultEmptyReferenceKey": "", /* change for having a preset when creating new References */
   /* "LogoFile": "SpecPI40_t.png", */
   "LogoFile": "PI40_and_IDTA.png",
   "QualifiersFile": "qualifier-presets.json",

@@ -23,7 +23,12 @@ namespace Extensions
 
         public static bool IsValid(this IReference reference)
         {
-            return reference.Keys != null && !reference.Keys.IsEmpty();
+            if (reference?.Keys == null || reference.Keys.Count < 1)
+                return false;
+            foreach (var k in reference.Keys)
+                if (k.Value == null || k.Value.Trim().Length < 1)
+                    return false;
+            return true;
         }
 
         public static bool IsValid(this List<IReference> references)
@@ -132,7 +137,7 @@ namespace Extensions
             }
 
             return false;
-        }
+        }        
 
         #endregion
 

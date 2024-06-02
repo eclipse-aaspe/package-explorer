@@ -33,7 +33,7 @@ namespace AasxPredefinedConcepts
         public SmtAdditions()
         {
             // info
-            this.DomainInfo = "AASX PackageExplorer - Submodel templates - Additional (non standard) information";
+            this.DomainInfo = "AAS Submodel templates - Additional (non standard) information";
 
             // definitons
             CD_ContactInfoPreviewFile = CreateSparseConceptDescription("en", "IRI",

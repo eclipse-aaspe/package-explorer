@@ -9,6 +9,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AdminShellNS;
 using AnyUi;
+using Extensions;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text;
 using System.Web;
+using Aas = AasCore.Aas3_0;
 
 // ReSharper disable UnassignedField.Global
 
@@ -467,7 +469,21 @@ namespace AasxPackageLogic
             "Designates the default language code in ISO639-1. This will be used for new language strings " +
             "of uncertain language",
             Cmd = "-default-lang")]
-        public string DefaultLang = "en?";
+        public string DefaultLang = "en";
+
+        [OptionDescription(Description =
+            "Designates the default value of the first text value of a newly created multi language list. " +
+            "If left blank, the application will create warnings because violating the AAS specification and " +
+            "some AASX export might not work properly.",
+            Cmd = "-default-empty-lang-text")]
+        public string DefaultEmptyLangText = "";
+
+        [OptionDescription(Description =
+            "Designates the default value of the first key of a newly created AAS Reference. If left blank, " +
+            "the application will create warnings because violating the AAS specification and some AASX export " +
+            "might not work properly.",
+            Cmd = "-default-empty-ref-key")]
+        public string DefaultEmptyReferenceKey = "";
 
         [OptionDescription(Description =
             "Path to file to capture all log messages. Will be (re-) created at application startup.",
@@ -1025,5 +1041,19 @@ namespace AasxPackageLogic
             }
         }
 
+        //
+        // some more helpers accessing the options attributes
+        //
+
+        /// <summary>
+        /// Interprets the options and returns proper value.
+        /// In the future: allow different key types?
+        /// </summary>
+        public Aas.IReference GetDefaultEmptyReference()
+        {
+            return ExtendReference.CreateFromKey(
+                KeyTypes.GlobalReference,
+                Options.Curr.DefaultEmptyReferenceKey);
+        }
     }
 }
