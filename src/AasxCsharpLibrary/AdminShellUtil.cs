@@ -1332,7 +1332,7 @@ namespace AdminShellNS
         // (used by some function on this basic level)
         //
 
-        public static string DefaultLngIso639 = "en?";
+        public static string DefaultLngIso639 = "en";
 
         public static string GetDefaultLngIso639()
         {

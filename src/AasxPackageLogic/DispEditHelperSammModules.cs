@@ -534,7 +534,7 @@ namespace AasxPackageLogic
 						v =>
 						{
 							lambdaSetValue(ExtendILangStringTextType.CreateFrom(
-								lang: ExtendLangString.LANG_DEFAULT, text: ""));
+								lang: AdminShellUtil.GetDefaultLngIso639(), text: ""));
 							return new AnyUiLambdaActionRedrawEntity();
 						}))
 					{

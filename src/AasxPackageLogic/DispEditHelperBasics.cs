@@ -885,7 +885,7 @@ namespace AasxPackageLogic
                         colSpan: 3),
                     (o) =>
                     {
-                        langStr.Add<T>(language: ExtendLangString.LANG_DEFAULT, text: "");
+                        langStr.Add<T>(language: AdminShellUtil.GetDefaultLngIso639(), text: "");
 
 						emitCustomEvent?.Invoke(relatedReferable);
 						return new AnyUiLambdaActionRedrawEntity();
