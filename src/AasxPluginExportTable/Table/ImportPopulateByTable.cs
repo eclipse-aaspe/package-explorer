@@ -367,7 +367,7 @@ namespace AasxPluginExportTable.Table
 
             if (sme is Aas.MultiLanguageProperty mlp)
             {
-                mlp.Value = ExtendLangStringSet.CreateLangStringTextType(ExtendLangString.LANG_DEFAULT, context.SmeValue);
+                mlp.Value = ExtendLangStringSet.CreateLangStringTextType(AdminShellUtil.GetDefaultLngIso639(), context.SmeValue);
             }
 
             if (sme is Aas.File file)

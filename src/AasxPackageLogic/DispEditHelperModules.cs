@@ -201,6 +201,11 @@ namespace AasxPackageLogic
                 stack, hintMode,
                 new[] {
                     new HintCheck(
+                        () => referable.DisplayName != null && referable.DisplayName.IsValid() != true,
+                        "According to the specification, an existing list of elements shall contain " +
+                        "at least one element and for each element all mandatory fields shall be " +
+                        "not empty."),
+                    new HintCheck(
                         () => referable.DisplayName?.IsValid() != true,
                         "The use of a display name is recommended to express a human readable name " +
                         "for the Referable in multiple languages.",
@@ -213,7 +218,8 @@ namespace AasxPackageLogic
             });
             if (this.SafeguardAccess(stack, repo, referable.DisplayName, "displayName:", "Create data element!", v =>
             {
-                referable.DisplayName = new List<Aas.ILangStringNameType>(new List<Aas.LangStringNameType>());
+                referable.DisplayName = ExtendILangStringNameType.CreateFrom(
+                    lang: AdminShellUtil.GetDefaultLngIso639(), text: "");
                 this.AddDiaryEntry(referable, new DiaryEntryStructChange());
                 return new AnyUiLambdaActionRedrawEntity();
             }))
@@ -268,7 +274,7 @@ namespace AasxPackageLogic
             if (this.SafeguardAccess(stack, repo, referable.Description, "description:", "Create data element!", v =>
             {
                 referable.Description = ExtendILangStringTextType.CreateFrom(
-                    lang: ExtendLangString.LANG_DEFAULT, text: "");
+                    lang: AdminShellUtil.GetDefaultLngIso639(), text: "");
                 return new AnyUiLambdaActionRedrawEntity();
             }))
             {

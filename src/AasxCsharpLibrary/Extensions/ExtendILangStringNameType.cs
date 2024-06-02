@@ -31,5 +31,36 @@ namespace Extensions
         {
             return string.Join(delimiter, elems.Select((k) => k.ToStringExtended(format)));
         }
+
+        public static List<ILangStringNameType> CreateFrom(string text, string lang = "en")
+        {
+            if (text == null)
+                return null;
+
+            var res = new List<ILangStringNameType>();
+            res.Add(new LangStringNameType(lang, text));
+            return res;
+        }
+
+        public static bool IsEmpty(this List<ILangStringNameType> langStringSet)
+        {
+            if (langStringSet == null || langStringSet.Count == 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsValid(this List<ILangStringNameType> elems)
+        {
+            if (elems == null || elems.Count < 1)
+                return false;
+            foreach (var ls in elems)
+                if (ls?.Language == null || ls.Language.Trim().Length < 1
+                    || ls.Text == null || ls.Text.Trim().Length < 1)
+                    return false;
+            return true;
+        }
     }
 }
