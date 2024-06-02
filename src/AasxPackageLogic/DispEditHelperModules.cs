@@ -547,7 +547,9 @@ namespace AasxPackageLogic
                     }))
                 {
                     this.AddKeyReference(
-                        stack, "creator", identifiable.Administration.Creator, repo,
+                        stack, "creator", 
+                        identifiable.Administration.Creator, () => identifiable.Administration.Creator = null,
+                        repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All", // no restriction
                         relatedReferable: identifiable,
@@ -733,6 +735,7 @@ namespace AasxPackageLogic
                             this.AddKeyReference(
                             stack, String.Format("dataSpec.[{0}]", i),
                             hasDataSpecification[i].DataSpecification,
+                            () => hasDataSpecification[i].DataSpecification = null,
                             repo, packages, PackageCentral.PackageCentral.Selector.MainAux,
                             addExistingEntities: null /* "All" */,
                             addPresetNames: addPresetNames, addPresetKeyLists: addPresetKeyLists,
@@ -875,6 +878,7 @@ namespace AasxPackageLogic
                             AddKeyReference(
                                 stack, String.Format("dataSpec.[{0}]", i),
                                 hasDataSpecification[i].DataSpecification,
+                                () => hasDataSpecification[i].DataSpecification = null,
                                 repo, packages, PackageCentral.PackageCentral.Selector.MainAux,
                                 addExistingEntities: null /* "All" */,
                                 addPresetNames: addPresetNames, addPresetKeyLists: addPresetKeyLists,
@@ -1020,13 +1024,24 @@ namespace AasxPackageLogic
                 if (references != null && references.Count > 0)
                 {
                     for (int i = 0; i < references.Count; i++)
+                    {
+                        var localI = i;
                         this.AddKeyReference(
-                            stack, String.Format("reference[{0}]", i), references[i], repo,
+                            stack, String.Format("reference[{0}]", i),
+                            references[i],
+                            () =>
+                            {
+                                references.RemoveAt(localI);
+                                if (references.Count < 1)
+                                    setOutput?.Invoke(null);
+                            },
+                            repo,
                             packages, PackageCentral.PackageCentral.Selector.MainAux,
                             "All",
                             addEclassIrdi: true,
                             relatedReferable: relatedReferable,
                             showRefSemId: false);
+                    }
                 }
             }
         }
@@ -1146,6 +1161,11 @@ namespace AasxPackageLogic
                     stack, hintMode,
                     new[] {
                         new HintCheck(
+                            () => semElem.SemanticId != null && semElem.SemanticId.IsValid() != true,
+                            "According to the specification, an existing list of elements shall contain " +
+                            "at least one element and for each element all mandatory fields shall be " +
+                            "not empty."),
+                        new HintCheck(
                             () => { return semElem.SemanticId == null
                                 || semElem.SemanticId.IsEmpty(); },
                             "Check if you want to add a semantic reference to an external " +
@@ -1168,12 +1188,16 @@ namespace AasxPackageLogic
                     stack, repo, semElem.SemanticId, "semanticId:", "Create data element!",
                     v =>
                     {
-                        semElem.SemanticId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                        // semElem.SemanticId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                        semElem.SemanticId = Options.Curr.GetDefaultEmptyReference();
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
                 AddKeyReference(
-                    stack, "semanticId", semElem.SemanticId, repo,
+                    stack, "semanticId", 
+                    semElem.SemanticId, 
+                    () => semElem.SemanticId = null,
+                    repo,
                     packages, PackageCentral.PackageCentral.Selector.MainAux,
                     showRefSemId: false,
                     addExistingEntities: addExistingEntities, addFromKnown: true,
@@ -1218,6 +1242,7 @@ namespace AasxPackageLogic
                     action: v =>
                     {
                         semElem.SupplementalSemanticIds = new List<Aas.IReference>();
+                        semElem.SupplementalSemanticIds.Add(Options.Curr.GetDefaultEmptyReference());
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
             {
@@ -1230,15 +1255,15 @@ namespace AasxPackageLogic
                         (buttonNdx) =>
                         {
                             if (buttonNdx == 0)
-                                semElem.SupplementalSemanticIds.Add(
-                                    new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>()));
+                                semElem.SupplementalSemanticIds.Add(Options.Curr.GetDefaultEmptyReference());
 
                             if (buttonNdx == 1)
                             {
                                 if (semElem.SupplementalSemanticIds.Count > 0)
                                     semElem.SupplementalSemanticIds.RemoveAt(
                                         semElem.SupplementalSemanticIds.Count - 1);
-                                else
+                                
+                                if (semElem.SupplementalSemanticIds.Count < 1)
                                     semElem.SupplementalSemanticIds = null;
                             }
 
@@ -1253,9 +1278,32 @@ namespace AasxPackageLogic
                 {
                     for (int i = 0; i < semElem.SupplementalSemanticIds.Count; i++)
                     {
+                        // lambda
+                        var localI = i;
+
+                        // hint?
+                        this.AddHintBubble(
+                            stack, hintMode,
+                            new[] {
+                                new HintCheck(
+                                    () => semElem.SupplementalSemanticIds[i] != null
+                                    && semElem.SupplementalSemanticIds[i].IsValid() != true,
+                                    "According to the specification, an existing list of elements shall contain " +
+                                    "at least one element and for each element all mandatory fields shall be " +
+                                    "not empty.")
+                            });
+
+                        // edit field
                         AddKeyReference(
                             stack, String.Format("Suppl.Sem.Id[{0}]", i),
-                            semElem.SupplementalSemanticIds[i], repo,
+                            semElem.SupplementalSemanticIds[i], 
+                            () =>
+                            {
+                                semElem.SupplementalSemanticIds.RemoveAt(localI);
+                                if (semElem.SupplementalSemanticIds.Count < 1)
+                                    semElem.SupplementalSemanticIds = null;
+                            },
+                            repo,
                             packages, PackageCentral.PackageCentral.Selector.MainAux,
                             showRefSemId: false,
                             addExistingEntities: addExistingEntities, addFromKnown: true,
@@ -1552,7 +1600,9 @@ namespace AasxPackageLogic
                     keys.Add(key.Value);
                 }
                 this.AddKeyReference(
-                    stack, "unitId", dsiec.UnitId, repo,
+                    stack, "unitId", 
+                    dsiec.UnitId, () => dsiec.UnitId = null,
+                    repo,
                     packages, PackageCentral.PackageCentral.Selector.MainAux,
                     addExistingEntities: Aas.Stringification.ToString(Aas.KeyTypes.GlobalReference),
                     addEclassIrdi: true,

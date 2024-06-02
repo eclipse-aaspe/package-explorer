@@ -344,13 +344,15 @@ namespace AasxPackageLogic
                         substack, repo, qual.SemanticId, "semanticId:", "Create data element!",
                         v =>
                         {
-                            qual.SemanticId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                            qual.SemanticId = ExtendReference.CreateFromKey(KeyTypes.GlobalReference, value: "");
                             this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
                 {
                     AddKeyReference(
-                        substack, "semanticId", qual.SemanticId, repo,
+                        substack, "semanticId", 
+                        qual.SemanticId, () => qual.SemanticId = null,
+                        repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All",
                         addEclassIrdi: true, addFromKnown: true,
@@ -461,7 +463,9 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
                 {
-                    AddKeyReference(substack, "valueId", qual.ValueId, repo,
+                    AddKeyReference(substack, "valueId", 
+                        qual.ValueId, () => qual.ValueId = null,
+                        repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All", addFromKnown: true,
                         showRefSemId: false,
@@ -546,7 +550,9 @@ namespace AasxPackageLogic
                     }))
             {
                 AddKeyReference(
-                    substack, "semanticId", pair.SemanticId, repo,
+                    substack, "semanticId", 
+                    pair.SemanticId, () => pair.SemanticId = null,
+                    repo,
                     packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                     addExistingEntities: "All",
                     addEclassIrdi: true, showRefSemId: false,
@@ -591,7 +597,9 @@ namespace AasxPackageLogic
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
             {
-                AddKeyReference(substack, "externalSubjectId", pair.ExternalSubjectId, repo,
+                AddKeyReference(substack, "externalSubjectId", 
+                    pair.ExternalSubjectId, () => pair.ExternalSubjectId = null,
+                    repo,
                     packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                     addExistingEntities: "All", addFromKnown: true, showRefSemId: false,
                     relatedReferable: relatedReferable);
@@ -1034,7 +1042,9 @@ namespace AasxPackageLogic
                     {
                         AddVerticalSpace(substack);
                         AddKeyReference(
-                            substack, "semanticId", extension.SemanticId, repo,
+                            substack, "semanticId", 
+                            extension.SemanticId, () => extension.SemanticId = null,
+                            repo,
                             packages, PackageCentral.PackageCentral.Selector.MainAux,
                             showRefSemId: false,
                             addExistingEntities: "All", addFromKnown: true,
@@ -1153,13 +1163,22 @@ namespace AasxPackageLogic
                         {
                             for (int ki = 0; ki < extension.RefersTo.Count; ki++)
                                 if (extension.RefersTo[ki] != null)
+                                {
+                                    var localKi = ki;
                                     this.AddKeyReference(
                                         substack, String.Format("refersTo[{0}]", ki),
                                         extension.RefersTo[ki],
+                                        () =>
+                                        {
+                                            extension.RefersTo.RemoveAt(localKi);
+                                            if (extension.RefersTo.Count < 1)
+                                                extension.RefersTo = null;
+                                        },
                                         repo, packages, PackageCentral.PackageCentral.Selector.MainAux,
                                         addExistingEntities: "All", addFromKnown: true,
                                         addEclassIrdi: true,
                                         showRefSemId: false);
+                                }
                         }
                     }
                 }
@@ -1174,6 +1193,7 @@ namespace AasxPackageLogic
         public void AddKeyReference(
             AnyUiStackPanel view, string key,
             Aas.IReference refkeys,
+            Action setReferenceNull = null,
             ModifyRepo repo = null,
             PackageCentral.PackageCentral packages = null,
             PackageCentral.PackageCentral.Selector selector = PackageCentral.PackageCentral.Selector.Main,
@@ -1278,7 +1298,9 @@ namespace AasxPackageLogic
                 {
                     // careful! Full recursion of edit function
                     AddKeyReference(
-                        footerPanel, "referredSem.Id", refkeys.ReferredSemanticId, repo,
+                        footerPanel, "referredSem.Id", 
+                        refkeys.ReferredSemanticId, () => refkeys.ReferredSemanticId = null,
+                        repo,
                         packages, PackageCentral.PackageCentral.Selector.Main, addExistingEntities: "All",
                         showRefSemId: false,
                         addEclassIrdi: true,
@@ -1303,7 +1325,9 @@ namespace AasxPackageLogic
             //
 
             AddKeyListKeys(
-                view, key, refkeys.Keys, repo, packages, selector,
+                view, key, refkeys.Keys, 
+                setReferenceNull,
+                repo, packages, selector,
                 addExistingEntities, modifyAddExistingKey,
                 addEclassIrdi, addFromKnown, addPresetNames, addPresetKeyLists,
                 jumpLambda, takeOverLambdaAction, noEditJumpLambda,
@@ -1608,7 +1632,9 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
                 {
-                    AddKeyReference(substack, "valueId", vp.ValueId, repo,
+                    AddKeyReference(substack, "valueId", 
+                        vp.ValueId, () => vp.ValueId = null,
+                        repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: Aas.Stringification.ToString(Aas.KeyTypes.ConceptDescription),
                         addFromKnown: true, showRefSemId: false,

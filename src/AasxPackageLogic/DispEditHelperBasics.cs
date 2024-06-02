@@ -1172,6 +1172,9 @@ namespace AasxPackageLogic
             return null;
         }
 
+// TODO (MIHO, 2024-06-02): remove, if not anymore required? Seems so!
+#if __SEEMS_OBSOLETE
+
         // see below
         public void AddKeyListOfIdentifier(
             AnyUiStackPanel view, string key,
@@ -1658,6 +1661,8 @@ namespace AasxPackageLogic
             view.Children.Add(g);
         }
 
+#endif
+
         public AnyUiButton AddSmallContextMenuItemTo(
             AnyUiGrid g, int row, int col,
             string content,
@@ -1690,6 +1695,7 @@ namespace AasxPackageLogic
         public void AddKeyListKeys(
             AnyUiStackPanel view, string key,
             List<Aas.IKey> keys,
+            Action setKeysNull = null,
             ModifyRepo repo = null,
             PackageCentral.PackageCentral packages = null,
             PackageCentral.PackageCentral.Selector selector = PackageCentral.PackageCentral.Selector.Main,
@@ -1834,7 +1840,7 @@ namespace AasxPackageLogic
                                 && pe.Ref is Aas.IIdentifiable id
                                 && id.Id != null)
                                 // DECISION: references to concepts are always GlobalReferences
-                                keys.Add(new Aas.Key(Aas.KeyTypes.GlobalReference, id.Id));
+                                keys.AddCheckBlank(new Aas.Key(Aas.KeyTypes.GlobalReference, id.Id));
 
                             emitCustomEvent?.Invoke(relatedReferable);
 
@@ -1878,7 +1884,8 @@ namespace AasxPackageLogic
                                 k2[0].Type = Aas.KeyTypes.GlobalReference;
 
                             if (k2 != null)
-                                keys.AddRange(k2);
+                                foreach (var k2k in k2)
+                                    keys.AddCheckBlank(k2k);
 
                             emitCustomEvent?.Invoke(relatedReferable);
 
@@ -2168,6 +2175,11 @@ namespace AasxPackageLogic
                                         {
                                             case 0:
                                                 keys.RemoveAt(currentI);
+                                                if (keys.Count < 1)
+                                                {
+                                                    keys = null;
+                                                    setKeysNull?.Invoke();
+                                                }
                                                 action = true;
                                                 break;
                                             case 1:

@@ -44,6 +44,13 @@ namespace Extensions
             return res;
         }
 
+        public static void AddCheckBlank(this List<IKey> keys, IKey newKey)
+        {
+            if (keys.Count > 0 && (keys.Last().Value == null || keys.Last().Value.Trim().Length < 1))
+                keys.RemoveAt(keys.Count - 1);
+            keys.Add(newKey);
+        }
+
         public static bool StartsWith(this List<IKey> keyList, List<IKey> otherKeyList)
         {
             if (otherKeyList == null || otherKeyList.Count == 0)

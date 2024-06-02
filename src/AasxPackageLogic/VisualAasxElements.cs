@@ -778,12 +778,14 @@ namespace AasxPackageLogic
     {
         public Aas.Environment theEnv = null;
         public AdminShellPackageEnv thePackage = null;
+        public Aas.IAssetAdministrationShell theAas = null;
         public Aas.IReference theSubmodelRef = null;
         public Aas.ISubmodel theSubmodel = null;
 
         public VisualElementSubmodelRef(
             VisualElementGeneric parent, TreeViewLineCache cache, Aas.Environment env,
             AdminShellPackageEnv package,
+            Aas.IAssetAdministrationShell aas,
             Aas.IReference smr, Aas.ISubmodel sm)
             : base()
         {
@@ -791,6 +793,7 @@ namespace AasxPackageLogic
             this.Cache = cache;
             this.theEnv = env;
             this.thePackage = package;
+            this.theAas = aas;
             this.theSubmodelRef = smr;
             this.theSubmodel = sm;
 
@@ -1855,6 +1858,7 @@ namespace AasxPackageLogic
         }
 
         private VisualElementSubmodelRef GenerateVisuElemForVisualElementSubmodelRef(
+            Aas.IAssetAdministrationShell aas,
             Aas.ISubmodel sm,
             Aas.IReference smr,
             VisualElementGeneric parent,
@@ -1865,7 +1869,7 @@ namespace AasxPackageLogic
                 return null;
 
             // item (even if sm is null)
-            var tiSm = new VisualElementSubmodelRef(parent, cache, env, package, smr, sm);
+            var tiSm = new VisualElementSubmodelRef(parent, cache, env, package, aas, smr, sm);
             tiSm.SetIsExpandedIfNotTouched(OptionExpandMode > 1);
 
             if (OptionLazyLoadingFirst && !tiSm.GetExpandedStateFromCache())
@@ -1917,13 +1921,13 @@ namespace AasxPackageLogic
 
                         // make reference with NO submodel behind
                         var tiNoSm = new VisualElementSubmodelRef(
-                            tiAas, cache, env, package, smr, sm: null);
+                            tiAas, cache, env, package, aas, smr, sm: null);
                         tiAas.Members.Add(tiNoSm);
                     }
 
                     // generate
                     var tiSm = GenerateVisuElemForVisualElementSubmodelRef(
-                        sm, smr, tiAas, cache, env, package);
+                        tiAas.theAas, sm, smr, tiAas, cache, env, package);
 
                     // add
                     if (tiSm != null)
@@ -2859,8 +2863,8 @@ namespace AasxPackageLogic
 
             if (data.Reason == PackCntChangeEventReason.Create)
             {
-                if (data.ParentElem is Aas.AssetAdministrationShell parentAas
-                    && data.ThisElem is Aas.Submodel thisSm)
+                if (data.ParentElem is Aas.IAssetAdministrationShell parentAas
+                    && data.ThisElem is Aas.ISubmodel thisSm)
                 {
                     // try find according visual elements by business objects == Referables
                     // presumably, this is only one AAS Element
@@ -2877,7 +2881,7 @@ namespace AasxPackageLogic
 
                         // generate
                         var tiSm = GenerateVisuElemForVisualElementSubmodelRef(
-                            thisSm, smr, parentVE, cache,
+                            parentAas, thisSm, smr, parentVE, cache,
                             data.Container?.Env?.AasEnv, data.Container?.Env);
 
                         // add
