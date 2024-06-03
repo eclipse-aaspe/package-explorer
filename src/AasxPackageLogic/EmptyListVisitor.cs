@@ -903,14 +903,14 @@ namespace AasxPackageLogic
         {
             if (that != null)
             {
+                if (!string.IsNullOrEmpty(that.Language) && string.IsNullOrEmpty(that.Text))
+                {
+                    that.Text = "EMPTY";
+                }
+
                 if (string.IsNullOrEmpty(that.Language) && string.IsNullOrEmpty(that.Text))
                 {
                     that = null;
-                }
-                
-                if (string.IsNullOrEmpty(that.Text))
-                {
-                    that.Text = "EMPTY";
                 }
             }
             return that;
@@ -920,14 +920,14 @@ namespace AasxPackageLogic
         {
             if(that != null)
             {
-                if(string.IsNullOrEmpty(that.Language) && string.IsNullOrEmpty(that.Text))
-                {
-                    that = null;
-                }
-
-                if (string.IsNullOrEmpty(that.Text))
+                if (!string.IsNullOrEmpty(that.Language) && string.IsNullOrEmpty(that.Text))
                 {
                     that.Text = "EMPTY";
+                }
+
+                if (string.IsNullOrEmpty(that.Language) && string.IsNullOrEmpty(that.Text))
+                {
+                    that = null;
                 }
             }
             return that;
@@ -937,14 +937,14 @@ namespace AasxPackageLogic
         {
             if (that != null)
             {
+                if (!string.IsNullOrEmpty(that.Language) && string.IsNullOrEmpty(that.Text))
+                {
+                    that.Text = "EMPTY";
+                }
+
                 if (string.IsNullOrEmpty(that.Language) && string.IsNullOrEmpty(that.Text))
                 {
                     that = null;
-                }
-
-                if (string.IsNullOrEmpty(that.Text))
-                {
-                    that.Text = "EMPTY";
                 }
             }
             return that;
@@ -954,14 +954,14 @@ namespace AasxPackageLogic
         {
             if (that != null)
             {
+                if (!string.IsNullOrEmpty(that.Language) && string.IsNullOrEmpty(that.Text))
+                {
+                    that.Text = "EMPTY";
+                }
+
                 if (string.IsNullOrEmpty(that.Language) && string.IsNullOrEmpty(that.Text))
                 {
                     that = null;
-                }
-
-                if (string.IsNullOrEmpty(that.Text))
-                {
-                    that.Text = "EMPTY";
                 }
             }
             return that;
@@ -971,14 +971,14 @@ namespace AasxPackageLogic
         {
             if (that != null)
             {
+                if (!string.IsNullOrEmpty(that.Language) && string.IsNullOrEmpty(that.Text))
+                {
+                    that.Text = "EMPTY";
+                }
+
                 if (string.IsNullOrEmpty(that.Language) && string.IsNullOrEmpty(that.Text))
                 {
                     that = null;
-                }
-
-                if (string.IsNullOrEmpty(that.Text))
-                {
-                    that.Text = "EMPTY";
                 }
             }
             return that;
