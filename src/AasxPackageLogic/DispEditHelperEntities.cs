@@ -2357,7 +2357,7 @@ namespace AasxPackageLogic
             Action lambdaIdf = () =>
             {
                 this.DisplayOrEditEntityIdentifiable(
-                    stack, cd,
+                    stack, env, cd,
                     Options.Curr.TemplateIdConceptDescription,
                     new DispEditHelperModules.DispEditInjectAction(
                     new[] { "Rename" },

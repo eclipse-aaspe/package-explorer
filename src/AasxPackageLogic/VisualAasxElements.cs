@@ -2089,7 +2089,7 @@ namespace AasxPackageLogic
 
                 // for the Extensions, identify the tops of the forest by computation                    
                 foreach (var idf in ComputeTopsOfExtensionForest(
-                    env.ConceptDescriptions.Cast<Aas.IIdentifiable>().ToList()))
+                    env.ConceptDescriptions?.Cast<Aas.IIdentifiable>().ToList()))
                 {
                     foreach(var idfrec in DispEditHelperExtensions.CheckReferableForExtensionRecords(idf))
 					    if (idfrec is IExtensionStructureModel esm /* && esm.IsTopElement() */)
@@ -2101,17 +2101,18 @@ namespace AasxPackageLogic
 				}	
 
 				// visit dedicated top nodes to start the lambda
-				foreach (var cd in env.ConceptDescriptions)
-                {					
-                    // SAMM
-					foreach (var me in DispEditHelperSammModules.CheckReferableForSammElements(cd))
-                        if (me is Samm.ISammStructureModel ssm && ssm.IsTopElement())
-                        {
-                            // add && recurse
-                            // mark as in structure
-                            lambdaAddRecurse(tiStructuredRoot, cd, 0);
-                        }
-				}
+                if (env.ConceptDescriptions != null)
+				    foreach (var cd in env.ConceptDescriptions)
+                    {					
+                        // SAMM
+					    foreach (var me in DispEditHelperSammModules.CheckReferableForSammElements(cd))
+                            if (me is Samm.ISammStructureModel ssm && ssm.IsTopElement())
+                            {
+                                // add && recurse
+                                // mark as in structure
+                                lambdaAddRecurse(tiStructuredRoot, cd, 0);
+                            }
+				    }
 
 				//
 				// provide an branch per Submodel?
@@ -2181,13 +2182,14 @@ namespace AasxPackageLogic
                         && _cdToSm.ContainsKey(cd))
                         continue;
 
-				if (tiCDs.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.Structured
-					&& ( _cdInStructure.ContainsKey(cd) || _cdToSm.ContainsKey(cd)))
-					continue;
+                    if (tiCDs.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.Structured
+                        && (_cdInStructure.ContainsKey(cd) || _cdToSm.ContainsKey(cd)))
+                        continue;
 
-                // add to the "unstructured" branch of the tree
-				GenerateVisualElementsForSingleCD(cache, env, cd, tiUnstructuredRoot,
-                    submodelForCDs: null);
+                    // add to the "unstructured" branch of the tree
+                    GenerateVisualElementsForSingleCD(cache, env, cd, tiUnstructuredRoot,
+                        submodelForCDs: null);
+                }
             }
 
             //

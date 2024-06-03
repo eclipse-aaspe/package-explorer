@@ -18,8 +18,6 @@ namespace Extensions
 {
     public static class ExtendEnvironment
     {
-        #region Environment
-
         #region AasxPackageExplorer
 
         public static void RecurseOnReferables(this AasCore.Aas3_0.IEnvironment environment,
@@ -458,8 +456,6 @@ namespace Extensions
             return null;
         }
 
-        #endregion
-
         #region Submodel Queries
 
         public static IEnumerable<ISubmodel> FindAllSubmodelGroupedByAAS(this AasCore.Aas3_0.IEnvironment environment, Func<IAssetAdministrationShell, ISubmodel, bool> p = null)
@@ -478,6 +474,7 @@ namespace Extensions
                 }
             }
         }
+
         public static ISubmodel FindSubmodel(this AasCore.Aas3_0.IEnvironment environment, IReference submodelReference)
         {
             if (environment == null || submodelReference == null)
@@ -520,23 +517,6 @@ namespace Extensions
 
             return null;
         }
-        // dead-csharp off
-        //public static IEnumerable<ISubmodel> FindAllSubmodelsGroupedByAAS(this AasCore.Aas3_0.Environment environment, Func<IAssetAdministrationShell, ISubmodel, bool> p = null)
-        //{
-        //    if (environment.AssetAdministrationShells == null || environment.Submodels == null)
-        //        yield break;
-        //    foreach (var aas in environment.AssetAdministrationShells)
-        //    {
-        //        if (aas?.Submodels == null)
-        //            continue;
-        //        foreach (var submodelReference in aas.Submodels)
-        //        {
-        //            var submodel = environment.FindSubmodel(submodelReference);
-        //            if (submodel != null && (p == null || p(aas, submodel)))
-        //                yield return submodel;
-        //        }
-        //    }
-        //}
 
         public static IEnumerable<ISubmodel> FindAllSubmodelBySemanticId(this AasCore.Aas3_0.IEnvironment environment, string semanticId)
         {
@@ -764,6 +744,7 @@ namespace Extensions
                     submodelElement = submodelElems.Where(
                     sme => sme.IdShort.Equals(keyList[keyIndex].Value,
                         StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                }
 
                 if (submodelElement != null)
                 {
@@ -786,6 +767,8 @@ namespace Extensions
         #endregion
 
         #region AasxPackageExplorer
+
+
 
         public static IEnumerable<T> FindAllSubmodelElements<T>(this AasCore.Aas3_0.IEnvironment environment,
                 Predicate<T> match = null, AssetAdministrationShell onlyForAAS = null) where T : ISubmodelElement
