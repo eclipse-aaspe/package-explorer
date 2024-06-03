@@ -51,7 +51,7 @@ namespace AasxPackageLogic
             }
 
             // available elements in the environment
-            var firstAas = pm.AssetAdministrationShells.FirstOrDefault();
+            var firstAas = pm.AssetAdministrationShells?.FirstOrDefault();
 
             Aas.ISubmodel firstSm = null;
             if (firstAas != null && firstAas.Submodels != null && firstAas.Submodels.Count > 0)
@@ -61,7 +61,7 @@ namespace AasxPackageLogic
             if (firstSm != null && firstSm.SubmodelElements != null && firstSm.SubmodelElements.Count > 0)
                 firstSme = firstSm.SubmodelElements[0];
 
-			var firstCd = pm.ConceptDescriptions.FirstOrDefault();
+			var firstCd = pm.ConceptDescriptions?.FirstOrDefault();
 
 			// TODO (MIHO, 2022-12-16): Some cases are not implemented
 

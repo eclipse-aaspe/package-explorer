@@ -323,6 +323,11 @@ namespace AdminShellNS
             }
         }
 
+        public void SetEnvironment(AasCore.Aas3_0.Environment environment)
+        {
+            _aasEnv = environment;
+        }
+
         private static IEnumerable<PackageRelationship> FindAllRelationships(Package package, string[] relTypes)
         {
             foreach (var rt in relTypes)
@@ -947,9 +952,8 @@ namespace AdminShellNS
                     //Handling of aas_suppl namespace from v2 to v3
                     //Need to check/test in detail, with thumbnails as well
                     if(specPart != null)
-                    {
-                        
-                        xs = specPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-suppl");
+                    {                        
+                        var xs = specPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-suppl");
                         if(xs != null)
                         {
                             foreach(var x in xs.ToList())
@@ -970,7 +974,6 @@ namespace AdminShellNS
                             }
                         }
                     }
-
 
                     // there might be pending files to be deleted (first delete, then add,
                     // in case of identical files in both categories)
