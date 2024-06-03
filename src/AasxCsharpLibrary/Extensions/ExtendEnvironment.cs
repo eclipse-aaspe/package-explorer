@@ -7,6 +7,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 using AdminShellNS;
+using AdminShellNS.Extensions;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -166,12 +167,9 @@ namespace Extensions
         public static AasCore.Aas3_0.IEnvironment ConvertFromV10(this AasCore.Aas3_0.IEnvironment environment, AasxCompatibilityModels.AdminShellV10.AdministrationShellEnv sourceEnvironement)
         {
             //Convert Administration Shells
-            if (sourceEnvironement.AdministrationShells != null)
+            if (!sourceEnvironement.AdministrationShells.IsNullOrEmpty())
             {
-                if (environment.AssetAdministrationShells == null)
-                {
-                    environment.AssetAdministrationShells = new List<IAssetAdministrationShell>();
-                }
+                environment.AssetAdministrationShells ??= new List<IAssetAdministrationShell>();
                 foreach (var sourceAas in sourceEnvironement.AdministrationShells)
                 {
                     var newAssetInformation = new AssetInformation(AssetKind.Instance);
@@ -189,12 +187,9 @@ namespace Extensions
             }
 
             //Convert Submodels
-            if (sourceEnvironement.Submodels != null)
+            if (!sourceEnvironement.Submodels.IsNullOrEmpty())
             {
-                if (environment.Submodels == null)
-                {
-                    environment.Submodels = new List<ISubmodel>();
-                }
+                environment.Submodels ??= new List<ISubmodel>();
                 foreach (var sourceSubmodel in sourceEnvironement.Submodels)
                 {
                     var newSubmodel = new Submodel(sourceSubmodel.identification.id);
@@ -203,12 +198,9 @@ namespace Extensions
                 }
             }
 
-            if (sourceEnvironement.ConceptDescriptions != null)
+            if (!sourceEnvironement.ConceptDescriptions.IsNullOrEmpty())
             {
-                if (environment.ConceptDescriptions == null)
-                {
-                    environment.ConceptDescriptions = new List<IConceptDescription>();
-                }
+                environment.ConceptDescriptions ??= new List<IConceptDescription>();
                 foreach (var sourceConceptDescription in sourceEnvironement.ConceptDescriptions)
                 {
                     var newConceptDescription = new ConceptDescription(sourceConceptDescription.identification.id);
@@ -224,12 +216,9 @@ namespace Extensions
         public static AasCore.Aas3_0.IEnvironment ConvertFromV20(this AasCore.Aas3_0.IEnvironment environment, AasxCompatibilityModels.AdminShellV20.AdministrationShellEnv sourceEnvironement)
         {
             //Convert Administration Shells
-            if (sourceEnvironement.AdministrationShells != null)
+            if (!sourceEnvironement.AdministrationShells.IsNullOrEmpty())
             {
-                if (environment.AssetAdministrationShells == null)
-                {
-                    environment.AssetAdministrationShells = new List<IAssetAdministrationShell>();
-                }
+                environment.AssetAdministrationShells ??= new List<IAssetAdministrationShell>();
                 foreach (var sourceAas in sourceEnvironement.AdministrationShells)
                 {
                     // first make the AAS
@@ -249,12 +238,9 @@ namespace Extensions
             }
 
             //Convert Submodels
-            if (sourceEnvironement.Submodels != null)
+            if (!sourceEnvironement.Submodels.IsNullOrEmpty())
             {
-                if (environment.Submodels == null)
-                {
-                    environment.Submodels = new List<ISubmodel>();
-                }
+                environment.Submodels ??= new List<ISubmodel>();
                 foreach (var sourceSubmodel in sourceEnvironement.Submodels)
                 {
                     var newSubmodel = new Submodel(sourceSubmodel.identification.id);
@@ -263,12 +249,9 @@ namespace Extensions
                 }
             }
 
-            if (sourceEnvironement.ConceptDescriptions != null)
+            if (!sourceEnvironement.ConceptDescriptions.IsNullOrEmpty())
             {
-                if (environment.ConceptDescriptions == null)
-                {
-                    environment.ConceptDescriptions = new List<IConceptDescription>();
-                }
+                environment.ConceptDescriptions ??= new List<IConceptDescription>();
                 foreach (var sourceConceptDescription in sourceEnvironement.ConceptDescriptions)
                 {
                     var newConceptDescription = new ConceptDescription(sourceConceptDescription.identification.id);
@@ -537,7 +520,7 @@ namespace Extensions
 
             return null;
         }
-
+        // dead-csharp off
         //public static IEnumerable<ISubmodel> FindAllSubmodelsGroupedByAAS(this AasCore.Aas3_0.Environment environment, Func<IAssetAdministrationShell, ISubmodel, bool> p = null)
         //{
         //    if (environment.AssetAdministrationShells == null || environment.Submodels == null)
@@ -602,7 +585,10 @@ namespace Extensions
             if (string.IsNullOrEmpty(cdId))
                 return null;
 
-            var conceptDescription = env.ConceptDescriptions?.Where(c => c.Id.Equals(cdId)).FirstOrDefault();
+            if (env.ConceptDescriptions == null || env.ConceptDescriptions.Count == 0)
+                return null;
+
+            var conceptDescription = env.ConceptDescriptions.Where(c => c.Id.Equals(cdId)).FirstOrDefault();
             return conceptDescription;
         }
 
@@ -761,9 +747,21 @@ namespace Extensions
                     }
             }
 
+            
+
             if (firstKeyType.IsSME() && submodelElems != null)
             {
-                var submodelElement = submodelElems.Where(
+                ISubmodelElement submodelElement;
+                //check if key.value is index 
+                bool isIndex = int.TryParse(firstKeyId, out int index);
+                if (isIndex)
+                {
+                    var smeList = submodelElems.ToList();
+                    submodelElement = smeList[index];
+                }
+                else
+                {
+                    submodelElement = submodelElems.Where(
                     sme => sme.IdShort.Equals(keyList[keyIndex].Value,
                         StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
@@ -1066,12 +1064,12 @@ namespace Extensions
             // access
             if (srcEnv == null || src == null || src.SemanticId == null)
                 return;
-            
+
             // check for this SubmodelElement in Source
             var cdSrc = srcEnv.FindConceptDescriptionByReference(src.SemanticId);
             if (cdSrc == null)
                 return;
-            
+
             // check for this SubmodelElement in Destnation (this!)
             var cdDest = environment.FindConceptDescriptionByReference(src.SemanticId);
             if (cdDest == null)
@@ -1079,7 +1077,7 @@ namespace Extensions
                 // copy new
                 environment.ConceptDescriptions.Add(cdSrc.Copy());
             }
-            
+
             // recurse?
             if (!shallowCopy)
                 foreach (var m in src.EnumerateChildren())

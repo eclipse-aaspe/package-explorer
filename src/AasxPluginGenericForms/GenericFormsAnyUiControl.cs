@@ -207,6 +207,7 @@ namespace AasxPluginGenericForms
                     List<Aas.ISubmodelElement> currentElements = null;
                     if (_form.InUpdateMode)
                     {
+                        _submodel.SubmodelElements ??= new List<Aas.ISubmodelElement>();
                         currentElements = _submodel.SubmodelElements;
                     }
                     else

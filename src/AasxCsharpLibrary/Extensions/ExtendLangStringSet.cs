@@ -148,6 +148,10 @@ namespace Extensions
 
         public static void Add<T>(this List<T> list, string language, string text) where T : IAbstractLangString
         {
+            if (list == null)
+            {
+                list = new List<T>();
+            }
             if (typeof(T).IsAssignableFrom(typeof(ILangStringTextType)))
             {
                 (list as List<ILangStringTextType>)

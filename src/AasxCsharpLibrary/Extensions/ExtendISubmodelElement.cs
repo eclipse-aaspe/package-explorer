@@ -8,6 +8,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 */
 using AasxCompatibilityModels;
 using AdminShellNS;
+using AdminShellNS.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -274,12 +275,11 @@ namespace Extensions
                     var newSecond = ExtensionsUtil.ConvertReferenceFromV10(sourceRelationshipElement.second, ReferenceTypes.ModelReference);
                     outputSubmodelElement = new RelationshipElement(newFirst, newSecond);
                 }
-
-                if (sourceSubmodelElement is AdminShellV10.Operation sourceOperation)
+                else if (sourceSubmodelElement is AdminShellV10.Operation sourceOperation)
                 {
                     var newInputVariables = new List<IOperationVariable>();
                     var newOutputVariables = new List<IOperationVariable>();
-                    if (sourceOperation.valueIn != null)
+                    if (!sourceOperation.valueIn.IsNullOrEmpty())
                     {
 
                         foreach (var inputVariable in sourceOperation.valueIn)
@@ -293,7 +293,8 @@ namespace Extensions
                             }
                         }
                     }
-                    if (sourceOperation.valueOut != null)
+
+                    if (!sourceOperation.valueOut.IsNullOrEmpty())
                     {
                         foreach (var outputVariable in sourceOperation.valueOut)
                         {
@@ -310,8 +311,10 @@ namespace Extensions
                     outputSubmodelElement = new Operation(inputVariables: newInputVariables, outputVariables: newOutputVariables);
                 }
 
-
-                outputSubmodelElement.BasicConversionFromV10(sourceSubmodelElement);
+                if (outputSubmodelElement != null)
+                {
+                    outputSubmodelElement.BasicConversionFromV10(sourceSubmodelElement); 
+                }
             }
 
             return outputSubmodelElement;
@@ -329,12 +332,12 @@ namespace Extensions
                 submodelElement.Category = sourceSubmodelElement.category;
             }
 
-            if (sourceSubmodelElement.description != null)
+            if (sourceSubmodelElement.description != null && !sourceSubmodelElement.description.langString.IsNullOrEmpty())
             {
                 submodelElement.Description = ExtensionsUtil.ConvertDescriptionFromV10(sourceSubmodelElement.description);
             }
 
-            if (sourceSubmodelElement.semanticId != null)
+            if (sourceSubmodelElement.semanticId != null && !sourceSubmodelElement.semanticId.IsEmpty)
             {
                 var keyList = new List<IKey>();
                 foreach (var refKey in sourceSubmodelElement.semanticId.Keys)
@@ -357,7 +360,7 @@ namespace Extensions
                 //SubmodelElement does not have kind anymore
             }
 
-            if (sourceSubmodelElement.qualifiers != null && sourceSubmodelElement.qualifiers.Count != 0)
+            if (!sourceSubmodelElement.qualifiers.IsNullOrEmpty())
             {
                 if (submodelElement.Qualifiers == null && submodelElement.Qualifiers.Count != 0)
                 {
@@ -372,19 +375,19 @@ namespace Extensions
                 }
             }
 
-            if (sourceSubmodelElement.hasDataSpecification != null)
+            if (sourceSubmodelElement.hasDataSpecification != null && !sourceSubmodelElement.hasDataSpecification.reference.IsNullOrEmpty())
             {
                 //TODO (jtikekar, 0000-00-00): EmbeddedDataSpecification?? (as per old implementation)
-                if (submodelElement.EmbeddedDataSpecifications == null)
-                {
-                    submodelElement.EmbeddedDataSpecifications = new List<IEmbeddedDataSpecification>();
-                }
+                submodelElement.EmbeddedDataSpecifications ??= new List<IEmbeddedDataSpecification>();
                 foreach (var dataSpecification in sourceSubmodelElement.hasDataSpecification.reference)
                 {
-                    submodelElement.EmbeddedDataSpecifications.Add(
-                        new EmbeddedDataSpecification(
-                            ExtensionsUtil.ConvertReferenceFromV10(dataSpecification, ReferenceTypes.ExternalReference),
-                            null));
+                    if (!dataSpecification.IsEmpty)
+                    {
+                        submodelElement.EmbeddedDataSpecifications.Add(
+                                        new EmbeddedDataSpecification(
+                                            ExtensionsUtil.ConvertReferenceFromV10(dataSpecification, ReferenceTypes.ExternalReference),
+                                            null));
+                    }
                 }
             }
         }
@@ -438,8 +441,17 @@ namespace Extensions
                 }
                 else if (sourceSubmodelElement is AdminShellV20.RelationshipElement sourceRelationshipElement)
                 {
-                    var newFirst = ExtensionsUtil.ConvertReferenceFromV20(sourceRelationshipElement.first, ReferenceTypes.ModelReference);
-                    var newSecond = ExtensionsUtil.ConvertReferenceFromV20(sourceRelationshipElement.second, ReferenceTypes.ModelReference);
+                    IReference newFirst = null; IReference newSecond = null;
+                    if (sourceRelationshipElement.first != null && !sourceRelationshipElement.first.IsEmpty)
+                    {
+                        newFirst = ExtensionsUtil.ConvertReferenceFromV20(sourceRelationshipElement.first, ReferenceTypes.ModelReference);
+
+                    }
+                    if (sourceRelationshipElement.second != null && !sourceRelationshipElement.second.IsEmpty)
+                    {
+                        newSecond = ExtensionsUtil.ConvertReferenceFromV20(sourceRelationshipElement.second, ReferenceTypes.ModelReference);
+
+                    }                    
                     outputSubmodelElement = new RelationshipElement(newFirst, newSecond);
                 }
                 else if (sourceSubmodelElement is AdminShellV20.BasicEvent sourceBasicEvent)
@@ -457,12 +469,12 @@ namespace Extensions
                 }
                 else if (sourceSubmodelElement is AdminShellV20.Operation sourceOperation)
                 {
-                    var newInputVariables = new List<IOperationVariable>();
-                    var newOutputVariables = new List<IOperationVariable>();
-                    var newInOutVariables = new List<IOperationVariable>();
-                    if (sourceOperation.inputVariable != null)
+                    List<IOperationVariable> newInputVariables = null;
+                    List<IOperationVariable> newOutputVariables = null;
+                    List<IOperationVariable> newInOutVariables = null;
+                    if (!sourceOperation.inputVariable.IsNullOrEmpty())
                     {
-
+                        newInputVariables = new List<IOperationVariable>();
                         foreach (var inputVariable in sourceOperation.inputVariable)
                         {
                             if (inputVariable.value.submodelElement != null)
@@ -474,8 +486,9 @@ namespace Extensions
                             }
                         }
                     }
-                    if (sourceOperation.outputVariable != null)
+                    if (!sourceOperation.outputVariable.IsNullOrEmpty())
                     {
+                        newOutputVariables = new List<IOperationVariable>();
                         foreach (var outputVariable in sourceOperation.outputVariable)
                         {
                             if (outputVariable.value.submodelElement != null)
@@ -488,8 +501,9 @@ namespace Extensions
                         }
                     }
 
-                    if (sourceOperation.inoutputVariable != null)
+                    if (!sourceOperation.inoutputVariable.IsNullOrEmpty())
                     {
+                        newInOutVariables = new List<IOperationVariable>();
                         foreach (var inOutVariable in sourceOperation.inoutputVariable)
                         {
                             if (inOutVariable.value.submodelElement != null)
@@ -504,8 +518,15 @@ namespace Extensions
 
                     outputSubmodelElement = new Operation(inputVariables: newInputVariables, outputVariables: newOutputVariables, inoutputVariables: newInOutVariables);
                 }
+                else if (sourceSubmodelElement is AdminShellV20.Capability)
+                {
+                    outputSubmodelElement = new Capability();
+                }
 
-                outputSubmodelElement.BasicConversionFromV20(sourceSubmodelElement);
+                if (outputSubmodelElement != null)
+                {
+                    outputSubmodelElement.BasicConversionFromV20(sourceSubmodelElement); 
+                }
             }
 
             return outputSubmodelElement;
@@ -519,15 +540,20 @@ namespace Extensions
             if (!string.IsNullOrEmpty(sourceSubmodelElement.category))
                 submodelElement.Category = sourceSubmodelElement.category;
 
-            if (sourceSubmodelElement.description != null)
+            if (sourceSubmodelElement.description != null && !sourceSubmodelElement.description.langString.IsNullOrEmpty())
                 submodelElement.Description = ExtensionsUtil.ConvertDescriptionFromV20(sourceSubmodelElement.description);
 
-            if (sourceSubmodelElement.semanticId != null)
+            if (sourceSubmodelElement.semanticId != null && !sourceSubmodelElement.semanticId.IsEmpty)
             {
                 var keyList = new List<IKey>();
                 foreach (var refKey in sourceSubmodelElement.semanticId.Keys)
                 {
                     var keyType = Stringification.KeyTypesFromString(refKey.type);
+                    if(keyType == null && refKey.type.Equals("ConceptDictionary"))
+                    {
+                        keyType = KeyTypes.GlobalReference;
+                    }
+
                     if (keyType != null)
                     {
                         // DECISION: After phone call with Birgit, set all CD to GlobalReference
@@ -546,7 +572,7 @@ namespace Extensions
             }
 
 
-            if (sourceSubmodelElement.qualifiers != null && sourceSubmodelElement.qualifiers.Count != 0)
+            if (!sourceSubmodelElement.qualifiers.IsNullOrEmpty())
             {
                 if (submodelElement.Qualifiers == null || submodelElement.Qualifiers.Count == 0)
                     submodelElement.Qualifiers = new List<IQualifier>();
@@ -559,19 +585,17 @@ namespace Extensions
                 }
             }
 
-            if (sourceSubmodelElement.hasDataSpecification != null)
+            if (sourceSubmodelElement.hasDataSpecification != null && sourceSubmodelElement.hasDataSpecification.Count > 0)
             {
-                //TODO (jtikekar, 0000-00-00): EmbeddedDataSpecification?? (as per old implementation)
-                if (submodelElement.EmbeddedDataSpecifications == null)
-                    submodelElement.EmbeddedDataSpecifications = new List<IEmbeddedDataSpecification>();
-
-                //TODO (jtikekar, 0000-00-00): DataSpecificationContent?? (as per old implementation)
-                foreach (var sourceDataSpec in sourceSubmodelElement.hasDataSpecification)
+                foreach (var sourceEmbeddedDataSpec in sourceSubmodelElement.hasDataSpecification)
                 {
-                    submodelElement.EmbeddedDataSpecifications.Add(
-                        new EmbeddedDataSpecification(
-                            ExtensionsUtil.ConvertReferenceFromV20(sourceDataSpec.dataSpecification, ReferenceTypes.ExternalReference),
-                            null));
+                    var newEmbeddedDataSpec = new EmbeddedDataSpecification (null, null);
+                    newEmbeddedDataSpec.ConvertFromV20(sourceEmbeddedDataSpec);
+                    if(newEmbeddedDataSpec.DataSpecification != null || newEmbeddedDataSpec.DataSpecificationContent != null)
+                    {
+                        submodelElement.EmbeddedDataSpecifications ??= new List<IEmbeddedDataSpecification>();
+                        submodelElement.EmbeddedDataSpecifications.Add(newEmbeddedDataSpec);
+                    }
                 }
             }
 
@@ -996,6 +1020,8 @@ namespace Extensions
             IKey semId, MatchMode matchMode = MatchMode.Strict)
                 where T : ISubmodelElement
         {
+            if (submodelELements.IsNullOrEmpty())
+                yield return default(T);
             foreach (var submodelElement in submodelELements)
                 if (submodelElement != null && submodelElement is T
                     && submodelElement.SemanticId != null)
@@ -1028,37 +1054,37 @@ namespace Extensions
             return submodelElements.FindAllSemanticIdAs<T>(semId, matchMode).FirstOrDefault<T>();
         }
 
-		public static List<ISubmodelElement> GetChildListFromFirstSemanticId(
+        public static List<ISubmodelElement> GetChildListFromFirstSemanticId(
             this List<ISubmodelElement> submodelElements,
-			IKey semKey, MatchMode matchMode = MatchMode.Strict)
-		{
-            return FindFirstSemanticIdAs<ISubmodelElement>(submodelElements, semKey, matchMode)?.GetChildsAsList();
-		}
-
-		public static List<ISubmodelElement> GetChildListFromFirstSemanticId(
-            this List<ISubmodelElement> submodelElements,
-			IReference semId, MatchMode matchMode = MatchMode.Strict)
+            IKey semKey, MatchMode matchMode = MatchMode.Strict)
         {
-			return FindFirstSemanticIdAs<ISubmodelElement>(submodelElements, semId, matchMode)?.GetChildsAsList();
-		}
+            return FindFirstSemanticIdAs<ISubmodelElement>(submodelElements, semKey, matchMode)?.GetChildsAsList();
+        }
 
-		public static IEnumerable<List<ISubmodelElement>> GetChildListsFromAllSemanticId(
+        public static List<ISubmodelElement> GetChildListFromFirstSemanticId(
             this List<ISubmodelElement> submodelElements,
-			IKey semKey, MatchMode matchMode = MatchMode.Strict)
-		{
+            IReference semId, MatchMode matchMode = MatchMode.Strict)
+        {
+            return FindFirstSemanticIdAs<ISubmodelElement>(submodelElements, semId, matchMode)?.GetChildsAsList();
+        }
+
+        public static IEnumerable<List<ISubmodelElement>> GetChildListsFromAllSemanticId(
+            this List<ISubmodelElement> submodelElements,
+            IKey semKey, MatchMode matchMode = MatchMode.Strict)
+        {
             foreach (var child in FindAllSemanticIdAs<ISubmodelElement>(submodelElements, semKey, matchMode))
                 yield return child.GetChildsAsList()?.ToList();
-		}
+        }
 
-		public static IEnumerable<List<ISubmodelElement>> GetChildListsFromAllSemanticId(
+        public static IEnumerable<List<ISubmodelElement>> GetChildListsFromAllSemanticId(
             this List<ISubmodelElement> submodelElements,
-			IReference semId, MatchMode matchMode = MatchMode.Strict)
-		{
-			foreach (var child in FindAllSemanticIdAs<ISubmodelElement>(submodelElements, semId, matchMode))
-				yield return child.GetChildsAsList()?.ToList();
-		}
+            IReference semId, MatchMode matchMode = MatchMode.Strict)
+        {
+            foreach (var child in FindAllSemanticIdAs<ISubmodelElement>(submodelElements, semId, matchMode))
+                yield return child.GetChildsAsList()?.ToList();
+        }
 
-		public static IEnumerable<ISubmodelElement> Join(params IEnumerable<ISubmodelElement>[] lists)
+        public static IEnumerable<ISubmodelElement> Join(params IEnumerable<ISubmodelElement>[] lists)
         {
             if (lists == null || lists.Length < 1)
                 yield break;
@@ -1106,24 +1132,29 @@ namespace Extensions
                     {
                         SubmodelElementCollection opVariableCollection = new SubmodelElementCollection();
                         opVariableCollection.Value = new List<ISubmodelElement>();
-
-                        if (operation.InputVariables != null)
+                        if (operation.InputVariables != null && operation.InputVariables.Count > 0)
+                        {
                             foreach (var inputVariable in operation.InputVariables)
                             {
                                 opVariableCollection.Value.Add(inputVariable.Value);
-                            }
+                            } 
+                        }
 
-                        if (operation.OutputVariables != null)
+                        if (operation.OutputVariables != null && operation.OutputVariables.Count > 0)
+                        {
                             foreach (var outputVariable in operation.OutputVariables)
                             {
                                 opVariableCollection.Value.Add(outputVariable.Value);
-                            }
+                            } 
+                        }
 
-                        if (operation.InoutputVariables != null)
+                        if (operation.InoutputVariables != null && operation.InoutputVariables.Count > 0)
+                        {
                             foreach (var inOutVariable in operation.InoutputVariables)
                             {
                                 opVariableCollection.Value.Add(inOutVariable.Value);
                             }
+                        }
 
                         opVariableCollection.Value.RecurseOnReferables(state, parents, lambda);
                     }
@@ -1131,7 +1162,7 @@ namespace Extensions
                     if (current is AnnotatedRelationshipElement annotatedRelationshipElement)
                     {
                         var annotationElements = new List<ISubmodelElement>();
-                        if (annotatedRelationshipElement.Annotations != null)
+                        if (annotatedRelationshipElement.Annotations != null && annotatedRelationshipElement.Annotations.Count > 0)
                             foreach (var annotation in annotatedRelationshipElement.Annotations)
                             {
                                 annotationElements.Add(annotation);
@@ -1178,19 +1209,28 @@ namespace Extensions
                 if (current is Operation operation)
                 {
                     SubmodelElementCollection opVariableCollection = new SubmodelElementCollection();
-                    foreach (var inputVariable in operation.InputVariables)
+                    if (!operation.InputVariables.IsNullOrEmpty())
                     {
-                        opVariableCollection.Value.Add(inputVariable.Value);
+                        foreach (var inputVariable in operation.InputVariables)
+                        {
+                            opVariableCollection.Value.Add(inputVariable.Value);
+                        }
                     }
 
-                    foreach (var outputVariable in operation.OutputVariables)
+                    if (!operation.OutputVariables.IsNullOrEmpty())
                     {
-                        opVariableCollection.Value.Add(outputVariable.Value);
+                        foreach (var outputVariable in operation.OutputVariables)
+                        {
+                            opVariableCollection.Value.Add(outputVariable.Value);
+                        }
                     }
 
-                    foreach (var inOutVariable in operation.InoutputVariables)
+                    if (!operation.InoutputVariables.IsNullOrEmpty())
                     {
-                        opVariableCollection.Value.Add(inOutVariable.Value);
+                        foreach (var inOutVariable in operation.InoutputVariables)
+                        {
+                            opVariableCollection.Value.Add(inOutVariable.Value);
+                        }
                     }
 
                     opVariableCollection.Value.RecurseOnSubmodelElements(state, parents, lambda);

@@ -1012,16 +1012,16 @@ namespace AasxPackageLogic
                         new[] {
                         new HintCheck(
                             () => !extension.Name.HasContent(),
-                            "A name specification shall be given and unqiue within this list!")
-                        });
-                    AddKeyValueExRef(
-                        substack, "name", extension, extension.Name, null, repo,
-                        v =>
-                        {
-                            extension.Name = v as string;
-                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                            return new AnyUiLambdaActionNone();
-                        });
+                            "A name specification shall be given and unique within this list!")
+                    });
+                AddKeyValueExRef(
+                    substack, "name", extension, extension.Name, null, repo,
+                    v =>
+                    {
+                        extension.Name = v as string;
+                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                        return new AnyUiLambdaActionNone();
+                    });
 
                     AddHintBubble(
                         substack, hintMode,
@@ -1849,13 +1849,12 @@ namespace AasxPackageLogic
                         {
                             Aas.AasSubmodelElements[] includes = null;
                             if (isDataElem) includes = new Aas.AasSubmodelElements[] {
-                                        Aas.AasSubmodelElements.SubmodelElementCollection,
-                                        Aas.AasSubmodelElements.RelationshipElement,
-                                        Aas.AasSubmodelElements.AnnotatedRelationshipElement,
-                                        Aas.AasSubmodelElements.Capability,
-                                        Aas.AasSubmodelElements.Operation,
-                                        Aas.AasSubmodelElements.BasicEventElement,
-                                        Aas.AasSubmodelElements.Entity};
+                                        Aas.AasSubmodelElements.Property,
+                                        Aas.AasSubmodelElements.MultiLanguageProperty,
+                                        Aas.AasSubmodelElements.Range,
+                                        Aas.AasSubmodelElements.File,
+                                        Aas.AasSubmodelElements.Blob,
+                                        Aas.AasSubmodelElements.ReferenceElement};
 
                             en = this.SelectAdequateEnum("Select SubmodelElement to create ..", ticket: ticket,
                                 includeValues: includes);

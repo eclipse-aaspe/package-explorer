@@ -54,31 +54,38 @@ namespace Extensions
         {
             if (sourceEmbeddedSpec != null)
             {
-                embeddedDataSpecification.DataSpecification = ExtensionsUtil.ConvertReferenceFromV20(sourceEmbeddedSpec.dataSpecification, ReferenceTypes.ExternalReference);
+                if (sourceEmbeddedSpec.dataSpecification != null)
+                {
+                    embeddedDataSpecification.DataSpecification = ExtensionsUtil.ConvertReferenceFromV20(sourceEmbeddedSpec.dataSpecification, ReferenceTypes.ExternalReference);
 
-                // TODO (MIHO, 2022-19-12): check again, see questions
-                var oldid = new[] {
+                    // TODO (MIHO, 2022-19-12): check again, see questions
+                    var oldid = new[] {
                     "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/2/0",
 					"http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360",
 					"www.admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360"
 				};
                 var newid = UriDataSpecificationIEC61360;
 
-                // map all "usable" old ids to new one ..
-                foreach (var oi in oldid)
-                    if (sourceEmbeddedSpec.dataSpecification?.Matches("", false, "IRI", oi,
-                        AasxCompatibilityModels.AdminShellV20.Key.MatchMode.Identification) == true)
-                    {
-                        embeddedDataSpecification.DataSpecification.Keys[0].Value = newid;
-                    }
-            }
+                    // map all "usable" old ids to new one ..
+                    foreach (var oi in oldid)
+                        if (sourceEmbeddedSpec.dataSpecification?.Matches("", false, "IRI", oi,
+                            AasxCompatibilityModels.AdminShellV20.Key.MatchMode.Identification) == true)
+                        {
+                            embeddedDataSpecification.DataSpecification.Keys[0].Value = newid;
+                        } 
+                }
 
-            if (sourceEmbeddedSpec.dataSpecificationContent?.dataSpecificationIEC61360 != null)
-            {
-                embeddedDataSpecification.DataSpecificationContent =
-                    new DataSpecificationIec61360(null).ConvertFromV20(
-                        sourceEmbeddedSpec.dataSpecificationContent.dataSpecificationIEC61360);
+                if (sourceEmbeddedSpec.dataSpecificationContent != null)
+                {
+                    if (sourceEmbeddedSpec.dataSpecificationContent?.dataSpecificationIEC61360 != null)
+                    {
+                        embeddedDataSpecification.DataSpecificationContent =
+                            new DataSpecificationIec61360(null).ConvertFromV20(
+                                sourceEmbeddedSpec.dataSpecificationContent.dataSpecificationIEC61360);
+                    } 
+                }
             }
+            
             return embeddedDataSpecification;
         }
 

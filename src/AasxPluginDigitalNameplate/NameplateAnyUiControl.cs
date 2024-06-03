@@ -769,7 +769,7 @@ namespace AasxPluginDigitalNameplate
                     .Set(description: "SerialNumber:\n" +
                         "Unique combination of numbers and letters used to identify the " +
                         "product (asset) instance once it has been manufactured. Does not need to be " +
-                        "worldwide unqiue, only for the manufacturer."));
+                        "worldwide unique, only for the manufacturer."));
 
             // Product designation
 
@@ -859,7 +859,7 @@ namespace AasxPluginDigitalNameplate
                     if (markImg != null)
                     {
                         // render IMAGE
-
+                        // dead-csharp off
                         //var img = uitk.Set(
                         //    new AnyUiImage() { Stretch = AnyUiStretch.Uniform, BitmapInfo = markImg },
                         //    margin: new AnyUiThickness(0, 0, 4, 4),
@@ -869,6 +869,7 @@ namespace AasxPluginDigitalNameplate
 
                         //img.MaxHeight = 70;
                         //img.MaxWidth = 100;
+                        // dead-csharp on
                         var img = uitk.Set(
                             uitk.AddSmallImageTo(oneMarkGrid, 0, 0,
                                 margin: new AnyUiThickness(0, 0, 4, 4),
@@ -880,6 +881,7 @@ namespace AasxPluginDigitalNameplate
                     }
                     else
                     {
+                        // dead-csharp off
                         // render TEXT
 
                         //var tb = new AnyUiTextBlock()
@@ -897,7 +899,7 @@ namespace AasxPluginDigitalNameplate
 
                         //tb.MaxHeight = 70;
                         //tb.MaxWidth = 100;
-
+                        // dead-csharp on
                         var tb = uitk.Set(
                             uitk.AddSmallBasicLabelTo(oneMarkGrid, 0, 0,
                                 content: "" + mark.Name,
@@ -907,7 +909,7 @@ namespace AasxPluginDigitalNameplate
                                 background: AnyUiBrushes.White,
                                 textWrapping: AnyUiTextWrapping.Wrap,
                                 verticalAlignment: AnyUiVerticalAlignment.Stretch,
-                                verticalContentAlignment: AnyUiVerticalAlignment.Center));                            
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center));
                     }
 
                     // render (little) additional text
@@ -973,7 +975,7 @@ namespace AasxPluginDigitalNameplate
                 statement: ((plate.DateOfManufacture?.HasContent() == true)
                     ? new IndexStatement(Quality.Good, statement: "Is given.")
                     : new IndexStatement(Quality.Warn, statement: "Should be given."))
-                    .Set(description: "SerialNumber:\n" +
+                    .Set(description: "DateOfManufacture:\n" +
                         "Date from which the production and / or development process is completed or " +
                         "from which a service is provided completely."));
 

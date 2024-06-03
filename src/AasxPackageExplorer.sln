@@ -131,14 +131,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "jsoncanonicalizer", "jsonca
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "es6numberserializer", "es6numberserializer\es6numberserializer.csproj", "{AB60370B-DC87-414D-8A6C-7B095F940A1B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Setup", "Setup", "{5BA4D327-1907-4F5A-BC90-5EA939497BFC}"
-EndProject
-Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "AasxPackageExplorerSetup", "AASXPackageExplorerSetup\AasxPackageExplorerSetup.wixproj", "{8E42C60A-2576-47C2-B0EE-B40BBDDA0F34}"
-	ProjectSection(ProjectDependencies) = postProject
-		{AB60370B-DC87-414D-8A6C-7B095F940A1B} = {AB60370B-DC87-414D-8A6C-7B095F940A1B}
-		{A713E962-38FB-4FD0-9687-30F530E95E91} = {A713E962-38FB-4FD0-9687-30F530E95E91}
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Projektmappenelemente", "{087C80D2-F815-401C-96ED-3BD61A768FF3}"
 	ProjectSection(SolutionItems) = preProject
 		Notes_Bugfixes.md = Notes_Bugfixes.md

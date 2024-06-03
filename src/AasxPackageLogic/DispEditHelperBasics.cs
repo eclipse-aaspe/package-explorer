@@ -16,6 +16,7 @@ using AnyUi;
 using Extensions;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -829,8 +830,8 @@ namespace AasxPackageLogic
                     return new AnyUiLambdaActionNone();
                 };
 
-			// Grid
-			var g = new AnyUiGrid();
+            // Grid
+            var g = new AnyUiGrid();
             g.Margin = new AnyUiThickness(0, 0, 0, 0);
 
             // 0 key
@@ -2979,7 +2980,7 @@ namespace AasxPackageLogic
                 {
                     dataStr = Jsonization.Serialize.ToJsonObject(rf)
                         .ToJsonString(new System.Text.Json.JsonSerializerOptions());
-                } 
+                }
                 catch (Exception ex)
                 {
                     LogInternally.That.SilentlyIgnoredError(ex);
@@ -2990,7 +2991,9 @@ namespace AasxPackageLogic
                     path: (rf as Aas.IReferable)?.GetReference()?.Keys,
                     createAtIndex: desc.CreateAtIndex,
                     // Assumption: models will be serialized correctly
+                    // dead-csharp off
                     // data: JsonConvert.SerializeObject(rf));
+                    // dead-csharp on
                     data: dataStr);
 
                 if (diaryReference?.OriginalPath != null)

@@ -55,6 +55,7 @@ namespace AasxPackageExplorer
                 .AddWpfBlazor(name: "ConnectIntegrated", header: "Connect …", inputGesture: "Ctrl+Shift+I")
                 .AddWpfBlazor(name: "Save", header: "_Save", inputGesture: "Ctrl+S")
                 .AddWpfBlazor(name: "SaveAs", header: "_Save as …")
+                .AddWpfBlazor(name: "FixAndFinalize", header: "Fix and Finalize ...")
                 .AddWpfBlazor(name: "Close", header: "_Close …")
                 .AddWpfBlazor(name: "CheckAndFix", header: "Check, validate and fix …")
                 .AddMenu(header: "Security …", childs: (new AasxMenu())
@@ -249,17 +250,17 @@ namespace AasxPackageExplorer
                     .AddWpf(name: "ServerPluginOPCUA", header: "Plugin: OPC UA …")
                     .AddWpf(name: "ServerPluginMQTT", header: "Plugin: MQTT …"))
                 .AddSeparator(filter: AasxMenuFilter.NotBlazor)
-				.AddMenu(header: "System …", filter: AasxMenuFilter.NotBlazor,
-						 attachPoint: "System", childs: (new AasxMenu())
-					.AddWpf(name: "AttachFileAssoc", header: "Attach .aasx file associations",
-					    args: new AasxMenuListOfArgDefs()
-							.Add("File", "Windows RegEdit file to write.")
-							.Add("Location", "Location selection", hidden: true))
-					.AddWpf(name: "RemoveFileAssoc", header: "Remove .aasx file associations",
-						args: new AasxMenuListOfArgDefs()
-							.Add("File", "Windows RegEdit file to write.")
-							.Add("Location", "Location selection", hidden: true)))
-				.AddWpfBlazor(name: "Exit", header: "_Exit", inputGesture: "Alt+F4"));
+                .AddMenu(header: "System …", filter: AasxMenuFilter.NotBlazor,
+                         attachPoint: "System", childs: (new AasxMenu())
+                    .AddWpf(name: "AttachFileAssoc", header: "Attach .aasx file associations",
+                        args: new AasxMenuListOfArgDefs()
+                            .Add("File", "Windows RegEdit file to write.")
+                            .Add("Location", "Location selection", hidden: true))
+                    .AddWpf(name: "RemoveFileAssoc", header: "Remove .aasx file associations",
+                        args: new AasxMenuListOfArgDefs()
+                            .Add("File", "Windows RegEdit file to write.")
+                            .Add("Location", "Location selection", hidden: true)))
+                .AddWpfBlazor(name: "Exit", header: "_Exit", inputGesture: "Alt+F4"));
 
             //
             // Workspace

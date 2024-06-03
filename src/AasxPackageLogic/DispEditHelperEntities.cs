@@ -63,11 +63,24 @@ namespace AasxPackageLogic
             this.AddHintBubble(stack, hintMode, new[] {
                 new HintCheck(
                     () => string.IsNullOrEmpty(asset.GlobalAssetId) == true,
-                    "It is strobly encouraged to have the AAS associated with an global asset id from the " +
-                    "very beginning. If the AAS describes a product, the individual asset id should to be " +
+                    "It is strongly encouraged to have the AAS associated with a global asset id from the " +
+                    "very beginning. If the AAS describes a product, the individual asset id should be " +
                     "found on its name plate. " +
                     "This  attribute  is  required  as  soon  as  the  AAS  is exchanged via partners in " +
                     "the life cycle of the asset.",
+                    severityLevel: HintCheck.Severity.High),
+                new HintCheck(
+                    () =>
+                    {
+                        int count = 0;
+                        foreach(var aas in env.AssetAdministrationShells)
+                        {
+                            if(aas.AssetInformation.GlobalAssetId == asset.GlobalAssetId)
+                                count++;
+                        }
+                        return (count>=2?true:false);
+                    },
+                    "It is not allowed to have duplicate GlobalAssetIds in the same file. This will break functionality and we strongly encoure to make the Id unique!",
                     severityLevel: HintCheck.Severity.High)
             });
 
@@ -420,11 +433,6 @@ namespace AasxPackageLogic
             if (env == null)
                 return;
 
-            // automatically and silently fix errors
-            env.AssetAdministrationShells ??= new List<Aas.IAssetAdministrationShell>();
-            env.ConceptDescriptions ??= new List<Aas.IConceptDescription>();
-            env.Submodels ??= new List<Aas.ISubmodel>();
-
             if (editMode &&
                 (ve.theItemType == VisualElementEnvironmentItem.ItemType.Env
                     || ve.theItemType == VisualElementEnvironmentItem.ItemType.Shells
@@ -436,9 +444,8 @@ namespace AasxPackageLogic
                     new HintCheck(
                         () => { return env.AssetAdministrationShells == null || env.AssetAdministrationShells.Count < 1; },
                         "There are no Administration Shells in this AAS environment. " +
-                            "You should consider adding an Administration Shell by clicking 'Add asset' " +
-                            "on the edit panel below. Typically, this is done after adding an asset, " +
-                            "as the Administration Shell needs to refer to it.",
+                            "You should consider adding an Administration Shell by clicking 'Add AAS' " +
+                            "on the edit panel below.",
                         breakIfTrue: true),
                     new HintCheck(
                         () => { return env.Submodels == null || env.Submodels.Count < 1; },
@@ -481,8 +488,7 @@ namespace AasxPackageLogic
                         {
                             // create TOGETHER with AssetInformation!!, as serialization might fail!
                             var aas = new Aas.AssetAdministrationShell("",
-                                new Aas.AssetInformation(Aas.AssetKind.Instance),
-                                submodels: new List<Aas.IReference>());
+                                new Aas.AssetInformation(Aas.AssetKind.NotApplicable));
                             aas.Id = AdminShellUtil.GenerateIdAccordingTemplate(
                                 Options.Curr.TemplateIdAas);
                             env.Add(aas);
@@ -1098,14 +1104,14 @@ namespace AasxPackageLogic
                     hintMode,
                     new[] {
                         new HintCheck(
-                            () => { return env.AssetAdministrationShells.Count < 1; },
+                            () => { return env.AssetAdministrationShells == null || env.AssetAdministrationShells.Count < 1; },
                             "There are no AssetAdministrationShell entities in the environment. " +
                                 "Select the 'Administration Shells' item on the middle panel and " +
                                 "select 'Add AAS' to add a new entity."),
                         new HintCheck(
-                            () => { return env.ConceptDescriptions.Count < 1; },
+                            () => { return env.ConceptDescriptions == null || env.ConceptDescriptions.Count < 1; },
                             "There are no embedded ConceptDescriptions in the environment. " +
-                                "It is a good practive to have those. Select or add an AssetAdministrationShell, " +
+                                "It is a good practice to have those. Select or add an AssetAdministrationShell, " +
                                 "Submodel and SubmodelElement and add a ConceptDescription.",
                             severityLevel: HintCheck.Severity.Notice),
                     });
@@ -1116,12 +1122,15 @@ namespace AasxPackageLogic
                     6, 1, new[] { "*" }, margin: new AnyUiThickness(5, 5, 0, 0));
                 this.AddSmallLabelTo(
                     g, 0, 0, content: "This structure hold the main entites of Administration shells.");
+                int aasCount = env.AssetAdministrationShells is null ? 0 : env.AssetAdministrationShells.Count;
                 this.AddSmallLabelTo(
-                    g, 1, 0, content: String.Format("#admin shells: {0}.", env.AssetAdministrationShells.Count),
+                    g, 1, 0, content: String.Format("#admin shells: {0}.", aasCount),
                     margin: new AnyUiThickness(0, 5, 0, 0));
-                this.AddSmallLabelTo(g, 3, 0, content: String.Format("#submodels: {0}.", env.Submodels.Count));
+                int smCount = env.Submodels is null ? 0 : env.Submodels.Count;
+                this.AddSmallLabelTo(g, 3, 0, content: String.Format("#submodels: {0}.", smCount));
+                int cdCount = env.ConceptDescriptions is null ? 0 : env.ConceptDescriptions.Count;
                 this.AddSmallLabelTo(
-                    g, 4, 0, content: String.Format("#concept descriptions: {0}.", env.ConceptDescriptions.Count));
+                    g, 4, 0, content: String.Format("#concept descriptions: {0}.", cdCount));
                 stack.Children.Add(g);
             }
         }
@@ -1214,6 +1223,7 @@ namespace AasxPackageLogic
                 return;
 
             // Entities
+            //if (editMode && aas?.Submodels != null)
             if (editMode)
             {
                 this.AddHintBubble(
@@ -1284,53 +1294,53 @@ namespace AasxPackageLogic
                             return newsmr;
                         });
 
-                    // Submodels
-                    this.AddHintBubble(
-                        stack, hintMode,
-                        new[] {
-                            new HintCheck(
-                                () => { return aas.Submodels.Count < 1;  },
-                                "You have no Submodels referenced by this Administration Shell. This is " +
-                                    "rather unusual, as the Submodels are the actual carriers of information. " +
-                                    "Most likely, you want to click 'Create new Submodel of kind Instance'. " +
-                                    "You might also consider to load another AASX as auxiliary AASX " +
-                                    "(see 'File' menu) to copy structures from.",
-                                severityLevel: HintCheck.Severity.Notice)
-                        });// adding submodels
-                    this.AddActionPanel(
-                        stack, "SubmodelRef:",
-                        repo: repo,
-                        superMenu: superMenu,
-                        ticketMenu: new AasxMenu()
-                            .AddAction("ref-existing", "Reference to existing Submodel",
-                                "Links the SubmodelReference to an existing Submodel.")
-                            .AddAction("create-template", "Create new Submodel of kind Template",
-                                "Creates a new Submodel of kind Template and link to this SubmodelReference.")
-                            .AddAction("create-instance", "Create new Submodel of kind Instance",
-                                "Creates a new Submodel of kind Instance and link to this SubmodelReference."),
-                        ticketAction: (buttonNdx, ticket) =>
+                // Submodels
+                this.AddHintBubble(
+                    stack, hintMode,
+                    new[] {
+                        new HintCheck(
+                            () => { return aas.Submodels == null || aas.Submodels.Count < 1;  },
+                            "You have no Submodels referenced by this Administration Shell. " +
+                                "This is rather unusual, as the Submodels are the actual carriers of information. " +
+                                "Most likely, you want to click 'Create new Submodel of kind Instance'. " +
+                                "You might also consider to load another AASX as auxiliary AASX " +
+                                "(see 'File' menu) to copy structures from.",
+                            severityLevel: HintCheck.Severity.Notice)
+                    });// adding submodels
+                this.AddActionPanel(
+                    stack, "SubmodelRef:",
+                    repo: repo,
+                    superMenu: superMenu,
+                    ticketMenu: new AasxMenu()
+                        .AddAction("ref-existing", "Reference to existing Submodel",
+                            "Links the SubmodelReference to an existing Submodel.")
+                        .AddAction("create-template", "Create new Submodel of kind Template",
+                            "Creates a new Submodel of kind Template and link to this SubmodelReference.")
+                        .AddAction("create-instance", "Create new Submodel of kind Instance",
+                            "Creates a new Submodel of kind Instance and link to this SubmodelReference."),
+                    ticketAction: (buttonNdx, ticket) =>
+                    {
+                        if (buttonNdx == 0)
                         {
-                            if (buttonNdx == 0)
-                            {
-                                if (AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
-                                        "This operation creates a reference to an existing Submodel. " +
-                                            "By this, two AAS will share exactly the same data records. Changing " +
-                                            "one will cause the other AAS's information to change as well. " +
-                                            "This operation is rather special. Do you want to proceed?",
-                                        "Submodel sharing",
-                                        AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
-                                    return new AnyUiLambdaActionNone();
+                            if (AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                                    "This operation creates a reference to an existing Submodel. " +
+                                        "By this, two AAS will share exactly the same data records. " +
+                                        "Changing one will cause the other AAS's information to change as well. " +
+                                        "This operation is rather special. Do you want to proceed?",
+                                    "Submodel sharing",
+                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                return new AnyUiLambdaActionNone();
 
-                                // select existing Submodel
-                                var ks = this.SmartSelectAasEntityKeys(packages,
-                                            PackageCentral.PackageCentral.Selector.Main,
-                                            "Submodel");
-                                if (ks != null)
-                                {
-                                    // create ref
-                                    var smr = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, 
-                                                new List<Aas.IKey>(ks));
-                                    aas.Submodels.Add(smr);
+                            // select existing Submodel
+                            var ks = this.SmartSelectAasEntityKeys(packages,
+                                        PackageCentral.PackageCentral.Selector.Main,
+                                        "Submodel");
+                            if (ks != null)
+                            {
+                                // create ref
+                                //var smr = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>(ks));
+                                var smr = new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>(ks));
+                                aas.Submodels.Add(smr);
 
                                     // event for AAS
                                     this.AddDiaryEntry(aas, new DiaryEntryStructChange());
@@ -1341,16 +1351,17 @@ namespace AasxPackageLogic
                                 }
                             }
 
-                            if (buttonNdx == 1 || buttonNdx == 2)
-                            {
-                                // create new submodel
-                                var submodel = new Aas.Submodel("");
-                                aas.Id = AdminShellUtil.GenerateIdAccordingTemplate(
-                                    (buttonNdx == 1) ? Options.Curr.TemplateIdSubmodelTemplate
-                                    : Options.Curr.TemplateIdSubmodelInstance);
-                                this.AddDiaryEntry(submodel,
-                                        new DiaryEntryStructChange(StructuralChangeReason.Create));
-                                env.Submodels.Add(submodel);
+                        if (buttonNdx == 1 || buttonNdx == 2)
+                        {
+                            // create new submodel
+                            var submodel = new Aas.Submodel("");
+                            aas.Id = AdminShellUtil.GenerateIdAccordingTemplate(
+                                (buttonNdx == 1) ? Options.Curr.TemplateIdSubmodelTemplate
+                                : Options.Curr.TemplateIdSubmodelInstance);
+                            this.AddDiaryEntry(submodel,
+                                    new DiaryEntryStructChange(StructuralChangeReason.Create));
+                            env.Submodels ??= new List<ISubmodel>();
+                            env.Submodels.Add(submodel);
 
                                 // directly create identification, as we need it!
                                 if (buttonNdx == 1)
@@ -1363,10 +1374,10 @@ namespace AasxPackageLogic
                                     submodel.Id = AdminShellUtil.GenerateIdAccordingTemplate(
                                         Options.Curr.TemplateIdSubmodelInstance);
 
-                                // create ref
-                                var smr = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, 
-                                        new List<Aas.IKey>() { new Aas.Key(Aas.KeyTypes.Submodel, submodel.Id) });
-                                aas.Submodels.Add(smr);
+                            // create ref
+                            var smr = new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>() { new Aas.Key(Aas.KeyTypes.Submodel, submodel.Id) });
+                            aas.Submodels ??= new List<IReference>();
+                            aas.Submodels.Add(smr);
 
                                 // event for AAS
                                 this.AddDiaryEntry(aas, new DiaryEntryStructChange());
@@ -1480,7 +1491,7 @@ namespace AasxPackageLogic
 
             // Identifiable
             this.DisplayOrEditEntityIdentifiable(
-                stack, aas,
+                stack, env, aas,
                 Options.Curr.TemplateIdAas,
                 null);
 
@@ -1868,7 +1879,7 @@ namespace AasxPackageLogic
                         {
                             // from all SMEs
 
-                            var adaptive61360 = 
+                            var adaptive61360 =
                                 this.context?.MessageBoxFlyoutShow(
                                     "Create IEC61360 data specifications and adaptively fill preferredName " +
                                     "and definition by idShort and description attributes?",
@@ -1884,7 +1895,7 @@ namespace AasxPackageLogic
                             Log.Singleton.Info(StoredPrint.Color.Blue, $"Added {res.Item3} CDs to the environment, " +
                                 $"while {res.Item1} invalid semanticIds were present and " +
                                 $"{res.Item2} CDs were already existing.");
-                            
+
                             return new AnyUiLambdaActionRedrawAllElements(
                                         submodel, isExpanded: true);
                         }
@@ -2133,7 +2144,7 @@ namespace AasxPackageLogic
 
                 // Identifiable
                 this.DisplayOrEditEntityIdentifiable(
-                    stack, submodel,
+                    stack, env, submodel,
                     (submodel.Kind == Aas.ModellingKind.Template)
                         ? Options.Curr.TemplateIdSubmodelTemplate
                         : Options.Curr.TemplateIdSubmodelInstance,
@@ -2969,7 +2980,8 @@ namespace AasxPackageLogic
                             if (ks != null)
                             {
                                 // set the semantic id
-                                sme.SemanticId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>(ks));
+                                //Using ModelReference for "Use existing" as this cd is being fetched from model/env
+                                sme.SemanticId = new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>(ks));
 
                                 // if empty take over shortName
                                 var cd = env.FindConceptDescriptionByReference(sme.SemanticId);
@@ -2994,6 +3006,7 @@ namespace AasxPackageLogic
                                 Options.Curr.TemplateIdConceptDescription));
 
                             // store in AAS enviroment
+                            env.ConceptDescriptions ??= new List<IConceptDescription>();
                             env.ConceptDescriptions.Add(cd);
 
                             // go over to ISubmodelElement
@@ -3058,7 +3071,7 @@ namespace AasxPackageLogic
                         if (buttonNdx == 3)
                         {
                             var res = this.ImportCDsFromSmSme(env, sme, recurseChilds: false, repairSemIds: true);
-                            
+
                             if (res.Item1 > 0)
                             {
                                 Log.Singleton.Error("Cannot create CD because no valid semanticId is present " +
@@ -3086,9 +3099,9 @@ namespace AasxPackageLogic
                                     "Create CDs from SMEs",
                                     AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Information);
 
-                            var res = this.ImportCDsFromSmSme(env, sme, recurseChilds: true, repairSemIds: true, 
+                            var res = this.ImportCDsFromSmSme(env, sme, recurseChilds: true, repairSemIds: true,
                                 adaptive61360: adaptive61360);
-                            
+
                             Log.Singleton.Info(StoredPrint.Color.Blue, $"Added {res.Item3} CDs to the environment, " +
                                 $"while {res.Item1} invalid semanticIds were present and " +
                                 $"{res.Item2} CDs were already existing.");
@@ -3834,8 +3847,8 @@ namespace AasxPackageLogic
                     v =>
                     {
                         rng.Min = v as string;
-						this.AddDiaryEntry(rng, new DiaryEntryUpdateValue());
-						return new AnyUiLambdaActionNone();
+                        this.AddDiaryEntry(rng, new DiaryEntryUpdateValue());
+                        return new AnyUiLambdaActionNone();
                     });
 
                 this.AddHintBubble(
@@ -3855,8 +3868,8 @@ namespace AasxPackageLogic
                     v =>
                     {
                         rng.Max = v as string;
-						this.AddDiaryEntry(rng, new DiaryEntryUpdateValue());
-						return new AnyUiLambdaActionNone();
+                        this.AddDiaryEntry(rng, new DiaryEntryUpdateValue());
+                        return new AnyUiLambdaActionNone();
                     });
             }
             else if (sme is Aas.File fl)

@@ -117,13 +117,13 @@ namespace AasxPredefinedConcepts
 
             thePool.IndexDefinitions(AasxPredefinedConcepts.IdtaTechnicalDataV12.Static);
 
-			thePool.IndexDefinitions(AasxPredefinedConcepts.IdtaContactInformationV10.Static);
+            thePool.IndexDefinitions(AasxPredefinedConcepts.IdtaContactInformationV10.Static);
 
             thePool.IndexDefinitions(AasxPredefinedConcepts.IdtaProductChangeNotificationsV10.Static);
 
             thePool.IndexDefinitions(AasxPredefinedConcepts.IdtaHandoverDocumentationV12.Static);
 
-			thePool.IndexDefinitions(AasxPredefinedConcepts.AasEvents.Static);
+            thePool.IndexDefinitions(AasxPredefinedConcepts.AasEvents.Static);
 
 			thePool.IndexDefinitions(AasxPredefinedConcepts.SmtAdditions.Static);
             thePool.IndexDefinitions(AasxPredefinedConcepts.SmtGeneral.Static);
@@ -210,6 +210,6 @@ namespace AasxPredefinedConcepts
                         && dpreid.Id == id)
                         yield return dpre.Ref;
 
-		}
+        }
     }
 }

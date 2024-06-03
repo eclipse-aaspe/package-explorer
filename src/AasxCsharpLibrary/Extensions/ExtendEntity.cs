@@ -7,6 +7,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 using AdminShellNS;
+using AdminShellNS.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,7 +61,7 @@ namespace Extensions
                 return null;
             }
 
-            if (sourceEntity.statements != null)
+            if (!sourceEntity.statements.IsNullOrEmpty())
             {
                 entity.Statements ??= new List<ISubmodelElement>();
                 foreach (var submodelElementWrapper in sourceEntity.statements)
@@ -79,7 +80,10 @@ namespace Extensions
             {
                 //TODO (jtikekar, 0000-00-00): whether to convert to Global or specific asset id
                 var assetRef = ExtensionsUtil.ConvertReferenceFromV20(sourceEntity.assetRef, ReferenceTypes.ExternalReference);
-                entity.GlobalAssetId = assetRef.GetAsIdentifier();
+                if (assetRef != null)
+                {
+                    entity.GlobalAssetId = assetRef.GetAsIdentifier(); 
+                }
             }
 
             return entity;
