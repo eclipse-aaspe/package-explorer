@@ -1992,6 +1992,7 @@ namespace AasxPackageLogic
                 if (topContextMenu)
                 {
                     List<string> contextHeaders = new();
+                    contextHeaders.AddRange(new[] { "\u2205", "Set all \u2192 blank" });
                     contextHeaders.AddRange(new[] { "\u2702", "Delete all" });
 
                     if (addEclassIrdi)
@@ -2028,10 +2029,21 @@ namespace AasxPackageLogic
                                 if (contextHeaders[2 * oi + 1].Contains("clipboard"))
                                     return lambdaClipboard(o);
 
-                                if (contextHeaders[2 * oi + 1].Contains("Delete"))
+                                if (contextHeaders[2 * oi + 1].Contains("Set all")
+                                    || (contextHeaders[2 * oi + 1].Contains("Delete")))
                                 {
                                     // re-init
-                                    keys.Clear();
+                                    if (contextHeaders[2 * oi + 1].Contains("Set all"))
+                                    {
+                                        keys.Clear();
+                                        keys.Add(Options.Curr.GetDefaultEmptyReference()?.Keys?.FirstOrDefault());
+                                    }
+
+                                    if (contextHeaders[2 * oi + 1].Contains("Delete"))
+                                    {
+                                        keys = null;
+                                        setKeysNull?.Invoke();
+                                    }
 
                                     // change to the outside
                                     emitCustomEvent?.Invoke(relatedReferable);

@@ -149,11 +149,27 @@ namespace AasxPackageLogic
         public void QualifierHelper(
             AnyUiStackPanel stack, ModifyRepo repo,
             List<Aas.IQualifier> qualifiers,
+            Action setQualifiersNull = null,
             Aas.IReferable relatedReferable = null,
             AasxMenu superMenu = null)
         {
+            // access
+            if (qualifiers == null)
+                return;
+
             if (editMode)
             {
+                // some hints
+                this.AddHintBubble(
+                stack, hintMode,
+                new[] {
+                    new HintCheck(
+                        () => qualifiers?.IsValid() != true,
+                        "According to the specification, an existing list of elements shall contain " +
+                        "at least one element and for each element all mandatory fields shall be " +
+                        "not empty.")
+                });
+
                 // let the user control the number of references
                 AddActionPanel(
                     stack, "Qualifier entities:",
@@ -186,7 +202,7 @@ namespace AasxPackageLogic
                                 if (presets == null)
                                 {
                                     Log.Singleton.Error(
-                                        $"JSON file for Quialifer presets not defined nor existing ({pfn}).");
+                                        $"JSON file for Qualifier presets not defined nor existing ({pfn}).");
                                     return new AnyUiLambdaActionNone();
                                 }
 
@@ -236,8 +252,14 @@ namespace AasxPackageLogic
                             }
                         }
 
-                        if (buttonNdx == 3 && qualifiers.Count > 0)
-                            qualifiers.RemoveAt(qualifiers.Count - 1);
+                        if (buttonNdx == 3)
+                        {
+                            if (qualifiers.Count > 0)
+                                qualifiers.RemoveAt(qualifiers.Count - 1);
+
+                            if (qualifiers.Count < 1)
+                                setQualifiersNull?.Invoke();
+                        }
 
                         return new AnyUiLambdaActionRedrawEntity();
                     });
@@ -269,6 +291,11 @@ namespace AasxPackageLogic
                             {
                                 case 0:
                                     qualifiers.Remove(qual);
+                                    if (qualifiers.Count < 1)
+                                    {
+                                        qualifiers = null;
+                                        setQualifiersNull?.Invoke();
+                                    }
                                     action = true;
                                     break;
                                 case 1:
@@ -330,16 +357,6 @@ namespace AasxPackageLogic
 
                 // SemanticId
 
-                AddHintBubble(
-                    substack, hintMode,
-                    new[] {
-                        new HintCheck(
-                            () => {
-                                return (qual.SemanticId == null || qual.SemanticId.IsEmpty()) &&
-                                    (qual.Type == null || qual.Type.Trim() == "");
-                            },
-                            "Either a semanticId or a type string specification shall be given!")
-                    });
                 if (SafeguardAccess(
                         substack, repo, qual.SemanticId, "semanticId:", "Create data element!",
                         v =>
@@ -394,6 +411,15 @@ namespace AasxPackageLogic
                 }
 
                 // Type
+                AddHintBubble(
+                    substack, hintMode,
+                    new[] {
+                        new HintCheck(
+                            () => {
+                                return (qual.Type == null || qual.Type.Trim() == "");
+                            },
+                            "Type string specification shall be given!")
+                    });
 
                 AddKeyValueExRef(
                     substack, "type", qual, qual.Type, null, repo,
@@ -1215,6 +1241,17 @@ namespace AasxPackageLogic
             // default
             if (emitCustomEvent == null)
                 emitCustomEvent = (rf) => { this.AddDiaryEntry(rf, new DiaryEntryStructChange()); };
+
+            // some hints
+            this.AddHintBubble(
+                view, hintMode,
+                new[] {
+                    new HintCheck(
+                        () => refkeys != null && refkeys.IsValid() != true,
+                        "According to the specification, an existing list of elements shall contain " +
+                        "at least one element and for each element all mandatory fields shall be " +
+                        "not empty.")
+                });
 
             //
             // extended Front panel
