@@ -130,6 +130,16 @@ namespace Extensions
 
         #region QualifierCollection
 
+        public static bool IsValid(this List<IQualifier> elems)
+        {
+            if (elems == null || elems.Count < 1)
+                return false;
+            foreach (var q in elems)
+                if (q?.Type == null || q.Type.Trim().Length < 1)
+                    return false;
+            return true;
+        }
+
         public static IQualifier FindQualifierOfType(this IEnumerable<IQualifier> qualifiers, string qualifierType)
         {
             if (qualifiers == null || qualifierType == null)

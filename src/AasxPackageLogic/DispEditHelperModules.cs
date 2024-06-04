@@ -1404,13 +1404,15 @@ namespace AasxPackageLogic
                 stack, repo, qualifiers, "Qualifiers:", "Create empty list of Qualifiers!",
                 v =>
                 {
-                    setOutput?.Invoke(new List<Aas.IQualifier>());
+                    setOutput?.Invoke(new List<Aas.IQualifier>(new[] { new Aas.Qualifier("", DataTypeDefXsd.String) }));
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionRedrawEntity();
                 }))
             {
-                this.QualifierHelper(stack, repo, qualifiers, relatedReferable: relatedReferable,
-                        superMenu: superMenu);
+                this.QualifierHelper(
+                    stack, repo, 
+                    qualifiers, () => setOutput(null),
+                    relatedReferable: relatedReferable, superMenu: superMenu);
             }
 
         }
