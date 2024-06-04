@@ -328,18 +328,26 @@ namespace AdminShellNS
             _aasEnv = environment;
         }
 
-        private static IEnumerable<PackageRelationship> FindAllRelationships(Package package, string[] relTypes)
+        private class FindRelTuple
         {
-            foreach (var rt in relTypes)
-                foreach (var x in package.GetRelationshipsByType(rt))
-                    yield return x;
+            public bool Deprecated { get; set; }
+            public PackageRelationship Rel { get; set; }
         }
 
-        private static IEnumerable<PackageRelationship> FindAllRelationships(PackagePart part, string[] relTypes)
+        private static IEnumerable<FindRelTuple> FindAllRelationships(Package package, string[] relTypes)
         {
-            foreach (var rt in relTypes)
-                foreach (var x in part.GetRelationshipsByType(rt))
-                    yield return x;
+            for (int i=0; i<relTypes.Length; i++)
+                foreach (var x in package.GetRelationshipsByType(relTypes[i]))
+                    yield return new FindRelTuple() { Deprecated = ( i > 0 ), Rel = x };
+        }
+
+        private static IEnumerable<FindRelTuple> FindAllRelationships(
+            PackagePart part, string[] relTypes,
+            bool onlyDeprecated = false)
+        {
+            for (int i = (onlyDeprecated ? 1 : 0); i < relTypes.Length; i++)
+                foreach (var x in part.GetRelationshipsByType(relTypes[i]))
+                    yield return new FindRelTuple() { Deprecated = (i > 0), Rel = x };
         }
 
         private static AasCore.Aas3_0.Environment LoadXml(string fn)
@@ -419,10 +427,10 @@ namespace AdminShellNS
                 // get the origin from the package
                 PackagePart originPart = null;
                 foreach (var x in FindAllRelationships(package, relTypesOrigin))
-                    if (x.SourceUri.ToString() == "/")
+                    if (x.Rel.SourceUri.ToString() == "/")
                     {
                         //originPart = package.GetPart(x.TargetUri);
-                        var absoluteURI = PackUriHelper.ResolvePartUri(x.SourceUri, x.TargetUri);
+                        var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                         if (package.PartExists(absoluteURI))
                         {
                             originPart = package.GetPart(absoluteURI);
@@ -439,7 +447,7 @@ namespace AdminShellNS
                 foreach (var x in FindAllRelationships(originPart, relTypesSpec))
                 {
                     //specPart = package.GetPart(x.TargetUri);
-                    var absoluteURI = PackUriHelper.ResolvePartUri(x.SourceUri, x.TargetUri);
+                    var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                     if (package.PartExists(absoluteURI))
                     {
                         specPart = package.GetPart(absoluteURI);
@@ -687,29 +695,6 @@ namespace AdminShellNS
 
                     try
                     {
-                        // dead-csharp off
-                        //// TODO (Michael Hoffmeister, 2020-08-01): use a unified function to create a serializer
-                        //JsonSerializer serializer = new JsonSerializer()
-                        //{
-                        //    NullValueHandling = NullValueHandling.Ignore,
-                        //    ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
-                        //    Formatting = Newtonsoft.Json.Formatting.Indented
-                        //};
-
-                        //var sw = new StreamWriter(s);
-                        //var writer = new JsonTextWriter(sw);
-
-                        //serializer.Serialize(writer, _aasEnv);
-                        //writer.Flush();
-                        //sw.Flush();
-                        //s.Flush();
-
-                        //if (useMemoryStream == null)
-                        //{
-                        //    writer.Close();
-                        //    sw.Close();
-                        //}
-                        // dead-csharp on
                         var jsonWriterOptions = new System.Text.Json.JsonWriterOptions
                         {
                             Indented = true
@@ -788,24 +773,29 @@ namespace AdminShellNS
                     // get the origin from the package
                     PackagePart originPart = null;
                     foreach (var x in FindAllRelationships(package, relTypesOrigin))
-                        if (x.SourceUri.ToString() == "/")
+                        if (x.Rel.SourceUri.ToString() == "/")
                         {
                             //originPart = package.GetPart(x.TargetUri);
                             
-                            var absoluteURI = PackUriHelper.ResolvePartUri(x.SourceUri, x.TargetUri);
+                            var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                             if (package.PartExists(absoluteURI))
                             {
                                 originPart = package.GetPart(absoluteURI);
+
+                                // check if it a deprecated URI
+                                if (x.Deprecated)
+                                {
+                                    //delete old type, because its not according to spec or something
+                                    //then replace with the current type
+                                    package.DeleteRelationship(x.Rel.Id);
+                                    package.CreateRelationship(
+                                        originPart.Uri, TargetMode.Internal,
+                                        relTypesOrigin.FirstOrDefault());
+                                    originPart = null;
+                                    break;
+                                }
                             }
-                            //delete old type, because its not according to spec or something
-                            //then replace with the current type
-                            package.DeleteRelationship(x.Id);
-                            package.CreateRelationship(
-                                originPart.Uri, TargetMode.Internal,
-                                "http://admin-shell.io/aasx/relationships/aasx-origin");
-                            originPart = null;
-                            break;
-                        }
+                        }                    
 
                     // MIHO, 2024-05-29
                     // fix the case, that part exists but is not really associated by a
@@ -837,38 +827,29 @@ namespace AdminShellNS
                     PackageRelationship specRel = null;
                     foreach (var x in FindAllRelationships(originPart, relTypesSpec))
                     {
-                        specRel = x;
+                        specRel = x.Rel;
                         //specPart = package.GetPart(x.TargetUri);
-                        var absoluteURI = PackUriHelper.ResolvePartUri(x.SourceUri, x.TargetUri);
-                        if (package.PartExists(absoluteURI))
-                        {
-                            specPart = package.GetPart(absoluteURI);
-                        }
-                        //delete old type, because its not according to spec or something
-                        //then replace with the current type
-                        originPart.DeleteRelationship(x.Id);
-                        originPart.CreateRelationship(
-                            specPart.Uri, TargetMode.Internal,
-                            "http://admin-shell.io/aasx/relationships/aas-spec");
-                        specPart = null;
-                        specRel = null;
-                        break;
-                    }
-                    xs = originPart.GetRelationshipsByType("http://admin-shell.io/aasx/relationships/aas-spec");
-                    foreach (var x in xs)
-                    {
-                        specRel = x;
-                        //specPart = package.GetPart(x.TargetUri);
-                        var absoluteURI = PackUriHelper.ResolvePartUri(x.SourceUri, x.TargetUri);
+                        var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                         if (package.PartExists(absoluteURI))
                         {
                             specPart = package.GetPart(absoluteURI);
                         }
 
-                        break;
+                        // check if it a deprecated URI
+                        if (x.Deprecated)
+                        {
+                            //delete old type, because its not according to spec or something
+                            //then replace with the current type
+                            package.DeleteRelationship(x.Rel.Id);
+                            package.CreateRelationship(
+                                specPart.Uri, TargetMode.Internal,
+                                relTypesSpec.FirstOrDefault());
+                            specPart = null;
+                            specRel = null;
+                            break;
+                        }
                     }
-
-
+                    
                     // check, if we have to change the spec part
                     if (specPart != null && specRel != null)
                     {
@@ -953,21 +934,18 @@ namespace AdminShellNS
                     //Need to check/test in detail, with thumbnails as well
                     if(specPart != null)
                     {                        
-                        var xs = specPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-suppl");
-                        if(xs != null)
+                        foreach (var x in FindAllRelationships(specPart, relTypesSuppl, onlyDeprecated: true).ToList())
                         {
-                            foreach(var x in xs.ToList())
+                            var uri = x.Rel.TargetUri;
+                            PackagePart filePart = null;
+                            var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
+                            if (package.PartExists(absoluteURI))
                             {
-                                var uri = x.TargetUri;
-                                PackagePart filePart = null;
-                                var absoluteURI = PackUriHelper.ResolvePartUri(x.SourceUri, x.TargetUri);
-                                if (package.PartExists(absoluteURI))
-                                {
-                                    filePart = package.GetPart(absoluteURI);
-                                }
+                                filePart = package.GetPart(absoluteURI);
+
                                 //delete old type, because its not according to spec or something
                                 //then replace with the current type
-                                specPart.DeleteRelationship(x.Id);
+                                specPart.DeleteRelationship(x.Rel.Id);
                                 specPart.CreateRelationship(
                                     filePart.Uri, TargetMode.Internal,
                                     "http://admin-shell.io/aasx/relationships/aas-suppl");
@@ -984,10 +962,10 @@ namespace AdminShellNS
 
                         // normal files
                         foreach (var x in FindAllRelationships(specPart, relTypesSuppl))
-                            if (x.TargetUri == psfDel.Uri)
+                            if (x.Rel.TargetUri == psfDel.Uri)
                             {
                                 // try to delete
-                                specPart.DeleteRelationship(x.Id);
+                                specPart.DeleteRelationship(x.Rel.Id);
                                 package.DeletePart(psfDel.Uri);
                                 found = true;
                                 break;
@@ -995,10 +973,10 @@ namespace AdminShellNS
 
                         // thumbnails
                         foreach (var x in FindAllRelationships(package, relTypesThumb))
-                            if (x.TargetUri == psfDel.Uri)
+                            if (x.Rel.TargetUri == psfDel.Uri)
                             {
                                 // try to delete
-                                package.DeleteRelationship(x.Id);
+                                package.DeleteRelationship(x.Rel.Id);
                                 package.DeletePart(psfDel.Uri);
                                 found = true;
                                 break;
@@ -1031,10 +1009,10 @@ namespace AdminShellNS
                             if (psfAdd.SpecialHandling == AdminShellPackageSupplementaryFile.SpecialHandlingType.None)
                             {
                                 foreach (var x in FindAllRelationships(specPart, relTypesSuppl))
-                                    if (x.TargetUri == psfAdd.Uri)
+                                    if (x.Rel.TargetUri == psfAdd.Uri)
                                     {
                                         //filePart = package.GetPart(x.TargetUri);
-                                        var absoluteURI = PackUriHelper.ResolvePartUri(x.SourceUri, x.TargetUri);
+                                        var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                                         if (package.PartExists(absoluteURI))
                                         {
                                             filePart = package.GetPart(absoluteURI);
@@ -1053,10 +1031,10 @@ namespace AdminShellNS
                                 AdminShellPackageSupplementaryFile.SpecialHandlingType.EmbedAsThumbnail)
                             {
                                 foreach (var x in FindAllRelationships(package, relTypesThumb))
-                                    if (x.SourceUri.ToString() == "/" && x.TargetUri == psfAdd.Uri)
+                                    if (x.Rel.SourceUri.ToString() == "/" && x.Rel.TargetUri == psfAdd.Uri)
                                     {
                                         //filePart = package.GetPart(x.TargetUri);
-                                        var absoluteURI = PackUriHelper.ResolvePartUri(x.SourceUri, x.TargetUri);
+                                        var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                                         if (package.PartExists(absoluteURI))
                                         {
                                             filePart = package.GetPart(absoluteURI);
@@ -1162,6 +1140,7 @@ namespace AdminShellNS
                     string.Format("Could not temporarily close and re-open AASX {0}, because package" +
                     "not open as expected!", Filename)));
 
+            // try-catch for the steps before the lambda
             try
             {
                 // save (it will be open, still)
@@ -1170,7 +1149,17 @@ namespace AdminShellNS
                 // close
                 _openPackage.Flush();
                 _openPackage.Close();
+            }
+            catch (Exception ex)
+            {
+                throw (new Exception(
+                    string.Format("While temporarily close and re-open AASX {0} at {1} gave: {2}",
+                    Filename, AdminShellUtil.ShortLocation(ex), ex.Message)));
+            }
 
+            // try-catch for the lambda
+            try
+            {
                 // execute lambda
                 lambda?.Invoke();
             }
@@ -1186,8 +1175,7 @@ namespace AdminShellNS
                 if (Filename.ToLower().EndsWith(".aasx"))
                 {
                     _openPackage = Package.Open(Filename, FileMode.OpenOrCreate);
-
-                }            
+                }
             }
         }
 
@@ -1464,15 +1452,15 @@ namespace AdminShellNS
             // get the thumbnail over the relationship
             PackagePart thumbPart = null;
             foreach (var x in FindAllRelationships(_openPackage, relTypesThumb))
-                if (x.SourceUri.ToString() == "/")
+                if (x.Rel.SourceUri.ToString() == "/")
                 {
                     //thumbPart = _openPackage.GetPart(x.TargetUri);
-                    var absoluteURI = PackUriHelper.ResolvePartUri(x.SourceUri, x.TargetUri);
+                    var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                     if (_openPackage.PartExists(absoluteURI))
                     {
                         thumbPart = _openPackage.GetPart(absoluteURI);
                     }
-                    thumbUri = x.TargetUri;
+                    thumbUri = x.Rel.TargetUri;
                     break;
                 }
             if (thumbPart == null)
@@ -1517,10 +1505,10 @@ namespace AdminShellNS
             {
                 // get the thumbnail(s) from the package
                 foreach (var x in FindAllRelationships(_openPackage, relTypesThumb))
-                    if (x.SourceUri.ToString() == "/")
+                    if (x.Rel.SourceUri.ToString() == "/")
                     {
                         result.Add(new AdminShellPackageSupplementaryFile(
-                            x.TargetUri,
+                            x.Rel.TargetUri,
                             location: AdminShellPackageSupplementaryFile.LocationType.InPackage,
                             specialHandling: AdminShellPackageSupplementaryFile.SpecialHandlingType.EmbedAsThumbnail));
                     }
@@ -1528,10 +1516,10 @@ namespace AdminShellNS
                 // get the origin from the package
                 PackagePart originPart = null;
                 foreach (var x in FindAllRelationships(_openPackage, relTypesOrigin))
-                    if (x.SourceUri.ToString() == "/")
+                    if (x.Rel.SourceUri.ToString() == "/")
                     {
                         //originPart = _openPackage.GetPart(x.TargetUri);
-                        var absoluteURI = PackUriHelper.ResolvePartUri(x.SourceUri, x.TargetUri);
+                        var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                         if (_openPackage.PartExists(absoluteURI))
                         {
                             originPart = _openPackage.GetPart(absoluteURI);
@@ -1546,7 +1534,7 @@ namespace AdminShellNS
                     foreach (var x in FindAllRelationships(originPart, relTypesSpec))
                     {
                         //specPart = _openPackage.GetPart(x.TargetUri);
-                        var absoluteURI = PackUriHelper.ResolvePartUri(x.SourceUri, x.TargetUri);
+                        var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                         if (_openPackage.PartExists(absoluteURI))
                         {
                             specPart = _openPackage.GetPart(absoluteURI);
@@ -1561,7 +1549,8 @@ namespace AdminShellNS
                         {
                             result.Add(
                                 new AdminShellPackageSupplementaryFile(
-                                    x.TargetUri, location: AdminShellPackageSupplementaryFile.LocationType.InPackage));
+                                    x.Rel.TargetUri, 
+                                    location: AdminShellPackageSupplementaryFile.LocationType.InPackage));
                         }
                     }
                 }
