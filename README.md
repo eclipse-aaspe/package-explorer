@@ -26,9 +26,7 @@
 Eclipse AASX Package Explorer™ is a C# based viewer and editor for the 
 Asset Administration Shell.
 
-![screenshot](
-https://github.com/eclipse-aaspe/package-explorer/raw/master/screenshot.png
-)
+![screenshot](screenshot.png)
 
 To help you familiarize with the concept of Asset Administration Shell and editing an Asset Administration Shell with the AASX Package Explorer
 we provide screencasts (both in English and German) for V2.0 at: 
