@@ -20,15 +20,13 @@
 [![Tag](https://img.shields.io/github/v/tag/eclipse-aaspe/package-explorer)]()
 [![Commit](https://img.shields.io/github/last-commit/eclipse-aaspe/package-explorer)]()
 
-[![Release](https://img.shields.io/github/v/release/eclipse-aaspe/package-explorer?include_prereleases)]()
+[![Release](https://img.shields.io/github/v/release/eclipse-aaspe/package-explorer?include_prereleases)](https://github.com/eclipse-aaspe/package-explorer/releases)
 [![Status](https://img.shields.io/github/checks-status/eclipse-aaspe/package-explorer/v2024-05-08.alpha)]()
 
 Eclipse AASX Package Explorer™ is a C# based viewer and editor for the 
 Asset Administration Shell.
 
-![screenshot](
-https://github.com/eclipse-aaspe/package-explorer/raw/master/screenshot.png
-)
+![screenshot](screenshot.png)
 
 To help you familiarize with the concept of Asset Administration Shell and editing an Asset Administration Shell with the AASX Package Explorer
 we provide screencasts (both in English and German) for V2.0 at: 
