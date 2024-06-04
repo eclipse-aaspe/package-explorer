@@ -113,7 +113,8 @@ namespace AasxPackageLogic
             Aas.IReferable referable,
             int indexPosition,
             DispEditInjectAction injectToIdShort = null,
-            bool hideExtensions = false)
+            bool hideExtensions = false,
+            AasxMenu superMenu = null)
         {
             // access
             if (stack == null || referable == null)
@@ -290,40 +291,6 @@ namespace AasxPackageLogic
                     setNullList: () => referable.Description = null);
             }
 
-            // Checksum
-#if OLD
-            this.AddHintBubble(stack, hintMode, new[] {
-                    new HintCheck(
-                        () => referable.Checksum?.HasContent() == true,
-                        "The Checksum is deprecated. Do not plan to use this information in new developments.",
-                        breakIfTrue: true,
-                        severityLevel: HintCheck.Severity.Notice) });
-            AddKeyValueExRef(
-                stack, "checksum", referable, referable.Checksum, null, repo,
-                v =>
-                {
-                    var dr = new DiaryReference(referable);
-                    referable.Checksum = v as string;
-                    this.AddDiaryEntry(referable, new DiaryEntryStructChange(), diaryReference: dr);
-                    return new AnyUiLambdaActionNone();
-                },
-                auxButtonTitles: new[] { "Generate" },
-                auxButtonToolTips: new[] { "Generate a SHA256 hashcode over this Referable" },
-                auxButtonLambda: (i) =>
-                {
-                    if (i == 0)
-                    {
-                         //checksum= referable.ComputeHashcode();  
-                         //TODO (jtikekar, 0000-00-00): support attributes
-                        this.AddDiaryEntry(referable, new DiaryEntryStructChange());
-                        return new AnyUiLambdaActionRedrawEntity();
-                    }
-
-                    return new AnyUiLambdaActionNone();
-                }
-                );
-#endif
-
             if (!hideExtensions)
             {
 				// before extension, some helpful records
@@ -336,7 +303,7 @@ namespace AasxPackageLogic
 				DisplayOrEditEntityListOfExtension(
                     stack: stack, extensions: referable.Extensions,
                     setOutput: (v) => { referable.Extensions = v; },
-                    relatedReferable: referable);
+                    relatedReferable: referable, superMenu: superMenu);
             }
         }
 
@@ -346,7 +313,8 @@ namespace AasxPackageLogic
             Aas.IReferable referable,
             int indexPosition,
             DispEditInjectAction injectToIdShort = null,
-            bool hideExtensions = false)
+            bool hideExtensions = false,
+            AasxMenu superMenu = null)
         {
             // access
             if (stack == null || referable == null)
@@ -365,7 +333,7 @@ namespace AasxPackageLogic
 			DisplayOrEditEntityListOfExtension(
 				stack: stack, extensions: referable.Extensions,
 				setOutput: (v) => { referable.Extensions = v; },
-				relatedReferable: referable);
+				relatedReferable: referable, superMenu: superMenu);
 		}
 
         //
@@ -375,7 +343,8 @@ namespace AasxPackageLogic
         public void DisplayOrEditEntityListOfExtension(AnyUiStackPanel stack,
             List<Aas.IExtension> extensions,
             Action<List<Aas.IExtension>> setOutput,
-            Aas.IReferable relatedReferable = null)
+            Aas.IReferable relatedReferable = null,
+            AasxMenu superMenu = null)
         {
             // access
             if (stack == null)
@@ -388,12 +357,16 @@ namespace AasxPackageLogic
                 stack, repo, extensions, "extensions:", "Create empty list of Extensions!",
                 v =>
                 {
-                    setOutput?.Invoke(new List<Aas.IExtension>());
+                    setOutput?.Invoke(new List<Aas.IExtension>(new[] { new Aas.Extension("") }));
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionRedrawEntity();
                 }))
             {
-                this.ExtensionHelper(stack, repo, extensions, setOutput, relatedReferable: relatedReferable);
+                this.ExtensionHelper(
+                    stack, repo, 
+                    extensions, 
+                    setOutput, 
+                    relatedReferable: relatedReferable, superMenu: superMenu);
             }
 
         }
@@ -1173,11 +1146,6 @@ namespace AasxPackageLogic
                     stack, hintMode,
                     new[] {
                         new HintCheck(
-                            () => semElem.SemanticId != null && semElem.SemanticId.IsValid() != true,
-                            "According to the specification, an existing list of elements shall contain " +
-                            "at least one element and for each element all mandatory fields shall be " +
-                            "not empty."),
-                        new HintCheck(
                             () => { return semElem.SemanticId == null
                                 || semElem.SemanticId.IsEmpty(); },
                             "Check if you want to add a semantic reference to an external " +
@@ -1292,18 +1260,6 @@ namespace AasxPackageLogic
                     {
                         // lambda
                         var localI = i;
-
-                        // hint?
-                        this.AddHintBubble(
-                            stack, hintMode,
-                            new[] {
-                                new HintCheck(
-                                    () => semElem.SupplementalSemanticIds[i] != null
-                                    && semElem.SupplementalSemanticIds[i].IsValid() != true,
-                                    "According to the specification, an existing list of elements shall contain " +
-                                    "at least one element and for each element all mandatory fields shall be " +
-                                    "not empty.")
-                            });
 
                         // edit field
                         AddKeyReference(

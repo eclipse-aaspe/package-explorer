@@ -1487,7 +1487,8 @@ namespace AasxPackageLogic
             // Referable
             this.DisplayOrEditEntityReferable(
                 env, stack,
-                parentContainer: null, referable: aas, indexPosition: 0);
+                parentContainer: null, referable: aas, indexPosition: 0,
+                superMenu: superMenu);
 
             // Identifiable
             this.DisplayOrEditEntityIdentifiable(
@@ -2140,7 +2141,8 @@ namespace AasxPackageLogic
                 this.DisplayOrEditEntityReferable(
                     env, stack,
                     parentContainer: null, referable: submodel, indexPosition: 0,
-                    hideExtensions: true);
+                    hideExtensions: true,
+                    superMenu: superMenu);
 
                 // Identifiable
                 this.DisplayOrEditEntityIdentifiable(
@@ -2236,7 +2238,7 @@ namespace AasxPackageLogic
 				this.DisplayOrEditEntityReferableContinue(
 					env, stack,
 					parentContainer: null, referable: submodel, indexPosition: 0,
-					hideExtensions: true);
+					hideExtensions: true, superMenu: superMenu);
 
 			}
 
@@ -2315,6 +2317,7 @@ namespace AasxPackageLogic
                     env, stack, parentContainer: parentContainer, referable: cd,
                     indexPosition: 0,
                     hideExtensions: hideExtensions,
+                    superMenu: superMenu,
                     injectToIdShort: new DispEditHelperModules.DispEditInjectAction(
                         new[] { "Sync" },
                         new[] { "Copy (if target is empty) idShort to preferredName and SubmodelElement idShort." },
@@ -2532,7 +2535,7 @@ namespace AasxPackageLogic
 				DisplayOrEditEntityListOfExtension(
 	                stack: stack, extensions: cd.Extensions,
 	                setOutput: (v) => { cd.Extensions = v; },
-	                relatedReferable: cd);
+	                relatedReferable: cd, superMenu: superMenu);
 
 				lambdaEDS(true);
 			}
@@ -2545,7 +2548,7 @@ namespace AasxPackageLogic
 				DisplayOrEditEntityListOfExtension(
 					stack: stack, extensions: cd.Extensions,
 					setOutput: (v) => { cd.Extensions = v; },
-					relatedReferable: cd);
+					relatedReferable: cd, superMenu: superMenu);
 
 				lambdaEDS(false);
                 lambdaSammExt();
@@ -3465,6 +3468,7 @@ namespace AasxPackageLogic
                     env, stack,
                     parentContainer: parentContainer, referable: sme, indexPosition: indexPosition,
                     hideExtensions: true,
+                    superMenu: superMenu,
                     injectToIdShort: new DispEditHelperModules.DispEditInjectAction(
                         auxTitles: new[] { "Sync" },
                         auxToolTips: new[] { "Copy (if target is empty) idShort " +
@@ -3524,7 +3528,7 @@ namespace AasxPackageLogic
 				this.DisplayOrEditEntityReferableContinue(
 					env, stack,
 					parentContainer: null, referable: sme, indexPosition: 0,
-					hideExtensions: true);
+					hideExtensions: true, superMenu: superMenu);
 
 				//
 				// ConceptDescription <- via semantic ID ?!
