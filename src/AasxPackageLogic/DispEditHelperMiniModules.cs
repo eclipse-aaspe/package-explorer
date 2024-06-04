@@ -256,8 +256,7 @@ namespace AasxPackageLogic
                         {
                             if (qualifiers.Count > 0)
                                 qualifiers.RemoveAt(qualifiers.Count - 1);
-
-                            if (qualifiers.Count < 1)
+                            else
                                 setQualifiersNull?.Invoke();
                         }
 
@@ -852,7 +851,8 @@ namespace AasxPackageLogic
             AnyUiStackPanel stack, ModifyRepo repo,
             List<Aas.IExtension> extensions,
             Action<List<Aas.IExtension>> setOutput,
-            Aas.IReferable relatedReferable = null)
+            Aas.IReferable relatedReferable = null,
+            AasxMenu superMenu = null)
         {
             // access
             if (extensions == null)
@@ -861,12 +861,32 @@ namespace AasxPackageLogic
             // header
             if (editMode)
             {
+                // some hints
+                this.AddHintBubble(
+                stack, hintMode,
+                new[] {
+                    new HintCheck(
+                        () => extensions?.IsValid() != true,
+                        "According to the specification, an existing list of elements shall contain " +
+                        "at least one element and for each element all mandatory fields shall be " +
+                        "not empty.")
+                });
+
                 // let the user control the number of elements
                 AddActionPanel(
                     stack, "Extension entities:",
-                    new[] { "Add blank", "Add preset", "Add from clipboard", "Delete last" },
-                    repo,
-                    (buttonNdx) =>
+                    repo: repo,
+                    superMenu: superMenu,
+                    ticketMenu: new AasxMenu()
+                        .AddAction("extension-blank", "Add blank",
+                            "Adds an empty extension.")
+                        .AddAction("extension-preset", "Add preset",
+                            "Adds an extension given from the list of presets.")
+                        .AddAction("extension-clipboard", "Add from clipboard",
+                            "Adds an extension from parsed clipboard data (JSON).")
+                        .AddAction("extension-del", "Delete last",
+                            "Deletes last extension in the list."),
+                    ticketAction: (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
                         {
@@ -972,6 +992,11 @@ namespace AasxPackageLogic
                             {
                                 case 0:
                                     extensions.Remove(extension);
+                                    if (extensions.Count < 1)
+                                    {
+                                        extensions = null;
+                                        setOutput?.Invoke(null);
+                                    }
                                     action = true;
                                     break;
                                 case 1:
@@ -1097,17 +1122,6 @@ namespace AasxPackageLogic
                         //TODO (jtikekar, 0000-00-00): change
                         comboBoxItems: ExtendStringification.DataTypeXsdToStringArray().ToArray(),
                         comboBoxMinWidth: 190,
-                        // dead-csharp off
-                        //new string[] {
-                        //"anyURI", "base64Binary",
-                        //"boolean", "date", "dateTime",
-                        //"dateTimeStamp", "decimal", "integer", "long", "int", "short", "byte", "nonNegativeInteger",
-                        //"positiveInteger",
-                        //"unsignedLong", "unsignedInt", "unsignedShort", "unsignedByte",
-                        //"nonPositiveInteger", "negativeInteger",
-                        //"double", "duration",
-                        //"dayTimeDuration", "yearMonthDuration", "float", "hexBinary", "string", "langString", "time" },
-                        // dead-csharp on
                         setValue: v =>
                         {
                             var vt = Aas.Stringification.DataTypeDefXsdFromString((string)v);
@@ -1151,7 +1165,9 @@ namespace AasxPackageLogic
                             substack, this.repo, extension.RefersTo, "refersTo:", "Create data element!",
                             v =>
                             {
-                                extension.RefersTo = new List<IReference>() { new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>()) };
+                                extension.RefersTo = new List<IReference>() { 
+                                    Options.Curr.GetDefaultEmptyReference(), 
+                                };
                                 this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                                 return new AnyUiLambdaActionRedrawEntity();
                             }))
@@ -1168,7 +1184,7 @@ namespace AasxPackageLogic
                                     {
                                         if (extension.RefersTo == null)
                                             extension.RefersTo = new List<IReference>();
-                                        extension.RefersTo.Add(new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>()));
+                                        extension.RefersTo.Add(Options.Curr.GetDefaultEmptyReference());
                                     }
 
                                     if (buttonNdx == 1 && extension.RefersTo != null)
