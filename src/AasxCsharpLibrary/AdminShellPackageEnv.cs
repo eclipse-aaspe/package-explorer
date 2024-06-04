@@ -788,9 +788,10 @@ namespace AdminShellNS
                                     //delete old type, because its not according to spec or something
                                     //then replace with the current type
                                     package.DeleteRelationship(x.Rel.Id);
-                                    package.CreateRelationship(
-                                        originPart.Uri, TargetMode.Internal,
-                                        relTypesOrigin.FirstOrDefault());
+                                    package.DeletePart(absoluteURI);
+                                    //package.CreateRelationship(
+                                    //    originPart.Uri, TargetMode.Internal,
+                                    //    relTypesOrigin.FirstOrDefault());
                                     originPart = null;
                                     break;
                                 }
@@ -833,20 +834,21 @@ namespace AdminShellNS
                         if (package.PartExists(absoluteURI))
                         {
                             specPart = package.GetPart(absoluteURI);
-                        }
 
-                        // check if it a deprecated URI
-                        if (x.Deprecated)
-                        {
-                            //delete old type, because its not according to spec or something
-                            //then replace with the current type
-                            package.DeleteRelationship(x.Rel.Id);
-                            package.CreateRelationship(
-                                specPart.Uri, TargetMode.Internal,
-                                relTypesSpec.FirstOrDefault());
-                            specPart = null;
-                            specRel = null;
-                            break;
+                            // check if it a deprecated URI
+                            if (x.Deprecated)
+                            {
+                                //delete old type, because its not according to spec or something
+                                //then replace with the current type
+                                package.DeleteRelationship(x.Rel.Id);
+                                package.DeletePart(absoluteURI);
+                                //package.CreateRelationship(
+                                //    specPart.Uri, TargetMode.Internal,
+                                //    relTypesSpec.FirstOrDefault());
+                                specPart = null;
+                                specRel = null;
+                                break;
+                            }
                         }
                     }
                     
@@ -886,6 +888,13 @@ namespace AdminShellNS
                         else
                             aas_spec_fn += ".xml";
                         aas_spec_fn = aas_spec_fn.Replace("#", "" + frn);
+
+                        // new: make sure the part is not existing anymore
+                        var aas_spec_uri = new Uri(aas_spec_fn, UriKind.RelativeOrAbsolute);
+                        if (package.PartExists(aas_spec_uri))
+                            package.DeletePart(aas_spec_uri);
+
+                        // now create
                         specPart = package.CreatePart(
                             new Uri(aas_spec_fn, UriKind.RelativeOrAbsolute),
                             System.Net.Mime.MediaTypeNames.Text.Xml, CompressionOption.Maximum);
@@ -948,7 +957,7 @@ namespace AdminShellNS
                                 specPart.DeleteRelationship(x.Rel.Id);
                                 specPart.CreateRelationship(
                                     filePart.Uri, TargetMode.Internal,
-                                    "http://admin-shell.io/aasx/relationships/aas-suppl");
+                                    relTypesSuppl.FirstOrDefault());
                             }
                         }
                     }
