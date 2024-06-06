@@ -1177,7 +1177,7 @@ namespace AasxPackageLogic
         {
             if (that != null)
             {
-                that = (IOperationVariable)Transform(that);
+                that.Value = (ISubmodelElement)Transform(that.Value);
             }
             return that;
         }
