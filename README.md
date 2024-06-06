@@ -55,7 +55,8 @@ If you want to request new features or report bugs, please
 
 ## Contributing
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for instructions on joining the development and general contribution guidelines.
+Please see [CONTRIBUTING](CONTRIBUTING.md) for instructions on joining the development and general contribution guidelines. 
+For a complete list of all contributing individuals and companies, please visit our [CONTRIBUTORS](CONTRIBUTORS.md) page.
 
 ## Documentation
 

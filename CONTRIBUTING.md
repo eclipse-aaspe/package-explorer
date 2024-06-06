@@ -96,11 +96,14 @@ tbd:
 
 Mechanics of how to actually contribute (e.g., merge/pull requests) are described in [AASX Project Explorer Devdoc](https://admin-shell-io.github.io/aasx-package-explorer/devdoc/getting-started/intro.html).
 
-To help you familiarize with the concept of Asset Administration Shell we provide the screencasts (both in English and German) at: https://admin-shell-io.com/screencasts/.
+To help you familiarize with the concept of Asset Administration Shell, we provide screencasts (both in English and German) at: https://admin-shell-io.com/screencasts/.
 
 For further information about the Asset Administration Shell, see the publication Details of the Asset Administration Shell by Plattform Industrie 4.0.
 
-We provide a couple of sample admin shells (packaged as .aasx) for you to test and play with the software at: http://www.admin-shell-io.com/samples/
+We provide a couple of sample admin shells (packaged as .aasx) for you to test and play with the software at: http://www.admin-shell-io.com/samples/.
+
+For a complete list of all contributing individuals and companies, please visit our [CONTRIBUTORS](CONTRIBUTORS.md) page.
+
 
 ### Terms of Use
 
