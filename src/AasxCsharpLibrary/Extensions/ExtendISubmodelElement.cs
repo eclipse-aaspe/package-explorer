@@ -605,6 +605,28 @@ namespace Extensions
 
         #region List<ISubmodelElement>
 
+        public static int Replace(
+                this List<ISubmodelElement> submodelElements, 
+                ISubmodelElement oldElem, ISubmodelElement newElem)
+        {
+            var ndx = submodelElements.IndexOf(oldElem);
+            if (ndx < 0)
+                return -1;
+            submodelElements[ndx] = newElem;
+            return ndx;
+        }
+
+        public static int Replace(
+                this List<IDataElement> submodelElements,
+                IDataElement oldElem, IDataElement newElem)
+        {
+            var ndx = submodelElements.IndexOf(oldElem);
+            if (ndx < 0)
+                return -1;
+            submodelElements[ndx] = newElem;
+            return ndx;
+        }
+
         public static IReferable FindReferableByReference(
                 this List<ISubmodelElement> submodelElements, Reference rf, int keyIndex)
         {

@@ -1379,7 +1379,10 @@ namespace AasxPackageExplorer
                     DisplayElements.ExpandAllItems();
 
                     // now: search
-                    DisplayElements.TrySelectMainDataObject(wish.NextFocus, wish.IsExpanded);
+                    // MIHO 24-06-09: add dereferenced object to find operation vars, submodelrefs?
+                    DisplayElements.TrySelectMainDataObject(
+                        wish.NextFocus, wish.IsExpanded,
+                        alsoDereferenceObjects: true);
                 }
 
                 // fake selection

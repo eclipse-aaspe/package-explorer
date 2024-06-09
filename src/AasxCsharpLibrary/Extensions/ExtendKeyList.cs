@@ -21,6 +21,12 @@ namespace Extensions
             return keys.Count < 1;
         }
 
+        public static bool IsOneBlank(this List<IKey> keys)
+        {
+            return keys.Count == 1
+                && keys[0].Value?.HasContent() != true;
+        }
+
         public static bool Matches(this List<IKey> keys, List<IKey> other, MatchMode matchMode = MatchMode.Strict)
         {
             if (other == null || other.Count != keys.Count)

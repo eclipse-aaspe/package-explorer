@@ -395,10 +395,13 @@ namespace AasxPackageExplorer
             _selectedItems.Clear();
         }
 
-        public bool TrySelectMainDataObject(object dataObject, bool? wishExpanded)
+        public bool TrySelectMainDataObject(
+            object dataObject, bool? wishExpanded,
+            bool alsoDereferenceObjects = false)
         {
             // access?
-            var ve = SearchVisualElementOnMainDataObject(dataObject);
+            var ve = SearchVisualElementOnMainDataObject(dataObject, 
+                alsoDereferenceObjects: alsoDereferenceObjects);
             if (ve == null)
                 return false;
 

@@ -31,6 +31,13 @@ namespace Extensions
             return true;
         }
 
+        public static bool IsOneBlank(this IReference reference)
+        {
+            return reference != null 
+                && reference.Type == ReferenceTypes.ExternalReference
+                && reference.Keys?.IsOneBlank() == true;
+        }
+
         public static bool IsValid(this List<IReference> references)
         {
             bool isValid = false;

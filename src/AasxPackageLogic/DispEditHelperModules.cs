@@ -217,7 +217,7 @@ namespace AasxPackageLogic
                         "Consider having Display name in multiple langauges.",
                         severityLevel: HintCheck.Severity.Notice)
             });
-            if (this.SafeguardAccess(stack, repo, referable.DisplayName, "displayName:", "Create data element!", v =>
+            if (this.SafeguardAccess(stack, repo, referable.DisplayName, "displayName:", "Create w/ default!", v =>
             {
                 referable.DisplayName = ExtendILangStringNameType.CreateFrom(
                     lang: AdminShellUtil.GetDefaultLngIso639(), text: "");
@@ -272,7 +272,7 @@ namespace AasxPackageLogic
                         "Consider having description in multiple langauges.",
                         severityLevel: HintCheck.Severity.Notice)
             });
-            if (this.SafeguardAccess(stack, repo, referable.Description, "description:", "Create data element!", v =>
+            if (this.SafeguardAccess(stack, repo, referable.Description, "description:", "Create w/ default!", v =>
             {
                 referable.Description = ExtendILangStringTextType.CreateFrom(
                     lang: AdminShellUtil.GetDefaultLngIso639(), text: "");
@@ -359,7 +359,7 @@ namespace AasxPackageLogic
             this.AddGroup(stack, "HasExtension:", levelColors.SubSection);
 
             if (this.SafeguardAccess(
-                stack, repo, extensions, "extensions:", "Create empty list of Extensions!",
+                stack, repo, extensions, "extensions:", "Create w/ default!",
                 v =>
                 {
                     setOutput?.Invoke(new List<Aas.IExtension>(new[] { new Aas.Extension("") }));
@@ -607,10 +607,14 @@ namespace AasxPackageLogic
                     breakIfTrue: true,
                     severityLevel: HintCheck.Severity.Notice) });
             if (this.SafeguardAccess(
-                    stack, this.repo, hasDataSpecification, "DataSpecification:", "Create data element!",
+                    stack, this.repo, hasDataSpecification, "DataSpecification:", "Create w/ default!",
                     v =>
                     {
-                        setOutput?.Invoke(new List<Aas.IEmbeddedDataSpecification>());
+                        setOutput?.Invoke(new List<Aas.IEmbeddedDataSpecification>(new[] { 
+                            new Aas.EmbeddedDataSpecification(
+                                dataSpecification: Options.Curr.GetDefaultEmptyReference(),
+                                dataSpecificationContent: new DataSpecificationBlank()) 
+                        }));
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
             {
@@ -632,8 +636,8 @@ namespace AasxPackageLogic
                             if (buttonNdx == 0)
                                 hasDataSpecification.Add(
                                     new Aas.EmbeddedDataSpecification(
-                                        new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>()),
-                                        null));
+                                        dataSpecification: Options.Curr.GetDefaultEmptyReference(),
+                                        dataSpecificationContent: new DataSpecificationBlank()));
 
                             if (buttonNdx == 1)
                             {
@@ -660,14 +664,19 @@ namespace AasxPackageLogic
                                     if (uc.Result && uc.ResultItem?.Tag is DataSpecPreset preset
                                         && preset.value != null)
                                     {
+                                        // if hasDataSpecification is actually containing only one
+                                        // "blank" reference, replace this
+                                        if (hasDataSpecification.IsOneBlank())
+                                            hasDataSpecification.RemoveAt(0);
+
                                         hasDataSpecification.Add(
                                             new Aas.EmbeddedDataSpecification(
-                                                new Aas.Reference(
+                                                dataSpecification: new Aas.Reference(
                                                     Aas.ReferenceTypes.ExternalReference,
                                                     new Aas.IKey[] {
                                                         new Aas.Key(KeyTypes.GlobalReference, preset.value) }
                                                     .ToList()),
-                                            null));
+                                                dataSpecificationContent: new DataSpecificationBlank()));
                                     }
                                 }
                                 catch (Exception ex)
@@ -681,7 +690,7 @@ namespace AasxPackageLogic
                             {
                                 if (hasDataSpecification.Count > 0)
                                     hasDataSpecification.RemoveAt(hasDataSpecification.Count - 1);
-                                else
+                                if (hasDataSpecification.Count < 1)
                                     setOutput?.Invoke(null);
                             }
 
@@ -693,29 +702,8 @@ namespace AasxPackageLogic
                 // now use the normal mechanism to deal with editMode or not ..
                 if (hasDataSpecification != null && hasDataSpecification.Count > 0)
                 {
-                    // dead-csharp off
-                    //TODO (jtikekar, 0000-00-00): refactor
-                    // MIHO: is this at all required?
-                    //List<string>[] presetKeys = new List<string>[addPresetKeyLists.Length];
-                    //for (int j = 0; j < addPresetKeyLists.Length; j++)
-                    //{
-                    //    List<string> keys = new List<string>();
-                    //    foreach(var key in addPresetKeyLists[j])
-                    //    {
-                    //        keys.Add(key.Value);
-                    //    }
-                    //    presetKeys[j] = keys;
-                    //}
-
                     for (int i = 0; i < hasDataSpecification.Count; i++)
                     {
-                        //List<string> keys = new List<string>();
-                        //foreach (var key in hasDataSpecification[i].DataSpecification.Keys)
-                        //{
-                        //    keys.Add(key.Value);
-                        //}
-                        // if (hasDataSpecification[i].DataSpecification != null)
-                        // dead-csharp on
                         int currentI = i;
                         if (this.SafeguardAccess(
                             stack, this.repo, hasDataSpecification[i].DataSpecification,
@@ -723,14 +711,23 @@ namespace AasxPackageLogic
                             v =>
                             {
                                 hasDataSpecification[currentI].DataSpecification =
-                                new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                                    Options.Curr.GetDefaultEmptyReference();
+                                if (hasDataSpecification[currentI].DataSpecificationContent == null)
+                                    hasDataSpecification[currentI].DataSpecificationContent = 
+                                        new DataSpecificationBlank();
                                 return new AnyUiLambdaActionRedrawEntity();
                             }))
                         {
                             this.AddKeyReference(
                             stack, String.Format("dataSpec.[{0}]", i),
                             hasDataSpecification[i].DataSpecification,
-                            () => hasDataSpecification[i].DataSpecification = null,
+                            () =>
+                            {
+                                if (currentI >= 0 && currentI <= hasDataSpecification.Count)
+                                    hasDataSpecification.RemoveAt(currentI);
+                                if (hasDataSpecification.Count < 1)
+                                    setOutput?.Invoke(null);
+                            },
                             repo, packages, PackageCentral.PackageCentral.Selector.MainAux,
                             addExistingEntities: null /* "All" */,
                             addPresetNames: addPresetNames, addPresetKeyLists: addPresetKeyLists,
@@ -743,6 +740,8 @@ namespace AasxPackageLogic
                                 {
                                     if (currentI >= 0 && currentI <= hasDataSpecification.Count)
                                         hasDataSpecification.RemoveAt(currentI);
+                                    if (hasDataSpecification.Count < 1)
+                                        setOutput?.Invoke(null);
                                     return new AnyUiLambdaActionRedrawEntity();
                                 }
                                 return new AnyUiLambdaActionNone();
@@ -814,8 +813,8 @@ namespace AasxPackageLogic
                             if (buttonNdx == 0)
                                 hasDataSpecification.Add(
                                     new Aas.EmbeddedDataSpecification(
-                                        new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>()),
-                                        null));
+                                        dataSpecification: Options.Curr.GetDefaultEmptyReference(),
+                                        dataSpecificationContent: new DataSpecificationBlank()));
 
                             if (buttonNdx == 1)
                                 hasDataSpecification.Add(
@@ -1174,10 +1173,9 @@ namespace AasxPackageLogic
 
             // add the keys
             if (this.SafeguardAccess(
-                    stack, repo, semElem.SemanticId, "semanticId:", "Create data element!",
+                    stack, repo, semElem.SemanticId, "semanticId:", "Create w/ default!",
                     v =>
                     {
-                        // semElem.SemanticId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
                         semElem.SemanticId = Options.Curr.GetDefaultEmptyReference();
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
@@ -1227,7 +1225,7 @@ namespace AasxPackageLogic
                     breakIfTrue: true,
                     severityLevel: HintCheck.Severity.Notice) });
             if (this.SafeguardAccess(
-                    stack, this.repo, semElem.SupplementalSemanticIds, "supplementalSem.Id:", "Create data element!",
+                    stack, this.repo, semElem.SupplementalSemanticIds, "supplementalSem.Id:", "Create w/ default!",
                     action: v =>
                     {
                         semElem.SupplementalSemanticIds = new List<Aas.IReference>();
@@ -1357,7 +1355,7 @@ namespace AasxPackageLogic
                 });
 
             if (this.SafeguardAccess(
-                stack, repo, qualifiers, "Qualifiers:", "Create empty list of Qualifiers!",
+                stack, repo, qualifiers, "Qualifiers:", "Create w/ default!",
                 v =>
                 {
                     setOutput?.Invoke(new List<Aas.IQualifier>(new[] { new Aas.Qualifier("", DataTypeDefXsd.String) }));

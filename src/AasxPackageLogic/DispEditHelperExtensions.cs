@@ -1054,6 +1054,28 @@ namespace AasxPackageLogic
 			// members
 			this.AddGroup(stack, "Known extensions \u00ab experimental \u00bb :", levelColors.MainSection);
 
+			// lambda to be used twice
+			Func<int, Aas.IExtension> createExt = (i) =>
+			{
+				if (i == 0)
+				{
+                    var newSet = new SmtAttributeRecord();
+                    return new Aas.Extension(
+						name: newSet.GetSelfName(),
+						semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
+							(new[] {
+								new Aas.Key(KeyTypes.GlobalReference,
+								"" + newSet.GetSelfUri())
+							})
+							.Cast<Aas.IKey>().ToList()),
+						value: "");
+				}
+
+				// this shall not happen!
+				return null;
+            };
+
+			// hints
 			this.AddHintBubble(
 				stack, hintMode,
 				new[] {
@@ -1066,11 +1088,19 @@ namespace AasxPackageLogic
 						breakIfTrue: true, severityLevel: HintCheck.Severity.Notice),
 				});
 			if (this.SafeguardAccess(
-					stack, this.repo, extension, "Known extensions:", "Create data element!",
-					v =>
+					stack, this.repo, extension, "Known extensions:",
+					superMenu: superMenu,
+					ticketMenu: new AasxMenu()
+						.AddAction("create-smt-attributes", "Create w/ SMT attributes",
+							"Creates list of extensions with SMT attributes already added."),
+					ticketAction: (buttonNdx, ticket) =>
 					{
-						setOutput?.Invoke(new List<Aas.IExtension>());
-						return new AnyUiLambdaActionRedrawEntity();
+						if (buttonNdx == 0)
+						{
+							setOutput?.Invoke(new List<Aas.IExtension>(new[] { createExt(0) }));
+							return new AnyUiLambdaActionRedrawEntity();
+						}
+						return new AnyUiLambdaActionNone();
 					}))
 			{
 				// head control
@@ -1088,29 +1118,14 @@ namespace AasxPackageLogic
 						ticketAction: (buttonNdx, ticket) =>
 						{
 							if (buttonNdx == 0)
-							{							
-								// new
-								var newSet = new SmtAttributeRecord();
-
-								// now add
-								extension.Add(
-									new Aas.Extension(
-										name: newSet.GetSelfName(),
-										semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
-											(new[] {
-												new Aas.Key(KeyTypes.GlobalReference,
-												"" + newSet.GetSelfUri())
-											})
-											.Cast<Aas.IKey>().ToList()),
-										value: ""));
-							}
+								extension.Add(createExt(0));
 							
 							// remove
 							if (buttonNdx == 1)
 							{
 								if (extension.Count > 0)
 									extension.RemoveAt(extension.Count - 1);
-								else
+								if (extension.Count < 1)
 									setOutput?.Invoke(null);
 							}
 

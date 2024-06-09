@@ -2649,7 +2649,7 @@ namespace AasxPackageLogic
                     {
                         this.EntityListUpDownDeleteHelper<Aas.IOperationVariable>(
                                 stack, repo,
-                                operation.InputVariables,
+                                operation.InoutputVariables,
                                 ov, env, "OperationVariable:");
                     }
                 }
@@ -2698,14 +2698,18 @@ namespace AasxPackageLogic
                                         en = this.SelectAdequateEnum(
                                             "Select SubmodelElement to create ..",
                                             excludeValues: new[] {
-                                                Aas.AasSubmodelElements.Operation });
+                                                Aas.AasSubmodelElements.DataElement,
+                                                Aas.AasSubmodelElements.EventElement,
+                                                Aas.AasSubmodelElements.Operation 
+                                            });
 
                                     // ok?
                                     if (en != Aas.AasSubmodelElements.SubmodelElement)
                                     {
                                         // create
                                         Aas.ISubmodelElement sme2 =
-                                            AdminShellUtil.CreateSubmodelElementFromEnum(en);
+                                            AdminShellUtil.CreateSubmodelElementFromEnum(en,
+                                                defaultHelper: Options.Curr.GetCreateDefaultHelper());
 
                                         // add
                                         var smw = sme2;
@@ -2731,6 +2735,7 @@ namespace AasxPackageLogic
 
                     if (editMode)
                     {
+#if __old_violates_spec
                         this.AddActionPanel(stack, "value:",
                             repo: repo, superMenu: superMenu,
                             ticketMenu: new AasxMenu()
@@ -2753,6 +2758,7 @@ namespace AasxPackageLogic
                                     }
                                 return new AnyUiLambdaActionNone();
                             });
+#endif
 
                         this.AddHintBubble(stack, hintMode, new[] {
                             new HintCheck(
@@ -2915,8 +2921,7 @@ namespace AasxPackageLogic
                                 if (refactorSme != null && parMgr != null)
                                 {
                                     // open heart surgery: change in parent container accepted
-                                    parMgr.Remove(sme);
-                                    parMgr.Add(refactorSme);
+                                    parMgr.Replace(sme, refactorSme);
 
                                     // notify event
                                     this.AddDiaryEntry(sme,
@@ -3296,33 +3301,77 @@ namespace AasxPackageLogic
                                     "Please check, which in- and out-variables are required.",
                                 severityLevel: HintCheck.Severity.Notice)
                         });
-                    AddActionPanel(
+
+                    // add
+                    this.AddActionPanel(
                         substack, "OperationVariable:",
                         repo: repo, superMenu: superMenu,
                         ticketMenu: new AasxMenu()
-                            .AddAction("operation-add", "Add",
-                                "Adds an empty operation variable to the selected operation variable(s).")
+                            .AddAction("add-prop", "Add Property",
+                                "Adds a new Property to the containing collection.")
+                            .AddAction("add-mlp", "Add MultiLang.Prop.",
+                                "Adds a new MultiLanguageProperty to the containing collection.")
+                            .AddAction("add-smc", "Add Collection",
+                                "Adds a new SubmodelElementCollection to the containing collection.")
+                            .AddAction("add-named", "Add other ..",
+                                "Adds a selected kind of SubmodelElement to the containing collection.",
+                                args: new AasxMenuListOfArgDefs()
+                                    .Add("Kind", "Name (not abbreviated) of kind of SubmodelElement.")),
+                        ticketAction: (buttonNdx, ticket) =>
+                        {
+                            if (buttonNdx >= 0 && buttonNdx <= 3)
+                            {
+                                // which adequate type?
+                                var en = Aas.AasSubmodelElements.SubmodelElement;
+                                if (buttonNdx == 0)
+                                    en = Aas.AasSubmodelElements.Property;
+                                if (buttonNdx == 1)
+                                    en = Aas.AasSubmodelElements.MultiLanguageProperty;
+                                if (buttonNdx == 2)
+                                    en = Aas.AasSubmodelElements.SubmodelElementCollection;
+                                if (buttonNdx == 3)
+                                    en = this.SelectAdequateEnum(
+                                        "Select SubmodelElement to create ..",
+                                        excludeValues: new[] {
+                                            Aas.AasSubmodelElements.DataElement,
+                                            Aas.AasSubmodelElements.EventElement,
+                                            Aas.AasSubmodelElements.Operation
+                                        });
+
+                                // ok?
+                                if (en != Aas.AasSubmodelElements.SubmodelElement)
+                                {
+                                    // create SME
+                                    var sme2 =
+                                        AdminShellUtil.CreateSubmodelElementFromEnum(en,
+                                            defaultHelper: Options.Curr.GetCreateDefaultHelper());
+
+                                    // prepare
+                                    ovl ??= new List<Aas.IOperationVariable>();
+                                    var ov = new Aas.OperationVariable(sme2);
+                                    ovl.Add(ov);
+                                    smo.SetVars(dir, ovl);
+
+                                    // emit event
+                                    this.AddDiaryEntry(smo, new DiaryEntryStructChange());
+
+                                    // redraw
+                                    return new AnyUiLambdaActionRedrawAllElements(nextFocus: ov);
+                                }
+                            }
+                            return new AnyUiLambdaActionNone();
+                        });
+
+                    // Buffer
+                    AddActionPanel(
+                        substack, "Buffer:",
+                        repo: repo, superMenu: superMenu,
+                        ticketMenu: new AasxMenu()
                             .AddAction("operation-paste", "Paste into",
                                 "Pastes an SubmodelElement from the paste buffer into the operation variable(s)."),
                         ticketAction: (buttonNdx, ticket) =>
                         {
-                            if (buttonNdx == 0)
-                            {
-                                // prepare
-                                //TODO (jtikekar, 0000-00-00): not a good solution to add null SME
-                                ovl ??= new List<Aas.IOperationVariable>();
-                                var ov = new Aas.OperationVariable(null);
-                                ovl.Add(ov);
-                                smo.SetVars(dir, ovl);
-
-                                // emit event
-                                this.AddDiaryEntry(smo, new DiaryEntryStructChange());
-
-                                // redraw
-                                return new AnyUiLambdaActionRedrawAllElements(nextFocus: ov);
-                            }
-
-                            if (buttonNdx == 1
+                            if (buttonNdx == 0
                                 && this.theCopyPaste?.Valid == true
                                 && this.theCopyPaste.Items != null
                                 && this.theCopyPaste.Items.AllOfElementType<CopyPasteItemSME>())
@@ -3699,7 +3748,7 @@ namespace AasxPackageLogic
                         stack, repo, p.ValueId, "valueId:", "Create data element!",
                         v =>
                         {
-                            p.ValueId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                            p.ValueId = Options.Curr.GetDefaultEmptyReference();
                             this.AddDiaryEntry(p, new DiaryEntryUpdateValue());
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
@@ -4215,10 +4264,10 @@ namespace AasxPackageLogic
                             severityLevel: HintCheck.Severity.Notice)
                     });
                 if (this.SafeguardAccess(
-                        stack, repo, rele.First, "First relation:", "Create data element!",
+                        stack, repo, rele.First, "First relation:", "Create w/ default!",
                         v =>
                         {
-                            rele.First = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                            rele.First = Options.Curr.GetDefaultEmptyReference();
                             this.AddDiaryEntry(rele, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
@@ -4254,10 +4303,10 @@ namespace AasxPackageLogic
                             severityLevel: HintCheck.Severity.Notice)
                     });
                 if (this.SafeguardAccess(
-                        stack, repo, rele.Second, "Second relation:", "Create data element!",
+                        stack, repo, rele.Second, "Second relation:", "Create w/ default!",
                         v =>
                         {
-                            rele.Second = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                            rele.Second = Options.Curr.GetDefaultEmptyReference();
                             this.AddDiaryEntry(rele, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
@@ -4592,8 +4641,18 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
                 {
+                    // hint
+                    AddHintBubble(
+                        stack, hintMode,
+                        new HintCheck(
+                            () => bev.Observed.Keys != null && bev.Observed.IsValid() != true,
+                            "According to the specification, an existing list of elements shall contain " +
+                            "at least one element and for each element all mandatory fields shall be " +
+                            "not empty."));
+
+                    // keys
                     this.AddKeyListKeys(stack, "observed", 
-                        bev.Observed.Keys, () => bev.Observed = null,
+                        bev.Observed.Keys, () => bev.Observed = Options.Curr.GetDefaultEmptyReference(),
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.Main, 
                         addExistingEntities: "All",
@@ -4768,6 +4827,17 @@ namespace AasxPackageLogic
             {
                 // not found!
                 return false;
+            }
+
+            // add common footer
+            // Background: when editing near the footer of the scroll panel, the vertical
+            // scroll tends to sit a little above the last element of interest and the user
+            // is to required always scroll a littple bit down
+            if (stack?.Children != null && stack.Children.Count > 0)
+            {
+                stack.Add(new AnyUiLabel() { Content = "" });
+                stack.Add(new AnyUiLabel() { Content = "" });
+                stack.Add(new AnyUiLabel() { Content = "" });
             }
 
             // one of the upper cases
