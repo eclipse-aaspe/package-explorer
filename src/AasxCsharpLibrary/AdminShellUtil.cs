@@ -336,8 +336,19 @@ namespace AdminShellNS
             return null;
         }
 
-        public static ISubmodelElement CreateSubmodelElementFromEnum(AasSubmodelElements smeEnum, ISubmodelElement sourceSme = null)
+        public class CreateSubmodelElementDefaultHelper
         {
+            public Func<IReference> CreateDefaultReference = null;
+        }
+
+        public static ISubmodelElement CreateSubmodelElementFromEnum(
+            AasSubmodelElements smeEnum, ISubmodelElement sourceSme = null,
+            CreateSubmodelElementDefaultHelper defaultHelper = null)
+        {
+            Func<IReference> crDefRef = () => { return (defaultHelper?.CreateDefaultReference?.Invoke()) ??
+                new Reference(ReferenceTypes.ExternalReference, new List<IKey>(
+                    new[] { new Key(KeyTypes.GlobalReference, "") })); };
+
             switch (smeEnum)
             {
                 case AasSubmodelElements.Property:
@@ -364,21 +375,21 @@ namespace AdminShellNS
                     {
                         // TODO (??, 0000-00-00): AAS core crashes without this
                         return new ReferenceElement(
-                            value: new Reference(ReferenceTypes.ExternalReference, new List<IKey>())
+                            value: crDefRef()
                             ).UpdateFrom(sourceSme);
                     }
                 case AasSubmodelElements.RelationshipElement:
                     {
                         return new RelationshipElement(
-                            new Reference(ReferenceTypes.ExternalReference, new List<IKey>()),
-                            new Reference(ReferenceTypes.ExternalReference, new List<IKey>()))
+                            crDefRef(),
+                            crDefRef())
                             .UpdateFrom(sourceSme);
                     }
                 case AasSubmodelElements.AnnotatedRelationshipElement:
                     {
                         return new AnnotatedRelationshipElement(
-                            new Reference(ReferenceTypes.ExternalReference, new List<IKey>()),
-                            new Reference(ReferenceTypes.ExternalReference, new List<IKey>()))
+                            crDefRef(),
+                            crDefRef())
                             .UpdateFrom(sourceSme);
                     }
                 case AasSubmodelElements.Capability:
@@ -399,7 +410,8 @@ namespace AdminShellNS
                     }
                 case AasSubmodelElements.BasicEventElement:
                     {
-                        return new BasicEventElement(null, Direction.Input, StateOfEvent.Off).UpdateFrom(sourceSme);
+                        return new BasicEventElement(crDefRef(), 
+                            Direction.Input, StateOfEvent.Off).UpdateFrom(sourceSme);
                     }
                 case AasSubmodelElements.Entity:
                     {

@@ -256,7 +256,7 @@ namespace AasxPackageLogic
                         {
                             if (qualifiers.Count > 0)
                                 qualifiers.RemoveAt(qualifiers.Count - 1);
-                            else
+                            if (qualifiers.Count < 1)
                                 setQualifiersNull?.Invoke();
                         }
 
@@ -357,10 +357,10 @@ namespace AasxPackageLogic
                 // SemanticId
 
                 if (SafeguardAccess(
-                        substack, repo, qual.SemanticId, "semanticId:", "Create data element!",
+                        substack, repo, qual.SemanticId, "semanticId:", "Create w/ default!",
                         v =>
                         {
-                            qual.SemanticId = ExtendReference.CreateFromKey(KeyTypes.GlobalReference, value: "");
+                            qual.SemanticId = Options.Curr.GetDefaultEmptyReference();
                             this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
@@ -483,7 +483,7 @@ namespace AasxPackageLogic
                         substack, repo, qual.ValueId, "valueId:", "Create data element!",
                         v =>
                         {
-                            qual.ValueId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                            qual.ValueId = Options.Curr.GetDefaultEmptyReference();
                             this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
@@ -566,10 +566,10 @@ namespace AasxPackageLogic
                             severityLevel: HintCheck.Severity.Notice)
                 });
             if (SafeguardAccess(
-                    substack, repo, pair.SemanticId, "semanticId:", "Create data element!",
+                    substack, repo, pair.SemanticId, "semanticId:", "Create w/ default!",
                     v =>
                     {
-                        pair.SemanticId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                        pair.SemanticId = Options.Curr.GetDefaultEmptyReference();
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
@@ -958,7 +958,7 @@ namespace AasxPackageLogic
                         {
                             if (extensions.Count > 0)
                                 extensions.RemoveAt(extensions.Count - 1);
-                            else
+                            if (extensions.Count < 1)
                                 setOutput?.Invoke(null);
                         }
 
@@ -1083,10 +1083,10 @@ namespace AasxPackageLogic
                             severityLevel: HintCheck.Severity.Notice)
                         });
                     if (SafeguardAccess(
-                            substack, repo, extension.SemanticId, "semanticId:", "Create data element!",
+                            substack, repo, extension.SemanticId, "semanticId:", "Create w/ default!",
                             v =>
                             {
-                                extension.SemanticId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                                extension.SemanticId = Options.Curr.GetDefaultEmptyReference();
                                 this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                                 return new AnyUiLambdaActionRedrawEntity();
                             }))
@@ -1342,7 +1342,7 @@ namespace AasxPackageLogic
                             padding: new AnyUiThickness(2, -2, 2, -2)),
                             (o) =>
                             {
-                                refkeys.ReferredSemanticId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                                refkeys.ReferredSemanticId = Options.Curr.GetDefaultEmptyReference();
                                 return new AnyUiLambdaActionRedrawEntity();
                             });
                     }
@@ -1910,14 +1910,19 @@ namespace AasxPackageLogic
                                         Aas.AasSubmodelElements.ReferenceElement};
 
                             en = this.SelectAdequateEnum("Select SubmodelElement to create ..", ticket: ticket,
-                                includeValues: includes);
+                                includeValues: includes,
+                                excludeValues: new[] { 
+                                    Aas.AasSubmodelElements.DataElement,
+                                    Aas.AasSubmodelElements.EventElement
+                                } );
                         }
 
                         // ok?
                         if (en != Aas.AasSubmodelElements.SubmodelElement)
                         {
                             T sme2 = (T)
-                                AdminShellUtil.CreateSubmodelElementFromEnum(en);
+                                AdminShellUtil.CreateSubmodelElementFromEnum(en, 
+                                    defaultHelper: Options.Curr.GetCreateDefaultHelper());
 
                             // add
                             T smw = sme2;
@@ -1979,7 +1984,9 @@ namespace AasxPackageLogic
                                     if (item.SmtRec != null && item.Sme.HasValue && item.Cd != null)
                                     {
                                         // create a new SME
-                                        var sme = AdminShellUtil.CreateSubmodelElementFromEnum(item.Sme.Value);
+                                        var sme = AdminShellUtil.CreateSubmodelElementFromEnum(
+                                            item.Sme.Value,
+                                            defaultHelper: Options.Curr.GetCreateDefaultHelper());
                                         if (sme == null)
                                         {
                                             Log.Singleton.Error("Creating type provided by SMT attributes.");
@@ -2068,7 +2075,9 @@ namespace AasxPackageLogic
                         continue;
 
                     // create a new SME
-                    var sme = AdminShellUtil.CreateSubmodelElementFromEnum(item.Sme.Value);
+                    var sme = AdminShellUtil.CreateSubmodelElementFromEnum(
+                        item.Sme.Value,
+                        defaultHelper: Options.Curr.GetCreateDefaultHelper());
                     if (sme == null)
                     {
                         Log.Singleton.Error("Creating type provided by SMT attributes.");

@@ -1183,6 +1183,11 @@ namespace AasxPackageLogic
             return theOpVar;
         }
 
+        public override object GetDereferencedMainDataObject()
+        {
+            return theOpVar?.Value;
+        }
+
         public override void RefreshFromMainData()
         {
             if (theOpVar != null)

@@ -48,6 +48,38 @@ namespace Extensions
                 lambda(state, null, referable);
         }
 
+        public static int Replace(
+            this IReferable referable, ISubmodelElement oldElem, ISubmodelElement newElem)
+        {
+            if (referable is Submodel submodel)
+            {
+                return submodel.Replace(oldElem, newElem);
+            }
+            else if (referable is AnnotatedRelationshipElement annotatedRelationshipElement
+                && oldElem is IDataElement oldDE && newElem is IDataElement newDE)
+            {
+                return annotatedRelationshipElement.Replace(oldDE, newDE);
+            }
+            else if (referable is SubmodelElementCollection submodelElementCollection)
+            {
+                return submodelElementCollection.Replace(oldElem, newElem);
+            }
+            else if (referable is SubmodelElementList submodelElementList)
+            {
+                return submodelElementList.Replace(oldElem, newElem);
+            }
+            else if (referable is Entity entity)
+            {
+                return entity.Replace(oldElem, newElem);
+            }
+            else if (referable is Operation operation)
+            {
+                return operation.Replace(oldElem, newElem);
+            }
+
+            return -1;
+        }
+
         public static void Remove(this IReferable referable, ISubmodelElement submodelElement)
         {
             if (referable is Submodel submodel)
@@ -70,9 +102,14 @@ namespace Extensions
             {
                 entity.Remove(submodelElement);
             }
+            else if (referable is Operation operation)
+            {
+                operation.Remove(submodelElement);
+            }
         }
 
-        public static void Add(this IReferable referable, ISubmodelElement submodelElement)
+        public static void Add(this IReferable referable, ISubmodelElement submodelElement,
+            OperationVariableDirection direction = OperationVariableDirection.In)
         {
             if (referable is Submodel submodel)
             {
@@ -93,6 +130,10 @@ namespace Extensions
             else if (referable is Entity entity)
             {
                 entity.Add(submodelElement);
+            }
+            else if (referable is Operation operation)
+            {
+                operation.Add(submodelElement, direction);
             }
         }
 

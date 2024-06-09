@@ -1146,7 +1146,11 @@ namespace AasxPackageLogic
 
             // ask
             var en = SelectAdequateEnum(
-                $"Refactor {oldSme.GetSelfDescription().AasElementName} '{"" + oldSme.IdShort}' to new element type ..");
+                $"Refactor {oldSme.GetSelfDescription().AasElementName} '{"" + oldSme.IdShort}' to new element type ..",
+                excludeValues: new[] {
+                    Aas.AasSubmodelElements.DataElement,
+                    Aas.AasSubmodelElements.EventElement,
+                });
             if (en == Aas.AasSubmodelElements.SubmodelElement)
                 return null;
 
@@ -1160,7 +1164,8 @@ namespace AasxPackageLogic
                 {
                     {
                         // which?
-                        var refactorSme = AdminShellUtil.CreateSubmodelElementFromEnum(en, oldSme);
+                        var refactorSme = AdminShellUtil.CreateSubmodelElementFromEnum(en, oldSme, 
+                            defaultHelper: Options.Curr.GetCreateDefaultHelper());
                         return refactorSme;
                     }
                 }
@@ -1993,7 +1998,7 @@ namespace AasxPackageLogic
                 {
                     List<string> contextHeaders = new();
                     contextHeaders.AddRange(new[] { "\u2205", "Set all \u2192 blank" });
-                    contextHeaders.AddRange(new[] { "\u2702", "Delete all" });
+                    contextHeaders.AddRange(new[] { "\u2702", "Delete completely" });
 
                     if (addEclassIrdi)
                         contextHeaders.AddRange(new[] { "\U0001f517", "Add ECLASS" });
@@ -2247,6 +2252,25 @@ namespace AasxPackageLogic
         {
             if (repo != null && data == null)
                 AddAction(view, key, actionStr, repo, action, firstColumnWidth: firstColumnWidth);
+            return (data != null);
+        }
+
+        public bool SafeguardAccess(
+            AnyUiStackPanel view, ModifyRepo repo, object data, string key,
+            AasxMenu superMenu = null,
+            AasxMenu ticketMenu = null,
+            Func<int, AasxMenuActionTicket, AnyUiLambdaActionBase> ticketAction = null,
+            Func<int, AasxMenuActionTicket, Task<AnyUiLambdaActionBase>> ticketActionAsync = null,
+            FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard)
+        {
+            if (repo != null && data == null)
+                AddActionPanel(
+                    view, key, 
+                    repo: repo, 
+                    superMenu: superMenu,
+                    ticketMenu: ticketMenu, 
+                    ticketAction: ticketAction,
+                    firstColumnWidth: firstColumnWidth);
             return (data != null);
         }
 
@@ -2990,8 +3014,12 @@ namespace AasxPackageLogic
                 var dataStr = "";
                 try
                 {
-                    dataStr = Jsonization.Serialize.ToJsonObject(rf)
-                        .ToJsonString(new System.Text.Json.JsonSerializerOptions());
+                    // transforming a (null) IClass crashes Transformer
+                    if (rf == null)
+                        dataStr = "null";
+                    else
+                        dataStr = Jsonization.Serialize.ToJsonObject(rf)
+                            .ToJsonString(new System.Text.Json.JsonSerializerOptions());
                 }
                 catch (Exception ex)
                 {

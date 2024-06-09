@@ -41,6 +41,15 @@ namespace Extensions
             }
         }
 
+        public static int Replace(
+            this Entity entity,
+            ISubmodelElement oldElem, ISubmodelElement newElem)
+        {
+            if (entity?.Statements == null)
+                return -1;
+            return entity.Statements.Replace(oldElem, newElem);
+        }
+
         public static object AddChild(this Entity entity, ISubmodelElement childSubmodelElement, EnumerationPlacmentBase placement = null)
         {
             if (childSubmodelElement == null)

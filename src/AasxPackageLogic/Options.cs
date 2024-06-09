@@ -1055,5 +1055,13 @@ namespace AasxPackageLogic
                 KeyTypes.GlobalReference,
                 Options.Curr.DefaultEmptyReferenceKey);
         }
+
+        public AdminShellUtil.CreateSubmodelElementDefaultHelper GetCreateDefaultHelper()
+        {
+            return new AdminShellUtil.CreateSubmodelElementDefaultHelper()
+            {
+                CreateDefaultReference = GetDefaultEmptyReference,
+            };
+        }
     }
 }
