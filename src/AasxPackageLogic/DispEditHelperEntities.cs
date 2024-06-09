@@ -4207,6 +4207,7 @@ namespace AasxPackageLogic
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All", // no restriction
+                        addFromKnown: true,
                         addPresetNames: bufferKeys.Item1,
                         addPresetKeyLists: bufferKeys.Item2,
                         jumpLambda: lambda, noEditJumpLambda: lambda,
@@ -4244,7 +4245,7 @@ namespace AasxPackageLogic
                                 "In terms of a semantic triple, it would be the subject. " +
                                 "The semantics of your reference (the predicate) shall be described " +
                                 "by the concept referred by semanticId.",
-                            severityLevel: HintCheck.Severity.Notice)
+                            severityLevel: HintCheck.Severity.High)
                     });
                 if (this.SafeguardAccess(
                         stack, repo, rele.First, "First relation:", "Create w/ default!",
@@ -4257,10 +4258,11 @@ namespace AasxPackageLogic
                 {
                     this.AddKeyReference(
                         stack, "first", 
-                        rele.First, () => rele.First = null,                        
+                        rele.First, () => rele.First = Options.Curr.GetDefaultEmptyReference(),                        
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All", // no restriction
+                        addFromKnown: true,
                         addPresetNames: bufferKeys.Item1,
                         addPresetKeyLists: bufferKeys.Item2,
                         jumpLambda: lambda, noEditJumpLambda: lambda,
@@ -4283,7 +4285,7 @@ namespace AasxPackageLogic
                                 "In terms of a semantic triple, it would be the object. " +
                                 "The semantics of your reference (the predicate) shall be described " +
                                 "by the concept referred by semanticId.",
-                            severityLevel: HintCheck.Severity.Notice)
+                            severityLevel: HintCheck.Severity.High)
                     });
                 if (this.SafeguardAccess(
                         stack, repo, rele.Second, "Second relation:", "Create w/ default!",
@@ -4296,10 +4298,11 @@ namespace AasxPackageLogic
                 {
                     this.AddKeyReference(
                         stack, "second", 
-                        rele.Second, () => rele.Second = null,
+                        rele.Second, () => rele.Second = Options.Curr.GetDefaultEmptyReference(),
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All", // no restriction
+                        addFromKnown: true,
                         addPresetNames: bufferKeys.Item1,
                         addPresetKeyLists: bufferKeys.Item2,
                         jumpLambda: lambda, noEditJumpLambda: lambda,
