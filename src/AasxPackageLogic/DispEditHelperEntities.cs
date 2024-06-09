@@ -4413,10 +4413,10 @@ namespace AasxPackageLogic
 
                 // add the keys
                 if (this.SafeguardAccess(
-                        stack, repo, sml.SemanticIdListElement, "semanticIdListElement:", "Create data element!",
+                        stack, repo, sml.SemanticIdListElement, "semanticIdListElement:", "Create w/ default!",
                         v =>
                         {
-                            sml.SemanticIdListElement = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                            sml.SemanticIdListElement = Options.Curr.GetDefaultEmptyReference();
                             this.AddDiaryEntry(sml, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
