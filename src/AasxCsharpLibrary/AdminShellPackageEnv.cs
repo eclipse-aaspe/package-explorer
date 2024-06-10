@@ -334,20 +334,34 @@ namespace AdminShellNS
             public PackageRelationship Rel { get; set; }
         }
 
-        private static IEnumerable<FindRelTuple> FindAllRelationships(Package package, string[] relTypes)
+        private static IEnumerable<FindRelTuple> FindAllRelationships(
+            Package package, string[] relTypes,
+            bool? filterForDeprecatedEquals = null)
         {
-            for (int i=0; i<relTypes.Length; i++)
+            for (int i = 0; i < relTypes.Length; i++)
                 foreach (var x in package.GetRelationshipsByType(relTypes[i]))
-                    yield return new FindRelTuple() { Deprecated = ( i > 0 ), Rel = x };
+                {
+                    var res = new FindRelTuple() { Deprecated = (i > 0), Rel = x };
+                    if (filterForDeprecatedEquals.HasValue &&
+                        filterForDeprecatedEquals.Value != res.Deprecated)
+                        continue;
+                    yield return res;
+                }
         }
 
         private static IEnumerable<FindRelTuple> FindAllRelationships(
             PackagePart part, string[] relTypes,
-            bool onlyDeprecated = false)
+            bool? filterForDeprecatedEquals = null)
         {
-            for (int i = (onlyDeprecated ? 1 : 0); i < relTypes.Length; i++)
+            for (int i = 0; i < relTypes.Length; i++)
                 foreach (var x in part.GetRelationshipsByType(relTypes[i]))
-                    yield return new FindRelTuple() { Deprecated = (i > 0), Rel = x };
+                {
+                    var res = new FindRelTuple() { Deprecated = (i > 0), Rel = x };
+                    if (filterForDeprecatedEquals.HasValue &&
+                     filterForDeprecatedEquals.Value != res.Deprecated)
+                        continue;
+                    yield return res;
+                }
         }
 
         private static AasCore.Aas3_0.Environment LoadXml(string fn)
@@ -772,41 +786,52 @@ namespace AdminShellNS
                     }
                     _fn = fn;
 
-                    // get the origin from the package
-                    PackagePart originPart = null;
-                    foreach (var x in FindAllRelationships(package, relTypesOrigin))
+                    // first check, if we have deprecated origin
+                    foreach (var x in FindAllRelationships(package, relTypesOrigin,
+                            filterForDeprecatedEquals: true))
                         if (x.Rel.SourceUri.ToString() == "/")
                         {
-                            //originPart = package.GetPart(x.TargetUri);
-                            
+                            var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
+                            if (package.PartExists(absoluteURI))
+                            {
+                                var tempPart = package.GetPart(absoluteURI);
+
+                                // delete old type, because its not according to spec or something
+                                // then replace with the current type
+                                package.DeleteRelationship(x.Rel.Id);
+                                package.CreateRelationship(
+                                    tempPart.Uri, TargetMode.Internal,
+                                    relTypesOrigin.FirstOrDefault());
+                                break;
+                            }
+                        }                    
+
+                    // now check, if the origin could be found with correct relationships
+                    PackagePart originPart = null;
+                    foreach (var x in FindAllRelationships(package, relTypesOrigin,
+                            filterForDeprecatedEquals: false))
+                        if (x.Rel.SourceUri.ToString() == "/")
+                        {
                             var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                             if (package.PartExists(absoluteURI))
                             {
                                 originPart = package.GetPart(absoluteURI);
-
-                                // check if it a deprecated URI
-                                if (x.Deprecated)
-                                {
-                                    //delete old type, because its not according to spec or something
-                                    //then replace with the current type
-                                    package.DeleteRelationship(x.Rel.Id);
-                                    package.DeletePart(absoluteURI);
-                                    //package.CreateRelationship(
-                                    //    originPart.Uri, TargetMode.Internal,
-                                    //    relTypesOrigin.FirstOrDefault());
-                                    originPart = null;
-                                    break;
-                                }
                             }
-                        }                    
+                        }
 
                     // MIHO, 2024-05-29
                     // fix the case, that part exists but is not really associated by a
                     // relationship
                     var uriOrigin = new Uri("/aasx/aasx-origin", UriKind.RelativeOrAbsolute);
-                    if (package.PartExists(uriOrigin))
+                    if (originPart == null && package.PartExists(uriOrigin))
                     {
+                        // get the part
                         originPart = package.GetPart(uriOrigin);
+
+                        // make the relationship
+                        package.CreateRelationship(
+                            originPart.Uri, TargetMode.Internal,
+                            relTypesOrigin.FirstOrDefault());
                     }
 
                     if (originPart == null)
@@ -825,35 +850,40 @@ namespace AdminShellNS
                             relTypesOrigin.FirstOrDefault());
                     }
 
-                    // get the specs from the package
+                    // get the specs from the package, first again: deprecated
+                    foreach (var x in FindAllRelationships(
+                        originPart, relTypesSpec,
+                        filterForDeprecatedEquals: true))
+                    {
+                        var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
+                        if (package.PartExists(absoluteURI))
+                        {
+                            var tempPart = package.GetPart(absoluteURI);
+
+                            //delete old type, because its not according to spec or something
+                            //then replace with the current type
+                            originPart.DeleteRelationship(x.Rel.Id);
+                            originPart.CreateRelationship(
+                                tempPart.Uri, TargetMode.Internal,
+                                relTypesSpec.FirstOrDefault());
+                            break;
+                        }
+                    }
+
+                    // now check, if the specs could be found with correct relationships
                     PackagePart specPart = null;
                     PackageRelationship specRel = null;
-                    foreach (var x in FindAllRelationships(originPart, relTypesSpec))
+                    foreach (var x in FindAllRelationships(originPart, relTypesSpec,
+                        filterForDeprecatedEquals: false))
                     {
                         specRel = x.Rel;
-                        //specPart = package.GetPart(x.TargetUri);
                         var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                         if (package.PartExists(absoluteURI))
                         {
                             specPart = package.GetPart(absoluteURI);
-
-                            // check if it a deprecated URI
-                            if (x.Deprecated)
-                            {
-                                //delete old type, because its not according to spec or something
-                                //then replace with the current type
-                                package.DeleteRelationship(x.Rel.Id);
-                                package.DeletePart(absoluteURI);
-                                //package.CreateRelationship(
-                                //    specPart.Uri, TargetMode.Internal,
-                                //    relTypesSpec.FirstOrDefault());
-                                specPart = null;
-                                specRel = null;
-                                break;
-                            }
                         }
                     }
-                    
+
                     // check, if we have to change the spec part
                     if (specPart != null && specRel != null)
                     {
@@ -941,11 +971,13 @@ namespace AdminShellNS
                         }
                     }
 
-                    //Handling of aas_suppl namespace from v2 to v3
-                    //Need to check/test in detail, with thumbnails as well
-                    if(specPart != null)
+                    // Handling of aas_suppl namespace from v2 to v3
+                    // Need to check/test in detail, with thumbnails as well
+                    if (specPart != null)
                     {                        
-                        foreach (var x in FindAllRelationships(specPart, relTypesSuppl, onlyDeprecated: true).ToList())
+                        foreach (var x in FindAllRelationships(
+                            specPart, relTypesSuppl, 
+                            filterForDeprecatedEquals: true).ToList())
                         {
                             var uri = x.Rel.TargetUri;
                             PackagePart filePart = null;
