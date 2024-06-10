@@ -568,9 +568,9 @@ namespace AasxPackageLogic
                         // the sequence of adding childs might by altered in order to preserve
                         // original order of elements
                         var itemsInOrder = cpb.Items;
-                        if (buttonNdx != 2)
+                        if (buttonNdx == 3)
                         {
-                            // paste below, paste into will use reversing
+                            // paste below into will use reversing
                             itemsInOrder.Reverse();
                         }
 

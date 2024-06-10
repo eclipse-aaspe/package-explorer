@@ -4471,14 +4471,21 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionNavigateTo(sml.SemanticIdListElement);
                         },
                         relatedReferable: sml,
-                        auxContextHeader: new[] { "\u2573", "Delete semanticIdListElement" },
+                        auxContextHeader: new[] { "\U0001F796", "Auto-detect" },
                         auxContextLambda: (i) =>
                         {
                             if (i == 0)
                             {
-                                sml.SemanticIdListElement = null;
-                                this.AddDiaryEntry(sml, new DiaryEntryStructChange());
-                                return new AnyUiLambdaActionRedrawEntity();
+                                // check for underlying SMCs
+                                if (sml.Value != null && sml.Value.Count > 0
+                                    && sml.Value.First() is Aas.ISubmodelElementCollection subsmc
+                                    && subsmc.SemanticId?.IsValid() == true)
+                                {
+                                    sml.SemanticIdListElement = subsmc.SemanticId.Copy();
+
+                                    this.AddDiaryEntry(sml, new DiaryEntryStructChange());
+                                    return new AnyUiLambdaActionRedrawEntity();
+                                }
                             }
                             return new AnyUiLambdaActionNone();
                         });
