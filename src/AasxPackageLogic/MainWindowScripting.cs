@@ -113,7 +113,7 @@ namespace AasxPackageLogic
                 {
                     if (siAAS?.theAas != null)
                     {
-                        var smr = siAAS.theAas.Submodels.FirstOrDefault();
+                        var smr = siAAS.theAas.Submodels?.FirstOrDefault();
                         var sm = pm.FindSubmodel(smr);
                         if (sm == null)
                         {
@@ -125,7 +125,7 @@ namespace AasxPackageLogic
 
                     if (firstAas != null)
                     {
-                        var smr = firstAas.Submodels.FirstOrDefault();
+                        var smr = firstAas.Submodels?.FirstOrDefault();
                         var sm = pm.FindSubmodel(smr);
                         if (sm == null)
                         {

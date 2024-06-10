@@ -401,7 +401,7 @@ namespace AasxPackageLogic
                 new HintCheck(
                     () => {
                         int count = 0;
-                        foreach(var aas in env.AssetAdministrationShells)
+                        foreach(var aas in env.AssetAdministrationShells.ForEachSafe())
                         {
                             if(aas.Id == identifiable.Id)
                                 count++;

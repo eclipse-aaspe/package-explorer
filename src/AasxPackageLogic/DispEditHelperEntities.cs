@@ -2264,6 +2264,18 @@ namespace AasxPackageLogic
                 }
             }
 
+            //
+            // Submodel Value
+            //
+
+            if (submodel != null)
+            {
+                this.AddGroup(stack, "Submodel elements", this.levelColors.MainSection);
+                if (submodel.SubmodelElements != null)
+                    this.AddKeyValue(stack, "# of elements", "" + submodel.SubmodelElements.Count);
+                else
+                    this.AddKeyValue(stack, "Elements", "Please add elements via editing of sub-ordinate entities");
+            }
         }
 
         //

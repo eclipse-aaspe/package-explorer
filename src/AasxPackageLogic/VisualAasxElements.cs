@@ -2145,7 +2145,7 @@ namespace AasxPackageLogic
 						tiSubmodelsRoot.Members.Add(tiSM);
 
 						// now list CDs here
-						foreach (var cd in env.ConceptDescriptions)
+						foreach (var cd in env.ConceptDescriptions.ForEachSafe())
                         {
 							if (!_cdToSm.ContainsKey(cd))
 								continue;
