@@ -6,6 +6,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 
 This source code may use other Open Source software components (see LICENSE.txt).
 */
+using AdminShellNS;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -138,6 +139,13 @@ namespace Extensions
                 if (q?.Type == null || q.Type.Trim().Length < 1)
                     return false;
             return true;
+        }
+
+        public static bool IsOneBlank(this List<IQualifier> elems)
+        {
+            if (elems == null || elems.Count != 1)
+                return false;
+            return elems[0].Value?.HasContent() != true;
         }
 
         public static IQualifier FindQualifierOfType(this IEnumerable<IQualifier> qualifiers, string qualifierType)

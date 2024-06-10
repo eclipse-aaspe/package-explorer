@@ -216,6 +216,11 @@ namespace AasxPackageLogic
                                 if (uc.Result && uc.ResultItem?.Tag is QualifierPreset preset
                                     && preset.qualifier != null)
                                 {
+                                    // if qualifiers is actually containing only one
+                                    // "blank" qualifier, replace this
+                                    if (qualifiers.IsOneBlank())
+                                        qualifiers.RemoveAt(0);
+
                                     qualifiers.Add(preset.qualifier);
                                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                                 }
@@ -925,6 +930,11 @@ namespace AasxPackageLogic
                                 if (uc.Result && uc.ResultItem?.Tag is ExtensionPreset preset
                                     && preset.extension != null)
                                 {
+                                    // if extensions is actually containing only one
+                                    // "blank" extension, replace this
+                                    if (extensions.IsOneBlank())
+                                        extensions.RemoveAt(0);
+
                                     extensions.Add(preset.extension);
                                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                                 }
