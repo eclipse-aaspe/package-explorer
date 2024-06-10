@@ -36,6 +36,14 @@ namespace AdminShellNS
             return str != null && str.Trim() != "";
         }
 
+        public static IEnumerable<T> ForEachSafe<T>(this List<T> list)
+        {
+            if (list == null)
+                yield break;
+            foreach (var x in list)
+                yield return x;
+        }
+
         /// <summary>
         /// Multiple a string into a iterable list
         /// </summary>
