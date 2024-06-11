@@ -65,7 +65,7 @@
   "TemplateIdAas": "www.example.com/ids/aas/DDDD_DDDD_DDDD_DDDD",
   "TemplateIdAsset": "www.example.com/ids/asset/DDDD_DDDD_DDDD_DDDD",
   "TemplateIdSubmodelInstance": "www.example.com/ids/sm/DDDD_DDDD_DDDD_DDDD",
-  "TemplateIdSubmodelTemplate": "www.example.com/ids/sm/DDDD_DDDD_DDDD_DDDD",
+  "TemplateIdSubmodelTemplate": "www.example.com/ids/smt/DDDD_DDDD_DDDD_DDDD",
   "TemplateIdConceptDescription": "www.example.com/ids/cd/DDDD_DDDD_DDDD_DDDD",
   "EclassDir": ".\\eclass\\",
   "DefaultLang": "en,de",

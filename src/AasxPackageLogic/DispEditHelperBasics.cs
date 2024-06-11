@@ -2452,11 +2452,14 @@ namespace AasxPackageLogic
         //
 
         public void EntityListUpDownDeleteHelper<T>(
-            AnyUiPanel stack, ModifyRepo repo, List<T> list, T entity,
+            AnyUiPanel stack, ModifyRepo repo,
+            List<T> list, Action<List<T>> setOutputList,
+            T entity,
             object alternativeFocus, string label = "Entities:",
             object nextFocus = null, PackCntChangeEventData sendUpdateEvent = null, bool preventMove = false,
             Aas.IReferable explicitParent = null,
-            AasxMenu superMenu = null)
+            AasxMenu superMenu = null,
+            Action<string, AasxMenuActionTicket> postActionHook = null)
         {
             if (nextFocus == null)
                 nextFocus = entity;
@@ -2468,11 +2471,7 @@ namespace AasxPackageLogic
             if (entity is Aas.IReferable rf)
                 entityRf = rf;
 
-            AddActionPanel(
-                stack, label,
-                repo: repo,
-                superMenu: superMenu,
-                ticketMenu: new AasxMenu()
+            var theMenu = new AasxMenu()
                     .AddAction("aas-elem-move-up", "Move up",
                         "Moves the currently selected element up in containing collection.",
                         inputGesture: "Shift+Ctrl+Up")
@@ -2487,7 +2486,13 @@ namespace AasxPackageLogic
                         inputGesture: "Shift+Ctrl+End")
                     .AddAction("aas-elem-delete", "Delete",
                         "Deletes the currently selected element.",
-                        inputGesture: "Ctrl+Shift+Delete"),
+                        inputGesture: "Ctrl+Shift+Delete");
+
+            AddActionPanel(
+                stack, label,
+                repo: repo,
+                superMenu: superMenu,
+                ticketMenu: theMenu,
                 ticketAction: (buttonNdx, ticket) =>
                 {
                     if (buttonNdx >= 0 && buttonNdx <= 3)
@@ -2508,6 +2513,8 @@ namespace AasxPackageLogic
                         if (buttonNdx == 3) newndx = MoveElementToBottomOfList<T>(list, entity);
                         if (newndx >= 0)
                         {
+                            postActionHook?.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
+
                             if (entityRf != null)
                                 this.AddDiaryEntry(entityRf,
                                     new DiaryEntryStructChange(StructuralChangeReason.Modify, createAtIndex: newndx),
@@ -2536,6 +2543,11 @@ namespace AasxPackageLogic
                                 AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
                         {
                             var ret = DeleteElementInList<T>(list, entity, alternativeFocus);
+
+                            if (list.Count < 1)
+                                setOutputList?.Invoke(null);
+
+                            postActionHook?.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
 
                             this.AddDiaryEntry(entityRf,
                                 new DiaryEntryStructChange(StructuralChangeReason.Delete),

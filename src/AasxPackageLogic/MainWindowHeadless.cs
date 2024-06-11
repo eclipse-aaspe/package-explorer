@@ -940,7 +940,7 @@ namespace AasxPackageLogic
 
                     // add Submodel
                     var smref = smres.GetReference().Copy();
-                    ticket.AAS.AddSubmodelReference(smref);
+                    ticket.AAS.Add(smref);
                     ticket.Env.Submodels.Add(smres);
 
                     // add ConceptDescriptions?

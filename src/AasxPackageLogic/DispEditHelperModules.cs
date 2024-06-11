@@ -173,9 +173,8 @@ namespace AasxPackageLogic
                 stack, "idShort", referable, referable.IdShort, null, repo,
                 v =>
                 {
-                    var dr = new DiaryReference(referable);
                     referable.IdShort = v as string;
-                    this.AddDiaryEntry(referable, new DiaryEntryStructChange(), diaryReference: dr);
+                    this.AddDiaryEntry(referable, new DiaryEntryStructChange(), new DiaryReference(referable));
                     return new AnyUiLambdaActionNone();
                 },
                 auxButtonTitles: DispEditInjectAction.GetTitles(new[] { "Fix" } , injectToIdShort),
@@ -186,11 +185,14 @@ namespace AasxPackageLogic
                 {
                     if (i == 0)
                     {
-                        var dr = new DiaryReference(referable);
                         referable.IdShort = AdminShellUtil.FilterFriendlyName(referable.IdShort, 
                             pascalCase: true, fixMoreBlanks: true);
-                        this.AddDiaryEntry(referable, new DiaryEntryStructChange(), diaryReference: dr);
-                        return new AnyUiLambdaActionRedrawEntity();
+
+                        if (!referable.IdShort.HasContent())
+                            referable.IdShort = AdminShellUtil.GiveRandomIdShort(referable);
+
+                        this.AddDiaryEntry(referable, new DiaryEntryStructChange(), new DiaryReference(referable));
+                        return new AnyUiLambdaActionRedrawAllElements(nextFocus: referable);
                     }
                     else
                         return injectToIdShort?.auxLambda(i-1);

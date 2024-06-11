@@ -408,7 +408,11 @@ namespace Extensions
             }
         }
 
-        public static ConceptDescription Add(this AasCore.Aas3_0.IEnvironment env, ConceptDescription cd)
+        /// <summary>
+        /// Adds the ConceptDescription. If env.ConceptDescriptions are <c>null</c>, then
+        /// the list will be created.
+        /// </summary>
+        public static IConceptDescription Add(this AasCore.Aas3_0.IEnvironment env, IConceptDescription cd)
         {
             if (cd == null)
                 return null;
@@ -418,7 +422,11 @@ namespace Extensions
             return cd;
         }
 
-        public static Submodel Add(this AasCore.Aas3_0.IEnvironment env, Submodel sm)
+        /// <summary>
+        /// Adds the Submodel. If env.Submodels are <c>null</c>, then
+        /// the list will be created.
+        /// </summary>
+        public static ISubmodel Add(this AasCore.Aas3_0.IEnvironment env, ISubmodel sm)
         {
             if (sm == null)
                 return null;
@@ -428,7 +436,11 @@ namespace Extensions
             return sm;
         }
 
-        public static AssetAdministrationShell Add(this AasCore.Aas3_0.IEnvironment env, AssetAdministrationShell aas)
+        /// <summary>
+        /// Adds the AssetAdministrationShell. If env.AssetAdministrationShells are <c>null</c>, then
+        /// the list will be created.
+        /// </summary>
+        public static IAssetAdministrationShell Add(this AasCore.Aas3_0.IEnvironment env, IAssetAdministrationShell aas)
         {
             if (aas == null)
                 return null;
@@ -436,6 +448,69 @@ namespace Extensions
                 env.AssetAdministrationShells = new();
             env.AssetAdministrationShells.Add(aas);
             return aas;
+        }
+
+        /// <summary>
+        /// Removes the ConceptDescription. If the env.ConceptDescriptions are subsequently empty,
+        /// sets the env.ConceptDescriptions to <c>null</c> !!
+        /// If the ConceptDescription is not found, simply returns.
+        /// </summary>
+        public static void Remove(this AasCore.Aas3_0.IEnvironment env, IConceptDescription cd)
+        {
+            if (cd == null || env.ConceptDescriptions == null || !env.ConceptDescriptions.Contains(cd))
+                return;
+            env.ConceptDescriptions.Remove(cd);
+            if (env.ConceptDescriptions.Count < 1)
+                env.ConceptDescriptions = null;
+        }
+
+        /// <summary>
+        /// Removes the Submodel. If the env.Submodels are subsequently empty,
+        /// sets the env.Submodels to <c>null</c> !!
+        /// If the Submodel is not found, simply returns.
+        /// </summary>
+        public static void Remove(this AasCore.Aas3_0.IEnvironment env, ISubmodel sm)
+        {
+            if (sm == null || env.Submodels == null || !env.Submodels.Contains(sm))
+                return;
+            env.Submodels.Remove(sm);
+            if (env.Submodels.Count < 1)
+                env.Submodels = null;
+        }
+
+        /// <summary>
+        /// Removes the AssetAdministrationShell. If the env.AssetAdministrationShells are subsequently empty,
+        /// sets the env.AssetAdministrationShells to <c>null</c> !!
+        /// If the AssetAdministrationShell is not found, simply returns.
+        /// </summary>
+        public static void Remove(this IEnvironment env, IAssetAdministrationShell aas)
+        {
+            if (aas == null || env.AssetAdministrationShells == null 
+                || !env.AssetAdministrationShells.Contains(aas))
+                return;
+            env.AssetAdministrationShells.Remove(aas);
+            if (env.AssetAdministrationShells.Count < 1)
+                env.AssetAdministrationShells = null;
+        }
+
+        /// <summary>
+        /// Remove References within the environment in dedicated areas.
+        /// </summary>
+        public static void RemoveReferences(this IEnvironment env, IReference rf,
+            bool inAas = false)
+        {
+            // access
+            if (env == null)
+                return;
+
+            // AAS?
+            if (inAas)
+                foreach (var aas in env.AssetAdministrationShells.ForEachSafe())
+                {
+                    var foundRf = aas.FindSubmodelReference(rf);
+                    if (foundRf != null)
+                        aas.Remove(foundRf);
+                }
         }
 
         public static JsonWriter SerialiazeJsonToStream(this AasCore.Aas3_0.IEnvironment environment, StreamWriter streamWriter, bool leaveJsonWriterOpen = false)
@@ -461,7 +536,7 @@ namespace Extensions
 
         public static IEnumerable<ISubmodel> FindAllSubmodelGroupedByAAS(this AasCore.Aas3_0.IEnvironment environment, Func<IAssetAdministrationShell, ISubmodel, bool> p = null)
         {
-            if (environment.AssetAdministrationShells == null || environment.Submodels == null)
+            if (environment?.AssetAdministrationShells == null || environment?.Submodels == null)
                 yield break;
             foreach (var aas in environment.AssetAdministrationShells)
             {
@@ -478,7 +553,7 @@ namespace Extensions
 
         public static ISubmodel FindSubmodel(this AasCore.Aas3_0.IEnvironment environment, IReference submodelReference)
         {
-            if (environment == null || submodelReference == null)
+            if (environment?.Submodels == null || submodelReference?.Keys == null)
             {
                 return null;
             }
@@ -510,7 +585,7 @@ namespace Extensions
 
         public static ISubmodel FindSubmodelById(this AasCore.Aas3_0.IEnvironment environment, string submodelId)
         {
-            if (string.IsNullOrEmpty(submodelId))
+            if (environment?.Submodels == null || string.IsNullOrEmpty(submodelId))
             {
                 return null;
             }
@@ -529,7 +604,7 @@ namespace Extensions
             if (semanticId == null)
                 yield break;
 
-            foreach (var submodel in environment.Submodels)
+            foreach (var submodel in environment.Submodels.ForEachSafe())
                 if (true == submodel.SemanticId?.Matches(semanticId))
                     yield return submodel;
         }
