@@ -773,193 +773,188 @@ namespace AasxPackageLogic
                     new HintCheck(
                         () => { return !suppressNoEdsWarning && (hasDataSpecification == null ||
                             hasDataSpecification.Count < 1); },
+                        "There are no embedded data specification elements. " +
+                        (hasDataSpecification == null ? "List is null! " : "List is empty! ") +
                         "For ConceptDescriptions, the main data carrier lies in the embedded data specification. " +
                         "In these elements, a Reference to a data specification is combined with content " +
                         "attributes, which are attached to the ConceptDescription. These attributes hold the " +
                         "descriptive information on a concept and thus allow for an off-line understanding of " +
                         "the meaning of a concept/ SubmodelElement. Multiple data specifications " +
                         "could be possible. The most used is the IEC61360, which is also used by ECLASS. " +
-                        "Please create this data element.",
-                        breakIfTrue: true),
+                        "Please create this data element."),
                 });
-            if (this.SafeguardAccess(
-                    stack, this.repo, hasDataSpecification, "Specifications:", "Create data element!",
-                    v =>
-                    {
-                        setOutput?.Invoke(new List<Aas.IEmbeddedDataSpecification>());
-                        return new AnyUiLambdaActionRedrawEntity();
-                    }))
+
+            // Head control. Allow menu, even if list is null!
+            if (editMode)
             {
-                // head control
-                if (editMode)
-                {
-                    // let the user control the number of references
-                    this.AddActionPanel(
-                        stack, "Spec. records:", repo: repo,
-                        superMenu: superMenu,
-                        ticketMenu: new AasxMenu()
-                            .AddAction("add-record", "Add record",
-                                "Adds a record for data specification reference and content.")
-                            .AddAction("add-iec61360", "Add IEC61360",
-                                "Adds a record initialized for IEC 61360 content.")
-                            .AddAction("auto-detect", "Auto detect content",
-                                "Auto dectects known data specification contents and sets valid references.")
-                            .AddAction("delete-last", "Delete last record",
-                                "Deletes last record (data specification reference and content)."),
-                        ticketAction: (buttonNdx, ticket) =>
-                        {
-                            if (buttonNdx == 0)
-                                hasDataSpecification.Add(
-                                    new Aas.EmbeddedDataSpecification(
-                                        dataSpecification: Options.Curr.GetDefaultEmptyReference(),
-                                        dataSpecificationContent: new DataSpecificationBlank()));
-
-                            if (buttonNdx == 1)
-                                hasDataSpecification.Add(
-                                    new Aas.EmbeddedDataSpecification(
-                                        new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey> {
-                                            ExtendIDataSpecificationContent.GetKeyForIec61360()
-                                        }),
-                                        new Aas.DataSpecificationIec61360(new List<Aas.ILangStringPreferredNameTypeIec61360>() {
-                                            new Aas.LangStringPreferredNameTypeIec61360(
-                                                AdminShellUtil.GetDefaultLngIso639(), "")
-                                        })));
-
-                            if (buttonNdx == 2)
-                            {
-                                var fix = 0;
-                                foreach (var eds in hasDataSpecification)
-                                    if (eds != null && eds.FixReferenceWrtContent())
-                                        fix++;
-                                Log.Singleton.Info($"Fixed {fix} records of embedded data specification.");
-                            }
-
-                            if (buttonNdx == 3)
-                            {
-                                if (hasDataSpecification.Count > 0)
-                                    hasDataSpecification.RemoveAt(hasDataSpecification.Count - 1);
-                                else
-                                    setOutput?.Invoke(null);
-                            }
-
-                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                            return new AnyUiLambdaActionRedrawEntity();
-                        });
-                }
-
-                // now use the normal mechanism to deal with editMode or not ..
-                if (hasDataSpecification != null && hasDataSpecification.Count > 0)
-                {
-                    for (int i = 0; i < hasDataSpecification.Count; i++)
+                // let the user control the number of references
+                this.AddActionPanel(
+                    stack, "Spec. records:", repo: repo,
+                    superMenu: superMenu,
+                    ticketMenu: new AasxMenu()
+                        .AddAction("add-record", "Add record",
+                            "Adds a record for data specification reference and content.")
+                        .AddAction("add-iec61360", "Add IEC61360",
+                            "Adds a record initialized for IEC 61360 content.")
+                        .AddAction("auto-detect", "Auto detect content",
+                            "Auto dectects known data specification contents and sets valid references.")
+                        .AddAction("delete-last", "Delete last record",
+                            "Deletes last record (data specification reference and content)."),
+                    ticketAction: (buttonNdx, ticket) =>
                     {
-                        // indicate
-                        this.AddGroup(stack, $"dataSpec.[{i}] / Reference:", levelColors.SubSection);
+                        if (buttonNdx == 0)
+                        {
+                            hasDataSpecification = hasDataSpecification ?? new List<IEmbeddedDataSpecification>();
+                            hasDataSpecification.Add(
+                                new Aas.EmbeddedDataSpecification(
+                                    dataSpecification: Options.Curr.GetDefaultEmptyReference(),
+                                    dataSpecificationContent: new DataSpecificationBlank()));
+                            setOutput?.Invoke(hasDataSpecification);
+                        }
 
-                        // Reference
-                        int currentI = i;
+                        if (buttonNdx == 1)
+                        {
+                            hasDataSpecification = hasDataSpecification ?? new List<IEmbeddedDataSpecification>();
+                            hasDataSpecification.Add(
+                                new Aas.EmbeddedDataSpecification(
+                                    new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey> {
+                                        ExtendIDataSpecificationContent.GetKeyForIec61360()
+                                    }),
+                                    new Aas.DataSpecificationIec61360(new List<Aas.ILangStringPreferredNameTypeIec61360>() {
+                                        new Aas.LangStringPreferredNameTypeIec61360(
+                                            AdminShellUtil.GetDefaultLngIso639(), "")
+                                    })));
+                            setOutput?.Invoke(hasDataSpecification);
+                        }
+
+                        if (buttonNdx == 2)
+                        {
+                            var fix = 0;
+                            foreach (var eds in hasDataSpecification.ForEachSafe())
+                                if (eds != null && eds.FixReferenceWrtContent())
+                                    fix++;
+                            Log.Singleton.Info($"Fixed {fix} records of embedded data specification.");
+                        }
+
+                        if (buttonNdx == 3)
+                        {
+                            if (hasDataSpecification != null && hasDataSpecification.Count > 0)
+                                hasDataSpecification.RemoveAt(hasDataSpecification.Count - 1);
+                            
+                            if (hasDataSpecification != null && hasDataSpecification.Count < 1)
+                                setOutput?.Invoke(null);
+                        }
+
+                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                        return new AnyUiLambdaActionRedrawEntity();
+                    });
+            }
+
+            // now use the normal mechanism to deal with editMode or not ..
+            if (hasDataSpecification != null && hasDataSpecification.Count > 0)
+            {
+                for (int i = 0; i < hasDataSpecification.Count; i++)
+                {
+                    // indicate
+                    this.AddGroup(stack, $"dataSpec.[{i}] / Reference:", levelColors.SubSection);
+
+                    // Reference
+                    int currentI = i;
+                    if (SafeguardAccess(
+                        stack, this.repo, hasDataSpecification[i].DataSpecification,
+                            "DataSpecification:", "Create (inner) data element!",
+                        v =>
+                        {
+                            hasDataSpecification[currentI].DataSpecification =
+                                new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                            return new AnyUiLambdaActionRedrawEntity();
+                        }))
+                    {
+                        AddKeyReference(
+                            stack, String.Format("dataSpec.[{0}]", i),
+                            hasDataSpecification[i].DataSpecification,
+                            () =>
+                            {
+                                if (currentI >= 0 && currentI <= hasDataSpecification.Count)
+                                    hasDataSpecification.RemoveAt(currentI);
+                            },
+                            repo, packages, PackageCentral.PackageCentral.Selector.MainAux,
+                            addExistingEntities: null /* "All" */,
+                            addPresetNames: addPresetNames, addPresetKeyLists: addPresetKeyLists,
+                            relatedReferable: relatedReferable,
+                            showRefSemId: false);
+                    }
+
+                    // indicate new section
+                    AddGroup(stack, $"dataSpec.[{i}] / Content:", levelColors.SubSection);
+
+                    var cntByDs = ExtendIDataSpecificationContent.GuessContentTypeFor(
+                                    hasDataSpecification[i].DataSpecificationContent);
+
+                    AddHintBubble(
+                        stack, hintMode, new[] {
+                        new HintCheck(
+                            () => cntByDs == ExtendIDataSpecificationContent.ContentTypes.NoInfo,
+                            "No valid data specification Reference could be identified. Thus, no content " +
+                            "attributes could be provided. Check the Reference.")
+                        });
+
+                    // edit content?
+                    if (cntByDs != ExtendIDataSpecificationContent.ContentTypes.NoInfo)
+                    {
+                        var cntNone = hasDataSpecification[i].DataSpecificationContent == null;
+                        var cntMismatch = ExtendIDataSpecificationContent.GuessContentTypeFor(
+                                        hasDataSpecification[i].DataSpecificationContent) !=
+                                            ExtendIDataSpecificationContent.ContentTypes.NoInfo
+                                        && ExtendIDataSpecificationContent.GuessContentTypeFor(
+                                        hasDataSpecification[i].DataSpecificationContent) != cntByDs;
+
+                        this.AddHintBubble(
+                            stack, hintMode,
+                            new[] {
+                            new HintCheck(
+                                () => cntNone,
+                                "No data specification content is available for this record. " +
+                                "Create content in order to create this important descriptinve " +
+                                "information.",
+                                breakIfTrue: true),
+                            new HintCheck(
+                                () => cntMismatch,
+                                "Mismatch between data specification Reference and stored content " +
+                                "of data specification.")
+                            });
+
                         if (SafeguardAccess(
-                            stack, this.repo, hasDataSpecification[i].DataSpecification,
-                                "DataSpecification:", "Create (inner) data element!",
+                            stack, this.repo, (cntNone || cntMismatch) ? null : "NotNull",
+                                "Content:", "Create (reset) content data element!",
                             v =>
                             {
-                                hasDataSpecification[currentI].DataSpecification =
-                                    new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                                hasDataSpecification[currentI].DataSpecificationContent =
+                                    ExtendIDataSpecificationContent.ContentFactoryFor(cntByDs);
+
                                 return new AnyUiLambdaActionRedrawEntity();
                             }))
                         {
-                            AddKeyReference(
-                                stack, String.Format("dataSpec.[{0}]", i),
-                                hasDataSpecification[i].DataSpecification,
-                                () => hasDataSpecification[i].DataSpecification = null,
-                                repo, packages, PackageCentral.PackageCentral.Selector.MainAux,
-                                addExistingEntities: null /* "All" */,
-                                addPresetNames: addPresetNames, addPresetKeyLists: addPresetKeyLists,
-                                relatedReferable: relatedReferable,
-                                showRefSemId: false,
-                                auxContextHeader: new[] { "\u2573", "Delete this dataSpec." },
-                                auxContextLambda: (choice) =>
-                                {
-                                    if (choice == 0)
-                                    {
-                                        if (currentI >= 0 && currentI <= hasDataSpecification.Count)
-                                            hasDataSpecification.RemoveAt(currentI);
-                                        return new AnyUiLambdaActionRedrawEntity();
-                                    }
-                                    return new AnyUiLambdaActionNone();
-                                });
-                        }
+                            if (cntByDs == ExtendIDataSpecificationContent.ContentTypes.Iec61360)
+                                this.DisplayOrEditEntityDataSpecificationIec61360(
+                                    env, stack,
+                                    hasDataSpecification[i].DataSpecificationContent
+                                        as Aas.DataSpecificationIec61360,
+                                    relatedReferable: relatedReferable, superMenu: superMenu);
 
-                        var cntByDs = ExtendIDataSpecificationContent.GuessContentTypeFor(
-                                        hasDataSpecification[i].DataSpecificationContent);
-
-                        AddHintBubble(
-                            stack, hintMode, new[] {
-                            new HintCheck(
-                                () => cntByDs == ExtendIDataSpecificationContent.ContentTypes.NoInfo,
-                                "No valid data specification Reference could be identified. Thus, no content " +
-                                "attributes could be provided. Check the Reference.")
-                            });
-
-                        // indicate new section
-                        AddGroup(stack, $"dataSpec.[{i}] / Content:", levelColors.SubSection);
-
-                        // edit content?
-                        if (cntByDs != ExtendIDataSpecificationContent.ContentTypes.NoInfo)
-                        {
-                            var cntNone = hasDataSpecification[i].DataSpecificationContent == null;
-                            var cntMismatch = ExtendIDataSpecificationContent.GuessContentTypeFor(
-                                            hasDataSpecification[i].DataSpecificationContent) !=
-                                                ExtendIDataSpecificationContent.ContentTypes.NoInfo
-                                            && ExtendIDataSpecificationContent.GuessContentTypeFor(
-                                            hasDataSpecification[i].DataSpecificationContent) != cntByDs;
-
-                            this.AddHintBubble(
-                                stack, hintMode,
-                                new[] {
-                                new HintCheck(
-                                    () => cntNone,
-                                    "No data specification content is available for this record. " +
-                                    "Create content in order to create this important descriptinve " +
-                                    "information.",
-                                    breakIfTrue: true),
-                                new HintCheck(
-                                    () => cntMismatch,
-                                    "Mismatch between data specification Reference and stored content " +
-                                    "of data specification.")
-                                });
-
-                            if (SafeguardAccess(
-                                stack, this.repo, (cntNone || cntMismatch) ? null : "NotNull",
-                                    "Content:", "Create (reset) content data element!",
-                                v =>
-                                {
-                                    hasDataSpecification[currentI].DataSpecificationContent =
-                                        ExtendIDataSpecificationContent.ContentFactoryFor(cntByDs);
-
-                                    return new AnyUiLambdaActionRedrawEntity();
-                                }))
-                            {
-                                if (cntByDs == ExtendIDataSpecificationContent.ContentTypes.Iec61360)
-                                    this.DisplayOrEditEntityDataSpecificationIec61360(
-                                        env, stack,
-                                        hasDataSpecification[i].DataSpecificationContent
-                                            as Aas.DataSpecificationIec61360,
-                                        relatedReferable: relatedReferable, superMenu: superMenu);
-
-                                //TODO (jtikekar, 0000-00-00): support DataSpecificationPhysicalUnit
+                            //TODO (jtikekar, 0000-00-00): support DataSpecificationPhysicalUnit
 #if SupportDataSpecificationPhysicalUnit
-                                if (cntByDs == ExtendIDataSpecificationContent.ContentTypes.PhysicalUnit)
-                                    this.DisplayOrEditEntityDataSpecificationPhysicalUnit(
-                                        stack,
-                                        hasDataSpecification[i].DataSpecificationContent
-                                            as Aas.DataSpecificationPhysicalUnit,
-                                        relatedReferable: relatedReferable); 
+                            if (cntByDs == ExtendIDataSpecificationContent.ContentTypes.PhysicalUnit)
+                                this.DisplayOrEditEntityDataSpecificationPhysicalUnit(
+                                    stack,
+                                    hasDataSpecification[i].DataSpecificationContent
+                                        as Aas.DataSpecificationPhysicalUnit,
+                                    relatedReferable: relatedReferable); 
 #endif
-                            }
                         }
                     }
                 }
-            }
+            }            
         }
         //
         // List of References (used for isCaseOf..)

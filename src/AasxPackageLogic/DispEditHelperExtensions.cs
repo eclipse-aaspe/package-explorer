@@ -1054,27 +1054,6 @@ namespace AasxPackageLogic
 			// members
 			this.AddGroup(stack, "Known extensions \u00ab experimental \u00bb :", levelColors.MainSection);
 
-			// lambda to be used twice
-			Func<int, Aas.IExtension> createExt = (i) =>
-			{
-				if (i == 0)
-				{
-                    var newSet = new SmtAttributeRecord();
-                    return new Aas.Extension(
-						name: newSet.GetSelfName(),
-						semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
-							(new[] {
-								new Aas.Key(KeyTypes.GlobalReference,
-								"" + newSet.GetSelfUri())
-							})
-							.Cast<Aas.IKey>().ToList()),
-						value: "");
-				}
-
-				// this shall not happen!
-				return null;
-            };
-
 			// hints
 			this.AddHintBubble(
 				stack, hintMode,
@@ -1082,59 +1061,64 @@ namespace AasxPackageLogic
 					new HintCheck(
 						() => { return extension == null ||
 							extension.Count < 1; },
-						"For modelling Submodel template specifications (SMT), a set of particular attributes " +
+                        (extension == null ? "List of extensions is null! " : "List of extensions is empty! ") +
+                        "For modelling Submodel template specifications (SMT), a set of particular attributes " +
 						"to the elements of SMTs are specified. These attributes can be added as specific " +
 						"Qualifiers or via adding an extension as a whole.",
 						breakIfTrue: true, severityLevel: HintCheck.Severity.Notice),
 				});
-			if (this.SafeguardAccess(
-					stack, this.repo, extension, "Known extensions:",
+
+            // Head control. Allow menu, even if list is null!
+            if (editMode)
+			{
+				// let the user control the number of references
+				this.AddActionPanel(
+					stack, "Known extension:", repo: repo,
 					superMenu: superMenu,
 					ticketMenu: new AasxMenu()
-						.AddAction("create-smt-attributes", "Create w/ SMT attributes",
-							"Creates list of extensions with SMT attributes already added."),
+						.AddAction("add-smt-attributes", "SMT attributes",
+							"Add attributes for Submodel template specifications.")
+						.AddAction("delete-last", "Delete last extension",
+							"Deletes last extension."),
 					ticketAction: (buttonNdx, ticket) =>
 					{
 						if (buttonNdx == 0)
 						{
-							setOutput?.Invoke(new List<Aas.IExtension>(new[] { createExt(0) }));
-							return new AnyUiLambdaActionRedrawEntity();
+							// create
+                            var newSet = new SmtAttributeRecord();
+                            var newExt = new Aas.Extension(
+                                name: newSet.GetSelfName(),
+                                semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
+                                    (new[] {
+                                new Aas.Key(KeyTypes.GlobalReference,
+                                "" + newSet.GetSelfUri())
+                                    })
+                                    .Cast<Aas.IKey>().ToList()),
+                                value: "");
+
+							// add
+							extension = extension ?? new List<IExtension>();
+                            extension.Add(newExt);
+							setOutput?.Invoke(extension);
 						}
-						return new AnyUiLambdaActionNone();
-					}))
-			{
-				// head control
-				if (editMode)
-				{
-					// let the user control the number of references
-					this.AddActionPanel(
-						stack, "Known extension:", repo: repo,
-						superMenu: superMenu,
-						ticketMenu: new AasxMenu()
-							.AddAction("add-smt-attributes", "SMT attributes",
-								"Add attributes for Submodel template specifications.")
-							.AddAction("delete-last", "Delete last extension",
-								"Deletes last extension."),
-						ticketAction: (buttonNdx, ticket) =>
-						{
-							if (buttonNdx == 0)
-								extension.Add(createExt(0));
 							
-							// remove
-							if (buttonNdx == 1)
-							{
-								if (extension.Count > 0)
-									extension.RemoveAt(extension.Count - 1);
-								if (extension.Count < 1)
-									setOutput?.Invoke(null);
-							}
+						// remove
+						if (buttonNdx == 1)
+						{
+							if (extension != null && extension.Count > 0)
+								extension.RemoveAt(extension.Count - 1);
+							if (extension != null && extension.Count < 1)
+								setOutput?.Invoke(null);
+						}
 
-							this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-							return new AnyUiLambdaActionRedrawEntity();
-						});
-				}
+						this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+						return new AnyUiLambdaActionRedrawEntity();
+					});
+			}
 
-				// now use the normal mechanism to deal with editMode or not ..
+			// now use the normal mechanism to deal with editMode or not ..
+			if (extension != null)
+			{
 				for (int exti = 0; exti < extension.Count; exti++)
 				{
 					// get
