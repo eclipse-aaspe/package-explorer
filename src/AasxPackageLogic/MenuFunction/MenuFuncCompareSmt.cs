@@ -445,8 +445,10 @@ namespace AasxPackageExplorer
                         "Aborting!");
                 }
             }
-            First = FirstEnv.FindSubmodel(FirstEnv.AssetAdministrationShells[0].Submodels[0]);
-            Second = SecondEnv.FindSubmodel(SecondEnv.AssetAdministrationShells[0].Submodels[0]);
+            First = FirstEnv.FindSubmodel(
+                FirstEnv.AllAssetAdministrationShells().FirstOrDefault()?.AllSubmodels().FirstOrDefault());
+            Second = SecondEnv.FindSubmodel(
+                SecondEnv.AllAssetAdministrationShells().FirstOrDefault()?.AllSubmodels().FirstOrDefault());
             if (First == null || Second == null)
             {
                 Log.Singleton.Error($"Compare SMT: either First or Second SMT cannot be found properly. " +

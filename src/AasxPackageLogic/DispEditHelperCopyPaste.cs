@@ -249,10 +249,10 @@ namespace AasxPackageLogic
                         bufferKey = new List<Aas.IKey>() { cpbsm.sm.GetReference().Keys.First() };
 
                     if (cpb.Items[0] is CopyPasteItemSME cpbsme && cpbsme.sme != null
-                        && cpbsme.env.Submodels != null)
+                        && cpbsme.env?.Submodels != null)
                     {
                         // index parents for ALL Submodels -> parent for our SME shall be set by this ..
-                        foreach (var sm in cpbsme.env?.Submodels)
+                        foreach (var sm in cpbsme.env.AllSubmodels())
                             sm?.SetAllParents();
 
                         // collect buffer list

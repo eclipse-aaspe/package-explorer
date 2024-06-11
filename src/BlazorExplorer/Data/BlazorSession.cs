@@ -376,7 +376,7 @@ namespace BlazorUI.Data
 
             if (env?.AasEnv?.AssetAdministrationShells != null)
                 helper.DisplayOrEditAasEntityAas(PackageCentral, env.AasEnv,
-                    env.AasEnv.AssetAdministrationShells[0], EditMode, ElementPanel, hintMode: HintMode);
+                    env.AasEnv.AllAssetAdministrationShells().FirstOrDefault(), EditMode, ElementPanel, hintMode: HintMode);
 
             htmlDotnetThread = new Thread(AnyUiDisplayContextHtml.htmlDotnetLoop);
             htmlDotnetThread.Start();

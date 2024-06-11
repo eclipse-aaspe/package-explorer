@@ -899,8 +899,8 @@ namespace AasxPackageLogic
                 }
 
                 // try to invoke plugin to get submodel
-                Aas.Submodel smres = null;
-                List<Aas.ConceptDescription> cdres = null;
+                Aas.ISubmodel smres = null;
+                List<Aas.IConceptDescription> cdres = null;
                 try
                 {
                     var res = record.Item1.InvokeAction("generate-submodel", record.Item2) as AasxPluginResultBase;
@@ -941,7 +941,7 @@ namespace AasxPackageLogic
                     // add Submodel
                     var smref = smres.GetReference().Copy();
                     ticket.AAS.Add(smref);
-                    ticket.Env.Submodels.Add(smres);
+                    ticket.Env.Add(smres);
 
                     // add ConceptDescriptions?
                     if (cdres != null && cdres.Count > 0)
@@ -956,7 +956,7 @@ namespace AasxPackageLogic
                                 continue;
                             // ok, add
                             var newCd = cd.Copy();
-                            ticket.Env.ConceptDescriptions.Add(newCd);
+                            ticket.Env.Add(newCd);
                             nr++;
                         }
                         Log.Singleton.Info(
@@ -1040,7 +1040,7 @@ namespace AasxPackageLogic
                     // add Submodel
                     var smref = smres.GetReference().Copy();
                     ticket.AAS.Add(smref);
-                    ticket.Env.Submodels.Add(smres);
+                    ticket.Env.Add(smres);
                     createdSms++;
                 }
 
@@ -1067,7 +1067,7 @@ namespace AasxPackageLogic
                     }
 
                     // ok, add
-                    ticket.Env.ConceptDescriptions.Add(cdres);
+                    ticket.Env.Add(cdres);
                     createdCds++;
                 }
 
@@ -1139,7 +1139,7 @@ namespace AasxPackageLogic
                     // add Submodel
                     var smref = smres.GetReference().Copy();
                     ticket.AAS.AddSubmodelReference(smref);
-                    ticket.Env.Submodels.Add(smres);
+                    ticket.Env.Add(smres);
 
                     // add ConceptDescriptions?
                     if (cdres != null && cdres.Count > 0)
@@ -1154,7 +1154,7 @@ namespace AasxPackageLogic
                                 continue;
                             // ok, add
                             var newCd = cd.Copy();
-                            ticket.Env.ConceptDescriptions.Add(newCd);
+                            ticket.Env.Add(newCd);
                             nr++;
                         }
                         Log.Singleton.Info(

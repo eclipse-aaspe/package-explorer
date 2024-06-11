@@ -82,8 +82,8 @@ namespace AasxIntegrationBase
 
     public class AasxPluginResultGenerateSubmodel : AasxPluginResultBase
     {
-        public Aas.Submodel sm;
-        public List<Aas.ConceptDescription> cds;
+        public Aas.ISubmodel sm;
+        public List<Aas.IConceptDescription> cds;
     }
 
     public class AasxPluginResultSingleMenuItem

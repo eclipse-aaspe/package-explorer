@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Aas = AasCore.Aas3_0;
 
 namespace AasxAmlImExport
 {
@@ -816,7 +817,7 @@ namespace AasxAmlImExport
             //
             // Submodels can be of kind Type/ Instance
             //
-            foreach (var smref in aas.Submodels)
+            foreach (var smref in aas.AllSubmodels())
             {
                 // ref -> Submodel
                 var sm = env.FindSubmodel(smref);
@@ -1026,14 +1027,14 @@ namespace AasxAmlImExport
 
 
         private static void ExportConceptDescriptionsWithExtraContentToIHT(
-            InstanceHierarchyType lib, AasCore.Aas3_0.Environment env)
+            InstanceHierarchyType lib, Aas.Environment env)
         {
             // acceess
             if (lib == null || env == null)
                 return;
 
             // over CDs
-            foreach (var cd in env.ConceptDescriptions)
+            foreach (var cd in env.AllConceptDescriptions())
             {
                 // make IE for CD itself (outer IE)
                 string name = "TODO-CD";
@@ -1164,7 +1165,7 @@ namespace AasxAmlImExport
             var matcher = new AasAmlMatcher();
 
             // over all AAS
-            foreach (var aas in package.AasEnv.AssetAdministrationShells)
+            foreach (var aas in package.AasEnv.AllAssetAdministrationShells())
             {
                 ExportAAS(matcher, insthier, suchier, package.AasEnv, aas, tryUseCompactProperties);
             }

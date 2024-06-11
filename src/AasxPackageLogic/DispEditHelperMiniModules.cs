@@ -2052,14 +2052,14 @@ namespace AasxPackageLogic
                 id: "" + AdminShellUtil.GenerateIdAccordingTemplate(Options.Curr.TemplateIdSubmodelInstance),
                 administration: rootCd.Administration?.Copy(),
                 semanticId: rootCd.GetCdReference());
-            env.Submodels.Add(submodel);
+            env.Add(submodel);
 
             var aas1 = env?.AssetAdministrationShells?.FirstOrDefault();
             Aas.IReference smres = null;
             if (aas1 != null)
             {
                 smres = submodel.GetReference();
-                aas1.Submodels.Add(smres);
+                aas1.Add(smres);
             }
 
             // lambda to recurse

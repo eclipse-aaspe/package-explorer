@@ -112,29 +112,6 @@ namespace Extensions
         }
 
         #endregion
-        #region ListOfConceptDescription
-        public static IConceptDescription AddConceptDescriptionOrReturnExisting(this List<IConceptDescription> conceptDescriptions, ConceptDescription newConceptDescription)
-        {
-            if (newConceptDescription == null)
-            {
-                return null;
-            }
-            if (conceptDescriptions != null)
-            {
-                var existingCd = conceptDescriptions.Where(c => c.Id == newConceptDescription.Id).FirstOrDefault();
-                if (existingCd != null)
-                {
-                    return existingCd;
-                }
-                else
-                {
-                    conceptDescriptions.Add(newConceptDescription);
-                }
-            }
-
-            return newConceptDescription;
-        }
-        #endregion
 
         public static void Validate(
             this IConceptDescription conceptDescription, AasValidationRecordList results)

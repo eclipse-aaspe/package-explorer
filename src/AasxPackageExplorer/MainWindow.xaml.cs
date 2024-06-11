@@ -1428,7 +1428,7 @@ namespace AasxPackageExplorer
                         if (pe?.AasEnv?.AssetAdministrationShells == null)
                             continue;
 
-                        foreach (var aas in pe.AasEnv.AssetAdministrationShells)
+                        foreach (var aas in pe.AasEnv.AllAssetAdministrationShells())
                             if (rf.GetAsExactlyOneKey().Value.Equals(aas.AssetInformation.GlobalAssetId))
                             {
                                 rf = aas.GetReference();

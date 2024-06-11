@@ -51,17 +51,17 @@ namespace AasxPackageLogic
             }
 
             // available elements in the environment
-            var firstAas = pm.AssetAdministrationShells?.FirstOrDefault();
+            var firstAas = pm.AllAssetAdministrationShells().FirstOrDefault();
 
             Aas.ISubmodel firstSm = null;
-            if (firstAas != null && firstAas.Submodels != null && firstAas.Submodels.Count > 0)
-                firstSm = pm.FindSubmodel(firstAas.Submodels[0]);
+            if (firstAas != null)
+                firstSm = pm.FindSubmodel(firstAas.AllSubmodels().FirstOrDefault());
 
             Aas.ISubmodelElement firstSme = null;
             if (firstSm != null && firstSm.SubmodelElements != null && firstSm.SubmodelElements.Count > 0)
                 firstSme = firstSm.SubmodelElements[0];
 
-			var firstCd = pm.ConceptDescriptions?.FirstOrDefault();
+			var firstCd = pm.AllConceptDescriptions().FirstOrDefault();
 
 			// TODO (MIHO, 2022-12-16): Some cases are not implemented
 
@@ -113,7 +113,7 @@ namespace AasxPackageLogic
                 {
                     if (siAAS?.theAas != null)
                     {
-                        var smr = siAAS.theAas.Submodels?.FirstOrDefault();
+                        var smr = siAAS.theAas.AllSubmodels().FirstOrDefault();
                         var sm = pm.FindSubmodel(smr);
                         if (sm == null)
                         {
@@ -125,7 +125,7 @@ namespace AasxPackageLogic
 
                     if (firstAas != null)
                     {
-                        var smr = firstAas.Submodels?.FirstOrDefault();
+                        var smr = firstAas.AllSubmodels().FirstOrDefault();
                         var sm = pm.FindSubmodel(smr);
                         if (sm == null)
                         {
@@ -173,7 +173,7 @@ namespace AasxPackageLogic
                 {
                     var idx = pm?.AssetAdministrationShells?.IndexOf(siAAS?.theAas);
                     if (siAAS?.theAas == null || idx == null
-                        || idx.Value < 0 || idx.Value >= pm.AssetAdministrationShells.Count - 1)
+                        || idx.Value < 0 || idx.Value >= pm.AssetAdministrationShellCount() - 1)
                     {
                         Log.Singleton.Error("Script: For next AAS, the selected AAS is unknown " +
                             "or no next AAS can be determined!");
@@ -190,21 +190,21 @@ namespace AasxPackageLogic
                         || siSM?.theSubmodel == null
                         || siSM?.theSubmodelRef == null
                         || idx == null
-                        || idx.Value < 0 || idx.Value >= siAAS.theAas.Submodels.Count)
+                        || idx.Value < 0 || idx.Value >= siAAS.theAas.SubmodelCount())
                     {
                         // complain
                         Log.Singleton.Error("Script: For next SM, the selected AAS/ SM is unknown " +
                             "or no next SM can be determined!");
                         return null;
                     }
-                    if (idx.Value >= siAAS.theAas.Submodels.Count - 1)
+                    if (idx.Value >= siAAS.theAas.SubmodelCount() - 1)
                     {
                         // return null without error, as this is "expected" behaviour
                         return null;
                     }
 
                     // make the step
-                    var smr = siAAS.theAas.Submodels[idx.Value + 1];
+                    var smr = siAAS.theAas.SubmodelByIndex(idx.Value + 1);
                     var sm = pm.FindSubmodel(smr);
                     if (sm == null)
                     {
@@ -218,7 +218,7 @@ namespace AasxPackageLogic
 				{
 					var idx = pm?.ConceptDescriptions?.IndexOf(siCD?.theCD);
 					if (siCD?.theCD == null || idx == null
-						|| idx.Value < 0 || idx.Value >= pm.ConceptDescriptions.Count - 1)
+						|| idx.Value < 0 || idx.Value >= pm.ConceptDescriptionCount() - 1)
 					{
 						Log.Singleton.Error("Script: For next CD, the selected CD is unknown " +
 							"or no next CD can be determined!");
@@ -239,7 +239,7 @@ namespace AasxPackageLogic
                 {
                     var idx = pm?.AssetAdministrationShells?.IndexOf(siAAS?.theAas);
                     if (siAAS?.theAas == null || idx == null
-                        || idx.Value <= 0 || idx.Value >= pm.AssetAdministrationShells.Count)
+                        || idx.Value <= 0 || idx.Value >= pm.AssetAdministrationShellCount())
                     {
                         Log.Singleton.Error("Script: For previos AAS, the selected AAS is unknown " +
                             "or no previous AAS can be determined!");
@@ -256,7 +256,7 @@ namespace AasxPackageLogic
                         || siSM?.theSubmodel == null
                         || siSM?.theSubmodelRef == null
                         || idx == null
-                        || idx.Value < 0 || idx.Value >= siAAS.theAas.Submodels.Count)
+                        || idx.Value < 0 || idx.Value >= siAAS.theAas.SubmodelCount())
                     {
                         // complain
                         Log.Singleton.Error("Script: For prev SM, the selected AAS/ SM is unknown " +
@@ -270,7 +270,7 @@ namespace AasxPackageLogic
                     }
 
                     // make the step
-                    var smr = siAAS.theAas.Submodels[idx.Value - 1];
+                    var smr = siAAS.theAas.SubmodelByIndex(idx.Value - 1);
                     var sm = pm.FindSubmodel(smr);
                     if (sm == null)
                     {
@@ -284,7 +284,7 @@ namespace AasxPackageLogic
 				{
 					var idx = pm?.ConceptDescriptions?.IndexOf(siCD?.theCD);
 					if (siCD?.theCD == null || idx == null
-						|| idx.Value < 1 || idx.Value >= pm.ConceptDescriptions.Count)
+						|| idx.Value < 1 || idx.Value >= pm.ConceptDescriptionCount())
 					{
 						Log.Singleton.Error("Script: For previous CD, the selected CD is unknown " +
 							"or no previous CD can be determined!");

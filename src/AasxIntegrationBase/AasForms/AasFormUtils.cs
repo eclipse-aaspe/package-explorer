@@ -221,8 +221,8 @@ namespace AasxIntegrationBase.AasForms
 
             // build templates
             var templateArr = new List<FormDescSubmodel>();
-            foreach (var aas in package.AasEnv.AssetAdministrationShells)
-                foreach (var smref in aas.Submodels)
+            foreach (var aas in package.AasEnv.AllAssetAdministrationShells())
+                foreach (var smref in aas.AllSubmodels())
                 {
                     // get Submodel
                     var sm = package.AasEnv.FindSubmodel(smref);

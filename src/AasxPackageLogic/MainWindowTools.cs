@@ -1013,8 +1013,8 @@ namespace AasxPackageExplorer
                 // add Submodel
                 var existingSm = env.FindSubmodelById(readSm.Id);
                 if (existingSm != null)
-                    env.Submodels.Remove(existingSm);
-                env.Submodels.Add(readSm);
+                    env.Remove(existingSm);
+                env.Add(readSm);
 
                 // add SubmodelRef to AAS
                 // access the AAS
@@ -1151,8 +1151,8 @@ namespace AasxPackageExplorer
             // add Submodel
             var existingSm = env.FindSubmodelById(submodel.Id);
             if (existingSm != null)
-                env.Submodels.Remove(existingSm);
-            env.Submodels.Add(submodel);
+                env.Remove(existingSm);
+            env.Add(submodel);
 
             // add SubmodelRef to AAS
             // access the AAS

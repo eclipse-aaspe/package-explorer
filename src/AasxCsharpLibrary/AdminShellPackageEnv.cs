@@ -912,8 +912,9 @@ namespace AdminShellNS
                     {
                         // create, as not existing
                         var frn = "aasenv-with-no-id";
-                        if (_aasEnv.AssetAdministrationShells.Count > 0)
-                            frn = _aasEnv.AssetAdministrationShells[0].GetFriendlyName() ?? frn;
+                        if (_aasEnv.AssetAdministrationShellCount() > 0)
+                            frn = _aasEnv.AllAssetAdministrationShells().FirstOrDefault()
+                                    .GetFriendlyName() ?? frn;
                         var aas_spec_fn = "/aasx/#/#.aas";
                         if (prefFmt == SerializationFormat.Json)
                             aas_spec_fn += ".json";

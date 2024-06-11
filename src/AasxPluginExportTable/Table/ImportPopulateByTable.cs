@@ -409,7 +409,7 @@ namespace AasxPluginExportTable.Table
 
             // create, add
             var cd = context?.CD?.Copy();
-            env.ConceptDescriptions.Add(cd);
+            env.Add(cd);
             var res = new ContextResult() { Elem = cd };
 
             // link CD to SME
