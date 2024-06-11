@@ -2660,7 +2660,7 @@ namespace AasxPackageLogic
                     if (null == env.FindConceptDescriptionByReference(
                             new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>() { new Aas.Key(Aas.KeyTypes.ConceptDescription, newcd.Id) })))
                     {
-                        env.ConceptDescriptions.Add(newcd);
+                        env.Add(newcd);
 
                         this.AddDiaryEntry(newcd, new DiaryEntryStructChange(StructuralChangeReason.Create));
                     }
@@ -2765,7 +2765,7 @@ namespace AasxPackageLogic
                         }
 
                         // store in AAS enviroment
-                        env.ConceptDescriptions.Add(cd);
+                        env.Add(cd);
 
                         // count and emit event
                         added++;

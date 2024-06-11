@@ -415,4 +415,33 @@ These projects are not migrated or integrated, yet:
 .\AasxPackageExplorer.exe -read-json options-debug.MIHO.json -aasx-to-load "C:\HOMI\Develop\Aasx\repo\IDTA 02003-1-2_Template_TechnicalData.aasx" -log-file out.log -cmd 'Tool(\"AssessSmt\", \"Target\", \"test.xlsx\"); Tool(\"Exit\");'
 ```
 
+# Notes w.r.t empty list handling
+
+* Special accessor-methods were created for the following lists of data structures:
+  * Env.AssetAdministrationShells
+  * Env.Submodels
+  * Env.ConceptDescriptions
+  * Aas.Submodel (-References)
+
+* For any of the above, in the particular super-ordinate classes, accessor-methods were realized,
+  which can handle the empty list / null challenge.
+
+* For instance, for Env.Submodels the following methods are available:
+  * AllSubmodels() -> safe enumeration
+  * SubmodelCount() -> safe counting
+  * SubmodelByIndex() -> safe list index
+  * Add() -> safe addition to list, list might be created
+  * Remove() -> safe removal, list mihgt be set to null again
+
+* Design-decision, to name Add(), Remove(), Replace() in a general way and use
+  argument type overloading
+
+* Each symbol name is choosen in a way, that the following regex will *NOT* list it;
+  therefore, the generated list will only cite "suspicious" use of the original lists:
+
+* Use this Regex (exclude AasCore & AasxCompatibilityModels):
+
+```
+(\w+)\.(AssetAdministrationShells|Submodels|ConceptDescriptions)
+```
 

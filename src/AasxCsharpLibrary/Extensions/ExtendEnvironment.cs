@@ -101,13 +101,12 @@ namespace Extensions
                 return res;
 
             // AAS core crashes without AssetInformation
-            if (env.AssetAdministrationShells != null)
-                foreach (var aas in env.AssetAdministrationShells)
-                    if (aas.AssetInformation == null)
-                    {
-                        aas.AssetInformation = new AssetInformation(assetKind: AssetKind.NotApplicable);
-                        res++;
-                    }
+            foreach (var aas in env.AllAssetAdministrationShells())
+                if (aas.AssetInformation == null)
+                {
+                    aas.AssetInformation = new AssetInformation(assetKind: AssetKind.NotApplicable);
+                    res++;
+                }
 
             // AAS core crashes without EmbeddedDataSpecification.DataSpecificationContent
             // AAS core crashes without EmbeddedDataSpecification.DataSpecificationContent.PreferredName
@@ -128,84 +127,70 @@ namespace Extensions
 
         public static IEnumerable<IReferable> FindAllReferable(this AasCore.Aas3_0.IEnvironment environment, bool onlyIdentifiables = false)
         {
-            if (environment.AssetAdministrationShells != null)
-                foreach (var aas in environment.AssetAdministrationShells)
-                    if (aas != null)
-                    {
-                        // AAS itself
-                        yield return aas;
-                    }
+            foreach (var aas in environment.AllAssetAdministrationShells())
+                if (aas != null)
+                {
+                    // AAS itself
+                    yield return aas;
+                }
 
-            if (environment.Submodels != null)
-                foreach (var sm in environment.Submodels)
-                    if (sm != null)
-                    {
-                        yield return sm;
+            foreach (var sm in environment.AllSubmodels())
+                if (sm != null)
+                {
+                    yield return sm;
 
-                        if (!onlyIdentifiables)
+                    if (!onlyIdentifiables)
+                    {
+                        // TODO (MIHO, 2020-08-26): not very elegant, yet. Avoid temporary collection
+                        var allsme = new List<ISubmodelElement>();
+                        sm.RecurseOnSubmodelElements(null, (state, parents, sme) =>
                         {
-                            // TODO (MIHO, 2020-08-26): not very elegant, yet. Avoid temporary collection
-                            var allsme = new List<ISubmodelElement>();
-                            sm.RecurseOnSubmodelElements(null, (state, parents, sme) =>
-                            {
-                                allsme.Add(sme); return true;
-                            });
-                            foreach (var sme in allsme)
-                                yield return sme;
-                        }
+                            allsme.Add(sme); return true;
+                        });
+                        foreach (var sme in allsme)
+                            yield return sme;
                     }
+                }
 
-            if (environment.ConceptDescriptions != null)
-                foreach (var cd in environment.ConceptDescriptions)
-                    if (cd != null)
-                        yield return cd;
+            foreach (var cd in environment.AllConceptDescriptions())
+                if (cd != null)
+                    yield return cd;
         }
 
 #if !DoNotUseAasxCompatibilityModels
 
         public static AasCore.Aas3_0.IEnvironment ConvertFromV10(this AasCore.Aas3_0.IEnvironment environment, AasxCompatibilityModels.AdminShellV10.AdministrationShellEnv sourceEnvironement)
         {
-            //Convert Administration Shells
-            if (!sourceEnvironement.AdministrationShells.IsNullOrEmpty())
+            // Convert Administration Shells
+            foreach (var sourceAas in sourceEnvironement.AdministrationShells.ForEachSafe())
             {
-                environment.AssetAdministrationShells ??= new List<IAssetAdministrationShell>();
-                foreach (var sourceAas in sourceEnvironement.AdministrationShells)
-                {
-                    var newAssetInformation = new AssetInformation(AssetKind.Instance);
-                    var newAas = new AssetAdministrationShell(
-                        id: sourceAas.identification.id, newAssetInformation);
-                    environment.AssetAdministrationShells.Add(newAas);
+                var newAssetInformation = new AssetInformation(AssetKind.Instance);
+                var newAas = new AssetAdministrationShell(
+                    id: sourceAas.identification.id, newAssetInformation);
+                environment.Add(newAas);
 
-                    var sourceAsset = sourceEnvironement?.FindAsset(sourceAas.assetRef);
-                    if (sourceAsset != null)
-                    {
-                        newAssetInformation = newAssetInformation.ConvertFromV10(sourceAsset);
-                        newAas.AssetInformation = newAssetInformation;
-                    }
+                var sourceAsset = sourceEnvironement?.FindAsset(sourceAas.assetRef);
+                if (sourceAsset != null)
+                {
+                    newAssetInformation = newAssetInformation.ConvertFromV10(sourceAsset);
+                    newAas.AssetInformation = newAssetInformation;
                 }
             }
 
-            //Convert Submodels
-            if (!sourceEnvironement.Submodels.IsNullOrEmpty())
+            // Convert Submodels
+            foreach (var sourceSubmodel in sourceEnvironement.Submodels.ForEachSafe())
             {
-                environment.Submodels ??= new List<ISubmodel>();
-                foreach (var sourceSubmodel in sourceEnvironement.Submodels)
-                {
-                    var newSubmodel = new Submodel(sourceSubmodel.identification.id);
-                    newSubmodel = newSubmodel.ConvertFromV10(sourceSubmodel);
-                    environment.Submodels.Add(newSubmodel);
-                }
+                var newSubmodel = new Submodel(sourceSubmodel.identification.id);
+                newSubmodel = newSubmodel.ConvertFromV10(sourceSubmodel);
+                environment.Add(newSubmodel);
             }
 
-            if (!sourceEnvironement.ConceptDescriptions.IsNullOrEmpty())
+            // Convert CDs
+            foreach (var sourceConceptDescription in sourceEnvironement.ConceptDescriptions.ForEachSafe())
             {
-                environment.ConceptDescriptions ??= new List<IConceptDescription>();
-                foreach (var sourceConceptDescription in sourceEnvironement.ConceptDescriptions)
-                {
-                    var newConceptDescription = new ConceptDescription(sourceConceptDescription.identification.id);
-                    newConceptDescription = newConceptDescription.ConvertFromV10(sourceConceptDescription);
-                    environment.ConceptDescriptions.Add(newConceptDescription);
-                }
+                var newConceptDescription = new ConceptDescription(sourceConceptDescription.identification.id);
+                newConceptDescription = newConceptDescription.ConvertFromV10(sourceConceptDescription);
+                environment.Add(newConceptDescription);
             }
 
             return environment;
@@ -214,49 +199,38 @@ namespace Extensions
 
         public static AasCore.Aas3_0.IEnvironment ConvertFromV20(this AasCore.Aas3_0.IEnvironment environment, AasxCompatibilityModels.AdminShellV20.AdministrationShellEnv sourceEnvironement)
         {
-            //Convert Administration Shells
-            if (!sourceEnvironement.AdministrationShells.IsNullOrEmpty())
+            // Convert Administration Shells
+            foreach (var sourceAas in sourceEnvironement.AdministrationShells.ForEachSafe())
             {
-                environment.AssetAdministrationShells ??= new List<IAssetAdministrationShell>();
-                foreach (var sourceAas in sourceEnvironement.AdministrationShells)
+                // first make the AAS
+                var newAas = new AssetAdministrationShell(id: sourceAas.identification.id, null);
+                newAas = newAas.ConvertFromV20(sourceAas);
+                environment.Add(newAas);
+
+                var sourceAsset = sourceEnvironement?.FindAsset(sourceAas.assetRef);
+                if (sourceAsset != null)
                 {
-                    // first make the AAS
-                    var newAas = new AssetAdministrationShell(id: sourceAas.identification.id, null);
-                    newAas = newAas.ConvertFromV20(sourceAas);
-                    environment.AssetAdministrationShells.Add(newAas);
-
-                    var sourceAsset = sourceEnvironement?.FindAsset(sourceAas.assetRef);
-                    if (sourceAsset != null)
-                    {
-                        var newAssetInformation = new AssetInformation(AssetKind.Instance);
-                        newAssetInformation = newAssetInformation.ConvertFromV20(sourceAsset);
-                        newAas.AssetInformation = newAssetInformation;
-                    }
-
+                    var newAssetInformation = new AssetInformation(AssetKind.Instance);
+                    newAssetInformation = newAssetInformation.ConvertFromV20(sourceAsset);
+                    newAas.AssetInformation = newAssetInformation;
                 }
+
             }
 
-            //Convert Submodels
-            if (!sourceEnvironement.Submodels.IsNullOrEmpty())
+            // Convert Submodels
+            foreach (var sourceSubmodel in sourceEnvironement.Submodels.ForEachSafe())
             {
-                environment.Submodels ??= new List<ISubmodel>();
-                foreach (var sourceSubmodel in sourceEnvironement.Submodels)
-                {
-                    var newSubmodel = new Submodel(sourceSubmodel.identification.id);
-                    newSubmodel = newSubmodel.ConvertFromV20(sourceSubmodel);
-                    environment.Submodels.Add(newSubmodel);
-                }
+                var newSubmodel = new Submodel(sourceSubmodel.identification.id);
+                newSubmodel = newSubmodel.ConvertFromV20(sourceSubmodel);
+                environment.Add(newSubmodel);
             }
 
-            if (!sourceEnvironement.ConceptDescriptions.IsNullOrEmpty())
+            // Convert CDs
+            foreach (var sourceConceptDescription in sourceEnvironement.ConceptDescriptions.ForEachSafe())
             {
-                environment.ConceptDescriptions ??= new List<IConceptDescription>();
-                foreach (var sourceConceptDescription in sourceEnvironement.ConceptDescriptions)
-                {
-                    var newConceptDescription = new ConceptDescription(sourceConceptDescription.identification.id);
-                    newConceptDescription = newConceptDescription.ConvertFromV20(sourceConceptDescription);
-                    environment.ConceptDescriptions.Add(newConceptDescription);
-                }
+                var newConceptDescription = new ConceptDescription(sourceConceptDescription.identification.id);
+                newConceptDescription = newConceptDescription.ConvertFromV20(sourceConceptDescription);
+                environment.Add(newConceptDescription);
             }
 
             return environment;
@@ -290,32 +264,29 @@ namespace Extensions
             }
 
             //Copy AssetAdministrationShells
-            foreach (var aas in sourceEnvironment.AssetAdministrationShells)
+            foreach (var aas in sourceEnvironment.AllAssetAdministrationShells())
             {
                 if (filterForAas.Contains(aas))
                 {
-                    environment.AssetAdministrationShells.Add(aas);
+                    environment.Add(aas);
 
-                    if (aas.Submodels != null && aas.Submodels.Count > 0)
+                    foreach (var submodelReference in aas.AllSubmodels())
                     {
-                        foreach (var submodelReference in aas.Submodels)
+                        var submodel = sourceEnvironment.FindSubmodel(submodelReference);
+                        if (submodel != null)
                         {
-                            var submodel = sourceEnvironment.FindSubmodel(submodelReference);
-                            if (submodel != null)
-                            {
-                                filterForSubmodel.Add(submodel);
-                            }
+                            filterForSubmodel.Add(submodel);
                         }
                     }
                 }
             }
 
             //Copy Submodel
-            foreach (var submodel in sourceEnvironment.Submodels)
+            foreach (var submodel in sourceEnvironment.AllSubmodels())
             {
                 if (filterForSubmodel.Contains(submodel))
                 {
-                    environment.Submodels.Add(submodel);
+                    environment.Add(submodel);
 
                     //Find Used CDs
                     environment.CreateFromExistingEnvRecurseForCDs(sourceEnvironment, submodel.SubmodelElements, ref filterForConceptDescriptions);
@@ -323,11 +294,11 @@ namespace Extensions
             }
 
             //Copy ConceptDescription
-            foreach (var conceptDescription in sourceEnvironment.ConceptDescriptions)
+            foreach (var conceptDescription in sourceEnvironment.AllConceptDescriptions())
             {
                 if (filterForConceptDescriptions.Contains(conceptDescription))
                 {
-                    environment.ConceptDescriptions.Add(conceptDescription);
+                    environment.Add(conceptDescription);
                 }
             }
 
@@ -409,6 +380,86 @@ namespace Extensions
         }
 
         /// <summary>
+        /// Enumerates any AssetAdministrationShells in the Environment. Will not return <c>null</c>.
+        /// Is tolerant, if the list is <c>null</c>.
+        /// </summary>
+        public static IEnumerable<IAssetAdministrationShell> AllAssetAdministrationShells(
+            this AasCore.Aas3_0.IEnvironment env)
+        {
+            if (env?.AssetAdministrationShells != null)
+                foreach (var aas in env.AssetAdministrationShells)
+                    if (aas != null)
+                        yield return aas;
+        }
+
+        /// <summary>
+        /// Enumerates any Submodels in the Environment. Will not return <c>null</c>.
+        /// Is tolerant, if the list is <c>null</c>.
+        /// </summary>
+        public static IEnumerable<ISubmodel> AllSubmodels(this AasCore.Aas3_0.IEnvironment env)
+        {
+            if (env?.Submodels != null)
+                foreach (var sm in env.Submodels)
+                    if (sm != null)
+                        yield return sm;
+        }
+
+        /// <summary>
+        /// Enumerates any ConceptDescriptions in the Environment. Will not return <c>null</c>.
+        /// Is tolerant, if the list is <c>null</c>.
+        /// </summary>
+        public static IEnumerable<IConceptDescription> AllConceptDescriptions(this AasCore.Aas3_0.IEnvironment env)
+        {
+            if (env?.ConceptDescriptions != null)
+                foreach (var cd in env.ConceptDescriptions)
+                    if (cd != null)
+                        yield return cd;
+        }
+
+        /// <summary>
+        /// Returns the number of AssetAdministrationShells.
+        /// Is tolerant, if the list is <c>null</c>.
+        /// </summary>
+        public static int AssetAdministrationShellCount(this AasCore.Aas3_0.IEnvironment env)
+        {
+            if (env?.AssetAdministrationShells != null)
+                return env.AssetAdministrationShells.Count;
+            return 0;
+        }
+
+        /// <summary>
+        /// Returns the number of Submodels.
+        /// Is tolerant, if the list is <c>null</c>.
+        /// </summary>
+        public static int SubmodelCount(this AasCore.Aas3_0.IEnvironment env)
+        {
+            if (env?.Submodels != null)
+                return env.Submodels.Count;
+            return 0;
+        }
+
+        /// <summary>
+        /// Returns the number of ConceptDescriptions.
+        /// Is tolerant, if the list is <c>null</c>.
+        /// </summary>
+        public static int ConceptDescriptionCount(this AasCore.Aas3_0.IEnvironment env)
+        {
+            if (env?.ConceptDescriptions != null)
+                return env.ConceptDescriptions.Count;
+            return 0;
+        }
+
+        /// <summary>
+        /// Returns the <c>index</c>-th Submodel, if exists. Returns <c>null</c> in any other case.
+        /// </summary>
+        public static ISubmodel SubmodelByIndex(this AasCore.Aas3_0.IEnvironment env, int index)
+        {
+            if (env?.Submodels == null || index < 0 || index >= env.Submodels.Count)
+                return null;
+            return env.Submodels[index];
+        }
+
+        /// <summary>
         /// Adds the ConceptDescription. If env.ConceptDescriptions are <c>null</c>, then
         /// the list will be created.
         /// </summary>
@@ -419,6 +470,29 @@ namespace Extensions
             if (env.ConceptDescriptions == null)
                 env.ConceptDescriptions = new();
             env.ConceptDescriptions.Add(cd);
+            return cd;
+        }
+
+        public static IConceptDescription AddConceptDescriptionOrReturnExisting(
+            this AasCore.Aas3_0.IEnvironment env, IConceptDescription cd)
+        {
+            if (cd == null)
+            {
+                return null;
+            }
+            if (env.ConceptDescriptions != null)
+            {
+                var existingCd = env.ConceptDescriptions.Where(c => c.Id == cd.Id).FirstOrDefault();
+                if (existingCd != null)
+                {
+                    return existingCd;
+                }
+                else
+                {
+                    env.ConceptDescriptions.Add(cd);
+                }
+            }
+
             return cd;
         }
 
@@ -505,7 +579,7 @@ namespace Extensions
 
             // AAS?
             if (inAas)
-                foreach (var aas in env.AssetAdministrationShells.ForEachSafe())
+                foreach (var aas in env.AllAssetAdministrationShells())
                 {
                     var foundRf = aas.FindSubmodelReference(rf);
                     if (foundRf != null)
@@ -538,11 +612,9 @@ namespace Extensions
         {
             if (environment?.AssetAdministrationShells == null || environment?.Submodels == null)
                 yield break;
-            foreach (var aas in environment.AssetAdministrationShells)
+            foreach (var aas in environment.AllAssetAdministrationShells())
             {
-                if (aas?.Submodels == null)
-                    continue;
-                foreach (var smref in aas.Submodels)
+                foreach (var smref in aas.AllSubmodels())
                 {
                     var sm = environment.FindSubmodel(smref);
                     if (sm != null && (p == null || p(aas, sm)))
@@ -569,13 +641,9 @@ namespace Extensions
                 return null;
             }
 
-            List<ISubmodel> submodels = null;
-            if (environment != null && !environment.Submodels.IsNullOrEmpty())
-            {
-                submodels = environment.Submodels.Where(s => s.Id.Equals(key.Value, StringComparison.OrdinalIgnoreCase)).ToList();
-
-            }            
-            if (!submodels.IsNullOrEmpty())
+            var submodels = environment.AllSubmodels()
+                .Where(s => s.Id.Equals(key.Value, StringComparison.OrdinalIgnoreCase));
+            if (submodels.Any())
             {
                 return submodels.First();
             }
@@ -590,7 +658,7 @@ namespace Extensions
                 return null;
             }
 
-            var submodels = environment.Submodels.Where(s => s.Id.Equals(submodelId));
+            var submodels = environment.AllSubmodels().Where(s => s.Id.Equals(submodelId));
             if (submodels.Any())
             {
                 return submodels.First();
@@ -604,7 +672,7 @@ namespace Extensions
             if (semanticId == null)
                 yield break;
 
-            foreach (var submodel in environment.Submodels.ForEachSafe())
+            foreach (var submodel in environment.AllSubmodels())
                 if (true == submodel.SemanticId?.Matches(semanticId))
                     yield return submodel;
         }
@@ -619,7 +687,9 @@ namespace Extensions
                 return null;
             }
 
-            var aas = environment.AssetAdministrationShells.Where(a => (a.Submodels?.Where(s => s.Matches(submodelId)).FirstOrDefault()) != null).FirstOrDefault();
+            var aas = environment.AllAssetAdministrationShells()
+                .Where(a => (a.Submodels?.Where(s => s.Matches(submodelId)).FirstOrDefault()) != null)
+                .FirstOrDefault();
 
             return aas;
         }
@@ -631,7 +701,8 @@ namespace Extensions
                 return null;
             }
 
-            var aas = environment.AssetAdministrationShells.Where(a => a.Id.Equals(aasId)).First();
+            var aas = environment.AllAssetAdministrationShells()
+                .Where(a => a.Id.Equals(aasId)).First();
 
             return aas;
         }
@@ -646,10 +717,8 @@ namespace Extensions
             if (string.IsNullOrEmpty(cdId))
                 return null;
 
-            if (env.ConceptDescriptions == null || env.ConceptDescriptions.Count == 0)
-                return null;
-
-            var conceptDescription = env.ConceptDescriptions.Where(c => c.Id.Equals(cdId)).FirstOrDefault();
+            var conceptDescription = env.AllConceptDescriptions()
+                .Where(c => c.Id.Equals(cdId)).FirstOrDefault();
             return conceptDescription;
         }
 
@@ -788,7 +857,7 @@ namespace Extensions
                             // add even more info
                             if (rootInfo.AAS == null)
                             {
-                                foreach (var aas2 in environment.AssetAdministrationShells)
+                                foreach (var aas2 in environment.AllAssetAdministrationShells())
                                 {
                                     var smref2 = environment.FindSubmodelById(submodel.Id);
                                     if (smref2 != null)
@@ -848,18 +917,14 @@ namespace Extensions
         #endregion
 
         #region AasxPackageExplorer
-
-
-
+        
         public static IEnumerable<T> FindAllSubmodelElements<T>(this AasCore.Aas3_0.IEnvironment environment,
                 Predicate<T> match = null, AssetAdministrationShell onlyForAAS = null) where T : ISubmodelElement
         {
             // more or less two different schemes
             if (onlyForAAS != null)
             {
-                if (onlyForAAS.Submodels == null)
-                    yield break;
-                foreach (var smr in onlyForAAS.Submodels)
+                foreach (var smr in onlyForAAS.AllSubmodels())
                 {
                     var sm = environment.FindSubmodel(smr);
                     if (sm?.SubmodelElements != null)
@@ -869,33 +934,29 @@ namespace Extensions
             }
             else
             {
-                if (environment.Submodels != null)
-                    foreach (var sm in environment.Submodels)
-                        if (sm?.SubmodelElements != null)
-                            foreach (var x in sm.SubmodelElements.FindDeep<T>(match))
-                                yield return x;
+                foreach (var sm in environment.AllSubmodels())
+                    if (sm?.SubmodelElements != null)
+                        foreach (var x in sm.SubmodelElements.FindDeep<T>(match))
+                            yield return x;
             }
         }
 
         public static IEnumerable<LocatedReference> FindAllReferences(this AasCore.Aas3_0.IEnvironment environment)
         {
-            if (environment.AssetAdministrationShells != null)
-                foreach (var aas in environment.AssetAdministrationShells)
-                    if (aas != null)
-                        foreach (var r in aas.FindAllReferences())
-                            yield return r;
+            foreach (var aas in environment.AllAssetAdministrationShells())
+                if (aas != null)
+                    foreach (var r in aas.FindAllReferences())
+                        yield return r;
 
-            if (environment.Submodels != null)
-                foreach (var sm in environment.Submodels)
-                    if (sm != null)
-                        foreach (var r in sm.FindAllReferences())
-                            yield return r;
+            foreach (var sm in environment.AllSubmodels())
+                if (sm != null)
+                    foreach (var r in sm.FindAllReferences())
+                        yield return r;
 
-            if (environment.ConceptDescriptions != null)
-                foreach (var cd in environment.ConceptDescriptions)
-                    if (cd != null)
-                        foreach (var r in cd.FindAllReferences())
-                            yield return new LocatedReference(cd, r);
+            foreach (var cd in environment.AllConceptDescriptions())
+                if (cd != null)
+                    foreach (var r in cd.FindAllReferences())
+                        yield return new LocatedReference(cd, r);
         }
 
         /// <summary>
@@ -1024,7 +1085,7 @@ namespace Extensions
                 return null;
             }
 
-            foreach (var aas in environment.AssetAdministrationShells)
+            foreach (var aas in environment.AllAssetAdministrationShells())
             {
                 if (aas.AssetInformation?.GlobalAssetId?.Equals(globalAssetId) == true)
                 {

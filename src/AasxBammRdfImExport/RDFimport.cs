@@ -75,7 +75,7 @@ namespace AasxBammRdfImExport
 
                     var msemanticID = ExtendReference.CreateFromKey(Aas.KeyTypes.GlobalReference, t.Subject.ToString());
                     sm.SemanticId = msemanticID;
-                    thePackageEnv.AasEnv.Submodels.Add(sm);
+                    thePackageEnv.AasEnv.Add(sm);
                 }
             }
 
@@ -373,7 +373,7 @@ namespace AasxBammRdfImExport
 
                 {
                     var cd = new Aas.ConceptDescription(idShort: property_Name, id: semantic);
-                    env.ConceptDescriptions.Add(cd);
+                    env.Add(cd);
                     cd.SetIEC61360Spec(
                         preferredNames: new[] { "EN", property_PreferredName },
                         shortName: null,
@@ -445,7 +445,7 @@ namespace AasxBammRdfImExport
 
                 {
                     var cd = new Aas.ConceptDescription(idShort: "" + name, id: semantic);
-                    env.ConceptDescriptions.Add(cd);
+                    env.Add(cd);
                     cd.SetIEC61360Spec(
                         preferredNames: new[] { "EN", preferred_name },
                         shortName: null,

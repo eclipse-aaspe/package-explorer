@@ -73,7 +73,7 @@ namespace AasxPackageLogic
                     () =>
                     {
                         int count = 0;
-                        foreach(var aas in env.AssetAdministrationShells)
+                        foreach(var aas in env.AllAssetAdministrationShells())
                         {
                             if(aas.AssetInformation.GlobalAssetId == asset.GlobalAssetId)
                                 count++;
@@ -437,27 +437,31 @@ namespace AasxPackageLogic
                 (ve.theItemType == VisualElementEnvironmentItem.ItemType.Env
                     || ve.theItemType == VisualElementEnvironmentItem.ItemType.Shells
                     || ve.theItemType == VisualElementEnvironmentItem.ItemType.AllSubmodels
-                    || ve.theItemType == VisualElementEnvironmentItem.ItemType.ConceptDescriptions))
+                    || ve.theItemType == VisualElementEnvironmentItem.ItemType.AllConceptDescriptions))
             {
                 // some hints
                 this.AddHintBubble(stack, hintMode, new[] {
                     new HintCheck(
-                        () => { return env.AssetAdministrationShells == null || env.AssetAdministrationShells.Count < 1; },
-                        "There are no Administration Shells in this AAS environment. " +
+                        () => { return env.AssetAdministrationShellCount() < 1; },
+                            "There are no Administration Shells in this AAS environment. " +
+                            (env.AssetAdministrationShells == null ? "List is null! " : "List is empty! ") +
                             "You should consider adding an Administration Shell by clicking 'Add AAS' " +
                             "on the edit panel below.",
                         breakIfTrue: true),
                     new HintCheck(
-                        () => { return env.Submodels == null || env.Submodels.Count < 1; },
-                        "There are no Submodels in this AAS environment. In this application, Submodels are " +
+                        () => { return env.SubmodelCount() < 1; },
+                            "There are no Submodels in this AAS environment. " +
+                            (env.Submodels == null ? "List is null! " : "List is empty! ") +
+                            "In this application, Submodels are " +
                             "created by adding them to associated to Administration Shells. " +
                             "Therefore, an Adminstration Shell shall exist before and shall be selected. " +
                             "You could then add Submodels by clicking " +
                             "'Create new Submodel of kind Type/Instance' on the edit panel. " +
                             "This step is typically done after creating asset and Administration Shell."),
                     new HintCheck(
-                        () => { return env.ConceptDescriptions == null || env.ConceptDescriptions.Count < 1; },
-                        "There are no ConceptDescriptions in this AAS environment. " +
+                        () => { return env.ConceptDescriptionCount() < 1; },
+                            "There are no ConceptDescriptions in this AAS environment. " +
+                            (env.ConceptDescriptions == null ? "List is null! " : "List is empty! ") +
                             "Even if SubmodelElements can reference external concept descriptions, " +
                             "it is best practice to include (duplicates of the) concept descriptions " +
                             "inside the AAS environment. You should consider adding a ConceptDescription " +
@@ -592,15 +596,14 @@ namespace AasxPackageLogic
                                                 }
                                             }
 
-                                            env.AssetAdministrationShells.Add(destAAS);
+                                            env.Add(destAAS);
                                             this.AddDiaryEntry(destAAS, new DiaryEntryStructChange(
                                                 StructuralChangeReason.Create));
 
                                             // clear, copy Submodels?
-                                            destAAS.Submodels = new List<Aas.IReference>();
-                                            if (copyRecursively && sourceAAS.Submodels != null)
+                                            if (copyRecursively)
                                             {
-                                                foreach (var smr in sourceAAS.Submodels)
+                                                foreach (var smr in sourceAAS.AllSubmodels())
                                                 {
                                                     // need access to source submodel
                                                     var srcSub = rve.theEnv.FindSubmodel(smr);
@@ -630,7 +633,7 @@ namespace AasxPackageLogic
                                                             shallowCopy: false);
                                                         if (destSMR != null)
                                                         {
-                                                            destAAS.Submodels.Add(destSMR);
+                                                            destAAS.Add(destSMR);
                                                         }
                                                     }
                                                     else
@@ -651,8 +654,8 @@ namespace AasxPackageLogic
                                                         var dstRef = dstSub.GetModelReference().Copy();
 
                                                         // formally add this to active environment and AAS
-                                                        env.Submodels.Add(dstSub);
-                                                        destAAS.Submodels.Add(dstRef);
+                                                        env.Add(dstSub);
+                                                        destAAS.Add(dstRef);
 
                                                         this.AddDiaryEntry(dstSub, new DiaryEntryStructChange(
                                                             StructuralChangeReason.Create));
@@ -712,7 +715,7 @@ namespace AasxPackageLogic
 
                 if (ve.theItemType == VisualElementEnvironmentItem.ItemType.Shells
                     || ve.theItemType == VisualElementEnvironmentItem.ItemType.AllSubmodels
-                    || ve.theItemType == VisualElementEnvironmentItem.ItemType.ConceptDescriptions)
+                    || ve.theItemType == VisualElementEnvironmentItem.ItemType.AllConceptDescriptions)
                 {
                     // Cut, copy, paste within list of Assets
                     this.DispPlainListOfIdentifiablePasteHelper<Aas.IIdentifiable>(
@@ -733,7 +736,7 @@ namespace AasxPackageLogic
                                 {
                                     // new 
                                     var aas = itaas.Copy();
-                                    env.AssetAdministrationShells.Add(aas);
+                                    env.Add(aas);
                                     this.AddDiaryEntry(aas, new DiaryEntryStructChange(
                                         StructuralChangeReason.Create));
                                     res = aas;
@@ -813,7 +816,7 @@ namespace AasxPackageLogic
                 // Concept Descriptions
                 //
 
-                if (ve.theItemType == VisualElementEnvironmentItem.ItemType.ConceptDescriptions)
+                if (ve.theItemType == VisualElementEnvironmentItem.ItemType.AllConceptDescriptions)
                 {
                     //
                     // Copy / import
@@ -848,10 +851,8 @@ namespace AasxPackageLogic
                                     if (mdo != null && mdo is Aas.ConceptDescription)
                                     {
                                         var clone = (mdo as Aas.ConceptDescription).Copy();
-                                        if (env.ConceptDescriptions == null)
-                                            env.ConceptDescriptions = new List<Aas.IConceptDescription>();
                                         this.MakeNewIdentifiableUnique(clone);
-                                        env.ConceptDescriptions.Add(clone);
+                                        env.Add(clone);
                                         this.AddDiaryEntry(clone,
                                             new DiaryEntryStructChange(StructuralChangeReason.Create));
                                         return new AnyUiLambdaActionRedrawAllElements(nextFocus: clone);
@@ -924,6 +925,12 @@ namespace AasxPackageLogic
                             margin: new AnyUiThickness(2, 2, 2, 2), padding: new AnyUiThickness(5, 0, 5, 0)),
                         (o) =>
                         {
+                            if (env.ConceptDescriptionCount() < 1)
+                            {
+                                Log.Singleton.Error("No ConceptDescriptions found for sorting. Aborting!");
+                                return new AnyUiLambdaActionNone();
+                            }
+
                             if (AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
                                "Perform sort operation? This operation can not be reverted!",
                                "ConceptDescriptions",
@@ -997,7 +1004,7 @@ namespace AasxPackageLogic
                                     return new AnyUiLambdaActionNone();
                                 }
 
-                                foreach (var cd in env.ConceptDescriptions)
+                                foreach (var cd in env.AllConceptDescriptions())
                                 {
                                     var change = false;
                                     if (cd.EmbeddedDataSpecifications != null)
@@ -1114,13 +1121,15 @@ namespace AasxPackageLogic
                     hintMode,
                     new[] {
                         new HintCheck(
-                            () => { return env.AssetAdministrationShells == null || env.AssetAdministrationShells.Count < 1; },
-                            "There are no AssetAdministrationShell entities in the environment. " +
+                            () => { return env.AssetAdministrationShellCount() < 1; },
+                                "There are no AssetAdministrationShell entities in the environment. " +
+                                (env.AssetAdministrationShells == null ? "List is null! " : "List is empty! ") +
                                 "Select the 'Administration Shells' item on the middle panel and " +
                                 "select 'Add AAS' to add a new entity."),
                         new HintCheck(
-                            () => { return env.ConceptDescriptions == null || env.ConceptDescriptions.Count < 1; },
-                            "There are no embedded ConceptDescriptions in the environment. " +
+                            () => { return env.ConceptDescriptionCount() < 1; },
+                                "There are no embedded ConceptDescriptions in the environment. " +
+                                (env.ConceptDescriptions == null ? "List is null! " : "List is empty! ") +
                                 "It is a good practice to have those. Select or add an AssetAdministrationShell, " +
                                 "Submodel and SubmodelElement and add a ConceptDescription.",
                             severityLevel: HintCheck.Severity.Notice),
@@ -1132,15 +1141,12 @@ namespace AasxPackageLogic
                     6, 1, new[] { "*" }, margin: new AnyUiThickness(5, 5, 0, 0));
                 this.AddSmallLabelTo(
                     g, 0, 0, content: "This structure hold the main entites of Administration shells.");
-                int aasCount = env.AssetAdministrationShells is null ? 0 : env.AssetAdministrationShells.Count;
                 this.AddSmallLabelTo(
-                    g, 1, 0, content: String.Format("#admin shells: {0}.", aasCount),
+                    g, 1, 0, content: String.Format("#admin shells: {0}.", env.AssetAdministrationShellCount()),
                     margin: new AnyUiThickness(0, 5, 0, 0));
-                int smCount = env.Submodels is null ? 0 : env.Submodels.Count;
-                this.AddSmallLabelTo(g, 3, 0, content: String.Format("#submodels: {0}.", smCount));
-                int cdCount = env.ConceptDescriptions is null ? 0 : env.ConceptDescriptions.Count;
+                this.AddSmallLabelTo(g, 3, 0, content: String.Format("#submodels: {0}.", env.SubmodelCount()));
                 this.AddSmallLabelTo(
-                    g, 4, 0, content: String.Format("#concept descriptions: {0}.", cdCount));
+                    g, 4, 0, content: String.Format("#concept descriptions: {0}.", env.ConceptDescriptionCount()));
                 stack.Children.Add(g);
             }
         }
@@ -1246,7 +1252,7 @@ namespace AasxPackageLogic
                             severityLevel: HintCheck.Severity.High,
                             breakIfTrue: true),                            
                         new HintCheck(
-                            () => { return aas.Submodels.Count < 1;  },
+                            () => { return aas.SubmodelCount() < 1;  },
                             "You have no Submodels referenced by this Administration Shell. " +
                                 "This is rather unusual, as the Submodels are the actual carriers of information. " +
                                 "Most likely, you want to click 'Create new Submodel of kind Instance'. " +
@@ -1284,7 +1290,7 @@ namespace AasxPackageLogic
                             return null;
 
                         // duplicate
-                        foreach (var x in aas.Submodels.ForEachSafe())
+                        foreach (var x in aas.AllSubmodels())
                             if (x?.Matches(item.smref, MatchMode.Identification) == true)
                                 return null;
 
@@ -1305,9 +1311,8 @@ namespace AasxPackageLogic
                         }
 
                         // delete
-                        if (del && item.parentContainer is Aas.IAssetAdministrationShell aasold
-                            && aasold.Submodels?.Contains(item.smref) == true)
-                            aasold.Submodels.Remove(item.smref);
+                        if (del && item.parentContainer is Aas.IAssetAdministrationShell aasold)
+                            aasold.Remove(item.smref);
 
                         // ok
                         return newsmr;
@@ -1474,8 +1479,6 @@ namespace AasxPackageLogic
                                             new DiaryEntryStructChange(StructuralChangeReason.Create));
 
                                         // .. and AAS
-                                        if (aas.Submodels == null)
-                                            aas.Submodels = new List<Aas.IReference>();
                                         aas.Add(dstRef);
                                         this.AddDiaryEntry(aas, new DiaryEntryStructChange());
                                         return new AnyUiLambdaActionRedrawAllElements(
@@ -1751,7 +1754,7 @@ namespace AasxPackageLogic
                                 var smtest = env.FindSubmodel(item.smref);
                                 if (smtest == null)
                                 {
-                                    env.Submodels.Add(item.sm);
+                                    env.Add(item.sm);
                                     this.AddDiaryEntry(item.sm,
                                         new DiaryEntryStructChange(StructuralChangeReason.Create));
                                 }
@@ -3080,8 +3083,7 @@ namespace AasxPackageLogic
                                 Options.Curr.TemplateIdConceptDescription));
 
                             // store in AAS enviroment
-                            env.ConceptDescriptions ??= new List<IConceptDescription>();
-                            env.ConceptDescriptions.Add(cd);
+                            env.Add(cd);
 
                             // go over to ISubmodelElement
                             // set the semantic id
@@ -4829,12 +4831,7 @@ namespace AasxPackageLogic
                     vesmref.theSubmodelRef, 
                     () =>
                     {
-                        // challenge to remove the reference to the Submodel
-                        if (vesmref.theAas?.Submodels == null)
-                            return;
-                        vesmref.theAas.Submodels.Remove(vesmref.theSubmodelRef);
-                        if (vesmref.theAas.Submodels.Count < 1)
-                            vesmref.theAas.Submodels = null;
+                        vesmref.theAas.Remove(vesmref.theSubmodelRef);
                     },
                     vesmref.theSubmodel, editMode, stack,
                     hintMode: hintMode, checkSmt: checkSmt,

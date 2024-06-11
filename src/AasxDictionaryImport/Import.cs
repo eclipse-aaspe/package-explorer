@@ -74,7 +74,7 @@ namespace AasxDictionaryImport
             string defaultSourceDir, Aas.IAssetAdministrationShell? adminShell = null)
         {
             adminShell ??= CreateAdminShell(env);
-            return PerformImport(window, ImportMode.Submodels, defaultSourceDir,
+            return PerformImport(window, ImportMode.ForSubmodels, defaultSourceDir,
                     e => e.ImportSubmodelInto(env, adminShell));
         }
 
@@ -92,7 +92,7 @@ namespace AasxDictionaryImport
         public static bool ImportSubmodelElements(Window window, Aas.Environment env,
             string defaultSourceDir, Aas.IReferable parent)
         {
-            return PerformImport(window, ImportMode.SubmodelElements, defaultSourceDir,
+            return PerformImport(window, ImportMode.ForSubmodelElements, defaultSourceDir,
                 e => e.ImportSubmodelElementsInto(env, parent));
         }
 

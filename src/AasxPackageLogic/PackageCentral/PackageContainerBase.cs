@@ -403,8 +403,10 @@ namespace AasxPackageLogic.PackageCentral
 
             // just start again
             IdentifiableLookup.StartDictionaryAccess(
-                new IEnumerable<Aas.IIdentifiable>[] { Env?.AasEnv?.AssetAdministrationShells, Env?.AasEnv.Submodels,
-                        Env?.AasEnv?.ConceptDescriptions},
+                new IEnumerable<Aas.IIdentifiable>[] { 
+                    Env?.AasEnv?.AssetAdministrationShells, 
+                    Env?.AasEnv?.Submodels,
+                    Env?.AasEnv?.ConceptDescriptions},
                 lambdaSelectResult: (idf) => idf );
 		}
 

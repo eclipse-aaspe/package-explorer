@@ -43,7 +43,7 @@ namespace AasxPluginGenericForms
         /// <summary>
         /// A list with required concept descriptions, if appropriate.
         /// </summary>
-        public List<Aas.ConceptDescription> ConceptDescriptions = null;
+        public List<Aas.IConceptDescription> RequiredCD = null;
 
         //
         // Constructors
@@ -61,10 +61,10 @@ namespace AasxPluginGenericForms
                 FormSubmodel = new FormDescSubmodel(src.FormSubmodel);
             if (src.ConceptDescriptions != null)
             {
-                ConceptDescriptions = new List<Aas.ConceptDescription>();
+                RequiredCD = new List<Aas.IConceptDescription>();
                 foreach (var ocd in src.ConceptDescriptions)
                 {
-                    ConceptDescriptions.Add(
+                    RequiredCD.Add(
                         ExtendConceptDescription.ConvertFromV20(
                             new Aas.ConceptDescription(""), ocd));
                 }

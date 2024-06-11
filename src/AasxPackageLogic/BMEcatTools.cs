@@ -141,7 +141,7 @@ namespace AasxPackageExplorer
                                     sw.WriteLine(attribute_label_id + " | " + attribute_value);
                                     var cd = new Aas.ConceptDescription(FT_ID, idShort: "" + attribute_label_id);
                                     {
-                                        env.ConceptDescriptions.Add(cd);
+                                        env.Add(cd);
                                         cd.SetIEC61360Spec(
                                             preferredNames: new[] { "EN", attribute_label_id },
                                             shortName: attribute_label_id,
@@ -311,7 +311,7 @@ namespace AasxPackageExplorer
 
                                             var cd = new Aas.ConceptDescription(FT_ID, idShort: "" + extendedname);
                                             {
-                                                env.ConceptDescriptions.Add(cd);
+                                                env.Add(cd);
                                                 cd.SetIEC61360Spec(
                                                     preferredNames: new[] { "DE", extendedname, "EN", extendedname },
                                                     shortName: extendedname,

@@ -186,9 +186,8 @@ namespace AasxPackageExplorer
                     Log.Singleton.Info("Searching for »{0}«", TheSearchOptions.FindText);
                     progressCount = 0;
                     TheSearchOptions.CompileOptions();
-                    if (TheAasEnv.Submodels != null)
-                        foreach (var sm in TheAasEnv.Submodels)
-                            sm?.SetAllParents();
+                    foreach (var sm in TheAasEnv.AllSubmodels())
+                        sm?.SetAllParents();
                     AasxSearchUtil.EnumerateSearchableNew(TheSearchResults, TheAasEnv, "", 0, TheSearchOptions,
                         // log: Log.Singleton,
                         progress: (found, num) =>

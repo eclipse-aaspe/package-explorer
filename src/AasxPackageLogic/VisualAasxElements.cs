@@ -562,7 +562,7 @@ namespace AasxPackageLogic
     {
         public enum ItemType
         {
-            Env = 0, Shells, ConceptDescriptions, Package, OrphanSubmodels, AllSubmodels, SupplFiles,
+            Env = 0, Shells, AllConceptDescriptions, Package, OrphanSubmodels, AllSubmodels, SupplFiles,
             CdValueReference, EmptySet, DummyNode
         };
 
@@ -1925,51 +1925,30 @@ namespace AasxPackageLogic
             }
 
             // have submodels?
-            if (aas.Submodels != null)
-                foreach (var smr in aas.Submodels)
+            foreach (var smr in aas.AllSubmodels())
+            {
+                var sm = env.FindSubmodel(smr);
+                if (sm == null)
                 {
-                    var sm = env.FindSubmodel(smr);
-                    if (sm == null)
-                    {
-                        // notify user
-                        Log.Singleton.Error("Cannot find some submodel!");
+                    // notify user
+                    Log.Singleton.Error("Cannot find some submodel!");
 
-                        // make reference with NO submodel behind
-                        var tiNoSm = new VisualElementSubmodelRef(
-                            tiAas, cache, env, package, aas, smr, sm: null);
-                        tiAas.Members.Add(tiNoSm);
-                    }
-
-                    // generate
-                    var tiSm = GenerateVisuElemForVisualElementSubmodelRef(
-                        tiAas.theAas, sm, smr, tiAas, cache, env, package);
-
-                    // add
-                    if (tiSm != null)
-                        tiAas.Members.Add(tiSm);
+                    // make reference with NO submodel behind
+                    var tiNoSm = new VisualElementSubmodelRef(
+                        tiAas, cache, env, package, aas, smr, sm: null);
+                    tiAas.Members.Add(tiNoSm);
                 }
-            // dead-csharp off
-            // have views?
-            //Views no more supported in V3
-            //if (aas.views != null && aas.views.views != null)
-            //    foreach (var vw in aas.views.views)
-            //    {
-            //        // item
-            //        var tiVw = new VisualElementView(tiAas, cache, env, vw);
-            //        tiVw.SetIsExpandedIfNotTouched(OptionExpandMode > 1);
 
-            //        // recursion -> submodel elements
-            //        if (vw.containedElements != null && vw.containedElements.reference != null)
-            //            foreach (var ce in vw.containedElements.reference)
-            //            {
-            //                var tiRf = new VisualElementReference(tiVw, cache, env, ce);
-            //                tiVw.Members.Add(tiRf);
-            //            }
-            //        // add
-            //        tiAas.Members.Add(tiVw);
-            //    }
-            // dead-csharp on
-            // ok
+                // generate
+                var tiSm = GenerateVisuElemForVisualElementSubmodelRef(
+                    tiAas.theAas, sm, smr, tiAas, cache, env, package);
+
+                // add
+                if (tiSm != null)
+                    tiAas.Members.Add(tiSm);
+            }
+
+            // ok            
             return tiAas;
         }
 
@@ -2093,7 +2072,7 @@ namespace AasxPackageLogic
 
                 // for the Extensions, identify the tops of the forest by computation                    
                 foreach (var idf in ComputeTopsOfExtensionForest(
-                    env.ConceptDescriptions?.Cast<Aas.IIdentifiable>().ToList()))
+                    env.AllConceptDescriptions().Cast<Aas.IIdentifiable>().ToList()))
                 {
                     foreach(var idfrec in DispEditHelperExtensions.CheckReferableForExtensionRecords(idf))
 					    if (idfrec is IExtensionStructureModel esm /* && esm.IsTopElement() */)
@@ -2105,18 +2084,17 @@ namespace AasxPackageLogic
 				}	
 
 				// visit dedicated top nodes to start the lambda
-                if (env.ConceptDescriptions != null)
-				    foreach (var cd in env.ConceptDescriptions)
-                    {					
-                        // SAMM
-					    foreach (var me in DispEditHelperSammModules.CheckReferableForSammElements(cd))
-                            if (me is Samm.ISammStructureModel ssm && ssm.IsTopElement())
-                            {
-                                // add && recurse
-                                // mark as in structure
-                                lambdaAddRecurse(tiStructuredRoot, cd, 0);
-                            }
-				    }
+				foreach (var cd in env.AllConceptDescriptions())
+                {					
+                    // SAMM
+					foreach (var me in DispEditHelperSammModules.CheckReferableForSammElements(cd))
+                        if (me is Samm.ISammStructureModel ssm && ssm.IsTopElement())
+                        {
+                            // add && recurse
+                            // mark as in structure
+                            lambdaAddRecurse(tiStructuredRoot, cd, 0);
+                        }
+				}
 
 				//
 				// provide an branch per Submodel?
@@ -2130,31 +2108,30 @@ namespace AasxPackageLogic
                 tiSubmodelsRoot.IsExpanded = false;
 				tiCDs.Members.Add(tiSubmodelsRoot);
 
-                if (env?.Submodels != null)
-                    foreach (var sm in env.Submodels)
+                foreach (var sm in env.AllSubmodels())
+                {
+                    // branch per Submodel
+					var tiSM = new VisualElementEnvironmentItem(
+					    parent: tiCDs, cache: cache,
+					    package: tiCDs.thePackage, env: tiCDs.theEnv,
+					    itemType: VisualElementEnvironmentItem.ItemType.Env);
+					tiSM.Caption = "Submodel: " + sm.IdShort;
+                    if (sm.Administration != null)
+                        tiSM.Info += $" V{sm.Administration.Version}.{sm.Administration.Revision}";
+					tiSubmodelsRoot.Members.Add(tiSM);
+
+					// now list CDs here
+					foreach (var cd in env.AllConceptDescriptions())
                     {
-                        // branch per Submodel
-						var tiSM = new VisualElementEnvironmentItem(
-					        parent: tiCDs, cache: cache,
-					        package: tiCDs.thePackage, env: tiCDs.theEnv,
-					        itemType: VisualElementEnvironmentItem.ItemType.Env);
-						tiSM.Caption = "Submodel: " + sm.IdShort;
-                        if (sm.Administration != null)
-                            tiSM.Info += $" V{sm.Administration.Version}.{sm.Administration.Revision}";
-						tiSubmodelsRoot.Members.Add(tiSM);
+						if (!_cdToSm.ContainsKey(cd))
+							continue;
+                        if (null == _cdToSm[cd].Where((cdsm) => cdsm == sm).FirstOrDefault())
+                            continue;
 
-						// now list CDs here
-						foreach (var cd in env.ConceptDescriptions.ForEachSafe())
-                        {
-							if (!_cdToSm.ContainsKey(cd))
-								continue;
-                            if (null == _cdToSm[cd].Where((cdsm) => cdsm == sm).FirstOrDefault())
-                                continue;
-
-							GenerateVisualElementsForSingleCD(cache, env, cd, tiSM,
-                                submodelForCDs: sm);
-						}
+						GenerateVisualElementsForSingleCD(cache, env, cd, tiSM,
+                            submodelForCDs: sm);
 					}
+				}
 
 				//
 				// provide extra branch for "unstructured"
@@ -2173,9 +2150,8 @@ namespace AasxPackageLogic
             // create 
             //
 
-            if (env != null && env.ConceptDescriptions != null)
-            {
-                foreach (var cd in env.ConceptDescriptions)
+            if (env != null)
+                foreach (var cd in env.AllConceptDescriptions())
                 {
                     // stop criteria for adding?
                     if (tiCDs.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySme
@@ -2194,7 +2170,6 @@ namespace AasxPackageLogic
                     GenerateVisualElementsForSingleCD(cache, env, cd, tiUnstructuredRoot,
                         submodelForCDs: null);
                 }
-            }
 
             //
             // sort
@@ -2253,29 +2228,26 @@ namespace AasxPackageLogic
                 _cdToSm.Clear();
                 _cdInStructure.Clear();
 
-                if (env.AssetAdministrationShells != null)
-                    foreach (var aas in env.AssetAdministrationShells)
-                        if (aas != null)
-                        {
-                            aas.Parent = env;
-                            _idToReferable.Add(aas.Id, aas);
-                        }
+                foreach (var aas in env.AllAssetAdministrationShells())
+                    if (aas != null)
+                    {
+                        aas.Parent = env;
+                        _idToReferable.Add(aas.Id, aas);
+                    }
 
-                if (env.Submodels != null)
-                    foreach (var sm in env.Submodels)
-                        if (sm != null)
-                        {
-                            sm.Parent = env;
-						    _idToReferable.Add(sm.Id, sm);
-					    }
+                foreach (var sm in env.AllSubmodels())
+                    if (sm != null)
+                    {
+                        sm.Parent = env;
+						_idToReferable.Add(sm.Id, sm);
+					}
 
-                if (env.ConceptDescriptions != null)
-				    foreach (var cd in env.ConceptDescriptions)
-                        if (cd != null)
-                        {
-                            cd.Parent = env;
-						    _idToReferable.Add(cd.Id, cd);
-					    }
+				foreach (var cd in env.AllConceptDescriptions())
+                    if (cd != null)
+                    {
+                        cd.Parent = env;
+						_idToReferable.Add(cd.Id, cd);
+					}
 			}
 
             // many operations
@@ -2299,7 +2271,7 @@ namespace AasxPackageLogic
                     // concept descriptions
                     // note: will be added later to the overall tree
                     tiCDs = new VisualElementEnvironmentItem(
-                        tiEnv, cache, package, env, VisualElementEnvironmentItem.ItemType.ConceptDescriptions,
+                        tiEnv, cache, package, env, VisualElementEnvironmentItem.ItemType.AllConceptDescriptions,
                         mainDataObject: env.ConceptDescriptions);
                     tiCDs.SetIsExpandedIfNotTouched(expandMode > 0);
 
@@ -2319,9 +2291,9 @@ namespace AasxPackageLogic
                 }
 
                 // over all Admin shells
-                if (env != null && env.AssetAdministrationShells != null)
+                if (env != null)
                 {
-                    foreach (var aas in env.AssetAdministrationShells)
+                    foreach (var aas in env.AllAssetAdministrationShells())
                     {
                         // item
                         var tiAas = GenerateVisuElemForAAS(aas, cache, env, package, editMode);
@@ -2366,9 +2338,9 @@ namespace AasxPackageLogic
                     tiEnv.Members.Add(tiAllSubmodels);
 
                     // show all Submodels
-                    if (env != null && env.Submodels != null)
+                    if (env != null)
                     {
-                        foreach (var sm in env.Submodels)
+                        foreach (var sm in env.AllSubmodels())
                         {
                             // Submodel
                             var tiSm = new VisualElementSubmodel(tiAllSubmodels, cache, env, sm);
@@ -2378,27 +2350,24 @@ namespace AasxPackageLogic
                             // render ConceptDescriptions?
                             if (tiCDs.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySubmodel)
                             {
-                                if (env.ConceptDescriptions != null)
+                                foreach (var cd in env.AllConceptDescriptions())
                                 {
-                                    foreach (var cd in env.ConceptDescriptions)
-                                    {
-                                        var found = false;
-                                        if (_cdToSm.ContainsKey(cd))
-                                            foreach (var x in _cdToSm[cd])
-                                                if (x == sm)
-                                                {
-                                                    found = true;
-                                                    break;
-                                                }
+                                    var found = false;
+                                    if (_cdToSm.ContainsKey(cd))
+                                        foreach (var x in _cdToSm[cd])
+                                            if (x == sm)
+                                            {
+                                                found = true;
+                                                break;
+                                            }
 
-                                        if (found)
-                                        {
-                                            // item
-                                            var tiCD = new VisualElementConceptDescription(tiSm, cache, env, cd);
-                                            tiSm.Members.Add(tiCD);
-                                        }
-                                    } 
-                                }
+                                    if (found)
+                                    {
+                                        // item
+                                        var tiCD = new VisualElementConceptDescription(tiSm, cache, env, cd);
+                                        tiSm.Members.Add(tiCD);
+                                    }
+                                } 
                             }
                         } 
                     }
@@ -2473,7 +2442,7 @@ namespace AasxPackageLogic
 
             // try trigger loading
             if (ve is VisualElementEnvironmentItem veei
-                && veei.theItemType == VisualElementEnvironmentItem.ItemType.ConceptDescriptions)
+                && veei.theItemType == VisualElementEnvironmentItem.ItemType.AllConceptDescriptions)
             {
                 ve.Members.Clear();
                 GenerateInnerElementsForConceptDescriptions(veei.Cache, veei.theEnv, veei, ve);
@@ -2903,7 +2872,8 @@ namespace AasxPackageLogic
                             continue;
 
                         // figure out the SubmodelRef
-                        var smr = parentAas.Submodels.Where(s => s.Matches(thisSm.Id)).First();
+                        var smr = parentAas.AllSubmodels()
+                                    .Where(s => s.Matches(thisSm.Id)).First();
                         if (smr == null)
                             continue;
 
@@ -3105,7 +3075,7 @@ namespace AasxPackageLogic
                     && data.ThisElemLocation == PackCntChangeEventLocation.ListOfConceptDescriptions)
                 {
                     foreach (var veit in FindAllVisualElementOf<VisualElementEnvironmentItem>(
-                        (vex) => vex.theItemType == VisualElementEnvironmentItem.ItemType.ConceptDescriptions
+                        (vex) => vex.theItemType == VisualElementEnvironmentItem.ItemType.AllConceptDescriptions
                                  && vex.theEnv == data.ThisElem))
                     {
                         // rebuild
