@@ -47,32 +47,48 @@ namespace Extensions
 
         #endregion
 
-        public static bool HasSubmodelReference(this IAssetAdministrationShell assetAdministrationShell, Reference submodelReference)
+        public static IReference FindSubmodelReference(this IAssetAdministrationShell aas, IReference smRef)
         {
-            if (submodelReference == null)
-            {
-                return false;
-            }
+            if (aas?.Submodels == null || smRef == null)
+                return null;
 
-            foreach (var aasSubmodelReference in assetAdministrationShell.Submodels)
-            {
-                if (aasSubmodelReference.Matches(submodelReference))
-                {
-                    return true;
-                }
-            }
+            foreach (var smr in aas.Submodels)
+                if (smr.Matches(smRef))
+                    return smr;
 
-            return false;
+            return null;
         }
 
-        public static void AddSubmodelReference(this IAssetAdministrationShell assetAdministrationShell, IReference newSubmodelReference)
+        public static bool HasSubmodelReference(this IAssetAdministrationShell aas, Reference smRef)
         {
-            if (assetAdministrationShell.Submodels == null)
-            {
-                assetAdministrationShell.Submodels = new List<IReference>();
-            }
+            return aas.FindSubmodelReference(smRef) != null;
+        }
 
-            assetAdministrationShell.Submodels.Add(newSubmodelReference);
+        /// <summary>
+        /// Adds. Might create the list.
+        /// </summary>
+        public static void Add(this IAssetAdministrationShell aas, IReference newSmRef)
+        {
+            if (aas == null)
+                return;
+            if (aas.Submodels == null)
+                aas.Submodels = new List<IReference>();
+
+            aas.Submodels.Add(newSmRef);
+        }
+
+        /// <summary>
+        /// Removes. Might set the list to <c>null</c> !!
+        /// Note: <c>smRef</c> must be the exact object, not only match it!
+        /// </summary>
+        public static void Remove(this IAssetAdministrationShell aas, IReference smRef)
+        {
+            if (aas?.Submodels == null)
+                return;
+            if (aas.Submodels.Contains(smRef))
+                aas.Submodels.Remove(smRef);
+            if (aas.Submodels.Count < 1)
+                aas.Submodels = null;
         }
 
         //TODO (jtikekar, 0000-00-00): Change the name, currently based on older implementation

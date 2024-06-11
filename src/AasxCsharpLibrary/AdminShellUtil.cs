@@ -505,6 +505,16 @@ namespace AdminShellNS
             return src;
         }
 
+        public static string GiveRandomIdShort(IReferable rf)
+        {
+            var sd = rf?.GetSelfDescription();
+            if (sd?.ElementAbbreviation?.HasContent() != true)
+                return "";
+
+            var r = new Random();
+            return sd.ElementAbbreviation + r.Next(0, 999999).ToString("D6");
+        }
+
         /// <example>
         /// <code doctest="true">Assert.IsFalse(AdminShellUtil.HasWhitespace(""));</code>
         /// <code doctest="true">Assert.IsTrue(AdminShellUtil.HasWhitespace(" "));</code>

@@ -2532,7 +2532,7 @@ namespace AasxPackageLogic
 			// for convenience, add to first aas
 			var firstAas = env.AssetAdministrationShells?.FirstOrDefault();
 			if (firstAas != null)
-				firstAas.AddSubmodelReference(
+				firstAas.Add(
 					submodel.GetModelReference());
 		}
 

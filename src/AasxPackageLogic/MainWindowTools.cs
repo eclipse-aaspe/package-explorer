@@ -1021,7 +1021,7 @@ namespace AasxPackageExplorer
                 var newsmr = ExtendReference.CreateFromKey(new Aas.Key(Aas.KeyTypes.Submodel, readSm.Id));
                 var existsmr = aas.HasSubmodelReference(newsmr);
                 if (!existsmr)
-                    aas.AddSubmodelReference(newsmr);
+                    aas.Add(newsmr);
             }
             catch (Exception ex)
             {

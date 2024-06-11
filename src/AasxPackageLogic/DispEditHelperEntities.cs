@@ -1223,90 +1223,86 @@ namespace AasxPackageLogic
                 return;
 
             // Entities
-            //if (editMode && aas?.Submodels != null)
             if (editMode)
             {
-                this.AddHintBubble(
-                    stack, hintMode,
-                    new HintCheck(
-                        () => { return aas.Submodels == null; },
-                            "The AAS.Submodels collection is set to NULL. This may be the default " +
-                            "initializer by the framework. Empty lists are not foreseen. Therefore " +
-                            "the list needs to be created and populated by at least one element.",
-                        severityLevel: HintCheck.Severity.High));
-                if (this.SafeguardAccess(
-                    stack, repo, aas.Submodels, "SubmodelRefs:", "Create data element!",
-                    v =>
-                    {
-                        aas.Submodels = new List<IReference>();
-                        this.AddDiaryEntry(aas, new DiaryEntryStructChange());
-                        return new AnyUiLambdaActionRedrawEntity();
-                    }))
-                { 
-                    // main group
-                    this.AddGroup(stack, "Editing of entities", this.levelColors.MainSection);
-
-                    // Up/ down/ del
-                    this.EntityListUpDownDeleteHelper<Aas.IAssetAdministrationShell>(
-                        stack, repo, env.AssetAdministrationShells, aas, env, "AAS:",
-                        superMenu: superMenu);
-
-                    // Cut, copy, paste within list of AASes
-                    this.DispPlainIdentifiableCutCopyPasteHelper<Aas.IAssetAdministrationShell>(
-                        stack, repo, this.theCopyPaste,
-                        env.AssetAdministrationShells, aas, (o) => { return (o as Aas.AssetAdministrationShell).Copy(); },
-                        label: "Buffer:",
-                        checkPasteInfo: (cpb) => cpb?.Items?.AllOfElementType<CopyPasteItemSubmodel>() == true,
-                        doPasteInto: (cpi, del) =>
-                        {
-                            // access
-                            var item = cpi as CopyPasteItemSubmodel;
-                            if (item?.smref == null)
-                                return null;
-
-                            // duplicate
-                            foreach (var x in aas.Submodels)
-                                if (x?.Matches(item.smref, MatchMode.Identification) == true)
-                                    return null;
-
-                            // add 
-                            var newsmr = item.smref.Copy();
-                            aas.Submodels.Add(newsmr);
-
-                            // special case: Submodel does not exist, as pasting was from external
-                            if (env?.Submodels != null && item.sm != null)
-                            {
-                                var smtest = env.FindSubmodel(newsmr);
-                                if (smtest == null)
-                                {
-                                    env.Submodels.Add(item.sm);
-                                    this.AddDiaryEntry(item.sm,
-                                        new DiaryEntryStructChange(StructuralChangeReason.Create));
-                                }
-                            }
-
-                            // delete
-                            if (del && item.parentContainer is Aas.AssetAdministrationShell aasold
-                                && aasold.Submodels.Contains(item.smref))
-                                aasold.Submodels.Remove(item.smref);
-
-                            // ok
-                            return newsmr;
-                        });
-
-                // Submodels
+                // If AAS.Submodels is null, give clear indication
                 this.AddHintBubble(
                     stack, hintMode,
                     new[] {
                         new HintCheck(
-                            () => { return aas.Submodels == null || aas.Submodels.Count < 1;  },
+                            () => { return aas.Submodels == null; },
+                                "The AAS.Submodels collection is set to NULL. Creation will be done " +
+                                "using respective functionalities below.",
+                            severityLevel: HintCheck.Severity.High,
+                            breakIfTrue: true),                            
+                        new HintCheck(
+                            () => { return aas.Submodels.Count < 1;  },
                             "You have no Submodels referenced by this Administration Shell. " +
                                 "This is rather unusual, as the Submodels are the actual carriers of information. " +
                                 "Most likely, you want to click 'Create new Submodel of kind Instance'. " +
                                 "You might also consider to load another AASX as auxiliary AASX " +
                                 "(see 'File' menu) to copy structures from.",
                             severityLevel: HintCheck.Severity.Notice)
-                    });// adding submodels
+                    });
+
+                //
+                // New (MIHO, 2024-06-10): allow even if aas.Submodels is null
+                //
+
+                // main group
+                this.AddGroup(stack, "Editing of entities", this.levelColors.MainSection);
+
+                // Up/ down/ del
+                this.EntityListUpDownDeleteHelper<Aas.IAssetAdministrationShell>(
+                    stack, repo, 
+                    env.AssetAdministrationShells, (lst) => { env.AssetAdministrationShells = lst; },
+                    aas, env, "AAS:",
+                    superMenu: superMenu);
+
+                // Cut, copy, paste within list of AASes
+                this.DispPlainIdentifiableCutCopyPasteHelper<Aas.IAssetAdministrationShell>(
+                    stack, repo, this.theCopyPaste,
+                    env.AssetAdministrationShells, aas, 
+                    (o) => { return (o as Aas.AssetAdministrationShell).Copy(); },
+                    label: "Buffer:",
+                    checkPasteInfo: (cpb) => cpb?.Items?.AllOfElementType<CopyPasteItemSubmodel>() == true,
+                    doPasteInto: (cpi, del) =>
+                    {
+                        // access
+                        var item = cpi as CopyPasteItemSubmodel;
+                        if (item?.smref == null)
+                            return null;
+
+                        // duplicate
+                        foreach (var x in aas.Submodels.ForEachSafe())
+                            if (x?.Matches(item.smref, MatchMode.Identification) == true)
+                                return null;
+
+                        // add 
+                        var newsmr = item.smref.Copy();
+                        aas.Add(newsmr);
+
+                        // special case: Submodel does not exist, as pasting was from external
+                        if (item.sm != null)
+                        {
+                            var smtest = env.FindSubmodel(newsmr);
+                            if (smtest == null)
+                            {
+                                env.Add(item.sm);
+                                this.AddDiaryEntry(item.sm,
+                                    new DiaryEntryStructChange(StructuralChangeReason.Create));
+                            }
+                        }
+
+                        // delete
+                        if (del && item.parentContainer is Aas.IAssetAdministrationShell aasold
+                            && aasold.Submodels?.Contains(item.smref) == true)
+                            aasold.Submodels.Remove(item.smref);
+
+                        // ok
+                        return newsmr;
+                    }); 
+                
                 this.AddActionPanel(
                     stack, "SubmodelRef:",
                     repo: repo,
@@ -1338,57 +1334,55 @@ namespace AasxPackageLogic
                             if (ks != null)
                             {
                                 // create ref
-                                //var smr = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>(ks));
                                 var smr = new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>(ks));
-                                aas.Submodels.Add(smr);
-
-                                    // event for AAS
-                                    this.AddDiaryEntry(aas, new DiaryEntryStructChange());
-
-                                    // redraw
-                                    return new AnyUiLambdaActionRedrawAllElements(
-                                        nextFocus: smr, isExpanded: true);
-                                }
-                            }
-
-                        if (buttonNdx == 1 || buttonNdx == 2)
-                        {
-                            // create new submodel
-                            var submodel = new Aas.Submodel("");
-                            aas.Id = AdminShellUtil.GenerateIdAccordingTemplate(
-                                (buttonNdx == 1) ? Options.Curr.TemplateIdSubmodelTemplate
-                                : Options.Curr.TemplateIdSubmodelInstance);
-                            this.AddDiaryEntry(submodel,
-                                    new DiaryEntryStructChange(StructuralChangeReason.Create));
-                            env.Submodels ??= new List<ISubmodel>();
-                            env.Submodels.Add(submodel);
-
-                                // directly create identification, as we need it!
-                                if (buttonNdx == 1)
-                                {
-                                    submodel.Id = AdminShellUtil.GenerateIdAccordingTemplate(
-                                        Options.Curr.TemplateIdSubmodelTemplate);
-                                    submodel.Kind = Aas.ModellingKind.Template;
-                                }
-                                else
-                                    submodel.Id = AdminShellUtil.GenerateIdAccordingTemplate(
-                                        Options.Curr.TemplateIdSubmodelInstance);
-
-                            // create ref
-                            var smr = new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>() { new Aas.Key(Aas.KeyTypes.Submodel, submodel.Id) });
-                            aas.Submodels ??= new List<IReference>();
-                            aas.Submodels.Add(smr);
+                                aas.Add(smr);
 
                                 // event for AAS
                                 this.AddDiaryEntry(aas, new DiaryEntryStructChange());
 
                                 // redraw
-                                return new AnyUiLambdaActionRedrawAllElements(nextFocus: smr, isExpanded: true);
+                                return new AnyUiLambdaActionRedrawAllElements(
+                                    nextFocus: smr, isExpanded: true);
+                            }
+                        }
 
+                        if (buttonNdx == 1 || buttonNdx == 2)
+                        {
+                            // create new submodel
+                            var submodel = new Aas.Submodel("");
+
+                            // directly create identification, as we need it!
+                            if (buttonNdx == 1)
+                            {
+                                submodel.Id = AdminShellUtil.GenerateIdAccordingTemplate(
+                                    Options.Curr.TemplateIdSubmodelTemplate);
+                                submodel.Kind = Aas.ModellingKind.Template;
+                            }
+                            else
+                            {
+                                submodel.Id = AdminShellUtil.GenerateIdAccordingTemplate(
+                                    Options.Curr.TemplateIdSubmodelInstance);
                             }
 
-                            return new AnyUiLambdaActionNone();
-                        });
+                            // add
+                            this.AddDiaryEntry(submodel,
+                                    new DiaryEntryStructChange(StructuralChangeReason.Create));
+                            env.Add(submodel);
+
+                            // create ref
+                            var smr = new Aas.Reference(Aas.ReferenceTypes.ModelReference, 
+                                new List<Aas.IKey>() { new Aas.Key(Aas.KeyTypes.Submodel, submodel.Id) });
+                            aas.Add(smr);
+
+                            // event for AAS
+                            this.AddDiaryEntry(aas, new DiaryEntryStructChange());
+
+                            // redraw
+                            return new AnyUiLambdaActionRedrawAllElements(nextFocus: smr, isExpanded: true);
+                        }
+
+                        return new AnyUiLambdaActionNone();
+                    });
 
                     this.AddHintBubble(stack, hintMode, new[] {
                         new HintCheck(
@@ -1396,92 +1390,90 @@ namespace AasxPackageLogic
                             "You have opened an auxiliary AASX package. You can copy elements from it!",
                             severityLevel: HintCheck.Severity.Notice)
                     });
-                    this.AddActionPanel(
-                        stack, "Copy from existing Submodel:",
-                        firstColumnWidth: FirstColumnWidth.Large,
-                        repo: repo,
-                        superMenu: superMenu,
-                        ticketMenu: new AasxMenu()
-                            .AddAction("copy-single", "Copy single",
-                                "Copy selected Submodel without children from another AAS, " +
-                                "caring for ConceptDescriptions.")
-                            .AddAction("copy-recurse", "Copy recursively",
-                                "Copy selected Submodel and children from another AAS, " +
-                                "caring for ConceptDescriptions."),
-                        ticketAction: (buttonNdx, ticket) =>
+                    
+                this.AddActionPanel(
+                    stack, "Copy from existing Submodel:",
+                    firstColumnWidth: FirstColumnWidth.Large,
+                    repo: repo,
+                    superMenu: superMenu,
+                    ticketMenu: new AasxMenu()
+                        .AddAction("copy-single", "Copy single",
+                            "Copy selected Submodel without children from another AAS, " +
+                            "caring for ConceptDescriptions.")
+                        .AddAction("copy-recurse", "Copy recursively",
+                            "Copy selected Submodel and children from another AAS, " +
+                            "caring for ConceptDescriptions."),
+                    ticketAction: (buttonNdx, ticket) =>
+                    {
+                        if (buttonNdx == 0 || buttonNdx == 1)
                         {
-                            if (buttonNdx == 0 || buttonNdx == 1)
+                            var rve = this.SmartSelectAasEntityVisualElement(
+                                packages, PackageCentral.PackageCentral.Selector.MainAux,
+                                "SubmodelRef") as VisualElementSubmodelRef;
+
+                            if (rve != null)
                             {
-                                var rve = this.SmartSelectAasEntityVisualElement(
-                                    packages, PackageCentral.PackageCentral.Selector.MainAux,
-                                    "SubmodelRef") as VisualElementSubmodelRef;
-
-                                if (rve != null)
+                                var mdo = rve.GetMainDataObject();
+                                if (mdo != null && mdo is Aas.Reference)
                                 {
-                                    var mdo = rve.GetMainDataObject();
-                                    if (mdo != null && mdo is Aas.Reference)
+                                    // we have 2 different use cases: 
+                                    // (1) copy between AAS ENVs, 
+                                    // (2) copy in one AAS ENV!
+                                    if (env != rve.theEnv)
                                     {
-                                        // we have 2 different use cases: 
-                                        // (1) copy between AAS ENVs, 
-                                        // (2) copy in one AAS ENV!
-                                        if (env != rve.theEnv)
-                                        {
-                                            // use case (1) copy between AAS ENVs
-                                            var clone = env.CopySubmodelRefAndCD(
-                                                rve.theEnv, mdo as Aas.Reference, copySubmodel: true,
-                                                copyCD: true, shallowCopy: buttonNdx == 0);
-                                            if (clone == null)
-                                                return new AnyUiLambdaActionNone();
-                                            if (aas.Submodels == null)
-                                                aas.Submodels = new List<Aas.IReference>();
-                                            aas.Submodels.Add(clone);
-                                            this.AddDiaryEntry(aas, new DiaryEntryStructChange());
-                                            return new AnyUiLambdaActionRedrawAllElements(
+                                        // use case (1) copy between AAS ENVs
+                                        var clone = env.CopySubmodelRefAndCD(
+                                            rve.theEnv, mdo as Aas.Reference, copySubmodel: true,
+                                            copyCD: true, shallowCopy: buttonNdx == 0);
+                                        if (clone == null)
+                                            return new AnyUiLambdaActionNone();
+                                        aas.Add(clone);
+                                        this.AddDiaryEntry(aas, new DiaryEntryStructChange());
+                                        return new AnyUiLambdaActionRedrawAllElements(
                                             nextFocus: clone, isExpanded: true);
-                                        }
-                                        else
-                                        {
-                                            // use case (2) copy in one AAS ENV!
+                                    }
+                                    else
+                                    {
+                                        // use case (2) copy in one AAS ENV!
 
-                                            // need access to source submodel
-                                            var srcSub = rve.theEnv.FindSubmodel(mdo as Aas.Reference);
-                                            if (srcSub == null)
-                                                return new AnyUiLambdaActionNone();
+                                        // need access to source submodel
+                                        var srcSub = rve.theEnv.FindSubmodel(mdo as Aas.Reference);
+                                        if (srcSub == null)
+                                            return new AnyUiLambdaActionNone();
 
-                                            // means: we have to generate a new submodel ref
-                                            // by using template mechanism
-                                            var tid = Options.Curr.TemplateIdSubmodelInstance;
-                                            if (srcSub.Kind != null && srcSub.Kind == Aas.ModellingKind.Template)
-                                                tid = Options.Curr.TemplateIdSubmodelTemplate;
+                                        // means: we have to generate a new submodel ref
+                                        // by using template mechanism
+                                        var tid = Options.Curr.TemplateIdSubmodelInstance;
+                                        if (srcSub.Kind != null && srcSub.Kind == Aas.ModellingKind.Template)
+                                            tid = Options.Curr.TemplateIdSubmodelTemplate;
 
-                                            // create Submodel as deep copy 
-                                            // with new id from scratch
-                                            var dstSub = srcSub.Copy();
-                                            dstSub.Id = AdminShellUtil.GenerateIdAccordingTemplate(tid);
+                                        // create Submodel as deep copy 
+                                        // with new id from scratch
+                                        var dstSub = srcSub.Copy();
+                                        dstSub.Id = AdminShellUtil.GenerateIdAccordingTemplate(tid);
 
-                                            // make a new ref
-                                            var dstRef = dstSub.GetModelReference().Copy();
+                                        // make a new ref
+                                        var dstRef = dstSub.GetModelReference().Copy();
 
-                                            // formally add this to active environment 
-                                            env.Submodels.Add(dstSub);
-                                            this.AddDiaryEntry(dstSub,
-                                                new DiaryEntryStructChange(StructuralChangeReason.Create));
+                                        // formally add this to active environment 
+                                        env.Add(dstSub);
+                                        this.AddDiaryEntry(dstSub,
+                                            new DiaryEntryStructChange(StructuralChangeReason.Create));
 
-                                            // .. and AAS
-                                            if (aas.Submodels == null)
-                                                aas.Submodels = new List<Aas.IReference>();
-                                            aas.Submodels.Add(dstRef);
-                                            this.AddDiaryEntry(aas, new DiaryEntryStructChange());
-                                            return new AnyUiLambdaActionRedrawAllElements(
-                                                nextFocus: dstRef, isExpanded: true);
-                                        }
+                                        // .. and AAS
+                                        if (aas.Submodels == null)
+                                            aas.Submodels = new List<Aas.IReference>();
+                                        aas.Add(dstRef);
+                                        this.AddDiaryEntry(aas, new DiaryEntryStructChange());
+                                        return new AnyUiLambdaActionRedrawAllElements(
+                                            nextFocus: dstRef, isExpanded: true);
                                     }
                                 }
                             }
+                        }
 
-                            return new AnyUiLambdaActionNone();
-                        });
-                }
+                        return new AnyUiLambdaActionNone();
+                    });                
             }
 
             // Referable
@@ -1499,7 +1491,6 @@ namespace AasxPackageLogic
             // hasDataSpecification are MULTIPLE references. That is: multiple x multiple keys!
             this.DisplayOrEditEntityHasDataSpecificationReferences(stack, aas.EmbeddedDataSpecifications,
                 (ds) => { aas.EmbeddedDataSpecifications = ds; }, relatedReferable: aas, superMenu: superMenu);
-
 
             // use some asset reference
             var asset = aas.AssetInformation;
@@ -1654,8 +1645,30 @@ namespace AasxPackageLogic
                 };
 
                 this.EntityListUpDownDeleteHelper<Aas.IReference>(
-                    stack, repo, aas.Submodels, smref, aas, "Reference:", sendUpdateEvent: evTemplate,
-                    explicitParent: aas);
+                    stack, repo, 
+                    aas.Submodels, (lst) => { aas.Submodels = lst; },
+                    smref, aas, "Reference:", sendUpdateEvent: evTemplate,
+                    explicitParent: aas,
+                    postActionHook: (actionName, ticket) => {
+                        if (actionName == "aas-elem-delete")
+                        {
+                            // ask
+                            if (ticket?.ScriptMode != true 
+                                && AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                                "Delete selected Submodel for all AAS in the Environment? " +
+                                "This operation can not be reverted!", "AAS-ENV",
+                                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                return;
+
+                            // do
+                            var smExist = env.FindSubmodel(smref);
+                            if (smExist != null)
+                                env.Remove(smExist);
+
+                            // manually redraw
+                            this.appEventsProvider?.PushApplicationEvent(new AasxPluginResultEventRedrawAllElements());
+                        }
+                    });
             }
 
             // entities other
@@ -1678,8 +1691,20 @@ namespace AasxPackageLogic
                                      "Delete selected Submodel? This operation can not be reverted!", "AAS-ENV",
                                      AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
                             {
-                                if (env.Submodels.Contains(submodel))
-                                    env.Submodels.Remove(submodel);
+                                // ask if to delete all references
+                                if (ticket?.ScriptMode != true
+                                    && AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
+                                    "Remove References to this Submodel from all AAS in the environment?",
+                                    "Remove Submodel",
+                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                {
+                                    env.RemoveReferences(
+                                        rf: submodel.GetModelReference(),
+                                        inAas: true);
+                                }
+
+                                // delete the Submodel itself
+                                env.Remove(submodel);
                                 this.AddDiaryEntry(submodel, new DiaryEntryStructChange(StructuralChangeReason.Delete));
                                 return new AnyUiLambdaActionRedrawAllElements(nextFocus: null, isExpanded: null);
                             }
@@ -2307,7 +2332,9 @@ namespace AasxPackageLogic
                 };
 
                 this.EntityListUpDownDeleteHelper<Aas.IConceptDescription>(
-                    stack, repo, env.ConceptDescriptions, cd, env, "CD:", sendUpdateEvent: evTemplate,
+                    stack, repo, 
+                    env.ConceptDescriptions, (lst) => { env.ConceptDescriptions = lst; },
+                    cd, env, "CD:", sendUpdateEvent: evTemplate,
                     preventMove: preventMove,
                     superMenu: superMenu);
             }
@@ -2596,7 +2623,9 @@ namespace AasxPackageLogic
 
         public void DisplayOrEditAasEntityOperationVariable(
             PackageCentral.PackageCentral packages, Aas.Environment env,
-            Aas.IReferable parentContainer, Aas.IOperationVariable ov, bool editMode,
+            Aas.IReferable parentContainer, 
+            Aas.IOperationVariable ov, 
+            bool editMode,
             AnyUiStackPanel stack, bool hintMode = false,
             AasxMenu superMenu = null)
         {
@@ -2634,13 +2663,16 @@ namespace AasxPackageLogic
                         this.EntityListUpDownDeleteHelper<Aas.IOperationVariable>(
                                 stack, repo,
                                 operation.InputVariables,
-                                ov, env, "OperationVariable:");
+                                (lst) => { operation.InputVariables = lst; },
+                                ov, 
+                                env, "OperationVariable:");
                     }
                     else if (operation.OutputVariables.Contains(ov))
                     {
                         this.EntityListUpDownDeleteHelper<Aas.IOperationVariable>(
                                 stack, repo,
                                 operation.OutputVariables,
+                                (lst) => { operation.OutputVariables = lst; },
                                 ov, env, "OperationVariable:");
                     }
                     else if (operation.InoutputVariables.Contains(ov))
@@ -2648,6 +2680,7 @@ namespace AasxPackageLogic
                         this.EntityListUpDownDeleteHelper<Aas.IOperationVariable>(
                                 stack, repo,
                                 operation.InoutputVariables,
+                                (lst) => { operation.InoutputVariables = lst; },
                                 ov, env, "OperationVariable:");
                     }
                 }
@@ -2868,7 +2901,9 @@ namespace AasxPackageLogic
                 // entities helper
                 if (parentContainer != null && parentContainer is Aas.Submodel && wrapper != null)
                     this.EntityListUpDownDeleteHelper<Aas.ISubmodelElement>(
-                        horizStack, repo, (parentContainer as Aas.Submodel).SubmodelElements,
+                        horizStack, repo, 
+                        (parentContainer as Aas.Submodel).SubmodelElements,
+                        (lst) => { (parentContainer as Aas.Submodel).SubmodelElements = lst; },
                         wrapper, alternativeFocus: parentContainer,
                         label: "SubmodelElement:", nextFocus: wrapper, sendUpdateEvent: evTemplate,
                         superMenu: superMenu);
@@ -2876,7 +2911,9 @@ namespace AasxPackageLogic
                 if (parentContainer != null && parentContainer is Aas.SubmodelElementCollection &&
                         wrapper != null)
                     this.EntityListUpDownDeleteHelper<Aas.ISubmodelElement>(
-                        horizStack, repo, (parentContainer as Aas.SubmodelElementCollection).Value,
+                        horizStack, repo, 
+                        (parentContainer as Aas.SubmodelElementCollection).Value,
+                        (lst) => { (parentContainer as Aas.SubmodelElementCollection).Value = lst; },
                         wrapper, alternativeFocus: parentContainer, label: "SubmodelElement:",
                         nextFocus: wrapper, sendUpdateEvent: evTemplate,
                         superMenu: superMenu);
@@ -2887,14 +2924,18 @@ namespace AasxPackageLogic
                 if (parentContainer != null && parentContainer is Aas.SubmodelElementList &&
                         wrapper != null)
                     this.EntityListUpDownDeleteHelper<Aas.ISubmodelElement>(
-                        horizStack, repo, (parentContainer as Aas.SubmodelElementList).Value,
+                        horizStack, repo, 
+                        (parentContainer as Aas.SubmodelElementList).Value,
+                        (lst) => { (parentContainer as Aas.SubmodelElementList).Value = lst; },
                         wrapper, alternativeFocus: parentContainer, label: "SubmodelElement:",
                         nextFocus: wrapper, sendUpdateEvent: null,
                         superMenu: superMenu);
 
                 if (parentContainer != null && parentContainer is Aas.Entity && wrapper != null)
                     this.EntityListUpDownDeleteHelper<Aas.ISubmodelElement>(
-                        horizStack, repo, (parentContainer as Aas.Entity).Statements,
+                        horizStack, repo, 
+                        (parentContainer as Aas.Entity).Statements,
+                        (lst) => { (parentContainer as Aas.Entity).Statements = lst; },
                         wrapper, env, "SubmodelElement:",
                         nextFocus: wrapper, sendUpdateEvent: evTemplate,
                         superMenu: superMenu);
