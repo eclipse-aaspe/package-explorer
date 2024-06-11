@@ -1231,26 +1231,6 @@ namespace AasxPackageLogic
             // Entities
             if (editMode)
             {
-                // If AAS.Submodels is null, give clear indication
-                this.AddHintBubble(
-                    stack, hintMode,
-                    new[] {
-                        new HintCheck(
-                            () => { return aas.Submodels == null; },
-                                "The AAS.Submodels collection is set to NULL. Creation will be done " +
-                                "using respective functionalities below.",
-                            severityLevel: HintCheck.Severity.High,
-                            breakIfTrue: true),                            
-                        new HintCheck(
-                            () => { return aas.SubmodelCount() < 1;  },
-                            "You have no Submodels referenced by this Administration Shell. " +
-                                "This is rather unusual, as the Submodels are the actual carriers of information. " +
-                                "Most likely, you want to click 'Create new Submodel of kind Instance'. " +
-                                "You might also consider to load another AASX as auxiliary AASX " +
-                                "(see 'File' menu) to copy structures from.",
-                            severityLevel: HintCheck.Severity.Notice)
-                    });
-
                 //
                 // New (MIHO, 2024-06-10): allow even if aas.Submodels is null
                 //
@@ -1306,8 +1286,29 @@ namespace AasxPackageLogic
 
                         // ok
                         return newsmr;
-                    }); 
-                
+                    });
+
+                // If AAS.Submodels is null, give clear indication
+                this.AddHintBubble(
+                    stack, hintMode,
+                    new[] {
+                        new HintCheck(
+                            () => { return aas.Submodels == null; },
+                                "The list of Submodel references is set to null. Creation will be done " +
+                                "using respective functionalities below.",
+                            severityLevel: HintCheck.Severity.High,
+                            breakIfTrue: true),
+                        new HintCheck(
+                            () => { return aas.SubmodelCount() < 1;  },
+                            "You have no Submodels referenced by this Administration Shell. " +
+                                "This is rather unusual, as the Submodels are the actual carriers of information. " +
+                                "Most likely, you want to click 'Create new Submodel of kind Instance'. " +
+                                "You might also consider to load another AASX as auxiliary AASX " +
+                                "(see 'File' menu) to copy structures from.",
+                            severityLevel: HintCheck.Severity.Notice)
+                    });
+
+                // now let create
                 this.AddActionPanel(
                     stack, "SubmodelRef:",
                     repo: repo,

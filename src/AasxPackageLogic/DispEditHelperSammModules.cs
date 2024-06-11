@@ -42,6 +42,7 @@ using static AasxPackageLogic.DispEditHelperBasics;
 using System.Collections;
 using static Lucene.Net.Documents.Field;
 using static AasxPackageLogic.DispEditHelperMiniModules;
+using System.Windows.Shapes;
 
 namespace AasxPackageLogic
 {
@@ -991,7 +992,8 @@ namespace AasxPackageLogic
 					new HintCheck(
 						() => { return sammExtension == null ||
 							sammExtension.Count < 1; },
-						"Eclipse Semantic Aspect Meta Model (SAMM) allows the creation of models to describe " +
+                        (sammExtension == null ? "List of extensions is null! " : "List of extensions is empty! ") +
+                        "Semantic Aspect Meta Model (SAMM) allows the creation of models which describe " +
 						"the semantics of digital twins by defining their domain specific aspects. " +
 						"This version of the AASX Package Explorer allows expressing Characteristics of SAMM " +
 						"as an extension of ConceptDescriptions. In later versions, this is assumed to be " +
@@ -1000,223 +1002,216 @@ namespace AasxPackageLogic
 					new HintCheck(
 						() => { return sammExtension.Where(p => Samm.Util.HasSammSemanticId(p)).Count() > 1; },
 						"Only one SAMM extension is allowed per concept.",
+						severityLevel: HintCheck.Severity.High,
 						breakIfTrue: true),
 				});
-			if (this.SafeguardAccess(
-					stack, this.repo, sammExtension, "SAMM extensions:", "Create data element!",
-					v =>
-					{
-						setOutput?.Invoke(new List<Aas.IExtension>());
-						return new AnyUiLambdaActionRedrawEntity();
-					}))
+
+            // Head control. Allow menu, even if list is null!
+            // Note: the buttons will use a "detected version" (see below)
+            // of the id set
+            SammIdSet detectedIdSet = null;           
+            if (editMode)
 			{
-				// Note: the buttons will use a "detected version" (see below)
-				// of the id set
-				SammIdSet detectedIdSet = null;
-
-				// head control
-				if (editMode)
-				{
-					// let the user control the number of references
-					this.AddActionPanel(
-						stack, "Spec. records:", repo: repo,
-						superMenu: superMenu,
-						ticketMenu: new AasxMenu()
-							.AddAction("add-aspect", "Add Aspect",
-								"Add single top level of any SAMM aspect model.")
-							.AddAction("add-property", "Add Property",
-								"Add a named value element to the aspect or its sub-entities.")
-							.AddAction("add-characteristic", "Add Characteristic",
-								"Characteristics describe abstract concepts that must be made specific when they are used.")
-							.AddAction("auto-entity", "Add Entity",
-								"An entity is the main element to collect a set of properties.")
-							.AddAction("auto-other", "Add other ..",
-								"Adds an other Characteristic by selecting from a list.")
-							.AddAction("delete-last", "Delete last extension",
-								"Deletes last extension."),
-						ticketAction: (buttonNdx, ticket) =>
-						{
-							Samm.ModelElement newChar = null;
-							switch (buttonNdx)
-							{
-								case 0:
-									newChar = new Samm.Aspect();
-									break;
-								case 1:
-									newChar = new Samm.Property();
-									break;
-								case 2:
-									newChar = new Samm.Characteristic();
-									break;
-								case 3:
-									newChar = new Samm.Entity();
-									break;
-							}
-
-							if (buttonNdx == 4)
-							{							
-								// select
-								var sammTypeToCreate = SammExtensionHelperSelectSammType(
-									Samm.Constants.AddableElements);
-
-								if (sammTypeToCreate != null)
-								{
-									// to which?
-									newChar = Activator.CreateInstance(
-										sammTypeToCreate, new object[] { }) as Samm.ModelElement;
-								}
-							}
-
-							// create a new element
-							if (newChar != null && newChar is Samm.ISammSelfDescription ssd)
-							{
-								// which id set to use
-								if (detectedIdSet == null)
-									detectedIdSet = SammExtensionHelperSelectSammVersion(
-										Samm.SammIdSets.IdSets.Values);
-								if (detectedIdSet == null)
-									return new AnyUiLambdaActionNone();
-
-								// now add
-								sammExtension.Add(
-									new Aas.Extension(
-										name: ssd.GetSelfName(),
-										semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
-											(new[] {
-												new Aas.Key(KeyTypes.GlobalReference,
-												"" + detectedIdSet.SelfNamespaces.ExtendUri(
-														ssd.GetSelfUrn(detectedIdSet.Version)))
-											})
-											.Cast<Aas.IKey>().ToList()),
-										value: ""));
-							}
-							
-							// remove
-							if (buttonNdx == 5)
-							{
-								if (sammExtension.Count > 0)
-									sammExtension.RemoveAt(sammExtension.Count - 1);
-								else
-									setOutput?.Invoke(null);
-							}
-
-							this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-							return new AnyUiLambdaActionRedrawEntity();
-						});
-				}
-
-				// now use the normal mechanism to deal with editMode or not ..
-				if (sammExtension != null && sammExtension.Count > 0)
-				{
-					var numSammExt = 0;
-
-					for (int i = 0; i < sammExtension.Count; i++)
+				// let the user control the number of references
+				this.AddActionPanel(
+					stack, "Spec. records:", repo: repo,
+					superMenu: superMenu,
+					ticketMenu: new AasxMenu()
+						.AddAction("add-aspect", "Add Aspect",
+							"Add single top level of any SAMM aspect model.")
+						.AddAction("add-property", "Add Property",
+							"Add a named value element to the aspect or its sub-entities.")
+						.AddAction("add-characteristic", "Add Characteristic",
+							"Characteristics describe abstract concepts that must be made specific when they are used.")
+						.AddAction("auto-entity", "Add Entity",
+							"An entity is the main element to collect a set of properties.")
+						.AddAction("auto-other", "Add other ..",
+							"Adds an other Characteristic by selecting from a list.")
+						.AddAction("delete-last", "Delete last extension",
+							"Deletes last extension."),
+					ticketAction: (buttonNdx, ticket) =>
 					{
-						// get type 
-						var se = sammExtension[i];
-						var idSetType = Samm.SammIdSets.GetAnyIdSetTypeFromUrn(Samm.Util.GetSammUrn(se));
-						if (idSetType?.Item1 == null || idSetType.Item2 == null)
-							continue;
-						var sammType = idSetType.Item2;
-						var idSet = idSetType.Item1;
-
-						// remeber as detected .. (for later dialogs described above!)
-						if (detectedIdSet == null)
-							detectedIdSet = idSet;
-
-						// more then one?
-						this.AddHintBubble(
-							stack, hintMode,
-							new[] {
-							new HintCheck(
-								() => numSammExt > 0,
-								"Only one SAMM extension per ConceptDescription allowed!",
-								breakIfTrue: true)});
-
-						// indicate
-						numSammExt++;
-
-						AnyUiFrameworkElement iconElem = null;
-						var ri = Samm.Constants.GetRenderInfo(sammType);
-						if (ri != null)
+						Samm.ModelElement newChar = null;
+						switch (buttonNdx)
 						{
-							iconElem = new AnyUiBorder()
+							case 0:
+								newChar = new Samm.Aspect();
+								break;
+							case 1:
+								newChar = new Samm.Property();
+								break;
+							case 2:
+								newChar = new Samm.Characteristic();
+								break;
+							case 3:
+								newChar = new Samm.Entity();
+								break;
+						}
+
+						if (buttonNdx == 4)
+						{							
+							// select
+							var sammTypeToCreate = SammExtensionHelperSelectSammType(
+								Samm.Constants.AddableElements);
+
+							if (sammTypeToCreate != null)
 							{
-								Background = new AnyUiBrush(ri.Background),
-								BorderBrush = new AnyUiBrush(ri.Foreground),
-								BorderThickness = new AnyUiThickness(2.0f),
-								MinHeight = 50,
-								MinWidth = 50,
-								Child = new AnyUiTextBlock()
-								{
-									Text = "" + ri.Abbreviation,
-									HorizontalAlignment = AnyUiHorizontalAlignment.Center,
-									VerticalAlignment = AnyUiVerticalAlignment.Center,
-									Foreground = new AnyUiBrush(ri.Foreground),
-									Background = AnyUi.AnyUiBrushes.Transparent,
-									FontSize = 2.0,
-									FontWeight = AnyUiFontWeight.Bold
-								},
+								// to which?
+								newChar = Activator.CreateInstance(
+									sammTypeToCreate, new object[] { }) as Samm.ModelElement;
+							}
+						}
+
+						// create a new element
+						if (newChar != null && newChar is Samm.ISammSelfDescription ssd)
+						{
+							// which id set to use
+							if (detectedIdSet == null)
+								detectedIdSet = SammExtensionHelperSelectSammVersion(
+									Samm.SammIdSets.IdSets.Values);
+							if (detectedIdSet == null)
+								return new AnyUiLambdaActionNone();
+
+							// now add
+							sammExtension = sammExtension ?? new List<IExtension>();
+							sammExtension.Add(
+								new Aas.Extension(
+									name: ssd.GetSelfName(),
+									semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
+										(new[] {
+											new Aas.Key(KeyTypes.GlobalReference,
+											"" + detectedIdSet.SelfNamespaces.ExtendUri(
+													ssd.GetSelfUrn(detectedIdSet.Version)))
+										})
+										.Cast<Aas.IKey>().ToList()),
+									value: ""));
+							setOutput?.Invoke(sammExtension);
+						}
+							
+						// remove
+						if (buttonNdx == 5)
+						{
+							if (sammExtension != null && sammExtension.Count > 0)
+								sammExtension.RemoveAt(sammExtension.Count - 1);
+                            if (sammExtension != null && sammExtension.Count < 1)
+                                setOutput?.Invoke(null);
+						}
+
+						this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+						return new AnyUiLambdaActionRedrawEntity();
+					});
+			}
+
+			// now use the normal mechanism to deal with editMode or not ..
+			if (sammExtension != null && sammExtension.Count > 0)
+			{
+				var numSammExt = 0;
+
+				for (int i = 0; i < sammExtension.Count; i++)
+				{
+					// get type 
+					var se = sammExtension[i];
+					var idSetType = Samm.SammIdSets.GetAnyIdSetTypeFromUrn(Samm.Util.GetSammUrn(se));
+					if (idSetType?.Item1 == null || idSetType.Item2 == null)
+						continue;
+					var sammType = idSetType.Item2;
+					var idSet = idSetType.Item1;
+
+					// remeber as detected .. (for later dialogs described above!)
+					if (detectedIdSet == null)
+						detectedIdSet = idSet;
+
+					// more then one?
+					this.AddHintBubble(
+						stack, hintMode,
+						new[] {
+						new HintCheck(
+							() => numSammExt > 0,
+							"Only one SAMM extension per ConceptDescription allowed!",
+							breakIfTrue: true)});
+
+					// indicate
+					numSammExt++;
+
+					AnyUiFrameworkElement iconElem = null;
+					var ri = Samm.Constants.GetRenderInfo(sammType);
+					if (ri != null)
+					{
+						iconElem = new AnyUiBorder()
+						{
+							Background = new AnyUiBrush(ri.Background),
+							BorderBrush = new AnyUiBrush(ri.Foreground),
+							BorderThickness = new AnyUiThickness(2.0f),
+							MinHeight = 50,
+							MinWidth = 50,
+							Child = new AnyUiTextBlock()
+							{
+								Text = "" + ri.Abbreviation,
 								HorizontalAlignment = AnyUiHorizontalAlignment.Center,
 								VerticalAlignment = AnyUiVerticalAlignment.Center,
-								Margin = new AnyUiThickness(5, 0, 10, 0),
-								SkipForTarget = AnyUiTargetPlatform.Browser
-							};
-						}
-
-						this.AddGroup(stack, $"SAMM extension [{i + 1}]: {sammType.Name}",
-							levelColors.SubSection.Bg, levelColors.SubSection.Fg,
-							iconElement: iconElem);
-
-						// get instance data
-						Samm.ModelElement sammInst = null;
-						if (false)
-						{
-							// Note: right now, create fresh instance
-							sammInst = Activator.CreateInstance(sammType, new object[] { }) as Samm.ModelElement;
-							if (sammInst == null)
-							{
-								stack.Add(new AnyUiLabel() { Content = "(unable to create instance data)" });
-								continue;
-							}
-						}
-						else
-						{
-							// try to de-serializa extension value
-							try
-							{
-								if (se.Value != null)
-									sammInst = JsonConvert.DeserializeObject(se.Value, sammType) as Samm.ModelElement;
-							}
-							catch (Exception ex)
-							{
-								LogInternally.That.SilentlyIgnoredError(ex);
-								sammInst = null;
-							}
-
-							if (sammInst == null)
-							{
-								sammInst = Activator.CreateInstance(sammType, new object[] { }) as Samm.ModelElement;
-							}
-						}
-
-						SammExtensionHelperAddCompleteModelElement(
-							env, idSet, stack,
-							sammInst: sammInst,
-							relatedReferable: relatedReferable,
-							setValue: (si) =>
-							{
-								SammExtensionHelperUpdateJson(se, si.GetType(), si);
-							});
-
+								Foreground = new AnyUiBrush(ri.Foreground),
+								Background = AnyUi.AnyUiBrushes.Transparent,
+								FontSize = 2.0,
+								FontWeight = AnyUiFontWeight.Bold
+							},
+							HorizontalAlignment = AnyUiHorizontalAlignment.Center,
+							VerticalAlignment = AnyUiVerticalAlignment.Center,
+							Margin = new AnyUiThickness(5, 0, 10, 0),
+							SkipForTarget = AnyUiTargetPlatform.Browser
+						};
 					}
+
+					this.AddGroup(stack, $"SAMM extension [{i + 1}]: {sammType.Name}",
+						levelColors.SubSection.Bg, levelColors.SubSection.Fg,
+						iconElement: iconElem);
+
+					// get instance data
+					Samm.ModelElement sammInst = null;
+					if (false)
+					{
+						// Note: right now, create fresh instance
+						sammInst = Activator.CreateInstance(sammType, new object[] { }) as Samm.ModelElement;
+						if (sammInst == null)
+						{
+							stack.Add(new AnyUiLabel() { Content = "(unable to create instance data)" });
+							continue;
+						}
+					}
+					else
+					{
+						// try to de-serializa extension value
+						try
+						{
+							if (se.Value != null)
+								sammInst = JsonConvert.DeserializeObject(se.Value, sammType) as Samm.ModelElement;
+						}
+						catch (Exception ex)
+						{
+							LogInternally.That.SilentlyIgnoredError(ex);
+							sammInst = null;
+						}
+
+						if (sammInst == null)
+						{
+							sammInst = Activator.CreateInstance(sammType, new object[] { }) as Samm.ModelElement;
+						}
+					}
+
+					SammExtensionHelperAddCompleteModelElement(
+						env, idSet, stack,
+						sammInst: sammInst,
+						relatedReferable: relatedReferable,
+						setValue: (si) =>
+						{
+							SammExtensionHelperUpdateJson(se, si.GetType(), si);
+						});
+
 				}
 			}
+			
 		}		
 		
-	}
-
-	
+	}	
 
 	/// <summary>
 	/// This class provides a little help when dealing with RDF graphs provided by dotNetRdf
