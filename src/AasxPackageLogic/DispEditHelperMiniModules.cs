@@ -1841,7 +1841,7 @@ namespace AasxPackageLogic
             Aas.Environment env,
             AnyUiStackPanel stack, ModifyRepo repo, string key,
             List<T> smeList,
-            Action<List<T>> setValueLambda = null,
+            Action<List<T>> setOutput = null,
             AasxMenu superMenu = null,
             Aas.IReference basedOnSemanticId = null) where T : class, ISubmodelElement
         {
@@ -1856,7 +1856,8 @@ namespace AasxPackageLogic
 			this.AddHintBubble(stack, hintMode, new[] {
                     new HintCheck(
                         () => { return smeList == null || smeList.Count < 1; },
-                        "This element currently has no SubmodelElements, yet. " +
+                            "This element currently has no SubmodelElements, yet. " +
+                            (smeList == null ? "List is null! " : "List is empty! ") +
                             "These are the actual carriers of information. " +
                             "You could create them by clicking the 'Add ..' buttons below. " +
                             "Subsequently, when having a SubmodelElement established, " +
@@ -1866,12 +1867,15 @@ namespace AasxPackageLogic
 
             // menu
             var isDataElem = typeof(IDataElement).IsAssignableFrom(typeof(T));
+
+            // 0 and 1
             var menu = new AasxMenu()
                     .AddAction("add-prop", "Add Property",
                         "Adds a new Property to the containing collection.")
                     .AddAction("add-mlp", "Add MultiLang.Prop.",
                         "Adds a new MultiLanguageProperty to the containing collection.");
 
+            // 2
             if (!isDataElem)
                 menu.AddAction("add-smc", "Add Collection",
                    "Adds a new SubmodelElementCollection to the containing collection.");
@@ -1879,11 +1883,13 @@ namespace AasxPackageLogic
                 menu.AddAction("add-range", "Add Range",
                    "Adds a new Range to the containing collection.");
 
+            // 3
             menu.AddAction("add-named", "Add other ..",
-                        "Adds a selected kind of SubmodelElement to the containing collection.",
-                        args: new AasxMenuListOfArgDefs()
-                            .Add("Kind", "Name (not abbreviated) of kind of SubmodelElement."));
+                "Adds a selected kind of SubmodelElement to the containing collection.",
+                args: new AasxMenuListOfArgDefs()
+                    .Add("Kind", "Name (not abbreviated) of kind of SubmodelElement."));
 
+            // 4
             if (smtElemItem.Count > 0)
             {
 				menu.AddAction("add-smt-guided", "Add SMT guided ..",
@@ -1935,16 +1941,9 @@ namespace AasxPackageLogic
                                     defaultHelper: Options.Curr.GetCreateDefaultHelper());
 
                             // add
-                            T smw = sme2;
-                            if (smeList == null)
-                            {
-                                smeList = new List<T>();
-                                setValueLambda?.Invoke(smeList);
-                            }
-
                             smeList = smeList ?? new List<T>();
-                            smeList.Add(smw);
-                            setValueLambda(smeList);
+                            smeList.Add(sme2);
+                            setOutput?.Invoke(smeList);
 
                             // make some more adjustments
                             if (sme2 is IMultiLanguageProperty mlp)
@@ -2007,12 +2006,11 @@ namespace AasxPackageLogic
                                         item.SmtRec.PopulateReferable(sme, item.Cd);
 
                                         // add & confirm
-                                        var smw = sme as T;
-                                        if (smw != null)
+                                        if (sme != null)
                                         {
                                             smeList = smeList ?? new List<T>();
-                                            smeList.Add(smw);
-                                            setValueLambda(smeList);
+                                            smeList.Add(sme);
+                                            setOutput(smeList);
 
                                             this.AddDiaryEntry(sme, new DiaryEntryStructChange(
                                                 StructuralChangeReason.Create));

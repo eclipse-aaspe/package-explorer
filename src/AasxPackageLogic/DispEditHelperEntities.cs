@@ -1778,7 +1778,7 @@ namespace AasxPackageLogic
                 DispSmeListAddNewHelper<ISubmodelElement>(env, stack, repo,
                     key: "SubmodelElement:",
                     submodel.SubmodelElements,
-                    setValueLambda: (sml) => submodel.SubmodelElements = sml,
+                    setOutput: (sml) => submodel.SubmodelElements = sml,
                     superMenu: superMenu,
                     basedOnSemanticId: submodel.SemanticId);
 
@@ -2662,7 +2662,7 @@ namespace AasxPackageLogic
                 if (parentContainer != null && parentContainer is Aas.Operation operation)
                 {
                     // hope is OK to refer to two lists!
-                    if (operation.InputVariables.Contains(ov))
+                    if (operation.InputVariables?.Contains(ov) == true)
                     {
                         this.EntityListUpDownDeleteHelper<Aas.IOperationVariable>(
                                 stack, repo,
@@ -2671,7 +2671,7 @@ namespace AasxPackageLogic
                                 ov, 
                                 env, "OperationVariable:");
                     }
-                    else if (operation.OutputVariables.Contains(ov))
+                    else if (operation.OutputVariables?.Contains(ov) == true)
                     {
                         this.EntityListUpDownDeleteHelper<Aas.IOperationVariable>(
                                 stack, repo,
@@ -2679,7 +2679,7 @@ namespace AasxPackageLogic
                                 (lst) => { operation.OutputVariables = lst; },
                                 ov, env, "OperationVariable:");
                     }
-                    else if (operation.InoutputVariables.Contains(ov))
+                    else if (operation.InoutputVariables?.Contains(ov) == true)
                     {
                         this.EntityListUpDownDeleteHelper<Aas.IOperationVariable>(
                                 stack, repo,
@@ -3223,7 +3223,7 @@ namespace AasxPackageLogic
                 DispSmeListAddNewHelper(env, stack, repo,
                     key: "SubmodelElement:",
                     listOfSME,
-                    setValueLambda: (sml) =>
+                    setOutput: (sml) =>
                     {
                         if (sme is Aas.SubmodelElementCollection)
                             (sme as Aas.SubmodelElementCollection).Value = sml;
@@ -3336,7 +3336,8 @@ namespace AasxPackageLogic
                         new[] {
                             new HintCheck(
                                 () => { return ovl == null || ovl.Count < 1; },
-                                "This collection of OperationVariables currently has no elements, yet. " +
+                                    "This list of OperationVariables currently has no elements, yet. " +
+                                    (ovl == null ? "List is null! " : "List is empty! ") +
                                     "Please check, which in- and out-variables are required.",
                                 severityLevel: HintCheck.Severity.Notice)
                         });
@@ -3509,7 +3510,7 @@ namespace AasxPackageLogic
                 DispSmeListAddNewHelper<IDataElement>(env, stack, repo,
                     key: "annotation:",
                     are.Annotations,
-                    setValueLambda: (sml) => are.Annotations = sml,
+                    setOutput: (sml) => are.Annotations = sml,
                     superMenu: superMenu,
                     basedOnSemanticId: are.SemanticId);
 
