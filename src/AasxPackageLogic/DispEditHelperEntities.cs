@@ -2657,24 +2657,9 @@ namespace AasxPackageLogic
             if (editMode)
             {
                 this.AddGroup(stack, "Editing of entities", this.levelColors.MainSection);
-                // dead-csharp off
-                //// entities
-                //if (parentContainer != null && parentContainer is Aas.Operation)
-                //    // hope is OK to refer to two lists!
-                //    for (int i = 0; i < 3; i++)
-                //        if ((parentContainer as Aas.Operation)[i].Contains(ov))
-                //        {
-                //            this.EntityListUpDownDeleteHelper<OperationVariable>(
-                //                stack, repo,
-                //                (parentContainer as Aas.Operation)[i],
-                //                ov, env, "OperationVariable:");
-                //            break;
-                //        }
-                // dead-csharp on
-                // entities
                 if (parentContainer != null && parentContainer is Aas.Operation operation)
                 {
-                    // hope is OK to refer to two lists!
+                    // have 3 lists to be individually managed
                     if (operation.InputVariables?.Contains(ov) == true)
                     {
                         this.EntityListUpDownDeleteHelper<Aas.IOperationVariable>(
