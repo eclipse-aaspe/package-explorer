@@ -149,6 +149,13 @@ namespace AasxPluginExportTable.Table
         // Processors
         //
 
+        public class AdvancedMatch
+        {
+            public string Trigger;
+            public string Pattern;
+            public string Replace;
+        }
+
         public class ItemProcessor
         {
             //
@@ -177,7 +184,19 @@ namespace AasxPluginExportTable.Table
             private Regex regexReplacements = null;
             private Regex regexStop = null;
             private Regex regexCommands = null;
+            
             private Dictionary<string, string> repDict = null;
+
+            private List<AdvancedMatch> _advancedMatches = new List<AdvancedMatch>();
+
+            private void advancedRep(string trigger, string pattern, string replace)
+            {
+                _advancedMatches.Add(new AdvancedMatch() {
+                    Trigger = trigger?.Trim().ToLower(),
+                    Pattern = pattern, 
+                    Replace = replace
+                });
+            }
 
             private void rep(string tag, string value)
             {
@@ -283,12 +302,31 @@ namespace AasxPluginExportTable.Table
                     repLangStr(head, ls);
             }
 
+            protected string escapeLiteralsToFormat(string input)
+            {
+                // access
+                if (Record == null)
+                    return input;
+
+                // switch
+                var fmt = (ImportExportTableRecord.FormatEnum)Record.Format;
+                if (fmt == ImportExportTableRecord.FormatEnum.MarkdownGH ||
+                    fmt == ImportExportTableRecord.FormatEnum.AsciiDoc)
+                {
+                    // escape __00__
+                    input = input.Replace(@"__00__", @"\__00__");
+                    input = input.Replace(@"__000__", @"\__000__");
+                }
+
+                return input;
+            }
+
             private void repReferable(string head, Aas.IReferable rf)
             {
                 //-9- {Referable}.{idShort, category, description, description[@en..], elementName, 
                 //     elementAbbreviation, parent}
                 if (rf.IdShort != null)
-                    rep(head + "idShort", rf.IdShort);
+                    rep(head + "idShort", escapeLiteralsToFormat(rf.IdShort));
                 if (rf.Category != null)
                     rep(head + "category", rf.Category);
 
@@ -310,7 +348,8 @@ namespace AasxPluginExportTable.Table
                         rf.GetSelfDescription()?.ElementAbbreviation);
                 }
                 if (rf is Aas.IReferable rfpar)
-                    rep(head + "parent", "" + (rfpar.IdShort != null ? rfpar.IdShort : "-"));
+                    rep(head + "parent", escapeLiteralsToFormat(
+                        "" + (rfpar.IdShort != null ? rfpar.IdShort : "-")));
 
                 // further details
                 List<string> details = new List<string>();
@@ -413,11 +452,33 @@ namespace AasxPluginExportTable.Table
                 }
             }
 
+            private void repReferenceList(string head, string refName, List<Aas.IReference> rids)
+            {
+                if (refName == null)
+                    return;
+
+                rep(head + refName + "", "" + rids?.ToStringExtended(2, ", "));
+                rep(head + refName + "[br]", "" + rids?.ToStringExtended(2, "\r\n%BRPOST%%BRPOST%"));
+
+                advancedRep(
+                    trigger: "" + head + refName,
+                    pattern: head + refName + @"\[label=([^]]*)\]",
+                    replace: (rids?.IsValid() != true) ? ""
+                        : "%GROUP1%: " + rids?.ToStringExtended(2, ", ") + "");
+
+                advancedRep(
+                    trigger: "" + head + refName,
+                    pattern: head + refName + @"\[br-label=([^]]*)\]", 
+                    replace: (rids?.IsValid() != true) ? "" 
+                        :  "%GROUP1%: " + rids?.ToStringExtended(2, ", ") + "%BRPOST%%BRPOST%");
+            }
+
             public void Start()
             {
                 // init Regex
                 // nice tester: http://regexstorm.net/tester
-                regexReplacements = new Regex(@"%([a-zA-Z0-9.@\[\]]+)%", RegexOptions.IgnoreCase);
+                // MIHO 2024-06-12: added "=-" to first regex!
+                regexReplacements = new Regex(@"%([a-zA-Z0-9.@\[\]=-]+)%", RegexOptions.IgnoreCase);
                 regexStop = new Regex(@"^(.*?)%stop%(.*)$", RegexOptions.IgnoreCase);
                 regexCommands = new Regex(@"(%([A-Za-z0-9-_]+)=(.*?)%)", RegexOptions.IgnoreCase);
 
@@ -464,6 +525,7 @@ namespace AasxPluginExportTable.Table
                         repMultiplicty(head, parsme.Qualifiers);
                         //-1- {Reference} = {semanticId, isCaseOf, unitId}
                         repReference(head, "semanticId", parsme.SemanticId);
+                        repReferenceList(head, "supplSemIds", parsme.SupplementalSemanticIds);
                     }
 
                     //-1- {Referable} = {SM, SME, CD}
@@ -477,6 +539,7 @@ namespace AasxPluginExportTable.Table
                         repIdentifiable(head, sm);
                         //-1- {Reference} = {semanticId, isCaseOf, unitId}
                         repReference(head, "semanticId", sm.SemanticId);
+                        repReferenceList(head, "supplSemIds", sm.SupplementalSemanticIds);
                     }
 
                     if (sme != null)
@@ -486,6 +549,7 @@ namespace AasxPluginExportTable.Table
                         repQualifiable(head, sme.Qualifiers);
                         repMultiplicty(head, sme.Qualifiers);
                         repReference(head, "semanticId", sme.SemanticId);
+                        repReferenceList(head, "supplSemIds", sme.SupplementalSemanticIds);
 
                         //-2- SME.value
 
@@ -631,6 +695,16 @@ namespace AasxPluginExportTable.Table
                 }
             }
 
+            private static bool IsRegexMatchOne(string input, string pattern, out string matchOne)
+            {
+                var m = Regex.Match(input, pattern);
+                matchOne = "";
+                if (!m.Success || m.Groups.Count < 2)
+                    return false;
+                matchOne = m.Groups[1].ToString();
+                return true;
+            }
+
             // see: https://codereview.stackexchange.com/questions/119519/
             // regex-to-first-match-then-replace-found-matches
             public static string Replace(string s, int index, int length, string replacement)
@@ -668,15 +742,51 @@ namespace AasxPluginExportTable.Table
                         continue;
 
                     // OK, found a placeholder-tag to replace
-                    var tag = "" + match.Groups[1].Value.Trim().ToLower();
+                    var tag = "" + match.Groups[1].Value.Trim();
+                    var tagLC = tag.ToLower();
 
-                    if (repDict.ContainsKey(tag))
+                    // try match advanced
+                    string advancedReplace = null;
+                    foreach (var am in _advancedMatches)
+                        // fast condition
+                        if (tagLC.Contains(am.Trigger))
+                        {
+                            // sufficient condition
+                            // it is important to do the matching (for the group) on 
+                            // upper-/ lowercase
+                            var m = Regex.Match(tag, am.Pattern, RegexOptions.IgnoreCase);
+                            if (m.Success && m.Groups.Count >= 2)
+                            {
+                                // do the replace
+                                advancedReplace = am.Replace;
+
+                                // debug
+                                if (am.Replace != "")
+                                    ;
+
+                                // now care for regognized groups
+                                for (int i = 1; i < m.Groups.Count; i++)
+                                    advancedReplace = advancedReplace
+                                        .Replace($"%GROUP{i}%", m.Groups[i].ToString());
+                            }
+                        }
+
+                    // further matching and actual replace of input
+                    if (advancedReplace != null)
                     {
-                        input = Replace(input, match.Index, match.Length, repDict[tag]);
+                        // already prepared
+                        input = Replace(input, match.Index, match.Length, advancedReplace);
                         NumberReplacements++;
                     }
                     else
-                    if (tag == "stop")
+                    if (repDict.ContainsKey(tagLC))
+                    {
+                        // use dictionary value
+                        input = Replace(input, match.Index, match.Length, repDict[tagLC]);
+                        NumberReplacements++;
+                    }                    
+                    else
+                    if (tagLC == "stop")
                     {
                         // do nothing! see below!
                         ;

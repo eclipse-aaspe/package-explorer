@@ -225,7 +225,7 @@
         "",
         "",
         "%font=bold%Explanation: %bg=#0029cc% %fg=white%",
-        "%Parent.description% %colspan=3%",
+        "%Parent.description@en% %colspan=3%",
         "",
         "",
         "",
@@ -247,7 +247,7 @@
         "",
         "",
         "[%SME.elementShort%]\r\n%brpost%%SME.idShort%",
-        "%SME.semanticId[0].value%\r\n%brpost%%CD.definition@en%\r\n%SME.description@en%",
+        "%SME.semanticId[0].value%\r\n%brpost%%SME.supplSemIds[br-label=supplementalSemanticId]%%CD.definition@en%\r\n%SME.description@en%",
         "[%Property.valueType%]\r\n%brpost%%SME.value%",
         "%SME.multiplicity%"
       ]

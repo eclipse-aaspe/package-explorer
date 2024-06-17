@@ -445,3 +445,10 @@ These projects are not migrated or integrated, yet:
 (\w+)\.(AssetAdministrationShells|Submodels|ConceptDescriptions)
 ```
 
+# TODO (starting from 2024-06-17)
+
+* Open Aux (Ctrl-X) keyboard shortcut not working
+* "Move down" of Submodels does not visually update
+* Copy an Submodel from aux while already having an SM with the *same* ID does not throw an error but is hard to recoginze.
+  (DispEditHelperEntities.cs:1429)
+* exporting Markdown/ AsciiDoc: text in cells from idShort shall not interpreted as markdown (__Marking_00__)

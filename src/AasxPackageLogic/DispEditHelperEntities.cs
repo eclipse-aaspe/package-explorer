@@ -3574,7 +3574,7 @@ namespace AasxPackageLogic
                                     if (cd.IdShort == null || cd.IdShort.Trim() == "")
                                         cd.IdShort = sme.IdShort;
 
-                                    var ds = cd.EmbeddedDataSpecifications.GetIEC61360Content();
+                                    var ds = cd.EmbeddedDataSpecifications?.GetIEC61360Content();
                                     if (ds != null && (ds.ShortName == null || ds.ShortName.Count < 1))
                                     {
                                         ds.ShortName = new List<Aas.ILangStringShortNameTypeIec61360>

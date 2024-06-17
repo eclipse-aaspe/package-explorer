@@ -42,7 +42,8 @@ namespace AasxPluginExportTable.Table
                 @"All placeholders delimited by %{..}%, {} = set arithmetics, [] = optional
                 {Referable}.{idShort, category, description[@en..], elementName, elementShort, elementShort2, elementAbbreviation, kind, parent, details}, {Referable|Identifiable} = {SM, SME, CD}, depth, indent}
                 Identifiable.id, administration.{ version, revision}}, {Qualifiable}.qualifiers, {Qualifiable}.multiplicity
-                {Aas.Reference}, {Aas.Reference}[0..n], {Aas.Reference}[0..n].{type, local, idType, value}, {Aas.Reference} = {semanticId, isCaseOf, unitId}
+                {Aas.Reference}, {Aas.Reference}[0..n], {Aas.Reference}[0..n].{type, local, idType, value}, {Aas.Reference} = {semanticId, isCaseOf, unitId}                
+                {Aas.RefList}, {Aas.RefList}[br], {Aas.RefList}[label={label}], {Aas.RefList}[br-label={label}] {Aas.ReferenceList} = {supplSemIds}
                 SME.value, Property.{value, valueType, valueId}, MultiLanguageProperty.{value, vlaueId}, Range.{valueType, min, max}, Blob.{mimeType, value}, File.{mimeType, value}, ReferenceElement.value, 
                 RelationshipElement.{first, second}, SubmodelElementCollection.{value = #elements, ordered, allowDuplicates}, Entity.{entityType, asset}
                 CD.{preferredName[@en..], shortName[@en..], unit, unitId, sourceOfDefinition, symbol, dataType, definition[@en..], valueFormat}
