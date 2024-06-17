@@ -30,6 +30,18 @@ namespace Extensions
 
             return found;
         }
+
+        /// <summary>
+        /// Formats: 1 = [key, value] 2 = value
+        /// </summary>
+        public static string ToStringExtended(this List<IReference> reflist, int format = 1, string separator = ",")
+        {
+            if (reflist == null)
+                return "";
+
+            return string.Join(separator,
+                reflist.Select((rf) => rf.ToStringExtended(format)));
+        }
     }
 
 }

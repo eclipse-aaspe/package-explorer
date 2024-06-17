@@ -69,6 +69,14 @@ namespace AasxPluginExportTable.Smt
             _adoc.AppendLine(header + text);
         }
 
+        protected static string EscapeAdText(string input)
+        {
+            if (input == null)
+                return null;
+            input = input.Replace(@"""", @"\""");
+            return input;
+        }
+
         protected string EvalLinkArguments(ExportSmtArguments args, Aas.ISubmodelElement sme)
         {
             var astr = "";
@@ -78,7 +86,7 @@ namespace AasxPluginExportTable.Smt
 
             var titStr = sme?.Description?.GetDefaultString();
             if (titStr?.HasContent() == true)
-                astr += $",title=\"{titStr}\"";
+                astr += $",title=\"{EscapeAdText(titStr)}\"";
 
             astr = astr.Trim(',');
 
@@ -168,13 +176,14 @@ namespace AasxPluginExportTable.Smt
             _log?.Info("Image data with {0} bytes writen to {1}.", data.Length, absFn);
 
             // create link arguments
+            var imgId = AdminShellUtil.FilterFriendlyName(sme.IdShort);
             var astr = EvalLinkArguments(args, sme);
 
             // create link text
             if (doLink)
             {
                 _adoc.AppendLine("");
-                _adoc.AppendLine($"image::{fn}[{astr}]");
+                _adoc.AppendLine($"image::{fn}[id=\"{imgId}\", {astr}]");
                 _adoc.AppendLine("");
             }
         }
@@ -289,7 +298,7 @@ namespace AasxPluginExportTable.Smt
                 _optionsAll, optionsTable, absTableFn,
                 target, _package?.AasEnv, ticket, _log, maxDepth: processDepth,
                 idOfElem: refel.IdShort,
-                titleOfTable: refel.Description?.GetDefaultString());
+                titleOfTable: EscapeAdText(refel.Description?.GetDefaultString()));
 
             // include file into AsciiDoc
             if (_optionsSmt.IncludeTables)

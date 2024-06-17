@@ -270,9 +270,7 @@ namespace Extensions
         public static string ToStringExtended(this IReference reference, int format = 1, string delimiter = ",")
         {
             if (reference.Keys == null)
-            {
-                throw new NullValueException("Keys");
-            }
+                return "";
 
             return reference.Keys.ToStringExtended(format, delimiter);
         }
