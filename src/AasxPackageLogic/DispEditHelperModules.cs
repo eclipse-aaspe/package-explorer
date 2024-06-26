@@ -348,11 +348,15 @@ namespace AasxPackageLogic
                 new HintCheck(
                     () => {
                         int count = 0;
-                        foreach(var aas in env.AssetAdministrationShells)
+                        if(env != null && !env.AssetAdministrationShells.IsNullOrEmpty())
                         {
-                            if(aas.Id == identifiable.Id)
-                                count++;
+                            foreach(var aas in env.AssetAdministrationShells)
+                            {
+                                if(aas.Id == identifiable.Id)
+                                    count++;
+                            }
                         }
+                        
                         return (count >= 2?true:false);
                     },
                     "It is not allowed to have duplicate Ids in AAS of the same file. This will break functionality and we strongly encoure to make the Id unique!",

@@ -511,6 +511,14 @@ namespace AasxPackageLogic
                             sm.Id = AdminShellUtil.GenerateIdAccordingTemplate(
                                 (buttonNdx == 2) ? Options.Curr.TemplateIdSubmodelInstance
                                     : Options.Curr.TemplateIdSubmodelTemplate);
+                            if(buttonNdx == 2)
+                            {
+                                sm.Kind = ModellingKind.Instance;
+                            }
+                            else
+                            {
+                                sm.Kind = ModellingKind.Template;
+                            }
                             env.Add(sm);
                             this.AddDiaryEntry(sm, new DiaryEntryStructChange(
                                 StructuralChangeReason.Create));
@@ -1350,8 +1358,12 @@ namespace AasxPackageLogic
                                 submodel.Kind = Aas.ModellingKind.Template;
                             }
                             else
+                            {
                                 submodel.Id = AdminShellUtil.GenerateIdAccordingTemplate(
                                     Options.Curr.TemplateIdSubmodelInstance);
+                                submodel.Kind = ModellingKind.Instance;
+                            }
+                                
 
                             // create ref
                             var smr = new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>() { new Aas.Key(Aas.KeyTypes.Submodel, submodel.Id) });
