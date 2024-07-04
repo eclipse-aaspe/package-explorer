@@ -10,6 +10,7 @@ using AdminShellNS;
 using AdminShellNS.Extensions;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -497,8 +498,13 @@ namespace Extensions
                 return null;
             }
 
-            var submodels = environment.Submodels.Where(s => s.Id.Equals(key.Value, StringComparison.OrdinalIgnoreCase));
-            if (submodels.Any())
+            List<ISubmodel> submodels = null;
+            if (environment != null && !environment.Submodels.IsNullOrEmpty())
+            {
+                submodels = environment.Submodels.Where(s => s.Id.Equals(key.Value, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            }            
+            if (!submodels.IsNullOrEmpty())
             {
                 return submodels.First();
             }
@@ -1032,6 +1038,7 @@ namespace Extensions
             if (dstSub == null && copySubmodel)
             {
                 dstSub = srcSub.Copy();
+                environment.Submodels ??= new List<ISubmodel>();
                 environment.Submodels.Add(dstSub);
             }
             else
@@ -1074,6 +1081,7 @@ namespace Extensions
             if (cdDest == null)
             {
                 // copy new
+                environment.ConceptDescriptions ??= new List<IConceptDescription>();
                 environment.ConceptDescriptions.Add(cdSrc.Copy());
             }
 
