@@ -122,7 +122,7 @@ namespace AasxPackageLogic
 		}
 
 		public AnyUiLambdaActionBase SammExtensionHelperSammReferenceAction<T>(
-			Aas.Environment env,
+			Aas.IEnvironment env,
 			SammIdSet idSet,
 			Aas.IReferable relatedReferable,
 			int actionIndex,
@@ -254,7 +254,7 @@ namespace AasxPackageLogic
 		}
 
 		public void SammExtensionHelperAddSammReference<T>(
-			Aas.Environment env, SammIdSet idSet,
+			Aas.IEnvironment env, SammIdSet idSet,
 			AnyUiStackPanel stack, string caption,
 			Samm.ModelElement sammInst,
 			Aas.IReferable relatedReferable,
@@ -320,7 +320,7 @@ namespace AasxPackageLogic
 		}
 
 		public void SammExtensionHelperAddListOfSammReference<T>(
-			Aas.Environment env, SammIdSet idSet,
+			Aas.IEnvironment env, SammIdSet idSet,
 			AnyUiStackPanel stack, string caption,
 			Samm.ModelElement sammInst,
 			Aas.IReferable relatedReferable,
@@ -447,7 +447,7 @@ namespace AasxPackageLogic
 		}
 
 		public void SammExtensionHelperAddCompleteModelElement(
-			Aas.Environment env, SammIdSet idSet,
+			Aas.IEnvironment env, SammIdSet idSet,
 			AnyUiStackPanel stack,
 			Samm.ModelElement sammInst,
 			Aas.IReferable relatedReferable,
@@ -971,7 +971,7 @@ namespace AasxPackageLogic
 		}
 
 		public void DisplayOrEditEntitySammExtensions(
-			Aas.Environment env, 
+			Aas.IEnvironment env, 
 			AnyUiStackPanel stack,
 			List<Aas.IExtension> sammExtension,
 			Action<List<Aas.IExtension>> setOutput,

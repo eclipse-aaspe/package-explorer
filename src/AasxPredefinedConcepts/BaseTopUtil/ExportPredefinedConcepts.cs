@@ -24,7 +24,7 @@ namespace AasxPredefinedConcepts
     /// </summary>
     public static class ExportPredefinedConcepts
     {
-		public static void Export(Aas.Environment env, Aas.ISubmodel sm, string fn)
+		public static void Export(Aas.IEnvironment env, Aas.ISubmodel sm, string fn)
         {
             // access
             if (fn == null || env == null || sm == null || sm.IdShort == null || sm.SubmodelElements == null)

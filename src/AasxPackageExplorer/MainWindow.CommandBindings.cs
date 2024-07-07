@@ -1132,7 +1132,7 @@ namespace AasxPackageExplorer
         /// <returns>Success</returns>
         public bool MenuSelectEnvSubmodel(
             AasxMenuActionTicket ticket,
-            out Aas.Environment env,
+            out Aas.IEnvironment env,
             out Aas.ISubmodel sm,
             out Aas.IReference smr,
             string msg)
@@ -1221,7 +1221,7 @@ namespace AasxPackageExplorer
                 ticket?.StartExec();
 
                 // which item selected?
-                Aas.Environment env = PackageCentral.Main.AasEnv;
+                Aas.IEnvironment env = PackageCentral.Main.AasEnv;
                 Aas.IAssetAdministrationShell aas = null;
                 if (DisplayElements.SelectedItem != null)
                 {

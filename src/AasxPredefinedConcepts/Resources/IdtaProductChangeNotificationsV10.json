@@ -299,6 +299,51 @@
     ],
     "modelType": "ConceptDescription"
   },
+  "CD_PcnType": {
+    "idShort": "PcnType",
+    "description": [
+      {
+        "language": "en",
+        "text": "Note: Ideally, the Property/valueId is used to reference the IRI/ IRDI of the reason id given by ECLASS."
+      }
+    ],
+    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnType/1/0",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "PCN-Type"
+            },
+            {
+              "language": "de",
+              "text": "PCN-Typ"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "definition, if the PCN record represents a product change notification (PCN) or a product discontinuance notice (PDN)"
+            }
+          ],
+          "valueFormat": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
   "CD_LifeCycleData": {
     "idShort": "LifeCycleData",
     "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/LifeCycleData/List/1/0",

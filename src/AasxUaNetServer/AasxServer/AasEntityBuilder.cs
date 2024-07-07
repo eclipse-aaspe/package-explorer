@@ -186,7 +186,7 @@ namespace AasOpcUaServer
         /// Top level creation functions. Uses the definitions of RootAAS, RootConceptDescriptions, 
         /// RootDataSpecifications to synthesize information model
         /// </summary>
-        public void CreateAddInstanceObjects(Aas.Environment env)
+        public void CreateAddInstanceObjects(Aas.IEnvironment env)
         {
             if (RootAAS == null)
                 return;

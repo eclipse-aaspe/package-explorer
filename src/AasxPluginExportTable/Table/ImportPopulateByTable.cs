@@ -31,7 +31,7 @@ namespace AasxPluginExportTable.Table
         protected LogInstance _log;
         protected ImportExportTableRecord _job;
         protected Aas.ISubmodel _sm;
-        protected Aas.Environment _env;
+        protected Aas.IEnvironment _env;
         protected ExportTableOptions _options;
 
         protected List<ImportCellMatcherBase> _matcherTop;
@@ -41,7 +41,7 @@ namespace AasxPluginExportTable.Table
             LogInstance log,
             ImportExportTableRecord job,
             Aas.ISubmodel sm,
-            Aas.Environment env,
+            Aas.IEnvironment env,
             ExportTableOptions options)
         {
             // context
@@ -387,7 +387,7 @@ namespace AasxPluginExportTable.Table
 
         protected ContextResult CreateBodyCD(
             ImportCellMatchContextBase context,
-            Aas.Environment env)
+            Aas.IEnvironment env)
         {
             // access
             if (context?.Sme == null || context?.CD == null || env == null || _options == null)

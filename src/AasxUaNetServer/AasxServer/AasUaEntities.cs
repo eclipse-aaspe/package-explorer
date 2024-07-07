@@ -631,7 +631,7 @@ namespace AasOpcUaServer
         }
 
         public NodeState CreateAddInstanceObject(NodeState parent,
-            Aas.Environment env, Aas.IAssetAdministrationShell aas)
+            Aas.IEnvironment env, Aas.IAssetAdministrationShell aas)
         {
             // access
             if (env == null || aas == null)

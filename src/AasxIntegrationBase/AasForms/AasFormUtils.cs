@@ -40,7 +40,7 @@ namespace AasxIntegrationBase.AasForms
 
         private static void RecurseExportAsTemplate(
             List<Aas.ISubmodelElement> smwc, FormDescListOfElement tels,
-            Aas.Environment env = null, List<Aas.ConceptDescription> cds = null)
+            Aas.IEnvironment env = null, List<Aas.ConceptDescription> cds = null)
         {
             // access
             if (smwc == null || tels == null)
@@ -292,7 +292,7 @@ namespace AasxIntegrationBase.AasForms
         }
 
         public static void ExportAsGenericFormsOptions(
-            Aas.Environment env, Aas.ISubmodel sm, string fn)
+            Aas.IEnvironment env, Aas.ISubmodel sm, string fn)
         {
             // access
             if (fn == null || env == null || sm == null || sm.SubmodelElements == null)

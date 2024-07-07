@@ -45,6 +45,9 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications
         [AasConcept(Cd = "0173-10029#02-ABC507#001", Card = AasxPredefinedCardinality.ZeroToOne)]
         public string ManufacturerChangeID;
 
+        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnType/1/0", Card = AasxPredefinedCardinality.One)]
+        public string PcnType;
+
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/LifeCycleData/List/1/0", Card = AasxPredefinedCardinality.ZeroToOne)]
         public CD_LifeCycleData LifeCycleData = null;
 
@@ -320,6 +323,7 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications
         [AasConcept(Cd = "0173-1#02-AAW338#001", Card = AasxPredefinedCardinality.One)]
         public List<ILangStringTextType> ManufacturerProductDesignation = new List<ILangStringTextType>();
 
+        [AasConcept(Cd = "0173-1#02-AAO227#002", Card = AasxPredefinedCardinality.ZeroToOne)]
         public List<ILangStringTextType> OrderCodeOfManufacturer = new List<ILangStringTextType>();
 
         [AasConcept(Cd = "0173-10029#02-ABF978#001", Card = AasxPredefinedCardinality.ZeroToOne)]

@@ -54,7 +54,7 @@ namespace AasxPackageLogic.PackageCentral
 
         public IndexOfSignificantAasElements() { }
 
-        public IndexOfSignificantAasElements(Aas.Environment env)
+        public IndexOfSignificantAasElements(Aas.IEnvironment env)
         {
             Index(env);
         }
@@ -76,7 +76,7 @@ namespace AasxPackageLogic.PackageCentral
             _records.Add(kind, r);
         }
 
-        public void Index(Aas.Environment env)
+        public void Index(Aas.IEnvironment env)
         {
             // trivial
             if (env == null)
@@ -115,7 +115,7 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         public IEnumerable<SignificantAasElemRecord> Retrieve(
-            Aas.Environment env,
+            Aas.IEnvironment env,
             SignificantAasElement kind)
         {
             if (env == null || true != _records.ContainsKey(kind))

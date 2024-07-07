@@ -32,7 +32,7 @@ namespace AasxPackageExplorer
         public AasxSearchUtil.SearchOptions TheSearchOptions = new AasxSearchUtil.SearchOptions();
         public AasxSearchUtil.SearchResults TheSearchResults = new AasxSearchUtil.SearchResults();
 
-        public Aas.Environment TheAasEnv = null;
+        public Aas.IEnvironment TheAasEnv = null;
 
         public IFlyoutProvider Flyout = null;
         public delegate void ResultSelectedDelegate(AasxSearchUtil.SearchResultItem resultItem);

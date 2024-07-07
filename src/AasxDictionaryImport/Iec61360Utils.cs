@@ -45,7 +45,7 @@ namespace AasxDictionaryImport
         /// <param name="data">The IEC 61360 data to create the submodel from</param>
         /// <returns>A new submodel with the given data</returns>
         public static Aas.Submodel CreateSubmodel(
-            Aas.Environment env,
+            Aas.IEnvironment env,
             Aas.IAssetAdministrationShell adminShell, Iec61360Data data)
         {
             // We need this to ensure that we don't use the same AAS ID twice when importing multiple submodels (as
@@ -73,7 +73,7 @@ namespace AasxDictionaryImport
         /// <param name="data">The IEC 61360 data to create the collection from</param>
         /// <returns>A new submodel element collection with the given data</returns>
         public static Aas.SubmodelElementCollection CreateCollection(
-            Aas.Environment env, Iec61360Data data)
+            Aas.IEnvironment env, Iec61360Data data)
         {
             var collection = new Aas.SubmodelElementCollection(
                 idShort: data.IdShort
@@ -90,7 +90,7 @@ namespace AasxDictionaryImport
         /// <param name="valueType">The value type of the property</param>
         /// <returns>A new property with the given data</returns>
         public static Aas.Property CreateProperty(
-            Aas.Environment env, Iec61360Data data, string valueType)
+            Aas.IEnvironment env, Iec61360Data data, string valueType)
         {
             var property = new Aas.Property(
                 idShort: data.IdShort,
@@ -100,7 +100,7 @@ namespace AasxDictionaryImport
             return property;
         }
 
-        private static void InitSubmodelElement(Aas.Environment env,
+        private static void InitSubmodelElement(Aas.IEnvironment env,
             Aas.ISubmodelElement submodelElement, Iec61360Data data)
         {
             AddDescriptions(submodelElement, data);
@@ -113,7 +113,7 @@ namespace AasxDictionaryImport
                 r.AddDescription(lang, data.PreferredName.Get(lang));
         }
 
-        private static void AddDataSpecification(Aas.Environment env,
+        private static void AddDataSpecification(Aas.IEnvironment env,
             Aas.Submodel submodel, Iec61360Data data)
         {
             var cd = CreateConceptDescription(env, data);
@@ -130,7 +130,7 @@ namespace AasxDictionaryImport
             submodel.SemanticId = cd.GetReference().Copy();
         }
 
-        private static void AddDataSpecification(Aas.Environment env,
+        private static void AddDataSpecification(Aas.IEnvironment env,
             Aas.ISubmodelElement submodelElement, Iec61360Data data)
         {
             var cd = CreateConceptDescription(env, data);
@@ -148,7 +148,7 @@ namespace AasxDictionaryImport
         }
 
         private static Aas.ConceptDescription CreateConceptDescription(
-            Aas.Environment env, Iec61360Data data)
+            Aas.IEnvironment env, Iec61360Data data)
         {
             var cd = new Aas.ConceptDescription(
                 idShort: data.IdShort, id: data.Irdi);

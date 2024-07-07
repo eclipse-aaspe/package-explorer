@@ -558,7 +558,7 @@ namespace AasxPluginExportTable.Table
         }
 
         private static void ExportTable_EnumerateSubmodel(
-            List<ExportTableAasEntitiesList> list, Aas.Environment env,
+            List<ExportTableAasEntitiesList> list, Aas.IEnvironment env,
             bool broadSearch, bool actInHierarchy, int depth,
             Aas.IReferable coll,
             int maxDepth)
@@ -621,7 +621,8 @@ namespace AasxPluginExportTable.Table
             ExportTableOptions options,
             AasxPluginExportTable.ImportExportTableRecord record,
             string fn,
-            Aas.IReferable rf, Aas.Environment env,
+            Aas.IReferable rf, 
+            Aas.IEnvironment env,
             AasxMenuActionTicket ticket = null,
             LogInstance log = null,
             int maxDepth = int.MaxValue,
@@ -685,7 +686,7 @@ namespace AasxPluginExportTable.Table
             ExportTableOptions options,
             AasxPluginExportTable.ImportExportTableRecord record,
             string fn,
-            Aas.ISubmodel sm, Aas.Environment env,
+            Aas.ISubmodel sm, Aas.IEnvironment env,
             AasxMenuActionTicket ticket = null,
             LogInstance log = null)
         {

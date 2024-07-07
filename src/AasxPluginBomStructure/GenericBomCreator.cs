@@ -80,7 +80,7 @@ namespace AasxPluginBomStructure
         private ConvenientDictionary<Aas.IReferable, Aas.ISubmodelElement> referableByRelation =
             new ConvenientDictionary<Aas.IReferable, Aas.ISubmodelElement>();
 
-        private Aas.Environment _env;
+        private Aas.IEnvironment _env;
         private BomStructureOptionsRecordList _bomRecords;
         private GenericBomCreatorOptions _options;
 
@@ -89,7 +89,7 @@ namespace AasxPluginBomStructure
         private AasReferableStore _refStore = null;
 
         public GenericBomCreator(
-            Aas.Environment env,
+            Aas.IEnvironment env,
             BomStructureOptionsRecordList bomRecords,
             GenericBomCreatorOptions options)
         {

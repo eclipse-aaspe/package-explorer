@@ -46,7 +46,7 @@ namespace AasxPackageLogic
         //
 
         public void DisplayOrEditAasEntityAssetInformation(
-            PackageCentral.PackageCentral packages, Aas.Environment env,
+            PackageCentral.PackageCentral packages, Aas.IEnvironment env,
             Aas.IAssetAdministrationShell aas, Aas.IAssetInformation asset,
             object preferredNextFocus,
             bool editMode, ModifyRepo repo, AnyUiStackPanel stack, bool embedded = false,
@@ -424,7 +424,7 @@ namespace AasxPackageLogic
         //
 
         public void DisplayOrEditAasEntityAasEnv(
-            PackageCentral.PackageCentral packages, Aas.Environment env,
+            PackageCentral.PackageCentral packages, Aas.IEnvironment env,
             VisualElementEnvironmentItem ve, bool editMode, AnyUiStackPanel stack,
             bool hintMode = false,
             AasxMenu superMenu = null)
@@ -1219,7 +1219,7 @@ namespace AasxPackageLogic
         //
 
         public void DisplayOrEditAasEntityAas(
-            PackageCentral.PackageCentral packages, Aas.Environment env,
+            PackageCentral.PackageCentral packages, Aas.IEnvironment env,
             Aas.IAssetAdministrationShell aas,
             bool editMode, AnyUiStackPanel stack, bool hintMode = false,
             AasxMenu superMenu = null)
@@ -1606,7 +1606,7 @@ namespace AasxPackageLogic
         //
 
         public void DisplayOrEditAasEntitySubmodelOrRef(
-            PackageCentral.PackageCentral packages, Aas.Environment env,
+            PackageCentral.PackageCentral packages, Aas.IEnvironment env,
             Aas.IAssetAdministrationShell aas,
             Aas.IReference smref, 
             Action setSmRefNull,
@@ -2314,7 +2314,7 @@ namespace AasxPackageLogic
         //
 
         public void DisplayOrEditAasEntityConceptDescription(
-            PackageCentral.PackageCentral packages, Aas.Environment env,
+            PackageCentral.PackageCentral packages, Aas.IEnvironment env,
             Aas.IReferable parentContainer, Aas.IConceptDescription cd, bool editMode,
             ModifyRepo repo,
             AnyUiStackPanel stack, bool embedded = false, bool hintMode = false, bool preventMove = false,
@@ -2600,7 +2600,7 @@ namespace AasxPackageLogic
 		}
 
 		public void DisplayOrEditAasEntityValueReferencePair(
-            PackageCentral.PackageCentral packages, Aas.Environment env,
+            PackageCentral.PackageCentral packages, Aas.IEnvironment env,
             Aas.IReferable parentContainer, Aas.IConceptDescription cd, Aas.IValueReferencePair vlp, bool editMode,
             ModifyRepo repo,
             AnyUiStackPanel stack, bool embedded = false, bool hintMode = false)
@@ -2626,7 +2626,7 @@ namespace AasxPackageLogic
         //
 
         public void DisplayOrEditAasEntityOperationVariable(
-            PackageCentral.PackageCentral packages, Aas.Environment env,
+            PackageCentral.PackageCentral packages, Aas.IEnvironment env,
             Aas.IReferable parentContainer, 
             Aas.IOperationVariable ov, 
             bool editMode,
@@ -2847,7 +2847,7 @@ namespace AasxPackageLogic
         //
 
         public void DisplayOrEditAasEntitySubmodelElement(
-            PackageCentral.PackageCentral packages, Aas.Environment env,
+            PackageCentral.PackageCentral packages, Aas.IEnvironment env,
             Aas.IReferable parentContainer, Aas.ISubmodelElement wrapper,
             Aas.ISubmodelElement sme, int indexPosition, bool editMode, ModifyRepo repo, AnyUiStackPanel stack,
             bool hintMode = false, bool checkSmt = false, bool nestedCds = false,
@@ -3039,7 +3039,8 @@ namespace AasxPackageLogic
                                 {
                                     sme.IdShort = "" + cd.IdShort;
                                     if (sme.IdShort == "")
-                                        sme.IdShort = cd.GetDefaultShortName();
+                                        // NEW (2024-07-03): use preferred name instead of default name
+                                        sme.IdShort = AdminShellUtil.CapitalizeFirstLetter(cd.GetDefaultPreferredName());
                                 }
 
                                 // emit event
@@ -3106,7 +3107,8 @@ namespace AasxPackageLogic
                                 // if empty take over shortName
                                 var cd = env.FindConceptDescriptionByReference(sme.SemanticId);
                                 if ((sme.IdShort == null || sme.IdShort.Trim() == "") && cd != null)
-                                    sme.IdShort = cd.GetDefaultShortName();
+                                    // NEW (2024-07-03): use preferred name instead of default name
+                                    sme.IdShort = AdminShellUtil.CapitalizeFirstLetter(cd.GetDefaultPreferredName());
 
 
                                 // emit event
@@ -3406,13 +3408,13 @@ namespace AasxPackageLogic
                                 {
                                     // access
                                     var item = it as CopyPasteItemSME;
-                                    if (item?.sme == null)
+                                    if (item?.Sme == null)
                                     {
                                         Log.Singleton.Error("When pasting SME, an element was invalid.");
                                         continue;
                                     }
 
-                                    var smw2 = item.sme.Copy();
+                                    var smw2 = item.Sme.Copy();
 
                                     businessObj = smo.AddChild(smw2,
                                         new EnumerationPlacmentOperationVariable() { Direction = dir });
@@ -3423,7 +3425,7 @@ namespace AasxPackageLogic
                                         this.DispDeleteCopyPasteItem(item);
 
                                         // emit event
-                                        this.AddDiaryEntry(item.sme,
+                                        this.AddDiaryEntry(item.Sme,
                                             new DiaryEntryStructChange(StructuralChangeReason.Delete));
                                     }
                                 }

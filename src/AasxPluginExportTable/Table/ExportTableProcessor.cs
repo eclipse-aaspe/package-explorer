@@ -316,6 +316,7 @@ namespace AasxPluginExportTable.Table
                     // escape __00__
                     input = input.Replace(@"__00__", @"\__00__");
                     input = input.Replace(@"__000__", @"\__000__");
+                    input = input.Replace(@"__0000__", @"\__0000__");
                 }
 
                 return input;
@@ -347,9 +348,17 @@ namespace AasxPluginExportTable.Table
                     rep(head + "elementShort", "" +
                         rf.GetSelfDescription()?.ElementAbbreviation);
                 }
-                if (rf is Aas.IReferable rfpar)
+                if (rf.Parent is Aas.IReferable rfpar)
+                {
                     rep(head + "parent", escapeLiteralsToFormat(
                         "" + (rfpar.IdShort != null ? rfpar.IdShort : "-")));
+                    if (rfpar.Description != null)
+                        repListOfLangStr(head + "parent.description", rfpar.Description);                    
+                }
+                else
+                {
+                    rep(head + "parent", "-");
+                }
 
                 // further details
                 List<string> details = new List<string>();

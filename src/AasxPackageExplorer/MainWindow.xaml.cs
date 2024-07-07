@@ -2086,7 +2086,7 @@ namespace AasxPackageExplorer
 
         private void MainTimer_CheckAnimationElements(
             double deltaSecs,
-            Aas.Environment env,
+            Aas.IEnvironment env,
             IndexOfSignificantAasElements significantElems)
         {
             // trivial
@@ -2136,7 +2136,7 @@ namespace AasxPackageExplorer
 
         private void MainTimer_CheckDiaryDateToEmitEvents(
             DateTime lastTime,
-            Aas.Environment env,
+            Aas.IEnvironment env,
             IndexOfSignificantAasElements significantElems,
             bool emitCompressed)
         {
@@ -3102,7 +3102,10 @@ namespace AasxPackageExplorer
             DisplayElements.Refresh();
 
             // new (MIHO, 2024-05-23): testwise redisplay also element panel
-            RedrawElementView();
+            // (MIHO, 2024-07-02): redisplay (full re-render) only, if not currently
+            // a plugin is display, which might have internal state!
+            if (!(DisplayElements?.SelectedItem is VisualElementPluginExtension))
+                RedrawElementView();
 
             // re-enable
             TakeOverContentEnable(false);

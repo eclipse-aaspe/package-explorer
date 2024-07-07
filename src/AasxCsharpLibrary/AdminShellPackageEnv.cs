@@ -276,7 +276,7 @@ namespace AdminShellNS
 
         private string _tempFn = null;
 
-        private AasCore.Aas3_0.Environment _aasEnv = new AasCore.Aas3_0.Environment();
+        private IEnvironment _aasEnv = new AasCore.Aas3_0.Environment();
         private Package _openPackage = null;
         private readonly ListOfAasSupplementaryFile _pendingFilesToAdd = new ListOfAasSupplementaryFile();
         private readonly ListOfAasSupplementaryFile _pendingFilesToDelete = new ListOfAasSupplementaryFile();
@@ -315,7 +315,7 @@ namespace AdminShellNS
             }
         }
 
-        public AasCore.Aas3_0.Environment AasEnv
+        public IEnvironment AasEnv
         {
             get
             {
@@ -323,7 +323,7 @@ namespace AdminShellNS
             }
         }
 
-        public void SetEnvironment(AasCore.Aas3_0.Environment environment)
+        public void SetEnvironment(IEnvironment environment)
         {
             _aasEnv = environment;
         }

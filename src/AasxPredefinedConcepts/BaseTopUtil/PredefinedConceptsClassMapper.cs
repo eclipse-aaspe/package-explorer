@@ -205,7 +205,7 @@ namespace AasxPredefinedConcepts
         }
 
 		private static void ExportCSharpMapperSingleItems(
-            string indent, Aas.Environment env, Aas.IReferable rf, System.IO.StreamWriter snippets,
+            string indent, Aas.IEnvironment env, Aas.IReferable rf, System.IO.StreamWriter snippets,
             bool noEmptyLineFirst = false)
         {
 			// access
@@ -392,7 +392,7 @@ namespace AasxPredefinedConcepts
             /// </summary>
             public List<Aas.ISubmodelElement> Members = new List<Aas.ISubmodelElement>();
 
-			public ExportCSharpClassDef(Aas.Environment env, Aas.IReferable rf)
+			public ExportCSharpClassDef(Aas.IEnvironment env, Aas.IReferable rf)
 			{
 				Rf = rf;
                 if (rf is Aas.IHasSemantics ihs)
@@ -429,7 +429,7 @@ namespace AasxPredefinedConcepts
 		}
 
 		private static void ExportCSharpMapperOnlyClasses(
-	        string indent, Aas.Environment env, Aas.ISubmodel sm, System.IO.StreamWriter snippets,
+	        string indent, Aas.IEnvironment env, Aas.ISubmodel sm, System.IO.StreamWriter snippets,
             bool addInfoObj = false)
 		{
             // list of class definitions (not merged, yet)
@@ -499,7 +499,7 @@ namespace AasxPredefinedConcepts
 			}
 		}
 
-		public static void ExportCSharpClassDefs(Aas.Environment env, Aas.ISubmodel sm, System.IO.StreamWriter snippets)
+		public static void ExportCSharpClassDefs(Aas.IEnvironment env, Aas.ISubmodel sm, System.IO.StreamWriter snippets)
         {
             // access
             if (snippets == null || env == null || sm == null)

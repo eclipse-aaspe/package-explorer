@@ -159,27 +159,27 @@ namespace AasxPackageLogic
 
         public class CopyPasteItemSME : CopyPasteItemBase
         {
-            public Aas.Environment env = null;
-            public Aas.IReferable parentContainer = null;
-            public Aas.ISubmodelElement wrapper = null;
-            public Aas.ISubmodelElement sme = null;
+            public Aas.IEnvironment Env = null;
+            public Aas.IReferable ParentContainer = null;
+            public Aas.ISubmodelElement Wrapper = null;
+            public Aas.ISubmodelElement Sme = null;
             public EnumerationPlacmentBase Placement = null;
 
-            public override object GetMainDataObject() { return sme; }
+            public override object GetMainDataObject() { return Sme; }
 
 
             public CopyPasteItemSME() { }
 
             public CopyPasteItemSME(
-                Aas.Environment env,
+                Aas.IEnvironment env,
                 Aas.IReferable parentContainer, Aas.ISubmodelElement wrapper,
                 Aas.ISubmodelElement sme,
                 EnumerationPlacmentBase placement = null)
             {
-                this.env = env;
-                this.parentContainer = parentContainer;
-                this.wrapper = wrapper;
-                this.sme = sme;
+                this.Env = env;
+                this.ParentContainer = parentContainer;
+                this.Wrapper = wrapper;
+                this.Sme = sme;
                 this.Placement = placement;
             }
 
@@ -197,8 +197,8 @@ namespace AasxPackageLogic
                 // create
                 return new CopyPasteItemSME()
                 {
-                    sme = sme,
-                    wrapper = wrapper
+                    Sme = sme,
+                    Wrapper = wrapper
                 };
             }
         }
@@ -248,16 +248,16 @@ namespace AasxPackageLogic
                     if (cpb.Items[0] is CopyPasteItemSubmodel cpbsm && cpbsm.sm?.SemanticId != null)
                         bufferKey = new List<Aas.IKey>() { cpbsm.sm.GetReference().Keys.First() };
 
-                    if (cpb.Items[0] is CopyPasteItemSME cpbsme && cpbsme.sme != null
-                        && cpbsme.env?.Submodels != null)
+                    if (cpb.Items[0] is CopyPasteItemSME cpbsme && cpbsme.Sme != null
+                        && cpbsme.Env?.Submodels != null)
                     {
                         // index parents for ALL Submodels -> parent for our SME shall be set by this ..
-                        foreach (var sm in cpbsme.env.AllSubmodels())
+                        foreach (var sm in cpbsme.Env.AllSubmodels())
                             sm?.SetAllParents();
 
                         // collect buffer list
                         bufferKey = new List<Aas.IKey>();
-                        cpbsme.sme.CollectReferencesByParent(bufferKey);
+                        cpbsme.Sme.CollectReferencesByParent(bufferKey);
                     }
                 }
 
@@ -443,18 +443,18 @@ namespace AasxPackageLogic
                 return;
 
             // differentiate
-            if (item.parentContainer is Aas.Submodel pcsm && item.wrapper != null)
+            if (item.ParentContainer is Aas.Submodel pcsm && item.Wrapper != null)
                 this.DeleteElementInList<Aas.ISubmodelElement>(
-                    pcsm.SubmodelElements, item.wrapper, null);
+                    pcsm.SubmodelElements, item.Wrapper, null);
 
-            if (item.parentContainer is Aas.SubmodelElementCollection pcsmc
-                && item.wrapper != null)
+            if (item.ParentContainer is Aas.SubmodelElementCollection pcsmc
+                && item.Wrapper != null)
                 this.DeleteElementInList<Aas.ISubmodelElement>(
-                    pcsmc.Value, item.wrapper, null);
+                    pcsmc.Value, item.Wrapper, null);
 
-            if (item.parentContainer is Aas.Operation pcop && item.wrapper != null)
+            if (item.ParentContainer is Aas.Operation pcop && item.Wrapper != null)
             {
-                var placement = pcop.GetChildrenPlacement(item.sme) as
+                var placement = pcop.GetChildrenPlacement(item.Sme) as
                     EnumerationPlacmentOperationVariable;
                 if (placement != null)
                 {
@@ -478,7 +478,7 @@ namespace AasxPackageLogic
         public void DispSmeCutCopyPasteHelper(
             AnyUiPanel stack,
             ModifyRepo repo,
-            Aas.Environment env,
+            Aas.IEnvironment env,
             Aas.IReferable parentContainer,
             CopyPasteBuffer cpbInternal,
             Aas.ISubmodelElement wrapper,
@@ -580,15 +580,15 @@ namespace AasxPackageLogic
                         {
                             // access
                             var item = it as CopyPasteItemSME;
-                            if (item?.sme == null || item.wrapper == null
-                                || (!cpb.Duplicate && item?.parentContainer == null))
+                            if (item?.Sme == null || item.Wrapper == null
+                                || (!cpb.Duplicate && item?.ParentContainer == null))
                             {
                                 Log.Singleton.Error("When pasting SME, an element was invalid.");
                                 continue;
                             }
 
                             // apply info
-                            var smw2 = item.sme.Copy();
+                            var smw2 = item.Sme.Copy();
                             nextBusObj = smw2;
                             var createAtIndex = -1;
 
@@ -718,7 +718,7 @@ namespace AasxPackageLogic
                             {
                                 DispDeleteCopyPasteItem(item);
 
-                                this.AddDiaryEntry(item.sme,
+                                this.AddDiaryEntry(item.Sme,
                                     new DiaryEntryStructChange(StructuralChangeReason.Delete));
                             }
                         }
@@ -945,28 +945,28 @@ namespace AasxPackageLogic
                         {
                             // access
                             var item = it as CopyPasteItemSME;
-                            if (item?.sme == null || item?.wrapper == null
-                                || (!cpb.Duplicate && item?.parentContainer == null))
+                            if (item?.Sme == null || item?.Wrapper == null
+                                || (!cpb.Duplicate && item?.ParentContainer == null))
                             {
                                 Log.Singleton.Error("When pasting SubmodelElements, an element was invalid.");
                                 continue;
                             }
 
                             // apply
-                            var smw2 = item.sme.Copy();
+                            var smw2 = item.Sme.Copy();
                             nextBusObj = smw2;
 
                             sm.AddChild(smw2);
 
                             // emit event
-                            this.AddDiaryEntry(item.sme, new DiaryEntryStructChange(StructuralChangeReason.Create));
+                            this.AddDiaryEntry(item.Sme, new DiaryEntryStructChange(StructuralChangeReason.Create));
 
                             // may delete original
                             if (!cpb.Duplicate)
                             {
                                 DispDeleteCopyPasteItem(item);
 
-                                this.AddDiaryEntry(item.sme,
+                                this.AddDiaryEntry(item.Sme,
                                     new DiaryEntryStructChange(StructuralChangeReason.Delete));
                             }
                         }

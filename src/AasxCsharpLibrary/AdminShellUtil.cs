@@ -452,6 +452,16 @@ namespace AdminShellNS
         }
 
         /// <summary>
+        /// Takes the character at index 0 and converts it to upper case.
+        /// </summary>
+        public static string CapitalizeFirstLetter(string str)
+        {
+            if (str.HasContent() && char.IsLower(str[0]))
+                str = char.ToUpperInvariant(str[0]) + str.Substring(1);
+            return str;
+        }
+
+        /// <summary>
         /// If len of <paramref name="str"/> exceeds <paramref name="maxLen"/> then
         /// string is shortened and returned with an ellipsis(…) at the end.
         /// </summary>

@@ -37,7 +37,7 @@ namespace AasxPluginExportTable.Uml
     public static class ExportUml
     {
         public static void ExportUmlToFile(
-            Aas.Environment env,
+            Aas.IEnvironment env,
             Aas.ISubmodel submodel,
             ExportUmlRecord options,
             string fn)

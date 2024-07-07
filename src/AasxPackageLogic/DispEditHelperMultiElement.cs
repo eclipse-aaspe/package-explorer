@@ -29,7 +29,7 @@ namespace AasxPackageLogic
         public void DispMultiElementCutCopyPasteHelper(
             AnyUiPanel stack,
             ModifyRepo repo,
-            Aas.Environment env,
+            Aas.IEnvironment env,
             Aas.IClass parentContainer,
             CopyPasteBuffer cpb,
             ListOfVisualElementBasic entities,

@@ -108,7 +108,7 @@ namespace AasxPackageLogic
         //
 
         public void DisplayOrEditEntityReferable(
-			Aas.Environment env, AnyUiStackPanel stack,
+			Aas.IEnvironment env, AnyUiStackPanel stack,
             Aas.IReferable parentContainer,
             Aas.IReferable referable,
             int indexPosition,
@@ -310,7 +310,7 @@ namespace AasxPackageLogic
         }
 
         public void DisplayOrEditEntityReferableContinue(
-            Aas.Environment env, AnyUiStackPanel stack,
+            Aas.IEnvironment env, AnyUiStackPanel stack,
             Aas.IReferable parentContainer,
             Aas.IReferable referable,
             int indexPosition,
@@ -378,7 +378,7 @@ namespace AasxPackageLogic
         //
 
         public void DisplayOrEditEntityIdentifiable(AnyUiStackPanel stack,
-            Aas.Environment env,
+            Aas.IEnvironment env,
             Aas.IIdentifiable identifiable,
             string templateForIdString,
             DispEditInjectAction injectToId = null)
@@ -746,7 +746,7 @@ namespace AasxPackageLogic
         }
 
         public void DisplayOrEditEntityHasEmbeddedSpecification(
-            Aas.Environment env, AnyUiStackPanel stack,
+            Aas.IEnvironment env, AnyUiStackPanel stack,
             List<Aas.IEmbeddedDataSpecification> hasDataSpecification,
             Action<List<Aas.IEmbeddedDataSpecification>> setOutput,
             string[] addPresetNames = null, List<Aas.IKey>[] addPresetKeyLists = null,
@@ -1435,7 +1435,7 @@ namespace AasxPackageLogic
 
 
         public void DisplayOrEditEntityDataSpecificationIec61360(
-            Aas.Environment env,
+            Aas.IEnvironment env,
             AnyUiStackPanel stack,
             Aas.DataSpecificationIec61360 dsiec,
             Aas.IReferable relatedReferable = null,
@@ -2596,7 +2596,7 @@ namespace AasxPackageLogic
         protected DisplayOrEditEntityCheckValueHandle _checkValueHandle = new DisplayOrEditEntityCheckValueHandle();
 
 		public void DisplayOrEditEntityCheckValue(
-            Aas.Environment env, AnyUiStackPanel stack,
+            Aas.IEnvironment env, AnyUiStackPanel stack,
 			DisplayOrEditEntityCheckValueHandle handle,
 			Aas.IReferable rf,
 			bool update = false)
