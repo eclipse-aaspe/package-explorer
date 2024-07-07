@@ -603,13 +603,13 @@ namespace AasxPluginTechnicalData
                             unit = "" + cd.GetIEC61360()?.Unit;
 
                             // names
-                            var dsn = cd.GetDefaultShortName(defaultLang);
-                            if (dsn != "")
-                                dispNameWithCD = dsn;
-
                             var dpn = cd.GetDefaultPreferredName(defaultLang);
                             if (dpn != "")
                                 dispNameWithCD = dpn;
+
+                            var dsn = cd.GetDefaultShortName(defaultLang);
+                            if (dsn != "")
+                                dispNameWithCD = dsn;
                         }
                     }
                 }

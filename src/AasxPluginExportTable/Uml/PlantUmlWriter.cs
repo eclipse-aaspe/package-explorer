@@ -42,7 +42,7 @@ namespace AasxPluginExportTable.Uml
             public bool Valid => Id.HasContent();
         }
 
-        public void StartDoc(ExportUmlRecord options, Aas.Environment env)
+        public void StartDoc(ExportUmlRecord options, Aas.IEnvironment env)
         {
             _env = env;
             if (options != null)

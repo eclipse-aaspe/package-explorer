@@ -62,7 +62,7 @@ namespace AasxPluginExportTable.Uml
 
         protected List<XmiTupleAssociationJob> _associationJobs = new List<XmiTupleAssociationJob>();
 
-        public void StartDoc(ExportUmlRecord options, Aas.Environment env)
+        public void StartDoc(ExportUmlRecord options, Aas.IEnvironment env)
         {
             _env = env;
             if (options != null)

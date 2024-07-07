@@ -495,6 +495,94 @@ namespace AasxPluginProductChangeNotifications
             }
         }
 
+        protected void InnerDocAddPcnType(
+            AnyUiSmallWidgetToolkit uitk,
+            AnyUiGrid grid, int col,
+            string pcnType)
+        {
+            // access and add row
+            if (grid == null)
+                return;
+            int row = InnerDocGetNewRow(grid);
+
+            // make inner grid
+            var inner = uitk.Set(
+                uitk.AddSmallGridTo(grid, row, col,
+                    rows: 1, cols: 2,
+                    colWidths: new[] { "*", "*" }),
+                colSpan: _innerDocumentCols - col);
+
+            // condition input type
+            pcnType = "" + pcnType?.Trim().ToUpper();
+            var boxLabs = new[] { 
+                "PCN", 
+                "PDN" 
+            };
+            var boxInfos = new[] {
+                "Notification on product changes. PCN milestone communicates effective data of changes.",
+                "Discontinuation! EOP milestone communicates end of production."
+            };
+            var boxFlags = new[] {
+                pcnType == "PCN",
+                pcnType == "PDN"
+            };
+            var boxBrush = new[] {
+                new AnyUiBrush("#00B9CD"),
+                new AnyUiBrush("#FFBA44")
+            };
+
+            // single "boxes"
+            for (int bi = 0; bi < boxLabs.Length; bi++)
+            {
+                // make the border
+                var brd = uitk.AddSmallBorderTo(inner, 0, bi,
+                        margin: (bi == 0) ? new AnyUiThickness(0, -1, 0, 0)
+                                            : new AnyUiThickness(-1, -1, 0, 0),
+                        borderThickness: new AnyUiThickness(1.0),
+                        borderBrush: AnyUiBrushes.DarkGray);
+
+                // find a nice color coding
+                var bg = AnyUiBrushes.Transparent;
+                var fg = AnyUiBrushes.LightGray;
+                var inf = AnyUiBrushes.LightGray;
+                if (boxFlags[bi])
+                {
+                    fg = AnyUiBrushes.White;
+                    bg = boxBrush[bi];
+                    inf = AnyUiBrushes.Black;
+                }
+
+                // make a small grid to fill the box
+                var mg = uitk.AddSmallGrid(2, 1, 
+                    colWidths: new[] { "*" }, rowHeights: new[] { "#", "#" },
+                    background: bg,
+                    margin: new AnyUiThickness(2));
+                    brd.Child = mg;
+
+                // label
+                uitk.AddSmallBasicLabelTo(mg, 0, 0 + bi,
+                    foreground: fg,
+                    fontSize: 1.5f,
+                    setBold: true,
+                    horizontalAlignment: AnyUiHorizontalAlignment.Center,
+                    horizontalContentAlignment: AnyUiHorizontalAlignment.Center,
+                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                    verticalContentAlignment: AnyUiVerticalAlignment.Center,
+                    content: "" + boxLabs[bi]);
+
+                // additional text
+                uitk.AddSmallBasicLabelTo(mg, 1, 0,
+                    foreground: inf,
+                    fontSize: 0.8f,
+                    setBold: false,
+                    horizontalAlignment: AnyUiHorizontalAlignment.Center,
+                    horizontalContentAlignment: AnyUiHorizontalAlignment.Center,
+                    content: "" + boxInfos[bi],
+                    textWrapping: AnyUiTextWrapping.WrapWithOverflow,
+                    margin: new AnyUiThickness(0, 0, 0, 4));
+            }
+        }
+
         protected void InnerDocAddLifeCycleMilestones(
             AnyUiSmallWidgetToolkit uitk,
             AnyUiGrid grid, int col, 
@@ -783,9 +871,9 @@ namespace AasxPluginProductChangeNotifications
             AasClassMapperInfo info)
         {
             // access and add row
+            var childs = info?.Referable?.EnumerateChildrenFor(SMC: true, SML: true)?.ToList();
             if (grid == null 
-                || !(info?.Referable is Aas.ISubmodelElementCollection smc)
-                || smc.Value == null)
+                || childs == null || childs.Count() < 1)
                 return;
             int row = InnerDocGetNewRow(grid);
 
@@ -844,7 +932,7 @@ namespace AasxPluginProductChangeNotifications
             // Approach (1)
             // search the top SMC for CD single change
             //
-            foreach (var smcSingleChange in smc.Value
+            foreach (var smcSingleChange in childs
                 .FindAllSemanticIdAs<Aas.SubmodelElementCollection>(
                     theDefs.CD_SingleChange?.GetReference(), mm))
             {
@@ -883,8 +971,9 @@ namespace AasxPluginProductChangeNotifications
             // Approach (2) 
             // if it is not a SingleChange, it has to be a change with
             // arbitrary semanticId
+            // Note: this approach is not anymore specified in the SMT
             //
-            foreach (var sme2 in smc.Value)
+            foreach (var sme2 in childs)
                 if (sme2 is Aas.ISubmodelElementCollection smc2
                     && smc2.Value != null
                     && true != sme2.SemanticId?.Matches(theDefs.CD_SingleChange?.GetReference(), mm))
@@ -1164,12 +1253,20 @@ namespace AasxPluginProductChangeNotifications
                 InnerDocAddText(uitk, grid, 0, 2, "ManufacturerName:", 
                     data.Manufacturer.ManufacturerName?.GetDefaultString(_selectedLangStr));
 
+                var adrStr = AasxPredefinedConcepts.InfoAccessDigitalNameplateV20
+                                .ContactInfoToStrings(data.Manufacturer.AdressInformation?.__Info__?.Referable);
+                
                 InnerDocAddText(uitk, grid, 0, 2, "AdressInformation:",
-                    "<TBD>");
+                    "" + string.Join(" \u2022 ", (adrStr ?? (new[] { "-" }).ToList())),
+                    wrapText: AnyUiTextWrapping.Wrap);
 
                 InnerDocAddText(uitk, grid, 0, 2, "ManufacturerChangeID:",
                     "" + data.ManufacturerChangeID);
             }
+
+            // PCN type
+            InnerDocAddHeadline(uitk, grid, 0, "PCN type", 2);
+            InnerDocAddPcnType(uitk, grid, 0, data.PcnType);
 
             // Life cycle mile stones
             if (data.LifeCycleData?.Milestone != null && data.LifeCycleData.Milestone.Count > 0)

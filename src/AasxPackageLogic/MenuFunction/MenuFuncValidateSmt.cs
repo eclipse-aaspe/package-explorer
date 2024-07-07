@@ -56,7 +56,7 @@ namespace AasxPackageExplorer
         /// <summary>
         /// Used AAS ENV for performing the validation.
         /// </summary>
-        public Aas.Environment Env = null;
+        public Aas.IEnvironment Env = null;
 
         //
         // some statistics

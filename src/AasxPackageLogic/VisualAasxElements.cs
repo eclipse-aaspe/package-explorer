@@ -591,14 +591,14 @@ namespace AasxPackageLogic
 
         public string thePackageSourceFn;
         public AdminShellPackageEnv thePackage = null;
-        public Aas.Environment theEnv = null;
+        public Aas.IEnvironment theEnv = null;
         public ItemType theItemType = ItemType.Env;
         private object _mainDataObject;
         private static ConceptDescSortOrder _cdSortOrder = ConceptDescSortOrder.None;
 
         public VisualElementEnvironmentItem(
             VisualElementGeneric parent, TreeViewLineCache cache, AdminShellPackageEnv package,
-            Aas.Environment env, ItemType itemType,
+            Aas.IEnvironment env, ItemType itemType,
             string packageSourceFn = null,
             object mainDataObject = null)
         : base()
@@ -688,12 +688,12 @@ namespace AasxPackageLogic
     public class VisualElementAdminShell : VisualElementGeneric
     {
         public AdminShellPackageEnv thePackage = null;
-        public Aas.Environment theEnv = null;
+        public Aas.IEnvironment theEnv = null;
         public Aas.IAssetAdministrationShell theAas = null;
 
         public VisualElementAdminShell(
             VisualElementGeneric parent, TreeViewLineCache cache, AdminShellPackageEnv package,
-            Aas.Environment env, Aas.IAssetAdministrationShell aas)
+            Aas.IEnvironment env, Aas.IAssetAdministrationShell aas)
             : base()
         {
             this.Parent = parent;
@@ -738,12 +738,12 @@ namespace AasxPackageLogic
 
     public class VisualElementAsset : VisualElementGeneric
     {
-        public Aas.Environment theEnv = null;
+        public Aas.IEnvironment theEnv = null;
         public Aas.IAssetAdministrationShell theAas = null;
         public Aas.IAssetInformation theAsset = null;
 
         public VisualElementAsset(
-            VisualElementGeneric parent, TreeViewLineCache cache, Aas.Environment env,
+            VisualElementGeneric parent, TreeViewLineCache cache, Aas.IEnvironment env,
             Aas.IAssetAdministrationShell aas, Aas.IAssetInformation asset)
             : base()
         {
@@ -786,14 +786,14 @@ namespace AasxPackageLogic
 
     public class VisualElementSubmodelRef : VisualElementGeneric
     {
-        public Aas.Environment theEnv = null;
+        public Aas.IEnvironment theEnv = null;
         public AdminShellPackageEnv thePackage = null;
         public Aas.IAssetAdministrationShell theAas = null;
         public Aas.IReference theSubmodelRef = null;
         public Aas.ISubmodel theSubmodel = null;
 
         public VisualElementSubmodelRef(
-            VisualElementGeneric parent, TreeViewLineCache cache, Aas.Environment env,
+            VisualElementGeneric parent, TreeViewLineCache cache, Aas.IEnvironment env,
             AdminShellPackageEnv package,
             Aas.IAssetAdministrationShell aas,
             Aas.IReference smr, Aas.ISubmodel sm)
@@ -851,11 +851,11 @@ namespace AasxPackageLogic
 
     public class VisualElementSubmodel : VisualElementGeneric
     {
-        public Aas.Environment theEnv = null;
+        public Aas.IEnvironment theEnv = null;
         public Aas.ISubmodel theSubmodel = null;
 
         public VisualElementSubmodel(
-            VisualElementGeneric parent, TreeViewLineCache cache, Aas.Environment env,
+            VisualElementGeneric parent, TreeViewLineCache cache, Aas.IEnvironment env,
             Aas.ISubmodel sm)
             : base()
         {
@@ -898,11 +898,11 @@ namespace AasxPackageLogic
 
     public class VisualElementReference : VisualElementGeneric
     {
-        public Aas.Environment theEnv = null;
+        public Aas.IEnvironment theEnv = null;
         public Aas.Reference theReference = null;
 
         public VisualElementReference(
-            VisualElementGeneric parent, TreeViewLineCache cache, Aas.Environment env,
+            VisualElementGeneric parent, TreeViewLineCache cache, Aas.IEnvironment env,
             Aas.Reference rf)
             : base()
         {
@@ -944,7 +944,7 @@ namespace AasxPackageLogic
 
     public class VisualElementSubmodelElement : VisualElementGeneric
     {
-        public Aas.Environment theEnv = null;
+        public Aas.IEnvironment theEnv = null;
         public Aas.IReferable theContainer = null;
         public Aas.ISubmodelElement theWrapper = null;
 
@@ -955,7 +955,7 @@ namespace AasxPackageLogic
         public Aas.IConceptDescription CachedCD { get { return _cachedCD; } }
 
         public VisualElementSubmodelElement(
-            VisualElementGeneric parent, TreeViewLineCache cache, Aas.Environment env,
+            VisualElementGeneric parent, TreeViewLineCache cache, Aas.IEnvironment env,
             Aas.IReferable parentContainer, Aas.ISubmodelElement wrap, int indexPos)
             : base()
         {
@@ -1139,13 +1139,13 @@ namespace AasxPackageLogic
 
     public class VisualElementOperationVariable : VisualElementGeneric
     {
-        public Aas.Environment theEnv = null;
+        public Aas.IEnvironment theEnv = null;
         public Aas.IReferable theContainer = null;
         public Aas.IOperationVariable theOpVar = null;
         public OperationVariableDirection theDir = OperationVariableDirection.In;
 
         public VisualElementOperationVariable(
-            VisualElementGeneric parent, TreeViewLineCache cache, Aas.Environment env,
+            VisualElementGeneric parent, TreeViewLineCache cache, Aas.IEnvironment env,
             Aas.IReferable parentContainer, Aas.IOperationVariable opvar,
             OperationVariableDirection dir)
             : base()
@@ -1219,13 +1219,13 @@ namespace AasxPackageLogic
 
     public class VisualElementConceptDescription : VisualElementGeneric
     {
-        public Aas.Environment theEnv = null;
+        public Aas.IEnvironment theEnv = null;
         public Aas.IConceptDescription theCD = null;
 
         public bool HasSpecialColors = false;
 
         public VisualElementConceptDescription(
-            VisualElementGeneric parent, TreeViewLineCache cache, Aas.Environment env,
+            VisualElementGeneric parent, TreeViewLineCache cache, Aas.IEnvironment env,
             Aas.IConceptDescription cd)
             : base()
         {
@@ -1426,12 +1426,12 @@ namespace AasxPackageLogic
 
     public class VisualElementValueRefPair : VisualElementGeneric
     {
-        public Aas.Environment theEnv = null;
+        public Aas.IEnvironment theEnv = null;
         public Aas.IConceptDescription theCD = null;
         public Aas.IValueReferencePair theVLP = null;
 
         public VisualElementValueRefPair(
-            VisualElementGeneric parent, TreeViewLineCache cache, Aas.Environment env,
+            VisualElementGeneric parent, TreeViewLineCache cache, Aas.IEnvironment env,
             Aas.IConceptDescription cd, Aas.IValueReferencePair vlp)
             : base()
         {
@@ -1666,7 +1666,7 @@ namespace AasxPackageLogic
         }
 
         private VisualElementConceptDescription GenerateVisualElementsForSingleCD(
-            TreeViewLineCache cache, Aas.Environment env,
+            TreeViewLineCache cache, Aas.IEnvironment env,
             Aas.IConceptDescription cd, VisualElementGeneric parent,
             Aas.ISubmodel submodelForCDs)
         {
@@ -1730,7 +1730,7 @@ namespace AasxPackageLogic
         }
 
         private VisualElementGeneric GenerateVisualElementsFromShellEnvAddElements(
-            TreeViewLineCache cache, Aas.Environment env,
+            TreeViewLineCache cache, Aas.IEnvironment env,
             Aas.ISubmodel sm, VisualElementGeneric parent,
             Aas.IReferable parentContainer, Aas.ISubmodelElement el,
             int indexPos,
@@ -1834,7 +1834,7 @@ namespace AasxPackageLogic
         }
 
         private void GenerateInnerElementsForSubmodelRef(
-            TreeViewLineCache cache, Aas.Environment env, AdminShellPackageEnv package,
+            TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnv package,
             Aas.ISubmodel sm,
             VisualElementSubmodelRef tiSm)
         {
@@ -1877,7 +1877,7 @@ namespace AasxPackageLogic
             Aas.ISubmodel sm,
             Aas.IReference smr,
             VisualElementGeneric parent,
-            TreeViewLineCache cache, Aas.Environment env, AdminShellPackageEnv package = null)
+            TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnv package = null)
         {
             // trivial
             if (smr == null || sm == null)
@@ -1904,7 +1904,7 @@ namespace AasxPackageLogic
 
         private VisualElementAdminShell GenerateVisuElemForAAS(
             Aas.IAssetAdministrationShell aas,
-            TreeViewLineCache cache, Aas.Environment env, AdminShellPackageEnv package = null,
+            TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnv package = null,
             bool editMode = false)
         {
             // trivial
@@ -1993,7 +1993,7 @@ namespace AasxPackageLogic
 		}
 
 		private void GenerateInnerElementsForConceptDescriptions(
-            TreeViewLineCache cache, Aas.Environment env,
+            TreeViewLineCache cache, Aas.IEnvironment env,
             VisualElementEnvironmentItem tiCDs,
             VisualElementGeneric root,
             bool doSort = true)
@@ -2205,7 +2205,7 @@ namespace AasxPackageLogic
         }
 
         public void AddVisualElementsFromShellEnv(
-            TreeViewLineCache cache, Aas.Environment env, AdminShellPackageEnv package = null,
+            TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnv package = null,
             string packageSourceFn = null,
             bool editMode = false, int expandMode = 0, bool lazyLoadingFirst = false)
         {
@@ -2425,7 +2425,7 @@ namespace AasxPackageLogic
         }
 
         private void SetElementToLazyLoading(
-            TreeViewLineCache cache, Aas.Environment env, AdminShellPackageEnv package,
+            TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnv package,
             VisualElementGeneric parent)
         {
             var tiDummy = new VisualElementEnvironmentItem(parent, cache, package, env,
@@ -2990,7 +2990,7 @@ namespace AasxPackageLogic
                     return 0 < UpdateByEventTryDeleteGenericVE(data);
                 }
 
-                if (data.ParentElem is Aas.Environment
+                if (data.ParentElem is Aas.IEnvironment
                     && data.ThisElem is Aas.ConceptDescription cd)
                 {
                     // as the CD might be rendered below mayn different elements (SME, SM, LoCD, ..)
@@ -3071,7 +3071,7 @@ namespace AasxPackageLogic
 
             if (data.Reason == PackCntChangeEventReason.StructuralUpdate)
             {
-                if (data.ThisElem is Aas.Environment
+                if (data.ThisElem is Aas.IEnvironment
                     && data.ThisElemLocation == PackCntChangeEventLocation.ListOfConceptDescriptions)
                 {
                     foreach (var veit in FindAllVisualElementOf<VisualElementEnvironmentItem>(

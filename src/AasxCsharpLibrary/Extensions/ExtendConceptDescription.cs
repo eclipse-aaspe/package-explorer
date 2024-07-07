@@ -81,7 +81,8 @@ namespace Extensions
             if (conceptDescription.Id != null)
                 caption = (caption + " " + conceptDescription.Id).Trim();
 
-            var info = "" + conceptDescription.GetDefaultShortName();
+            // NEW (2024-07-03): use preferred name instead of default name
+            var info = "" + conceptDescription.GetDefaultPreferredName();
 
             return Tuple.Create(caption, info);
         }

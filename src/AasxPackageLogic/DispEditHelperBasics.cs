@@ -2571,7 +2571,7 @@ namespace AasxPackageLogic
         //
 
         public void IdentifyTargetsForEclassImportOfCDs(
-            Aas.Environment env, List<Aas.ISubmodelElement> elems,
+            Aas.IEnvironment env, List<Aas.ISubmodelElement> elems,
             ref List<Aas.ISubmodelElement> targets)
         {
             if (env == null || targets == null || elems == null)
@@ -2599,7 +2599,7 @@ namespace AasxPackageLogic
             }
         }
 
-        public bool ImportEclassCDsForTargets(Aas.Environment env, object startMainDataElement,
+        public bool ImportEclassCDsForTargets(Aas.IEnvironment env, object startMainDataElement,
                 List<Aas.ISubmodelElement> targets)
         {
             // need dialogue and data
@@ -2690,7 +2690,7 @@ namespace AasxPackageLogic
         /// the source SMEs shall be adopted.</param>
         /// <returns>Tuple (#no valid id, #already present, #added) </returns>
         public Tuple<int, int, int> ImportCDsFromSmSme(
-            Aas.Environment env,
+            Aas.IEnvironment env,
             Aas.IReferable root,
             bool recurseChilds = false,
             bool repairSemIds = false,

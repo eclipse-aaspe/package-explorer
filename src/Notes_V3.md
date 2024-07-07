@@ -452,3 +452,9 @@ These projects are not migrated or integrated, yet:
 * Copy an Submodel from aux while already having an SM with the *same* ID does not throw an error but is hard to recoginze.
   (DispEditHelperEntities.cs:1429)
 * exporting Markdown/ AsciiDoc: text in cells from idShort shall not interpreted as markdown (__Marking_00__)
+  - done
+* Find: when nothing is found, the find stats from the search before are not deleted
+* empty list TODO:
+     CD / definition
+* plugin imagemap / clicks / regions
+* ECLASS offline import CD error

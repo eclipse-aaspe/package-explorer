@@ -448,7 +448,7 @@ namespace AasxPackageExplorer
         public bool Tool_Security_ValidateCertificate(
             Aas.ISubmodel rootSm,
             Aas.ISubmodelElement rootSme,
-            Aas.Environment env,
+            Aas.IEnvironment env,
             AasxMenuActionTicket ticket = null)
         {
             // access
@@ -975,7 +975,7 @@ namespace AasxPackageExplorer
         /// Note: check if there is a business case for this
         /// </summary>
         public void Tool_ReadSubmodel(
-            Aas.Environment env,
+            Aas.IEnvironment env,
             Aas.IAssetAdministrationShell aas,
             Aas.ISubmodel sm,
             string sourceFn,
@@ -1097,7 +1097,7 @@ namespace AasxPackageExplorer
         /// Note: check if there is a business case for this
         /// </summary>
         public void Tool_SubmodelGet(
-            Aas.Environment env,
+            Aas.IEnvironment env,
             Aas.ISubmodel sm,
             string url,
             AasxMenuActionTicket ticket = null)

@@ -428,85 +428,19 @@ namespace Extensions
             foreach (var desc in rf.DescendOnce())
                 if (desc is ISubmodelElement sme)
                     yield return sme;
-
-#if __old
-            if (referable is Submodel submodel && submodel.SubmodelElements != null)
-            {
-                if (submodel.SubmodelElements != null)
-                {
-                    foreach (var submodelElement in submodel.SubmodelElements)
-                    {
-                        yield return submodelElement;
-                    }
-                }
-            }
-            else if (referable is SubmodelElementCollection submodelElementCollection)
-            {
-                if (submodelElementCollection.Value != null)
-                {
-                    foreach (var submodelElement in submodelElementCollection.Value)
-                    {
-                        yield return submodelElement;
-                    }
-                }
-            }
-            else if (referable is SubmodelElementList submodelElementList)
-            {
-                if (submodelElementList.Value != null)
-                {
-                    foreach (var submodelElement in submodelElementList.Value)
-                    {
-                        yield return submodelElement;
-                    }
-                }
-            }
-            else if (referable is AnnotatedRelationshipElement annotatedRelationshipElement)
-            {
-                if (annotatedRelationshipElement.Annotations != null)
-                {
-                    foreach (var submodelElement in annotatedRelationshipElement.Annotations)
-                    {
-                        yield return submodelElement;
-                    }
-                }
-            }
-            else if (referable is Entity entity)
-            {
-                if (entity.Statements != null)
-                {
-                    foreach (var submodelElement in entity.Statements)
-                    {
-                        yield return submodelElement;
-                    }
-                }
-            }
-            else if (referable is Operation operation)
-            {
-                if (operation.InputVariables != null)
-                    foreach (var inputVariable in operation.InputVariables)
-                    {
-                        yield return inputVariable.Value;
-                    }
-
-                if (operation.OutputVariables != null)
-                    foreach (var outputVariable in operation.OutputVariables)
-                    {
-                        yield return outputVariable.Value;
-                    }
-
-                if (operation.InoutputVariables != null)
-                    foreach (var inOutVariable in operation.InoutputVariables)
-                    {
-                        yield return inOutVariable.Value;
-                    }
-            }
-            else
-            {
-                yield break;
-            }
-#endif
         }
 
+        public static IEnumerable<ISubmodelElement> EnumerateChildrenFor(this IReferable rf,
+            bool SMC = false,
+            bool SML = false)
+        {
+            if (rf is ISubmodelElementCollection && SMC
+                || rf is ISubmodelElementList && SML)
+            {
+                foreach (var x in rf.EnumerateChildren())
+                    yield return x;
+            }
+        }
 
         public static void SetAllParentsAndTimestamps(this IReferable referable, IReferable parent, DateTime timeStamp, DateTime timeStampCreate)
         {

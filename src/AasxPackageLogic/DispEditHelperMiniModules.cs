@@ -1475,7 +1475,7 @@ namespace AasxPackageLogic
 
 
         public void ValueListHelper(
-            Aas.Environment env,
+            Aas.IEnvironment env,
             AnyUiStackPanel stack, ModifyRepo repo, string key,
             List<Aas.IValueReferencePair> valuePairs,
             Aas.IReferable relatedReferable = null,
@@ -1838,7 +1838,7 @@ namespace AasxPackageLogic
 		/// Provides a menu to add a new SubmodelElement to a list of these.
 		/// </summary>
 		public void DispSmeListAddNewHelper<T>(
-            Aas.Environment env,
+            Aas.IEnvironment env,
             AnyUiStackPanel stack, ModifyRepo repo, string key,
             List<T> smeList,
             Action<List<T>> setOutput = null,

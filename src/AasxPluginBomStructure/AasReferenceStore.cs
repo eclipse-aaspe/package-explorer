@@ -173,7 +173,7 @@ namespace AasxPluginBomStructure
                 RecurseIndexSME(currRef, sme);
         }
 
-        public void Index(Aas.Environment env)
+        public void Index(Aas.IEnvironment env)
         {
             // access
             if (env == null)

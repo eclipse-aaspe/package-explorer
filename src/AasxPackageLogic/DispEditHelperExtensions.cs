@@ -310,7 +310,7 @@ namespace AasxPackageLogic
 		}
 
 		public AnyUiLambdaActionBase ExtensionHelperIdfReferenceAction<T>(
-			Aas.Environment env,
+			Aas.IEnvironment env,
 			Aas.IReferable relatedReferable,
 			int actionIndex,
 			T sr,
@@ -344,7 +344,7 @@ namespace AasxPackageLogic
 		}
 
 		public void ExtensionHelperAddIdfReference<T>(
-			Aas.Environment env, 
+			Aas.IEnvironment env, 
 			AnyUiStackPanel stack,
 			string caption,
 			ExtensionRecordBase recInst,
@@ -405,7 +405,7 @@ namespace AasxPackageLogic
 		}
 
 		public void ExtensionHelperAddListOfIdfReference<T>(
-			Aas.Environment env, 
+			Aas.IEnvironment env, 
 			AnyUiStackPanel stack,
 			QuickLookupIdentifiable lookupIdf,
 			string caption,
@@ -537,7 +537,7 @@ namespace AasxPackageLogic
 		}
 
 		public void ExtensionHelperAddEditFieldsByReflection(
-			Aas.Environment env,
+			Aas.IEnvironment env,
 			AnyUiStackPanel stack,
 			QuickLookupIdentifiable lookupIdf,
 			ExtensionRecordBase recInst,
@@ -1039,7 +1039,7 @@ namespace AasxPackageLogic
 		}
 
 		public void DisplayOrEditEntityExtensionRecords(
-			Aas.Environment env, 
+			Aas.IEnvironment env, 
 			AnyUiStackPanel stack,
 			List<Aas.IExtension> extension,
 			Action<List<Aas.IExtension>> setOutput,

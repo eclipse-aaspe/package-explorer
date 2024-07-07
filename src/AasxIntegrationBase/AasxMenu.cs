@@ -847,7 +847,7 @@ namespace AasxIntegrationBase
         /// <summary>
         /// Filled by the currently selected element.
         /// </summary>
-        public Aas.Environment Env;
+        public Aas.IEnvironment Env;
 
         /// <summary>
         /// Filled by the currently selected element.

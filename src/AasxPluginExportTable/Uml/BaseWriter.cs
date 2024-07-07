@@ -30,7 +30,7 @@ namespace AasxPluginExportTable.Uml
 {
     public interface IBaseWriter
     {
-        void StartDoc(ExportUmlRecord options, Aas.Environment env);
+        void StartDoc(ExportUmlRecord options, Aas.IEnvironment env);
         void ProcessTopElement(Aas.IReferable rf, int remainDepth = int.MaxValue);
         void ProcessPost();
         void SaveDoc(string fn);
@@ -45,7 +45,7 @@ namespace AasxPluginExportTable.Uml
         // Members
         //
 
-        protected Aas.Environment _env = null;
+        protected Aas.IEnvironment _env = null;
         protected ExportUmlRecord _options = new ExportUmlRecord();
 
         //
