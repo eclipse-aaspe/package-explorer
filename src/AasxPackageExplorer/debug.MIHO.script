@@ -23,4 +23,4 @@ Select("Submodel", "First");
 // Tool("submodelinstancefromsammaspect");
 // Tool("importtable", "Format", "Excel", "Preset", "Submodel templ. spec. import", "File", "C:\\HOMI\\Develop\\Aasx\\repo\\bugfix\\test-import.xlsx");
 // Tool("WinMaximize");
-Tool("ExportTable", "File", "C:\\HOMI\\Develop\\Aasx\\repo\\new.adoc", "Preset", "AsciiDoc");
+// Tool("ExportTable", "File", "C:\\HOMI\\Develop\\Aasx\\repo\\new.adoc", "Preset", "AsciiDoc");

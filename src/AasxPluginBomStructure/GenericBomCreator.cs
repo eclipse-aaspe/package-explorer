@@ -607,6 +607,9 @@ namespace AasxPluginBomStructure
                         // includes AnnotatedRelationshipElement
                         x1 = this.FindReferableByReference(rel.First);
                         x2 = this.FindReferableByReference(rel.Second);
+
+                        if (x1 == null || x2 == null)
+                            ;
                     }
 
                     if (sme is Aas.IReferenceElement rfe)

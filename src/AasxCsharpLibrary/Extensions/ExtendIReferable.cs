@@ -607,5 +607,26 @@ namespace Extensions
             }
         }
 
+        public static void FixReferences(IReferable rf, IEnumerable<ISubmodel> smToCheck)
+        {
+            if (rf == null || smToCheck == null)
+                return;
+            foreach (var x in rf.DescendOnce())
+                if (x is IReference xrf
+                    && xrf.Count() > 0
+                    && xrf.Keys.First()?.Type == KeyTypes.Submodel
+                    && xrf.Keys.First().Value?.HasContent() == true)
+                {
+                    foreach (var smtc in smToCheck)
+                        if (smtc.IdShort?.HasContent() == true
+                            && smtc.Id?.HasContent() == true
+                            && xrf.Keys.First().Value.Trim() == smtc.IdShort.Trim())
+                        {
+                            // found place to fix
+                            xrf.Keys.First().Value = smtc.Id;
+                        }
+                }
+        }
+
     }
 }

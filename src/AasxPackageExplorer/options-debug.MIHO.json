@@ -39,7 +39,8 @@
   // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_TechData_Work\\IDTA 02003-1-2_SubmodelTemplate_TechnicalData_v1.2__with_Draft_1_3_and_AsciiDoc_v01.aasx",
   // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\IDTA_02036-1-0_SMT_ProductChangeNotification_Draft_v21.aasx",
   // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\SMT_ProductChangeNotification_Draft_v20_spiel.aasx",
-  "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\IDTA_02036-1-0_SMT_ProductChangeNotification_Examples_v08.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\IDTA_02036-1-0_SMT_ProductChangeNotification_Examples_v08.aasx",
+  "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\Syn2tecMachine_P2518_AAS__V3_DL2.aasx",
   // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\00_FestoDemoBox-Module-2-Kopie.aasx",
   // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\8001203_SPAU-P10R-T-R18M-L-PNLK-PNVBA-M8D_060ff64f-9fd2-422d-81ce-b17e49f007c5_work_spiel.aasx",
   // "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\SMT_and_SAMM_Showcase_v02.aasx",
@@ -207,10 +208,9 @@
     {
       "Path": "..\\..\\..\\..\\..\\..\\AasxPluginWebBrowser\\bin\\x64\\Debug\\AasxPluginWebBrowser.dll",
       "Args": []
-    }
+    },
 
     // Festo specific from here on
-    /*
     {
       "Path": "..\\..\\..\\..\\..\\..\\..\\..\\AasxFesto\\AasxFesto\\AasxPluginFluiddrawViewer\\bin\\Debug\\net6.0-windows\\AasxPluginFluiddrawViewer.dll",
       "Args": []
@@ -219,7 +219,6 @@
       "Path": "..\\..\\..\\..\\..\\..\\..\\..\\AasxFesto\\AasxFesto\\AasxPluginFluiddrawBom\\bin\\Debug\\net6.0-windows\\AasxPluginFluiddrawBom.dll",
       "Args": []
     } 
-    */
   ],
   "SecureConnectPresets": [
     {

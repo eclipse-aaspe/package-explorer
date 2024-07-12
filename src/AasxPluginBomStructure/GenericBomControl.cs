@@ -406,6 +406,7 @@ namespace AasxPluginBomStructure
                 }
             }
 
+
             // make default or (already) preferred settings
             var settings = GivePresetSettings(options, graph.NodeCount);
             if (this.preferredPreset != null && sm != null
@@ -413,6 +414,8 @@ namespace AasxPluginBomStructure
                 settings = GivePresetSettings(this.preferredPreset[sm], graph.NodeCount);
             if (settings != null)
                 graph.LayoutAlgorithmSettings = settings;
+
+            graph.Attr.LayerDirection = Microsoft.Msagl.Drawing.LayerDirection.LR;
 
 #endif
             return graph;

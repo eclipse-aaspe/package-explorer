@@ -1940,16 +1940,12 @@ namespace AasxPackageLogic
                     ticketMenu: new AasxMenu()
                         .AddAction("upgrade-qualifiers", "Upgrade qualifiers",
                             "Upgrades particular qualifiers from V2.0 to V3.0 for selected element.")
-#if __moved_to_menu
-						.AddAction("SMT-qualifiers-convert", "Convert SMT qualifiers",
-							"Converts particular SMT qualifiers to SMT extension for selected element.")
-						.AddAction("SMT-set-organize", "Set SMT organize",
-							"Take over Submodel's element relationships to associated concepts.")
-#endif
 						.AddAction("remove-qualifiers", "Remove qualifiers",
                             "Removes all qualifiers for selected element.")
                         .AddAction("remove-extensions", "Remove extensions",
-                            "Removes all extensions for selected element."),
+                            "Removes all extensions for selected element.")
+                        .AddAction("fix-references", "Fix References",
+                            "Fix, if References first key to Identifiables use idShort instead of id."),
                     ticketAction: (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
@@ -2151,6 +2147,42 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawAllElements(nextFocus: smref, isExpanded: true);
                         }
 
+                        if (buttonNdx == 3)
+                        {
+                            // confirm
+                            if (ticket?.ScriptMode != true
+                                && AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                                    "This operation will affect all References within " +
+                                    "the Submodel and all of its SubmodelElements. Do you want to proceed?",
+                                    "Fix References",
+                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                return new AnyUiLambdaActionNone();
+
+                            // action
+                            try
+                            {
+                                ExtendIReferable.FixReferences(submodel, env?.AllSubmodels());
+                                submodel.RecurseOnSubmodelElements(null, (o, parents, sme) =>
+                                {
+                                    // upgrade
+                                    ExtendIReferable.FixReferences(sme, env?.AllSubmodels());
+
+                                    // recurse
+                                    return true;
+                                });
+
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Singleton.Error(
+                                    ex, $"While fixing References.");
+                            }
+
+                            // emit event for Submodel and children
+                            this.AddDiaryEntry(submodel, new DiaryEntryStructChange(), allChildrenAffected: true);
+
+                            return new AnyUiLambdaActionRedrawAllElements(nextFocus: smref, isExpanded: true);
+                        }
                         return new AnyUiLambdaActionNone();
                     });
 
