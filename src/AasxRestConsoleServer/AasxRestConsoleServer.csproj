@@ -6,9 +6,6 @@
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AasxRestServerLibrary\AasxRestServerLibrary.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="LICENSE.TXT">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
