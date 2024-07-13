@@ -88,6 +88,11 @@ namespace AasxPluginBomStructure
 
         private AasReferableStore _refStore = null;
 
+        public class UserDataAsset
+        {
+            public string AssetId = "";
+        }
+
         public GenericBomCreator(
             Aas.IEnvironment env,
             BomStructureOptionsRecordList bomRecords,
@@ -751,7 +756,7 @@ namespace AasxPluginBomStructure
                         {
                             // another node
                             var node2 = new Microsoft.Msagl.Drawing.Node(GenerateNodeID());
-                            node2.UserData = ent.GlobalAssetId;
+                            node2.UserData = new UserDataAsset() { AssetId = ent.GlobalAssetId };
                             node2.LabelText = WrapOnMaxColumn("" + ent.GlobalAssetId, WrapMaxColumn);
                             node2.Label.FontSize = 6;
                             node2.Attr.Color = AssetBorderColor;

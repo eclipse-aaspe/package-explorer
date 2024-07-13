@@ -22,9 +22,7 @@ using Aas = AasCore.Aas3_0;
 using AdminShellNS;
 using Extensions;
 using System.Windows;
-using System.Diagnostics.Metrics;
-using System.Drawing.Drawing2D;
-using Microsoft.Msagl.Core.Geometry.Curves;
+using System.Collections;
 
 namespace AasxPluginBomStructure
 {
@@ -42,6 +40,7 @@ namespace AasxPluginBomStructure
         private Microsoft.Msagl.Drawing.Graph theGraph = null;
         private Microsoft.Msagl.WpfGraphControl.GraphViewer theViewer = null;
         private Aas.IReferable theReferable = null;
+        private DockPanel _insideDockPanel = null;
 
         private PluginEventStack eventStack = null;
 
@@ -53,6 +52,11 @@ namespace AasxPluginBomStructure
             new Dictionary<Aas.IReferable, GenericBomCreatorOptions>();
 
         private BomStructureOptions _bomOptions = new BomStructureOptions();
+
+        private Microsoft.Msagl.Core.Geometry.Point _rightClickCoordinates = 
+            new Microsoft.Msagl.Core.Geometry.Point();
+
+        private Microsoft.Msagl.Drawing.IViewerObject _objectUnderCursor = null;
 
         public void SetEventStack(PluginEventStack es)
         {
@@ -160,9 +164,10 @@ namespace AasxPluginBomStructure
                 var markedRf = new List<Aas.IReferable>();
 
                 if (theViewer != null)
-                    foreach (var vn in theViewer.GetViewerNodes())
-                        if (vn.MarkedForDragging && vn.Node?.UserData is Aas.IReferable rf)
-                            markedRf.Add(rf);
+                    foreach (var x in theViewer.Entities)
+                        if (x is Microsoft.Msagl.Drawing.IViewerNode vn)
+                            if (vn.MarkedForDragging && vn.Node?.UserData is Aas.IReferable rf)
+                                markedRf.Add(rf);
 
                 if (markedRf.Count < 1)
                     return;
@@ -252,13 +257,91 @@ namespace AasxPluginBomStructure
             viewer.ObjectUnderMouseCursorChanged += Viewer_ObjectUnderMouseCursorChanged;
             viewer.Graph = graph;
 
+            // test
+            dp.ContextMenu = new ContextMenu();
+            dp.ContextMenu.Items.Add(new MenuItem() { Header = "Jump to selected ..", Tag = "JUMP" });
+            dp.ContextMenu.Items.Add(new MenuItem() { Header = "Create Node (to selected) ..", Tag = "CREATE" });
+            dp.ContextMenu.Items.Add(new MenuItem() { Header = "Delete Node ..", Tag = "DELETE" });
+
+            foreach (var x in dp.ContextMenu.Items)
+                if (x is MenuItem mi)
+                    mi.Click += ContextMenu_Click;
+
             // make it re-callable
             theGraph = graph;
             theViewer = viewer;
             theReferable = _submodel;
+            _insideDockPanel = dp;
 
             // return viewer for advanced manipulation
             return viewer;
+        }
+
+        protected bool IsViewerNode(Microsoft.Msagl.Drawing.IViewerNode vn)
+        {
+            foreach (var x in theViewer.Entities)
+                if (x is Microsoft.Msagl.Drawing.IViewerNode xvn && xvn == vn)
+                    return true;
+            return false;
+        }
+
+        protected Microsoft.Msagl.Drawing.IViewerNode FindViewerNode(Microsoft.Msagl.Drawing.Node node)
+        {
+            if (theViewer == null || node == null)
+                return null;
+            foreach (var x in theViewer.Entities)
+                if (x is Microsoft.Msagl.Drawing.IViewerNode vn
+                    && vn.Node == node)
+                    return vn;
+            return null;
+        }
+
+        protected void ContextMenu_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem mi 
+                && mi.Tag is string miTag
+                && miTag?.HasContent() == true)
+            {
+                if (miTag == "JUMP")
+                {
+                    if (_objectUnderCursor is Microsoft.Msagl.Drawing.IViewerNode)
+                        NavigateTo(_objectUnderCursor?.DrawingObject);
+                }
+
+                if (miTag == "CREATE")
+                {
+                    ;
+                }
+
+                if (miTag == "DELETE" && _objectUnderCursor is Microsoft.Msagl.Drawing.IViewerNode node)
+                {
+                    var addNodesToDel = new List<Microsoft.Msagl.Drawing.IViewerNode>(); 
+                            
+                    // try to detect additional edges to asset boxes here?
+                    if (node?.Node != null)
+                        foreach (var x in theViewer.Entities)
+                            if (x is Microsoft.Msagl.Drawing.IViewerEdge ve)
+                            {
+                                if (ve.Edge.SourceNode == node.Node)
+                                    if (ve.Edge?.TargetNode?.UserData is GenericBomCreator.UserDataAsset)
+                                        addNodesToDel.Add(FindViewerNode(ve.Edge.TargetNode));
+                                if (ve.Edge.TargetNode == node.Node)
+                                    if (ve.Edge?.SourceNode?.UserData is GenericBomCreator.UserDataAsset)
+                                        addNodesToDel.Add(FindViewerNode(ve.Edge.SourceNode));
+                            }
+
+                    // now delete
+                    if (node != null)
+                        theViewer.RemoveNode(node, true);
+
+                    // delete additional nodes
+                    foreach (var antd in addNodesToDel)
+                        if (IsViewerNode(antd))
+                            theViewer.RemoveNode(antd, true);
+
+                    // delete node and relations in BOM
+                }
+            }
         }
 
         public object CreateViewPackageReleations(
@@ -434,6 +517,35 @@ namespace AasxPluginBomStructure
         {
         }
 
+        protected void NavigateTo(Microsoft.Msagl.Drawing.DrawingObject obj)
+        {
+            if (obj != null && obj.UserData != null)
+            {
+                var us = obj.UserData;
+                if (us is Aas.IReferable)
+                {
+                    // make event
+                    var refs = new List<Aas.IKey>();
+                    (us as Aas.IReferable).CollectReferencesByParent(refs);
+
+                    // ok?
+                    if (refs.Count > 0)
+                    {
+                        var evt = new AasxPluginResultEventNavigateToReference();
+                        evt.targetReference = ExtendReference.CreateNew(refs);
+                        this.eventStack.PushEvent(evt);
+                    }
+                }
+
+                if (us is Aas.Reference)
+                {
+                    var evt = new AasxPluginResultEventNavigateToReference();
+                    evt.targetReference = (us as Aas.Reference);
+                    this.eventStack.PushEvent(evt);
+                }
+            }
+        }
+
         private void Viewer_MouseDown(object sender, Microsoft.Msagl.Drawing.MsaglMouseEventArgs e)
         {
             if (e != null && e.Clicks > 1 && e.LeftButtonIsPressed && theViewer != null && this.eventStack != null)
@@ -442,36 +554,22 @@ namespace AasxPluginBomStructure
                 try
                 {
                     var x = theViewer.ObjectUnderMouseCursor;
-                    if (x != null && x.DrawingObject != null && x.DrawingObject.UserData != null)
-                    {
-                        var us = x.DrawingObject.UserData;
-                        if (us is Aas.IReferable)
-                        {
-                            // make event
-                            var refs = new List<Aas.IKey>();
-                            (us as Aas.IReferable).CollectReferencesByParent(refs);
-
-                            // ok?
-                            if (refs.Count > 0)
-                            {
-                                var evt = new AasxPluginResultEventNavigateToReference();
-                                evt.targetReference = ExtendReference.CreateNew(refs);
-                                this.eventStack.PushEvent(evt);
-                            }
-                        }
-
-                        if (us is Aas.Reference)
-                        {
-                            var evt = new AasxPluginResultEventNavigateToReference();
-                            evt.targetReference = (us as Aas.Reference);
-                            this.eventStack.PushEvent(evt);
-                        }
-                    }
+                    NavigateTo(x?.DrawingObject);
                 }
                 catch (Exception ex)
                 {
                     AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
                 }
+            }
+
+            if (e != null && e.Clicks == 1 && e.RightButtonIsPressed 
+                && _insideDockPanel.ContextMenu != null
+                && theViewer != null)
+            {
+                _objectUnderCursor = theViewer.ObjectUnderMouseCursor;
+                _rightClickCoordinates = theViewer.ScreenToSource(e);
+              
+                _insideDockPanel.ContextMenu.IsOpen = true;
             }
         }
 
