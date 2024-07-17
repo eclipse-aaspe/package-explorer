@@ -384,6 +384,81 @@ namespace Extensions
             });
         }
 
+        public static IReferable FindContainingReferable(this ISubmodel submodel, ISubmodelElement findSme)
+        {
+            IReferable res = null;
+            submodel.SubmodelElements?.RecurseOnReferables(null, null, (o, par, rf) =>
+            {
+                if (rf == findSme)
+                {
+                    if (par.Count < 1)
+                        res = submodel;
+                    else
+                        res = par.LastOrDefault();
+                    return false;
+                }
+                else
+                    return true;
+            });
+            return res;
+        }
+
+        /// <summary>
+        /// Builds up a key list for an IReference. Relies on integrity of the <code>Parent</code> 
+        /// attributes!!
+        /// </summary>
+        public static List<IKey> BuildKeysToTop(this ISubmodel submodel, ISubmodelElement findSme)
+        {
+            // make a "inner function"
+            var res = new List<IKey>();
+            var resHasIdf = false;
+            Action<IReferable> lambdaInsertTop = (rf) =>
+            {
+                if (rf is IIdentifiable iddata)
+                {
+                    // a Identifiable will terminate the list of keys
+                    resHasIdf = true;
+                    res.Insert(
+                        0,
+                        new Key((KeyTypes)Stringification.KeyTypesFromString(iddata.GetSelfDescription().AasElementName), iddata.Id));
+                }
+                else
+                {
+                    // add a key and go up ..
+                    IKey key;
+                    if (rf is ISubmodelElementList smeList)
+                    {
+                        var index = smeList.Value.IndexOf((ISubmodelElement)rf);
+                        key = new Key((KeyTypes)Stringification.KeyTypesFromString(rf.GetSelfDescription().AasElementName), index.ToString());
+                    }
+                    else
+                    {
+                        key = new Key((KeyTypes)Stringification.KeyTypesFromString(rf.GetSelfDescription().AasElementName), rf.IdShort);
+                    }
+                    res.Insert(0, key);
+                }
+            };
+
+            // insert self ..
+            if (findSme != null)
+            {
+                lambdaInsertTop(findSme);
+                var curr = findSme.Parent as IReferable;
+                while (curr != null)
+                {
+                    lambdaInsertTop(curr);
+                    curr = curr.Parent as IReferable;
+                }
+            }
+
+            // in case that Identifiable hasnt been added
+            if (!resHasIdf)
+                lambdaInsertTop(submodel);
+
+            // ok
+            return res;
+        }
+
         public static ISubmodelElement FindSubmodelElementByIdShort(this ISubmodel submodel, string smeIdShort)
         {
             if (submodel.SubmodelElements == null || submodel.SubmodelElements.Count == 0)

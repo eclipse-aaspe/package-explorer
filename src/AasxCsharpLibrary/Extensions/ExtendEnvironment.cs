@@ -756,10 +756,12 @@ namespace Extensions
         }
 
         //TODO (jtikekar, 0000-00-00): Need to test
+        //Micha added check for sourceOfSubElems to check if index is in SML
         public static IReferable FindReferableByReference(
             this AasCore.Aas3_0.IEnvironment environment,
             IReference reference,
             int keyIndex = 0,
+            IReferable sourceOfSubElems = null,
             IEnumerable<ISubmodelElement> submodelElems = null,
             ReferableRootInfo rootInfo = null)
         {
@@ -872,7 +874,8 @@ namespace Extensions
                         if (keyIndex >= keyList.Count - 1)
                             return submodel;
 
-                        return environment.FindReferableByReference(reference, ++keyIndex, submodel.SubmodelElements);
+                        return environment.FindReferableByReference(reference, ++keyIndex, 
+                            submodel, submodel.SubmodelElements);
                     }
             }
 
@@ -882,7 +885,8 @@ namespace Extensions
             {
                 ISubmodelElement submodelElement;
                 //check if key.value is index 
-                bool isIndex = int.TryParse(firstKeyId, out int index);
+                var index = 0;
+                bool isIndex = (sourceOfSubElems is ISubmodelElementList) && int.TryParse(firstKeyId, out index);
                 if (isIndex)
                 {
                     var smeList = submodelElems.ToList();
@@ -905,7 +909,8 @@ namespace Extensions
 
                     //Recurse again
                     if (submodelElement?.EnumeratesChildren() == true)
-                        return environment.FindReferableByReference(reference, ++keyIndex, submodelElement.EnumerateChildren());
+                        return environment.FindReferableByReference(reference, ++keyIndex, 
+                            submodelElement, submodelElement.EnumerateChildren());
                 }
             }
 

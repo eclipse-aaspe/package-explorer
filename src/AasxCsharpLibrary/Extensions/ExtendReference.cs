@@ -7,6 +7,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 using AdminShellNS.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -196,6 +197,44 @@ namespace Extensions
             }
 
             return match;
+        }
+
+        /// <summary>
+        /// Checks, if there is a partial match from <c>reference</c> to <c>findReference</c>
+        /// (starting from key[0]) and replaces those sequence
+        /// </summary>
+        /// <returns><c>True</c>, if a replacement was done</returns>
+        public static bool ReplacePartialHead(
+            this IReference reference, 
+            IReference findReference, 
+            IReference replaceReference,
+            MatchMode matchMode = MatchMode.Strict)
+        {
+            // access
+            if (reference.Keys == null || reference.Keys.Count == 0
+                || findReference?.Keys == null || findReference.Keys.Count == 0
+                || replaceReference?.Keys == null)
+            {
+                return false;
+            }
+
+            // match?
+            bool match = true;
+            var matchLen = Math.Min(reference.Keys.Count, findReference.Keys.Count);
+            for (int i = 0; i < matchLen; i++)
+            {
+                match = match && reference.Keys[i].Matches(findReference.Keys[i], matchMode);
+            }
+            if (!match)
+                return false;
+
+            // execute replacement
+            for (int i = 0; i < matchLen; i++)
+                reference.Keys.RemoveAt(0);
+            for (int i = Math.Min(matchLen - 1, replaceReference.Count() - 1); i >= 0; i--)
+                reference.Keys.Insert(0, replaceReference.Keys[i].Copy());
+
+            return true;
         }
 
         /// <summary>
