@@ -22,7 +22,10 @@ using Aas = AasCore.Aas3_0;
 using AdminShellNS;
 using Extensions;
 using System.Windows;
-using System.Collections;
+using Microsoft.Msagl.Core.Geometry.Curves;
+using Microsoft.Msagl.Layout.Layered;
+using Microsoft.Msagl.Miscellaneous;
+
 
 namespace AasxPluginBomStructure
 {
@@ -53,10 +56,15 @@ namespace AasxPluginBomStructure
 
         private BomStructureOptions _bomOptions = new BomStructureOptions();
 
+        private GenericBomCreator _bomCreator = null;
+
         private Microsoft.Msagl.Core.Geometry.Point _rightClickCoordinates = 
             new Microsoft.Msagl.Core.Geometry.Point();
 
         private Microsoft.Msagl.Drawing.IViewerObject _objectUnderCursor = null;
+
+        private TabControl _tabControlBottom = null;
+        private TabItem _tabItemEdit = null;
 
         public void SetEventStack(PluginEventStack es)
         {
@@ -150,6 +158,8 @@ namespace AasxPluginBomStructure
             cbaid.Unchecked += cbaid_changed;
             wpTop.Children.Add(cbaid);
 
+#if __old__
+
             // "select" button
 
             var btnSelect = new Button()
@@ -161,14 +171,7 @@ namespace AasxPluginBomStructure
             btnSelect.Click += (s3, e3) =>
             {
                 // check for marked entities
-                var markedRf = new List<Aas.IReferable>();
-
-                if (theViewer != null)
-                    foreach (var x in theViewer.Entities)
-                        if (x is Microsoft.Msagl.Drawing.IViewerNode vn)
-                            if (vn.MarkedForDragging && vn.Node?.UserData is Aas.IReferable rf)
-                                markedRf.Add(rf);
-
+                var markedRf = GetSelectedViewerReferables().ToList();
                 if (markedRf.Count < 1)
                     return;
 
@@ -180,12 +183,16 @@ namespace AasxPluginBomStructure
                 this.eventStack.PushEvent(evt);
             };
             wpTop.Children.Add(btnSelect);
+#endif
 
             // return
 
             return wpTop;
         }
 
+        /// <summary>
+        /// This is the "normal" view of the BOM plugin
+        /// </summary>
         public object FillWithWpfControls(
             BomStructureOptions bomOptions,
             object opackage, object osm, object masterDockPanel)
@@ -223,15 +230,24 @@ namespace AasxPluginBomStructure
             // the Submodel elements need to have parents
             _submodel.SetAllParents();
 
-            // create controls
+            // create TOP controls
             var spTop = CreateTopPanel();
             DockPanel.SetDock(spTop, Dock.Top);
             master.Children.Add(spTop);
 
             // create BOTTOM controls
             var legend = GenericBomCreator.GenerateWrapLegend();
-            DockPanel.SetDock(legend, Dock.Bottom);
-            master.Children.Add(legend);
+
+            _tabControlBottom = new TabControl() { MinHeight = 100 };
+            _tabControlBottom.Items.Add(new TabItem() { Header = "Legend", Name = "tabItemLegend", 
+                Content = legend });
+
+            _tabItemEdit = new TabItem() { Header = "Edit", Name = "tabItemEdit", 
+                Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None }) };
+            _tabControlBottom.Items.Add(_tabItemEdit);
+
+            DockPanel.SetDock(_tabControlBottom, Dock.Bottom);
+            master.Children.Add(_tabControlBottom);
 
             // set default for very small edge label size
             Microsoft.Msagl.Drawing.Label.DefaultFontSize = 6;
@@ -255,13 +271,18 @@ namespace AasxPluginBomStructure
             viewer.MouseMove += Viewer_MouseMove;
             viewer.MouseUp += Viewer_MouseUp;
             viewer.ObjectUnderMouseCursorChanged += Viewer_ObjectUnderMouseCursorChanged;
+            viewer.ViewChangeEvent += Viewer_ViewChangeEvent;
             viewer.Graph = graph;
 
             // test
             dp.ContextMenu = new ContextMenu();
             dp.ContextMenu.Items.Add(new MenuItem() { Header = "Jump to selected ..", Tag = "JUMP" });
+            dp.ContextMenu.Items.Add(new Separator());
+            dp.ContextMenu.Items.Add(new MenuItem() { Header = "Edit Node ..", Tag = "EDIT" });
             dp.ContextMenu.Items.Add(new MenuItem() { Header = "Create Node (to selected) ..", Tag = "CREATE" });
-            dp.ContextMenu.Items.Add(new MenuItem() { Header = "Delete Node ..", Tag = "DELETE" });
+            dp.ContextMenu.Items.Add(new MenuItem() { Header = "Delete (selected) Node(s) ..", Tag = "DELETE" });
+            dp.ContextMenu.Items.Add(new Separator());
+            dp.ContextMenu.Items.Add(new MenuItem() { Header = "Export as SVG ..", Tag = "EXP-SVG" });
 
             foreach (var x in dp.ContextMenu.Items)
                 if (x is MenuItem mi)
@@ -275,6 +296,13 @@ namespace AasxPluginBomStructure
 
             // return viewer for advanced manipulation
             return viewer;
+        }
+
+        private Microsoft.Msagl.Core.Geometry.Curves.PlaneTransformation _savedTransform = null;
+
+        private void Viewer_ViewChangeEvent(object sender, EventArgs e)
+        {
+            _savedTransform = theViewer.Transform;
         }
 
         protected bool IsViewerNode(Microsoft.Msagl.Drawing.IViewerNode vn)
@@ -296,6 +324,216 @@ namespace AasxPluginBomStructure
             return null;
         }
 
+        protected IEnumerable<Microsoft.Msagl.Drawing.IViewerNode> GetSelectedViewerNodes()
+        {
+            if (theViewer == null)
+                yield break;
+
+            foreach (var x in theViewer.Entities)
+                if (x is Microsoft.Msagl.Drawing.IViewerNode vn)
+                    if (vn.MarkedForDragging)
+                        yield return vn;
+        }
+
+        protected IEnumerable<Aas.IReferable> GetSelectedViewerReferables()
+        {
+            if (theViewer == null)
+                yield break;
+
+            foreach (var x in theViewer.Entities)
+                if (x is Microsoft.Msagl.Drawing.IViewerNode vn)
+                    if (vn.MarkedForDragging && vn.Node?.UserData is Aas.IReferable rf)
+                        yield return rf;
+        }
+
+        protected Tuple<Aas.Entity, Aas.RelationshipElement> CreateNodeAndRelationInBom(
+            string nodeIdShort,
+            string nodeSemId,
+            string nodeSuppSemId,
+            Aas.IReferable parent,
+            string relSemId,
+            string relSuppSemId)
+        {
+            // access
+            if (_submodel == null)
+                return null;
+
+            // create
+            var ent = new Aas.Entity(Aas.EntityType.CoManagedEntity, idShort: nodeIdShort);
+            ent.Parent = parent;
+            if (nodeSemId?.HasContent() == true)
+                ent.SemanticId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference,
+                    (new Aas.IKey[] { new Aas.Key(Aas.KeyTypes.GlobalReference, nodeSemId) }).ToList());
+            if (nodeSuppSemId?.HasContent() == true)
+                ent.SupplementalSemanticIds = (new Aas.IReference[] {
+                        new Aas.Reference(Aas.ReferenceTypes.ExternalReference,
+                            (new Aas.IKey[] { new Aas.Key(Aas.KeyTypes.GlobalReference, nodeSuppSemId) }).ToList())
+                    }).ToList();
+
+            // where to add?
+            var contToAdd = ((parent as Aas.IEntity) as Aas.IReferable) ?? _submodel;
+            contToAdd.Add(ent);
+
+            // try build a relationship
+
+            var klFirst = _submodel.BuildKeysToTop(parent as Aas.ISubmodelElement);
+            if (klFirst.Count == 0)
+                klFirst.Add(new Aas.Key(Aas.KeyTypes.Submodel, _submodel.Id));
+            var klSecond = _submodel.BuildKeysToTop(ent);
+
+            Aas.RelationshipElement rel = null;
+            if (klFirst.Count >= 1 && klSecond.Count >= 1)
+            {
+                rel = new Aas.RelationshipElement(
+                    idShort: "HasPart_" + nodeIdShort,
+                    first: new Aas.Reference(Aas.ReferenceTypes.ModelReference, klFirst),
+                    second: new Aas.Reference(Aas.ReferenceTypes.ModelReference, klSecond));
+                if (relSemId?.HasContent() == true)
+                    rel.SemanticId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference,
+                        (new Aas.IKey[] { new Aas.Key(Aas.KeyTypes.GlobalReference, relSemId) }).ToList());
+                if (relSuppSemId?.HasContent() == true)
+                    rel.SupplementalSemanticIds = (new Aas.IReference[] {
+                        new Aas.Reference(Aas.ReferenceTypes.ExternalReference,
+                            (new Aas.IKey[] { new Aas.Key(Aas.KeyTypes.GlobalReference, relSuppSemId) }).ToList())
+                    }).ToList();
+                contToAdd.Add(rel);
+            }
+
+            // ok
+            return new Tuple<Aas.Entity, Aas.RelationshipElement>(ent, rel);
+        }
+
+        protected void AdjustNodeInBom(
+            Aas.ISubmodelElement nodeSme,
+            string nodeIdShort,
+            string nodeSemId,
+            string nodeSuppSemId)
+        {
+            // access
+            if (_submodel == null || nodeSme == null)
+                return;
+
+            // we need to exchange node in References!
+            var kl = _submodel?.BuildKeysToTop(nodeSme);
+            var changeRels = kl.Count >= 2;
+            var oldRefToNode = new Aas.Reference(Aas.ReferenceTypes.ModelReference, kl);
+
+            // write back new values
+            nodeSme.IdShort = nodeIdShort;
+            if (nodeSemId?.HasContent() == true)
+                nodeSme.SemanticId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference,
+                    (new Aas.IKey[] { new Aas.Key(Aas.KeyTypes.GlobalReference, nodeSemId) }).ToList());
+            else
+                nodeSme.SemanticId = null;
+
+            if (nodeSuppSemId?.HasContent() == true)
+                nodeSme.SupplementalSemanticIds = (new Aas.IReference[] {
+                    new Aas.Reference(Aas.ReferenceTypes.ExternalReference,
+                        (new Aas.IKey[] { new Aas.Key(Aas.KeyTypes.GlobalReference, nodeSuppSemId) }).ToList())
+                    }).ToList();
+            else
+                nodeSme.SupplementalSemanticIds = null;
+
+            // use the same logic to make a replacement reference (needs no further check)
+            var newRefToNode = new Aas.Reference(Aas.ReferenceTypes.ModelReference, _submodel?.BuildKeysToTop(nodeSme));
+
+            // now search recursively for all RefElems and RelElems referring to it
+            _submodel?.RecurseOnSubmodelElements(null, (o, parents, sme) => {
+
+                // figure out the last parent = container of SME
+                Aas.IReferable cont = (parents.Count < 1) ? _submodel : parents.LastOrDefault();
+
+                // to change?
+                if (sme is Aas.IRelationshipElement relEl)
+                {
+                    relEl.First?.ReplacePartialHead(oldRefToNode, newRefToNode);
+                    relEl.Second?.ReplacePartialHead(oldRefToNode, newRefToNode);
+                }
+                if (sme is Aas.IReferenceElement refEl)
+                {
+                    refEl.Value?.ReplacePartialHead(oldRefToNode, newRefToNode);
+                }
+
+                // always search further
+                return true;
+            });
+        }
+
+#if cdscsd
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="source"></param>
+        ///// <param name="target"></param>
+        ///// <param name="registerForUndo"></param>
+        ///// <returns></returns>
+        public Drawing.Edge AddEdge(
+            Microsoft.Msagl.Drawing.Graph Graph,
+            Microsoft.Msagl.Drawing.Node source, Microsoft.Msagl.Drawing.Node target, bool registerForUndo)
+        {
+            Debug.Assert( Graph.FindNode(source.Id) == source);
+            Debug.Assert(Graph.FindNode(target.Id) == target);
+
+            Microsoft.Msagl.Drawing.Edge drawingEdge = Graph.AddEdge(source.Id, target.Id);
+            drawingEdge.Label = new Microsoft.Msagl.Drawing.Label();
+            var geometryEdge = drawingEdge.GeometryEdge = new Microsoft.Msagl.Core.Layout.Edge();
+            geometryEdge.GeometryParent = Graph.GeometryGraph;
+
+            var a = source.GeometryNode.Center;
+            var b = target.GeometryNode.Center;
+            if (source == target)
+            {
+                Microsoft.Msagl.Core.Geometry.Geometry.CornerSite start = new CornerSite(a);
+                CornerSite end = new CornerSite(b);
+                var mid1 = source.GeometryNode.Center;
+                mid1.X += (source.GeometryNode.BoundingBox.Width / 3 * 2);
+                var mid2 = mid1;
+                mid1.Y -= source.GeometryNode.BoundingBox.Height / 2;
+                mid2.Y += source.GeometryNode.BoundingBox.Height / 2;
+                CornerSite mid1s = new CornerSite(mid1);
+                CornerSite mid2s = new CornerSite(mid2);
+                start.Next = mid1s;
+                mid1s.Previous = start;
+                mid1s.Next = mid2s;
+                mid2s.Previous = mid1s;
+                mid2s.Next = end;
+                end.Previous = mid2s;
+                geometryEdge.UnderlyingPolyline = new SmoothedPolyline(start);
+                geometryEdge.Curve = geometryEdge.UnderlyingPolyline.CreateCurve();
+            }
+            else
+            {
+                CornerSite start = new CornerSite(a);
+                CornerSite end = new CornerSite(b);
+                CornerSite mids = new CornerSite(a * 0.5 + b * 0.5);
+                start.Next = mids;
+                mids.Previous = start;
+                mids.Next = end;
+                end.Previous = mids;
+                geometryEdge.UnderlyingPolyline = new SmoothedPolyline(start);
+                geometryEdge.Curve = geometryEdge.UnderlyingPolyline.CreateCurve();
+            }
+
+            geometryEdge.Source = drawingEdge.SourceNode.GeometryNode;
+            geometryEdge.Target = drawingEdge.TargetNode.GeometryNode;
+            geometryEdge.EdgeGeometry.TargetArrowhead = new Arrowhead() { Length = drawingEdge.Attr.ArrowheadLength };
+            Arrowheads.TrimSplineAndCalculateArrowheads(geometryEdge, geometryEdge.Curve, true, true);
+
+
+            IViewerEdge ve;
+            AddEdge(ve = CreateEdgeWithGivenGeometry(drawingEdge), registerForUndo);
+            layoutEditor.AttachLayoutChangeEvent(ve);
+            return drawingEdge;
+
+        }
+#endif
+
+        static Microsoft.Msagl.Core.Layout.Node GeometryNode(Microsoft.Msagl.Drawing.IViewerNode node)
+        {
+            Microsoft.Msagl.Core.Layout.Node geomNode = ((Microsoft.Msagl.Drawing.Node)node.DrawingObject).GeometryNode;
+            return geomNode;
+        }
+
         protected void ContextMenu_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem mi 
@@ -308,42 +546,302 @@ namespace AasxPluginBomStructure
                         NavigateTo(_objectUnderCursor?.DrawingObject);
                 }
 
-                if (miTag == "CREATE")
+                if (miTag == "EDIT")
                 {
-                    ;
+                    if (_objectUnderCursor is Microsoft.Msagl.Drawing.IViewerNode node
+                     && node.Node?.UserData is Aas.ISubmodelElement nodeSme)
+                    {
+                        // create job
+                        var stat = new DialogueStatus() { Type = DialogueType.Edit, Node = nodeSme };
+
+                        // set the action
+                        stat.Action = (st, action) =>
+                        {
+                            // correct?
+                            if (action != "OK" || !(st.Node is Aas.ISubmodelElement nodeSme))
+                                return;
+
+                            // modidfy
+                            AdjustNodeInBom(
+                                nodeSme,
+                                nodeIdShort: st.TextBoxIdShort.Text,
+                                nodeSuppSemId: st.ComboBoxNodeSupplSemId.Text,
+                                nodeSemId: st.ComboBoxNodeSemId.Text);
+
+                            // refresh
+                            RedrawGraph();
+                        };
+
+                        // in any case, create a node
+                        StartShowDialogue(stat);
+                    }
                 }
 
-                if (miTag == "DELETE" && _objectUnderCursor is Microsoft.Msagl.Drawing.IViewerNode node)
+                if (miTag == "CREATE")
                 {
-                    var addNodesToDel = new List<Microsoft.Msagl.Drawing.IViewerNode>(); 
-                            
-                    // try to detect additional edges to asset boxes here?
-                    if (node?.Node != null)
-                        foreach (var x in theViewer.Entities)
-                            if (x is Microsoft.Msagl.Drawing.IViewerEdge ve)
+                    // create job
+                    var stat = new DialogueStatus() { Type = DialogueType.Create };
+
+                    stat.ParentNode = GetSelectedViewerNodes().FirstOrDefault();
+
+                    if (stat.ParentNode == null
+                        && _objectUnderCursor is Microsoft.Msagl.Drawing.IViewerNode n2)
+                        stat.ParentNode = n2;
+
+                    stat.ParentReferable = stat.ParentNode?.Node?.UserData as Aas.IReferable;
+
+                    // figure out if first node
+                    stat.IsEntryNode = null != _submodel?.SubmodelElements?.FindFirstSemanticIdAs<Aas.IEntity>(
+                        AasxPredefinedConcepts.HierarchStructV10.Static.CD_EntryNode?.GetSingleKey(),
+                        matchMode: MatchMode.Relaxed);
+
+                    // figure out reverse direction
+                    stat.ReverseDir = _submodel?.SubmodelElements?.FindFirstSemanticIdAs<Aas.IProperty>(
+                        AasxPredefinedConcepts.HierarchStructV10.Static.CD_ArcheType?.GetSingleKey(),
+                        matchMode: MatchMode.Relaxed)?
+                            .Value?.ToUpper().Trim() == "ONEUP";
+
+                    // set the action
+                    stat.Action = (st, action) =>
+                    {
+                        // correct?
+                        if (action != "OK" || _bomCreator == null || theViewer == null)
+                            return;
+
+                        // create entity
+                        var ents = CreateNodeAndRelationInBom(
+                            nodeIdShort: st.TextBoxIdShort.Text,
+                            nodeSuppSemId: st.ComboBoxNodeSupplSemId.Text,
+                            nodeSemId: st.ComboBoxNodeSemId.Text,
+                            parent: st.ParentReferable,
+                            relSemId: st.ComboBoxRelSemId.Text,
+                            relSuppSemId: st.ComboBoxRelSupplSemId.Text);
+                                               
+                        if (ents == null || ents.Item1 == null)
+                            return;
+
+#if shitty_no_works
+                        // create a node
+                        var node = _bomCreator.GenerateEntityNode(ents.Item1, allowSkip: false);
+                        theViewer.CreateIViewerNode(node, _rightClickCoordinates, null);
+
+                        // even a link
+                        if (ents.Item2 != null && st.ParentNode?.Node != null)
+                        {
+                            var edge = _bomCreator.CreateRelationLink(
+                                theViewer.Graph,
+                                st.ParentNode.Node,
+                                node,
+                                ents.Item2);
+
+                            theViewer.CreateEdgeWithGivenGeometry(edge);
+                        }
+#else
+
+                        // refresh
+                        RedrawGraph();
+
+#endif
+                    };
+
+                    // in any case, create a node
+                    StartShowDialogue(stat);
+
+                    // best approach to set the focus!
+                    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        _dialogueStatus.TextBoxIdShort.Focus();
+                    }), System.Windows.Threading.DispatcherPriority.Render);
+                }
+
+                if (miTag == "DELETE")
+                {
+                    // create job
+                    var stat = new DialogueStatus() { Type = DialogueType.Delete };
+
+                    var test = (_objectUnderCursor as Microsoft.Msagl.Drawing.IViewerNode)?
+                                    .Node?.UserData as Aas.IReferable;
+                    if (test != null)
+                        stat.Nodes.Add(test);
+                    stat.Nodes.AddRange(GetSelectedViewerReferables());
+
+                    // set the action
+                    stat.Action = (st, action) =>
+                    {
+                        // all above nodes
+                        foreach (var node in st.Nodes)
+                        {
+                            // only SME
+                            if (!(node is Aas.ISubmodelElement nodeSmeToDel))
+                                continue;
+
+                            // find containing Referable and KeyList to it
+                            // (the key list must not only contain the Submodel!)
+                            var contToDelIn = _submodel?.FindContainingReferable(nodeSmeToDel);
+                            var kl = _submodel?.BuildKeysToTop(nodeSmeToDel);
+                            if (nodeSmeToDel == null || contToDelIn == null || kl.Count < 2)
+                                return;
+
+                            // build reference to it
+                            var refToNode = new Aas.Reference(Aas.ReferenceTypes.ModelReference, kl);
+
+                            // now search recursively for:
+                            // the node, all RefElems and RelElems referring to it
+                            var toDel = new List<Tuple<Aas.IReferable, Aas.ISubmodelElement>>();
+                            _submodel?.RecurseOnSubmodelElements(null, (o, parents, sme) => {
+
+                                // figure out the last parent = container of SME
+                                Aas.IReferable cont = (parents.Count < 1) ? _submodel : parents.LastOrDefault();
+
+                                // note: trust, that corresponding Remove() will check first for presence ..
+                                if ((sme == nodeSmeToDel)
+                                    || (sme is Aas.ReferenceElement refEl
+                                        && refEl.Value?.Matches(refToNode) == true)
+                                    || (sme is Aas.RelationshipElement relEl
+                                        && (relEl.First?.Matches(refToNode) == true
+                                            || relEl.Second?.Matches(refToNode) == true)))
+                                {
+                                    toDel.Add(new Tuple<Aas.IReferable, Aas.ISubmodelElement>(cont, sme));
+                                }
+
+                                // always search further
+                                return true;
+                            });
+
+                            // now del
+                            foreach (var td in toDel)
+                                td.Item1?.Remove(td.Item2);
+
+                            // refresh
+                            RedrawGraph();
+                        }
+
+                    };
+
+                    // in any case, create a node
+                    StartShowDialogue(stat);
+
+#if shitty_no_works
+
+                    if (_objectUnderCursor is Microsoft.Msagl.Drawing.IViewerNode node)
+                    {
+                        var addNodesToDel = new List<Microsoft.Msagl.Drawing.IViewerNode>();
+
+                        // try to detect additional edges to asset boxes here?
+                        if (node?.Node != null)
+                            foreach (var x in theViewer.Entities)
+                                if (x is Microsoft.Msagl.Drawing.IViewerEdge ve)
+                                {
+                                    if (ve.Edge.SourceNode == node.Node)
+                                        if (ve.Edge?.TargetNode?.UserData is GenericBomCreator.UserDataAsset)
+                                            addNodesToDel.Add(FindViewerNode(ve.Edge.TargetNode));
+                                    if (ve.Edge.TargetNode == node.Node)
+                                        if (ve.Edge?.SourceNode?.UserData is GenericBomCreator.UserDataAsset)
+                                            addNodesToDel.Add(FindViewerNode(ve.Edge.SourceNode));
+                                }
+
+                        // now delete
+                        if (node != null)
+                            theViewer.RemoveNode(node, true);
+
+                        // delete additional nodes
+                        foreach (var antd in addNodesToDel)
+                            if (IsViewerNode(antd))
+                                theViewer.RemoveNode(antd, true);
+
+                        // delete node and relations in BOM
+
+                    // which SME does this node relate to
+                    var nodeSmeToDel = node?.Node?.UserData as Aas.ISubmodelElement;
+
+                        // find containing Referable and KeyList to it
+                        // (the key list must not only contain the Submodel!)
+                        var contToDelIn = _submodel?.FindContainingReferable(nodeSmeToDel);
+                        var kl = _submodel?.BuildKeysToTop(nodeSmeToDel);
+                        if (nodeSmeToDel == null || contToDelIn == null || kl.Count < 2)
+                            return;
+
+                        // build reference to it
+                        var refToNode = new Aas.Reference(Aas.ReferenceTypes.ModelReference, kl);
+
+                        // now search recursively for:
+                        // the node, all RefElems and RelElems referring to it
+                        var toDel = new List<Tuple<Aas.IReferable, Aas.ISubmodelElement>>();
+                        _submodel?.RecurseOnSubmodelElements(null, (o, parents, sme) => {
+
+                            // figure out the last parent = container of SME
+                            Aas.IReferable cont = (parents.Count < 1) ? _submodel : parents.LastOrDefault();
+
+                            // note: trust, that corresponding Remove() will check first for presence ..
+                            if (   (sme == nodeSmeToDel)
+                                || (sme is Aas.ReferenceElement refEl
+                                    && refEl.Value?.Matches(refToNode) == true)
+                                || (sme is Aas.RelationshipElement relEl
+                                    && (relEl.First?.Matches(refToNode) == true
+                                        || relEl.Second?.Matches(refToNode) == true)))
                             {
-                                if (ve.Edge.SourceNode == node.Node)
-                                    if (ve.Edge?.TargetNode?.UserData is GenericBomCreator.UserDataAsset)
-                                        addNodesToDel.Add(FindViewerNode(ve.Edge.TargetNode));
-                                if (ve.Edge.TargetNode == node.Node)
-                                    if (ve.Edge?.SourceNode?.UserData is GenericBomCreator.UserDataAsset)
-                                        addNodesToDel.Add(FindViewerNode(ve.Edge.SourceNode));
+                                toDel.Add(new Tuple<Aas.IReferable, Aas.ISubmodelElement>(cont, sme));
                             }
 
-                    // now delete
-                    if (node != null)
-                        theViewer.RemoveNode(node, true);
+                            // always search further
+                            return true;
+                        });
 
-                    // delete additional nodes
-                    foreach (var antd in addNodesToDel)
-                        if (IsViewerNode(antd))
-                            theViewer.RemoveNode(antd, true);
+                        // now del
+                        foreach (var td in toDel)
+                            td.Item1?.Remove(td.Item2);
 
-                    // delete node and relations in BOM
+                        // refresh
+                        RedrawGraph();
+                    }
+#endif
+                }
+
+                if (miTag == "EXP-SVG" && theViewer.Graph != null)
+                {
+                    // ask for file name
+                    var dlg = new Microsoft.Win32.SaveFileDialog()
+                    {
+                        FileName = "new",
+                        DefaultExt = ".svg",
+                        Filter = "Scalable Vector Graphics (.svg)|*.svg|All files|*.*"
+                    };
+                    if (dlg.ShowDialog() != true)
+                        return;
+
+                    // theViewer.Graph.CreateGeometryGraph();
+                    LayoutHelpers.CalculateLayout(theViewer.Graph.GeometryGraph, new SugiyamaLayoutSettings(), null);
+
+                    foreach (var n in theViewer.Graph.Nodes)
+                        if (n.Label != null)
+                        {
+                            n.Label.Width = 100;
+                            n.Label.Height = 20;
+                        }
+
+                    // take care on resources
+                    try
+                    {
+                        // SvgGraphWriter.Write(theViewer.Graph, dlg.FileName, null, null, 4);
+                        using (var stream = File.Create(dlg.FileName))
+                        {
+                            var svgWriter = new Microsoft.Msagl.Drawing.SvgGraphWriter(stream, theViewer.Graph);
+                            svgWriter.Write();
+                        }
+                    } catch (Exception ex)
+                    {
+                        AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
+                    }
+
+                    // toggle redisplay -> graph is renewed for display
+                    RedrawGraph();
                 }
             }
         }
 
+        /// <summary>
+        /// This is used by the menu option to create BOM overview on full package
+        /// </summary>
         public object CreateViewPackageReleations(
             BomStructureOptions bomOptions,
             object opackage,
@@ -452,7 +950,7 @@ namespace AasxPluginBomStructure
 
 #else
 
-            var creator = new GenericBomCreator(
+            _bomCreator = new GenericBomCreator(
                 env?.AasEnv,
                 _bomRecords,
                 options);
@@ -463,9 +961,9 @@ namespace AasxPluginBomStructure
                 if (!createOnPackage)
                 {
                     // just one Submodel
-                    creator.RecurseOnLayout(1, graph, null, sm.SubmodelElements, 1, null);
-                    creator.RecurseOnLayout(2, graph, null, sm.SubmodelElements, 1, null);
-                    creator.RecurseOnLayout(3, graph, null, sm.SubmodelElements, 1, null);
+                    _bomCreator.RecurseOnLayout(1, graph, null, sm.SubmodelElements, 1, null);
+                    _bomCreator.RecurseOnLayout(2, graph, null, sm.SubmodelElements, 1, null);
+                    _bomCreator.RecurseOnLayout(3, graph, null, sm.SubmodelElements, 1, null);
                 }
                 else
                 {
@@ -474,21 +972,20 @@ namespace AasxPluginBomStructure
                         {
                             // create AAS and SM
                             if (pass == 1)
-                                creator.CreateAasAndSubmodelNodes(graph, sm2);
+                                _bomCreator.CreateAasAndSubmodelNodes(graph, sm2);
 
                             // modify creator's bomRecords on the fly
                             var recs = new BomStructureOptionsRecordList(
                                 _bomOptions.LookupAllIndexKey<BomStructureOptionsRecord>(
                                     sm2.SemanticId?.GetAsExactlyOneKey()));
-                            creator.SetRecods(recs);
+                            _bomCreator.SetRecods(recs);
 
                             // graph itself
-                            creator.RecurseOnLayout(pass, graph, null, sm2.SubmodelElements, 1, null,
+                            _bomCreator.RecurseOnLayout(pass, graph, null, sm2.SubmodelElements, 1, null,
                                 entityParentRef: sm2);
                         }
                 }
             }
-
 
             // make default or (already) preferred settings
             var settings = GivePresetSettings(options, graph.NodeCount);
@@ -613,11 +1110,294 @@ namespace AasxPluginBomStructure
 
                 theViewer.Graph = null;
                 theViewer.Graph = theGraph;
+
+                if (_savedTransform != null)
+                    theViewer.Transform = _savedTransform;
             }
             catch (Exception ex)
             {
                 AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
             }
+        }
+
+        //
+        // Dialog pages
+        //
+
+        protected void StartShowDialogue(DialogueStatus stat)
+        {
+            _tabItemEdit.Content = CreateDialoguePanel(stat);
+            _tabControlBottom.SelectedItem = _tabItemEdit;
+        }
+
+        protected void HideDialoguePage()
+        {
+            _tabControlBottom.SelectedItem = _tabControlBottom.Items[0];
+            _dialogueStatus = null;
+        }
+
+        protected void AddToGrid(
+            Grid grid,
+            int row, int col,
+            int rowSpan = 0, int colSpan = 0,
+            FrameworkElement fe = null)
+        {
+            if (grid == null || fe == null)
+                return;
+
+            Grid.SetRow(fe, row);
+            Grid.SetColumn(fe, col);
+            if (rowSpan > 0)
+                Grid.SetRowSpan(fe, rowSpan);
+            if (colSpan > 0)
+                Grid.SetColumnSpan(fe, colSpan);
+            grid.Children.Add(fe);
+        }
+
+        protected enum DialogueType { None = 0, Edit = 1, Create = 2, Delete = 3}
+
+        protected class DialogueStatus
+        {
+            public DialogueType Type = DialogueType.None;
+
+            public Microsoft.Msagl.Drawing.IViewerNode ParentNode = null;
+            public Aas.IReferable ParentReferable = null;
+
+            public Aas.IReferable Node = null;
+            public List<Aas.IReferable> Nodes = new List<Aas.IReferable>();
+
+            public TextBox TextBoxIdShort = null;
+
+            public ComboBox 
+                ComboBoxNodeSemId = null, 
+                ComboBoxNodeSupplSemId = null, 
+                ComboBoxRelSemId = null,
+                ComboBoxRelSupplSemId = null;
+
+            public Action<DialogueStatus, string> Action = null;
+
+            public bool IsEntryNode = false;
+            public bool ReverseDir = false;
+        }
+
+        protected DialogueStatus _dialogueStatus = null;
+
+        protected Panel CreateDialoguePanel(DialogueStatus stat)
+        {
+            // remember
+            _dialogueStatus = stat;
+
+            if (stat.Type == DialogueType.None)
+            {
+                // empty panel
+                var grid = new Grid();
+                return grid;
+            }
+
+            if (stat.Type == DialogueType.Edit || stat.Type == DialogueType.Create)
+            {
+                // add node
+                var grid = new Grid();
+                var prefHS = AasxPredefinedConcepts.HierarchStructV10.Static;
+                var edit = stat.Type == DialogueType.Edit;
+
+                // 4 rows (IdShort, Node.semId, Node.suppSemId, Rel.semId, Rel.suppSemId, expand, buttons)
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Star) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
+
+                // 4 cols (auto, expand, small, expand)
+                grid.ColumnDefinitions.Add(new ColumnDefinition() {  Width = new GridLength(1.0, GridUnitType.Auto) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() {  Width = new GridLength(1.0, GridUnitType.Star) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() {  Width = new GridLength(20.0, GridUnitType.Pixel) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() {  Width = new GridLength(1.0, GridUnitType.Star) });
+
+                // idShort
+                AddToGrid(grid, 0, 0, fe: new Label() { Content = "Node.idShort:" });
+                AddToGrid(grid, 0, 1, colSpan:1, fe: _dialogueStatus.TextBoxIdShort = new TextBox() { 
+                    Text = edit ? _dialogueStatus.Node?.IdShort : "", 
+                    VerticalContentAlignment = VerticalAlignment.Center,
+                    Padding = new Thickness(0, -1, 0, -1),
+                    Margin = new Thickness(0, 2, 0, 2),
+                });
+                AddToGrid(grid, 0, 3, fe: new Label() { Content = "(Enter confirms add)", Foreground = Brushes.DarkGray });
+
+                // Node.semId
+                AddToGrid(grid, 1, 0, fe: new Label() { Content = "Node.semanticId:" });
+                _dialogueStatus.ComboBoxNodeSemId = new ComboBox() {
+                    IsEditable = true,
+                    Padding = new Thickness(0, -1, 0, -1),
+                    Margin = new Thickness(0, 2, 0, 2),
+                    VerticalContentAlignment = VerticalAlignment.Center
+                };
+
+                _dialogueStatus.ComboBoxNodeSemId.Items.Add(prefHS.CD_EntryNode?.GetSingleKey()?.Value);
+                _dialogueStatus.ComboBoxNodeSemId.Items.Add(prefHS.CD_Node?.GetSingleKey()?.Value);
+
+                if (!edit)
+                {
+                    if (_dialogueStatus.IsEntryNode)
+                        _dialogueStatus.ComboBoxNodeSemId.Text = _dialogueStatus.ComboBoxNodeSemId.Items[1].ToString();
+                    else
+                        _dialogueStatus.ComboBoxNodeSemId.Text = _dialogueStatus.ComboBoxNodeSemId.Items[0].ToString();
+                }
+                else
+                {
+                    _dialogueStatus.ComboBoxNodeSemId.Text = "" + (_dialogueStatus.Node as Aas.IHasSemantics).SemanticId.Keys?.FirstOrDefault()?.Value;
+                }                
+
+                AddToGrid(grid, 1, 1, colSpan: 3, fe: _dialogueStatus.ComboBoxNodeSemId);
+
+                // Node.supplSemId
+                AddToGrid(grid, 2, 0, fe: new Label() { Content = "Node.supplSemId:" });
+                _dialogueStatus.ComboBoxNodeSupplSemId = new ComboBox()
+                {
+                    IsEditable = true,
+                    Padding = new Thickness(0, -1, 0, -1),
+                    Margin = new Thickness(0, 2, 0, 2),
+                    VerticalContentAlignment = VerticalAlignment.Center
+                };
+
+                if (!edit)
+                {
+                    _dialogueStatus.ComboBoxNodeSupplSemId.Text = "";
+                }
+                else
+                {
+                    _dialogueStatus.ComboBoxNodeSupplSemId.Text = 
+                        "" + (_dialogueStatus.Node as Aas.IHasSemantics)?.SupplementalSemanticIds?
+                            .FirstOrDefault()?.Keys?.FirstOrDefault()?.Value;
+                }
+
+                AddToGrid(grid, 2, 1, colSpan: 3, fe: _dialogueStatus.ComboBoxNodeSupplSemId);
+
+                if (stat.Type == DialogueType.Create)
+                {
+                    // Rel.semId
+                    AddToGrid(grid, 3, 0, fe: new Label() { Content = "Relation.semanticId:" });
+                    _dialogueStatus.ComboBoxRelSemId = new ComboBox()
+                    {
+                        IsEditable = true,
+                        Padding = new Thickness(0, -1, 0, -1),
+                        Margin = new Thickness(0, 2, 0, 2),
+                        VerticalContentAlignment = VerticalAlignment.Center
+                    };
+
+                    _dialogueStatus.ComboBoxRelSemId.Items.Add(prefHS.CD_HasPart?.GetSingleKey()?.Value);
+                    _dialogueStatus.ComboBoxRelSemId.Items.Add(prefHS.CD_IsPartOf?.GetSingleKey()?.Value);
+                    if (_dialogueStatus.ReverseDir)
+                        _dialogueStatus.ComboBoxRelSemId.Text = _dialogueStatus.ComboBoxRelSemId.Items[1].ToString();
+                    else
+                        _dialogueStatus.ComboBoxRelSemId.Text = _dialogueStatus.ComboBoxRelSemId.Items[0].ToString();
+
+                    AddToGrid(grid, 3, 1, colSpan: 3, fe: _dialogueStatus.ComboBoxRelSemId);
+
+                    // Node.supplSemId
+                    AddToGrid(grid, 4, 0, fe: new Label() { Content = "Rel.supplSemId:" });
+                    _dialogueStatus.ComboBoxRelSupplSemId = new ComboBox()
+                    {
+                        IsEditable = true,
+                        Padding = new Thickness(0, -1, 0, -1),
+                        Margin = new Thickness(0, 2, 0, 2),
+                        VerticalContentAlignment = VerticalAlignment.Center
+                    };
+
+                    AddToGrid(grid, 4, 1, colSpan: 3, fe: _dialogueStatus.ComboBoxRelSupplSemId);
+                }
+
+                // Add button
+                var btnCancel = new Button() { Content = "Cancel", Padding = new Thickness(2), Margin = new Thickness(2) };
+                btnCancel.Click += (s, e) => {
+                    _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
+                    HideDialoguePage();
+                };
+                AddToGrid(grid, grid.RowDefinitions.Count - 1, 1, fe: btnCancel);
+
+                // Add action
+
+                Action lambdaAdd = () => {
+                    // access
+                    if (_dialogueStatus != null)
+                    {
+                        var idShort = "" + _dialogueStatus.TextBoxIdShort?.Text;
+                        _dialogueStatus.Action?.Invoke(_dialogueStatus, "OK");
+                    }
+
+                    // done
+                    _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
+                    HideDialoguePage();
+                };
+
+                _dialogueStatus.TextBoxIdShort.KeyDown += (s2, e2) =>
+                {
+                    if (e2.Key == System.Windows.Input.Key.Return)
+                        lambdaAdd.Invoke();
+                };
+
+                var btnAdd = new Button() {  Content = "OK", Padding = new Thickness(2), Margin = new Thickness(2) };
+                btnAdd.Click += (s, e) => { lambdaAdd.Invoke(); } ;
+                AddToGrid(grid, grid.RowDefinitions.Count - 1, 3, fe: btnAdd);                
+
+                return grid;
+            }
+
+            if (stat.Type == DialogueType.Delete)
+            {
+                // confirmation (delete)
+                var grid = new Grid();
+                
+                // 5 rows (spacer, text, small gap, buttons, space)
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Star) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(10.0, GridUnitType.Pixel) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Star) });
+
+                // 5 cols (small, expand, small, expand, small)
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(30.0, GridUnitType.Pixel) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1.0, GridUnitType.Star) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(30.0, GridUnitType.Pixel) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1.0, GridUnitType.Star) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(30.0, GridUnitType.Pixel) });
+
+                // text
+                AddToGrid(grid, 1, 1, colSpan: 3, fe: new TextBox() { 
+                    Text = "Proceed with deleting selected nodes?", 
+                    FontSize = 14.0, TextWrapping = TextWrapping.Wrap,
+                    BorderThickness = new Thickness(0),
+                    HorizontalContentAlignment = HorizontalAlignment.Center,
+                    IsReadOnly = true
+                });
+
+                // Add button
+                var btnCancel = new Button() { Content = "Cancel", Padding = new Thickness(2), Margin = new Thickness(2) };
+                btnCancel.Click += (s, e) => {
+                    _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
+                    HideDialoguePage();
+                };
+                AddToGrid(grid, 3, 1, fe: btnCancel);
+
+                // Add button
+                var btnAdd = new Button() { Content = "OK", Padding = new Thickness(2), Margin = new Thickness(2) };
+                btnAdd.Click += (s, e) => {
+                    // access
+                    _dialogueStatus.Action?.Invoke(_dialogueStatus, "OK");
+
+                    // done
+                    _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
+                    HideDialoguePage();
+                };
+                AddToGrid(grid, 3, 3, fe: btnAdd);
+
+                return grid;
+            }
+
+            // uuh?
+            return new Grid();
         }
 
     }
