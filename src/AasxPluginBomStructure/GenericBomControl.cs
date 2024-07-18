@@ -66,6 +66,9 @@ namespace AasxPluginBomStructure
         private TabControl _tabControlBottom = null;
         private TabItem _tabItemEdit = null;
 
+        private bool _needsFinalize = false;
+        private Button _buttonFinalize = null;
+
         public void SetEventStack(PluginEventStack es)
         {
             this.eventStack = es;
@@ -74,16 +77,24 @@ namespace AasxPluginBomStructure
         protected WrapPanel CreateTopPanel()
         {
             // create TOP controls
-            var wpTop = new WrapPanel();
-            wpTop.Orientation = Orientation.Horizontal;
+            var wpTop = new WrapPanel()
+            {
+                Orientation = Orientation.Horizontal,
+                Background = new SolidColorBrush(Color.FromRgb(0xf0, 0xf0, 0xf0)),
+            };
 
             // style
 
-            wpTop.Children.Add(new Label() { Content = "Layout style: " });
+            wpTop.Children.Add(new Label() { 
+                Content = "Layout style: ",                
+                VerticalContentAlignment = VerticalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            });
 
             var cbli = new ComboBox()
             {
-                Margin = new Thickness(0, 0, 0, 5)
+                Margin = new Thickness(0, 2, 0, 2),
+                VerticalAlignment = VerticalAlignment.Center
             };
             foreach (var psn in this.PresetSettingNames)
                 cbli.Items.Add(psn);
@@ -98,19 +109,23 @@ namespace AasxPluginBomStructure
 
             // spacing
 
-            wpTop.Children.Add(new Label() { Content = "Spacing: " });
+            wpTop.Children.Add(new Label() { 
+                Content = "Spacing: ",
+                VerticalContentAlignment = VerticalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            });
 
             var sli = new Slider()
             {
                 Orientation = Orientation.Horizontal,
-                Width = 150,
+                Width = 100,
                 Minimum = 1,
-                Maximum = 300,
+                Maximum = 100,
                 TickFrequency = 10,
                 IsSnapToTickEnabled = true,
                 Value = _creatorOptions.LayoutSpacing,
-                Margin = new System.Windows.Thickness(10, 0, 10, 5),
-                VerticalAlignment = System.Windows.VerticalAlignment.Center
+                Margin = new Thickness(10, 2, 10, 2),
+                VerticalAlignment = VerticalAlignment.Center
             };
             sli.ValueChanged += (s, e) =>
             {
@@ -125,8 +140,8 @@ namespace AasxPluginBomStructure
             var cbcomp = new CheckBox()
             {
                 Content = "Compact labels",
-                Margin = new System.Windows.Thickness(10, 0, 10, 5),
-                VerticalContentAlignment = System.Windows.VerticalAlignment.Center,
+                Margin = new Thickness(10, 2, 10, 2),
+                VerticalContentAlignment = VerticalAlignment.Center,
                 IsChecked = _creatorOptions.CompactLabels,
             };
             RoutedEventHandler cbcomb_changed = (s2, e2) =>
@@ -144,8 +159,9 @@ namespace AasxPluginBomStructure
             var cbaid = new CheckBox()
             {
                 Content = "Show Asset ids",
-                Margin = new System.Windows.Thickness(10, 0, 10, 5),
-                VerticalContentAlignment = System.Windows.VerticalAlignment.Center,
+                Margin = new Thickness(10, 2, 10, 2),
+                VerticalContentAlignment = VerticalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
                 IsChecked = _creatorOptions.CompactLabels,
             };
             RoutedEventHandler cbaid_changed = (s2, e2) =>
@@ -157,6 +173,29 @@ namespace AasxPluginBomStructure
             cbaid.Checked += cbaid_changed;
             cbaid.Unchecked += cbaid_changed;
             wpTop.Children.Add(cbaid);
+
+            // finalize button
+            _buttonFinalize = new Button()
+            {
+                Content = "Finalize design",
+                ToolTip = "Will reload all contents including redisplay of AAS tree of elements",
+                IsEnabled = _needsFinalize,
+                Padding = new Thickness(2, -2, 2, -1),
+                Margin = new Thickness(2, 1, 2, 1),
+                MinHeight = 24
+            };
+            _buttonFinalize.Click += (s3, e3) =>
+            {
+                // acknowledge
+                SetNeedsFinalize(false);
+
+                // send event to main application
+                var evt = new AasxPluginResultEventRedrawAllElements()
+                {
+                };
+                this.eventStack.PushEvent(evt);
+            };
+            wpTop.Children.Add(_buttonFinalize);
 
 #if __old__
 
@@ -188,6 +227,13 @@ namespace AasxPluginBomStructure
             // return
 
             return wpTop;
+        }
+
+        protected void SetNeedsFinalize(bool state)
+        {
+            _needsFinalize = state;
+            if (_buttonFinalize != null)
+                _buttonFinalize.IsEnabled = state;
         }
 
         /// <summary>
@@ -239,10 +285,14 @@ namespace AasxPluginBomStructure
             var legend = GenericBomCreator.GenerateWrapLegend();
 
             _tabControlBottom = new TabControl() { MinHeight = 100 };
-            _tabControlBottom.Items.Add(new TabItem() { Header = "Legend", Name = "tabItemLegend", 
+            _tabControlBottom.Items.Add(new TabItem() { 
+                Header = "", Name = "tabItemLegend", 
+                Visibility = Visibility.Collapsed,
                 Content = legend });
 
-            _tabItemEdit = new TabItem() { Header = "Edit", Name = "tabItemEdit", 
+            _tabItemEdit = new TabItem() { 
+                Header = "", Name = "tabItemEdit", 
+                Visibility = Visibility.Collapsed,
                 Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None }) };
             _tabControlBottom.Items.Add(_tabItemEdit);
 
@@ -281,8 +331,6 @@ namespace AasxPluginBomStructure
             dp.ContextMenu.Items.Add(new MenuItem() { Header = "Edit Node ..", Tag = "EDIT" });
             dp.ContextMenu.Items.Add(new MenuItem() { Header = "Create Node (to selected) ..", Tag = "CREATE" });
             dp.ContextMenu.Items.Add(new MenuItem() { Header = "Delete (selected) Node(s) ..", Tag = "DELETE" });
-            dp.ContextMenu.Items.Add(new Separator());
-            dp.ContextMenu.Items.Add(new MenuItem() { Header = "Export as SVG ..", Tag = "EXP-SVG" });
 
             foreach (var x in dp.ContextMenu.Items)
                 if (x is MenuItem mi)
@@ -552,13 +600,13 @@ namespace AasxPluginBomStructure
                      && node.Node?.UserData is Aas.ISubmodelElement nodeSme)
                     {
                         // create job
-                        var stat = new DialogueStatus() { Type = DialogueType.Edit, Node = nodeSme };
+                        var stat = new DialogueStatus() { Type = DialogueType.EditNode, AasElem = nodeSme };
 
                         // set the action
                         stat.Action = (st, action) =>
                         {
                             // correct?
-                            if (action != "OK" || !(st.Node is Aas.ISubmodelElement nodeSme))
+                            if (action != "OK" || !(st.AasElem is Aas.ISubmodelElement nodeSme))
                                 return;
 
                             // modidfy
@@ -569,6 +617,32 @@ namespace AasxPluginBomStructure
                                 nodeSemId: st.ComboBoxNodeSemId.Text);
 
                             // refresh
+                            SetNeedsFinalize(true);
+                            RedrawGraph();
+                        };
+
+                        // in any case, create a node
+                        StartShowDialogue(stat);
+                    }
+
+                    if (_objectUnderCursor is Microsoft.Msagl.Drawing.IViewerEdge edge
+                     && edge.Edge?.UserData is Aas.ISubmodelElement edgeSme)
+                    {
+                        // create job
+                        var stat = new DialogueStatus() { Type = DialogueType.EditEdge, AasElem = edgeSme };
+
+                        // set the action
+                        stat.Action = (st, action) =>
+                        {
+                            // correct?
+                            if (action != "OK" || !(st.AasElem is Aas.ISubmodelElement esme))
+                                return;
+
+                            // modidfy
+                            esme.IdShort = st.TextBoxIdShort.Text;
+
+                            // refresh
+                            SetNeedsFinalize(true);
                             RedrawGraph();
                         };
 
@@ -639,6 +713,7 @@ namespace AasxPluginBomStructure
 #else
 
                         // refresh
+                        SetNeedsFinalize(true);
                         RedrawGraph();
 
 #endif
@@ -713,6 +788,7 @@ namespace AasxPluginBomStructure
                                 td.Item1?.Remove(td.Item2);
 
                             // refresh
+                            SetNeedsFinalize(true);
                             RedrawGraph();
                         }
 
@@ -797,45 +873,6 @@ namespace AasxPluginBomStructure
 #endif
                 }
 
-                if (miTag == "EXP-SVG" && theViewer.Graph != null)
-                {
-                    // ask for file name
-                    var dlg = new Microsoft.Win32.SaveFileDialog()
-                    {
-                        FileName = "new",
-                        DefaultExt = ".svg",
-                        Filter = "Scalable Vector Graphics (.svg)|*.svg|All files|*.*"
-                    };
-                    if (dlg.ShowDialog() != true)
-                        return;
-
-                    // theViewer.Graph.CreateGeometryGraph();
-                    LayoutHelpers.CalculateLayout(theViewer.Graph.GeometryGraph, new SugiyamaLayoutSettings(), null);
-
-                    foreach (var n in theViewer.Graph.Nodes)
-                        if (n.Label != null)
-                        {
-                            n.Label.Width = 100;
-                            n.Label.Height = 20;
-                        }
-
-                    // take care on resources
-                    try
-                    {
-                        // SvgGraphWriter.Write(theViewer.Graph, dlg.FileName, null, null, 4);
-                        using (var stream = File.Create(dlg.FileName))
-                        {
-                            var svgWriter = new Microsoft.Msagl.Drawing.SvgGraphWriter(stream, theViewer.Graph);
-                            svgWriter.Write();
-                        }
-                    } catch (Exception ex)
-                    {
-                        AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
-                    }
-
-                    // toggle redisplay -> graph is renewed for display
-                    RedrawGraph();
-                }
             }
         }
 
@@ -995,6 +1032,8 @@ namespace AasxPluginBomStructure
             if (settings != null)
                 graph.LayoutAlgorithmSettings = settings;
 
+            // switching between LR and TB makes a lot of issues, therefore:
+            // LR is the most useful one!
             graph.Attr.LayerDirection = Microsoft.Msagl.Drawing.LayerDirection.LR;
 
 #endif
@@ -1089,7 +1128,7 @@ namespace AasxPluginBomStructure
             {
                 // Round
                 var settings = new Microsoft.Msagl.Layout.Incremental.FastIncrementalLayoutSettings();
-                settings.RepulsiveForceConstant = 8.0 / (1.0 + nodeCount) * (1.0 + opt.LayoutSpacing);
+                settings.RepulsiveForceConstant = 8.0 / (1.0 + nodeCount) * (5.0 + opt.LayoutSpacing);
                 return settings;
             }
         }
@@ -1154,7 +1193,7 @@ namespace AasxPluginBomStructure
             grid.Children.Add(fe);
         }
 
-        protected enum DialogueType { None = 0, Edit = 1, Create = 2, Delete = 3}
+        protected enum DialogueType { None = 0, EditNode, EditEdge, Create, Delete }
 
         protected class DialogueStatus
         {
@@ -1163,7 +1202,7 @@ namespace AasxPluginBomStructure
             public Microsoft.Msagl.Drawing.IViewerNode ParentNode = null;
             public Aas.IReferable ParentReferable = null;
 
-            public Aas.IReferable Node = null;
+            public Aas.IReferable AasElem = null;
             public List<Aas.IReferable> Nodes = new List<Aas.IReferable>();
 
             public TextBox TextBoxIdShort = null;
@@ -1194,12 +1233,15 @@ namespace AasxPluginBomStructure
                 return grid;
             }
 
-            if (stat.Type == DialogueType.Edit || stat.Type == DialogueType.Create)
+            if (stat.Type == DialogueType.EditNode || stat.Type == DialogueType.EditEdge 
+                || stat.Type == DialogueType.Create)
             {
                 // add node
                 var grid = new Grid();
                 var prefHS = AasxPredefinedConcepts.HierarchStructV10.Static;
-                var edit = stat.Type == DialogueType.Edit;
+                var create = stat.Type == DialogueType.Create;
+                var editNode = stat.Type == DialogueType.EditNode;
+                var editEdge = stat.Type == DialogueType.EditEdge;
 
                 // 4 rows (IdShort, Node.semId, Node.suppSemId, Rel.semId, Rel.suppSemId, expand, buttons)
                 grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
@@ -1217,9 +1259,11 @@ namespace AasxPluginBomStructure
                 grid.ColumnDefinitions.Add(new ColumnDefinition() {  Width = new GridLength(1.0, GridUnitType.Star) });
 
                 // idShort
-                AddToGrid(grid, 0, 0, fe: new Label() { Content = "Node.idShort:" });
-                AddToGrid(grid, 0, 1, colSpan:1, fe: _dialogueStatus.TextBoxIdShort = new TextBox() { 
-                    Text = edit ? _dialogueStatus.Node?.IdShort : "", 
+                AddToGrid(grid, 0, 0, fe: new Label() { 
+                    Content = editEdge ? "Rel.idShort:" : "Node.idShort:" 
+                });
+                AddToGrid(grid, 0, 1, colSpan:1, fe: stat.TextBoxIdShort = new TextBox() { 
+                    Text = editNode ? stat.AasElem?.IdShort : "", 
                     VerticalContentAlignment = VerticalAlignment.Center,
                     Padding = new Thickness(0, -1, 0, -1),
                     Margin = new Thickness(0, 2, 0, 2),
@@ -1227,59 +1271,64 @@ namespace AasxPluginBomStructure
                 AddToGrid(grid, 0, 3, fe: new Label() { Content = "(Enter confirms add)", Foreground = Brushes.DarkGray });
 
                 // Node.semId
-                AddToGrid(grid, 1, 0, fe: new Label() { Content = "Node.semanticId:" });
-                _dialogueStatus.ComboBoxNodeSemId = new ComboBox() {
-                    IsEditable = true,
-                    Padding = new Thickness(0, -1, 0, -1),
-                    Margin = new Thickness(0, 2, 0, 2),
-                    VerticalContentAlignment = VerticalAlignment.Center
-                };
-
-                _dialogueStatus.ComboBoxNodeSemId.Items.Add(prefHS.CD_EntryNode?.GetSingleKey()?.Value);
-                _dialogueStatus.ComboBoxNodeSemId.Items.Add(prefHS.CD_Node?.GetSingleKey()?.Value);
-
-                if (!edit)
+                if (create || editNode)
                 {
-                    if (_dialogueStatus.IsEntryNode)
-                        _dialogueStatus.ComboBoxNodeSemId.Text = _dialogueStatus.ComboBoxNodeSemId.Items[1].ToString();
+                    AddToGrid(grid, 1, 0, fe: new Label() { Content = "Node.semanticId:" });
+                    stat.ComboBoxNodeSemId = new ComboBox()
+                    {
+                        IsEditable = true,
+                        Padding = new Thickness(0, -1, 0, -1),
+                        Margin = new Thickness(0, 2, 0, 2),
+                        VerticalContentAlignment = VerticalAlignment.Center
+                    };
+
+                    stat.ComboBoxNodeSemId.Items.Add(prefHS.CD_EntryNode?.GetSingleKey()?.Value);
+                    stat.ComboBoxNodeSemId.Items.Add(prefHS.CD_Node?.GetSingleKey()?.Value);
+
+                    if (!editNode)
+                    {
+                        if (stat.IsEntryNode)
+                            stat.ComboBoxNodeSemId.Text = stat.ComboBoxNodeSemId.Items[1].ToString();
+                        else
+                            stat.ComboBoxNodeSemId.Text = stat.ComboBoxNodeSemId.Items[0].ToString();
+                    }
                     else
-                        _dialogueStatus.ComboBoxNodeSemId.Text = _dialogueStatus.ComboBoxNodeSemId.Items[0].ToString();
+                    {
+                        stat.ComboBoxNodeSemId.Text = "" + (stat.AasElem as Aas.IHasSemantics).SemanticId.Keys?.FirstOrDefault()?.Value;
+                    }                
+
+                    AddToGrid(grid, 1, 1, colSpan: 3, fe: stat.ComboBoxNodeSemId);
+
+                    // Node.supplSemId
+                    AddToGrid(grid, 2, 0, fe: new Label() { Content = "Node.supplSemId:" });
+                    stat.ComboBoxNodeSupplSemId = new ComboBox()
+                    {
+                        IsEditable = true,
+                        Padding = new Thickness(0, -1, 0, -1),
+                        Margin = new Thickness(0, 2, 0, 2),
+                        VerticalContentAlignment = VerticalAlignment.Center
+                    };
+
+                    if (!editNode)
+                    {
+                        stat.ComboBoxNodeSupplSemId.Text = "";
+                    }
+                    else
+                    {
+                        stat.ComboBoxNodeSupplSemId.Text = 
+                            "" + (stat.AasElem as Aas.IHasSemantics)?.SupplementalSemanticIds?
+                                .FirstOrDefault()?.Keys?.FirstOrDefault()?.Value;
+                    }
+
+                    AddToGrid(grid, 2, 1, colSpan: 3, fe: stat.ComboBoxNodeSupplSemId);
+
                 }
-                else
-                {
-                    _dialogueStatus.ComboBoxNodeSemId.Text = "" + (_dialogueStatus.Node as Aas.IHasSemantics).SemanticId.Keys?.FirstOrDefault()?.Value;
-                }                
 
-                AddToGrid(grid, 1, 1, colSpan: 3, fe: _dialogueStatus.ComboBoxNodeSemId);
-
-                // Node.supplSemId
-                AddToGrid(grid, 2, 0, fe: new Label() { Content = "Node.supplSemId:" });
-                _dialogueStatus.ComboBoxNodeSupplSemId = new ComboBox()
-                {
-                    IsEditable = true,
-                    Padding = new Thickness(0, -1, 0, -1),
-                    Margin = new Thickness(0, 2, 0, 2),
-                    VerticalContentAlignment = VerticalAlignment.Center
-                };
-
-                if (!edit)
-                {
-                    _dialogueStatus.ComboBoxNodeSupplSemId.Text = "";
-                }
-                else
-                {
-                    _dialogueStatus.ComboBoxNodeSupplSemId.Text = 
-                        "" + (_dialogueStatus.Node as Aas.IHasSemantics)?.SupplementalSemanticIds?
-                            .FirstOrDefault()?.Keys?.FirstOrDefault()?.Value;
-                }
-
-                AddToGrid(grid, 2, 1, colSpan: 3, fe: _dialogueStatus.ComboBoxNodeSupplSemId);
-
-                if (stat.Type == DialogueType.Create)
+                if (create || editEdge)
                 {
                     // Rel.semId
                     AddToGrid(grid, 3, 0, fe: new Label() { Content = "Relation.semanticId:" });
-                    _dialogueStatus.ComboBoxRelSemId = new ComboBox()
+                    stat.ComboBoxRelSemId = new ComboBox()
                     {
                         IsEditable = true,
                         Padding = new Thickness(0, -1, 0, -1),
@@ -1287,18 +1336,18 @@ namespace AasxPluginBomStructure
                         VerticalContentAlignment = VerticalAlignment.Center
                     };
 
-                    _dialogueStatus.ComboBoxRelSemId.Items.Add(prefHS.CD_HasPart?.GetSingleKey()?.Value);
-                    _dialogueStatus.ComboBoxRelSemId.Items.Add(prefHS.CD_IsPartOf?.GetSingleKey()?.Value);
-                    if (_dialogueStatus.ReverseDir)
-                        _dialogueStatus.ComboBoxRelSemId.Text = _dialogueStatus.ComboBoxRelSemId.Items[1].ToString();
+                    stat.ComboBoxRelSemId.Items.Add(prefHS.CD_HasPart?.GetSingleKey()?.Value);
+                    stat.ComboBoxRelSemId.Items.Add(prefHS.CD_IsPartOf?.GetSingleKey()?.Value);
+                    if (stat.ReverseDir)
+                        stat.ComboBoxRelSemId.Text = stat.ComboBoxRelSemId.Items[1].ToString();
                     else
-                        _dialogueStatus.ComboBoxRelSemId.Text = _dialogueStatus.ComboBoxRelSemId.Items[0].ToString();
+                        stat.ComboBoxRelSemId.Text = stat.ComboBoxRelSemId.Items[0].ToString();
 
-                    AddToGrid(grid, 3, 1, colSpan: 3, fe: _dialogueStatus.ComboBoxRelSemId);
+                    AddToGrid(grid, 3, 1, colSpan: 3, fe: stat.ComboBoxRelSemId);
 
                     // Node.supplSemId
                     AddToGrid(grid, 4, 0, fe: new Label() { Content = "Rel.supplSemId:" });
-                    _dialogueStatus.ComboBoxRelSupplSemId = new ComboBox()
+                    stat.ComboBoxRelSupplSemId = new ComboBox()
                     {
                         IsEditable = true,
                         Padding = new Thickness(0, -1, 0, -1),
@@ -1306,7 +1355,7 @@ namespace AasxPluginBomStructure
                         VerticalContentAlignment = VerticalAlignment.Center
                     };
 
-                    AddToGrid(grid, 4, 1, colSpan: 3, fe: _dialogueStatus.ComboBoxRelSupplSemId);
+                    AddToGrid(grid, 4, 1, colSpan: 3, fe: stat.ComboBoxRelSupplSemId);
                 }
 
                 // Add button
@@ -1321,10 +1370,10 @@ namespace AasxPluginBomStructure
 
                 Action lambdaAdd = () => {
                     // access
-                    if (_dialogueStatus != null)
+                    if (stat != null)
                     {
-                        var idShort = "" + _dialogueStatus.TextBoxIdShort?.Text;
-                        _dialogueStatus.Action?.Invoke(_dialogueStatus, "OK");
+                        var idShort = "" + stat.TextBoxIdShort?.Text;
+                        stat.Action?.Invoke(stat, "OK");
                     }
 
                     // done
@@ -1332,7 +1381,7 @@ namespace AasxPluginBomStructure
                     HideDialoguePage();
                 };
 
-                _dialogueStatus.TextBoxIdShort.KeyDown += (s2, e2) =>
+                stat.TextBoxIdShort.KeyDown += (s2, e2) =>
                 {
                     if (e2.Key == System.Windows.Input.Key.Return)
                         lambdaAdd.Invoke();
@@ -1385,7 +1434,7 @@ namespace AasxPluginBomStructure
                 var btnAdd = new Button() { Content = "OK", Padding = new Thickness(2), Margin = new Thickness(2) };
                 btnAdd.Click += (s, e) => {
                     // access
-                    _dialogueStatus.Action?.Invoke(_dialogueStatus, "OK");
+                    stat.Action?.Invoke(stat, "OK");
 
                     // done
                     _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
