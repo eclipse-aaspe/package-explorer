@@ -3,7 +3,7 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <OutputType>library</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <UseWPF>true</UseWPF>
+    <UseWPF>false</UseWPF>
 
     <!-- force NuGet / Build to put required.dll and more to bin folder -->
     <!-- Drawback: puts all other *.dll as well :-( -->
@@ -49,6 +49,7 @@
     <PackageReference Include="FluentModbus" Version="5.0.3" />
     <PackageReference Include="MQTTnet" Version="4.1.1.318" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.371.96" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="7.0.0" />
+    <PackageReference Include="Workstation.UaClient" Version="3.2.3" />
   </ItemGroup>
 </Project>

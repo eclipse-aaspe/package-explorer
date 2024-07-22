@@ -7,6 +7,8 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+#define OPCUA2
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,23 +28,42 @@ using System.Net.Http;
 using MQTTnet;
 using MQTTnet.Client;
 using System.Web.Services.Description;
+
+#if OPCUA2
+using Workstation.ServiceModel.Ua;
+#else
 using Opc.Ua;
+#endif
 
 namespace AasxPluginAssetInterfaceDescription
 {
     public class AidOpcUaConnection : AidBaseConnection
-    {       
+    {
+
+#if OPCUA2
+        public AasOpcUaClient2 Client;
+#else
         public AasOpcUaClient Client;
+#endif
 
         public class SubscribedItem
         {
             public string NodePath;
+#if OPCUA2
+            public IDisposable Subscription;
+#else
             public Opc.Ua.Client.Subscription Subscription;
+#endif
             public AidIfxItemStatus Item;
         }
 
-        protected Dictionary<Opc.Ua.NodeId, SubscribedItem> _subscriptions
+#if OPCUA2
+        protected Dictionary<string, SubscribedItem> _subscriptions
+            = new Dictionary<string, SubscribedItem>();
+#else
+        protected Dictionary<NodeId, SubscribedItem> _subscriptions
             = new Dictionary<NodeId, SubscribedItem>();
+#endif
 
         override public bool Open()
         {
@@ -50,6 +71,15 @@ namespace AasxPluginAssetInterfaceDescription
             {
                 // make client
                 // use the full target uri as endpoint (first)
+#if OPCUA2
+                Client = new AasOpcUaClient2(
+                    TargetUri.ToString(),
+                    autoAccept: true,
+                    userName: this.User,
+                    password: this.Password,
+                    timeOutMs: (TimeOutMs >= 10) ? (uint)TimeOutMs : 2000,
+                    log: Log);
+#else
                 Client = new AasOpcUaClient(
                     TargetUri.ToString(), 
                     autoAccept: true, 
@@ -58,6 +88,7 @@ namespace AasxPluginAssetInterfaceDescription
                     timeOutMs: (TimeOutMs >= 10) ? (uint) TimeOutMs : 2000,
                     log: Log);
                 // Client.Run();
+#endif
 
                 var task = Task.Run(async () => await Client.DirectConnect());
                 task.Wait();
@@ -93,8 +124,34 @@ namespace AasxPluginAssetInterfaceDescription
                 }
                 // _subscribedTopics.Clear();
             }
-        }        
+        }
 
+#if OPCUA2
+        override public async Task<int> UpdateItemValueAsync(AidIfxItemStatus item)
+        {
+            // access
+            if (!IsConnected())
+                return 0;
+
+            // careful
+            try
+            {
+                // get an node id?
+                var nid = Client.ParseAndCreateNodeId(item?.FormData?.Href);
+
+                // direct read possible?
+                var dv = await Client.ReadNodeIdAsync(nid);
+                item.Value = AdminShellUtil.ToStringInvariant(dv?.Value);
+                LastActive = DateTime.Now;
+            }
+            catch (Exception ex)
+            {
+                ;
+            }
+
+            return 0;
+        }
+#else
         override public int UpdateItemValue(AidIfxItemStatus item)
         {
             // access
@@ -119,8 +176,9 @@ namespace AasxPluginAssetInterfaceDescription
 
             return 0;
         }
+#endif
 
-        override public void PrepareContinousRun(IEnumerable<AidIfxItemStatus> items)
+        override public async Task PrepareContinousRunAsync(IEnumerable<AidIfxItemStatus> items)
         {
             // access
             if (!IsConnected() || items == null)
@@ -146,6 +204,19 @@ namespace AasxPluginAssetInterfaceDescription
                     continue;
 
                 // ok, make subscription
+#if OPCUA2
+                var sub = await Client.SubscribeNodeIdsAsync(
+                    new[] { nid },
+                    handler: SubscriptionHandler,
+                    publishingInterval: (UpdateFreqMs >= 10) ? (int)UpdateFreqMs : 500);
+                _subscriptions.Add(nodePath,
+                    new SubscribedItem()
+                    {
+                        NodePath = nodePath,
+                        Subscription = sub,
+                        Item = item,
+                    });
+#else
                 var sub = Client.SubscribeNodeIds(
                     new[] { nid },
                     handler: SubscriptionHandler,
@@ -156,9 +227,16 @@ namespace AasxPluginAssetInterfaceDescription
                         Subscription = sub,
                         Item = item,
                     });
+#endif
             }
         }
 
+#if OPCUA2
+        protected void SubscriptionHandler(NodeId nid, string value)
+        {
+            ;
+        }
+#else
         protected void SubscriptionHandler(
             Opc.Ua.Client.MonitoredItem monitoredItem,
             Opc.Ua.Client.MonitoredItemNotificationEventArgs e)
@@ -178,5 +256,7 @@ namespace AasxPluginAssetInterfaceDescription
                     MessageReceived?.Invoke(subi.NodePath, AdminShellUtil.ToStringInvariant(valueObj.Value));
             }
         }
+#endif
+
+        }
     }
-}
