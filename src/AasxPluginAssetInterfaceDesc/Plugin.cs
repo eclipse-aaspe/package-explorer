@@ -297,7 +297,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                                         _allInterfaceStatus.SmAidMapping,
                                         lambdaLookupReference: (rf) => ticket?.Env.FindReferableByReference(rf));
                                     _allInterfaceStatus.SetAidInformationForUpdateAndTimeout();
-                                    _allInterfaceStatus.StartContinousRun();
+                                    await _allInterfaceStatus.StartContinousRunAsync();
                                 }
 
                             } catch (Exception ex)

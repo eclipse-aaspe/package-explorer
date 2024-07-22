@@ -7,6 +7,8 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+#define OPCUA2
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,33 +19,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using AasxIntegrationBase;
 using AdminShellNS;
+
+#if OPCUA2
+#else
 using Opc.Ua;
 using Opc.Ua.Client;
 using Opc.Ua.Configuration;
+#endif
 
 // Note: this is a DUPLICATE from WpfMtpControl
 
 namespace AasxPluginAssetInterfaceDescription
 {
-    public enum AasOpcUaClientStatus
-    {
-        Starting = 0,
-        ErrorCreateApplication = 0x11,
-        ErrorDiscoverEndpoints = 0x12,
-        ErrorCreateSession = 0x13,
-        ErrorBrowseNamespace = 0x14,
-        ErrorCreateSubscription = 0x15,
-        ErrorMonitoredItem = 0x16,
-        ErrorAddSubscription = 0x17,
-        ErrorRunning = 0x18,
-        ErrorReadConfigFile = 0x19,
-        ErrorNoKeepAlive = 0x30,
-        ErrorInvalidCommandLine = 0x100,
-        Running = 0x1000,
-        Quitting = 0x8000,
-        Quitted = 0x8001
-    };
-
+#if OPCUA2
+#else
     public class AasOpcUaClient
     {
         const int ReconnectPeriod = 10;
@@ -334,4 +323,5 @@ namespace AasxPluginAssetInterfaceDescription
             return subscription;
         }        
     }
+#endif
 }

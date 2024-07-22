@@ -371,14 +371,14 @@ namespace AasxPluginAssetInterfaceDescription
                     margin: new AnyUiThickness(2), setHeight: 21,
                     padding: new AnyUiThickness(2, 0, 2, 0),
                     content: "Start continous run .."),
-                (o) =>
+                setValueAsync: async (o) =>
                 {
                     try
                     {
                         // command
                         if (_allInterfaceStatus != null)
                         {
-                            _allInterfaceStatus.StartContinousRun();
+                            await _allInterfaceStatus.StartContinousRunAsync();
                         }
 
                         // trigger a complete redraw

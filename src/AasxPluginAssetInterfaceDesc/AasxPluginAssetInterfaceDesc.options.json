@@ -9,10 +9,10 @@
           "value": "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Submodel"
         }
       ],
-      "UseHttp": true,
-      "UseModbus": true,
+      "UseHttp": false,
+      "UseModbus": false,
       "UseMqtt": false,
-      "UseOpcUa": false
+      "UseOpcUa": true
     },
     {
       "IsDescription": false,

@@ -293,7 +293,7 @@ namespace AasxPluginAssetInterfaceDescription
         /// Tries to update the value (by polling). Async opion is preferred.
         /// </summary>
         /// <returns>Number of values changed</returns>
-        virtual public void PrepareContinousRun(IEnumerable<AidIfxItemStatus> items)
+        virtual public async Task PrepareContinousRunAsync(IEnumerable<AidIfxItemStatus> items)
         {
 
         }
@@ -559,7 +559,7 @@ namespace AasxPluginAssetInterfaceDescription
         /// Will connect to each target, leave the connection open, will enable 
         /// cyclic updates.
         /// </summary>
-        public void StartContinousRun()
+        public async Task StartContinousRunAsync()
         {
             // off
             ContinousRun = false;
@@ -617,7 +617,7 @@ namespace AasxPluginAssetInterfaceDescription
                             }
                     };
                     conn.AnimateSingleValueChange = OnAnimateSingleValueChange;
-                    conn.PrepareContinousRun(ifc.Items.Values);
+                    await conn.PrepareContinousRunAsync(ifc.Items.Values);
                     ifc.SetLogLine(StoredPrint.Color.Blue, "Connection established and prepared.");
                 }
             }

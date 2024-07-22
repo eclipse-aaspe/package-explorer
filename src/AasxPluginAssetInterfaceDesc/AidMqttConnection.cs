@@ -120,7 +120,7 @@ namespace AasxPluginAssetInterfaceDescription
             return 0;
         }
 
-        override public void PrepareContinousRun(IEnumerable<AidIfxItemStatus> items)
+        override public async Task PrepareContinousRunAsync(IEnumerable<AidIfxItemStatus> items)
         {
             // access
             if (!IsConnected() || items == null)
@@ -146,8 +146,7 @@ namespace AasxPluginAssetInterfaceDescription
                     continue;
 
                 // ok, subscribe
-                var task = Task.Run(() => Client.SubscribeAsync(topic));
-                task.Wait();
+                await Client.SubscribeAsync(topic);
                 _subscribedTopics.Add(topic, topic);
             }
         }
