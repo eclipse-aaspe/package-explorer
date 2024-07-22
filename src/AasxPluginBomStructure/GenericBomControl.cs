@@ -328,7 +328,7 @@ namespace AasxPluginBomStructure
             dp.ContextMenu = new ContextMenu();
             dp.ContextMenu.Items.Add(new MenuItem() { Header = "Jump to selected ..", Tag = "JUMP" });
             dp.ContextMenu.Items.Add(new Separator());
-            dp.ContextMenu.Items.Add(new MenuItem() { Header = "Edit Node ..", Tag = "EDIT" });
+            dp.ContextMenu.Items.Add(new MenuItem() { Header = "Edit Node / Edge ..", Tag = "EDIT" });
             dp.ContextMenu.Items.Add(new MenuItem() { Header = "Create Node (to selected) ..", Tag = "CREATE" });
             dp.ContextMenu.Items.Add(new MenuItem() { Header = "Delete (selected) Node(s) ..", Tag = "DELETE" });
 
@@ -507,6 +507,33 @@ namespace AasxPluginBomStructure
             });
         }
 
+        protected void AdjustEdgeInBom(
+            Aas.ISubmodelElement edgeSme,
+            string edgeIdShort,
+            string edgeSemId,
+            string edgeSuppSemId)
+        {
+            // access
+            if (_submodel == null || edgeSme == null)
+                return;
+
+            // write back new values
+            edgeSme.IdShort = edgeIdShort;
+            if (edgeSemId?.HasContent() == true)
+                edgeSme.SemanticId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference,
+                    (new Aas.IKey[] { new Aas.Key(Aas.KeyTypes.GlobalReference, edgeSemId) }).ToList());
+            else
+                edgeSme.SemanticId = null;
+
+            if (edgeSuppSemId?.HasContent() == true)
+                edgeSme.SupplementalSemanticIds = (new Aas.IReference[] {
+                    new Aas.Reference(Aas.ReferenceTypes.ExternalReference,
+                        (new Aas.IKey[] { new Aas.Key(Aas.KeyTypes.GlobalReference, edgeSuppSemId) }).ToList())
+                    }).ToList();
+            else
+                edgeSme.SupplementalSemanticIds = null;
+        }
+
 #if cdscsd
         ///// <summary>
         ///// 
@@ -609,12 +636,12 @@ namespace AasxPluginBomStructure
                             if (action != "OK" || !(st.AasElem is Aas.ISubmodelElement nodeSme))
                                 return;
 
-                            // modidfy
+                            // modify
                             AdjustNodeInBom(
                                 nodeSme,
                                 nodeIdShort: st.TextBoxIdShort.Text,
-                                nodeSuppSemId: st.ComboBoxNodeSupplSemId.Text,
-                                nodeSemId: st.ComboBoxNodeSemId.Text);
+                                nodeSemId: st.ComboBoxNodeSemId.Text,
+                                nodeSuppSemId: st.ComboBoxNodeSupplSemId.Text);
 
                             // refresh
                             SetNeedsFinalize(true);
@@ -629,7 +656,9 @@ namespace AasxPluginBomStructure
                      && edge.Edge?.UserData is Aas.ISubmodelElement edgeSme)
                     {
                         // create job
-                        var stat = new DialogueStatus() { Type = DialogueType.EditEdge, AasElem = edgeSme };
+                        var stat = new DialogueStatus() { 
+                            Type = DialogueType.EditEdge, AasElem = edgeSme 
+                        };
 
                         // set the action
                         stat.Action = (st, action) =>
@@ -638,8 +667,12 @@ namespace AasxPluginBomStructure
                             if (action != "OK" || !(st.AasElem is Aas.ISubmodelElement esme))
                                 return;
 
-                            // modidfy
-                            esme.IdShort = st.TextBoxIdShort.Text;
+                            // modify
+                            AdjustEdgeInBom(
+                                esme,
+                                edgeIdShort: st.TextBoxIdShort.Text,
+                                edgeSemId: st.ComboBoxRelSemId.Text,
+                                edgeSuppSemId: st.ComboBoxRelSupplSemId.Text);
 
                             // refresh
                             SetNeedsFinalize(true);
@@ -1263,7 +1296,7 @@ namespace AasxPluginBomStructure
                     Content = editEdge ? "Rel.idShort:" : "Node.idShort:" 
                 });
                 AddToGrid(grid, 0, 1, colSpan:1, fe: stat.TextBoxIdShort = new TextBox() { 
-                    Text = editNode ? stat.AasElem?.IdShort : "", 
+                    Text = (editNode || editEdge) ? stat.AasElem?.IdShort : "", 
                     VerticalContentAlignment = VerticalAlignment.Center,
                     Padding = new Thickness(0, -1, 0, -1),
                     Margin = new Thickness(0, 2, 0, 2),
@@ -1294,7 +1327,8 @@ namespace AasxPluginBomStructure
                     }
                     else
                     {
-                        stat.ComboBoxNodeSemId.Text = "" + (stat.AasElem as Aas.IHasSemantics).SemanticId.Keys?.FirstOrDefault()?.Value;
+                        stat.ComboBoxNodeSemId.Text = "" + (stat.AasElem as Aas.IHasSemantics).
+                            SemanticId.Keys?.FirstOrDefault()?.Value;
                     }                
 
                     AddToGrid(grid, 1, 1, colSpan: 3, fe: stat.ComboBoxNodeSemId);
@@ -1308,6 +1342,13 @@ namespace AasxPluginBomStructure
                         Margin = new Thickness(0, 2, 0, 2),
                         VerticalContentAlignment = VerticalAlignment.Center
                     };
+
+                    if (_bomRecords != null)
+                        foreach (var br in _bomRecords)
+                            if (br.NodeSupplSemIds != null)
+                                foreach (var nss in br.NodeSupplSemIds)
+                                    if (!stat.ComboBoxNodeSupplSemId.Items.Contains(nss))
+                                        stat.ComboBoxNodeSupplSemId.Items.Add(nss);
 
                     if (!editNode)
                     {
@@ -1338,10 +1379,18 @@ namespace AasxPluginBomStructure
 
                     stat.ComboBoxRelSemId.Items.Add(prefHS.CD_HasPart?.GetSingleKey()?.Value);
                     stat.ComboBoxRelSemId.Items.Add(prefHS.CD_IsPartOf?.GetSingleKey()?.Value);
-                    if (stat.ReverseDir)
-                        stat.ComboBoxRelSemId.Text = stat.ComboBoxRelSemId.Items[1].ToString();
-                    else
-                        stat.ComboBoxRelSemId.Text = stat.ComboBoxRelSemId.Items[0].ToString();
+
+                    if (!editEdge)
+                    {
+                        if (stat.ReverseDir)
+                            stat.ComboBoxRelSemId.Text = stat.ComboBoxRelSemId.Items[1].ToString();
+                        else
+                            stat.ComboBoxRelSemId.Text = stat.ComboBoxRelSemId.Items[0].ToString();
+                    } else
+                    {
+                        stat.ComboBoxRelSemId.Text = "" + (stat.AasElem as Aas.IHasSemantics)
+                            .SemanticId.Keys?.FirstOrDefault()?.Value;
+                    }
 
                     AddToGrid(grid, 3, 1, colSpan: 3, fe: stat.ComboBoxRelSemId);
 
@@ -1354,6 +1403,24 @@ namespace AasxPluginBomStructure
                         Margin = new Thickness(0, 2, 0, 2),
                         VerticalContentAlignment = VerticalAlignment.Center
                     };
+
+                    if (_bomRecords != null)
+                        foreach (var br in _bomRecords)
+                            if (br.EdgeSupplSemIds != null)
+                                foreach (var nss in br.EdgeSupplSemIds)
+                                    if (!stat.ComboBoxRelSupplSemId.Items.Contains(nss))
+                                        stat.ComboBoxRelSupplSemId.Items.Add(nss);
+
+                    if (!editEdge)
+                    {
+                        stat.ComboBoxRelSupplSemId.Text = "";
+                    }
+                    else
+                    {
+                        stat.ComboBoxRelSupplSemId.Text =
+                            "" + (stat.AasElem as Aas.IHasSemantics)?.SupplementalSemanticIds?
+                                .FirstOrDefault()?.Keys?.FirstOrDefault()?.Value;
+                    }
 
                     AddToGrid(grid, 4, 1, colSpan: 3, fe: stat.ComboBoxRelSupplSemId);
                 }
