@@ -458,3 +458,7 @@ These projects are not migrated or integrated, yet:
      CD / definition
 * plugin imagemap / clicks / regions
 * ECLASS offline import CD error
+
+# New Notes to AasCore
+
+* new Aas.Reference() .. List<IKey> keys --> IEnumerable<IKey> keys

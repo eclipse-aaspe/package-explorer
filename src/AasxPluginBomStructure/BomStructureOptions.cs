@@ -86,6 +86,9 @@ namespace AasxPluginBomStructure
         public ListOfBomArguments LinkStyles = new ListOfBomArguments();
         public ListOfBomArguments NodeStyles = new ListOfBomArguments();
 
+        public List<string> NodeSupplSemIds = new List<string>();
+        public List<string> EdgeSupplSemIds = new List<string>();
+
         public void Index()
         {
             LinkStyles.Index();

@@ -20,7 +20,6 @@ using Aas = AasCore.Aas3_0;
 using AdminShellNS;
 using Extensions;
 using Microsoft.Msagl.Drawing;
-using System.Runtime.Intrinsics.X86;
 
 namespace AasxPluginBomStructure
 {
@@ -87,6 +86,11 @@ namespace AasxPluginBomStructure
         private int maxNodeId = 1;
 
         private AasReferableStore _refStore = null;
+
+        public class UserDataAsset
+        {
+            public string AssetId = "";
+        }
 
         public GenericBomCreator(
             Aas.IEnvironment env,
@@ -574,6 +578,95 @@ namespace AasxPluginBomStructure
             return edge;
         }
 
+        public Microsoft.Msagl.Drawing.Node GenerateEntityNode(Aas.Entity ent,
+            bool allowSkip = true)
+        {
+            // can get an link style?
+            var ns = _bomRecords?.FindFirstNodeStyle(ent.SemanticId, ent.SupplementalSemanticIds);
+            if (ns?.Skip == true && allowSkip)
+                return null;
+
+            // this gives nodes!
+            var node1 = new Microsoft.Msagl.Drawing.Node(GenerateNodeID());
+            node1.UserData = ent;
+            node1.LabelText = "" + ent.ToIdShortString();
+            node1.Label.FontSize = 12;
+
+            // what type?
+            if (ent.EntityType == Aas.EntityType.SelfManagedEntity)
+            {
+                node1.Attr.FillColor = AssetSelfManagedColor;
+            }
+            if (ent.EntityType == Aas.EntityType.CoManagedEntity)
+            {
+                node1.Attr.FillColor = AssetCoManagedColor;
+            }
+
+            // apply style
+            if (ns != null)
+                ApplyNodeStyle(node1, ns);
+
+            // ok
+            return node1;
+        }
+
+        public Microsoft.Msagl.Drawing.Edge CreateRelationLink(
+            Microsoft.Msagl.Drawing.Graph graph,
+            Node n1,
+            Node n2,
+            Aas.ISubmodelElement relElem)
+        {
+            Microsoft.Msagl.Drawing.Edge edge = null;
+            try
+            {
+                // build label text
+                var labelText = relElem.ToIdShortString();
+                if (_options?.CompactLabels != true)
+                {
+                    if (relElem.SemanticId != null && relElem.SemanticId.Count() == 1)
+                        labelText += " : " + relElem.SemanticId.Keys[0].Value;
+                    if (relElem.SemanticId != null && relElem.SemanticId.Count() > 1)
+                        labelText += " : " + relElem.SemanticId.ToString();
+                }
+
+                // find BOM display arguments?
+                var args = BomArguments.Parse(relElem.HasExtensionOfName("BOM.Args")?.Value);
+
+                // even CD?
+                if (relElem.SemanticId != null && relElem.SemanticId.Count() > 0)
+                {
+                    var cd = this.FindReferableByReference(relElem.SemanticId.Copy()) as Aas.ConceptDescription;
+
+                    if (cd != null)
+                    {
+                        labelText += " = " + cd.ToIdShortString();
+
+                        // option
+                        if (_options?.CompactLabels == true
+                            && cd.IdShort.HasContent())
+                            labelText = cd.IdShort;
+
+                        // (less important) args?
+                        args = args ?? BomArguments.Parse(cd.HasExtensionOfName("BOM.Args")?.Value);
+                    }
+                }
+
+                edge = CreateLink(graph,
+                    n1, n2,
+                    labelText,
+                    1.0, ArrowStyle.Normal, ArrowStyle.Normal,
+                    userData: relElem,
+                    ls1: _bomRecords?.FindFirstLinkStyle(relElem.SemanticId, relElem.SupplementalSemanticIds),
+                    ls2: args);
+            }
+            catch (Exception ex)
+            {
+                AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
+            }
+
+            return edge;
+        }
+
         public void RecurseOnLayout(
             int pass,
             Microsoft.Msagl.Drawing.Graph graph,
@@ -631,53 +724,11 @@ namespace AasxPluginBomStructure
                     // now, try to finally draw relationships
                     if (pass == 3)
                     {
-                        try
-                        {
-                            // build label text
-                            var labelText = sme.ToIdShortString();
-                            if (_options?.CompactLabels != true)
-                            {
-                                if (sme.SemanticId != null && sme.SemanticId.Count() == 1)
-                                    labelText += " : " + sme.SemanticId.Keys[0].Value;
-                                if (sme.SemanticId != null && sme.SemanticId.Count() > 1)
-                                    labelText += " : " + sme.SemanticId.ToString();
-                            }
-
-                            // find BOM display arguments?
-                            var args = BomArguments.Parse(sme.HasExtensionOfName("BOM.Args")?.Value);
-
-                            // even CD?
-                            if (sme.SemanticId != null && sme.SemanticId.Count() > 0)
-                            {
-                                var cd = this.FindReferableByReference(sme.SemanticId.Copy()) as Aas.ConceptDescription;
-
-                                if (cd != null)
-                                {
-                                    labelText += " = " + cd.ToIdShortString();
-
-                                    // option
-                                    if (_options?.CompactLabels == true
-                                        && cd.IdShort.HasContent())
-                                        labelText = cd.IdShort;
-
-                                    // (less important) args?
-                                    args = args ?? BomArguments.Parse(cd.HasExtensionOfName("BOM.Args")?.Value);
-                                }
-                            }
-
-                            CreateLink(graph,
-                                referableToNode.GetValueOrDefault(x1),
-                                referableToNode.GetValueOrDefault(x2),
-                                labelText,
-                                1.0, ArrowStyle.Normal, ArrowStyle.Normal,
-                                userData: sme,
-                                ls1: _bomRecords?.FindFirstLinkStyle(sme.SemanticId, sme.SupplementalSemanticIds),
-                                ls2: args);
-                        }
-                        catch (Exception ex)
-                        {
-                            AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
-                        }
+                        var edge = CreateRelationLink(
+                            graph,
+                            referableToNode.GetValueOrDefault(x1),
+                            referableToNode.GetValueOrDefault(x2),
+                            sme);
                     }
                 }
 
@@ -716,30 +767,10 @@ namespace AasxPluginBomStructure
                     // add Nodes?
                     if (pass == 2)
                     {
-                        // can get an link style?
-                        var ns = _bomRecords?.FindFirstNodeStyle(ent.SemanticId, ent.SupplementalSemanticIds);
-                        if (ns?.Skip == true)
+                        // create, may be skip
+                        var node1 = GenerateEntityNode(ent, allowSkip: true);
+                        if (node1 == null)
                             continue;
-
-                        // this gives nodes!
-                        var node1 = new Microsoft.Msagl.Drawing.Node(GenerateNodeID());
-                        node1.UserData = ent;
-                        node1.LabelText = "" + ent.ToIdShortString();
-                        node1.Label.FontSize = 12;
-
-                        // what type?
-                        if (ent.EntityType == Aas.EntityType.SelfManagedEntity)
-                        {
-                            node1.Attr.FillColor = AssetSelfManagedColor;
-                        }
-                        if (ent.EntityType == Aas.EntityType.CoManagedEntity)
-                        {
-                            node1.Attr.FillColor = AssetCoManagedColor;
-                        }
-
-                        // apply style
-                        if (ns != null)
-                            ApplyNodeStyle(node1, ns);
 
                         // add
                         graph.AddNode(node1);
@@ -751,7 +782,7 @@ namespace AasxPluginBomStructure
                         {
                             // another node
                             var node2 = new Microsoft.Msagl.Drawing.Node(GenerateNodeID());
-                            node2.UserData = ent.GlobalAssetId;
+                            node2.UserData = new UserDataAsset() { AssetId = ent.GlobalAssetId };
                             node2.LabelText = WrapOnMaxColumn("" + ent.GlobalAssetId, WrapMaxColumn);
                             node2.Label.FontSize = 6;
                             node2.Attr.Color = AssetBorderColor;
