@@ -18,9 +18,9 @@ namespace AasxPredefinedConcepts
     /// <summary>
     /// Definitions of Submodel Digital Nameplate 
     /// </summary>
-    public class HierarchStructV10 : AasxDefinitionBase
+    public class HierarchStructV11 : AasxDefinitionBase
     {
-        public static HierarchStructV10 Static = new HierarchStructV10();
+        public static HierarchStructV11 Static = new HierarchStructV11();
 
         public Aas.Submodel
             SM_HierarchicalStructures;
@@ -34,16 +34,16 @@ namespace AasxPredefinedConcepts
             CD_BulkCount,
             CD_ArcheType;
 
-        public HierarchStructV10()
+        public HierarchStructV11()
         {
             // info
-            this.DomainInfo = "Hierarchical Structures enabling Bills of Material (IDTA) V1.0";
+            this.DomainInfo = "Hierarchical Structures enabling Bills of Material (IDTA) V1.1";
 
             // IReferable
             this.ReadLibrary(
                 Assembly.GetExecutingAssembly(), "AasxPredefinedConcepts.Resources."
-                + "IdtaHierarchicalStructV10.json");
-            this.RetrieveEntriesFromLibraryByReflection(typeof(HierarchStructV10), useFieldNames: true);
+                + "IdtaHierarchicalStructV11.json");
+            this.RetrieveEntriesFromLibraryByReflection(typeof(HierarchStructV11), useFieldNames: true);
         }
     }
 }

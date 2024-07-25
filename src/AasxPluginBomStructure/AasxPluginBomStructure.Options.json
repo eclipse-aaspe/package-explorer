@@ -65,6 +65,10 @@
         {
           "type": "Submodel",
           "value": "https://admin-shell.io/idta/HierarchicalStructures/1/0/Submodel"
+        },
+        {
+          "type": "Submodel",
+          "value": "https://admin-shell.io/idta/HierarchicalStructures/1/1/Submodel"
         }
       ],
       "Layout": 3,

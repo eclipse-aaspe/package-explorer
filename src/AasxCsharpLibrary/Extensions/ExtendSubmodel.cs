@@ -355,15 +355,21 @@ namespace Extensions
 
         /// <summary>
         ///  If instance, return semanticId as one key.
-        ///  If template, return identification as key.
+        ///  If template, return either semanticId or identification as key.
         /// </summary>
         public static IReference GetSemanticRef(this Submodel submodel)
         {
             if (submodel.Kind == ModellingKind.Instance)
                 return submodel.SemanticId;
             else
-                return new Reference(ReferenceTypes.ModelReference, new[] {
-                    new Key(KeyTypes.Submodel, submodel.Id) }.Cast<IKey>().ToList());
+            {
+                // MIHO updated this on 2024-07-25
+                if (submodel.SemanticId?.IsValid() == true)
+                    return submodel.SemanticId.Copy();
+                else
+                    return new Reference(ReferenceTypes.ModelReference, new[] {
+                        new Key(KeyTypes.Submodel, submodel.Id) }.Cast<IKey>().ToList());
+            }
         }
 
         public static List<ISubmodelElement> SmeForWrite(this Submodel submodel)

@@ -104,6 +104,7 @@ namespace AasxPredefinedConcepts
             thePool.IndexDefinitions(AasxPredefinedConcepts.DigitalNameplateV20.Static);
 
             thePool.IndexDefinitions(AasxPredefinedConcepts.HierarchStructV10.Static);
+            thePool.IndexDefinitions(AasxPredefinedConcepts.HierarchStructV11.Static);
 
             thePool.IndexReferables("Digital Identification (ZVEI) V1.0 (deprecated)",
                 new AasxPredefinedConcepts.DefinitionsZveiDigitalTypeplate.SetOfIdentification(

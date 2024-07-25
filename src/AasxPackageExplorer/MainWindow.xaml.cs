@@ -37,6 +37,7 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using Workstation.ServiceModel.Ua;
 using static AasxPackageLogic.DispEditHelperBasics;
 using Aas = AasCore.Aas3_0;
 using ExhaustiveMatch = ExhaustiveMatching.ExhaustiveMatch;

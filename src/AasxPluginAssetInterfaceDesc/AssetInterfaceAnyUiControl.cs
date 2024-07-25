@@ -24,6 +24,7 @@ using AasxIntegrationBaseGdi;
 using FluentModbus;
 using System.Net;
 using Org.BouncyCastle.Asn1.X509;
+using Workstation.ServiceModel.Ua;
 
 namespace AasxPluginAssetInterfaceDescription
 {
@@ -341,10 +342,10 @@ namespace AasxPluginAssetInterfaceDescription
                     margin: new AnyUiThickness(2), setHeight: 21,
                     padding: new AnyUiThickness(2, 0, 2, 0),
                     content: "Single update .."),
-                (o) =>
+                setValueAsync: async (o) =>
                 {
                     try
-                    {
+                    {                        
                         // locked?
                         if (_allInterfaceStatus?.ContinousRun == true)
                         {
@@ -352,8 +353,14 @@ namespace AasxPluginAssetInterfaceDescription
                             return new AnyUiLambdaActionNone();
                         }
 
+                        // Initially
+                        _log.Info(StoredPrint.Color.Blue, "Waiting for value updates (may take multiple seconds) ..");
+
                         // single shot
-                        _allInterfaceStatus?.UpdateValuesSingleShot();
+                        await _allInterfaceStatus?.UpdateValuesSingleShot();
+
+                        // Done
+                        _log.Info(StoredPrint.Color.Black, "Values updated.");
 
                         // trigger a complete redraw, as the regions might emit 
                         // events or not, depending on this flag

@@ -33,13 +33,15 @@ namespace AasxPluginAssetInterfaceDescription
     {
         public HttpClient Client;
 
-        override public bool Open()
+        override public async Task<bool> Open()
         {
             // pretty simple
             Client = new HttpClient();
 
             if (TimeOutMs >= 10)
                 Client.Timeout = new TimeSpan(0, 0, 0, 0, milliseconds: (int)TimeOutMs);
+
+            await Task.Yield();
 
             return true;
         }
