@@ -29,7 +29,7 @@ namespace AasxPluginAssetInterfaceDescription
     {
         public ModbusTcpClient Client;
 
-        override public bool Open()
+        override public async Task<bool> Open()
         {
             try
             {
@@ -38,6 +38,9 @@ namespace AasxPluginAssetInterfaceDescription
                     Client.ConnectTimeout = (int)TimeOutMs;
                 Client.Connect(new IPEndPoint(IPAddress.Parse(TargetUri.Host), TargetUri.Port));
                 LastActive = DateTime.Now;
+
+                await Task.Yield();
+
                 return true;
             } catch (Exception ex)
             {

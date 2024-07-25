@@ -256,8 +256,9 @@ namespace AasxPluginAssetInterfaceDescription
 
         public Action<Aas.ISubmodelElement> AnimateSingleValueChange = null;
 
-        virtual public bool Open()
+        virtual public async Task<bool> Open()
         {
+            await Task.Yield();
             return false;
         }
 
@@ -489,7 +490,7 @@ namespace AasxPluginAssetInterfaceDescription
         /// <summary>
         /// Will connect to each target once, get values and will disconnect again.
         /// </summary>
-        public void UpdateValuesSingleShot()
+        public async Task UpdateValuesSingleShot()
         {
             // access allowed
             if (ContinousRun)
@@ -517,7 +518,7 @@ namespace AasxPluginAssetInterfaceDescription
                         continue;
 
                     // open it
-                    if (!conn.Open())
+                    if (!(await conn.Open()))
                         continue;
                     ifc.Connection = conn;
 
@@ -526,18 +527,34 @@ namespace AasxPluginAssetInterfaceDescription
                         ifc.ValueChanges += (UInt64)conn.UpdateItemValue(item);
 
                     // go thru all items (async)
-                    var task = Task.Run(async () => 
+                    if (false)
                     {
-                        // see: https://www.hanselman.com/blog/parallelforeachasync-in-net-6
-                        await Parallel.ForEachAsync(
-                            ifc.Items.Values,
-                            new ParallelOptions() { MaxDegreeOfParallelism = 10 },
-                            async (item, token) =>
-                            {
-                                ifc.ValueChanges += (UInt64)(await ifc.Connection.UpdateItemValueAsync(item));
-                            });
-                    });
-                    task.Wait();
+                        var clientDescription = new Workstation.ServiceModel.Ua.ApplicationDescription
+                        {
+                            ApplicationName = "AASX Package Explorer",
+                            ApplicationUri = $"urn:{System.Net.Dns.GetHostName()}:AASX Package Explorer",
+                            ApplicationType = Workstation.ServiceModel.Ua.ApplicationType.Client
+                        };
+
+                        var _channel = new Workstation.ServiceModel.Ua.Channels.ClientSessionChannel(
+                            clientDescription,
+                            null, // no x509 certificates
+                            new Workstation.ServiceModel.Ua.AnonymousIdentity(),
+                            "opc.tcp://localhost:4840/freeopcua/server/",
+                            Workstation.ServiceModel.Ua.SecurityPolicyUris.None); // no encryption
+
+                        // try opening a session and reading a few nodes.
+                        await _channel.OpenAsync();
+                    }
+
+                    // see: https://www.hanselman.com/blog/parallelforeachasync-in-net-6
+                    await Parallel.ForEachAsync(
+                        ifc.Items.Values,
+                        new ParallelOptions() { MaxDegreeOfParallelism = 10 },
+                        async (item, token) =>
+                        {
+                            ifc.ValueChanges += (UInt64)(await ifc.Connection.UpdateItemValueAsync(item));
+                        });
                 }
             }
 
@@ -588,7 +605,7 @@ namespace AasxPluginAssetInterfaceDescription
                         continue;
 
                     // open it
-                    if (!conn.Open())
+                    if (!(await conn.Open()))
                     {
                         ifc.SetLogLine(StoredPrint.Color.Red, $"Endpoint connot be opened: {ifc.EndpointBase}.");
                         continue;

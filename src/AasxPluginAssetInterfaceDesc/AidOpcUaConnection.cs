@@ -51,6 +51,7 @@ namespace AasxPluginAssetInterfaceDescription
             public string NodePath;
 #if OPCUA2
             public IDisposable Subscription;
+            public uint Handle;
 #else
             public Opc.Ua.Client.Subscription Subscription;
 #endif
@@ -58,14 +59,14 @@ namespace AasxPluginAssetInterfaceDescription
         }
 
 #if OPCUA2
-        protected Dictionary<string, SubscribedItem> _subscriptions
-            = new Dictionary<string, SubscribedItem>();
+        protected Dictionary<uint, SubscribedItem> _subscriptions
+            = new Dictionary<uint, SubscribedItem>();
 #else
         protected Dictionary<NodeId, SubscribedItem> _subscriptions
             = new Dictionary<NodeId, SubscribedItem>();
 #endif
 
-        override public bool Open()
+        override public async Task<bool> Open()
         {
             try
             {
@@ -90,8 +91,7 @@ namespace AasxPluginAssetInterfaceDescription
                 // Client.Run();
 #endif
 
-                var task = Task.Run(async () => await Client.DirectConnect());
-                task.Wait();
+                await Client.DirectConnect();
 
                 // ok
                 return IsConnected();
@@ -143,6 +143,9 @@ namespace AasxPluginAssetInterfaceDescription
                 var dv = await Client.ReadNodeIdAsync(nid);
                 item.Value = AdminShellUtil.ToStringInvariant(dv?.Value);
                 LastActive = DateTime.Now;
+
+                // success 
+                return 1;
             }
             catch (Exception ex)
             {
@@ -178,11 +181,54 @@ namespace AasxPluginAssetInterfaceDescription
         }
 #endif
 
+        protected uint _singletonHandleId = 1;
+
         override public async Task PrepareContinousRunAsync(IEnumerable<AidIfxItemStatus> items)
         {
             // access
             if (!IsConnected() || items == null)
                 return;
+
+#if OPCUA2
+
+            // put all items into a single subscription ..
+            var nids = new List<HandledNodeId>();
+            foreach (var item in items)
+            {
+                // valid href?
+                var nodePath = "" + item.FormData?.Href;
+                nodePath = nodePath.Trim();
+                if (!nodePath.HasContent())
+                    continue;
+
+                // get an node id?
+                var nid = Client.ParseAndCreateNodeId(nodePath);
+                if (nid == null)
+                    continue;
+
+                // generate handle
+                var handle = _singletonHandleId++;
+
+                // add
+                nids.Add(new HandledNodeId(handle, nid));
+
+                _subscriptions.Add(handle,
+                    new SubscribedItem()
+                    {
+                        NodePath = nodePath,
+                        Item = item,
+                        Handle = handle
+                    });
+            }
+
+            // subscribe all together
+            var sub = await Client.SubscribeNodeIdsAsync(
+                nids.ToArray(),
+                handler: SubscriptionHandler,
+                publishingInterval: (UpdateFreqMs >= 10) ? (int)UpdateFreqMs : 500);
+
+#else
+
 
             // over the items
             // go the easy way: put each item into one subscription
@@ -203,12 +249,7 @@ namespace AasxPluginAssetInterfaceDescription
                 if (_subscriptions.ContainsKey(nodePath))
                     continue;
 
-                // ok, make subscription
-#if OPCUA2
-                var sub = await Client.SubscribeNodeIdsAsync(
-                    new[] { nid },
-                    handler: SubscriptionHandler,
-                    publishingInterval: (UpdateFreqMs >= 10) ? (int)UpdateFreqMs : 500);
+                // ok, make subscription               
                 _subscriptions.Add(nodePath,
                     new SubscribedItem()
                     {
@@ -216,7 +257,6 @@ namespace AasxPluginAssetInterfaceDescription
                         Subscription = sub,
                         Item = item,
                     });
-#else
                 var sub = Client.SubscribeNodeIds(
                     new[] { nid },
                     handler: SubscriptionHandler,
@@ -227,14 +267,27 @@ namespace AasxPluginAssetInterfaceDescription
                         Subscription = sub,
                         Item = item,
                     });
-#endif
-            }
         }
 
+#endif
+
+            }
+
 #if OPCUA2
-        protected void SubscriptionHandler(NodeId nid, string value)
+        protected void SubscriptionHandler(uint handle, DataValue dataValue)
         {
-            ;
+            if (_subscriptions?.ContainsKey(handle) != true)
+                return;
+
+            // okay
+            var subi = _subscriptions[handle];
+            if (subi?.Item != null && subi.NodePath?.HasContent() == true)
+            {
+                // take over most actual value
+                var valueObj = dataValue?.Value;
+                if (valueObj != null)
+                    MessageReceived?.Invoke(subi.NodePath, AdminShellUtil.ToStringInvariant(valueObj));
+            }
         }
 #else
         protected void SubscriptionHandler(

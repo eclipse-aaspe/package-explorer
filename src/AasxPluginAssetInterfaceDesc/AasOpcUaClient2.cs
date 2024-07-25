@@ -27,6 +27,20 @@ using Workstation.ServiceModel.Ua.Channels;
 
 namespace AasxPluginAssetInterfaceDescription
 {
+    public class HandledNodeId
+    {
+        public uint Handle;
+        public NodeId Nid;
+
+        public HandledNodeId() { }
+
+        public HandledNodeId(uint handle, NodeId nid)
+        {
+            Handle = handle;
+            Nid = nid;
+        }
+    }
+
     public class AasOpcUaClient2
     {
         const int ReconnectPeriod = 10;
@@ -124,7 +138,7 @@ namespace AasxPluginAssetInterfaceDescription
 
         public NodeId ParseAndCreateNodeId(string input)
         {
-            throw new NotImplementedException();
+            return NodeId.Parse(input);
         }
 
         public async Task<string> ReadSubmodelElementValueAsStringAsync(string nodeName)
@@ -186,8 +200,8 @@ namespace AasxPluginAssetInterfaceDescription
         }
 
         public async Task<IDisposable> SubscribeNodeIdsAsync(
-            NodeId[] nids, 
-            Action<NodeId, string> handler,
+            HandledNodeId[] nids, 
+            Action<uint, DataValue> handler,
             int publishingInterval = 1000)
         {
             if (_channel == null || nids == null || _channel.State != CommunicationState.Opened  || handler == null)
@@ -213,13 +227,13 @@ namespace AasxPluginAssetInterfaceDescription
                     {
                         // NodeId = NodeId.Parse("ns=4;s=|var|CODESYS Control Win V3.Application.PLC_PRG.step_curr"),
                         // NodeId = NodeId.Parse("ns=4;s=|var|CODESYS Control Win V3.Application.PLC_PRG.cycle_countdown"),
-                        NodeId = nid,
+                        NodeId = nid.Nid,
                         AttributeId = AttributeIds.Value
                     },
                     MonitoringMode = MonitoringMode.Reporting,
                     RequestedParameters = new MonitoringParameters
                     {
-                        ClientHandle = 1201,
+                        ClientHandle = nid.Handle,
                         SamplingInterval = -1,
                         QueueSize = 0,
                         DiscardOldest = true
@@ -251,10 +265,16 @@ namespace AasxPluginAssetInterfaceDescription
                 {
                     foreach (var min in dcn.MonitoredItems)
                     {
-                        handler?.Invoke(null, "");
+                        if (min.Value == null)
+                            continue;
+                        handler?.Invoke(min.ClientHandle, min.Value);
                         Console.WriteLine($"sub: {pr.SubscriptionId}; handle: {min.ClientHandle}; value: {min.Value}");
                     }
                 }
+            },
+            ex =>
+            {
+                Console.WriteLine($"IObserver handled exception '{ex.GetType()}'. {ex.Message}");
             });
 
             return token;

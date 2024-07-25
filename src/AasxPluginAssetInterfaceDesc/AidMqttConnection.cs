@@ -37,7 +37,7 @@ namespace AasxPluginAssetInterfaceDescription
 
         protected Dictionary<string, string> _subscribedTopics = new Dictionary<string, string>();
 
-        override public bool Open()
+        override public async Task<bool> Open()
         {
             try
             {
@@ -52,9 +52,7 @@ namespace AasxPluginAssetInterfaceDescription
                     .Build();
 
                 // need to switch to async
-                var task = Task.Run(() => Client.ConnectAsync(options));
-                task.Wait();
-                var res = task.Result;
+                await Client.ConnectAsync(options);
 
                 // no subscriptions, yet
                 _subscribedTopics.Clear();

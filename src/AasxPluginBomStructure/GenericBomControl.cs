@@ -332,6 +332,11 @@ namespace AasxPluginBomStructure
             dp.ContextMenu.Items.Add(new MenuItem() { Header = "Create Node (to selected) ..", Tag = "CREATE" });
             dp.ContextMenu.Items.Add(new MenuItem() { Header = "Delete (selected) Node(s) ..", Tag = "DELETE" });
 
+#if _not_now
+            dp.ContextMenu.Items.Add(new Separator());
+            dp.ContextMenu.Items.Add(new MenuItem() { Header = "Export as SVG ..", Tag = "EXP-SVG" });
+#endif
+
             foreach (var x in dp.ContextMenu.Items)
                 if (x is MenuItem mi)
                     mi.Click += ContextMenu_Click;
@@ -423,28 +428,30 @@ namespace AasxPluginBomStructure
             contToAdd.Add(ent);
 
             // try build a relationship
-
-            var klFirst = _submodel.BuildKeysToTop(parent as Aas.ISubmodelElement);
-            if (klFirst.Count == 0)
-                klFirst.Add(new Aas.Key(Aas.KeyTypes.Submodel, _submodel.Id));
-            var klSecond = _submodel.BuildKeysToTop(ent);
-
             Aas.RelationshipElement rel = null;
-            if (klFirst.Count >= 1 && klSecond.Count >= 1)
+            if (parent != null)
             {
-                rel = new Aas.RelationshipElement(
-                    idShort: "HasPart_" + nodeIdShort,
-                    first: new Aas.Reference(Aas.ReferenceTypes.ModelReference, klFirst),
-                    second: new Aas.Reference(Aas.ReferenceTypes.ModelReference, klSecond));
-                if (relSemId?.HasContent() == true)
-                    rel.SemanticId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference,
-                        (new Aas.IKey[] { new Aas.Key(Aas.KeyTypes.GlobalReference, relSemId) }).ToList());
-                if (relSuppSemId?.HasContent() == true)
-                    rel.SupplementalSemanticIds = (new Aas.IReference[] {
+                var klFirst = _submodel.BuildKeysToTop(parent as Aas.ISubmodelElement);
+                if (klFirst.Count == 0)
+                    klFirst.Add(new Aas.Key(Aas.KeyTypes.Submodel, _submodel.Id));
+                var klSecond = _submodel.BuildKeysToTop(ent);
+
+                if (klFirst.Count >= 1 && klSecond.Count >= 1)
+                {
+                    rel = new Aas.RelationshipElement(
+                        idShort: "HasPart_" + nodeIdShort,
+                        first: new Aas.Reference(Aas.ReferenceTypes.ModelReference, klFirst),
+                        second: new Aas.Reference(Aas.ReferenceTypes.ModelReference, klSecond));
+                    if (relSemId?.HasContent() == true)
+                        rel.SemanticId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference,
+                            (new Aas.IKey[] { new Aas.Key(Aas.KeyTypes.GlobalReference, relSemId) }).ToList());
+                    if (relSuppSemId?.HasContent() == true)
+                        rel.SupplementalSemanticIds = (new Aas.IReference[] {
                         new Aas.Reference(Aas.ReferenceTypes.ExternalReference,
                             (new Aas.IKey[] { new Aas.Key(Aas.KeyTypes.GlobalReference, relSuppSemId) }).ToList())
                     }).ToList();
-                contToAdd.Add(rel);
+                    contToAdd.Add(rel);
+                }
             }
 
             // ok
@@ -698,7 +705,7 @@ namespace AasxPluginBomStructure
                     stat.ParentReferable = stat.ParentNode?.Node?.UserData as Aas.IReferable;
 
                     // figure out if first node
-                    stat.IsEntryNode = null != _submodel?.SubmodelElements?.FindFirstSemanticIdAs<Aas.IEntity>(
+                    stat.IsEntryNode = null == _submodel?.SubmodelElements?.FindFirstSemanticIdAs<Aas.IEntity>(
                         AasxPredefinedConcepts.HierarchStructV10.Static.CD_EntryNode?.GetSingleKey(),
                         matchMode: MatchMode.Relaxed);
 
@@ -714,6 +721,9 @@ namespace AasxPluginBomStructure
                         // correct?
                         if (action != "OK" || _bomCreator == null || theViewer == null)
                             return;
+
+                        // check number of nodes BEFORE operation
+                        int noOfNodes = theViewer?.Graph?.NodeCount ?? 0;
 
                         // create entity
                         var ents = CreateNodeAndRelationInBom(
@@ -745,8 +755,14 @@ namespace AasxPluginBomStructure
                         }
 #else
 
-                        // refresh
+                        // refresh (if it was empty before, reset viewport)
                         SetNeedsFinalize(true);
+
+                        if (noOfNodes < 1)
+                        {
+                            theViewer?.SetInitialTransform();
+                            _savedTransform = null;
+                        }
                         RedrawGraph();
 
 #endif
@@ -788,7 +804,7 @@ namespace AasxPluginBomStructure
                             var contToDelIn = _submodel?.FindContainingReferable(nodeSmeToDel);
                             var kl = _submodel?.BuildKeysToTop(nodeSmeToDel);
                             if (nodeSmeToDel == null || contToDelIn == null || kl.Count < 2)
-                                return;
+                                continue;
 
                             // build reference to it
                             var refToNode = new Aas.Reference(Aas.ReferenceTypes.ModelReference, kl);
@@ -820,11 +836,11 @@ namespace AasxPluginBomStructure
                             foreach (var td in toDel)
                                 td.Item1?.Remove(td.Item2);
 
-                            // refresh
-                            SetNeedsFinalize(true);
-                            RedrawGraph();
                         }
-
+                        
+                        // refresh
+                        SetNeedsFinalize(true);
+                        RedrawGraph();
                     };
 
                     // in any case, create a node
@@ -905,6 +921,51 @@ namespace AasxPluginBomStructure
                     }
 #endif
                 }
+
+            // https://github.com/microsoft/automatic-graph-layout/issues/372
+#if __not_now
+
+                if (miTag == "EXP-SVG" && theViewer.Graph != null)
+                {
+                    // ask for file name
+                    var dlg = new Microsoft.Win32.SaveFileDialog()
+                    {
+                        FileName = "new",
+                        DefaultExt = ".svg",
+                        Filter = "Scalable Vector Graphics (.svg)|*.svg|All files|*.*"
+                    };
+                    if (dlg.ShowDialog() != true)
+                        return;
+
+                    // theViewer.Graph.CreateGeometryGraph();
+                    LayoutHelpers.CalculateLayout(theViewer.Graph.GeometryGraph, new SugiyamaLayoutSettings(), null);
+
+                    foreach (var n in theViewer.Graph.Nodes)
+                        if (n.Label != null)
+                        {
+                            n.Label.Width = 100;
+                            n.Label.Height = 20;
+                        }
+
+                    // take care on resources
+                    try
+                    {
+                        // SvgGraphWriter.Write(theViewer.Graph, dlg.FileName, null, null, 4);
+                        using (var stream = File.Create(dlg.FileName))
+                        {
+                            var svgWriter = new Microsoft.Msagl.Drawing.SvgGraphWriter(stream, theViewer.Graph);
+                            svgWriter.Write();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
+                    }
+
+                    // toggle redisplay -> graph is renewed for display
+                    RedrawGraph();
+                }
+#endif
 
             }
         }
@@ -1183,6 +1244,7 @@ namespace AasxPluginBomStructure
                 theViewer.Graph = null;
                 theViewer.Graph = theGraph;
 
+                // may take over last view
                 if (_savedTransform != null)
                     theViewer.Transform = _savedTransform;
             }
@@ -1321,9 +1383,9 @@ namespace AasxPluginBomStructure
                     if (!editNode)
                     {
                         if (stat.IsEntryNode)
-                            stat.ComboBoxNodeSemId.Text = stat.ComboBoxNodeSemId.Items[1].ToString();
-                        else
                             stat.ComboBoxNodeSemId.Text = stat.ComboBoxNodeSemId.Items[0].ToString();
+                        else
+                            stat.ComboBoxNodeSemId.Text = stat.ComboBoxNodeSemId.Items[1].ToString();
                     }
                     else
                     {
