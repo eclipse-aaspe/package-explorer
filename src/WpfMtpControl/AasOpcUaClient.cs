@@ -7,6 +7,8 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+#define OPCUA2
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -20,6 +22,8 @@ using Opc.Ua.Configuration;
 
 namespace WpfMtpControl
 {
+#if OPCUA2
+#else
     public enum AasOpcUaClientStatus
     {
         Ok = 0,
@@ -322,4 +326,5 @@ namespace WpfMtpControl
             subscription.Create();
         }
     }
+#endif
 }

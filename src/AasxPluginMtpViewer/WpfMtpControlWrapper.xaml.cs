@@ -152,13 +152,13 @@ namespace AasxPluginMtpViewer
             dispatcherTimer.Start();
         }
 
-        private void dispatcherTimer_Tick(object sender, EventArgs e)
+        private async void dispatcherTimer_Tick(object sender, EventArgs e)
         {
             if (this.client == null)
                 textBoxDataSourceStatus.Text = "(no OPC UA client enabled)";
             else
             {
-                this.client.Tick(100);
+                await client.TickAsync(100);
                 textBoxDataSourceStatus.Text = this.client.GetStatus();
             }
         }
