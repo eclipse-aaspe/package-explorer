@@ -701,7 +701,7 @@ namespace Extensions
             }
 
             var aas = environment.AllAssetAdministrationShells()
-                .Where(a => a.Id.Equals(aasId)).First();
+                .Where(a => a.Id.Equals(aasId)).FirstOrDefault();
 
             return aas;
         }

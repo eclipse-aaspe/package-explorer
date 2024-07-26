@@ -7,6 +7,8 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+#define OPCUA2
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,6 +17,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WpfMtpControl.DataSources;
+using AdminShellNS;
+using Newtonsoft.Json.Linq;
+
+
+
+#if OPCUA2
+using Workstation.ServiceModel.Ua;
+#else
+using Opc.Ua;
+#endif
 
 namespace WpfMtpControl
 {
@@ -44,7 +56,7 @@ namespace WpfMtpControl
 
             public DetailServer Server = null;
 
-            public Opc.Ua.NodeId nid = null;
+            public NodeId nid = null;
 
             public bool Equals(DetailItem other)
             {
@@ -81,17 +93,17 @@ namespace WpfMtpControl
 
             public List<DetailItem> ItemRefs = new List<DetailItem>();
 
-            public Dictionary<Opc.Ua.NodeId, DetailItem> nodeIdToItemRef = new Dictionary<Opc.Ua.NodeId, DetailItem>();
+            public Dictionary<NodeId, DetailItem> nodeIdToItemRef = new Dictionary<NodeId, DetailItem>();
 
-            private AasOpcUaClient uaClient = null;
-            public AasOpcUaClient UaClient { get { return uaClient; } }
+            private AasOpcUaClient2 uaClient = null;
+            public AasOpcUaClient2 UaClient { get { return uaClient; } }
 
             public DetailServer(MtpVisuOpcUaClient parentRef)
             {
                 this.ParentRef = parentRef;
             }
 
-            public void Tick(int ms)
+            public async Task TickAsync(int ms)
             {
                 // next state?
                 msToNextState -= ms;
@@ -104,10 +116,12 @@ namespace WpfMtpControl
                     if (state == 0)
                     {
                         // try to initialize OPC UA server
-                        this.uaClient = new AasOpcUaClient(
-                            this.Endpoint, _autoAccept: true, _stopTimeout: 10, _userName: this.User,
-                            _password: this.Password);
-                        this.uaClient.Run();
+                        this.uaClient = new AasOpcUaClient2(
+                            this.Endpoint, autoAccept: true, timeOutMs: 10, userName: this.User,
+                            password: this.Password);
+                        await uaClient.DirectConnect();
+
+                        // this.uaClient.Run();
                         // go on for a checking state
                         nextState = 1;
                     }
@@ -119,9 +133,10 @@ namespace WpfMtpControl
                         if (this.uaClient != null && this.uaClient.StatusCode == AasOpcUaClientStatus.Running)
                         {
                             // add subscriptions for all nodes
-                            var nids = new List<Opc.Ua.NodeId>();
-                            foreach (var ir in this.ItemRefs)
+                            var nids = new List<HandledNodeId>();
+                            for (int lri=0; lri < ItemRefs.Count; lri++)
                             {
+                                var ir = ItemRefs[lri];
                                 ir.DisplayValue = null;
                                 try
                                 {
@@ -131,7 +146,11 @@ namespace WpfMtpControl
                                         continue;
 
                                     // inital read possible?
-                                    var dv = this.uaClient.ReadNodeId(ir.nid);
+                                    var dv = await this.uaClient.ReadNodeIdAsync(ir.nid);
+                                    if (dv?.Value == null)
+                                        continue;
+
+                                    // ok
                                     ir.DisplayValue = "" + dv.Value;
                                     ir.Value = dv.Value;
 
@@ -140,7 +159,7 @@ namespace WpfMtpControl
                                         this.ParentRef.ItemChanged.Invoke(this.ParentRef, ir, ItemChangeType.Value);
 
                                     // try subscribe!
-                                    nids.Add(ir.nid);
+                                    nids.Add(new HandledNodeId((uint) lri, ir.nid));
                                     this.nodeIdToItemRef.Add(ir.nid, ir);
                                 }
                                 catch (Exception ex)
@@ -150,7 +169,8 @@ namespace WpfMtpControl
                             }
 
                             // try add these
-                            this.uaClient.SubscribeNodeIds(nids.ToArray(), OnNotification, publishingInteral: 200);
+                            await this.uaClient.SubscribeNodeIdsAsync(nids.ToArray(), OnNotification, 
+                                publishingInterval: 200);
 
                             // go on
                             nextState = 2;
@@ -169,6 +189,26 @@ namespace WpfMtpControl
                 }
             }
 
+#if OPCUA2
+            protected void OnNotification(uint handle, DataValue dataValue)
+            {
+                // check handle == index
+                if (handle >= ItemRefs.Count || dataValue.Value == null)
+                    return;
+
+                // get item ref
+                var ir = ItemRefs[(int) handle];
+
+                // change data (and notify ObservableCollection)
+                ir.DisplayValue = "" + dataValue.Value;
+                ir.Value = dataValue.Value;
+                ir.ValueTouched = true;
+
+                // business logic event
+                if (this.ParentRef?.ItemChanged != null)
+                    this.ParentRef.ItemChanged.Invoke(this.ParentRef, ir, ItemChangeType.Value);
+            }
+#else
             private void OnNotification(
                 Opc.Ua.Client.MonitoredItem item, Opc.Ua.Client.MonitoredItemNotificationEventArgs e)
             {
@@ -190,6 +230,7 @@ namespace WpfMtpControl
                     }
                 }
             }
+#endif
 
             public bool Equals(DetailServer other)
             {
@@ -240,6 +281,7 @@ namespace WpfMtpControl
             var ds = (server as DetailServer);
 
             // TODO (MIHO, 2020-08-06): remove this, if not required anymore
+#if __to_remove
             var allowedIds = new[] { "L001", "L002", "L003", "F001", "M001", "V001", "V002", "V003", "P001" };
             var allowedFound = false;
             foreach (var ai in allowedIds)
@@ -247,6 +289,7 @@ namespace WpfMtpControl
                     allowedFound = true;
             if (!allowedFound)
                 return null;
+#endif
 
             // directly use server
             var i = new DetailItem();
@@ -278,10 +321,10 @@ namespace WpfMtpControl
             return i;
         }
 
-        public void Tick(int ms)
+        public async Task TickAsync(int ms)
         {
             foreach (var s in this.servers)
-                s.Tick(ms);
+                await s.TickAsync(ms);
         }
 
         //

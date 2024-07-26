@@ -122,7 +122,7 @@ namespace WpfMtpControl.DataSources
         MtpDataSourceOpcUaServer CreateOrUseUaServer(string Endpoint, bool allowReUse = false);
         MtpDataSourceOpcUaItem CreateOrUseItem(MtpDataSourceOpcUaServer server,
             string Identifier, string Namespace, string Access, string mtpSourceItemId, bool allowReUse = false);
-        void Tick(int ms);
+        Task TickAsync(int ms);
     }
 
     /// <summary>
