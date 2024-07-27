@@ -138,9 +138,6 @@
     <None Remove="icon-set-blue-zipper\aasx-icon-blue-zipper.ico" />
     <None Remove="Resources\IDTA_AAS-Logo_312x281_RGB.png" />
     <Content Include="icon-set-IDTA-blue\Icon_AASX.ico" />
-    <None Update="Opc.Ua.SampleClient.Config.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="debug.MIHO.script">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
