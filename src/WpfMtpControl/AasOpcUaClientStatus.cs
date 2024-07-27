@@ -20,6 +20,9 @@ using AdminShellNS;
 
 namespace WpfMtpControl
 {
+
+#if __unneeded
+
     public enum AasOpcUaClientStatus
     {
         Starting = 0,
@@ -38,4 +41,7 @@ namespace WpfMtpControl
         Quitting = 0x8000,
         Quitted = 0x8001
     };
+
+#endif
+
 }

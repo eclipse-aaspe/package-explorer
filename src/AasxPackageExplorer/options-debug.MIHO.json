@@ -43,7 +43,7 @@
   // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\IDTA_02036-1-0_SMT_ProductChangeNotification_Examples_v08.aasx",
   // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\Syn2tecMachine_P2518_AAS__V3_DL2.aasx",
   // "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\Syn2tecMachine_P2518_AAS__V3_DL2.aasx",
-  "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\test-data\\MTP\\test-data-SMT_MTP.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\test-data\\MTP\\test-data-SMT_MTP.aasx",
   // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\00_FestoDemoBox-Module-2-Kopie.aasx",
   // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\8001203_SPAU-P10R-T-R18M-L-PNLK-PNVBA-M8D_060ff64f-9fd2-422d-81ce-b17e49f007c5_work_spiel.aasx",
   // "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\SMT_and_SAMM_Showcase_v02.aasx",
@@ -56,6 +56,7 @@
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\aid\\2023_AID1.0_Template_Rework_MIHO.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\aid\\aid-test-2.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\aid\\aid-test-3_new_opcua.aasx",
+  "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\test-data\\OpcUaReadSubmodel\\OpcUaReadSubmodel.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\aid\\Aid-HMI-2024_v1.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\aid\\robotic_cell_for_demo_suitcase_new-v3.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\IDTA 02006-2-1_Template_Digital Nameplate_V3_Demo_ExportSMT - Kopie.aasx",
@@ -142,17 +143,10 @@
       ],
       "Options": null
     },
-    /*
     {
-      "Path": "..\\..\\..\\..\\..\\AasxPluginUaNetClient\\bin\\Debug\\net472\\AasxPluginUaNetClient.dll",
-      "Args": [],
-      "Options": null
-    }, 
-    {
-      "Path": "..\\..\\..\\..\\..\\AasxPluginBomStructure\\bin\\Debug\\net472\\AasxPluginBomStructure.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginUaNetClient\\bin\\Debug\\net6.0-windows\\AasxPluginUaNetClient.dll",
       "Args": []
     },
-    */
     {
       "Path": "..\\..\\..\\..\\..\\..\\AasxPluginProductChangeNotifications\\bin\\Debug\\net6.0-windows\\AasxPluginProductChangeNotifications.dll",
       "Args": []

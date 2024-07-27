@@ -18,11 +18,8 @@ using System.Threading.Tasks;
 using AasxIntegrationBase;
 using AdminShellNS;
 
-namespace AasxPluginAssetInterfaceDescription
+namespace AasxOpcUa2Client
 {
-
-#if __unneeded
-
     public enum AasOpcUaClientStatus
     {
         Starting = 0,
@@ -41,7 +38,4 @@ namespace AasxPluginAssetInterfaceDescription
         Quitting = 0x8000,
         Quitted = 0x8001
     };
-
-#endif
-
 }

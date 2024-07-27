@@ -12,16 +12,24 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 */
 
+#define OPCUA2
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AdminShellNS;
+
+#if OPCUA2
+#else
 using Opc.Ua;
 using Opc.Ua.Client;
 using Opc.Ua.Configuration;
+#endif
 
 namespace SampleClient
 {
+#if OPCUA2
+#else
     public class UASampleClient
     {
         const int ReconnectPeriod = 10;
@@ -203,4 +211,5 @@ namespace SampleClient
         }
 
     }
+#endif
 }

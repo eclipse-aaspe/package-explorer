@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AasxIntegrationBaseWpf\AasxIntegrationBaseWpf.csproj" />
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
+    <ProjectReference Include="..\AasxOpcUa2Client\AasxOpcUa2Client.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="LICENSE.txt">
