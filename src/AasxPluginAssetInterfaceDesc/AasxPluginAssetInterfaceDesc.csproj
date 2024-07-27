@@ -50,7 +50,5 @@
     <PackageReference Include="FluentModbus" Version="5.0.3" />
     <PackageReference Include="MQTTnet" Version="4.1.1.318" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="7.0.0" />
-    <PackageReference Include="Workstation.UaClient" Version="3.2.3" />
   </ItemGroup>
 </Project>
