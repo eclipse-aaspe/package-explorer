@@ -275,10 +275,6 @@ namespace AasxPackageExplorer
             if (cmd == "importdictsubmodel" || cmd == "importdictsubmodelelements")
                 CommandBinding_ImportDictToSubmodel(cmd, ticket);
 
-            // TODO (MIHO, 2022-11-19): stays in WPF (tightly integrated, command line shall do own version)
-            if (cmd == "opcuaexportnodesetuaplugin")
-                await CommandBinding_ExportNodesetUaPlugin(cmd, ticket);
-
             // stays in WPF
             if (cmd == "serverrest")
                 CommandBinding_ServerRest();
@@ -319,11 +315,6 @@ namespace AasxPackageExplorer
             if (cmd == "serverpluginemptysample")
                 CommandBinding_ExecutePluginServer(
                     "EmptySample", "server-start", "server-stop", "Empty sample plug-in.");
-
-            // REFACTOR: STAYS HERE
-            if (cmd == "serverpluginopcua")
-                CommandBinding_ExecutePluginServer(
-                    "AasxPluginUaNetServer", "server-start", "server-stop", "Plug-in for OPC UA Server for AASX.");
 
             // REFACTOR: STAYS HERE
             if (cmd == "serverpluginmqtt")
@@ -1300,43 +1291,6 @@ namespace AasxPackageExplorer
                     Mouse.OverrideCursor = null;
                 }
 #endif
-            }
-        }
-
-
-        public async Task CommandBinding_ExportNodesetUaPlugin(
-            string cmd,
-            AasxMenuActionTicket ticket)
-        {
-            if (cmd == "opcuaexportnodesetuaplugin")
-            {
-                // filename
-                // ReSharper disable UnusedVariable
-                var uc = await DisplayContext.MenuSelectSaveFilenameAsync(
-                    ticket, "File",
-                    "Select Nodeset2.XML file to be exported",
-                    "new.xml",
-                    "OPC UA Nodeset2 files (*.xml)|*.xml|All files (*.*)|*.*",
-                    "Export OPC UA Nodeset2 via plugin: No valid filename.");
-                if (uc?.Result != true)
-                    return;
-                // ReSharper enable UnusedVariable
-                try
-                {
-                    RememberForInitialDirectory(uc.TargetFileName);
-                    CommandBinding_ExecutePluginServer(
-                        "AasxPluginUaNetServer",
-                        "server-start",
-                        "server-stop",
-                        "Export Nodeset2 via OPC UA Server...",
-                        new[] { "-export-nodeset", uc.TargetFileName }
-                        );
-                }
-                catch (Exception ex)
-                {
-                    Log.Singleton.Error(
-                        ex, "When exporting UA nodeset via plug-in, an error occurred");
-                }
             }
         }
 

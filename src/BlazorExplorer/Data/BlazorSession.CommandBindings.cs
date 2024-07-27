@@ -279,14 +279,6 @@ namespace BlazorUI.Data
             }
 
             // REFACTOR: WPF required
-            if (cmd == "opcuaexportnodesetuaplugin")
-            {
-                Logic.LogErrorToTicket(ticket, "OpcUaExportNodesetUaPlugin not implemented, yet.");
-
-                return;
-            }
-
-            // REFACTOR: WPF required
             if (cmd == "serverrest"
                 || cmd == "mqttpub"
                 || cmd == "connectintegrated"
@@ -312,7 +304,6 @@ namespace BlazorUI.Data
             // dead-csharp on
             // REFACTOR: WPF required
             if (cmd == "serverpluginemptysample"
-                || cmd == "serverpluginopcua"
                 || cmd == "serverpluginmqtt")
             {
                 Logic.LogErrorToTicket(ticket, "Some servers not implemented, yet.");
