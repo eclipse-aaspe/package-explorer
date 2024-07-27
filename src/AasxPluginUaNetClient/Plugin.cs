@@ -201,7 +201,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
 
                 } catch (Exception ex)
                 {
-                    LogInternally.That.CompletelyIgnoredError(ex);
+                    _log?.Error(ex, "create OPC UA client");
                 }
 
                 return null;
@@ -222,15 +222,24 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 var nodeName = args[1] as string;
                 var nsIndex = (int)args[2];
 
-                // make the call
-                var nid = client?.CreateNodeId(nodeName, nsIndex);
-                var value = (await client?.ReadNodeIdAsync(nid))?.Value;
+                try
+                {
 
-                // return as plain object
-                var res = new AasxPluginResultBaseObject();
-                res.strType = "value object";
-                res.obj = value;
-                return res;
+                    // make the call
+                    var nid = client?.CreateNodeId(nodeName, nsIndex);
+                    var value = (await client?.ReadNodeIdAsync(nid))?.Value;
+
+                    // return as plain object
+                    var res = new AasxPluginResultBaseObject();
+                    res.strType = "value object";
+                    res.obj = value;
+                    return res;
+
+                }
+                catch (Exception ex)
+                {
+                    _log?.Error(ex, "read node");
+                }
             }
 
 #endif

@@ -204,19 +204,12 @@ namespace AasxPackageExplorer
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "OPC UA Nodeset2.xml file to write.")
                             .Add("Location", "Location selection", hidden: true))
-                    .AddWpfBlazor(name: "OpcUaExportNodeSetUaPlugin",
-                        header: "Export OPC UA Nodeset2.xml (via UA server plug-in) …",
-                        help: "Export OPC UA Nodeset2.xml format by starting OPC UA server in plugin and " +
-                            "execute a post-process command.",
-                        args: new AasxMenuListOfArgDefs()
-                            .Add("File", "OPC UA Nodeset2.xml file to write.")
-                            .Add("Location", "Location selection", hidden: true))
                     .AddWpfBlazor(name: "CopyClipboardElementJson",
                         header: "Copy selected element JSON to clipboard", inputGesture: "Shift+Ctrl+C")
                     .AddWpfBlazor(name: "ExportGenericForms",
                         header: "Export Submodel as options for GenericForms …",
                         args: new AasxMenuListOfArgDefs()
-                            .Add("File", "OPC UA Nodeset2.xml file to write.")
+                            .Add("File", "Export file to write.")
                             .Add("Location", "Location selection", hidden: true))
                     .AddWpfBlazor(name: "ExportPredefineConcepts",
                         header: "Export Submodel as snippet for PredefinedConcepts …",
@@ -247,7 +240,6 @@ namespace AasxPackageExplorer
                     .AddWpf(name: "MQTTPub", header: "Publish AAS via MQTT …")
                     .AddSeparator()
                     .AddWpf(name: "ServerPluginEmptySample", header: "Plugin: Empty Sample …")
-                    .AddWpf(name: "ServerPluginOPCUA", header: "Plugin: OPC UA …")
                     .AddWpf(name: "ServerPluginMQTT", header: "Plugin: MQTT …"))
                 .AddSeparator(filter: AasxMenuFilter.NotBlazor)
                 .AddMenu(header: "System …", filter: AasxMenuFilter.NotBlazor,
