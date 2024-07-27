@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>    
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Workstation.UaClient" Version="3.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AasxCsharpLibrary\AasxCsharpLibrary.csproj" />
+    <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
+  </ItemGroup>
+
+</Project>

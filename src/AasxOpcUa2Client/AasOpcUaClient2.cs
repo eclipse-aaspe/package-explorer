@@ -25,11 +25,8 @@ using Workstation.ServiceModel.Ua.Channels;
 
 // Note: this is Experimental: change to new OPC UA client
 
-namespace AasxPluginAssetInterfaceDescription
+namespace AasxOpcUa2Client
 {
-
-#if __unneeded
-
     public class HandledNodeId
     {
         public uint Handle;
@@ -106,9 +103,6 @@ namespace AasxPluginAssetInterfaceDescription
                 clientDescription,
                 null, // no x509 certificates
                 new AnonymousIdentity(), // no user identity
-                                         // "opc.tcp://opcua.umati.app:4840", // the public endpoint of the umati sample server.
-                                         // "opc.tcp://MMT-HOMI2-N1:4840",
-                                         // "opc.tcp://localhost:4840/freeopcua/server/",
                 "" + _endpointURL,
                 SecurityPolicyUris.None); // no encryption
 
@@ -136,7 +130,27 @@ namespace AasxPluginAssetInterfaceDescription
 
         public NodeId CreateNodeId(string nodeName, string ns)
         {
-            throw new NotImplementedException();
+            // access
+            if (_channel == null || nodeName == null || ns == null)
+                return null;
+
+            // find namespace
+            int nsi = -1;
+            int i = 0;
+            foreach (var nsuri in _channel.NamespaceUris)
+            {
+                if (nsuri.Equals(ns, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    nsi = i;
+                    break;
+                }
+                i++;
+            }
+            if (nsi < 0)
+                return null;
+
+            // ok, directly refer to
+            return new NodeId(nodeName, (ushort)nsi);
         }
 
         public NodeId ParseAndCreateNodeId(string input)
@@ -228,8 +242,6 @@ namespace AasxPluginAssetInterfaceDescription
                 {
                     ItemToMonitor = new ReadValueId
                     {
-                        // NodeId = NodeId.Parse("ns=4;s=|var|CODESYS Control Win V3.Application.PLC_PRG.step_curr"),
-                        // NodeId = NodeId.Parse("ns=4;s=|var|CODESYS Control Win V3.Application.PLC_PRG.cycle_countdown"),
                         NodeId = nid.Nid,
                         AttributeId = AttributeIds.Value
                     },
@@ -283,7 +295,4 @@ namespace AasxPluginAssetInterfaceDescription
             return token;
         }        
     }
-
-#endif
-
 }

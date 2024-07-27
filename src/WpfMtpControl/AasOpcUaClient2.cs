@@ -27,6 +27,9 @@ using Workstation.ServiceModel.Ua.Channels;
 
 namespace WpfMtpControl
 {
+
+#if __unneeded
+
     public class HandledNodeId
     {
         public uint Handle;
@@ -300,4 +303,7 @@ namespace WpfMtpControl
             return token;
         }        
     }
+
+#endif
+
 }

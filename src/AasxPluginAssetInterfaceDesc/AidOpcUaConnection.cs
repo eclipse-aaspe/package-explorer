@@ -28,6 +28,8 @@ using System.Net.Http;
 using MQTTnet;
 using MQTTnet.Client;
 using System.Web.Services.Description;
+using AasxOpcUa2Client;
+
 
 #if OPCUA2
 using Workstation.ServiceModel.Ua;

@@ -21,6 +21,7 @@ using Newtonsoft.Json.Linq;
 using Org.Webpki.JsonCanonicalizer;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -842,7 +843,7 @@ namespace AasxPackageExplorer
         /// <summary>
         /// Populates an existingSubmodel with values from OPC UA.
         /// </summary>
-        public void Tool_OpcUaClientRead(
+        public async Task Tool_OpcUaClientRead(
             Aas.ISubmodel sm,
             AasxMenuActionTicket ticket = null)
         {
@@ -850,7 +851,7 @@ namespace AasxPackageExplorer
             {
                 // Durch das Submodel iterieren
                 {
-                    int count = sm.Qualifiers.Count;
+                    int count = sm.Qualifiers?.Count ?? 0;
                     if (count != 0)
                     {
                         int stopTimeout = Timeout.Infinite;
@@ -859,11 +860,10 @@ namespace AasxPackageExplorer
                         string Username = "";
                         string Password = "";
                         string URL = "";
-                        int Namespace = 0;
+                        int Namespace = -1;
                         string Path = "";
 
                         int i = 0;
-
 
                         while (i < 5 && i < count) // URL, Username, Password, Namespace, Path
                         {
@@ -874,48 +874,49 @@ namespace AasxPackageExplorer
                                 case 0: // URL
                                     if (p.Type == "OPCURL")
                                     {
-                                        URL = p.Value;
+                                        URL = p.Value ?? "";
                                     }
                                     break;
                                 case 1: // Username
                                     if (p.Type == "OPCUsername")
                                     {
-                                        Username = p.Value;
+                                        Username = p.Value ?? "";
                                     }
                                     break;
                                 case 2: // Password
                                     if (p.Type == "OPCPassword")
                                     {
-                                        Password = p.Value;
+                                        Password = p.Value ?? "";
                                     }
                                     break;
                                 case 3: // Namespace
                                     if (p.Type == "OPCNamespace")
                                     {
-                                        Namespace = int.Parse(p.Value);
+                                        Namespace = int.Parse(p.Value ?? "-1");
                                     }
                                     break;
                                 case 4: // Path
                                     if (p.Type == "OPCPath")
                                     {
-                                        Path = p.Value;
+                                        Path = p.Value ?? "";
                                     }
                                     break;
                             }
                             i++;
                         }
 
-                        if (URL == "" || Username == "" || Password == "" || Namespace == 0 || Path == "")
+                        if (URL == "" || Namespace < 0)
                         {
                             return;
                         }
 
                         // find OPC plug-in
-                        var pi = Plugins.FindPluginInstance("AasxPluginOpcUaClient");
-                        if (pi == null || !pi.HasAction("create-client") || !pi.HasAction("read-sme-value"))
+                        var pi = Plugins.FindPluginInstance("AasxPluginUaNetClient");
+                        if (pi == null || !pi.HasAction("create-client", useAsync: true) 
+                            || !pi.HasAction("read-sme-value", useAsync: true))
                         {
                             Log.Singleton.Error(
-                                "No plug-in 'AasxPluginOpcUaClient' with appropriate " +
+                                "No plug-in 'AasxPluginUaNetClient' with appropriate " +
                                 "actions 'create-client()', 'read-sme-value()' found.");
                             return;
                         }
@@ -923,14 +924,14 @@ namespace AasxPackageExplorer
                         // create client
                         // ReSharper disable ConditionIsAlwaysTrueOrFalse
                         var resClient =
-                            pi.InvokeAction(
+                            await pi.InvokeActionSyncAndAsync(
                                 "create-client", URL, autoAccept, stopTimeout,
                                 Username, Password) as AasxPluginResultBaseObject;
                         // ReSharper enable ConditionIsAlwaysTrueOrFalse
                         if (resClient == null || resClient.obj == null)
                         {
                             Log.Singleton.Error(
-                                "Plug-in 'AasxPluginOpcUaClient' cannot create client access!");
+                                "Plug-in 'AasxPluginUaNetClient' cannot create client access!");
                             return;
                         }
 
@@ -946,15 +947,14 @@ namespace AasxPackageExplorer
                                 var nodeName = "" + Path + p?.IdShort;
 
                                 // do read() via plug-in
-                                var resValue = pi.InvokeAction(
+                                var resValue = await pi.InvokeActionSyncAndAsync(
                                     "read-sme-value", resClient.obj,
                                     nodeName, Namespace) as AasxPluginResultBaseObject;
 
                                 // set?
-                                if (resValue != null && resValue.obj != null && resValue.obj is string)
+                                if (resValue != null && resValue.obj != null) 
                                 {
-                                    var value = (string)resValue.obj;
-                                    p?.Set(p.ValueType, value);
+                                    p?.Set(p.ValueType, AdminShellUtil.ToStringInvariant(resValue.obj));
                                 }
                             }
                             i++;

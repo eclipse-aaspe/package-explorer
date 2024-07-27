@@ -317,7 +317,7 @@ namespace AasxPackageLogic
                 }
 
                 // do
-                Tool_OpcUaClientRead(ticket.Submodel);
+                await Tool_OpcUaClientRead(ticket.Submodel);
             }
 
             if (cmd == "submodelread")
