@@ -1567,10 +1567,10 @@ namespace AasxPackageLogic
                                     ExtendIDataSpecificationContent.GetReferencForIec61360(),
                                     new Aas.DataSpecificationIec61360(
                                         preferredName: ExtendILangStringPreferredNameTypeIec61360
-                                            .CreateLangStringPreferredNameType(
+                                            .CreateFrom(
                                                 AdminShellUtil.GetDefaultLngIso639(), "" + valuePairs[i].Value),
                                         shortName: ExtendILangStringShortNameTypeIec61360
-                                            .CreateLangStringShortNameType(
+                                            .CreateFrom(
                                                 AdminShellUtil.GetDefaultLngIso639(), "" + valuePairs[i].Value),
                                         definition: ExtendILangStringDefinitionTypeIec61360
                                             .CreateLangStringDefinitionType(
