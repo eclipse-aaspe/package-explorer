@@ -233,8 +233,6 @@ namespace AasxPackageLogic
                     setNullList: () => referable.DisplayName = null);
             }
 
-
-
             // category deprecated
             this.AddHintBubble(
                 stack, hintMode,
@@ -1458,34 +1456,50 @@ namespace AasxPackageLogic
             AddHintBubble(
                 stack, hintMode,
                 new[] {
-                        new HintCheck(
-                            () => { return dsiec.PreferredName == null || dsiec.PreferredName.Count < 1; },
-                            "Please add a preferred name, which could be used on user interfaces " +
-                                "to identify the concept to a human person.",
-                            breakIfTrue: true),
-                        new HintCheck(
-                            () => { return dsiec.PreferredName.Count <2; },
-                            "Please add multiple languanges.",
-                            severityLevel: HintCheck.Severity.Notice)
+                    new HintCheck(
+                        () => dsiec.PreferredName != null && dsiec.PreferredName.IsValid() != true,
+                        "According to the specification, an existing list of elements shall contain " +
+                        "at least one element and for each element all mandatory fields shall be " +
+                        "not empty."),
+                    new HintCheck(
+                        () => { return dsiec.PreferredName == null || dsiec.PreferredName.Count < 1; },
+                        "Please add a preferred name, which could be used on user interfaces " +
+                            "to identify the concept to a human person.",
+                        breakIfTrue: true),
+                    new HintCheck(
+                        () => { return dsiec.PreferredName.Count <2; },
+                        "Please add multiple languanges.",
+                        severityLevel: HintCheck.Severity.Notice)
                 });
             if (SafeguardAccess(
                     stack, repo, dsiec.PreferredName, "preferredName:", "Create data element!",
                     v =>
                     {
-                        dsiec.PreferredName = new List<Aas.ILangStringPreferredNameTypeIec61360>();
+                        dsiec.PreferredName = ExtendILangStringPreferredNameTypeIec61360.CreateFrom(
+                            lang: AdminShellUtil.GetDefaultLngIso639(), text: "");
+
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
                 AddKeyListLangStr<ILangStringPreferredNameTypeIec61360>(
                     stack, "preferredName", dsiec.PreferredName,
                     repo, relatedReferable: relatedReferable,
-                    setNullList: () => dsiec.PreferredName = null);
+                    setNullList: () =>
+                    {
+                        dsiec.PreferredName = ExtendILangStringPreferredNameTypeIec61360.CreateFrom(
+                            lang: AdminShellUtil.GetDefaultLngIso639(), text: "");
+                    });
 
             // ShortName
 
             AddHintBubble(
                 stack, hintMode,
                 new[] {
+                        new HintCheck(
+                            () => dsiec.ShortName != null && dsiec.ShortName.IsValid() != true,
+                            "According to the specification, an existing list of elements shall contain " +
+                            "at least one element and for each element all mandatory fields shall be " +
+                            "not empty."),
                         new HintCheck(
                             () => { return dsiec.ShortName == null || dsiec.ShortName.Count < 1; },
                             "Please check if you can add a short name, which is a reduced, even symbolic version of " +
@@ -1507,7 +1521,8 @@ namespace AasxPackageLogic
                     stack, repo, dsiec.ShortName, "shortName:", "Create data element!",
                     v =>
                     {
-                        dsiec.ShortName = new List<Aas.ILangStringShortNameTypeIec61360>();
+                        dsiec.ShortName = ExtendILangStringShortNameTypeIec61360.CreateFrom(
+                            lang: AdminShellUtil.GetDefaultLngIso639(), text: "");
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
