@@ -995,6 +995,7 @@ namespace AasxPackageLogic
                     }
 
                     // ok, add
+                    ticket.Env.ConceptDescriptions ??= new List<IConceptDescription>();
                     ticket.Env.ConceptDescriptions.Add(cdres);
                     createdCds++;
                 }
