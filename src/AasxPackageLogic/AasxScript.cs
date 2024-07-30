@@ -33,6 +33,7 @@ namespace AasxPackageExplorer
     {
         Task<int> Tool(object[] args);
         Aas.IReferable Select(object[] args);
+        Aas.IReferable[] SelectAll(object[] args);
         Task<bool> Location(object[] args);
     }
 
@@ -299,6 +300,63 @@ namespace AasxPackageExplorer
             }
         }
 
+        public class Script_SelectAll : ScriptInvokableBase
+        {
+            public Script_SelectAll(AasxScript script) : base(script)
+            {
+                script?.AddHelpInfo("SelectAll",
+                    "Returns all Referables of a certain kind fron the active environment.",
+                    args: new AasxMenuListOfArgDefs()
+                        .Add("<ref. type>", "String indicating Referable type, such as AAS, SM, CD. ")
+                        .Add("returns:", "Enumeration of Referables of certain kind."));
+            }
+
+            public override object Invoke(IScriptContext context, object[] args)
+            {
+                // access
+                if (_script == null)
+                    return -1;
+
+                if (args == null || args.Length < 1 || !(args[0] is string))
+                {
+                    _script.ScriptLog?.Error("Script: SelectAll: Referable type missing");
+                    return -1;
+                }
+
+                // debug
+                if (_script._logLevel >= 2)
+                    Console.WriteLine($"Execute SelectAll " + string.Join(",", args));
+
+                // which application
+                if (Application.Current == null)
+                {
+                    Log.Singleton.Error("For script execution, Application.Current for Blazor is not available.");
+                }
+
+                // invoke action
+                // https://stackoverflow.com/questions/39438441/
+                Aas.IReferable[] x = null;
+                if (Application.Current != null)
+                {
+                    // WPF case
+                    x = Application.Current?.Dispatcher.Invoke(() =>
+                    {
+                        return _script.Remote?.SelectAll(args);
+                    });
+                    if (x != null)
+                        Log.Singleton.Silent("" + x.Count());
+                }
+                else
+                {
+                    // Blazor?? case
+                    x = _script.Remote?.SelectAll(args);
+                }
+
+                // done
+                return x;
+            }
+        }
+
         public class Script_Location : ScriptInvokableBase
         {
             public Script_Location(AasxScript script) : base(script)
@@ -482,6 +540,7 @@ namespace AasxPackageExplorer
                     s.Context.Scope.SetItem("FileReadAll", new Script_FileReadAll(this));
                     s.Context.Scope.SetItem("FileExists", new Script_FileExists(this));
                     s.Context.Scope.SetItem("Select", new Script_Select(this));
+                    s.Context.Scope.SetItem("SelectAll", new Script_SelectAll(this));
                     s.Context.Scope.SetItem("Location", new Script_Location(this));
                     s.Context.Scope.SetItem("System", new Script_System(this));
                     if (_logLevel >= 2)

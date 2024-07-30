@@ -15,6 +15,7 @@ using AasxPackageExplorer;
 using AnyUi;
 using Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Aas = AasCore.Aas3_0;
@@ -299,6 +300,36 @@ namespace AasxPackageLogic
             return null;
         }
 
+        protected ScriptSelectRefType GetScriptRefType(string refTypeName)
+        {
+            ScriptSelectRefType res = ScriptSelectRefType.None;
+
+            switch (refTypeName.Trim().ToLower())
+            {
+                case "this":
+                    res = ScriptSelectRefType.This;
+                    break;
+                case "aas":
+                case "assetadministrationshell":
+                    res = ScriptSelectRefType.AAS;
+                    break;
+                case "sm":
+                case "submodel":
+                    res = ScriptSelectRefType.SM;
+                    break;
+                case "sme":
+                case "submodelelement":
+                    res = ScriptSelectRefType.SME;
+                    break;
+                case "cd":
+                case "conceptdescription":
+                    res = ScriptSelectRefType.CD;
+                    break;
+            }
+            
+            return res;
+        }
+
         Aas.IReferable IAasxScriptRemoteInterface.Select(object[] args)
         {
             // access
@@ -310,30 +341,7 @@ namespace AasxPackageLogic
             }
 
             // check if Referable Type is ok
-            ScriptSelectRefType refType = ScriptSelectRefType.None;
-
-            switch (refTypeName.Trim().ToLower())
-            {
-                case "this":
-                    refType = ScriptSelectRefType.This;
-                    break;
-                case "aas":
-                case "assetadministrationshell":
-                    refType = ScriptSelectRefType.AAS;
-                    break;
-                case "sm":
-                case "submodel":
-                    refType = ScriptSelectRefType.SM;
-                    break;
-                case "sme":
-                case "submodelelement":
-                    refType = ScriptSelectRefType.SME;
-                    break;
-                case "cd":
-                case "conceptdescription":
-                    refType = ScriptSelectRefType.CD;
-                    break;
-            }
+            var refType = GetScriptRefType(refTypeName);
 
             if (refType == ScriptSelectRefType.None)
             {
@@ -381,6 +389,47 @@ namespace AasxPackageLogic
             return null;
         }
 
+        Aas.IReferable[] IAasxScriptRemoteInterface.SelectAll(object[] args)
+        {
+            // access
+            if (args == null || args.Length < 1
+                || !(args[0] is string refTypeName))
+            {
+                Log.Singleton.Error("Script: SelectAll: Referable type missing!");
+                return new IReferable[0];
+            }
+
+            // check if Referable Type is ok
+            var refType = GetScriptRefType(refTypeName);
+
+            if (!(refType == ScriptSelectRefType.AAS
+                  || refType == ScriptSelectRefType.SM
+                  || refType == ScriptSelectRefType.CD))
+            {
+                Log.Singleton.Error("Script: SelectAll: Referable type invalid (no AAS, SM, CD)!");
+                return new IReferable[0];
+            }
+
+            // something to select
+            var pm = PackageCentral?.Main?.AasEnv;
+            if (pm == null)
+            {
+                Log.Singleton.Error("Script: SelectAll: No main package AAS environment available!");
+                return new IReferable[0];
+            }
+
+            // ok
+            if (refType == ScriptSelectRefType.AAS)
+                return pm.AllAssetAdministrationShells().ToArray();
+
+            if (refType == ScriptSelectRefType.SM)
+                return pm.AllSubmodels().ToArray();
+
+            if (refType == ScriptSelectRefType.CD)
+                return pm.AllConceptDescriptions().ToArray();
+
+            return new IReferable[0];
+        }
 
         public async Task<int> Tool(object[] args)
         {
