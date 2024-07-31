@@ -2794,7 +2794,10 @@ namespace AasxPackageLogic
                                 {
                                     var newcd = resCD;
                                     if (null == env.FindConceptDescriptionByReference(new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>() { new Aas.Key(Aas.KeyTypes.ConceptDescription, newcd.Id) })))
+                                    {
+                                        env.ConceptDescriptions ??= new List<IConceptDescription>();
                                         env.ConceptDescriptions.Add(newcd);
+                                    }
                                 }
 
                                 // set the semantic key
