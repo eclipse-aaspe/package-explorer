@@ -26,6 +26,8 @@ namespace AdminShellNS
         }
     }
 
+    /*
+    Commented out to add some lines to MultivalueDictionary class
     public class MultiValueDictionary<K, V>
     {
         private Dictionary<K, List<V>> dict = new Dictionary<K, List<V>>();
@@ -49,7 +51,65 @@ namespace AdminShellNS
             }
         }
     }
+    */
+    public class MultiValueDictionary<K, V>
+    {
+        private Dictionary<K, List<V>> dict = new Dictionary<K, List<V>>();
 
+        public void Add(K key, V value)
+        {
+            if (dict.TryGetValue(key, out var list))
+                list.Add(value);
+            else
+                dict.Add(key, new List<V> { value });
+        }
+
+        public void Remove(K key)
+        {
+            if (dict.ContainsKey(key))
+                dict.Remove(key);
+        }
+
+        public bool ContainsKey(K key) => dict.ContainsKey(key);
+
+        public List<V> this[K key] => dict[key];
+
+        public IEnumerable<List<V>> ValueLists
+        {
+            get
+            {
+                return dict.Values;
+            }
+        }
+
+        public IEnumerable<V> Values
+        {
+            get
+            {
+                foreach (var vl in dict.Values)
+                    foreach (var v in vl)
+                        yield return v;
+            }
+        }
+
+        public IEnumerable<K> Keys
+        {
+            get
+            {
+                return dict.Keys;
+            }
+        }
+
+        public void Clear() => dict.Clear();
+
+        public IEnumerable<V> All(K key)
+        {
+            if (!dict.ContainsKey(key))
+                yield break;
+            foreach (var x in dict[key])
+                yield return x;
+        }
+    }
     public class DoubleSidedDict<T1, T2>
     {
         private Dictionary<T1, T2> _forward = new Dictionary<T1, T2>();

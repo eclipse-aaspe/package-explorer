@@ -109,6 +109,14 @@
     },
     */
     {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginAID\\bin\\Debug\\net6.0-windows\\AasxPluginAID.dll",
+      "Args": []
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginAssetInterfaceDesc\\bin\\Debug\\net6.0-windows\\AasxPluginAssetInterfaceDesc.dll",
+      "Args": []
+    },
+    {
       "Path": "..\\..\\..\\..\\..\\..\\AasxPluginKnownSubmodels\\bin\\Debug\\net6.0-windows\\AasxPluginKnownSubmodels.dll",
       "Args": []
     },

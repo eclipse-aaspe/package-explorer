@@ -40,6 +40,38 @@ namespace AasxPluginKnownSubmodels
 
             opt.Records.Add(new KnownSubmodelsOptionsRecord()
             {
+                Header = "IDTA Asset Interfaces Description",
+                Content = "This Submodel template aims at being part of asset onboarding " +
+                    "solution by specifying an information model and a common representation" +
+                    "for describing interface(s) of an asset service or asset related service." +
+                    "Based on this information, it is possible to initiate a connection to" +
+                    "such kind of service and start to request or subscribe to  datapoints," +
+                    "and/or perform operations.",
+                ImageLink = "AasxPluginKnownSubmodels.media\\SMT_Generic.png",
+                FurtherUrl = "https://github.com/admin-shell-io/submodel-templates/tree/main/published/Asset%20Interfaces%20Description/1/0",
+                AllowSubmodelSemanticId = (new Aas.Key[] {
+                    new Aas.Key(Aas.KeyTypes.Submodel, "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Submodel")
+                }.ToList())
+            });
+
+            opt.Records.Add(new KnownSubmodelsOptionsRecord()
+            {
+                Header = "IDTA Asset Interfaces Mapping Configuration",
+                Content = "This Submodel template aims at being part of asset onboarding solution " +
+                    "of an asset of the respective Asset Administration Shell. " +
+                    "The intended use-case is the  provision of mapping information of a data's " +
+                    "the source (asset) and target (AAS submodel element) endpoint." +
+                    "information provided in AIMC, is used to effortlessly integrate" +
+                    "and accelerate asset onboarding.",
+                ImageLink = "AasxPluginKnownSubmodels.media\\SMT_Generic.png",
+                FurtherUrl = "https://github.com/admin-shell-io/id",
+                AllowSubmodelSemanticId = (new Aas.Key[] {
+                    new Aas.Key(Aas.KeyTypes.Submodel, "https://admin-shell.io/idta/AssetInterfacesMappingConfiguration/1/0/Submodel")
+                }.ToList())
+            });
+
+            opt.Records.Add(new KnownSubmodelsOptionsRecord()
+            {
                 Header = "Contact Information (IDTA) V1.0",
                 Content = "This Submodel template aims at interoperable provision of contact information in regard " +
                     "to the asset of the respective Asset Administration Shell. " +
