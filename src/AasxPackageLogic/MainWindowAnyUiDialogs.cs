@@ -202,154 +202,7 @@ namespace AasxPackageLogic
 
             if (cmd == "saveas")
             {
-                // start
-                ticket.StartExec();
-
-                // open?
-                if (!PackageCentral.MainAvailable || PackageCentral.MainItem.Container == null)
-                {
-                    LogErrorToTicket(ticket, "No open AASX file to be saved.");
-                    return;
-                }
-
-                // shall be a local/ user file?!
-                var isLocalFile = PackageCentral.MainItem.Container is PackageContainerLocalFile;
-                var isUserFile = PackageCentral.MainItem.Container is PackageContainerUserFile;
-                if (!isLocalFile && !isUserFile)
-                    if (!ticket.ScriptMode
-                        && AnyUiMessageBoxResult.Yes != await DisplayContext.MessageBoxFlyoutShowAsync(
-                        "Current AASX file is not a local or user file. Proceed and convert to such file?",
-                        "Save", AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Hand))
-                        return;
-
-                // filename
-                var ucsf = await DisplayContextPlus.MenuSelectSaveFilenameAsync(
-                    ticket, "File",
-                    "Save AASX package",
-                    PackageCentral.MainItem.Filename,
-                    "AASX package files (*.aasx)|*.aasx|AASX package files w/ JSON (*.aasx)|*.aasx|" +
-                        (!isLocalFile ? "" : "AAS XML file (*.xml)|*.xml|AAS JSON file (*.json)|*.json|") +
-                        "All files (*.*)|*.*",
-                    "Save AASX: No valid filename.",
-                    reworkSpecialFn: true);
-                if (ucsf?.Result != true)
-                    return;
-
-                // do
-                try
-                {
-                    // dead-csharp off
-                    //// establish target filename
-                    //if (ucsf.Location == AnyUiDialogueDataSaveFile.LocationKind.User)
-                    //{
-                    //    targetFn = PackageContainerUserFile.BuildUserFilePath(ucsf.TargetFileName);
-                    //    targetFnForLRU = null;
-                    //}
-
-                    //if (ucsf.Location == AnyUiDialogueDataSaveFile.LocationKind.Download)
-                    //{
-                    //    // produce a .tmp file
-                    //    targetFn = System.IO.Path.GetTempFileName();
-                    //    targetFnForLRU = null;
-
-                    //    // rename better
-                    //    var _filterItems = AnyUiDialogueDataOpenFile.DecomposeFilter(ucsf.Filter);
-                    //    targetFn = AnyUiDialogueDataOpenFile.ApplyFilterItem(
-                    //        fi: _filterItems[ucsf.FilterIndex],
-                    //        fn: targetFn,
-                    //        userFn: ucsf.TargetFileName,
-                    //        final: 3);
-                    //}
-
-                    //// if not local, do a bit of voodoo ..
-                    //if (!isLocalFile && !isUserFile && PackageCentral.MainItem.Container != null)
-                    //{
-                    //    // establish local
-                    //    if (!await PackageCentral.MainItem.Container.SaveLocalCopyAsync(
-                    //        targetFn,
-                    //        runtimeOptions: PackageCentral.CentralRuntimeOptions))
-                    //    {
-                    //        // Abort
-                    //        LogErrorToTicket(ticket,
-                    //            "Not able to copy current AASX file to local file. Aborting!");
-                    //        return;
-                    //    }
-
-                    //    // re-load
-                    //    MainWindow.UiLoadPackageWithNew(
-                    //        PackageCentral.MainItem, null, targetFn, onlyAuxiliary: false,
-                    //        storeFnToLRU: targetFnForLRU);
-                    //    return;
-                    //}
-
-                    //
-                    // ELSE .. already local
-                    //
-                    // dead-csharp on
-
-                    // preferred format
-                    var prefFmt = AdminShellPackageEnv.SerializationFormat.None;
-                    if (ucsf.FilterIndex == 1)
-                        prefFmt = AdminShellPackageEnv.SerializationFormat.Xml;
-                    if (ucsf.FilterIndex == 2)
-                        prefFmt = AdminShellPackageEnv.SerializationFormat.Json;
-
-                    // save 
-                    DisplayContextPlus.RememberForInitialDirectory(ucsf.TargetFileName);
-                    await PackageCentral.MainItem.SaveAsAsync(ucsf.TargetFileName, prefFmt: prefFmt,
-                        doNotRememberLocation: ucsf.Location != AnyUiDialogueDataSaveFile.LocationKind.Local);
-
-                    // backup (only for AASX)
-                    if (ucsf.FilterIndex == 0)
-                        if (Options.Curr.BackupDir != null)
-                            PackageCentral.MainItem.Container.BackupInDir(
-                                System.IO.Path.GetFullPath(Options.Curr.BackupDir),
-                                Options.Curr.BackupFiles,
-                                PackageContainerBase.BackupType.FullCopy);
-
-                    // as saving changes the structure of pending supplementary files, re-display
-                    MainWindow.RedrawAllAasxElements();
-
-                    // LRU?
-                    // record in LRU?
-                    try
-                    {
-                        var lru = PackageCentral?.Repositories?.FindLRU();
-                        if (lru != null && ucsf.Location == AnyUiDialogueDataSaveFile.LocationKind.Local)
-                            lru.Push(PackageCentral?.MainItem?.Container as PackageContainerRepoItem,
-                                ucsf.TargetFileName);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Singleton.Error(
-                            ex, $"When managing LRU files");
-                        return;
-                    }
-
-                    // if it is a download, provide link
-                    if (ucsf.Location == AnyUiDialogueDataSaveFile.LocationKind.Download
-                        && DisplayContextPlus.WebBrowserServicesAllowed())
-                    {
-                        try
-                        {
-                            await DisplayContextPlus.WebBrowserDisplayOrDownloadFile(
-                                ucsf.TargetFileName, "application/octet-stream");
-                            Log.Singleton.Info("Download initiated.");
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Singleton.Error(
-                                ex, $"When downloading saved file");
-                            return;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogErrorToTicket(ticket, ex, "when saving AASX");
-                    return;
-                }
-                Log.Singleton.Info("AASX saved successfully as: {0}", ucsf.TargetFileName);
+                await PerformSaveAsAsync(ticket);
             }
 
             if (cmd == "close" && PackageCentral?.Main != null)
@@ -1674,48 +1527,10 @@ namespace AasxPackageLogic
                     Log.Singleton.Info("Fixed issues of AASX: {0}", PackageCentral.MainItem.Filename);             
                 }
 
-                //Save
-                // start
-                ticket.StartExec();
+                //SaveAS
+                await PerformSaveAsAsync(ticket);
+                
 
-                // open?
-                if (!PackageCentral.MainStorable)
-                {
-                    LogErrorToTicket(ticket, "No open AASX file to be saved.");
-                    return;
-                }
-
-                // do
-                try
-                {
-                    // save
-                    await PackageCentral.MainItem.SaveAsAsync(runtimeOptions: PackageCentral.CentralRuntimeOptions);
-
-                    // backup
-                    if (Options.Curr.BackupDir != null)
-                        PackageCentral.MainItem.Container.BackupInDir(
-                            System.IO.Path.GetFullPath(Options.Curr.BackupDir),
-                            Options.Curr.BackupFiles,
-                            PackageContainerBase.BackupType.FullCopy);
-
-                    // may be was saved to index
-                    if (PackageCentral?.MainItem?.Container?.Env?.AasEnv != null)
-                        PackageCentral.MainItem.Container.SignificantElements
-                            = new IndexOfSignificantAasElements(PackageCentral.MainItem.Container.Env.AasEnv);
-
-                    // may be was saved to flush events
-                    MainWindow.CheckIfToFlushEvents();
-
-                    // as saving changes the structure of pending supplementary files, re-display
-                    MainWindow.RedrawAllAasxElements(keepFocus: true);
-                }
-                catch (Exception ex)
-                {
-                    LogErrorToTicket(ticket, ex, "when saving AASX");
-                    return;
-                }
-
-                Log.Singleton.Info("Fixed the issues and successfully saved AASX: {0}", PackageCentral.MainItem.Filename);
             }
             catch (Exception ex)
             {
@@ -1723,6 +1538,109 @@ namespace AasxPackageLogic
                 Log.Singleton.Error(ex.StackTrace);
             }
 
+        }
+
+        private async Task PerformSaveAsAsync(AasxMenuActionTicket ticket)
+        {
+            // start
+            ticket.StartExec();
+
+            // open?
+            if (!PackageCentral.MainAvailable || PackageCentral.MainItem.Container == null)
+            {
+                LogErrorToTicket(ticket, "No open AASX file to be saved.");
+                return;
+            }
+
+            // shall be a local/ user file?!
+            var isLocalFile = PackageCentral.MainItem.Container is PackageContainerLocalFile;
+            var isUserFile = PackageCentral.MainItem.Container is PackageContainerUserFile;
+            if (!isLocalFile && !isUserFile)
+                if (!ticket.ScriptMode
+                    && AnyUiMessageBoxResult.Yes != await DisplayContext.MessageBoxFlyoutShowAsync(
+                    "Current AASX file is not a local or user file. Proceed and convert to such file?",
+                    "Save", AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Hand))
+                    return;
+
+            // filename
+            var ucsf = await DisplayContextPlus.MenuSelectSaveFilenameAsync(
+                ticket, "File",
+                "Save AASX package",
+                PackageCentral.MainItem.Filename,
+                "AASX package files (*.aasx)|*.aasx|AASX package files w/ JSON (*.aasx)|*.aasx|" +
+                    (!isLocalFile ? "" : "AAS XML file (*.xml)|*.xml|AAS JSON file (*.json)|*.json|") +
+                    "All files (*.*)|*.*",
+                "Save AASX: No valid filename.",
+                reworkSpecialFn: true);
+            if (ucsf?.Result != true)
+                return;
+
+            // do
+            try
+            {
+                // preferred format
+                var prefFmt = AdminShellPackageEnv.SerializationFormat.None;
+                if (ucsf.FilterIndex == 1)
+                    prefFmt = AdminShellPackageEnv.SerializationFormat.Xml;
+                if (ucsf.FilterIndex == 2)
+                    prefFmt = AdminShellPackageEnv.SerializationFormat.Json;
+
+                // save 
+                DisplayContextPlus.RememberForInitialDirectory(ucsf.TargetFileName);
+                await PackageCentral.MainItem.SaveAsAsync(ucsf.TargetFileName, prefFmt: prefFmt,
+                    doNotRememberLocation: ucsf.Location != AnyUiDialogueDataSaveFile.LocationKind.Local);
+
+                // backup (only for AASX)
+                if (ucsf.FilterIndex == 0)
+                    if (Options.Curr.BackupDir != null)
+                        PackageCentral.MainItem.Container.BackupInDir(
+                            System.IO.Path.GetFullPath(Options.Curr.BackupDir),
+                            Options.Curr.BackupFiles,
+                            PackageContainerBase.BackupType.FullCopy);
+
+                // as saving changes the structure of pending supplementary files, re-display
+                MainWindow.RedrawAllAasxElements();
+
+                // LRU?
+                // record in LRU?
+                try
+                {
+                    var lru = PackageCentral?.Repositories?.FindLRU();
+                    if (lru != null && ucsf.Location == AnyUiDialogueDataSaveFile.LocationKind.Local)
+                        lru.Push(PackageCentral?.MainItem?.Container as PackageContainerRepoItem,
+                            ucsf.TargetFileName);
+                }
+                catch (Exception ex)
+                {
+                    Log.Singleton.Error(
+                        ex, $"When managing LRU files");
+                    return;
+                }
+
+                // if it is a download, provide link
+                if (ucsf.Location == AnyUiDialogueDataSaveFile.LocationKind.Download
+                    && DisplayContextPlus.WebBrowserServicesAllowed())
+                {
+                    try
+                    {
+                        await DisplayContextPlus.WebBrowserDisplayOrDownloadFile(
+                            ucsf.TargetFileName, "application/octet-stream");
+                        Log.Singleton.Info("Download initiated.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Singleton.Error(
+                            ex, $"When downloading saved file");
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogErrorToTicket(ticket, ex, "when saving AASX");
+                return;
+            }
+            Log.Singleton.Info("AASX saved successfully as: {0}", ucsf.TargetFileName);
         }
 
         //
