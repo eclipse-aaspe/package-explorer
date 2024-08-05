@@ -1,5 +1,5 @@
 ﻿@page "/"
-@using Aas = AasCore.Aas3_0_RC02
+@using Aas = AasCore.Aas3_0
 @using AdminShellNS
 @using AasxIntegrationBase
 @*using BlazorUI*@
@@ -1091,48 +1091,48 @@
         {
             var sm = o as Aas.Submodel;
             ret = "";
-            if (sm.Kind != null && sm.Kind == Aas.ModelingKind.Template)
-                ret += "<T> ";
+            // if (sm.Kind != null && sm.Kind == Aas.ModelingKind.Template)
+            //    ret += "<T> ";
             ret += sm.IdShort;
         }
         if (o is Aas.ISubmodelElement)
         {
             var sme = o as Aas.ISubmodelElement;
             ret = "";
-            if (sme.Kind != null && sme.Kind == Aas.ModelingKind.Template)
-                ret += "<T> ";
+            // if (sme.Kind != null && sme.Kind == Aas.ModelingKind.Template)
+            //     ret += "<T> ";
             ret += sme.IdShort;
         }
         if (o is Aas.File)
         {
             var f = o as Aas.File;
             ret = "";
-            if (f.Kind != null && f.Kind == Aas.ModelingKind.Template)
-                ret += "<T> ";
+            // if (f.Kind != null && f.Kind == Aas.ModelingKind.Template)
+            //    ret += "<T> ";
             ret += f.IdShort;
         }
         if (o is Aas.Blob)
         {
             var b = o as Aas.Blob;
             ret = "";
-            if (b.Kind != null && b.Kind == Aas.ModelingKind.Template)
-                ret += "<T> ";
+            // if (b.Kind != null && b.Kind == Aas.ModelingKind.Template)
+            //    ret += "<T> ";
             ret += b.IdShort;
         }
-        if (o is AasCore.Aas3_0_RC02.Range)
+        if (o is Aas.Range)
         {
-            var r = o as AasCore.Aas3_0_RC02.Range;
+            var r = o as Aas.Range;
             ret = "";
-            if (r.Kind != null && r.Kind == Aas.ModelingKind.Template)
-                ret += "<T> ";
+            // if (r.Kind != null && r.Kind == Aas.ModelingKind.Template)
+            //    ret += "<T> ";
             ret += r.IdShort;
         }
         if (o is Aas.MultiLanguageProperty)
         {
             var mlp = o as Aas.MultiLanguageProperty;
             ret = "";
-            if (mlp.Kind != null && mlp.Kind == Aas.ModelingKind.Template)
-                ret += "<T> ";
+            // if (mlp.Kind != null && mlp.Kind == Aas.ModelingKind.Template)
+            //    ret += "<T> ";
             ret += mlp.IdShort;
         }
         return (ret);
@@ -1196,9 +1196,9 @@
                 }
             }
         }
-        if (o is AasCore.Aas3_0_RC02.Range)
+        if (o is Aas.Range)
         {
-            var r = o as AasCore.Aas3_0_RC02.Range;
+            var r = o as Aas.Range;
             ret = " = " + r.Min + " .. " + r.Max;
             if (r.Qualifiers != null && r.Qualifiers.Count > 0)
             {
@@ -1359,7 +1359,7 @@
                     if (found.htmlEventOutputs.Count == 1
                         && found.htmlEventOutputs[0] is Aas.IReferable rf)
                     {
-                        var kl = new List<Aas.Key>();
+                        var kl = new List<Aas.IKey>();
                         rf?.CollectReferencesByParent(kl);
                         pluginInstance?.InvokeAction("event-return",
                            new AasxIntegrationBase.AasxPluginEventReturnSelectAasEntity()

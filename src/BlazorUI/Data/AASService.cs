@@ -16,7 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Aas = AasCore.Aas3_0_RC02;
+using Aas = AasCore.Aas3_0;
 using AdminShellNS;
 using Extensions;
 using AasxIntegrationBase;
@@ -249,7 +249,7 @@ namespace BlazorUI.Data
                                                 Text = "PLUGIN",
                                                 Tag = new Tuple<AdminShellPackageEnv, Aas.Submodel,
                                                     Plugins.PluginInstance, AasxPluginResultVisualExtension>
-                                                        (bi.env, sm, lpi, ext),
+                                                        (bi.env, (Aas.Submodel)sm, lpi, ext),
                                                 Type = "Plugin"
                                             };
                                             smChilds.Add(piItem);
@@ -394,7 +394,7 @@ namespace BlazorUI.Data
                 c.parent = smeRootItem;
         }
 
-        public List<Aas.Submodel> GetSubmodels(blazorSessionService bi)
+        public List<Aas.ISubmodel> GetSubmodels(blazorSessionService bi)
         {
             return bi.env.AasEnv.Submodels;
         }
