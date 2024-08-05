@@ -622,6 +622,7 @@ namespace AasxPluginAssetInterfaceDescription
                         continue;
                     ifc.Connection = conn;
                     
+                     
                     // go thru all items (sync)
                     foreach (var item in ifc.Items.Values)
                         //use mostSignificant byte here
