@@ -88,7 +88,12 @@ namespace AasxDictionaryImport.Eclass
                     {
                         // Verify that the root element is eclass_dictionary and find the header element for different
                         // schema versions
-                        if (reader.IsStartElement("eclass_dictionary", Namespaces.Dic30.NamespaceName))
+                        if (reader.IsStartElement("eclass_dictionary", Namespaces.Dic40.NamespaceName))
+                        {
+                            if (!reader.ReadToDescendant("header", Namespaces.Hea40.NamespaceName))
+                                return false;
+                        }
+                        else if (reader.IsStartElement("eclass_dictionary", Namespaces.Dic30.NamespaceName))
                         {
                             if (!reader.ReadToDescendant("header", Namespaces.Hea30.NamespaceName))
                                 return false;
@@ -869,9 +874,13 @@ namespace AasxDictionaryImport.Eclass
 
         public static XNamespace Dic30 = "urn:eclass:xml-schema:dictionary:3.0";
 
+        public static XNamespace Dic40 = "urn:eclass:xml-schema:dictionary:4.0";
+
         public static XNamespace Hea20 = "urn:eclass:xml-schema:header:2.0";
 
         public static XNamespace Hea30 = "urn:eclass:xml-schema:header:3.0";
+
+        public static XNamespace Hea40 = "urn:eclass:xml-schema:header:4.0";
     }
 
     internal static class Extensions
