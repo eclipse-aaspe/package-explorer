@@ -233,7 +233,7 @@ namespace AasxPackageExplorer
                     .AddWpf(name: "MQTTPub", header: "Publish AAS via MQTT …")
                     .AddSeparator()
                     .AddWpf(name: "ServerPluginEmptySample", header: "Plugin: Empty Sample …")
-                    .AddWpf(name: "ServerPluginOPCUA", header: "Plugin: OPC UA …")
+                    //.AddWpf(name: "ServerPluginOPCUA", header: "Plugin: OPC UA …")
                     .AddWpf(name: "ServerPluginMQTT", header: "Plugin: MQTT …"))
                 .AddSeparator(filter: AasxMenuFilter.NotBlazor)
                 .AddMenu(header: "System …", filter: AasxMenuFilter.NotBlazor,
