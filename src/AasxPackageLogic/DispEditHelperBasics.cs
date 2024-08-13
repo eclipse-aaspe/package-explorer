@@ -12,10 +12,12 @@ using AasxIntegrationBase.AdminShellEvents;
 using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using AdminShellNS.DiaryData;
+using AdminShellNS.Extensions;
 using AnyUi;
 using Extensions;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -819,7 +821,6 @@ namespace AasxPackageLogic
                     (o) =>
                     {
                         langStr.Add<T>("", "");
-
                         emitCustomEvent?.Invoke(relatedReferable);
 
                         return new AnyUiLambdaActionRedrawEntity();
@@ -827,7 +828,7 @@ namespace AasxPackageLogic
             }
 
             // contents?
-            if (langStr != null)
+            if (!langStr.IsNullOrEmpty())
                 for (int i = 0; i < langStr.Count; i++)
                     if (repo == null)
                     {
@@ -850,74 +851,77 @@ namespace AasxPackageLogic
                         // save in current context
                         var currentI = 0 + i;
 
-                        // lang
-                        var tbLang = AddSmallComboBoxTo(
-                            g, 0 + i + rowOfs, 1,
-                            margin: NormalOrCapa(
-                                new AnyUiThickness(4, 2, 2, 2),
-                                AnyUiContextCapability.Blazor, new AnyUiThickness(4, 2, 2, 0)),
-                            padding: NormalOrCapa(
-                                new AnyUiThickness(0, -1, 0, -1),
-                                AnyUiContextCapability.Blazor, new AnyUiThickness(0, 4, 0, 4)),
-                            text: "" + langStr[currentI].Language,
-                            minWidth: 60,
-                            items: defaultLanguages,
-                            isEditable: true);
-                        AnyUiUIElement.RegisterControl(
-                            tbLang,
-                            (o) =>
-                            {
-                                langStr[currentI].Language = o as string;
-                                emitCustomEvent?.Invoke(relatedReferable);
-                                return new AnyUiLambdaActionNone();
-                            });
-                        // check here, if to hightlight
-                        if (tbLang != null && this.highlightField != null &&
-                                this.highlightField.fieldHash == langStr[currentI].Language.GetHashCode() &&
-                                //(this.highlightField.containingObject == langStr[currentI]))
-                                //TODO (jtikekar, 0000-00-00): need to test
-                                CompareUtils.Compare<IAbstractLangString>((IAbstractLangString)this.highlightField.containingObject, langStr[currentI]))
-                            this.HighligtStateElement(tbLang, true);
+                        if (langStr[currentI] != null)
+                        {
+                            // lang
+                            var tbLang = AddSmallComboBoxTo(
+                                g, 0 + i + rowOfs, 1,
+                                margin: NormalOrCapa(
+                                    new AnyUiThickness(4, 2, 2, 2),
+                                    AnyUiContextCapability.Blazor, new AnyUiThickness(4, 2, 2, 0)),
+                                padding: NormalOrCapa(
+                                    new AnyUiThickness(0, -1, 0, -1),
+                                    AnyUiContextCapability.Blazor, new AnyUiThickness(0, 4, 0, 4)),
+                                text: "" + langStr[currentI].Language,
+                                minWidth: 60,
+                                items: defaultLanguages,
+                                isEditable: true);
+                            AnyUiUIElement.RegisterControl(
+                                tbLang,
+                                (o) =>
+                                {
+                                    langStr[currentI].Language = o as string;
+                                    emitCustomEvent?.Invoke(relatedReferable);
+                                    return new AnyUiLambdaActionNone();
+                                });
+                            // check here, if to hightlight
+                            if (tbLang != null && this.highlightField != null &&
+                                    this.highlightField.fieldHash == langStr[currentI].Language.GetHashCode() &&
+                                    //(this.highlightField.containingObject == langStr[currentI]))
+                                    //TODO (jtikekar, 0000-00-00): need to test
+                                    CompareUtils.Compare<IAbstractLangString>((IAbstractLangString)this.highlightField.containingObject, langStr[currentI]))
+                                this.HighligtStateElement(tbLang, true);
 
-                        // str
-                        var tbStr = AddSmallTextBoxTo(
-                            g, 0 + i + rowOfs, 2,
-                            margin: NormalOrCapa(
-                                new AnyUiThickness(2, 2, 2, 2),
-                                AnyUiContextCapability.Blazor, new AnyUiThickness(6, 2, 2, 2)),
-                            verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center,
-                            text: "" + langStr[currentI].Text);
-                        AnyUiUIElement.RegisterControl(
-                            tbStr,
-                            (o) =>
-                            {
-                                langStr[currentI].Text = o as string;
-                                emitCustomEvent?.Invoke(relatedReferable);
-                                return new AnyUiLambdaActionNone();
-                            });
-                        // check here, if to hightlight
-                        if (tbStr != null && this.highlightField != null &&
-                                this.highlightField.fieldHash == langStr[currentI].Text.GetHashCode() &&
-                                //(this.highlightField.containingObject == langStr[currentI]))
-                                //TODO (jtikekar, 0000-00-00): need to test
-                                CompareUtils.Compare<IAbstractLangString>((IAbstractLangString)this.highlightField.containingObject, langStr[currentI]))
-                            this.HighligtStateElement(tbStr, true);
-
-                        // button [-]
-                        AnyUiUIElement.RegisterControl(
-                            AddSmallButtonTo(
-                                g, 0 + i + rowOfs, 3,
-                                margin: new AnyUiThickness(2, 2, 2, 2),
-                                padding: new AnyUiThickness(5, 0, 5, 0),
+                            // str
+                            var tbStr = AddSmallTextBoxTo(
+                                g, 0 + i + rowOfs, 2,
+                                margin: NormalOrCapa(
+                                    new AnyUiThickness(2, 2, 2, 2),
+                                    AnyUiContextCapability.Blazor, new AnyUiThickness(6, 2, 2, 2)),
                                 verticalAlignment: AnyUiVerticalAlignment.Center,
-                                content: "-"),
-                            (o) =>
-                            {
-                                langStr.RemoveAt(currentI);
-                                emitCustomEvent?.Invoke(relatedReferable);
-                                return new AnyUiLambdaActionRedrawEntity();
-                            });
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center,
+                                text: "" + langStr[currentI].Text);
+                            AnyUiUIElement.RegisterControl(
+                                tbStr,
+                                (o) =>
+                                {
+                                    langStr[currentI].Text = o as string;
+                                    emitCustomEvent?.Invoke(relatedReferable);
+                                    return new AnyUiLambdaActionNone();
+                                });
+                            // check here, if to hightlight
+                            if (tbStr != null && this.highlightField != null &&
+                                    this.highlightField.fieldHash == langStr[currentI].Text.GetHashCode() &&
+                                    //(this.highlightField.containingObject == langStr[currentI]))
+                                    //TODO (jtikekar, 0000-00-00): need to test
+                                    CompareUtils.Compare<IAbstractLangString>((IAbstractLangString)this.highlightField.containingObject, langStr[currentI]))
+                                this.HighligtStateElement(tbStr, true);
+
+                            // button [-]
+                            AnyUiUIElement.RegisterControl(
+                                AddSmallButtonTo(
+                                    g, 0 + i + rowOfs, 3,
+                                    margin: new AnyUiThickness(2, 2, 2, 2),
+                                    padding: new AnyUiThickness(5, 0, 5, 0),
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    content: "-"),
+                                (o) =>
+                                {
+                                    langStr.RemoveAt(currentI);
+                                    emitCustomEvent?.Invoke(relatedReferable);
+                                    return new AnyUiLambdaActionRedrawEntity();
+                                }); 
+                        }
                     }
 
             // in total

@@ -48,6 +48,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		Notes_V3.md = Notes_V3.md
 		README-packages.md = README-packages.md
+		..\CHANGELOG.md = ..\CHANGELOG.md
+		..\CODE_OF_CONDUCT.md = ..\CODE_OF_CONDUCT.md
+		..\CONTRIBUTING.md = ..\CONTRIBUTING.md
+		..\CONTRIBUTORS.md = ..\CONTRIBUTORS.md
+		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AasxDictionaryImport", "AasxDictionaryImport\AasxDictionaryImport.csproj", "{DEC389BC-59BC-48E5-B163-6E44CE782C4A}"

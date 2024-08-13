@@ -28,10 +28,21 @@ namespace Extensions
 
             // search
             foreach (var ls in langStrings)
-                if (ls.Language.Trim().ToLower() == defaultLang)
-                    res = ls.Text;
+            {
+                if (ls != null)
+                {
+                    if (ls.Language.Trim().ToLower() == defaultLang)
+                        res = ls.Text; 
+                }
+            }
+
             if (res == null && langStrings.Count > 0)
-                res = langStrings[0].Text;
+            {
+                if (langStrings[0] != null)
+                {
+                    res = langStrings[0].Text;
+                }
+            }   
 
             // found?
             return res;

@@ -256,7 +256,7 @@ namespace AdminShellNS
 
         private string _tempFn = null;
 
-        private AasCore.Aas3_0.Environment _aasEnv = new AasCore.Aas3_0.Environment(new List<IAssetAdministrationShell>(), new List<ISubmodel>(), new List<IConceptDescription>());
+        private AasCore.Aas3_0.Environment _aasEnv = new AasCore.Aas3_0.Environment();
         private Package _openPackage = null;
         private readonly ListOfAasSupplementaryFile _pendingFilesToAdd = new ListOfAasSupplementaryFile();
         private readonly ListOfAasSupplementaryFile _pendingFilesToDelete = new ListOfAasSupplementaryFile();
@@ -301,6 +301,11 @@ namespace AdminShellNS
             {
                 return _aasEnv;
             }
+        }
+
+        public void SetEnvironment(AasCore.Aas3_0.Environment environment)
+        {
+            _aasEnv = environment; 
         }
 
         private static AasCore.Aas3_0.Environment LoadXml(string fn)
@@ -1535,8 +1540,9 @@ namespace AdminShellNS
 
                 // get the origin from the package
                 PackagePart originPart = null;
-                xs = _openPackage.GetRelationshipsByType(
-                    "http://admin-shell.io/aasx/relationships/aasx-origin");
+                xs = _openPackage.GetRelationshipsByType("http://admin-shell.io/aasx/relationships/aasx-origin");
+                var test = xs.Count();
+                if(xs.Count() <= 0) xs = _openPackage.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aasx-origin");
                 foreach (var x in xs)
                     if (x.SourceUri.ToString() == "/")
                     {
@@ -1553,7 +1559,8 @@ namespace AdminShellNS
                 {
                     // get the specs from the origin
                     PackagePart specPart = null;
-                    xs = originPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-spec");
+                    xs = originPart.GetRelationshipsByType("http://admin-shell.io/aasx/relationships/aas-spec");
+                    if(xs.Count() <= 0) xs = originPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-spec");
                     foreach (var x in xs)
                     {
                         //specPart = _openPackage.GetPart(x.TargetUri);
@@ -1568,8 +1575,8 @@ namespace AdminShellNS
                     if (specPart != null)
                     {
                         // get the supplementaries from the package, derived from spec
-                        xs = specPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-suppl");
-                        if(xs == null) xs = specPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-suppl");
+                        xs = specPart.GetRelationshipsByType("http://admin-shell.io/aasx/relationships/aas-suppl");
+                        if(xs.Count() <= 0) xs = specPart.GetRelationshipsByType("http://www.admin-shell.io/aasx/relationships/aas-suppl");
                         foreach (var x in xs)
                         {
                             result.Add(

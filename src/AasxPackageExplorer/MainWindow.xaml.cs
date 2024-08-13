@@ -3759,5 +3759,6 @@ namespace AasxPackageExplorer
                 Logic?.LocationHistory?.Pop();
             }
         }
+
     }
 }

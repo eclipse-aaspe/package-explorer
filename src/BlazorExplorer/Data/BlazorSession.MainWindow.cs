@@ -28,6 +28,7 @@ using AnyUi;
 using BlazorExplorer;
 using BlazorExplorer.Shared;
 using Microsoft.JSInterop;
+using AasCore.Aas3_0;
 
 namespace BlazorUI.Data
 {
