@@ -780,6 +780,7 @@ namespace AasxPackageLogic
                                 {
                                     // new 
                                     var asset = itsm.Copy();
+                                    env.Submodels ??= new List<ISubmodel>();
                                     env.Submodels.Add(itsm);
                                     this.AddDiaryEntry(itsm, new DiaryEntryStructChange(
                                         StructuralChangeReason.Create));
@@ -1251,6 +1252,7 @@ namespace AasxPackageLogic
                         if (item?.smref == null)
                             return null;
 
+                        aas.Submodels ??= new List<IReference>();
                         // duplicate
                         foreach (var x in aas.Submodels)
                             if (x?.Matches(item.smref, MatchMode.Identification) == true)
@@ -1327,6 +1329,7 @@ namespace AasxPackageLogic
                                 // create ref
                                 //var smr = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>(ks));
                                 var smr = new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>(ks));
+                                aas.Submodels ??= new List<IReference>();
                                 aas.Submodels.Add(smr);
 
                                 // event for AAS
