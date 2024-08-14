@@ -54,7 +54,10 @@ namespace AasxPackageExplorer
                         .Add("File", "Source filename including a path and extension."))
                 .AddWpfBlazor(name: "ConnectIntegrated", header: "Connect …", inputGesture: "Ctrl+Shift+I")
                 .AddWpfBlazor(name: "Save", header: "_Save", inputGesture: "Ctrl+S")
-                .AddWpfBlazor(name: "SaveAs", header: "_Save as …")
+                .AddWpfBlazor(name: "SaveAs", header: "_Save as …", 
+                    help: "Saves current package to given file name and typr",
+                    args: new AasxMenuListOfArgDefs()
+                        .Add("File", "Filename including path and extension."))
                 .AddWpfBlazor(name: "FixAndFinalize", header: "Fix and Finalize ...")
                 .AddWpfBlazor(name: "Close", header: "_Close …")
                 .AddWpfBlazor(name: "CheckAndFix", header: "Check, validate and fix …")

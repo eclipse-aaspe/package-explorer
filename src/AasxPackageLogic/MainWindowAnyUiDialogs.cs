@@ -241,55 +241,6 @@ namespace AasxPackageLogic
                 // do
                 try
                 {
-                    // dead-csharp off
-                    //// establish target filename
-                    //if (ucsf.Location == AnyUiDialogueDataSaveFile.LocationKind.User)
-                    //{
-                    //    targetFn = PackageContainerUserFile.BuildUserFilePath(ucsf.TargetFileName);
-                    //    targetFnForLRU = null;
-                    //}
-
-                    //if (ucsf.Location == AnyUiDialogueDataSaveFile.LocationKind.Download)
-                    //{
-                    //    // produce a .tmp file
-                    //    targetFn = System.IO.Path.GetTempFileName();
-                    //    targetFnForLRU = null;
-
-                    //    // rename better
-                    //    var _filterItems = AnyUiDialogueDataOpenFile.DecomposeFilter(ucsf.Filter);
-                    //    targetFn = AnyUiDialogueDataOpenFile.ApplyFilterItem(
-                    //        fi: _filterItems[ucsf.FilterIndex],
-                    //        fn: targetFn,
-                    //        userFn: ucsf.TargetFileName,
-                    //        final: 3);
-                    //}
-
-                    //// if not local, do a bit of voodoo ..
-                    //if (!isLocalFile && !isUserFile && PackageCentral.MainItem.Container != null)
-                    //{
-                    //    // establish local
-                    //    if (!await PackageCentral.MainItem.Container.SaveLocalCopyAsync(
-                    //        targetFn,
-                    //        runtimeOptions: PackageCentral.CentralRuntimeOptions))
-                    //    {
-                    //        // Abort
-                    //        LogErrorToTicket(ticket,
-                    //            "Not able to copy current AASX file to local file. Aborting!");
-                    //        return;
-                    //    }
-
-                    //    // re-load
-                    //    MainWindow.UiLoadPackageWithNew(
-                    //        PackageCentral.MainItem, null, targetFn, onlyAuxiliary: false,
-                    //        storeFnToLRU: targetFnForLRU);
-                    //    return;
-                    //}
-
-                    //
-                    // ELSE .. already local
-                    //
-                    // dead-csharp on
-
                     // preferred format
                     var prefFmt = AdminShellPackageEnv.SerializationFormat.None;
                     if (ucsf.FilterIndex == 1)
