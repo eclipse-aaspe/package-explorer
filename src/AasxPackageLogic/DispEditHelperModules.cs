@@ -954,6 +954,7 @@ namespace AasxPackageLogic
                 }
             }            
         }
+        
         //
         // List of References (used for isCaseOf..)
         //
@@ -975,7 +976,8 @@ namespace AasxPackageLogic
                     stack, this.repo, references, $"{entityName}:", "Create data element!",
                     v =>
                     {
-                        setOutput?.Invoke(new List<Aas.IReference>());
+                        setOutput?.Invoke((new Aas.IReference[] {
+                            Options.Curr.GetDefaultEmptyReference() }).ToList());
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
             {
@@ -995,10 +997,14 @@ namespace AasxPackageLogic
                         ticketAction: (buttonNdx, ticket) =>
                         {
                             if (buttonNdx == 0)
-                                references.Add(new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>()));
+                                references.Add(Options.Curr.GetDefaultEmptyReference());
 
                             if (buttonNdx == 1 && references.Count > 0)
+                            {
                                 references.RemoveAt(references.Count - 1);
+                                if (references.Count < 1)
+                                    setOutput(null);
+                            }
 
                             return new AnyUiLambdaActionRedrawEntity();
                         });
@@ -1451,6 +1457,52 @@ namespace AasxPackageLogic
             // members
             this.AddGroup(stack, "Data Specification Content IEC61360:", levelColors.SubSection);
 
+            this.AddActionPanel(
+                stack, "Actions:", repo: repo,
+                superMenu: superMenu,
+                ticketMenu: new AasxMenu()
+                    .AddAction("add-record", "Delete invalid (empty)",
+                        "Delete element attrributes which are invalid because of being empty."),
+                ticketAction: (buttonNdx, ticket) =>
+                {
+                    if (buttonNdx == 0)
+                    {
+                        if (dsiec.ShortName != null && dsiec.ShortName.IsValid() != true)
+                            dsiec.ShortName = null;
+
+                        if (dsiec.Unit != null && dsiec.Unit.HasContent() != true)
+                            dsiec.Unit = null;
+
+                        if (dsiec.UnitId != null && dsiec.UnitId.IsValid() != true)
+                            dsiec.UnitId = null;
+
+                        if (dsiec.SourceOfDefinition != null && dsiec.SourceOfDefinition.HasContent() != true)
+                            dsiec.SourceOfDefinition = null;
+
+                        if (dsiec.Symbol != null && dsiec.Symbol.HasContent() != true)
+                            dsiec.Symbol = null;
+
+                        if (dsiec.Definition != null && dsiec.Definition.IsValid() != true)
+                            dsiec.Definition = null;
+
+                        if (dsiec.ValueFormat != null && dsiec.ValueFormat.HasContent() != true)
+                            dsiec.ValueFormat = null;
+
+                        if (dsiec.ValueList != null && dsiec.ValueList.IsValid() != true)
+                            dsiec.ValueList = null;
+
+                        if (dsiec.Value != null && dsiec.Value.HasContent() != true)
+                            dsiec.Value = null;
+
+                        if (dsiec.LevelType != null && dsiec.LevelType.IsEmpty() == true)
+                            dsiec.LevelType = null;
+
+                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                        return new AnyUiLambdaActionRedrawEntity();
+                    }
+                    return new AnyUiLambdaActionNone();
+                });
+
             // PreferredName
 
             AddHintBubble(
@@ -1536,55 +1588,76 @@ namespace AasxPackageLogic
             AddHintBubble(
                 stack, hintMode,
                 new[] {
-                        new HintCheck(
-                            () => {
-                                return (dsiec.UnitId == null || dsiec.UnitId.Keys.Count < 1) &&
-                                    ( dsiec.Unit == null || dsiec.Unit.Trim().Length < 1);
-                            },
-                            "Please check, if you can provide a unit or a unitId, " +
-                                "in which the concept is being measured. " +
-                                "Usage of SI-based units is encouraged.",
-                            severityLevel: HintCheck.Severity.Notice)
-            });
-            AddKeyValueExRef(
+                    new HintCheck(
+                        () => {
+                            return (dsiec.UnitId == null || dsiec.UnitId.Keys.Count < 1) &&
+                                ( dsiec.Unit == null || dsiec.Unit.Trim().Length < 1);
+                        },
+                        "Please check, if you can provide a unit or a unitId, " +
+                            "in which the concept is being measured. " +
+                            "Usage of SI-based units is encouraged.",
+                        severityLevel: HintCheck.Severity.Notice),
+                    new HintCheck(
+                        () => { return dsiec.Unit != null && dsiec.Unit.Trim() == ""; },
+                        "According to the specification, empty values are not allowed. " +
+                        "Please delete the data element or set the content.")
+                        });
+            if (SafeguardAccess(
+                stack, repo, dsiec.Unit, "unit:", "Create data element!",
+                v =>
+                {
+                    dsiec.Unit = "";
+                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                    return new AnyUiLambdaActionRedrawEntity();
+                }))
+            {
+                AddKeyValueExRef(
                 stack, "unit", dsiec, dsiec.Unit, null, repo,
                 v =>
                 {
                     dsiec.Unit = v as string;
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionNone();
+                },
+                auxButtonTitles: new[] { "Delete" },
+                auxButtonToolTips: new[] { "Delete data element" },
+                auxButtonLambda: (i) =>
+                {
+                    if (i == 0)
+                    {
+                        dsiec.Unit = null;
+                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                        return new AnyUiLambdaActionRedrawEntity();
+                    }
+                    return new AnyUiLambdaActionNone();
                 });
+            }
 
             // UnitId
 
             AddHintBubble(
                 stack, hintMode,
                 new[] {
-                        new HintCheck(
-                            () => {
-                                return ( dsiec.Unit == null || dsiec.Unit.Trim().Length < 1) &&
-                                    ( dsiec.UnitId == null || dsiec.UnitId.Keys.Count < 1);
-                            },
-                            "Please check, if you can provide a unit or a unitId, " +
-                                "in which the concept is being measured. " +
-                                "Usage of SI-based units is encouraged.",
-                            severityLevel: HintCheck.Severity.Notice)
+                    new HintCheck(
+                        () => {
+                            return ( dsiec.Unit == null || dsiec.Unit.Trim().Length < 1) 
+                                && ( dsiec.UnitId == null || dsiec.UnitId.Keys.Count < 1);
+                        },
+                        "Please check, if you can provide a unit or a unitId, " +
+                            "in which the concept is being measured. " +
+                            "Usage of SI-based units is encouraged.",
+                        severityLevel: HintCheck.Severity.Notice)
                 });
             if (SafeguardAccess(
-                    stack, repo, dsiec.UnitId, "unitId:", "Create data element!",
-                    v =>
-                    {
-                        dsiec.UnitId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
-                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                        return new AnyUiLambdaActionRedrawEntity();
-                    }))
-            {
-                List<string> keys = new();
-                foreach (var key in dsiec.UnitId.Keys)
+                stack, repo, dsiec.UnitId, "unitId:", "Create data element!",
+                v =>
                 {
-                    keys.Add(key.Value);
-                }
-                this.AddKeyReference(
+                    dsiec.UnitId = Options.Curr.GetDefaultEmptyReference();
+                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                    return new AnyUiLambdaActionRedrawEntity();
+                }))
+            {
+                AddKeyReference(
                     stack, "unitId", 
                     dsiec.UnitId, () => dsiec.UnitId = null,
                     repo,
@@ -1599,65 +1672,141 @@ namespace AasxPackageLogic
             AddHintBubble(
                 stack, hintMode,
                 new[] {
-                        new HintCheck(
-                            () =>
-                            {
-                                return dsiec.SourceOfDefinition == null || dsiec.SourceOfDefinition.Length < 1;
-                            },
-                            "Please check, if you can provide a source of definition for the concepts. " +
-                                "This could be an informal link to a document, glossary item etc.",
-                            severityLevel: HintCheck.Severity.Notice)
+                    new HintCheck(
+                        () => { return dsiec.SourceOfDefinition != null && dsiec.SourceOfDefinition.Trim() == ""; },
+                        "According to the specification, empty values are not allowed. " +
+                        "Please delete the data element or set the content.",
+                        breakIfTrue: true),
+                    new HintCheck(
+                        () =>
+                        {
+                            return dsiec.SourceOfDefinition == null || dsiec.SourceOfDefinition.Length < 1;
+                        },
+                        "Please check, if you can provide a source of definition for the concepts. " +
+                            "This could be an informal link to a document, glossary item etc.",
+                        severityLevel: HintCheck.Severity.Notice)
                 });
-            AddKeyValueExRef(
+            if (SafeguardAccess(
+                stack, repo, dsiec.SourceOfDefinition, "sourceOfDef.:", "Create data element!",
+                v =>
+                {
+                    dsiec.SourceOfDefinition = "";
+                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                    return new AnyUiLambdaActionRedrawEntity();
+                }))
+            {
+                AddKeyValueExRef(
                 stack, "sourceOfDef.", dsiec, dsiec.SourceOfDefinition, null, repo,
                 v =>
                 {
                     dsiec.SourceOfDefinition = v as string;
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionNone();
+                },
+                auxButtonTitles: new[] { "Delete" },
+                auxButtonToolTips: new[] { "Delete data element" },
+                auxButtonLambda: (i) =>
+                {
+                    if (i == 0)
+                    {
+                        dsiec.SourceOfDefinition = null;
+                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                        return new AnyUiLambdaActionRedrawEntity();
+                    }
+                    return new AnyUiLambdaActionNone();
                 });
+            }
 
             // Symbol
 
             AddHintBubble(
                 stack, hintMode,
                 new[] {
-                        new HintCheck(
-                            () => { return dsiec.Symbol == null || dsiec.Symbol.Trim().Length < 1; },
-                            "Please check, if you can provide formulaic character for the concept.",
-                            severityLevel: HintCheck.Severity.Notice)
+                    new HintCheck(
+                        () => { return dsiec.Symbol == null || dsiec.Symbol.Trim().Length < 1; },
+                        "Please check, if you can provide formulaic character for the concept.",
+                        severityLevel: HintCheck.Severity.Notice),
+                    new HintCheck(
+                        () => { return dsiec.Symbol != null && dsiec.Symbol.Trim() == ""; },
+                        "According to the specification, empty values are not allowed. " +
+                        "Please delete the data element or set the content.")
                 });
-            AddKeyValueExRef(
+            if (SafeguardAccess(
+                stack, repo, dsiec.Symbol, "symbol:", "Create data element!",
+                v =>
+                {
+                    dsiec.Symbol = "";
+                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                    return new AnyUiLambdaActionRedrawEntity();
+                }))
+            {
+                AddKeyValueExRef(
                 stack, "symbol", dsiec, dsiec.Symbol, null, repo,
                 v =>
                 {
                     dsiec.Symbol = v as string;
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionNone();
+                },
+                auxButtonTitles: new[] { "Delete" },
+                auxButtonToolTips: new[] { "Delete data element" },
+                auxButtonLambda: (i) =>
+                {
+                    if (i == 0)
+                    {
+                        dsiec.Symbol = null;
+                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                        return new AnyUiLambdaActionRedrawEntity();
+                    }
+                    return new AnyUiLambdaActionNone();
                 });
+            }
 
             // DataType
 
             AddHintBubble(
                 stack, hintMode,
                 new[] {
-                        new HintCheck(
-                            () => { return dsiec.DataType == null; },
-                            "Please provide a data type for the concept. " +
-                                "Data types are provided by the IEC 61360.")
+                    new HintCheck(
+                        () => { return dsiec.DataType == null; },
+                        "Please check if you can provide a data type for the concept. For regular IEC 61360 " +
+                        "properties, this should be the cases. The data types are provided by the IEC 61360.",
+                        severityLevel: HintCheck.Severity.Notice)
                 });
-            AddKeyValueExRef(
-                stack, "dataType", dsiec, Aas.Stringification.ToString(dsiec.DataType), null, repo,
-                v =>
-                {
-                    dsiec.DataType = Aas.Stringification.DataTypeIec61360FromString(v as string);
-                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                    return new AnyUiLambdaActionNone();
-                },
-                comboBoxIsEditable: true,
-                comboBoxMinWidth: 190,
-                comboBoxItems: Aas.Constants.DataTypeIec61360ForPropertyOrValue.Select(
-                    (dt) => Aas.Stringification.ToString(dt)).ToArray());
+            if (SafeguardAccess(
+                    stack, repo, dsiec.DataType, "dataType:", "Create data element!",
+                    v =>
+                    {
+                        dsiec.DataType = DataTypeIec61360.StringTranslatable;
+                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                        return new AnyUiLambdaActionRedrawEntity();
+                    }))
+            {
+                AddKeyValueExRef(
+                    stack, "dataType", dsiec, Aas.Stringification.ToString(dsiec.DataType), null, repo,
+                    v =>
+                    {
+                        dsiec.DataType = Aas.Stringification.DataTypeIec61360FromString(v as string);
+                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                        return new AnyUiLambdaActionRedrawEntity();
+                    },
+                    comboBoxIsEditable: false,
+                    comboBoxMinWidth: 190,
+                    comboBoxItems: Aas.Constants.DataTypeIec61360ForPropertyOrValue.Select(
+                        (dt) => Aas.Stringification.ToString(dt)).ToArray(),
+                    auxButtonTitles: new[] { "Delete" },
+                    auxButtonToolTips: new[] { "Delete data element" },
+                    auxButtonLambda: (i) =>
+                    {
+                        if (i == 0)
+                        {
+                            dsiec.DataType = null;
+                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                            return new AnyUiLambdaActionRedrawEntity();
+                        }
+                        return new AnyUiLambdaActionNone();
+                    });
+            }
 
             // Definition
 
@@ -1679,7 +1828,9 @@ namespace AasxPackageLogic
                     stack, repo, dsiec.Definition, "definition:", "Create data element!",
                     v =>
                     {
-                        dsiec.Definition = new List<Aas.ILangStringDefinitionTypeIec61360>();
+                        dsiec.Definition = ExtendILangStringDefinitionTypeIec61360.CreateFrom(
+                            lang: AdminShellUtil.GetDefaultLngIso639(), text: "");
+
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
@@ -1689,41 +1840,80 @@ namespace AasxPackageLogic
                     setNullList: () => dsiec.Definition = null);
 
             // ValueFormat
-
-            AddKeyValueExRef(
-                stack, "valueFormat", dsiec, dsiec.ValueFormat, null, repo,
-                v =>
-                {
-                    dsiec.ValueFormat = v as string;
-                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                    return new AnyUiLambdaActionNone();
+            AddHintBubble(
+                stack, hintMode,
+                new[] {
+                    new HintCheck(
+                        () => { return dsiec.ValueFormat != null && dsiec.ValueFormat.Trim() == ""; },
+                        "According to the specification, empty values are not allowed. " +
+                        "Please delete the data element or set the content.")
                 });
+            if (SafeguardAccess(
+                    stack, repo, dsiec.ValueFormat, "valueFormat:", "Create data element!",
+                    v =>
+                    {
+                        dsiec.ValueFormat = "";
+                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                        return new AnyUiLambdaActionRedrawEntity();
+                    }))
+            {
+                AddKeyValueExRef(
+                    stack, "valueFormat", dsiec, dsiec.ValueFormat, null, repo,
+                    v =>
+                    {
+                        dsiec.ValueFormat = v as string;
+                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                        return new AnyUiLambdaActionNone();
+                    },
+                    auxButtonTitles: new[] { "Delete" },
+                    auxButtonToolTips: new[] { "Delete data element" },
+                    auxButtonLambda: (i) =>
+                    {
+                        if (i == 0)
+                        {
+                            dsiec.ValueFormat = null;
+                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                            return new AnyUiLambdaActionRedrawEntity();
+                        }
+                        return new AnyUiLambdaActionNone();
+                    });
+            }
 
             // ValueList
 
             AddHintBubble(
                 stack, hintMode,
                 new[] {
-                        new HintCheck(
-                            () => { return dsiec.ValueList == null
-                                || dsiec.ValueList.ValueReferencePairs == null
-                                || dsiec.ValueList.ValueReferencePairs.Count < 1; },
-                            "If the concept features multiple possible discrete values (enumeration), " +
-                            "please check, if you can add pairs of name and References to concepts " +
-                            "representing the single values.",
-                            severityLevel: HintCheck.Severity.Notice,
-                            breakIfTrue: true),
-                        new HintCheck(
-                            () => { return dsiec.ValueList.ValueReferencePairs.Count < 2; },
-                            "Please add multiple pairs of name and Reference.",
-                            severityLevel: HintCheck.Severity.Notice)
+                    new HintCheck(
+                        () => { return dsiec.ValueList == null
+                            || dsiec.ValueList.ValueReferencePairs == null
+                            || dsiec.ValueList.ValueReferencePairs.Count < 1; },
+                        "If the concept features multiple possible discrete values (enumeration), " +
+                        "please check, if you can add pairs of name and References to concepts " +
+                        "representing the single values.",
+                        severityLevel: HintCheck.Severity.Notice,
+                        breakIfTrue: true),
+                    new HintCheck(
+                        () => dsiec.ValueList.IsValid() != true,
+                        "According to the specification, an existing list of elements shall contain " +
+                        "at least one element and for each element all mandatory fields shall be " +
+                        "not empty.",
+                        breakIfTrue: true),
+                    new HintCheck(
+                        () => { return dsiec.ValueList.ValueReferencePairs.Count < 2; },
+                        "Please add multiple pairs of name and Reference.",
+                        severityLevel: HintCheck.Severity.Notice)
                 });
             if (SafeguardAccess(
                     stack, repo, dsiec.ValueList?.ValueReferencePairs, "valueList:", "Create data element!",
                     v =>
                     {
                         dsiec.ValueList ??= new Aas.ValueList(null);
-                        dsiec.ValueList.ValueReferencePairs = new();
+                        dsiec.ValueList.ValueReferencePairs = new()
+                        {
+                            new Aas.ValueReferencePair(
+                            "", Options.Curr.GetDefaultEmptyReference())
+                        };
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
@@ -1733,7 +1923,8 @@ namespace AasxPackageLogic
                 ValueListHelper(
                     env, stack, repo, "valueList",
                     dsiec.ValueList.ValueReferencePairs,
-                    relatedReferable: relatedReferable, superMenu: superMenu);
+                    relatedReferable: relatedReferable, superMenu: superMenu,
+                    setValueList: (val) => dsiec.ValueList = val);
             }
 
             // Value
@@ -1741,33 +1932,60 @@ namespace AasxPackageLogic
             AddHintBubble(
                 stack, hintMode,
                 new[] {
-                        new HintCheck(
-                            () => { return dsiec.Value == null || dsiec.Value.Trim().Length < 1; },
-                            "If the concepts stands for a single vlaue, please provide the value. " +
-                            "Not required for enumerations or properties.",
-                            severityLevel: HintCheck.Severity.Notice)
+                    new HintCheck(
+                        () => { return dsiec.Value == null; },
+                        "If the concepts stands for a single value of a value list, please provide " +
+                        "the value. Not required for enumerations or properties.",
+                        severityLevel: HintCheck.Severity.Notice,
+                        breakIfTrue: true),
+                    new HintCheck(
+                        () => { return dsiec.Value != null && dsiec.Value.Trim() == ""; },
+                        "According to the specification, empty values are not allowed. " +
+                        "Please delete the data element or set the content.")
                 });
-            AddKeyValueExRef(
+            if (SafeguardAccess(
+                stack, repo, dsiec.Value, "value:", "Create data element!",
+                v =>
+                {
+                    dsiec.Value = "";
+                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                    return new AnyUiLambdaActionRedrawEntity();
+                }))
+            {
+                AddKeyValueExRef(
                 stack, "value", dsiec, dsiec.Value, null, repo,
                 v =>
                 {
                     dsiec.Value = v as string;
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionNone();
+                },
+                auxButtonTitles: new[] { "Delete" },
+                auxButtonToolTips: new[] { "Delete data element" },
+                auxButtonLambda: (i) =>
+                {
+                    if (i == 0)
+                    {
+                        dsiec.Value = null;
+                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                        return new AnyUiLambdaActionRedrawEntity();
+                    }
+                    return new AnyUiLambdaActionNone();
                 });
+            }
 
             // LevelType
 
             AddHintBubble(
                 stack, hintMode,
                 new[] {
-                        new HintCheck(
-                            () => dsiec.LevelType == null ||
-                                !(dsiec.LevelType.Min || dsiec.LevelType.Max
-                                  || dsiec.LevelType.Nom || dsiec.LevelType.Typ),
-                            "Consider specifying a IEC61360 level type attribute for the " +
-                            "intended values.",
-                            severityLevel: HintCheck.Severity.Notice)
+                    new HintCheck(
+                        () => dsiec.LevelType == null ||
+                            !(dsiec.LevelType.Min || dsiec.LevelType.Max
+                                || dsiec.LevelType.Nom || dsiec.LevelType.Typ),
+                        "Consider specifying a IEC61360 level type attribute for the " +
+                        "intended values.",
+                        severityLevel: HintCheck.Severity.Notice)
                 });
             if (SafeguardAccess(
                     stack, repo, dsiec.LevelType, "levelType:", "Create data element!",
@@ -1779,10 +1997,10 @@ namespace AasxPackageLogic
                     }))
             {
                 var subg = AddSubGrid(stack, "levelType:",
-                1, 4, new[] { "#", "#", "#", "#" },
-                paddingCaption: new AnyUiThickness(5, 0, 0, 0),
-                marginGrid: new AnyUiThickness(4, 0, 0, 0),
-                minWidthFirstCol: GetWidth(FirstColumnWidth.Standard));
+                    1, 6, new[] { "#", "#", "#", "#", "*", "#" },
+                    paddingCaption: new AnyUiThickness(5, 0, 0, 0),
+                    marginGrid: new AnyUiThickness(4, 0, 0, 0),
+                    minWidthFirstCol: GetWidth(FirstColumnWidth.Standard));
 
                 Action<int, string, bool, Action<bool>> lambda = (col, name, value, setValue) =>
                 {
@@ -1803,6 +2021,18 @@ namespace AasxPackageLogic
                 lambda(1, "max", dsiec.LevelType.Max, (sv) => { dsiec.LevelType.Max = sv; });
                 lambda(2, "nom", dsiec.LevelType.Nom, (sv) => { dsiec.LevelType.Nom = sv; });
                 lambda(3, "typ", dsiec.LevelType.Typ, (sv) => { dsiec.LevelType.Typ = sv; });
+
+                AnyUiUIElement.RegisterControl(
+                    AddSmallButtonTo(subg, 0, 5,
+                        margin: new AnyUiThickness(2, 2, 2, 2),
+                        content: "Delete",
+                        toolTip: "Delete data element"),
+                        (v) =>
+                        {
+                            dsiec.LevelType = null;
+                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                            return new AnyUiLambdaActionRedrawEntity();
+                        });
             }
         }
 

@@ -228,6 +228,7 @@ namespace AasxPackageExplorer
                     {
                         if (ticket != null)
                             ticket.Success = false;
+                        SetFindInfo(0, 0, null);
                         Log.Singleton.Info(StoredPrint.Color.Blue, "Search text \u00bb{0}\u00ab not found!",
                             TheSearchOptions.FindText);
                     }
@@ -261,23 +262,6 @@ namespace AasxPackageExplorer
             {
                 Log.Singleton.Error(ex, "When searching for results");
             }
-
-#if __simple_static
-            // try to go to 1st result
-            CurrentResultIndex = -1;
-            if (TheSearchResults.foundResults != null && TheSearchResults.foundResults.Count > 0 &&
-                    ResultSelected != null)
-            {
-                CurrentResultIndex = 0;
-                var sri = TheSearchResults.foundResults[0];
-                SetFindInfo(1 + CurrentResultIndex, TheSearchResults.foundResults.Count, sri);
-                ResultSelected(sri);
-            }
-            else
-            {
-                this.ButtonToolsFindInfo.Text = "not found!";
-            }
-#endif
         }
 
         public void DoReplace(AasxSearchUtil.SearchResultItem sri, string replaceText)

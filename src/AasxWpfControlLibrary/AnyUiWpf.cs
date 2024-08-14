@@ -2016,6 +2016,7 @@ namespace AnyUi
             {
                 uc.Result = true;
                 uc.TargetFileName = targetFn;
+                uc.Location = AnyUiDialogueDataSaveFile.LocationKind.Local;
                 return uc;
             }
 

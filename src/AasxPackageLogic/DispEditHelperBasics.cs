@@ -1998,8 +1998,8 @@ namespace AasxPackageLogic
                 if (topContextMenu)
                 {
                     List<string> contextHeaders = new();
-                    contextHeaders.AddRange(new[] { "\u2205", "Set all \u2192 blank" });
-                    contextHeaders.AddRange(new[] { "\u2702", "Delete completely" });
+                    contextHeaders.AddRange(new[] { "\u2205", "Set all keys \u2192 1 blank" });
+                    contextHeaders.AddRange(new[] { "\u2702", "Delete keys completely" });
 
                     if (addEclassIrdi)
                         contextHeaders.AddRange(new[] { "\U0001f517", "Add ECLASS" });

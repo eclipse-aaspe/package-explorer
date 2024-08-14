@@ -1478,6 +1478,7 @@ namespace AasxPackageLogic
             Aas.IEnvironment env,
             AnyUiStackPanel stack, ModifyRepo repo, string key,
             List<Aas.IValueReferencePair> valuePairs,
+            Action<IValueList> setValueList = null,
             Aas.IReferable relatedReferable = null,
             AasxMenu superMenu = null)
         {
@@ -1493,10 +1494,7 @@ namespace AasxPackageLogic
                         if (buttonNdx == 0)
                         {
                             valuePairs.Add(new Aas.ValueReferencePair(
-                                "",
-                                new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey> {
-                                    new Aas.Key(Aas.KeyTypes.GlobalReference, "")
-                                })));
+                                "", Options.Curr.GetDefaultEmptyReference()));
                             this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         }
 
@@ -1535,8 +1533,13 @@ namespace AasxPackageLogic
                             }
                         }
 
-                        if (buttonNdx == 3 && valuePairs.Count > 0)
-                            valuePairs.RemoveAt(valuePairs.Count - 1);
+                        if (buttonNdx == 3)
+                        {
+                            if (valuePairs.Count > 0)
+                                valuePairs.RemoveAt(valuePairs.Count - 1);
+                            if (valuePairs.Count < 1)
+                                setValueList?.Invoke(null);                            
+                        }
 
                         return new AnyUiLambdaActionRedrawEntity();
                     });
@@ -1573,8 +1576,8 @@ namespace AasxPackageLogic
                                             .CreateFrom(
                                                 AdminShellUtil.GetDefaultLngIso639(), "" + valuePairs[i].Value),
                                         definition: ExtendILangStringDefinitionTypeIec61360
-                                            .CreateLangStringDefinitionType(
-                                                AdminShellUtil.GetDefaultLngIso639(), "" + valuePairs[i].Value),
+                                            .CreateFrom("" + valuePairs[i].Value, 
+                                                lang: AdminShellUtil.GetDefaultLngIso639()),
                                         dataType: Aas.DataTypeIec61360.StringTranslatable));
 
                                 var cd = new Aas.ConceptDescription(
@@ -1622,6 +1625,8 @@ namespace AasxPackageLogic
                             {
                                 case 0:
                                     valuePairs.Remove(vp);
+                                    if (valuePairs.Count < 1)
+                                        setValueList?.Invoke(null);
                                     action = true;
                                     break;
                                 case 1:
