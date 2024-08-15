@@ -95,7 +95,7 @@ namespace AasxPackageExplorer
                         args: new AasxMenuListOfArgDefs()
                             .Add("Target", "Target report file (*.txt, *.xlsx).")))
                 .AddSeparator()
-                .AddWpfBlazor(name: "OpenAux", header: "Open Au_xiliary AAS …", inputGesture: "Ctrl+X",
+                .AddWpfBlazor(name: "OpenAux", header: "Open Au_xiliary AAS …", inputGesture: "Ctrl+Shift+X",
                     help: "Open existing AASX package to the auxiliary buffer (non visible in the tree).",
                     args: new AasxMenuListOfArgDefs()
                         .Add("File", "Source filename including a path and extension."))

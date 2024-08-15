@@ -1442,7 +1442,6 @@ namespace AasxPackageLogic
         // DataSpecificationIEC61360
         //
 
-
         public void DisplayOrEditEntityDataSpecificationIec61360(
             Aas.IEnvironment env,
             AnyUiStackPanel stack,

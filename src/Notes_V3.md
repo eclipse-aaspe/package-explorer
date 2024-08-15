@@ -447,13 +447,13 @@ These projects are not migrated or integrated, yet:
 
 # TODO (starting from 2024-06-17)
 
-* Open Aux (Ctrl-X) keyboard shortcut not working -- done
+* Open Aux (Ctrl-X) keyboard shortcut not working -- changed to Ctrl+Shift+X, done
 * "Move down" of Submodels does not visually update
-* Copy an Submodel from aux while already having an SM with the *same* ID does not throw an error but is hard to recoginze.
+* Copy an Submodel from aux while already having an SM with the *same* ID does not throw an error but is hard to recognize.
   (DispEditHelperEntities.cs:1429)
 * exporting Markdown/ AsciiDoc: text in cells from idShort shall not interpreted as markdown (__Marking_00__)
-  - done
-* Find: when nothing is found, the find stats from the search before are not deleted
+  -- done
+* Find: when nothing is found, the find stats from the search before are not deleted -- done
 * plugin imagemap / clicks / regions -- done
 * ECLASS offline import CD error -- done
 * CD.isCaseOf -- done
