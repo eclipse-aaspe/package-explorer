@@ -749,6 +749,7 @@ namespace AasxPackageLogic
                                 {
                                     // new 
                                     var cd = itcd.Copy();
+                                    env.ConceptDescriptions ??= new List<IConceptDescription>();
                                     env.ConceptDescriptions.Add(cd);
                                     this.AddDiaryEntry(cd, new DiaryEntryStructChange(
                                         StructuralChangeReason.Create));
