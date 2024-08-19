@@ -18,6 +18,25 @@ namespace AasxIntegrationBase.AasForms
 {
     public static class AasFormUtils
     {
+        public static FormMultiplicity? GetCardinality(List<Aas.IQualifier> qs)
+        {
+            if (qs == null)
+                return null;
+
+            var multiTrigger = new[] { "Multiplicity", "Cardinality", "SMT/Cardinality" };
+            foreach (var mt in multiTrigger)
+            {
+                var q = qs?.FindQualifierOfType(mt);
+                if (q != null)
+                {
+                    foreach (var m in (FormMultiplicity[])Enum.GetValues(typeof(FormMultiplicity)))
+                        if (("" + q.Value) == Enum.GetName(typeof(FormMultiplicity), m))
+                            return m;
+                }
+            }
+
+            return null;
+        }
         private static void RecurseExportAsTemplate(
             List<Aas.ISubmodelElement> smwc, FormDescListOfElement tels,
             Aas.Environment env = null, List<Aas.ConceptDescription> cds = null)
