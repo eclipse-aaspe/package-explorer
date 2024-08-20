@@ -13,14 +13,12 @@ using AasxIntegrationBase.AdminShellEvents;
 using AdminShellNS;
 using AnyUi;
 using Extensions;
-using Lucene.Net.Util;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Intrinsics.X86;
 using Aas = AasCore.Aas3_0;
 using Samm = AasCore.Samm2_2_0;
 

@@ -29,20 +29,9 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 using Aas = AasCore.Aas3_0;
 using Samm = AasCore.Samm2_2_0;
 using System.Text.RegularExpressions;
-using System.Runtime.Intrinsics.X86;
-using Lucene.Net.Tartarus.Snowball.Ext;
-using Lucene.Net.Util;
 using System.Runtime.Serialization;
-using J2N.Text;
-using Lucene.Net.Codecs;
 using VDS.RDF.Writing;
 using AngleSharp.Text;
-using System.Web.Services.Description;
-using static AasxPackageLogic.DispEditHelperBasics;
-using System.Collections;
-using static Lucene.Net.Documents.Field;
-using static AasxPackageLogic.DispEditHelperMiniModules;
-using System.Windows.Shapes;
 
 namespace AasxPackageLogic
 {

@@ -26,11 +26,7 @@ using Aas = AasCore.Aas3_0;
 using Samm = AasCore.Samm2_2_0;
 using System.Text.RegularExpressions;
 using System.Runtime.Intrinsics.X86;
-using Lucene.Net.Tartarus.Snowball.Ext;
-using Lucene.Net.Util;
 using System.Runtime.Serialization;
-using J2N.Text;
-using Lucene.Net.Codecs;
 using System.Text;
 
 namespace AasxPackageLogic
