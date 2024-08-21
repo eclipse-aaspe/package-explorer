@@ -110,6 +110,14 @@ namespace Extensions
         }
 
         /// <summary>
+        /// Returns the <c>index</c>-th Submodel, if exists. Returns <c>null</c> in any other case.
+        /// </summary>
+        public static IReference SubmodelByIndex(this IAssetAdministrationShell aas, int index)
+        {
+            if (aas?.Submodels == null || index < 0 || index >= aas.Submodels.Count)
+                return null;
+            return aas.Submodels[index];
+        /// <summary>
         /// Removes the reference, if contained in list. Might set the list to <c>null</c> !!
         /// Note: <c>smRef</c> must be the exact object, not only match it!
         /// </summary>
@@ -123,14 +131,31 @@ namespace Extensions
                 aas.Submodels = null;
         }
 
-        public static void AddSubmodelReference(this IAssetAdministrationShell assetAdministrationShell, IReference newSubmodelReference)
+        /// <summary>
+        /// Adds. Might create the list.
+        /// </summary>
+        public static void Add(this IAssetAdministrationShell aas, IReference newSmRef)
         {
-            if (assetAdministrationShell.Submodels == null)
-            {
-                assetAdministrationShell.Submodels = new List<IReference>();
-            }
+            if (aas == null)
+                return;
+            if (aas.Submodels == null)
+                aas.Submodels = new List<IReference>();
 
-            assetAdministrationShell.Submodels.Add(newSubmodelReference);
+            aas.Submodels.Add(newSmRef);
+        }
+
+        /// <summary>
+        /// Removes the reference, if contained in list. Might set the list to <c>null</c> !!
+        /// Note: <c>smRef</c> must be the exact object, not only match it!
+        /// </summary>
+        public static void Remove(this IAssetAdministrationShell aas, IReference smRef)
+        {
+            if (aas?.Submodels == null)
+                return;
+            if (aas.Submodels.Contains(smRef))
+                aas.Submodels.Remove(smRef);
+            if (aas.Submodels.Count < 1)
+                aas.Submodels = null;
         }
 
         //TODO (jtikekar, 0000-00-00): Change the name, currently based on older implementation

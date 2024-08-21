@@ -496,6 +496,29 @@ namespace Extensions
             return cd;
         }
 
+        public static IConceptDescription AddConceptDescriptionOrReturnExisting(
+            this AasCore.Aas3_0.IEnvironment env, IConceptDescription cd)
+        {
+            if (cd == null)
+            {
+                return null;
+            }
+            if (env.ConceptDescriptions != null)
+            {
+                var existingCd = env.ConceptDescriptions.Where(c => c.Id == cd.Id).FirstOrDefault();
+                if (existingCd != null)
+                {
+                    return existingCd;
+                }
+                else
+                {
+                    env.ConceptDescriptions.Add(cd);
+                }
+            }
+
+            return cd;
+        }
+
         /// <summary>
         /// Adds the Submodel. If env.Submodels are <c>null</c>, then
         /// the list will be created.
