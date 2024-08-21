@@ -428,17 +428,6 @@ namespace AdminShellNS
         }
 
         /// <summary>
-        /// Some syntactic sugar to easily take the first string which has content.
-        /// </summary>
-        public static string TakeFirstContent(params string[] choices)
-        {
-            foreach (var c in choices)
-                if (c != null && c.Trim().Length > 0)
-                    return c;
-            return "";
-        }
-
-        /// <summary>
         /// If len of <paramref name="str"/> exceeds <paramref name="maxLen"/> then
         /// string is shortened and returned with an ellipsis(…) at the end.
         /// </summary>
@@ -469,14 +458,10 @@ namespace AdminShellNS
         /// <code doctest="true">Assert.AreEqual("someName", AdminShellUtil.FilterFriendlyName("someName"));</code>
         /// <code doctest="true">Assert.AreEqual("some__name", AdminShellUtil.FilterFriendlyName("some!;name"));</code>
         /// </example>
-        public static string FilterFriendlyName(string src, bool pascalCase = false)
+        public static string FilterFriendlyName(string src)
         {
             if (src == null)
                 return null;
-
-            if (pascalCase && src.Length > 0)
-                src = char.ToUpper(src[0]) + src.Substring(1);
-
             return Regex.Replace(src, @"[^a-zA-Z0-9\-_]", "_");
         }
 
@@ -800,25 +785,6 @@ namespace AdminShellNS
         // Reflection
         //
 
-        /// <summary>
-        /// Returns type or the underlying type, if is a Nullable or if it is a 
-        /// generic type, e.g. a List<>
-        /// </summary>
-        public static Type GetTypeOrUnderlyingType(Type type, bool resolveGeneric = false)
-        {
-            var nut = Nullable.GetUnderlyingType(type);
-            if (nut != null)
-            {
-                type = nut;
-            }
-            else
-            if (resolveGeneric && type.IsGenericType && type.GetGenericArguments().Count() > 0)
-            {
-                type = type.GetGenericArguments()[0];
-            }
-            return type;
-        }
-
         public static void SetFieldLazyValue(FieldInfo f, object obj, object value)
         {
             // access
@@ -891,121 +857,6 @@ namespace AdminShellNS
                     f.SetValue(obj, !isFalse);
                     break;
             }
-        }
-
-        /// <summary>
-        /// Rathhe sepcialised: adding a type-specific value to a list
-        /// of type-specific values. 
-        /// Works for most scalars, dateTime, string.
-        /// </summary>
-        public static void AddToListLazyValue(object obj, object value)
-        {
-            // access
-            if (obj == null)
-                return;
-
-            switch (obj)
-            {
-                case List<string> lstr:
-                    lstr.Add("" + value);
-                    break;
-
-                case List<DateTime> ldt:
-                    if (DateTime.TryParse("" + value, out var dt))
-                        ldt.Add(dt);
-                    break;
-
-                case List<byte> lbyte:
-                    if (Byte.TryParse("" + value, out var ui8))
-                        lbyte.Add(ui8);
-                    break;
-
-                case List<sbyte> lsbyte:
-                    if (SByte.TryParse("" + value, out var i8))
-                        lsbyte.Add(i8);
-                    break;
-
-                case List<Int16> li16:
-                    if (Int16.TryParse("" + value, out var i16))
-                        li16.Add(i16);
-                    break;
-
-                case List<Int32> li32:
-                    if (Int32.TryParse("" + value, out var i32))
-                        li32.Add(i32);
-                    break;
-
-                case List<Int64> li64:
-                    if (Int64.TryParse("" + value, out var i64))
-                        li64.Add(i64);
-                    break;
-
-                case List<UInt16> lui16:
-                    if (UInt16.TryParse("" + value, out var ui16))
-                        lui16.Add(ui16);
-                    break;
-
-                case List<UInt32> lui32:
-                    if (UInt32.TryParse("" + value, out var ui32))
-                        lui32.Add(ui32);
-                    break;
-
-                case List<UInt64> lui64:
-                    if (UInt64.TryParse("" + value, out var ui64))
-                        lui64.Add(ui64);
-                    break;
-
-                case List<float> lfloat:
-                    if (value is double vd)
-                        lfloat.Add((float)vd);
-                    else
-                    if (value is float vf)
-                        lfloat.Add(vf);
-                    else
-                    if (Single.TryParse("" + value, NumberStyles.Float,
-                        CultureInfo.InvariantCulture, out var sgl))
-                        lfloat.Add(sgl);
-                    break;
-
-                case List<double> ldouble:
-                    if (value is double vd2)
-                        ldouble.Add(vd2);
-                    else
-                    if (value is float vf2)
-                        ldouble.Add(vf2);
-                    else
-                    if (Double.TryParse("" + value, NumberStyles.Float,
-                        CultureInfo.InvariantCulture, out var dbl))
-                        ldouble.Add(dbl);
-                    break;
-
-                case List<bool> lbool:
-                    var isFalse = value == null
-                        || (value is int vi && vi == 0)
-                        || (value is string vs && (vs == "" || vs == "false"))
-                        || (value is bool vb && !vb);
-                    lbool.Add(!isFalse);
-                    break;
-            }
-        }
-
-        public static string ToStringInvariant(object o)
-        {
-            // trivial
-            if (o == null)
-                return "";
-
-            // special cases
-            if (o is double od)
-                return od.ToString(CultureInfo.InvariantCulture);
-            if (o is float of)
-                return of.ToString(CultureInfo.InvariantCulture);
-            if (o is DateTime odt)
-                return odt.ToUniversalTime()
-                          .ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-
-            // use automatic conversion
-            return "" + o;
         }
 
         //
