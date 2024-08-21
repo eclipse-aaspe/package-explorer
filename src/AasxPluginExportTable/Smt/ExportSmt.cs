@@ -31,6 +31,8 @@ using AasxPluginExportTable.Uml;
 using AasxPluginExportTable.Table;
 using System.Runtime.Intrinsics.X86;
 using AnyUi;
+using System.Drawing.Drawing2D;
+using System.IO.Packaging;
 
 namespace AasxPluginExportTable.Smt
 {
@@ -49,6 +51,10 @@ namespace AasxPluginExportTable.Smt
         protected string _tempDir = "";
         protected StringBuilder _adoc = new StringBuilder();
         protected bool _singleFile = true;
+
+        protected string _locationPages = "";
+        protected string _locationImages = "";
+        protected string _locationDiagrams = "";
 
         protected void ProcessTextBlob(string header, Aas.IBlob blob)
         {
@@ -171,7 +177,7 @@ namespace AasxPluginExportTable.Smt
                 fn = args.fileName;
 
             // save absolute
-            var absFn = Path.Combine(_tempDir, fn);
+            var absFn = Path.Combine(_locationImages, fn);
             File.WriteAllBytes(absFn, data);
             _log?.Info("Image data with {0} bytes writen to {1}.", data.Length, absFn);
 
@@ -213,7 +219,7 @@ namespace AasxPluginExportTable.Smt
             if (refel.IdShort.HasContent())
                 pumlName = AdminShellUtil.FilterFriendlyName(refel.IdShort);
             var pumlFn = pumlName + ".puml";
-            var absPumlFn = Path.Combine(_tempDir, pumlFn);
+            var absPumlFn = Path.Combine(_locationDiagrams, pumlFn);
 
             // make options
             var umlOptions = new ExportUmlRecord();
@@ -349,6 +355,32 @@ namespace AasxPluginExportTable.Smt
             _tempDir = AdminShellUtil.GetTemporaryDirectory();
             log?.Info("ExportSmt: using temp directory {0} ..", _tempDir);
 
+            _locationPages = _tempDir;
+            _locationImages = _tempDir;
+            _locationDiagrams = _tempDir;
+
+            // sub-folders?
+            if (optionsSmt.AntoraStyle)
+            {
+                try
+                {
+                    _locationPages = Path.Combine(_tempDir, "pages");
+                    _locationImages = Path.Combine(_tempDir, "images");
+                    _locationDiagrams = Path.Combine(Path.Combine(_tempDir, "partials"), "diagrams");
+
+                    Directory.CreateDirectory(_locationPages);
+                    Directory.CreateDirectory(_locationImages);
+                    Directory.CreateDirectory(Path.Combine(_tempDir, "partials"));
+                    Directory.CreateDirectory(_locationDiagrams);
+
+                    _log?.Info(StoredPrint.Color.Black, 
+                        "Created dedicated sub-folders for pages, images, partials/diagrams.");
+                } catch (Exception ex)
+                {
+                    _log?.Error(ex, "Creating sub-folders within " + _tempDir);
+                }
+            }
+
             // predefined semantic ids
             var defs = AasxPredefinedConcepts.AsciiDoc.Static;
             var mm = MatchMode.Relaxed;
@@ -402,7 +434,7 @@ namespace AasxPluginExportTable.Smt
                     ? AdminShellUtil.FilterFriendlyName(_srcSm.IdShort)
                     : "output";
             var adocFn = title + ".adoc";
-            var absAdocFn = Path.Combine(_tempDir, adocFn);
+            var absAdocFn = Path.Combine(_locationPages, adocFn);
 
             // write it
             File.WriteAllText(absAdocFn, adocText);
@@ -439,15 +471,27 @@ namespace AasxPluginExportTable.Smt
             else
             {
                 // create zip package
+#if __old_
                 var first = true;
                 foreach (var infn in Directory.EnumerateFiles(_tempDir, "*"))
+                // foreach (var infn in Directory.GetFiles(_tempDir, "*", SearchOption.AllDirectories))
                 {
                     AdminShellUtil.AddFileToZip(
-                        fn, infn,
+                        fn, 
+                        infn,
                         fileMode: first ? FileMode.Create : FileMode.OpenOrCreate);
                     first = false;
                 }
-                log?.Info("ExportSmt: packed all files to {0}", fn);
+#else
+                using (Package zip = System.IO.Packaging.Package.Open(fn, FileMode.Create))
+                {
+                    AdminShellUtil.RecursiveAddDirToZip(
+                        zip,
+                        _tempDir);
+                }
+#endif
+
+                    log?.Info("ExportSmt: packed all files to {0}", fn);
             }
 
             // remove temp directory
