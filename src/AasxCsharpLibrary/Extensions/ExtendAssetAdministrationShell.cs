@@ -123,6 +123,16 @@ namespace Extensions
                 aas.Submodels = null;
         }
 
+        public static void AddSubmodelReference(this IAssetAdministrationShell assetAdministrationShell, IReference newSubmodelReference)
+        {
+            if (assetAdministrationShell.Submodels == null)
+            {
+                assetAdministrationShell.Submodels = new List<IReference>();
+            }
+
+            assetAdministrationShell.Submodels.Add(newSubmodelReference);
+        }
+
         //TODO (jtikekar, 0000-00-00): Change the name, currently based on older implementation
         public static string GetFriendlyName(this IAssetAdministrationShell assetAdministrationShell)
         {
