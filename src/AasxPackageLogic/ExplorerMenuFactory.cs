@@ -99,7 +99,7 @@ namespace AasxPackageExplorer
                 .AddSeparator()
                 .AddMenu(header: "Further connect options …", childs: (new AasxMenu())
                     .AddWpfBlazor(name: "ConnectSecure", header: "Secure Connect …", inputGesture: "Ctrl+Shift+S")
-                    .AddWpfBlazor(name: "ConnectOpcUa", header: "Connect via OPC-UA …")
+                    //.AddWpfBlazor(name: "ConnectOpcUa", header: "Connect via OPC-UA …")
                     .AddWpfBlazor(name: "ConnectRest", header: "Connect via REST …", inputGesture: "F6"))
                 .AddSeparator()
                 .AddMenu(header: "AASX File Repository …", childs: (new AasxMenu())
@@ -158,8 +158,8 @@ namespace AasxPackageExplorer
                         help: "Import OPC UA nodeset.xml into an existing Submodel.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "OPC UA Nodeset file."))
-                    .AddWpfBlazor(name: "OPCRead", header: "Read OPC values into SubModel …",
-                        help: "Use Qualifiers attributed in a Submodel to read actual OPC UA values.")
+                    /*.AddWpfBlazor(name: "OPCRead", header: "Read OPC values into SubModel …",
+                        help: "Use Qualifiers attributed in a Submodel to read actual OPC UA values.")*/
                     .AddWpfBlazor(name: "RDFRead", header: "Import BAMM RDF into AASX …",
                         help: "Import BAMM RDF into AASX.",
                         args: new AasxMenuListOfArgDefs()
@@ -195,13 +195,13 @@ namespace AasxPackageExplorer
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "OPC UA Nodeset2.xml file to write.")
                             .Add("Location", "Location selection", hidden: true))
-                    .AddWpfBlazor(name: "OpcUaExportNodeSetUaPlugin",
+                    /*.AddWpfBlazor(name: "OpcUaExportNodeSetUaPlugin",
                         header: "Export OPC UA Nodeset2.xml (via UA server plug-in) …",
                         help: "Export OPC UA Nodeset2.xml format by starting OPC UA server in plugin and " +
                             "execute a post-process command.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "OPC UA Nodeset2.xml file to write.")
-                            .Add("Location", "Location selection", hidden: true))
+                            .Add("Location", "Location selection", hidden: true))*/
                     .AddWpfBlazor(name: "CopyClipboardElementJson",
                         header: "Copy selected element JSON to clipboard", inputGesture: "Shift+Ctrl+C")
                     .AddWpfBlazor(name: "ExportGenericForms",
@@ -233,7 +233,7 @@ namespace AasxPackageExplorer
                     .AddWpf(name: "MQTTPub", header: "Publish AAS via MQTT …")
                     .AddSeparator()
                     .AddWpf(name: "ServerPluginEmptySample", header: "Plugin: Empty Sample …")
-                    .AddWpf(name: "ServerPluginOPCUA", header: "Plugin: OPC UA …")
+                    //.AddWpf(name: "ServerPluginOPCUA", header: "Plugin: OPC UA …")
                     .AddWpf(name: "ServerPluginMQTT", header: "Plugin: MQTT …"))
                 .AddSeparator(filter: AasxMenuFilter.NotBlazor)
                 .AddMenu(header: "System …", filter: AasxMenuFilter.NotBlazor,
