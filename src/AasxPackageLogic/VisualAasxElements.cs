@@ -1319,28 +1319,6 @@ namespace AasxPackageLogic
 					}
 				}
 
-                // SAMM?
-                var sammType = DispEditHelperSammModules.CheckReferableForSammExtensionType(theCD);
-				var sammName = DispEditHelperSammModules.CheckReferableForSammExtensionTypeName(sammType);
-                if (sammName?.HasContent() == true)
-                {
-                    // completely reformat the Caption
-                    this.Caption = $"\"{"" + theCD.IdShort}\" \uff5f{sammName}\uff60 {"" + theCD.Id}";
-
-                    // do model element colors?
-                    var ri = Samm.Constants.GetRenderInfo(sammType);
-                    if (ri != null)
-                    {
-                        this.TagString = "" + ri.Abbreviation;
-                        this.Border = new AnyUiColor(ri.Background);
-                        this.Background = new AnyUiColor(Samm.Constants.RenderBackground);
-						this.TagBg = new AnyUiColor(ri.Background);
-                        this.TagFg = new AnyUiColor(ri.Foreground);
-
-                        this.HasSpecialColors = true;
-					}
-				}
-
                 // SMT
                 var smtTypeInst = DispEditHelperExtensions.CheckReferableForExtensionRecordType(theCD);
                 if (smtTypeInst != null && smtTypeInst is IExtensionSelfDescription ssd)

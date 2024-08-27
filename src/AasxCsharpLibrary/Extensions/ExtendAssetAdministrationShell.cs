@@ -62,6 +62,16 @@ namespace Extensions
             return aas.FindSubmodelReference(smRef) != null;
         }
 
+        public static void AddSubmodelReference(this IAssetAdministrationShell assetAdministrationShell, IReference newSubmodelReference)
+        {
+            if (assetAdministrationShell.Submodels == null)
+            {
+                assetAdministrationShell.Submodels = new List<IReference>();
+            }
+
+            assetAdministrationShell.Submodels.Add(newSubmodelReference);
+        }
+
         /// <summary>
         /// Enumerates any references to Submodels in the AAS. Will not return <c>null</c>.
         /// Is tolerant, if the list is <c>null</c>.
@@ -94,41 +104,6 @@ namespace Extensions
             if (aas?.Submodels == null || index < 0 || index >= aas.Submodels.Count)
                 return null;
             return aas.Submodels[index];
-        }
-
-        /// <summary>
-        /// Adds. Might create the list.
-        /// </summary>
-        public static void Add(this IAssetAdministrationShell aas, IReference newSmRef)
-        {
-            if (aas == null)
-                return;
-            if (aas.Submodels == null)
-                aas.Submodels = new List<IReference>();
-
-            aas.Submodels.Add(newSmRef);
-        }
-
-        /// <summary>
-        /// Returns the <c>index</c>-th Submodel, if exists. Returns <c>null</c> in any other case.
-        /// </summary>
-        public static IReference SubmodelByIndex(this IAssetAdministrationShell aas, int index)
-        {
-            if (aas?.Submodels == null || index < 0 || index >= aas.Submodels.Count)
-                return null;
-            return aas.Submodels[index];
-        /// <summary>
-        /// Removes the reference, if contained in list. Might set the list to <c>null</c> !!
-        /// Note: <c>smRef</c> must be the exact object, not only match it!
-        /// </summary>
-        public static void Remove(this IAssetAdministrationShell aas, IReference smRef)
-        {
-            if (aas?.Submodels == null)
-                return;
-            if (aas.Submodels.Contains(smRef))
-                aas.Submodels.Remove(smRef);
-            if (aas.Submodels.Count < 1)
-                aas.Submodels = null;
         }
 
         /// <summary>
