@@ -2738,59 +2738,6 @@ namespace AasxPackageExplorer
         /// </summary>
         public void LogShow()
         {
-#if __disabled
-                // report on message / exception
-                var head = @"
-                |Dear user,
-                |thank you for reporting an error / bug / unexpected behaviour back to the AASX package explorer team.
-                |Please provide the following details:
-                |
-                |  User: <who was working with the application>
-                |
-                |  Steps to reproduce: <what was the user doing, when the unexpected behaviour occurred>
-                |
-                |  Expected results: <what should happen>
-                |
-                |  Actual Results: <what was actually happening>
-                |
-                |  Latest message: {0}
-                |
-                |Please consider attaching the AASX package (you might rename this to .zip),
-                |you were working on, as well as an screen shot.
-                |
-                |Please issue directly to github: https://github.com/admin-shell/aasx-package-explorer/issues
-                |
-                |Below, you're finding the history of log messages. Please check, if non-public information
-                |is contained here.
-                |----------------------------------------------------------------------------------------------------";
-
-                // Substitute
-                head += "\n";
-                head = head.Replace("{0}", "" + Message?.Content);
-                head = Regex.Replace(head, @"^(\s+)\|", "", RegexOptions.Multiline);
-
-                // Collect all the stored log prints
-                IEnumerable<StoredPrint> Prints()
-                {
-                    var prints = Log.Singleton.GetStoredLongTermPrints();
-                    if (prints != null)
-                    {
-                        yield return new StoredPrint(head);
-
-                        foreach (var sp in prints)
-                        {
-                            yield return sp;
-                            if (sp.stackTrace != null)
-                                yield return new StoredPrint("    Stacktrace: " + sp.stackTrace);
-                        }
-                    }
-                }
-
-                // show dialogue
-                var dlg = new MessageReportWindow(Prints());
-                dlg.ShowDialog();
-#endif
-
             // show only if not present
             if (_messageReportWindow != null)
                 return;

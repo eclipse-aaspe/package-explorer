@@ -186,6 +186,27 @@ namespace AasxPackageExplorer
                 return false;
             }
         }
+
+        public class Script_GetLastLogLine : ScriptInvokableBase
+        {
+            public Script_GetLastLogLine(AasxScript script) : base(script)
+            {
+                script?.AddHelpInfo("GetLastLogLine",
+                    "Returns log line.",
+                    args: new AasxMenuListOfArgDefs()
+                        .Add("<offset>", "If e.g. 1 returns line before last llog line")
+                        .Add("returns:", "Log line with attributes as string."));
+            }
+
+            public override object Invoke(IScriptContext context, object[] args)
+            {
+                int ofs = 0;
+                if (args != null && args.Length == 1 && args[0] is int i)
+                    ofs = i;
+                return "" + Log.Singleton.GetLastLongTermPrint(ofs);
+            }
+        }
+
         public class Script_Tool : ScriptInvokableBase
         {
             public Script_Tool(AasxScript script) : base(script)
@@ -539,6 +560,7 @@ namespace AasxPackageExplorer
                     s.Context.Scope.SetItem("Sleep", new Script_Sleep(this));
                     s.Context.Scope.SetItem("FileReadAll", new Script_FileReadAll(this));
                     s.Context.Scope.SetItem("FileExists", new Script_FileExists(this));
+                    s.Context.Scope.SetItem("GetLastLogLine", new Script_GetLastLogLine(this));
                     s.Context.Scope.SetItem("Select", new Script_Select(this));
                     s.Context.Scope.SetItem("SelectAll", new Script_SelectAll(this));
                     s.Context.Scope.SetItem("Location", new Script_Location(this));

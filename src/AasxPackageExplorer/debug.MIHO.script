@@ -24,3 +24,6 @@ Select("Submodel", "First");
 // Tool("importtable", "Format", "Excel", "Preset", "Submodel templ. spec. import", "File", "C:\\HOMI\\Develop\\Aasx\\repo\\bugfix\\test-import.xlsx");
 // Tool("WinMaximize");
 // Tool("ExportTable", "File", "C:\\HOMI\\Develop\\Aasx\\repo\\new.adoc", "Preset", "AsciiDoc");
+// Tool("ToolsFindText", "FindText", "A");
+Tool("ToolsReplaceText", "FindText", "A", "ReplaceText", "B", "Do", "all");
+// WriteLine(GetLastLogLine());

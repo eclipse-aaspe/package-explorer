@@ -167,6 +167,20 @@ namespace AasxIntegrationBase
         }
 
         /// <summary>
+        /// Get a specific line
+        /// </summary>
+        public string GetLastStoredPrint(int offset = 0)
+        {
+            lock (StoredPrints)
+            {
+                int ndx = StoredPrints.Count - 1 - offset;
+                if (ndx >= 0 && ndx < StoredPrints.Count)
+                    return "" + StoredPrints[ndx]?.ToString();
+            }
+            return "";
+        }
+
+        /// <summary>
         /// Directly append a stored print.
         /// </summary>
         public void Append(StoredPrint sp)
@@ -212,6 +226,14 @@ namespace AasxIntegrationBase
         public StoredPrint[] GetStoredLongTermPrints()
         {
             return longTermStore?.GetStoredPrints();
+        }
+
+        /// <summary>
+        /// Get a specific line
+        /// </summary>
+        public string GetLastLongTermPrint(int offset = 0)
+        {
+            return longTermStore?.GetLastStoredPrint(offset);
         }
 
         /// <summary>

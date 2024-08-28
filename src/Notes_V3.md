@@ -469,3 +469,16 @@ These projects are not migrated or integrated, yet:
 # New Notes to AasCore
 
 * new Aas.Reference() .. List<IKey> keys --> IEnumerable<IKey> keys
+
+# Tests before merging into 'main'
+
+* aaspe/testing/100_Open -- working
+* aaspe/testing/110_Export_tables -- working
+* aaspe/testing/550_AID
+  * docker containers working
+  * working with (non-compliant) AID test aasx from this branch
+  * plotting plug-in 50% working; 
+  * plotting of historical values does not work!! (not sure, if was working)
+* aaspe/testing/551_MTP -- working with new OPC UA client
+* aaspe/testing/552_OpcUaReadSubmodel -- working
+* aaspe/testing/120_Export_AsciiDoc -- working

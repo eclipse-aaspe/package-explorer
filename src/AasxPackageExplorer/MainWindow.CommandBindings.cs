@@ -1490,7 +1490,7 @@ namespace AasxPackageExplorer
                     if (cmd == "toolsfindtext" || cmd == "toolsreplacetext")
                         ToolFindReplace.FindStart(ticket);
 
-                    var dos = (ticket["Do"] as string).Trim().ToLower();
+                    var dos = (ticket["Do"] as string)?.Trim().ToLower();
                     if (cmd == "toolsreplacetext" && dos == "stay")
                         ToolFindReplace.ReplaceStay(ticket);
 

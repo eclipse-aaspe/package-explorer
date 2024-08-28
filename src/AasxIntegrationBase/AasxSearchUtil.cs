@@ -761,7 +761,9 @@ namespace AasxIntegrationBase
             // member type
             if (!(member is string memstr))
             {
-                throw new NotImplementedException("ReplaceInSearchableMember::No string member");
+                // No string member
+                // TODO (MIHO, 2024-08-28): consider extending to ints and: byte[] for Blobs
+                return null;
             }
 
             // regex?
