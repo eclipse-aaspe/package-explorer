@@ -672,8 +672,10 @@ namespace AasxIntegrationBase
 
         public AasxMenuItemBase FindName(string name)
         {
-            return FindAll((i) => i?.Name?.Trim().ToLower() == name?.Trim().ToLower())
-                .FirstOrDefault();
+            return FindAll((i) =>
+            {
+                return i?.Name?.Trim().ToLower() == name?.Trim().ToLower();
+            }).FirstOrDefault();
         }
 
         //

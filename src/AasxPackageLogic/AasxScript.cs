@@ -35,6 +35,7 @@ namespace AasxPackageExplorer
         Aas.IReferable Select(object[] args);
         Aas.IReferable[] SelectAll(object[] args);
         Task<bool> Location(object[] args);
+        void TakeScreenshot(string filename = "noname");
     }
 
     public class AasxScript
@@ -204,6 +205,28 @@ namespace AasxPackageExplorer
                 if (args != null && args.Length == 1 && args[0] is int i)
                     ofs = i;
                 return "" + Log.Singleton.GetLastLongTermPrint(ofs);
+            }
+        }
+
+        public class Script_TakeScreenShot : ScriptInvokableBase
+        {
+            public Script_TakeScreenShot(AasxScript script) : base(script)
+            {
+                script?.AddHelpInfo("TakeScreenShot",
+                    "Takes a screenshot of the main window.",
+                    args: new AasxMenuListOfArgDefs()
+                        .Add("<file>", "Filename to save screenshot to."));
+            }
+
+            public override object Invoke(IScriptContext context, object[] args)
+            {
+                string fn = "noname";
+                if (args != null && args.Length == 1 && args[0] is string afn)
+                    fn = afn;
+                _script.Remote?.TakeScreenshot(fn);
+
+                // done
+                return 0;
             }
         }
 
@@ -561,6 +584,7 @@ namespace AasxPackageExplorer
                     s.Context.Scope.SetItem("FileReadAll", new Script_FileReadAll(this));
                     s.Context.Scope.SetItem("FileExists", new Script_FileExists(this));
                     s.Context.Scope.SetItem("GetLastLogLine", new Script_GetLastLogLine(this));
+                    s.Context.Scope.SetItem("TakeScreenShot", new Script_TakeScreenShot(this));
                     s.Context.Scope.SetItem("Select", new Script_Select(this));
                     s.Context.Scope.SetItem("SelectAll", new Script_SelectAll(this));
                     s.Context.Scope.SetItem("Location", new Script_Location(this));

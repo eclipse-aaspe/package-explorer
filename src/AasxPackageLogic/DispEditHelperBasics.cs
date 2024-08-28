@@ -705,7 +705,7 @@ namespace AasxPackageLogic
 
                     tmi.ActionAsync = async (name, item, ticket) =>
 					{
-						if (ticket != null)
+						if (ticket != null && ticketActionAsync != null)
 							ticket.UiLambdaAction = await ticketActionAsync(currentI, ticket);
 					};
 

@@ -521,5 +521,14 @@ namespace AasxPackageLogic
             return true;
         }
 
+        /// <summary>
+        /// Take a screenshot and save to file
+        /// </summary>
+        public void TakeScreenshot(string filename = "noname")
+        {
+            // just pass on
+            MainWindow?.SaveScreenshot(filename);
+        }
+
     }
 }

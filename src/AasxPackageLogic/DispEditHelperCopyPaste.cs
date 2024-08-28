@@ -493,7 +493,7 @@ namespace AasxPackageLogic
             // use an action
             this.AddActionPanel(
                 stack, label,
-                repo: repo,
+                repo: repo, superMenu: superMenu,
                 ticketMenu: new AasxMenu()
                     .AddAction("aas-elem-cut", "Cut",
                         "Removes the currently selected element and places it in the paste buffer.",

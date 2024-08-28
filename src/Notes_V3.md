@@ -482,3 +482,5 @@ These projects are not migrated or integrated, yet:
 * aaspe/testing/551_MTP -- working with new OPC UA client
 * aaspe/testing/552_OpcUaReadSubmodel -- working
 * aaspe/testing/120_Export_AsciiDoc -- working
+* copy/paste of SME direct / via Windows clipboard -- working
+* 

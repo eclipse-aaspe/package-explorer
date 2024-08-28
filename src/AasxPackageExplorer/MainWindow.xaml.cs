@@ -21,6 +21,8 @@ using AnyUi;
 using Extensions;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using NPOI.HPSF;
+using Org.BouncyCastle.Asn1.X509;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -2783,27 +2785,52 @@ namespace AasxPackageExplorer
             }
         }
 
-        //private void CommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
-        //{
-        //    // decode
-        //    var ruic = e?.Command as RoutedUICommand;
-        //    if (ruic == null)
-        //        return;
-        //    var cmd = ruic.Text?.Trim().ToLower();
+        /// <summary>
+        /// Take a screenshot and save to file
+        /// </summary>
+        public void SaveScreenshot(string filename = "noname")
+        {            
+            // use the whole Window
+            var target = this;
+            if (target == null || string.IsNullOrEmpty(filename))
+            {
+                return;
+            }
 
-        //    // see: MainWindow.CommandBindings.cs
-        //    try
-        //    {
-        //        this.CommandBinding_GeneralDispatch(cmd);
-        //    }
-        //    catch (Exception err)
-        //    {
-        //        throw new InvalidOperationException(
-        //            $"Failed to execute the command {cmd}: {err}");
-        //    }
+            // prep filename
+            if (System.IO.Path.GetExtension(filename) == "")
+                filename += ".png";
 
-        //}
+            // needs to be the main thread
+            ProgressBarInfo.Dispatcher.BeginInvoke(
+                System.Windows.Threading.DispatcherPriority.Background,
+                new Action(() =>
+                {
+                    // see: https://stackoverflow.com/questions/5124825/generating-a-screenshot-of-a-wpf-window
+                    Rect bounds = VisualTreeHelper.GetDescendantBounds(target);
 
+                    RenderTargetBitmap renderTarget = new RenderTargetBitmap((Int32)bounds.Width, (Int32)bounds.Height, 96, 96, PixelFormats.Pbgra32);
+
+                    DrawingVisual visual = new DrawingVisual();
+
+                    using (DrawingContext context = visual.RenderOpen())
+                    {
+                        VisualBrush visualBrush = new VisualBrush(target);
+                        context.DrawRectangle(visualBrush, null, new Rect(new Point(), bounds.Size));
+                    }
+
+                    renderTarget.Render(visual);
+                    PngBitmapEncoder bitmapEncoder = new PngBitmapEncoder();
+                    bitmapEncoder.Frames.Add(BitmapFrame.Create(renderTarget));
+                    using (Stream stm = System.IO.File.Create(filename))
+                    {
+                        bitmapEncoder.Save(stm);
+                    }
+
+                    // Log
+                    Log.Singleton.Info("Screenshot saved to {0}.", filename);
+                }));
+        }
 
         private void DisplayElements_SelectedItemChanged(object sender, EventArgs e)
         {
