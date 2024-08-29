@@ -29,7 +29,7 @@ namespace AasxPackageLogic
     /// </summary>
     public class MainWindowScripting : MainWindowAnyUiDialogs, IAasxScriptRemoteInterface
     {
-        public enum ScriptSelectRefType { None = 0, This, AAS, SM, SME, CD };
+        public enum ScriptSelectRefType { None = 0, This, AAS, SM, SME, CD, Plugin };
 
         public enum ScriptSelectAdressMode { None = 0, First, Next, Prev, idShort, semanticId };
         protected static string[] _allowedSelectAdressMode = {
@@ -150,6 +150,16 @@ namespace AasxPackageLogic
                     if (firstSme != null)
                     {
                         return new Tuple<Aas.IReferable, object>(firstSme, firstSme);
+                    }
+                }
+
+                if (refType == ScriptSelectRefType.Plugin)
+                {
+                    // search the first plugin
+                    var siPE = siSM?.Members?.FirstOrDefault((si) => si is VisualElementPluginExtension);
+                    if (siPE != null && siPE is VisualElementPluginExtension siPEPE)
+                    {
+                        return new Tuple<Aas.IReferable, object>(siPEPE.theReferable, siPEPE.GetMainDataObject());
                     }
                 }
 
@@ -325,6 +335,9 @@ namespace AasxPackageLogic
                 case "conceptdescription":
                     res = ScriptSelectRefType.CD;
                     break;
+                case "plugin":
+                    res = ScriptSelectRefType.Plugin;
+                    break;
             }
             
             return res;
@@ -357,7 +370,7 @@ namespace AasxPackageLogic
                 if (args.Length < 2
                     || !(args[1] is string adrModeName))
                 {
-                    Log.Singleton.Error("Script: Select: Adfress mode missing!");
+                    Log.Singleton.Error("Script: Select: Address mode missing!");
                     return null;
                 }
 
