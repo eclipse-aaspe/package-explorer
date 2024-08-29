@@ -92,6 +92,8 @@
   "ContentHome": "https://github.com/admin-shell/io/blob/master/README.md",
   "UseFlyovers": true,
   "SplashTime": 0,
+  "PercentageLeftColumn": 12,
+  "PercentageRightColumn": 60,
   "InternalBrowser": false,
   "EclassTwoPass": true,
   "BackupDir": ".\\backup",

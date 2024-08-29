@@ -414,6 +414,16 @@ namespace AasxPackageLogic
             Cmd = "-splash", Arg = "<milli-secs>")]
         public int SplashTime = -1;
 
+        [OptionDescription(Description = "Fraction of main window with dedicated to left column of screen " +
+            "when resizing window.",
+            Cmd = "-percentage-left-col", Arg = "Percent 0-100.0")]
+        public double PercentageLeftColumn = 20.0;
+
+        [OptionDescription(Description = "Fraction of main window with dedicated to right column of screen " +
+            "(content section) when resizing window.",
+            Cmd = "-percentage-right-col", Arg = "Percent 0-100.0")]
+        public double PercentageRightColumn = 40.0;
+
         [OptionDescription(Description = "If true, use always internal browser",
             Cmd = "-intbrowse")]
         public bool InternalBrowser = false;

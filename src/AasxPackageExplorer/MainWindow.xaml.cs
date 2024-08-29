@@ -2939,12 +2939,20 @@ namespace AasxPackageExplorer
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (this.ActualWidth > 800)
+            if (this.ActualWidth > 1)
             {
                 if (MainSpaceGrid != null && MainSpaceGrid.ColumnDefinitions.Count >= 3)
                 {
-                    MainSpaceGrid.ColumnDefinitions[0].Width = new GridLength(this.ActualWidth / 5);
-                    MainSpaceGrid.ColumnDefinitions[4].Width = new GridLength(this.ActualWidth / 2.5);
+                    var w0 = 0.2;
+                    if (Options.Curr.PercentageLeftColumn >= 0 && Options.Curr.PercentageLeftColumn <= 100.0)
+                        w0 = Options.Curr.PercentageLeftColumn / 100.0;
+
+                    var w4 = 0.4;
+                    if (Options.Curr.PercentageRightColumn >= 0 && Options.Curr.PercentageRightColumn <= 100.0)
+                        w4 = Options.Curr.PercentageRightColumn / 100.0;
+
+                    MainSpaceGrid.ColumnDefinitions[0].Width = new GridLength(this.ActualWidth * w0);
+                    MainSpaceGrid.ColumnDefinitions[4].Width = new GridLength(this.ActualWidth * w4);
                 }
             }
         }
