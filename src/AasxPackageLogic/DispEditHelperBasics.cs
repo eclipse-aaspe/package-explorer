@@ -697,17 +697,26 @@ namespace AasxPackageLogic
                 {
                     var tmi = ticketMenu[i];
                     var currentI = i;
-                    tmi.Action = (name, item, ticket) =>
-                    {
-                        if (ticket != null)
-                            ticket.UiLambdaAction = ticketAction(currentI, ticket);
-                    };
 
-                    tmi.ActionAsync = async (name, item, ticket) =>
-					{
-						if (ticket != null && ticketActionAsync != null)
-							ticket.UiLambdaAction = await ticketActionAsync(currentI, ticket);
-					};
+                    // may be sync?
+                    if (ticketAction != null)
+                    {
+                        tmi.Action = (name, item, ticket) =>
+                        {
+                            if (ticket != null)
+                                ticket.UiLambdaAction = ticketAction(currentI, ticket);
+                        };
+                    }
+
+                    // may be async
+                    if (ticketActionAsync != null)
+                    {
+                        tmi.ActionAsync = async (name, item, ticket) =>
+                        {
+                            if (ticket != null)
+                                ticket.UiLambdaAction = await ticketActionAsync(currentI, ticket);
+                        };
+                    }
 
 					superMenu.Add(tmi);
                 }
