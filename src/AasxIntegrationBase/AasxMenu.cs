@@ -441,7 +441,7 @@ namespace AasxIntegrationBase
             string inputGesture = null,
             bool onlyDisplay = false,
             bool isCheckable = false, bool isChecked = false,
-            bool isHidden = false,
+            bool hidden = false,
             AasxMenuArgReqInfo reqs = AasxMenuArgReqInfo.None,
             AasxMenuListOfArgDefs args = null)
         {
@@ -457,7 +457,7 @@ namespace AasxIntegrationBase
                 GestureOnlyDisplay = onlyDisplay,
                 IsCheckable = isCheckable,
                 IsChecked = isChecked,
-                Hidden = isHidden,
+                Hidden = hidden,
                 RequiredInfos = reqs,
                 ArgDefs = args
             });
@@ -473,6 +473,7 @@ namespace AasxIntegrationBase
             string inputGesture = null,
             bool onlyDisplay = false,
             bool isCheckable = false, bool isChecked = false,
+            bool hidden = false,
             AasxMenuArgReqInfo reqs = AasxMenuArgReqInfo.None,
             AasxMenuListOfArgDefs args = null)
         {
@@ -487,6 +488,7 @@ namespace AasxIntegrationBase
                 InputGesture = inputGesture,
                 GestureOnlyDisplay = onlyDisplay,
                 IsCheckable = isCheckable,
+                Hidden = hidden,
                 IsChecked = isChecked,
                 RequiredInfos = reqs,
                 ArgDefs = args
@@ -562,6 +564,7 @@ namespace AasxIntegrationBase
 
         public AasxMenu AddMenu(
             string header,
+            bool hidden = false,
             AasxMenuFilter filter = AasxMenuFilter.WpfBlazor,
             AasxMenu childs = null,
             string attachPoint = null)
@@ -569,6 +572,7 @@ namespace AasxIntegrationBase
             this.Add(new AasxMenuItem()
             {
                 Header = header,
+                Hidden = hidden,
                 Filter = filter,
                 Childs = childs,
                 AttachPoint = attachPoint
@@ -668,8 +672,10 @@ namespace AasxIntegrationBase
 
         public AasxMenuItemBase FindName(string name)
         {
-            return FindAll((i) => i?.Name?.Trim().ToLower() == name?.Trim().ToLower())
-                .FirstOrDefault();
+            return FindAll((i) =>
+            {
+                return i?.Name?.Trim().ToLower() == name?.Trim().ToLower();
+            }).FirstOrDefault();
         }
 
         //
@@ -843,7 +849,7 @@ namespace AasxIntegrationBase
         /// <summary>
         /// Filled by the currently selected element.
         /// </summary>
-        public Aas.Environment Env;
+        public Aas.IEnvironment Env;
 
         /// <summary>
         /// Filled by the currently selected element.
@@ -870,16 +876,26 @@ namespace AasxIntegrationBase
         /// </summary>
         public Aas.ISubmodelElement SubmodelElement;
 
-        /// <summary>
-        /// Gives the calling function the possibility to better handle messages
-        /// to/ from the user.
-        /// </summary>
-        public AnyUiMinimalInvokeMessageDelegate InvokeMessage = null;
+		/// <summary>
+		/// Filled by the currently selected element.
+		/// </summary>
+		public Aas.IConceptDescription ConceptDescription;
+
+		/// <summary>
+		/// Gives the calling function the possibility to better handle messages
+		/// to/ from the user.
+		/// </summary>
+		public AnyUiMinimalInvokeMessageDelegate InvokeMessage = null;
 
         /// <summary>
         /// In special cases, the ticket execution does require a post-process.
         /// </summary>
         public Dictionary<string, object> PostResults = null;
+
+        /// <summary>
+        /// When not <c>null</c>, will focus to this business object.
+        /// </summary>
+        public object SetNextFocus;
 
         //
         // Convenience

@@ -657,7 +657,7 @@ namespace AasxDictionaryImport.Eclass
         }
 
         /// <inheritdoc/>
-        public override bool ImportSubmodelInto(Aas.Environment env,
+        public override bool ImportSubmodelInto(Aas.IEnvironment env,
             Aas.IAssetAdministrationShell adminShell)
         {
             if (!IsSelected)
@@ -686,7 +686,7 @@ namespace AasxDictionaryImport.Eclass
         }
 
         /// <inheritdoc/>
-        public override bool ImportSubmodelElementsInto(Aas.Environment env,
+        public override bool ImportSubmodelElementsInto(Aas.IEnvironment env,
             Aas.IReferable parent)
         {
             if (!IsSelected)
@@ -784,7 +784,7 @@ namespace AasxDictionaryImport.Eclass
         }
 
         /// <inheritdoc/>
-        public override bool ImportSubmodelElementsInto(Aas.Environment env,
+        public override bool ImportSubmodelElementsInto(Aas.IEnvironment env,
             Aas.IReferable parent)
         {
             if (!IsSelected)

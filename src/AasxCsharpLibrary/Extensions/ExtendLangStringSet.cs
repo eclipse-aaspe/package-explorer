@@ -6,6 +6,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 
 This source code may use other Open Source software components (see LICENSE.txt).
 */
+using AdminShellNS;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -15,28 +16,6 @@ namespace Extensions
     //TODO (jtikekar, 0000-00-00): remove or seperate
     public static class ExtendLangStringSet
     {
-        #region AasxPackageExplorer
-
-        public static bool IsValid(this List<ILangStringNameType> langStringSet)
-        {
-            if (langStringSet != null && langStringSet.Count >= 1)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        #endregion
-        public static bool IsEmpty(this List<ILangStringNameType> langStringSet)
-        {
-            if (langStringSet == null || langStringSet.Count == 0)
-            {
-                return true;
-            }
-
-            return false;
-        }
         // dead-csharp off
         //public static string GetDefaultString(this List<ILangStringTextType> langStringSet, string defaultLang = null)
         //{
@@ -146,7 +125,7 @@ namespace Extensions
                 {
                     if (cell.Trim() != "")
                     {
-                        res.Add(createLs(ExtendLangString.LANG_DEFAULT, cell));
+                        res.Add(createLs(AdminShellUtil.GetDefaultLngIso639(), cell));
                     }
                     break;
                 }

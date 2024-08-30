@@ -137,7 +137,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                     {
                         Name = "ImportTable",
                         Header = "Import SubmodelElements from Table …",
-                        HelpText = "Import sets of SubmodelElements from table datat in multiple common formats.",
+                        HelpText = "Import sets of SubmodelElements from table data in multiple common formats.",
                         ArgDefs = new AasxMenuListOfArgDefs()
                                 .Add("File", "Filename and path of file to imported.")
                                 .Add("Preset", "Name of preset to load.")
@@ -272,7 +272,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                         {
                             await AnyUiDialogueTable.ImportExportTableDialogBased(
                                 _options, _log, ticket, displayContext, _options, doImport: true);
-                            return new AasxPluginResultBase();
+                            return new AasxPluginResultEventRedrawAllElements();
                         }
 
                         if (cmd == "exportuml")

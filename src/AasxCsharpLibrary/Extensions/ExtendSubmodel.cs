@@ -52,6 +52,15 @@ namespace Extensions
             }
         }
 
+        public static int Replace(
+            this Submodel submodel, 
+            ISubmodelElement oldElem, ISubmodelElement newElem)
+        {
+            if (submodel?.SubmodelElements == null)
+                return -1;
+            return submodel.SubmodelElements.Replace(oldElem, newElem);
+        }
+
         public static object AddChild(
             this ISubmodel submodel, ISubmodelElement childSubmodelElement,
             EnumerationPlacmentBase placement = null)
@@ -346,15 +355,21 @@ namespace Extensions
 
         /// <summary>
         ///  If instance, return semanticId as one key.
-        ///  If template, return identification as key.
+        ///  If template, return either semanticId or identification as key.
         /// </summary>
         public static IReference GetSemanticRef(this Submodel submodel)
         {
             if (submodel.Kind == ModellingKind.Instance)
                 return submodel.SemanticId;
             else
-                return new Reference(ReferenceTypes.ModelReference, new[] {
-                    new Key(KeyTypes.Submodel, submodel.Id) }.Cast<IKey>().ToList());
+            {
+                // MIHO updated this on 2024-07-25
+                if (submodel.SemanticId?.IsValid() == true)
+                    return submodel.SemanticId.Copy();
+                else
+                    return new Reference(ReferenceTypes.ModelReference, new[] {
+                        new Key(KeyTypes.Submodel, submodel.Id) }.Cast<IKey>().ToList());
+            }
         }
 
         public static List<ISubmodelElement> SmeForWrite(this Submodel submodel)
@@ -373,6 +388,81 @@ namespace Extensions
                 else
                     return true;
             });
+        }
+
+        public static IReferable FindContainingReferable(this ISubmodel submodel, ISubmodelElement findSme)
+        {
+            IReferable res = null;
+            submodel.SubmodelElements?.RecurseOnReferables(null, null, (o, par, rf) =>
+            {
+                if (rf == findSme)
+                {
+                    if (par.Count < 1)
+                        res = submodel;
+                    else
+                        res = par.LastOrDefault();
+                    return false;
+                }
+                else
+                    return true;
+            });
+            return res;
+        }
+
+        /// <summary>
+        /// Builds up a key list for an IReference. Relies on integrity of the <code>Parent</code> 
+        /// attributes!!
+        /// </summary>
+        public static List<IKey> BuildKeysToTop(this ISubmodel submodel, ISubmodelElement findSme)
+        {
+            // make a "inner function"
+            var res = new List<IKey>();
+            var resHasIdf = false;
+            Action<IReferable> lambdaInsertTop = (rf) =>
+            {
+                if (rf is IIdentifiable iddata)
+                {
+                    // a Identifiable will terminate the list of keys
+                    resHasIdf = true;
+                    res.Insert(
+                        0,
+                        new Key((KeyTypes)Stringification.KeyTypesFromString(iddata.GetSelfDescription().AasElementName), iddata.Id));
+                }
+                else
+                {
+                    // add a key and go up ..
+                    IKey key;
+                    if (rf is ISubmodelElementList smeList)
+                    {
+                        var index = smeList.Value.IndexOf((ISubmodelElement)rf);
+                        key = new Key((KeyTypes)Stringification.KeyTypesFromString(rf.GetSelfDescription().AasElementName), index.ToString());
+                    }
+                    else
+                    {
+                        key = new Key((KeyTypes)Stringification.KeyTypesFromString(rf.GetSelfDescription().AasElementName), rf.IdShort);
+                    }
+                    res.Insert(0, key);
+                }
+            };
+
+            // insert self ..
+            if (findSme != null)
+            {
+                lambdaInsertTop(findSme);
+                var curr = findSme.Parent as IReferable;
+                while (curr != null)
+                {
+                    lambdaInsertTop(curr);
+                    curr = curr.Parent as IReferable;
+                }
+            }
+
+            // in case that Identifiable hasnt been added
+            if (!resHasIdf)
+                lambdaInsertTop(submodel);
+
+            // ok
+            return res;
         }
 
         public static ISubmodelElement FindSubmodelElementByIdShort(this ISubmodel submodel, string smeIdShort)

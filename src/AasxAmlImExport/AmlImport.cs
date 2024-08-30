@@ -1096,7 +1096,7 @@ namespace AasxAmlImExport
                             Debug(indentation, "  AAS with required attributes recognised. Starting new AAS..");
 
                             // make temporary object official
-                            this.package.AasEnv.AssetAdministrationShells.Add(aas);
+                            this.package.AasEnv.Add(aas);
                             currentAas = aas;
                             matcher.AddMatch(aas, ie);
                         }
@@ -1173,12 +1173,8 @@ namespace AasxAmlImExport
                             // Remark: add only, if not a SM with the same ID is existing. This could have the
                             // consequences that additional properties in the 2nd SM with the same SM get lost!
                             if (null == this.package.AasEnv.FindSubmodelById(sm.Id))
-                                this.package.AasEnv.Submodels.Add(sm);
-                            if (currentAas.Submodels == null)
-                            {
-                                currentAas.Submodels = new List<IReference>();
-                            }
-                            currentAas.Submodels.Add(sm.GetReference());
+                                this.package.AasEnv.Add(sm);
+                            currentAas.Add(sm.GetReference());
                             currentSmeCollection = sm;
                         }
                         else
@@ -1195,13 +1191,9 @@ namespace AasxAmlImExport
                         {
                             // try use Identification to find existing Submodel
                             var existSm = package.AasEnv.FindSubmodelById(targetSm.Id);
-                            if (currentAas.Submodels == null)
-                            {
-                                currentAas.Submodels = new List<IReference>();
-                            }
 
                             // if so, add a SubmodelRef
-                            currentAas.Submodels.Add(existSm.GetReference());
+                            currentAas.Add(existSm.GetReference());
                         }
                     }
 
@@ -1448,7 +1440,7 @@ namespace AasxAmlImExport
                                 aas = existAas;
                             else
                                 // add
-                                this.package.AasEnv.AssetAdministrationShells.Add(aas);
+                                this.package.AasEnv.Add(aas);
 
                             // remember
                             currentAas = aas;
@@ -1481,12 +1473,8 @@ namespace AasxAmlImExport
                             currentSubmodel = sm;
 
                             // this will be the parent for child elements
-                            this.package.AasEnv.Submodels.Add(sm);
-                            if (currentAas.Submodels == null)
-                            {
-                                currentAas.Submodels = new List<IReference>();
-                            }
-                            currentAas.Submodels.Add(sm.GetReference());
+                            this.package.AasEnv.Add(sm);
+                            currentAas.Add(sm.GetReference());
                             currentSmeCollection = sm;
                         }
                         else
@@ -1530,7 +1518,7 @@ namespace AasxAmlImExport
                         {
                             // add
                             Debug(indentation, " .. added as {0}", cd.Id);
-                            this.package.AasEnv.ConceptDescriptions.Add(cd);
+                            this.package.AasEnv.Add(cd);
 
                             // look for direct descendants = Data Specifcations
                             if (ie.InternalElement != null)
@@ -1671,7 +1659,7 @@ namespace AasxAmlImExport
                 parser.ParseSystemUnits(x.SystemUnitClass);
 
             // the following steps will require valid parent information
-            foreach (var sm in package.AasEnv.Submodels)
+            foreach (var sm in package.AasEnv.AllSubmodels())
                 sm.SetAllParents();
 
             // do the late population of views

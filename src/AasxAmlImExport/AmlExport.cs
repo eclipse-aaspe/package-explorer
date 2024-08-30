@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Aas = AasCore.Aas3_0;
 
 namespace AasxAmlImExport
 {
@@ -313,7 +314,7 @@ namespace AasxAmlImExport
         }
 
         private static void ExportReferenceWithSme(
-            AasCore.Aas3_0.Environment env,
+            Aas.IEnvironment env,
             List<AmlInternalLinkEntity> internalLinksToCreate,
             InternalElementType ie,
             IReferable referable,
@@ -376,7 +377,7 @@ namespace AasxAmlImExport
 
         private static void ExportListOfSme(
             AasAmlMatcher matcher, List<AmlInternalLinkEntity> internalLinksToCreate,
-            SystemUnitClassType parent, AasCore.Aas3_0.Environment env,
+            SystemUnitClassType parent, Aas.IEnvironment env,
             List<ISubmodelElement> wrappers, bool tryUseCompactProperties = false,
             bool aasStyleAttributes = false, bool amlStyleAttributes = true)
         {
@@ -647,7 +648,7 @@ namespace AasxAmlImExport
         private static void ExportSubmodelIntoElement(
             AasAmlMatcher matcher, List<AmlInternalLinkEntity> internalLinksToCreate,
             SystemUnitClassType parent,
-            AasCore.Aas3_0.Environment env,
+            IEnvironment env,
             ISubmodel sm,
             bool tryUseCompactProperties = false,
             bool exportShallow = false)
@@ -678,7 +679,7 @@ namespace AasxAmlImExport
         private static InternalElementType ExportSubmodel(
             AasAmlMatcher matcher,
             List<AmlInternalLinkEntity> internalLinksToCreate, InternalElementSequence ieseq,
-            AasCore.Aas3_0.Environment env,
+            Aas.IEnvironment env,
             ISubmodel sm,
             bool tryUseCompactProperties = false,
             bool exportShallow = false)
@@ -698,7 +699,7 @@ namespace AasxAmlImExport
         }
 
         private static void ExportAsset(
-            InternalElementSequence ieseq, AasCore.Aas3_0.Environment env, IAssetInformation asset)
+            InternalElementSequence ieseq, Aas.IEnvironment env, Aas.IAssetInformation asset)
         {
             if (ieseq == null || env == null || asset == null)
                 return;
@@ -776,7 +777,7 @@ namespace AasxAmlImExport
         // dead-csharp on
         private static void ExportAAS(
             AasAmlMatcher matcher, InstanceHierarchyType insthier, SystemUnitClassLibType suchier,
-            AasCore.Aas3_0.Environment env, IAssetAdministrationShell aas,
+            IEnvironment env, IAssetAdministrationShell aas,
             bool tryUseCompactProperties = false)
         {
             // access
@@ -816,7 +817,7 @@ namespace AasxAmlImExport
             //
             // Submodels can be of kind Type/ Instance
             //
-            foreach (var smref in aas.Submodels)
+            foreach (var smref in aas.AllSubmodels())
             {
                 // ref -> Submodel
                 var sm = env.FindSubmodel(smref);
@@ -1026,14 +1027,14 @@ namespace AasxAmlImExport
 
 
         private static void ExportConceptDescriptionsWithExtraContentToIHT(
-            InstanceHierarchyType lib, AasCore.Aas3_0.Environment env)
+            InstanceHierarchyType lib, Aas.IEnvironment env)
         {
             // acceess
             if (lib == null || env == null)
                 return;
 
             // over CDs
-            foreach (var cd in env.ConceptDescriptions)
+            foreach (var cd in env.AllConceptDescriptions())
             {
                 // make IE for CD itself (outer IE)
                 string name = "TODO-CD";
@@ -1164,7 +1165,7 @@ namespace AasxAmlImExport
             var matcher = new AasAmlMatcher();
 
             // over all AAS
-            foreach (var aas in package.AasEnv.AssetAdministrationShells)
+            foreach (var aas in package.AasEnv.AllAssetAdministrationShells())
             {
                 ExportAAS(matcher, insthier, suchier, package.AasEnv, aas, tryUseCompactProperties);
             }

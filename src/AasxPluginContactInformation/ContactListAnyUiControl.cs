@@ -916,7 +916,7 @@ namespace AasxPluginContactInformation
                             continue;
                         // ok, add
                         var newCd = cd.Copy();
-                        env.ConceptDescriptions.Add(newCd);
+                        env.Add(newCd);
                         nr++;
                     }
 

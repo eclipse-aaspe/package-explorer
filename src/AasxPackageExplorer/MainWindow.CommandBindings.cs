@@ -207,7 +207,8 @@ namespace AasxPackageExplorer
 
             if (cmd == "editmenu" || cmd == "editkey"
                 || cmd == "hintsmenu" || cmd == "hintskey"
-                || cmd == "showirimenu" || cmd == "showirikey")
+                || cmd == "showirimenu" || cmd == "showirikey"
+                || cmd == "checksmtelements")
             {
                 // start
                 ticket.StartExec();
@@ -221,6 +222,9 @@ namespace AasxPackageExplorer
                 {
                     MainMenu?.SetChecked("HintsMenu", hintsMode);
                 }
+
+                // trigger re-indexing
+                TriggerPendingReIndexElements();
 
                 // try to remember current selected data object
                 object currMdo = null;
@@ -271,10 +275,6 @@ namespace AasxPackageExplorer
             if (cmd == "importdictsubmodel" || cmd == "importdictsubmodelelements")
                 CommandBinding_ImportDictToSubmodel(cmd, ticket);
 
-            // TODO (MIHO, 2022-11-19): stays in WPF (tightly integrated, command line shall do own version)
-            if (cmd == "opcuaexportnodesetuaplugin")
-                await CommandBinding_ExportNodesetUaPlugin(cmd, ticket);
-
             // stays in WPF
             if (cmd == "serverrest")
                 CommandBinding_ServerRest();
@@ -317,11 +317,6 @@ namespace AasxPackageExplorer
                     "EmptySample", "server-start", "server-stop", "Empty sample plug-in.");
 
             // REFACTOR: STAYS HERE
-            if (cmd == "serverpluginopcua")
-                CommandBinding_ExecutePluginServer(
-                    "AasxPluginUaNetServer", "server-start", "server-stop", "Plug-in for OPC UA Server for AASX.");
-
-            // REFACTOR: STAYS HERE
             if (cmd == "serverpluginmqtt")
                 CommandBinding_ExecutePluginServer(
                     "AasxPluginMqttServer", "MQTTServer-start", "server-stop", "Plug-in for MQTT Server for AASX.");
@@ -358,8 +353,16 @@ namespace AasxPackageExplorer
             if (cmd == "attachfileassoc" || cmd == "removefileassoc")
                 await CommandBinding_RegistryTools(cmd, ticket);
 
-            // pass dispatch on to next (lower) level of menu functions
-            await Logic.CommandBinding_GeneralDispatchAnyUiDialogs(cmd, menuItem, ticket);
+            // new hidden commands
+            if (cmd == "winmaximize")
+            {
+                // Note: this is experimental and a duplicate to OptionsInformation.WindowMaximized.
+                // Thinkink, what is the better way.
+                this.WindowState = WindowState.Maximized;
+            }
+
+			// pass dispatch on to next (lower) level of menu functions
+			await Logic.CommandBinding_GeneralDispatchAnyUiDialogs(cmd, menuItem, ticket);
         }
 
         public bool PanelConcurrentCheckIsVisible()
@@ -1120,7 +1123,7 @@ namespace AasxPackageExplorer
         /// <returns>Success</returns>
         public bool MenuSelectEnvSubmodel(
             AasxMenuActionTicket ticket,
-            out Aas.Environment env,
+            out Aas.IEnvironment env,
             out Aas.ISubmodel sm,
             out Aas.IReference smr,
             string msg)
@@ -1209,7 +1212,7 @@ namespace AasxPackageExplorer
                 ticket?.StartExec();
 
                 // which item selected?
-                Aas.Environment env = PackageCentral.Main.AasEnv;
+                Aas.IEnvironment env = PackageCentral.Main.AasEnv;
                 Aas.IAssetAdministrationShell aas = null;
                 if (DisplayElements.SelectedItem != null)
                 {
@@ -1288,43 +1291,6 @@ namespace AasxPackageExplorer
                     Mouse.OverrideCursor = null;
                 }
 #endif
-            }
-        }
-
-
-        public async Task CommandBinding_ExportNodesetUaPlugin(
-            string cmd,
-            AasxMenuActionTicket ticket)
-        {
-            if (cmd == "opcuaexportnodesetuaplugin")
-            {
-                // filename
-                // ReSharper disable UnusedVariable
-                var uc = await DisplayContext.MenuSelectSaveFilenameAsync(
-                    ticket, "File",
-                    "Select Nodeset2.XML file to be exported",
-                    "new.xml",
-                    "OPC UA Nodeset2 files (*.xml)|*.xml|All files (*.*)|*.*",
-                    "Export OPC UA Nodeset2 via plugin: No valid filename.");
-                if (uc?.Result != true)
-                    return;
-                // ReSharper enable UnusedVariable
-                try
-                {
-                    RememberForInitialDirectory(uc.TargetFileName);
-                    CommandBinding_ExecutePluginServer(
-                        "AasxPluginUaNetServer",
-                        "server-start",
-                        "server-stop",
-                        "Export Nodeset2 via OPC UA Server...",
-                        new[] { "-export-nodeset", uc.TargetFileName }
-                        );
-                }
-                catch (Exception ex)
-                {
-                    Log.Singleton.Error(
-                        ex, "When exporting UA nodeset via plug-in, an error occurred");
-                }
             }
         }
 
@@ -1524,7 +1490,7 @@ namespace AasxPackageExplorer
                     if (cmd == "toolsfindtext" || cmd == "toolsreplacetext")
                         ToolFindReplace.FindStart(ticket);
 
-                    var dos = (ticket["Do"] as string).Trim().ToLower();
+                    var dos = (ticket["Do"] as string)?.Trim().ToLower();
                     if (cmd == "toolsreplacetext" && dos == "stay")
                         ToolFindReplace.ReplaceStay(ticket);
 

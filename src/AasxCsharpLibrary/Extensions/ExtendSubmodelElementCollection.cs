@@ -52,6 +52,15 @@ namespace Extensions
             }
         }
 
+        public static int Replace(
+            this SubmodelElementCollection submodelElementCollection,
+            ISubmodelElement oldElem, ISubmodelElement newElem)
+        {
+            if (submodelElementCollection?.Value == null)
+                return -1;
+            return submodelElementCollection.Value.Replace(oldElem, newElem);
+        }
+
         public static object AddChild(this SubmodelElementCollection submodelElementCollection, ISubmodelElement childSubmodelElement, EnumerationPlacmentBase placement = null)
         {
             if (childSubmodelElement == null)

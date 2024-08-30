@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
+    <ProjectReference Include="..\AasxOpcUa2Client\AasxOpcUa2Client.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="LICENSE.txt">
@@ -22,7 +23,5 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.371.96" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.370.12" />
   </ItemGroup>
 </Project>

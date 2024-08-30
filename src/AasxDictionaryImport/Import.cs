@@ -70,11 +70,11 @@ namespace AasxDictionaryImport
         /// <param name="adminShell">The admin shell to import into, or null if a new admin shell should be
         /// created</param>
         /// <returns>true if at least one submodel was imported</returns>
-        public static bool ImportSubmodel(Window window, Aas.Environment env,
+        public static bool ImportSubmodel(Window window, Aas.IEnvironment env,
             string defaultSourceDir, Aas.IAssetAdministrationShell? adminShell = null)
         {
             adminShell ??= CreateAdminShell(env);
-            return PerformImport(window, ImportMode.Submodels, defaultSourceDir,
+            return PerformImport(window, ImportMode.ForSubmodels, defaultSourceDir,
                     e => e.ImportSubmodelInto(env, adminShell));
         }
 
@@ -89,10 +89,10 @@ namespace AasxDictionaryImport
         /// directory</param>
         /// <param name="parent">The parent element to import into</param>
         /// <returns>true if at least one submodel element was imported</returns>
-        public static bool ImportSubmodelElements(Window window, Aas.Environment env,
+        public static bool ImportSubmodelElements(Window window, Aas.IEnvironment env,
             string defaultSourceDir, Aas.IReferable parent)
         {
-            return PerformImport(window, ImportMode.SubmodelElements, defaultSourceDir,
+            return PerformImport(window, ImportMode.ForSubmodelElements, defaultSourceDir,
                 e => e.ImportSubmodelElementsInto(env, parent));
         }
 
@@ -119,7 +119,7 @@ namespace AasxDictionaryImport
             return imported > 0;
         }
 
-        private static Aas.AssetAdministrationShell CreateAdminShell(Aas.Environment env)
+        private static Aas.AssetAdministrationShell CreateAdminShell(Aas.IEnvironment env)
         {
             var adminShell = new Aas.AssetAdministrationShell("", new Aas.AssetInformation(Aas.AssetKind.Instance))
             {

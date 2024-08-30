@@ -258,8 +258,8 @@ namespace AasxPluginGenericForms
             if (cmd == "ButtonFixCDs")
             {
                 // check if CDs are present
-                if (_currentFormRecord == null || _currentFormRecord.ConceptDescriptions == null ||
-                    _currentFormRecord.ConceptDescriptions.Count < 1)
+                if (_currentFormRecord == null || _currentFormRecord.RequiredCD == null ||
+                    _currentFormRecord.RequiredCD.Count < 1)
                 {
                     _log?.Error(
                         "Not able to find appropriate ConceptDescriptions in the GenericForm option records. " +
@@ -286,7 +286,7 @@ namespace AasxPluginGenericForms
 
                 // ok, check
                 int nr = 0;
-                foreach (var cd in _currentFormRecord.ConceptDescriptions)
+                foreach (var cd in _currentFormRecord.RequiredCD)
                 {
                     if (cd == null || cd.Id == null)
                         continue;
@@ -295,7 +295,7 @@ namespace AasxPluginGenericForms
                         continue;
                     // ok, add
                     var newCd = cd.Copy();
-                    env.ConceptDescriptions.Add(newCd);
+                    env.Add(newCd);
                     nr++;
                 }
 

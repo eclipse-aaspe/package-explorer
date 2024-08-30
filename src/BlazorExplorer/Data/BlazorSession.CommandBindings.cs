@@ -84,6 +84,9 @@ namespace BlazorUI.Data
                     MainMenu?.SetChecked("HintsMenu", hintsMode);
                 }
 
+                // trigger re-indexing
+                TriggerPendingReIndexElements();
+
                 // try to remember current selected data object
                 object currMdo = null;
                 if (DisplayElements.SelectedItem != null)
@@ -92,9 +95,10 @@ namespace BlazorUI.Data
                 // in session, set these all important settings
                 this.EditMode = MainMenu?.IsChecked("EditMenu") == true;
                 this.HintMode = MainMenu?.IsChecked("HintsMenu") == true;
+				this.CheckSmtMode = MainMenu?.IsChecked("CheckSmtElements") == true;
 
-                // edit mode affects the total element view
-                RedrawAllAasxElements(nextFocusMdo: currMdo);
+				// edit mode affects the total element view
+				RedrawAllAasxElements(nextFocusMdo: currMdo);
 
                 return;
             }
@@ -275,14 +279,6 @@ namespace BlazorUI.Data
             }
 
             // REFACTOR: WPF required
-            if (cmd == "opcuaexportnodesetuaplugin")
-            {
-                Logic.LogErrorToTicket(ticket, "OpcUaExportNodesetUaPlugin not implemented, yet.");
-
-                return;
-            }
-
-            // REFACTOR: WPF required
             if (cmd == "serverrest"
                 || cmd == "mqttpub"
                 || cmd == "connectintegrated"
@@ -308,7 +304,6 @@ namespace BlazorUI.Data
             // dead-csharp on
             // REFACTOR: WPF required
             if (cmd == "serverpluginemptysample"
-                || cmd == "serverpluginopcua"
                 || cmd == "serverpluginmqtt")
             {
                 Logic.LogErrorToTicket(ticket, "Some servers not implemented, yet.");

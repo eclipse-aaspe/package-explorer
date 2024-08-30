@@ -19,6 +19,8 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 */
 
+#define OPCUA2
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +28,12 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
+#if OPCUA2
+using AasxOpcUa2Client;
+using AdminShellNS;
+#else
+#endif
 
 namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
 {
@@ -35,7 +43,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
     {
         public new void InitPlugin(string[] args)
         {
-            PluginName = "AasxPluginOpcUaClient";
+            PluginName = "AasxPluginUaNetClient";
             _log.Info("InitPlugin() called with args = {0}", (args == null) ? "" : string.Join(", ", args));
         }
 
@@ -44,12 +52,23 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
             var res = ListActionsBasicHelper(
                 enableCheckVisualExt: false,
                 enableLicenses: true);
+#if OPCUA2
+            res.Add(new AasxPluginActionDescriptionBase("create-client",
+                "Creates a OPC UA client and returns as plain object. Arguments: (string _endpointURL, "
+                + "bool _autoAccept, int _stopTimeout, string _userName, string _password).",
+                useAsync: true));
+            res.Add(new AasxPluginActionDescriptionBase("read-sme-value",
+                "Reads a value and returns as plain object. Arguments: (UASampleClient client, string nodeName, "
+                + "int index).",
+                useAsync: true));
+#else
             res.Add(new AasxPluginActionDescriptionBase("create-client",
                 "Creates a OPC UA client and returns as plain object. Arguments: (string _endpointURL, "
                 + "bool _autoAccept, int _stopTimeout, string _userName, string _password)."));
             res.Add(new AasxPluginActionDescriptionBase("read-sme-value",
                 "Reads a value and returns as plain object. Arguments: (UASampleClient client, string nodeName, "
                 + "int index)."));
+#endif
             return res.ToArray();
         }
 
@@ -70,6 +89,8 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 return lic;
             }
 
+#if OPCUA2
+#else
             if (action == "create-client")
             {
                 // OPC Copyright
@@ -135,6 +156,93 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 return res;
             }
 
+#endif
+            return null;
+        }
+
+        public new async Task<object> ActivateActionAsync(string action, params object[] args)
+        {
+#if OPCUA2
+            if (action == "create-client")
+            {
+                // check for arguments
+                if (args == null || args.Length != 5 || !(args[0] is string && args[1] is bool && args[2] is int
+                    && args[3] is string && args[4] is string))
+                {
+                    _log.Info("create-client() call with wrong arguments. Expected: (string _endpointURL, "
+                        + "bool _autoAccept, int _stopTimeout, string _userName, string _password)");
+                    return null;
+                }
+
+                // re-establish arguments
+                var _endpointURL = args[0] as string;
+                var _autoAccept = (bool)args[1];
+                var _stopTimeout = (int)args[2];
+                var _userName = args[3] as string;
+                var _password = args[4] as string;
+
+                try
+                {
+
+                    // make client
+                    var client = new AasOpcUaClient2(
+                        endpointURL: _endpointURL,
+                        autoAccept: _autoAccept,
+                        // timeOutMs: (uint)_stopTimeout,
+                        userName: _userName, password: _password);
+
+                    await client.DirectConnect();
+
+                    // return as plain object
+                    var res = new AasxPluginResultBaseObject();
+                    res.strType = "UASampleClient";
+                    res.obj = client;
+                    return res;
+
+                } catch (Exception ex)
+                {
+                    _log?.Error(ex, "create OPC UA client");
+                }
+
+                return null;
+            }
+
+            if (action == "read-sme-value")
+            {
+                // check for arguments
+                if (args == null || args.Length != 3 || !(args[0] is AasOpcUaClient2 client
+                    && args[1] is string && args[2] is int))
+                {
+                    _log.Info("read-sme-value() call with wrong arguments. Expected: (UASampleClient client, "
+                        + "string nodeName, int index)");
+                    return null;
+                }
+
+                // re-establish arguments
+                var nodeName = args[1] as string;
+                var nsIndex = (int)args[2];
+
+                try
+                {
+
+                    // make the call
+                    var nid = client?.CreateNodeId(nodeName, nsIndex);
+                    var value = (await client?.ReadNodeIdAsync(nid))?.Value;
+
+                    // return as plain object
+                    var res = new AasxPluginResultBaseObject();
+                    res.strType = "value object";
+                    res.obj = value;
+                    return res;
+
+                }
+                catch (Exception ex)
+                {
+                    _log?.Error(ex, "read node");
+                }
+            }
+
+#endif
             return null;
         }
     }

@@ -263,14 +263,14 @@ namespace AasxDictionaryImport.Cdd
         }
 
         /// <inheritdoc/>
-        public override bool ImportSubmodelInto(Aas.Environment env,
+        public override bool ImportSubmodelInto(Aas.IEnvironment env,
            Aas.IAssetAdministrationShell adminShell)
         {
             return new Importer(env, Context).ImportSubmodel(this, adminShell);
         }
 
         /// <inheritdoc/>
-        public override bool ImportSubmodelElementsInto(Aas.Environment env,
+        public override bool ImportSubmodelElementsInto(Aas.IEnvironment env,
            Aas.IReferable parent)
         {
             // If we wanted to import the class, we would typically use the submodel import
@@ -350,7 +350,7 @@ namespace AasxDictionaryImport.Cdd
         }
 
         /// <inheritdoc/>
-        public override bool ImportSubmodelElementsInto(Aas.Environment env,
+        public override bool ImportSubmodelElementsInto(Aas.IEnvironment env,
            Aas.IReferable parent)
         {
             return new Importer(env, Context).ImportSubmodelElements(this, parent);

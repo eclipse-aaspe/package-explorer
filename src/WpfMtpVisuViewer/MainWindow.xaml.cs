@@ -34,7 +34,9 @@ namespace WpfMtpVisuViewer
     {
         public WpfMtpControl.MtpVisuOpcUaClient client = new WpfMtpControl.MtpVisuOpcUaClient();
 
+#if __to_remove
         public AasOpcUaClient testOpcUaClient = null;
+#endif
 
         public MainWindow()
         {
@@ -62,18 +64,19 @@ namespace WpfMtpVisuViewer
 
         private int opcCounter = 0;
 
-        private void dispatcherTimer_Tick(object sender, EventArgs e)
+        private async void dispatcherTimer_Tick(object sender, EventArgs e)
         {
             if (this.client == null)
                 textBoxDataSourceStatus.Text = "(no OPC UA client enabled)";
             else
             {
-                this.client.Tick(100);
+                await client.TickAsync(100);
                 textBoxDataSourceStatus.Text = this.client.GetStatus();
             }
 
 
             // TODO (MIHO, 2020-09-18): remove this test code
+#if __to_remove
             opcCounter++;
             if (testOpcUaClient != null && opcCounter % 20 == 0)
                 try
@@ -97,6 +100,7 @@ namespace WpfMtpVisuViewer
                 {
                     AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
                 }
+#endif
         }
 
         private WpfMtpControl.MtpData activeMtpData = null;

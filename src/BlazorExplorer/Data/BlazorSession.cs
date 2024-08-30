@@ -132,9 +132,16 @@ namespace BlazorUI.Data
         /// </summary>
         public bool HintMode = true;
 
-        // to be refactored in a class?
+		/// <summary>
+		/// Session allows to check elements for SMT attributes. 
+        /// This setting shall be controlled by the menu / hotkey/ script
+		/// functionality.
+		/// </summary>
+		public bool CheckSmtMode = true;
 
-        public VisualElementGeneric LoadedPluginNode = null;
+		// to be refactored in a class?
+
+		public VisualElementGeneric LoadedPluginNode = null;
         public Plugins.PluginInstance LoadedPluginInstance = null;
         public object LoadedPluginSessionId = null;
 
@@ -369,7 +376,7 @@ namespace BlazorUI.Data
 
             if (env?.AasEnv?.AssetAdministrationShells != null)
                 helper.DisplayOrEditAasEntityAas(PackageCentral, env.AasEnv,
-                    env.AasEnv.AssetAdministrationShells[0], EditMode, ElementPanel, hintMode: HintMode);
+                    env.AasEnv.AllAssetAdministrationShells().FirstOrDefault(), EditMode, ElementPanel, hintMode: HintMode);
 
             htmlDotnetThread = new Thread(AnyUiDisplayContextHtml.htmlDotnetLoop);
             htmlDotnetThread.Start();
@@ -487,7 +494,7 @@ namespace BlazorUI.Data
                 var common = helper.DisplayOrEditCommonEntity(
                     PackageCentral,
                     elementPanel,
-                    superMenu, EditMode, HintMode,
+                    superMenu, EditMode, HintMode, CheckSmtMode,
                     tiCds?.CdSortOrder ?? VisualElementEnvironmentItem.ConceptDescSortOrder.None,
                     DisplayElements.SelectedItem);
 
@@ -522,9 +529,9 @@ namespace BlazorUI.Data
                         // the default behaviour is to update a plugin content,
                         // only if no / invalid content is available fill new
 
-                        var pluginOnlyUpdate = true;
 
                         // may dispose old (other plugin)
+                        var pluginOnlyUpdate = true;
                         if (LoadedPluginInstance == null
                             || LoadedPluginNode != DisplayElements.SelectedItem
                             || LoadedPluginInstance != vepe.thePlugin)
@@ -627,6 +634,8 @@ namespace BlazorUI.Data
             return true;
         }
 
+        private bool _mainTimer_PendingReIndexElements = true;
+        private DateTime _mainTimer_LastCheckForReIndexElements = DateTime.Now;
 
         /// <summary>
         /// This is the main session timer callback. It is either activated by the session itself
@@ -634,7 +643,25 @@ namespace BlazorUI.Data
         /// </summary>
         public void MainTimerTick()
         {
+            // do re-index?
+            var deltaSecs2 = (DateTime.Now - _mainTimer_LastCheckForReIndexElements).TotalSeconds;
+            if (deltaSecs2 >= 1.0 && _mainTimer_PendingReIndexElements)
+            {
+                // dis-engage
+                _mainTimer_PendingReIndexElements = false;
 
+                // be modest for the time being
+                PackageCentral?.ReIndexIdentifiables();
+
+                // Info
+                Log.Singleton.Info("Re-indexing Identifiables for faster access.");
+            }
+        }
+
+        public void TriggerPendingReIndexElements()
+        {
+            _mainTimer_LastCheckForReIndexElements = DateTime.Now;
+            _mainTimer_PendingReIndexElements = true;
         }
 
         /// <summary>

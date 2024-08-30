@@ -12,6 +12,7 @@ using AdminShellNS.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Extensions
 {
@@ -183,7 +184,20 @@ namespace Extensions
 
         }
 
-        public static IReference GetModelReference(this ISubmodelElement sme, bool includeParents = true)
+        public static IEnumerable<IQualifier> FindQualifierOfAnyType(
+            this ISubmodelElement submodelElement, string[] qualifierTypes)
+        {
+            if (qualifierTypes == null || qualifierTypes.Length < 1)
+                yield break;
+            foreach (var qualifierType in qualifierTypes)
+            {
+                var res = FindQualifierOfType(submodelElement, qualifierType);
+                if (res != null)
+                    yield return res;
+			}
+        }
+
+		public static IReference GetModelReference(this ISubmodelElement sme, bool includeParents = true)
         {
             // this will be the tail of our chain
             var keyList = new List<IKey>();
@@ -590,6 +604,28 @@ namespace Extensions
         }
 
         #region List<ISubmodelElement>
+
+        public static int Replace(
+                this List<ISubmodelElement> submodelElements, 
+                ISubmodelElement oldElem, ISubmodelElement newElem)
+        {
+            var ndx = submodelElements.IndexOf(oldElem);
+            if (ndx < 0)
+                return -1;
+            submodelElements[ndx] = newElem;
+            return ndx;
+        }
+
+        public static int Replace(
+                this List<IDataElement> submodelElements,
+                IDataElement oldElem, IDataElement newElem)
+        {
+            var ndx = submodelElements.IndexOf(oldElem);
+            if (ndx < 0)
+                return -1;
+            submodelElements[ndx] = newElem;
+            return ndx;
+        }
 
         public static IReferable FindReferableByReference(
                 this List<ISubmodelElement> submodelElements, Reference rf, int keyIndex)
@@ -1108,6 +1144,9 @@ namespace Extensions
                     if (current is SubmodelElementCollection smc)
                         smc.Value?.RecurseOnReferables(state, parents, lambda);
 
+                    if (current is SubmodelElementList sml)
+                        sml.Value?.RecurseOnReferables(state, parents, lambda);
+
                     if (current is Entity ent)
                         ent.Statements?.RecurseOnReferables(state, parents, lambda);
 
@@ -1401,6 +1440,32 @@ namespace Extensions
                 where T : ISubmodelElement
         {
             return smes.FindAllSemanticIdAs<T>(cd, matchMode).FirstOrDefault<T>();
+        }
+
+        /// <summary>
+        /// As multiple dynamic id versions might by possible ({00}, __00__))
+        /// adopt to a version which can be send to String.Format().
+        /// Returns <c>null</c>, if NO dynamic template is found.
+        /// Note: the result of this function shall only be put back to 
+        /// idShort, if a successfull numbering was taking place.
+        /// </summary>
+        public static string AdoptIdShortDynamicTemplate(string idShort)
+        {
+            // quick reply?
+            if (idShort == null
+                || !(idShort.Contains("{0") || idShort.Contains("__0")))
+                return null;
+
+            // substitution of formats
+            if (Regex.IsMatch(idShort, @"__(\d{2,4})__"))
+                return Regex.Replace(idShort, @"__(\d{2,4})__", @"{0:$1}");
+
+            // "{}" format, but correct?
+            if (Regex.IsMatch(idShort, @"{(\d{2,4})}"))
+                return Regex.Replace(idShort, @"{(\d{2,4})}", @"{0:$1}");
+
+            // if unsure, be negative
+            return null;
         }
 
         public static string IterateIdShortTemplateToBeUnique(this List<ISubmodelElement> submodelElements, string idShortTemplate, int maxNum)

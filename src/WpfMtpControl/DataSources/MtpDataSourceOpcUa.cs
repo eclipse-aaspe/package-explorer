@@ -14,6 +14,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AasxIntegrationBase;
+using AdminShellNS;
 
 namespace WpfMtpControl.DataSources
 {
@@ -121,7 +122,7 @@ namespace WpfMtpControl.DataSources
         MtpDataSourceOpcUaServer CreateOrUseUaServer(string Endpoint, bool allowReUse = false);
         MtpDataSourceOpcUaItem CreateOrUseItem(MtpDataSourceOpcUaServer server,
             string Identifier, string Namespace, string Access, string mtpSourceItemId, bool allowReUse = false);
-        void Tick(int ms);
+        Task TickAsync(int ms);
     }
 
     /// <summary>

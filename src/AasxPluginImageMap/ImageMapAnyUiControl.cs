@@ -243,6 +243,7 @@ namespace AasxPluginImageMap
                     };
                 });
 
+
             // add an Canvas on the same place as the image
             _canvas = AnyUiUIElement.RegisterControl(
                 uitk.AddSmallFrameworkElementTo(innerGrid, 0, 0,
@@ -360,7 +361,7 @@ namespace AasxPluginImageMap
             return new AnyUiLambdaActionNone();
         }
 
-        #endregion
+#endregion
 
         #region Business logic
         //=============

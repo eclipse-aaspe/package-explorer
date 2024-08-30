@@ -43,7 +43,7 @@
             "FormInfo": "Each SubmodelElementCollection describes a document by standard, which is associated to the particular Asset Administration Shell\r\nEach SMC describes a Document (see IEC 82045-1 and IEC 8245-2), which is associated to the particular Asset Administration Shell.",
             "FormEditIdShort": false,
             "FormEditDescription": false,
-            "PresetIdShort": "Document{0:00}",
+            "PresetIdShort": "Document{00}",
             "PresetCategory": "",
             "KeySemanticId": {
               "type": "GlobalReference",
@@ -58,7 +58,7 @@
                 "FormInfo": "Set of document identifiers for the Document. One ID in this collection should be used as a preferred ID\r\nSet of document identifiers for the Document. One ID in this collection should be used as a preferred ID",
                 "FormEditIdShort": false,
                 "FormEditDescription": false,
-                "PresetIdShort": "DocumentId{0:00}",
+                "PresetIdShort": "DocumentId{00}",
                 "PresetCategory": "",
                 "KeySemanticId": {
                   "type": "GlobalReference",
@@ -132,7 +132,7 @@
                 "FormInfo": "Set of information for describing the classification of the Document according to ClassificationSystems\r\nSet of information for describing the classification of the Document according to ClassificationSystems. Constraint: at least one classification according to VDI 2770 shall be provided.",
                 "FormEditIdShort": false,
                 "FormEditDescription": false,
-                "PresetIdShort": "DocumentClassification{0:00}",
+                "PresetIdShort": "DocumentClassification{00}",
                 "PresetCategory": "",
                 "KeySemanticId": {
                   "type": "GlobalReference",
@@ -202,7 +202,7 @@
                 "FormInfo": "Information elements of individual Document Version entities\r\nInformation elements of individual VDI 2770 DocumentVersion entities. Note: at the time of handover, this collection shall include at least one DocumentVersion.",
                 "FormEditIdShort": false,
                 "FormEditDescription": false,
-                "PresetIdShort": "DocumentVersion{0:00}",
+                "PresetIdShort": "DocumentVersion{00}",
                 "PresetCategory": "",
                 "KeySemanticId": {
                   "type": "GlobalReference",
@@ -217,7 +217,7 @@
                     "FormInfo": "language style of the document\r\nThis property contains a list of languages used within the DocumentVersion. Each property codes one language identification according to ISO 639-1 or ISO 639-2 used in the Document.",
                     "FormEditIdShort": false,
                     "FormEditDescription": false,
-                    "PresetIdShort": "Language{0:00}",
+                    "PresetIdShort": "Language{00}",
                     "PresetCategory": "",
                     "KeySemanticId": {
                       "type": "GlobalReference",
@@ -391,7 +391,7 @@
                     "FormInfo": "Forms a generic RefersTo-relationship to another Document or DocumentVersion. They have a loose relationship\r\nForms a generic RefersTo-relationship to another Document or DocumentVersion. They have a loose relationship. Constraint: reference targets a SMC \"Document\" or a “DocumentVersion”.",
                     "FormEditIdShort": false,
                     "FormEditDescription": false,
-                    "PresetIdShort": "RefersTo{0:00}",
+                    "PresetIdShort": "RefersTo{00}",
                     "PresetCategory": "",
                     "KeySemanticId": {
                       "type": "GlobalReference",
@@ -407,7 +407,7 @@
                     "FormInfo": "Forms a BasedOn-relationship to another Document or DocumentVersion. Typically states, that the content of the document bases on another document (e.g. specification requirements). Both have a strong relationship\r\nForms a BasedOn-relationship to another Document or DocumentVersion. Typically states, that the content of the document bases on another document (e.g. specification requirements). Both have a strong relationship. Constraint: reference targets a SMC \"Document\" or a “DocumentVersion”.",
                     "FormEditIdShort": false,
                     "FormEditDescription": false,
-                    "PresetIdShort": "BasedOn{0:00}",
+                    "PresetIdShort": "BasedOn{00}",
                     "PresetCategory": "",
                     "KeySemanticId": {
                       "type": "GlobalReference",
@@ -423,7 +423,7 @@
                     "FormInfo": "Forms a TranslationOf-relationship to another Document or DocumentVersion. Both have a strong relationship\r\nForms a TranslationOf-relationship to another Document or DocumentVersion. Both have a strong relationship. Constaint: The (language independent) content must be identical in both documents or document versions. Constraint: reference targets a SMC \"Document\" or a “DocumentVersion”.",
                     "FormEditIdShort": false,
                     "FormEditDescription": false,
-                    "PresetIdShort": "TranslationOf{0:00}",
+                    "PresetIdShort": "TranslationOf{00}",
                     "PresetCategory": "",
                     "KeySemanticId": {
                       "type": "GlobalReference",
@@ -439,7 +439,7 @@
                     "FormInfo": "MIME-Type, file name and file contents given by the file SubmodelElement\r\nNote: each DigitalFile represents the same content or Document version, but can be provided in different technical formats (PDF, PDFA, html..) or by a link.",
                     "FormEditIdShort": false,
                     "FormEditDescription": false,
-                    "PresetIdShort": "DigitalFile{0:00}",
+                    "PresetIdShort": "DigitalFile{00}",
                     "PresetCategory": "",
                     "KeySemanticId": {
                       "type": "GlobalReference",
@@ -473,7 +473,7 @@
                 "FormInfo": "Identifies entities, which are subject to the Document.\r\nIdentifies entities, which are subject to the Document. Note: can be omitted, if the subject of the Document is the overall Asset of the Asset Administration Shell. Note: if no Entity according clause 2.2 is referenced, this ReferenceElement is not required at all. Note: This mechanism substitutes the ObjectId-provision of the VDI2770 (see section 2.2 and appendix B).",
                 "FormEditIdShort": false,
                 "FormEditDescription": false,
-                "PresetIdShort": "DocumentedEntity{0:00}",
+                "PresetIdShort": "DocumentedEntity{00}",
                 "PresetCategory": "",
                 "KeySemanticId": {
                   "type": "GlobalReference",

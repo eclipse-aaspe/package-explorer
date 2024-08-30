@@ -7,6 +7,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+using AasxIntegrationBase.AdminShellEvents;
 using AnyUi;
 using Newtonsoft.Json;
 using System;
@@ -81,8 +82,8 @@ namespace AasxIntegrationBase
 
     public class AasxPluginResultGenerateSubmodel : AasxPluginResultBase
     {
-        public Aas.Submodel sm;
-        public List<Aas.ConceptDescription> cds;
+        public Aas.ISubmodel sm;
+        public List<Aas.IConceptDescription> cds;
     }
 
     public class AasxPluginResultSingleMenuItem
@@ -172,6 +173,16 @@ namespace AasxIntegrationBase
         public string Action = "";
         public bool UseAsync = false;
         public object[] Args = null;
+    }
+
+    /// <summary>
+    /// This plugin result event shall be sent to the host in order to push
+    /// AAS events, such as updates.
+    /// </summary>
+    public class AasxPluginResultEventPushSomeEvents : AasxPluginResultEventBase
+    {
+        public List<AasEventMsgEnvelope> AasEvents = null;
+        public List<Aas.ISubmodelElement> AnimateSingleEvents = null;
     }
 
     public class AasxPluginEventReturnBase
