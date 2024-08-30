@@ -1,0 +1,279 @@
+﻿/* official Submodel Template Spec Hierarchical Structures V1.1 from June 2024 */
+{
+  "SM_HierarchicalStructures": {
+    "idShort": "HierarchicalStructures",
+    "description": [
+      {
+        "language": "en",
+        "text": "The Submodel HierarchicalStructures identified by its semanticId. The Submodel idShort can be picked freely."
+      }
+    ],
+    "id": "https://admin-shell.io/idta/HierarchicalStructures/Template/1/1/Submodel",
+    "kind": "Template",
+    "semanticId": {
+      "type": "ModelReference",
+      "keys": [
+        {
+          "type": "Submodel",
+          "value": "https://admin-shell.io/idta/HierarchicalStructures/1/1/Submodel"
+        }
+      ]
+    },
+    "qualifiers": [
+      {
+        "semanticId": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+            }
+          ]
+        },
+        "kind": "TemplateQualifier",
+        "type": "SMT/Cardinality",
+        "valueType": "xs:string",
+        "value": "ZeroToOne"
+      },
+      {
+        "kind": "TemplateQualifier",
+        "type": "EditIdShort",
+        "valueType": "xs:string",
+        "value": "True"
+      }
+    ],
+    "modelType": "Submodel"
+  },
+  "CD_EntryNode": {
+    "idShort": "EntryNode",
+    "id": "https://admin-shell.io/idta/HierarchicalStructures/EntryNode/1/0",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "EntryNode"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Base entry point for the Entity tree"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_Node": {
+    "idShort": "Node",
+    "id": "https://admin-shell.io/idta/HierarchicalStructures/Node/1/0",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Node"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Element in node hierarchy below EntryNode"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_SameAs": {
+    "idShort": "SameAs",
+    "id": "https://admin-shell.io/idta/HierarchicalStructures/SameAs/1/0",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "SameAs"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Reference between two Entities in the same Submodel or across Submodels."
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_IsPartOf": {
+    "idShort": "IsPartOf",
+    "id": "https://admin-shell.io/idta/HierarchicalStructures/IsPartOf/1/0",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "IsPartOf"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "indication of a logical relatinship, where the second node is a logical part of the first node"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_HasPart": {
+    "idShort": "HasPart",
+    "id": "https://admin-shell.io/idta/HierarchicalStructures/HasPart/1/0",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": ""
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "indication of a logical relatinship, where the second node is a logical super-ordinate of the first node"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_BulkCount": {
+    "idShort": "BulkCount",
+    "id": "https://admin-shell.io/idta/HierarchicalStructures/BulkCount/1/0",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "BulkCount"
+            }
+          ],
+          "dataType": "INTEGER_MEASURE",
+          "definition": [
+            {
+              "language": "en",
+              "text": "Bulk amount of items referred to by respective entity"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ArcheType": {
+    "idShort": "ArcheType",
+    "id": "https://admin-shell.io/idta/HierarchicalStructures/ArcheType/1/0",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "ArcheType"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "approach of modelling logical connections of nodes"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  }
+}

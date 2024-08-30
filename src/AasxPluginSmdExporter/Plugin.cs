@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using AasxPackageExplorer;
 using AasxPluginSmdExporter;
 using AasxPluginSmdExporter.View;
+using AdminShellNS;
 using AnyUi;
 using JetBrains.Annotations;
 

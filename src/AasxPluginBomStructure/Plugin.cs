@@ -67,7 +67,8 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 enableCheckVisualExt: true,
                 enablePanelWpf: true,
                 enableMenuItems: true,
-                enableEventsGet: true).ToArray();
+                enableEventsGet: true,
+                enableNewSubmodel: true).ToArray();
         }
 
         public new AasxPluginResultBase ActivateAction(string action, params object[] args)
@@ -160,6 +161,55 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 {
                     MenuItems = res
                 };
+            }
+
+            if (action == "get-list-new-submodel")
+            {
+                // defs
+                var defs = AasxPredefinedConcepts.HierarchStructV11.Static;
+
+                // prepare list
+                var list = new List<string>();
+                list.Add("" + defs.DomainInfo);
+
+                // make result
+                var res = new AasxPluginResultBaseObject();
+                res.obj = list;
+                return res;
+            }
+
+            if (action == "generate-submodel" && args != null && args.Length >= 1 && args[0] is string)
+            {
+                // defs
+                var defs = AasxPredefinedConcepts.HierarchStructV11.Static;
+
+                // get arguments
+                var smName = args[0] as string;
+                if (smName == null)
+                    return null;
+
+                // generate (by hand)
+                var sm = new Aas.Submodel("");
+                sm.SemanticId = defs.SM_HierarchicalStructures.GetSemanticRef();
+                sm.IdShort = "HierarchicalStructures_New";
+
+                sm.SmeForWrite().CreateSMEForCD<Aas.Property>(defs.CD_ArcheType,
+                    addSme: true)?.Set(Aas.DataTypeDefXsd.String, "Full");
+
+                var ent = sm.SmeForWrite().CreateSMEForCD<Aas.Entity>(defs.CD_EntryNode,
+                    idShort: "NewNode", addSme: true);
+
+                ent.CreateSMEForCD<Aas.Property>(defs.CD_BulkCount,
+                    addSme: true)?.Set(Aas.DataTypeDefXsd.String, "1");
+
+                ent.CreateSMEForCD<Aas.RelationshipElement>(defs.CD_SameAs,
+                    addSme: true);
+
+                // make result
+                var res = new AasxPluginResultBaseObject();
+                res.strType = "OK";
+                res.obj = sm;
+                return res;
             }
 
             // default

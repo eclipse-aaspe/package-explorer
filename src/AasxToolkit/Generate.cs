@@ -170,22 +170,18 @@ namespace AasxToolkit
 
                 aas1.DerivedFrom = new Reference(ReferenceTypes.ExternalReference, new List<IKey>() { new Key(KeyTypes.AssetAdministrationShell, "www.admin-shell.io/aas/sample-series-aas/1/1") });
 
-                aasenv1.AssetAdministrationShells.Add(aas1);
+                aasenv1.Add(aas1);
                 aas1.AssetInformation = asset1;
 
                 // Link things together
                 Log.WriteLine(2, "Linking entities to AAS ..");
-                if (aas1.Submodels == null)
-                {
-                    aas1.Submodels = new List<IReference>();
-                }
-                aas1.Submodels.Add(subCad.GetReference());
-                aas1.Submodels.Add(subDocu.GetReference());
-                aas1.Submodels.Add(subDatasheet.GetReference());
-                aas1.Submodels.Add(subEng.GetReference());
-                aas1.Submodels.Add(subVars.GetReference());
-                aas1.Submodels.Add(subBOM.GetReference());
-                aas1.Submodels.Add(subBOM2.GetReference());
+                aas1.Add(subCad.GetReference());
+                aas1.Add(subDocu.GetReference());
+                aas1.Add(subDatasheet.GetReference());
+                aas1.Add(subEng.GetReference());
+                aas1.Add(subVars.GetReference());
+                aas1.Add(subBOM.GetReference());
+                aas1.Add(subBOM2.GetReference());
             }
             catch (Exception ex)
             {
@@ -232,7 +228,7 @@ namespace AasxToolkit
 
             // CONCEPTS
             var cdGroup = new ConceptDescription(repo.CreateOrRetrieveIri("Example Submodel Cad Item Group"), idShort: "CadItem");
-            aasenv.ConceptDescriptions.Add(cdGroup);
+            aasenv.Add(cdGroup);
             cdGroup.SetIEC61360Spec(
                 preferredNames: new[] { "de", "CAD Dateieinheit", "en", "CAD file item" },
                 shortName: "CadItem",
@@ -243,7 +239,7 @@ namespace AasxToolkit
             );
 
             var cdFile = new ConceptDescription(repo.CreateOrRetrieveIri("Example Submodel Cad Item File Elem"), idShort: "File");
-            aasenv.ConceptDescriptions.Add(cdFile);
+            aasenv.Add(cdFile);
             cdFile.SetIEC61360Spec(
                 preferredNames: new[] { "de", "Enthaltene CAD Datei", "en", "Embedded CAD file" },
                 shortName: "File",
@@ -253,7 +249,7 @@ namespace AasxToolkit
             );
 
             var cdFormat = new ConceptDescription("0173-1#02-ZAA120#007", idShort: "FileFormat");
-            aasenv.ConceptDescriptions.Add(cdFormat);
+            aasenv.Add(cdFormat);
             cdFormat.SetIEC61360Spec(
                 preferredNames: new[] { "de", "Filetype CAD", "en", "Filetype CAD" },
                 shortName: "FileFormat",
@@ -266,7 +262,7 @@ namespace AasxToolkit
             // SUB MODEL
             var sub1 = new Submodel(repo.CreateOneTimeId());
             sub1.IdShort = "CAD";
-            aasenv.Submodels.Add(sub1);
+            aasenv.Add(sub1);
             sub1.SemanticId = new Reference(ReferenceTypes.ModelReference, new List<IKey>() { new Key(KeyTypes.Submodel, "http://example.com/id/type/submodel/cad/1/1") });
 
             // for each cad file in prefs
@@ -310,7 +306,7 @@ namespace AasxToolkit
             // add concept descriptions
             foreach (var rf in preDefs.GetAllReferables())
                 if (rf is ConceptDescription)
-                    aasenv.ConceptDescriptions.Add(rf as ConceptDescription);
+                    aasenv.Add(rf as ConceptDescription);
 
             // SUB MODEL
             var sub1 = new Submodel(
@@ -324,7 +320,7 @@ namespace AasxToolkit
                 preDefs.SM_VDI2770_Documentation.EmbeddedDataSpecifications,
                 preDefs.SM_VDI2770_Documentation.SubmodelElements);
             sub1.Id = repo.CreateOneTimeId();
-            aasenv.Submodels.Add(sub1);
+            aasenv.Add(sub1);
 
             // execute LAMBDA on different data sources
             Action<int, string[], string, string, string> lambda = (idx, args, fn, url, targetdir) =>
@@ -548,13 +544,13 @@ namespace AasxToolkit
             // SUB MODEL
             var sub1 = new Submodel(repo.CreateOneTimeId());
             sub1.IdShort = "Datatsheet";
-            aasenv.Submodels.Add(sub1);
+            aasenv.Add(sub1);
             sub1.SemanticId = new Reference(ReferenceTypes.ExternalReference, new List<IKey>() { new Key(KeyTypes.Submodel, "http://example.com/id/type/submodel/datasheet/1/1") });
 
             // CONCEPT: Manufacturer
             var cd = new ConceptDescription("0173-1#02-AAO677#001", idShort: "Manufacturer");
             {
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] { "de", "TBD", "en", "Manufacturer name" },
                     shortName: "Manufacturer",
@@ -574,7 +570,7 @@ namespace AasxToolkit
             // CONCEPT: Width
             cd = new ConceptDescription("0173-1#02-BAF016#005", idShort: "Width");
             {
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] { "de", "Breite", "en", "Width" },
                     shortName: "Width",
@@ -598,7 +594,7 @@ namespace AasxToolkit
             // CONCEPT: Height
             cd = new ConceptDescription("0173-1#02-BAA020#008", idShort: "Height");
             {
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] { "de", "Höhe", "en", "Height" },
                     shortName: "Height",
@@ -623,7 +619,7 @@ namespace AasxToolkit
             // CONCEPT: Depth
             cd = new ConceptDescription("0173-1#02-BAB577#007", idShort: "Depth");
             {
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] { "de", "Tiefe", "en", "Depth" },
                     shortName: "Depth",
@@ -647,7 +643,7 @@ namespace AasxToolkit
             // CONCEPT: Weight
             cd = new ConceptDescription("0173-1#02-AAS627#001", idShort: "Weight");
             {
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] {
                         "de", "Gewicht der Artikeleinzelverpackung", "en", "Weight of the individual packaging" },
@@ -674,7 +670,7 @@ namespace AasxToolkit
             // CONCEPT: Material
             cd = new ConceptDescription("0173-1#02-BAB577#007", idShort: "Material");
             {
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] { "de", "Werkstoff", "en", "Material" },
                     shortName: "Material",
@@ -700,7 +696,7 @@ namespace AasxToolkit
             // SUB MODEL
             var sub1 = new Submodel(repo.CreateOneTimeId());
             sub1.IdShort = "VariousItems";
-            aasenv.Submodels.Add(sub1);
+            aasenv.Add(sub1);
             sub1.SemanticId = new Reference(ReferenceTypes.ExternalReference, new List<IKey>() { new Key(KeyTypes.Submodel, "http://example.com/id/type/submodel/various/1/1") });
 
             ISubmodelElement sme1, sme2;
@@ -708,7 +704,7 @@ namespace AasxToolkit
             // CONCEPT: MultiLanguageProperty
             var cd = new ConceptDescription("0173-1#02-ZZZ991#001", idShort: "DocuName");
             {
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] {
                         "de", "Name Dokument in Landessprache",    // wechseln Sie die Sprache bei ECLASS
@@ -738,7 +734,7 @@ namespace AasxToolkit
             //    id: "0173-1#02-ZZZ992#001"))                             // die ID des Merkmales bei ECLASS
             cd = new ConceptDescription("0173-1#02-ZZZ992#001", idShort: "VoltageRange");
             {
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] {
                         "de", "Betriebsspannungsbereich",    // wechseln Sie die Sprache bei ECLASS
@@ -766,7 +762,7 @@ namespace AasxToolkit
             //    id: "0173-1#02-XXX992#001"))  // die ID des Merkmales bei ECLASS
             cd = new ConceptDescription("0173-1#02-XXX992#001", idShort: "VerConn");
             {
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] {
                         "de", "Verbindung",    // wechseln Sie die Sprache bei ECLASS 
@@ -800,7 +796,7 @@ namespace AasxToolkit
             // SUB MODEL
             var sub1 = new Submodel(repo.CreateOneTimeId());
             sub1.IdShort = "BOM-ECAD";
-            aasenv.Submodels.Add(sub1);
+            aasenv.Add(sub1);
             sub1.SemanticId = new Reference(ReferenceTypes.ExternalReference, new List<IKey>() { new Key(KeyTypes.Submodel, "http://example.com/id/type/submodel/BOM/1/1") });
 
             // CONCEPT: electrical plan
@@ -814,7 +810,7 @@ namespace AasxToolkit
             var cd = new ConceptDescription("0173-1#02-ZZZ993#001", idShort: "E-CAD");
             {
                 cdRelEPlan = cd;
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] {
                         "en", "Electrical plan",    // wechseln Sie die Sprache bei ECLASS
@@ -834,7 +830,7 @@ namespace AasxToolkit
             cd = new ConceptDescription("0173-1#02-ZZZ982#001", idShort: "single pole connection");
             {
                 cdRelElCon = cd;
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] {
                         "en", "single pole electrical connection",    // wechseln Sie die Sprache bei ECLASS
@@ -854,7 +850,7 @@ namespace AasxToolkit
             cd = new ConceptDescription("0173-1#02-ZZZ994#001", idShort: "1");
             {
                 cdContact1 = cd;
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] {
                         "en", "Contact point 1",    // wechseln Sie die Sprache bei ECLASS
@@ -874,7 +870,7 @@ namespace AasxToolkit
             cd = new ConceptDescription("0173-1#02-ZZZ995#001", idShort: "2");
             {
                 cdContact2 = cd;
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] {
                         "en", "Contact point 2",    // wechseln Sie die Sprache bei ECLASS
@@ -946,7 +942,7 @@ namespace AasxToolkit
             // SUB MODEL
             var sub1 = new Submodel(repo.CreateOneTimeId());
             sub1.IdShort = "BOM-ASSETS";
-            aasenv.Submodels.Add(sub1);
+            aasenv.Add(sub1);
             sub1.SemanticId = new Reference(ReferenceTypes.ExternalReference, new List<IKey>() { new Key(KeyTypes.Submodel, "http://example.com/id/type/submodel/BOM/1/1") });
 
             // CONCEPT: Generic asset decomposition
@@ -956,7 +952,7 @@ namespace AasxToolkit
             var cd = new ConceptDescription("0173-1#02-ZZZ998#002", idShort: "isPartOf");
             {
                 cdIsPartOf = cd;
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] {
                         "en", "Is part of",    // wechseln Sie die Sprache bei ECLASS
@@ -1013,14 +1009,14 @@ namespace AasxToolkit
             // SUB MODEL
             var sub1 = new Submodel(repo.CreateOneTimeId());
             sub1.IdShort = "EnergyMode";
-            aasenv.Submodels.Add(sub1);
+            aasenv.Add(sub1);
             sub1.SemanticId = new Reference(ReferenceTypes.ExternalReference, new List<IKey>() { new Key(KeyTypes.Submodel, "http://example.com/id/type/submodel/energymode/1/1") });
 
             // CONCEPT: SetMode
             var theOp = new Operation();
             var cd = new ConceptDescription("0173-1#02-AAS999#001", idShort: "SetMode");
             {
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] {
                         "de", "Setze Energiespare-Modus",
@@ -1037,7 +1033,7 @@ namespace AasxToolkit
             // CONCEPT: Mode
             cd = new ConceptDescription("0173-1#02-AAX777#002", idShort: "mode");
             {
-                aasenv.ConceptDescriptions.Add(cd);
+                aasenv.Add(cd);
                 cd.SetIEC61360Spec(
                     preferredNames: new[] {
                         "de", "Energiesparemodus-Vorgabe",

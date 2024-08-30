@@ -41,6 +41,15 @@ namespace Extensions
             }
         }
 
+        public static int Replace(
+            this AnnotatedRelationshipElement annotatedRelationshipElement,
+            IDataElement oldElem, IDataElement newElem)
+        {
+            if (annotatedRelationshipElement?.Annotations == null)
+                return -1;
+            return annotatedRelationshipElement.Annotations.Replace(oldElem, newElem);
+        }
+
         public static object AddChild(
             this AnnotatedRelationshipElement annotatedRelationshipElement,
             ISubmodelElement childSubmodelElement,

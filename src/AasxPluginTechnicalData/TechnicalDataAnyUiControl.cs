@@ -428,12 +428,7 @@ namespace AasxPluginTechnicalData
             //
             // also Section: Product Classifications
             //
-            // dead-csharp off
-            //var smcClassifications =
-            //    sm.SubmodelElements.FindFirstSemanticIdAs<Aas.SubmodelElementCollection>(
-            //        theDefs.CD_ProductClassifications.GetSingleKey(), MatchMode.Relaxed);
-            //if (smcClassifications != null)
-            // dead-csharp on
+
             foreach (var childProdClass in sm.SubmodelElements.GetChildListsFromAllSemanticId(
                 theDefs.CD_ProductClassifications.GetSingleKey(), MatchMode.Relaxed))
             {
@@ -492,10 +487,11 @@ namespace AasxPluginTechnicalData
                             setBold: false,
                             content: clr[i].Version);
 
+                        // note: adopt to the length of class id
                         uitk.AddSmallBasicLabelTo(clrgi, 1, 0, margin: new AnyUiThickness(1),
                             horizontalAlignment: AnyUiHorizontalAlignment.Center,
                             horizontalContentAlignment: AnyUiHorizontalAlignment.Center,
-                            fontSize: 1.4f,
+                            fontSize: (clr[i].ClassTxt.Length <= 12) ? 1.4f : 1.0f,
                             setBold: true,
                             colSpan: 2,
                             content: clr[i].ClassTxt);
@@ -584,7 +580,7 @@ namespace AasxPluginTechnicalData
                 // prepare information about displayName, semantics unit
                 var semantics = "-";
                 var unit = "";
-                // make up property name (1)
+                // make up property name (prio 4)
                 var dispName = "" + sme.IdShort;
                 var dispNameWithCD = dispName;
 
@@ -599,7 +595,7 @@ namespace AasxPluginTechnicalData
                         // the semantics display
                         semantics = "" + sme.SemanticId?.ToStringExtended(2);
 
-                        // find better property name (2)
+                        // find better property name (prio 2 and prio 3)
                         var cd = package?.AasEnv?.FindConceptDescriptionByReference(sme.SemanticId);
                         if (cd != null)
                         {
@@ -607,23 +603,32 @@ namespace AasxPluginTechnicalData
                             unit = "" + cd.GetIEC61360()?.Unit;
 
                             // names
-                            var dsn = cd.GetDefaultShortName(defaultLang);
-                            if (dsn != "")
-                                dispNameWithCD = dsn;
-
                             var dpn = cd.GetDefaultPreferredName(defaultLang);
                             if (dpn != "")
                                 dispNameWithCD = dpn;
+
+                            var dsn = cd.GetDefaultShortName(defaultLang);
+                            if (dsn != "")
+                                dispNameWithCD = dsn;
                         }
                     }
                 }
 
-                // make up even better better property name (3)
+                // make up even better better property name (prio 1b)
                 var descDef = "" + sme.Description?.GetDefaultString(defaultLang);
                 if (descDef.HasContent())
                 {
                     dispName = descDef;
                     dispNameWithCD = dispName;
+                }
+
+                // make up even better better display name (prio 1a), this is the 
+                // highest priority
+                var dNameSme = "" + sme.DisplayName?.GetDefaultString(defaultLang);
+                if (dNameSme.HasContent())
+                {
+                    dispName = dNameSme;
+                    dispNameWithCD = dNameSme;
                 }
 
                 // special function?

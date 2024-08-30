@@ -395,10 +395,13 @@ namespace AasxPackageExplorer
             _selectedItems.Clear();
         }
 
-        public bool TrySelectMainDataObject(object dataObject, bool? wishExpanded)
+        public bool TrySelectMainDataObject(
+            object dataObject, bool? wishExpanded,
+            bool alsoDereferenceObjects = false)
         {
             // access?
-            var ve = SearchVisualElementOnMainDataObject(dataObject);
+            var ve = SearchVisualElementOnMainDataObject(dataObject, 
+                alsoDereferenceObjects: alsoDereferenceObjects);
             if (ve == null)
                 return false;
 
@@ -475,8 +478,6 @@ namespace AasxPackageExplorer
             if (ve == null)
                 return false;
 
-            // select (but no callback!)
-            SelectSingleVisualElement(ve, preventFireItem: true);
 
             if (wishExpanded == true)
             {
@@ -490,7 +491,11 @@ namespace AasxPackageExplorer
             }
             if (wishExpanded == false)
                 ve.IsExpanded = false;
-            Woodoo(ve);
+
+			// select (but no callback!)
+			SelectSingleVisualElement(ve, preventFireItem: true);
+
+			Woodoo(ve);
 
             this.Refresh();
 

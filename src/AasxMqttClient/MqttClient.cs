@@ -213,7 +213,7 @@ namespace AasxMqttClient
 
             if (_diaData.EnableFirstPublish)
             {
-                foreach (Aas.AssetAdministrationShell aas in package.AasEnv.AssetAdministrationShells)
+                foreach (Aas.AssetAdministrationShell aas in package.AasEnv.AllAssetAdministrationShells())
                 {
                     _logger?.Info("Publish first AAS");
                     var message = new MqttApplicationMessageBuilder()
@@ -229,7 +229,7 @@ namespace AasxMqttClient
                     LogStatus(incElement: 1);
 
                     //publish submodels
-                    foreach (var sm in package.AasEnv.Submodels)
+                    foreach (var sm in package.AasEnv.AllSubmodels())
                     {
                         // whole structure
                         _logger?.Info("Publish first " + "Submodel_" + sm.IdShort);

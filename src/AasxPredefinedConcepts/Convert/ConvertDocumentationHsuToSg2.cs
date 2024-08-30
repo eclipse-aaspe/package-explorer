@@ -36,7 +36,7 @@ namespace AasxPredefinedConcepts.Convert
                     new AasxPredefinedConcepts.DefinitionsZveiDigitalTypeplate());
 
             var sm = currentReferable as Aas.Submodel;
-            if (sm != null && true == sm.SemanticId.GetAsExactlyOneKey()?.Matches(defs.SM_Document.SemanticId.GetAsExactlyOneKey()))
+            if (sm != null && true == sm.SemanticId.GetAsExactlyOneKey()?.Matches(defs.SM_Document?.SemanticId.GetAsExactlyOneKey()))
                 res.Add(new ConvertOfferDocumentationHsuToSg2(this,
                             $"Convert Submodel '{"" + sm.IdShort}' for Documentation HSU to SG2"));
 
@@ -78,9 +78,7 @@ namespace AasxPredefinedConcepts.Convert
                     if (sme != null && sme.SemanticId != null)
                     {
                         var cd = package.AasEnv.FindConceptDescriptionByReference(sme.SemanticId);
-                        if (cd != null)
-                            if (package.AasEnv.ConceptDescriptions.Contains(cd))
-                                package.AasEnv.ConceptDescriptions.Remove(cd);
+                        package.AasEnv.Remove(cd);
                     }
                     // recurse
                     return true;
@@ -92,7 +90,7 @@ namespace AasxPredefinedConcepts.Convert
                 foreach (var rf in defsSg2.GetAllReferables())
                     if (rf is Aas.ConceptDescription conceptDescription)
                     {
-                        package.AasEnv.ConceptDescriptions.AddConceptDescriptionOrReturnExisting(
+                        package.AasEnv.AddConceptDescriptionOrReturnExisting(
                                 new Aas.ConceptDescription(
                                     conceptDescription.Id, conceptDescription.Extensions,
                                     conceptDescription.Category, conceptDescription.IdShort,

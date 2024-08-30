@@ -31,7 +31,7 @@ namespace AasxPluginExportTable.Table
         protected LogInstance _log;
         protected ImportExportTableRecord _job;
         protected Aas.ISubmodel _sm;
-        protected Aas.Environment _env;
+        protected Aas.IEnvironment _env;
         protected ExportTableOptions _options;
 
         protected List<ImportCellMatcherBase> _matcherTop;
@@ -41,7 +41,7 @@ namespace AasxPluginExportTable.Table
             LogInstance log,
             ImportExportTableRecord job,
             Aas.ISubmodel sm,
-            Aas.Environment env,
+            Aas.IEnvironment env,
             ExportTableOptions options)
         {
             // context
@@ -185,7 +185,7 @@ namespace AasxPluginExportTable.Table
 
                 // has to be a SME type
                 var ae = ExtendISubmodelElement.AasSubmodelElementsFromStringOrAbbrev(res.Name);
-                if (ae.HasValue)
+                if (!ae.HasValue)
                     return null;
 
                 // ok, nice
@@ -205,16 +205,21 @@ namespace AasxPluginExportTable.Table
             // access
             if (context?.Parent == null || _sm == null)
                 return null;
+            _log?.Info("Try create Referable information ..");
 
-            // what element to create? makes this sense?
+            // what element to create makes this sense?
             var fen = FilteredElementName.Parse(context.ParentElemName);
             if (fen == null)
                 return null;
             if (!fen.IsSubmodel
                 && !fen.SmeEnum.HasValue
                 && fen.SmeEnum != Aas.AasSubmodelElements.SubmodelElement
-                && fen.SmeEnum != Aas.AasSubmodelElements.SubmodelElementCollection)
+                && fen.SmeEnum != Aas.AasSubmodelElements.SubmodelElementCollection
+                && fen.SmeEnum != Aas.AasSubmodelElements.SubmodelElementList)
+            {
+                _log?.Info("Wrong element type for Parent (SM, SMC, SML). Aborting!");
                 return null;
+            }
 
             // special case: directly into the (existing) Submodel
             ContextResult res = null;
@@ -237,19 +242,36 @@ namespace AasxPluginExportTable.Table
 
             // ok, if not, then ordinary case: create a SME and add it (somewhere) to the SM
             // this ALREADY should take over the most of the data
-            // Note: value data is not required, as fixed to SMC!
+            // Note: value data is not required, as fixed to SMC/SML!
+            // Note 2: not very elegant ;-)
 
             var sme = AdminShellUtil.CreateSubmodelElementFromEnum(fen.SmeEnum.Value, context.Parent);
-            if (!(sme is Aas.SubmodelElementCollection smesmc))
-                return null;
-
-            smesmc.Value = new List<Aas.ISubmodelElement>();
-
-            res = new ContextResult()
+            if (sme is Aas.SubmodelElementCollection smesmc)
             {
-                Elem = sme,
-                Childs = smesmc.Value
-            };
+                smesmc.Value = new List<Aas.ISubmodelElement>();
+
+                res = new ContextResult()
+                {
+                    Elem = sme,
+                    Childs = smesmc.Value
+                };
+            }
+            else
+            if (sme is Aas.SubmodelElementList smesml)
+            {
+                smesml.Value = new List<Aas.ISubmodelElement>();
+
+                res = new ContextResult()
+                {
+                    Elem = sme,
+                    Childs = smesml.Value
+                };
+            }
+            else
+            {
+                _log?.Info("Wrong SME element type for TOP Referable. Aborting!");
+                return null;
+            }
 
             // try to act within the hierarchy
             // does only search SME but no SM, however, this is not a flaw, as adding to SM is the default
@@ -345,7 +367,7 @@ namespace AasxPluginExportTable.Table
 
             if (sme is Aas.MultiLanguageProperty mlp)
             {
-                mlp.Value = ExtendLangStringSet.CreateLangStringTextType(ExtendLangString.LANG_DEFAULT, context.SmeValue);
+                mlp.Value = ExtendLangStringSet.CreateLangStringTextType(AdminShellUtil.GetDefaultLngIso639(), context.SmeValue);
             }
 
             if (sme is Aas.File file)
@@ -365,7 +387,7 @@ namespace AasxPluginExportTable.Table
 
         protected ContextResult CreateBodyCD(
             ImportCellMatchContextBase context,
-            Aas.Environment env)
+            Aas.IEnvironment env)
         {
             // access
             if (context?.Sme == null || context?.CD == null || env == null || _options == null)
@@ -387,7 +409,7 @@ namespace AasxPluginExportTable.Table
 
             // create, add
             var cd = context?.CD?.Copy();
-            env.ConceptDescriptions.Add(cd);
+            env.Add(cd);
             var res = new ContextResult() { Elem = cd };
 
             // link CD to SME
@@ -419,6 +441,38 @@ namespace AasxPluginExportTable.Table
             return isEmpty;
         }
 
+        /// <summary>
+        /// Nicer to print cell text
+        /// </summary>
+        public string BeautifyAndShortenCell(string cellText)
+        {
+            if (cellText == null)
+                return "";
+            cellText = cellText.Replace("\r", "<CR>");
+            cellText = cellText.Replace("\n", "<NL>");
+            cellText = AdminShellUtil.ShortenWithEllipses(cellText, 30);
+            return cellText;
+        }
+
+        /// <summary>
+        /// As debugging import is difficult, identifying table is 
+        /// important
+        /// </summary>
+        public string PrepareAbstract(IImportTableProvider table)
+        {
+            var cells = new List<string>();
+            for (int ri=0; ri<table.MaxRows; ri++)
+                for (int ci=0; ci<table.MaxCols; ci++)
+                {
+                    if (cells.Count >= 5)
+                        break;
+                    var ct = table.Cell(ri, ci);
+                    if (ct?.HasContent() == true)
+                        cells.Add(BeautifyAndShortenCell(ct));
+                }
+            return "[" + string.Join('|', cells) + "]";
+        }
+
         public void PopulateBy(IImportTableProvider table)
         {
             // access
@@ -426,7 +480,9 @@ namespace AasxPluginExportTable.Table
                 || _matcherTop == null || _matcherBody == null)
                 return;
 
-            _log?.Info("Starting populating from NEW TABLE");
+            _log?.Info("{0}", "Starting populating elements from NEW TABLE. Table has " +
+                table.MaxRows + " rows and " + table.MaxCols + " columns (at max) and " +
+                "starts with cells: " + PrepareAbstract(table));
 
             // use 2 contexts to collect information during the matching
             var contextTop = new ImportCellMatchContextBase();
@@ -435,10 +491,12 @@ namespace AasxPluginExportTable.Table
             // simply scan over potential tops and bodies
             int rowofs = 0;
             int conseqEmptyRows = 0;
-            while (rowofs + _job.RowsTop + _job.RealRowsBody <= table.MaxRows)
+            while (rowofs + _job.RowsTop + _job.RowsBody <= table.MaxRows)
             {
                 // log
-                _log?.Info("{0}", $"  check row {rowofs} starting with {"" + table.Cell(rowofs, 0)} for top ..");
+                _log?.Info("{0}", $"  still enough table space to check " +
+                    $"row {rowofs} starting with " +
+                    $"\"{BeautifyAndShortenCell("" + table.Cell(rowofs, 0))}\" for being top part ..");
 
                 // first do a evaluation, if the complete row is empty
                 if (CheckRowIsEmpty(table, rowofs))
@@ -478,7 +536,7 @@ namespace AasxPluginExportTable.Table
                     {
                         // log
                         _log?.Info("{0}", $"  check row {rowofs2} starting with " +
-                            $"{"" + table.Cell(rowofs2, 0)} for body ..");
+                            $"\"{BeautifyAndShortenCell("" + table.Cell(rowofs2, 0))}\" for body ..");
 
                         // be definition, a completely empty line will break the matching
                         if (CheckRowIsEmpty(table, rowofs2))
@@ -504,6 +562,9 @@ namespace AasxPluginExportTable.Table
                                 rowofs2 += _job.RowsBody;
                                 continue;
                             }
+                            else
+                                if (cdBody.Elem != null)
+                                    _log?.Info("{0}", $"CD with idShort={cdBody.Elem.IdShort} created.");
 
                             // create SME
                             var refBody = CreateBodySme(contextBody, refTop);
@@ -513,7 +574,9 @@ namespace AasxPluginExportTable.Table
                                 rowofs2 += _job.RowsBody;
                                 continue;
                             }
-
+                            else
+                                if (refBody.Elem != null)
+                                _log?.Info("{0}", $"Referable with idShort={cdBody.Elem.IdShort} created.");
 
                         }
 
@@ -528,6 +591,8 @@ namespace AasxPluginExportTable.Table
                 // default
                 rowofs++;
             }
+
+            _log?.Info($"End of available table rows {rowofs} reached. Stopping.");
         }
     }
 }

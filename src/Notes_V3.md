@@ -1,6 +1,22 @@
 # Notes for migrating to V3.0
 This files holds notes for migrating Package Explorer sources to meta mode V3.0
 
+## Projects, currently unloaded
+
+These projects are not migrated or integrated, yet.
+These projects need to be UNLOADED (for Visual Studio), to get a compiling solution.
+
+* AasxCsharpLibrary.Tests
+* AasxDictionaryImport.Tests
+* AasxRestServerLibrary
+* AasxSchemaExport.Tests
+* AasxRestConsoleServer
+* AasxToolkit.Tests
+* AasxUaNetConsoleServer
+* AasxPackageExplorer.GuiTests
+* AasxPackageExplorer.Tests
+* BlazorUI
+
 ## Observations
 
 * AdminShellPackageSupplementaryFile is not IReferable anymore!!
@@ -208,7 +224,6 @@ if (reference.Keys == null || reference.Keys.Count == 0 || otherReference?.Keys 
 * how two handle 2++ Submodels with different versions?
   - same idShort?
 
-
 ## Feature Requests to AAS core
 
 * GetSelfDescription() per Element
@@ -287,7 +302,7 @@ These projects are not migrated or integrated, yet:
 * AasxCsharpLibrary.Tests
 * AasxDictionaryImport.Tests
 * AasxFileServerRestLibrary (already migrated) -> introduce Aas. NS
-* AasxOpenidClient
+* AasxOpenidClient ??
 * AasxRestServerLibrary <- to be replaced by AASX Server sources
 * AasxSchemaExport.Tests
 * AasxUaNetServer
@@ -400,4 +415,72 @@ These projects are not migrated or integrated, yet:
 .\AasxPackageExplorer.exe -read-json options-debug.MIHO.json -aasx-to-load "C:\HOMI\Develop\Aasx\repo\IDTA 02003-1-2_Template_TechnicalData.aasx" -log-file out.log -cmd 'Tool(\"AssessSmt\", \"Target\", \"test.xlsx\"); Tool(\"Exit\");'
 ```
 
+# Notes w.r.t empty list handling
 
+* Special accessor-methods were created for the following lists of data structures:
+  * Env.AssetAdministrationShells
+  * Env.Submodels
+  * Env.ConceptDescriptions
+  * Aas.Submodel (-References)
+
+* For any of the above, in the particular super-ordinate classes, accessor-methods were realized,
+  which can handle the empty list / null challenge.
+
+* For instance, for Env.Submodels the following methods are available:
+  * AllSubmodels() -> safe enumeration
+  * SubmodelCount() -> safe counting
+  * SubmodelByIndex() -> safe list index
+  * Add() -> safe addition to list, list might be created
+  * Remove() -> safe removal, list mihgt be set to null again
+
+* Design-decision, to name Add(), Remove(), Replace() in a general way and use
+  argument type overloading
+
+* Each symbol name is choosen in a way, that the following regex will *NOT* list it;
+  therefore, the generated list will only cite "suspicious" use of the original lists:
+
+* Use this Regex (exclude AasCore & AasxCompatibilityModels):
+
+```
+(\w+)\.(AssetAdministrationShells|Submodels|ConceptDescriptions)
+```
+
+# TODO (starting from 2024-06-17)
+
+* Open Aux (Ctrl-X) keyboard shortcut not working -- changed to Ctrl+Shift+X, done
+* "Move down" of Submodels does not visually update
+* Copy an Submodel from aux while already having an SM with the *same* ID does not throw an error but is hard to recognize.
+  (DispEditHelperEntities.cs:1429)
+* exporting Markdown/ AsciiDoc: text in cells from idShort shall not interpreted as markdown (__Marking_00__)
+  -- done
+* Find: when nothing is found, the find stats from the search before are not deleted -- done
+* plugin imagemap / clicks / regions -- done
+* ECLASS offline import CD error -- done
+* CD.isCaseOf -- done
+* empty list TODO: CD / definition -- done
+* CD.dataType optional! -- done
+* CD.valueFormat optional!
+* CD.valueList with empty list check -- done
+* CD.value optional -- done
+* CD.unitId still empty -- done
+* CD Knopf um leere Felder zu nullen? -- done
+* CD.levelType löschen -- done
+
+# New Notes to AasCore
+
+* new Aas.Reference() .. List<IKey> keys --> IEnumerable<IKey> keys
+
+# Tests before merging into 'main'
+
+* aaspe/testing/100_Open -- working
+* aaspe/testing/110_Export_tables -- working
+* aaspe/testing/550_AID
+  * docker containers working
+  * working with (non-compliant) AID test aasx from this branch
+  * plotting plug-in 50% working; 
+  * plotting of historical values does not work!! (not sure, if was working)
+* aaspe/testing/551_MTP -- working with new OPC UA client
+* aaspe/testing/552_OpcUaReadSubmodel -- working
+* aaspe/testing/120_Export_AsciiDoc -- working
+* copy/paste of SME direct / via Windows clipboard -- working
+* 

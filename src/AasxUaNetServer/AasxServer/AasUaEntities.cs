@@ -631,7 +631,7 @@ namespace AasOpcUaServer
         }
 
         public NodeState CreateAddInstanceObject(NodeState parent,
-            Aas.Environment env, Aas.IAssetAdministrationShell aas)
+            Aas.IEnvironment env, Aas.IAssetAdministrationShell aas)
         {
             // access
             if (env == null || aas == null)
@@ -680,14 +680,13 @@ namespace AasOpcUaServer
             //}
             // dead-csharp on
             // associated submodels
-            if (aas.Submodels != null)
-                foreach (var smr in aas.Submodels)
-                {
-                    var sm = env.FindSubmodel(smr);
-                    if (sm != null)
-                        this.entityBuilder.AasTypes.Submodel.CreateAddElements(
-                            o, CreateMode.Instance, sm);
-                }
+            foreach (var smr in aas.AllSubmodels())
+            {
+                var sm = env.FindSubmodel(smr);
+                if (sm != null)
+                    this.entityBuilder.AasTypes.Submodel.CreateAddElements(
+                        o, CreateMode.Instance, sm);
+            }
 
             // results
             return o;

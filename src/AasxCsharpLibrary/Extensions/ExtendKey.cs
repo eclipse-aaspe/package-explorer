@@ -16,7 +16,7 @@ namespace Extensions
 {
     public static class ExtendKey
     {
-        public static IKey CreateFrom(Reference r)
+		public static IKey CreateFrom(Reference r)
         {
             if (r == null || r.Count() != 1)
                 return null;
@@ -43,13 +43,14 @@ namespace Extensions
         }
         public static bool Matches(this IKey key, IKey otherKey)
         {
-            key.Value = key.Value.Trim();
-            otherKey.Value = otherKey.Value.Trim();
-
             if (otherKey == null)
             {
                 return false;
             }
+
+            key.Value = key.Value.Trim();
+            otherKey.Value = otherKey.Value.Trim();
+
 
             if (key.Type == otherKey.Type && key.Value.Replace("*01", "").Equals(otherKey.Value.Replace("*01", "")))
             {
@@ -67,9 +68,13 @@ namespace Extensions
             if (matchMode == MatchMode.Strict)
                 return key.Type == otherKey.Type && key.Value.Replace("*01", "") == otherKey.Value.Replace("*01", "");
 
-            if (matchMode == MatchMode.Relaxed)
+            if (matchMode == MatchMode.Relaxed
+                || matchMode == MatchMode.RelaxedIgnoreCase)
                 return (key.Type == otherKey.Type || key.Type == KeyTypes.GlobalReference || otherKey.Type == KeyTypes.GlobalReference)
-                    && (key.Value.Replace("*01", "") == otherKey.Value.Replace("*01", ""));
+                    && ((key.Value.Replace("*01", "")).Equals(
+                        otherKey.Value.Replace("*01", ""),
+                        (matchMode == MatchMode.RelaxedIgnoreCase) 
+                            ? StringComparison.InvariantCultureIgnoreCase : 0));
 
             if (matchMode == MatchMode.Identification)
                 return key.Value.Replace("*01", "") == otherKey.Value.Replace("*01", "");

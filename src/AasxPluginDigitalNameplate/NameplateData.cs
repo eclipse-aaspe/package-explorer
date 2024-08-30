@@ -150,21 +150,21 @@ namespace AasxPluginDigitalNameplate
                 var smc2 = smcContInf?.Value?
                     .FindFirstSemanticIdAs<Aas.ISubmodelElementCollection>(defs.CD_Pho?.GetSingleKey(), mm);
                 if (smc2 != null)
-                    tryAdd(smc2.Value, null, defs.CD_TelNum?.GetSingleKey());
+                    tryAdd(smc2.Value, "\u260e", defs.CD_TelNum?.GetSingleKey());
 
                 // Fax
 
                 smc2 = smcContInf?.Value?
                     .FindFirstSemanticIdAs<Aas.ISubmodelElementCollection>(defs.CD_Fax?.GetSingleKey(), mm);
                 if (smc2 != null)
-                    tryAdd(smc2.Value, null, defs.CD_FaxNum?.GetSingleKey());
+                    tryAdd(smc2.Value, "\U0001f5b7", defs.CD_FaxNum?.GetSingleKey());
 
                 // Email
 
                 smc2 = smcContInf?.Value?
                     .FindFirstSemanticIdAs<Aas.ISubmodelElementCollection>(defs.CD_Ema?.GetSingleKey(), mm);
                 if (smc2 != null)
-                    tryAdd(smc2.Value, null, defs.CD_EmaAdd?.GetSingleKey());
+                    tryAdd(smc2.Value, "\U0001f4e7", defs.CD_EmaAdd?.GetSingleKey());
             }
 
             // find markings?
@@ -299,48 +299,9 @@ namespace AasxPluginDigitalNameplate
             var smcContInf = subModel.SubmodelElements
                 .FindFirstSemanticIdAs<Aas.ISubmodelElementCollection>(
                     defs.CD_ContactInformation?.GetSingleKey(), mm);
-            if (smcContInf?.Value != null)
-            {
-                res.ContactInformation = new List<string>();
 
-                Action<List<Aas.ISubmodelElement>, string, Aas.IKey> tryAdd = (coll, header, key) =>
-                {
-                    var st = coll?
-                        .FindFirstSemanticIdAs<Aas.IMultiLanguageProperty>(key, mm)?
-                        .Value?.GetDefaultString(defaultLang);
-                    if (st?.HasContent() == true)
-                        res.ContactInformation.Add(("" + header) + st);
-                };
-
-                tryAdd(smcContInf?.Value, null, defs.CD_ZipCodeOfPOBox?.GetSingleKey());
-                tryAdd(smcContInf?.Value, null, defs.CD_POBox?.GetSingleKey());
-                tryAdd(smcContInf?.Value, null, defs.CD_Street?.GetSingleKey());
-                tryAdd(smcContInf?.Value, null, defs.CD_CityTown?.GetSingleKey());
-                tryAdd(smcContInf?.Value, null, defs.CD_StateCounty?.GetSingleKey());
-                tryAdd(smcContInf?.Value, null, defs.CD_NationalCode?.GetSingleKey());
-                tryAdd(smcContInf?.Value, null, defs.CD_AddressOfAdditionalLink?.GetSingleKey());
-
-                // Phone
-
-                var smc2 = smcContInf?.Value?
-                    .FindFirstSemanticIdAs<Aas.ISubmodelElementCollection>(defs.CD_Phone?.GetSingleKey(), mm);
-                if (smc2 != null)
-                    tryAdd(smc2.Value, null, defs.CD_TelephoneNumber?.GetSingleKey());
-
-                // Fax
-
-                smc2 = smcContInf?.Value?
-                    .FindFirstSemanticIdAs<Aas.ISubmodelElementCollection>(defs.CD_Fax?.GetSingleKey(), mm);
-                if (smc2 != null)
-                    tryAdd(smc2.Value, null, defs.CD_FaxNumber?.GetSingleKey());
-
-                // Email
-
-                smc2 = smcContInf?.Value?
-                    .FindFirstSemanticIdAs<Aas.ISubmodelElementCollection>(defs.CD_Email?.GetSingleKey(), mm);
-                if (smc2 != null)
-                    tryAdd(smc2.Value, null, defs.CD_EmailAddress?.GetSingleKey());
-            }
+            res.ContactInformation = AasxPredefinedConcepts.InfoAccessDigitalNameplateV20
+                .ContactInfoToStrings(smcContInf); 
 
             // find markings?
             var collMarkings = subModel.SubmodelElements

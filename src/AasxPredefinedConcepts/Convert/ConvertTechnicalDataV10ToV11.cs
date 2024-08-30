@@ -140,25 +140,23 @@ namespace AasxPredefinedConcepts.Convert
             if (deleteOldCDs)
             {
                 sm.RecurseOnSubmodelElements(null, (state, parents, current) =>
-               {
-                   var sme = current;
-                   if (sme != null && sme.SemanticId != null)
-                   {
-                       var cd = package.AasEnv.FindConceptDescriptionByReference(sme.SemanticId);
-                       if (cd != null)
-                           if (package.AasEnv.ConceptDescriptions.Contains(cd))
-                               package.AasEnv.ConceptDescriptions.Remove(cd);
-                   }
-                   // recurse
-                   return true;
-               });
+                {
+                    var sme = current;
+                    if (sme != null && sme.SemanticId != null)
+                    {
+                        var cd = package.AasEnv.FindConceptDescriptionByReference(sme.SemanticId);
+                        package.AasEnv.Remove(cd);
+                    }
+                    // recurse
+                    return true;
+                });
             }
 
             // add (all) new CDs?
             if (addNewCDs)
                 foreach (var rf in defsV11.GetAllReferables())
                     if (rf is Aas.ConceptDescription conceptDescription)
-                        package.AasEnv.ConceptDescriptions.AddConceptDescriptionOrReturnExisting(
+                        package.AasEnv.AddConceptDescriptionOrReturnExisting(
                                 new Aas.ConceptDescription(
                                     conceptDescription.Id, conceptDescription.Extensions,
                                     conceptDescription.Category, conceptDescription.IdShort,

@@ -10,6 +10,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 using AasxIntegrationBase;
 using AasxIntegrationBaseWpf;
 using AasxPackageLogic;
+using AdminShellNS;
 using AnyUi;
 using Extensions;
 using System;
@@ -31,7 +32,7 @@ namespace AasxPackageExplorer
         public AasxSearchUtil.SearchOptions TheSearchOptions = new AasxSearchUtil.SearchOptions();
         public AasxSearchUtil.SearchResults TheSearchResults = new AasxSearchUtil.SearchResults();
 
-        public Aas.Environment TheAasEnv = null;
+        public Aas.IEnvironment TheAasEnv = null;
 
         public IFlyoutProvider Flyout = null;
         public delegate void ResultSelectedDelegate(AasxSearchUtil.SearchResultItem resultItem);
@@ -185,9 +186,8 @@ namespace AasxPackageExplorer
                     Log.Singleton.Info("Searching for »{0}«", TheSearchOptions.FindText);
                     progressCount = 0;
                     TheSearchOptions.CompileOptions();
-                    if (TheAasEnv.Submodels != null)
-                        foreach (var sm in TheAasEnv.Submodels)
-                            sm?.SetAllParents();
+                    foreach (var sm in TheAasEnv.AllSubmodels())
+                        sm?.SetAllParents();
                     AasxSearchUtil.EnumerateSearchableNew(TheSearchResults, TheAasEnv, "", 0, TheSearchOptions,
                         // log: Log.Singleton,
                         progress: (found, num) =>
@@ -228,6 +228,7 @@ namespace AasxPackageExplorer
                     {
                         if (ticket != null)
                             ticket.Success = false;
+                        SetFindInfo(0, 0, null);
                         Log.Singleton.Info(StoredPrint.Color.Blue, "Search text \u00bb{0}\u00ab not found!",
                             TheSearchOptions.FindText);
                     }
@@ -261,23 +262,6 @@ namespace AasxPackageExplorer
             {
                 Log.Singleton.Error(ex, "When searching for results");
             }
-
-#if __simple_static
-            // try to go to 1st result
-            CurrentResultIndex = -1;
-            if (TheSearchResults.foundResults != null && TheSearchResults.foundResults.Count > 0 &&
-                    ResultSelected != null)
-            {
-                CurrentResultIndex = 0;
-                var sri = TheSearchResults.foundResults[0];
-                SetFindInfo(1 + CurrentResultIndex, TheSearchResults.foundResults.Count, sri);
-                ResultSelected(sri);
-            }
-            else
-            {
-                this.ButtonToolsFindInfo.Text = "not found!";
-            }
-#endif
         }
 
         public void DoReplace(AasxSearchUtil.SearchResultItem sri, string replaceText)

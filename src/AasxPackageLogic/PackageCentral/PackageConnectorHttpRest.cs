@@ -573,7 +573,7 @@ namespace AasxPackageLogic.PackageCentral
                             && dataRef is Aas.Submodel sm
                             && Env?.AasEnv != null)
                         {
-                            Env.AasEnv.Submodels.Add(sm);
+                            Env.AasEnv.Add(sm);
                             targetAas.AddSubmodelRef(sm?.GetSubmodelRef());
                         }
                         else
@@ -731,12 +731,8 @@ namespace AasxPackageLogic.PackageCentral
                     && dataRef is Aas.Submodel sm
                     && Env?.AasEnv != null)
                 {
-                    Env.AasEnv.Submodels.Add(sm);
-                    if (parentAas.Submodels == null)
-                    {
-                        parentAas.Submodels = new List<Aas.IReference>();
-                    }
-                    parentAas.Submodels.Add(sm?.GetReference());
+                    Env.AasEnv.Add(sm);
+                    parentAas.Add(sm?.GetReference());
                     change.FoundReferable = dataRef;
                     handler?.Invoke(new PackCntChangeEventData(Container, PackCntChangeEventReason.Create,
                         thisRef: sm, parentRef: parent));
@@ -830,13 +826,13 @@ namespace AasxPackageLogic.PackageCentral
                 //       <AAS> , <SM>
                 // TODO (MIHO, 2021-05-21): make sure, this is required by the specification!
                 if (parent is Aas.AssetAdministrationShell parentAas
-                    && parentAas.Submodels != null
+                    && parentAas.SubmodelCount() > 0
                     && targetKl.Count >= 1
                     && target is Aas.Submodel sm
                     && Env?.AasEnv != null)
                 {
                     Aas.IReference smrefFound = null;
-                    foreach (var smref in parentAas.Submodels)
+                    foreach (var smref in parentAas.AllSubmodels())
                         if (smref.MatchesExactlyOneKey(targetKl.Last(), MatchMode.Relaxed))
                             smrefFound = smref;
 
@@ -850,8 +846,8 @@ namespace AasxPackageLogic.PackageCentral
 
                     change.FoundReferable = target;
 
-                    parentAas.Submodels.Remove(smrefFound);
-                    Env.AasEnv.Submodels.Remove(sm);
+                    parentAas.Remove(smrefFound);
+                    Env.AasEnv.Remove(sm);
                     handler?.Invoke(new PackCntChangeEventData(Container, PackCntChangeEventReason.Delete,
                         thisRef: target, parentRef: parent));
                 }
@@ -1098,7 +1094,7 @@ namespace AasxPackageLogic.PackageCentral
                             && dataRef is Aas.Submodel sm
                             && Env?.AasEnv != null)
                         {
-                            Env.AasEnv.Submodels.Add(sm);
+                            Env.AasEnv.Add(sm);
                             targetAas.AddSubmodelRef(sm?.GetSubmodelRef());
                         }
                         else

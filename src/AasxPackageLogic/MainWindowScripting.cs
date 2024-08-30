@@ -15,6 +15,7 @@ using AasxPackageExplorer;
 using AnyUi;
 using Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Aas = AasCore.Aas3_0;
@@ -28,7 +29,7 @@ namespace AasxPackageLogic
     /// </summary>
     public class MainWindowScripting : MainWindowAnyUiDialogs, IAasxScriptRemoteInterface
     {
-        public enum ScriptSelectRefType { None = 0, This, AAS, SM, SME, CD };
+        public enum ScriptSelectRefType { None = 0, This, AAS, SM, SME, CD, Plugin };
 
         public enum ScriptSelectAdressMode { None = 0, First, Next, Prev, idShort, semanticId };
         protected static string[] _allowedSelectAdressMode = {
@@ -51,24 +52,28 @@ namespace AasxPackageLogic
             }
 
             // available elements in the environment
-            var firstAas = pm.AssetAdministrationShells.FirstOrDefault();
+            var firstAas = pm.AllAssetAdministrationShells().FirstOrDefault();
 
             Aas.ISubmodel firstSm = null;
-            if (firstAas != null && firstAas.Submodels != null && firstAas.Submodels.Count > 0)
-                firstSm = pm.FindSubmodel(firstAas.Submodels[0]);
+            if (firstAas != null)
+                firstSm = pm.FindSubmodel(firstAas.AllSubmodels().FirstOrDefault());
 
             Aas.ISubmodelElement firstSme = null;
             if (firstSm != null && firstSm.SubmodelElements != null && firstSm.SubmodelElements.Count > 0)
                 firstSme = firstSm.SubmodelElements[0];
 
-            // TODO (MIHO, 2022-12-16): Some cases are not implemented
+			var firstCd = pm.AllConceptDescriptions().FirstOrDefault();
 
-            // selected items by user
-            var siThis = MainWindow?.GetDisplayElements()?.GetSelectedItem();
+			// TODO (MIHO, 2022-12-16): Some cases are not implemented
+
+			// selected items by user
+			var siThis = MainWindow?.GetDisplayElements()?.GetSelectedItem();
             var siSM = siThis?.FindFirstParent(
                     (ve) => ve is VisualElementSubmodelRef, includeThis: true) as VisualElementSubmodelRef;
             var siAAS = siThis?.FindFirstParent(
                     (ve) => ve is VisualElementAdminShell, includeThis: true) as VisualElementAdminShell;
+			var siCD = siThis?.FindFirstParent(
+					(ve) => ve is VisualElementConceptDescription, includeThis: true) as VisualElementConceptDescription;
 #if later
             var siSME = siThis?.FindFirstParent(
                     (ve) => ve is VisualElementSubmodelElement, includeThis: true);
@@ -76,11 +81,11 @@ namespace AasxPackageLogic
                     (ve) => ve is VisualElementConceptDescription, includeThis: true);
 #endif
 
-            //
-            // This
-            //
+			//
+			// This
+			//
 
-            if (refType == ScriptSelectRefType.This)
+			if (refType == ScriptSelectRefType.This)
             {
                 // just return as Referable
                 return new Tuple<Aas.IReferable, object>(
@@ -109,7 +114,7 @@ namespace AasxPackageLogic
                 {
                     if (siAAS?.theAas != null)
                     {
-                        var smr = siAAS.theAas.Submodels.FirstOrDefault();
+                        var smr = siAAS.theAas.AllSubmodels().FirstOrDefault();
                         var sm = pm.FindSubmodel(smr);
                         if (sm == null)
                         {
@@ -121,7 +126,7 @@ namespace AasxPackageLogic
 
                     if (firstAas != null)
                     {
-                        var smr = firstAas.Submodels.FirstOrDefault();
+                        var smr = firstAas.AllSubmodels().FirstOrDefault();
                         var sm = pm.FindSubmodel(smr);
                         if (sm == null)
                         {
@@ -147,7 +152,27 @@ namespace AasxPackageLogic
                         return new Tuple<Aas.IReferable, object>(firstSme, firstSme);
                     }
                 }
-            }
+
+                if (refType == ScriptSelectRefType.Plugin)
+                {
+                    // search the first plugin
+                    var siPE = siSM?.Members?.FirstOrDefault((si) => si is VisualElementPluginExtension);
+                    if (siPE != null && siPE is VisualElementPluginExtension siPEPE)
+                    {
+                        return new Tuple<Aas.IReferable, object>(siPEPE.theReferable, siPEPE.GetMainDataObject());
+                    }
+                }
+
+				if (refType == ScriptSelectRefType.CD)
+				{
+					if (firstCd == null)
+					{
+						Log.Singleton.Error("Script: Select: No ConceptDescriptions available!");
+						return null;
+					}
+					return new Tuple<Aas.IReferable, object>(firstCd, firstCd);
+				}
+			}
 
             //
             // Next
@@ -159,7 +184,7 @@ namespace AasxPackageLogic
                 {
                     var idx = pm?.AssetAdministrationShells?.IndexOf(siAAS?.theAas);
                     if (siAAS?.theAas == null || idx == null
-                        || idx.Value < 0 || idx.Value >= pm.AssetAdministrationShells.Count - 1)
+                        || idx.Value < 0 || idx.Value >= pm.AssetAdministrationShellCount() - 1)
                     {
                         Log.Singleton.Error("Script: For next AAS, the selected AAS is unknown " +
                             "or no next AAS can be determined!");
@@ -176,21 +201,21 @@ namespace AasxPackageLogic
                         || siSM?.theSubmodel == null
                         || siSM?.theSubmodelRef == null
                         || idx == null
-                        || idx.Value < 0 || idx.Value >= siAAS.theAas.Submodels.Count)
+                        || idx.Value < 0 || idx.Value >= siAAS.theAas.SubmodelCount())
                     {
                         // complain
                         Log.Singleton.Error("Script: For next SM, the selected AAS/ SM is unknown " +
                             "or no next SM can be determined!");
                         return null;
                     }
-                    if (idx.Value >= siAAS.theAas.Submodels.Count - 1)
+                    if (idx.Value >= siAAS.theAas.SubmodelCount() - 1)
                     {
                         // return null without error, as this is "expected" behaviour
                         return null;
                     }
 
                     // make the step
-                    var smr = siAAS.theAas.Submodels[idx.Value + 1];
+                    var smr = siAAS.theAas.SubmodelByIndex(idx.Value + 1);
                     var sm = pm.FindSubmodel(smr);
                     if (sm == null)
                     {
@@ -199,7 +224,21 @@ namespace AasxPackageLogic
                     }
                     return new Tuple<Aas.IReferable, object>(sm, smr);
                 }
-            }
+
+				if (refType == ScriptSelectRefType.CD)
+				{
+					var idx = pm?.ConceptDescriptions?.IndexOf(siCD?.theCD);
+					if (siCD?.theCD == null || idx == null
+						|| idx.Value < 0 || idx.Value >= pm.ConceptDescriptionCount() - 1)
+					{
+						Log.Singleton.Error("Script: For next CD, the selected CD is unknown " +
+							"or no next CD can be determined!");
+						return null;
+					}
+					var cd = pm?.ConceptDescriptions[idx.Value + 1];
+					return new Tuple<Aas.IReferable, object>(cd, cd);
+				}
+			}
 
             //
             // Prev
@@ -211,7 +250,7 @@ namespace AasxPackageLogic
                 {
                     var idx = pm?.AssetAdministrationShells?.IndexOf(siAAS?.theAas);
                     if (siAAS?.theAas == null || idx == null
-                        || idx.Value <= 0 || idx.Value >= pm.AssetAdministrationShells.Count)
+                        || idx.Value <= 0 || idx.Value >= pm.AssetAdministrationShellCount())
                     {
                         Log.Singleton.Error("Script: For previos AAS, the selected AAS is unknown " +
                             "or no previous AAS can be determined!");
@@ -228,7 +267,7 @@ namespace AasxPackageLogic
                         || siSM?.theSubmodel == null
                         || siSM?.theSubmodelRef == null
                         || idx == null
-                        || idx.Value < 0 || idx.Value >= siAAS.theAas.Submodels.Count)
+                        || idx.Value < 0 || idx.Value >= siAAS.theAas.SubmodelCount())
                     {
                         // complain
                         Log.Singleton.Error("Script: For prev SM, the selected AAS/ SM is unknown " +
@@ -242,7 +281,7 @@ namespace AasxPackageLogic
                     }
 
                     // make the step
-                    var smr = siAAS.theAas.Submodels[idx.Value - 1];
+                    var smr = siAAS.theAas.SubmodelByIndex(idx.Value - 1);
                     var sm = pm.FindSubmodel(smr);
                     if (sm == null)
                     {
@@ -251,10 +290,57 @@ namespace AasxPackageLogic
                     }
                     return new Tuple<Aas.IReferable, object>(sm, smr);
                 }
-            }
+
+				if (refType == ScriptSelectRefType.CD)
+				{
+					var idx = pm?.ConceptDescriptions?.IndexOf(siCD?.theCD);
+					if (siCD?.theCD == null || idx == null
+						|| idx.Value < 1 || idx.Value >= pm.ConceptDescriptionCount())
+					{
+						Log.Singleton.Error("Script: For previous CD, the selected CD is unknown " +
+							"or no previous CD can be determined!");
+						return null;
+					}
+					var cd = pm?.ConceptDescriptions[idx.Value - 1];
+					return new Tuple<Aas.IReferable, object>(cd, cd);
+				}
+			}
 
             // Oops!
             return null;
+        }
+
+        protected ScriptSelectRefType GetScriptRefType(string refTypeName)
+        {
+            ScriptSelectRefType res = ScriptSelectRefType.None;
+
+            switch (refTypeName.Trim().ToLower())
+            {
+                case "this":
+                    res = ScriptSelectRefType.This;
+                    break;
+                case "aas":
+                case "assetadministrationshell":
+                    res = ScriptSelectRefType.AAS;
+                    break;
+                case "sm":
+                case "submodel":
+                    res = ScriptSelectRefType.SM;
+                    break;
+                case "sme":
+                case "submodelelement":
+                    res = ScriptSelectRefType.SME;
+                    break;
+                case "cd":
+                case "conceptdescription":
+                    res = ScriptSelectRefType.CD;
+                    break;
+                case "plugin":
+                    res = ScriptSelectRefType.Plugin;
+                    break;
+            }
+            
+            return res;
         }
 
         Aas.IReferable IAasxScriptRemoteInterface.Select(object[] args)
@@ -268,30 +354,7 @@ namespace AasxPackageLogic
             }
 
             // check if Referable Type is ok
-            ScriptSelectRefType refType = ScriptSelectRefType.None;
-
-            switch (refTypeName.Trim().ToLower())
-            {
-                case "this":
-                    refType = ScriptSelectRefType.This;
-                    break;
-                case "aas":
-                case "assetadministrationshell":
-                    refType = ScriptSelectRefType.AAS;
-                    break;
-                case "sm":
-                case "submodel":
-                    refType = ScriptSelectRefType.SM;
-                    break;
-                case "sme":
-                case "submodelelement":
-                    refType = ScriptSelectRefType.SME;
-                    break;
-                case "cd":
-                case "conceptdescription":
-                    refType = ScriptSelectRefType.CD;
-                    break;
-            }
+            var refType = GetScriptRefType(refTypeName);
 
             if (refType == ScriptSelectRefType.None)
             {
@@ -307,7 +370,7 @@ namespace AasxPackageLogic
                 if (args.Length < 2
                     || !(args[1] is string adrModeName))
                 {
-                    Log.Singleton.Error("Script: Select: Adfress mode missing!");
+                    Log.Singleton.Error("Script: Select: Address mode missing!");
                     return null;
                 }
 
@@ -327,7 +390,10 @@ namespace AasxPackageLogic
             // well-defined result?
             if (selEval != null && selEval.Item1 != null && selEval.Item2 != null)
             {
-                MainWindow?.GetDisplayElements()?.ClearSelection();
+                if (refType == ScriptSelectRefType.CD)
+                    MainWindow?.GetDisplayElements()?.ExpandAllItems();
+
+				MainWindow?.GetDisplayElements()?.ClearSelection();
                 MainWindow?.GetDisplayElements()?.TrySelectMainDataObject(selEval.Item2, wishExpanded: true);
                 return selEval.Item1;
             }
@@ -336,6 +402,47 @@ namespace AasxPackageLogic
             return null;
         }
 
+        Aas.IReferable[] IAasxScriptRemoteInterface.SelectAll(object[] args)
+        {
+            // access
+            if (args == null || args.Length < 1
+                || !(args[0] is string refTypeName))
+            {
+                Log.Singleton.Error("Script: SelectAll: Referable type missing!");
+                return new IReferable[0];
+            }
+
+            // check if Referable Type is ok
+            var refType = GetScriptRefType(refTypeName);
+
+            if (!(refType == ScriptSelectRefType.AAS
+                  || refType == ScriptSelectRefType.SM
+                  || refType == ScriptSelectRefType.CD))
+            {
+                Log.Singleton.Error("Script: SelectAll: Referable type invalid (no AAS, SM, CD)!");
+                return new IReferable[0];
+            }
+
+            // something to select
+            var pm = PackageCentral?.Main?.AasEnv;
+            if (pm == null)
+            {
+                Log.Singleton.Error("Script: SelectAll: No main package AAS environment available!");
+                return new IReferable[0];
+            }
+
+            // ok
+            if (refType == ScriptSelectRefType.AAS)
+                return pm.AllAssetAdministrationShells().ToArray();
+
+            if (refType == ScriptSelectRefType.SM)
+                return pm.AllSubmodels().ToArray();
+
+            if (refType == ScriptSelectRefType.CD)
+                return pm.AllConceptDescriptions().ToArray();
+
+            return new IReferable[0];
+        }
 
         public async Task<int> Tool(object[] args)
         {
@@ -425,6 +532,15 @@ namespace AasxPackageLogic
                 null,
                 ticket: new AasxMenuActionTicket());
             return true;
+        }
+
+        /// <summary>
+        /// Take a screenshot and save to file
+        /// </summary>
+        public void TakeScreenshot(string filename = "noname")
+        {
+            // just pass on
+            MainWindow?.SaveScreenshot(filename);
         }
 
     }

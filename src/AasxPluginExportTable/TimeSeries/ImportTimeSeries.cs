@@ -43,7 +43,7 @@ namespace AasxPluginExportTable.TimeSeries
         //
 
         public static void ImportTimeSeriesFromFile(
-            Aas.Environment env,
+            Aas.IEnvironment env,
             Aas.ISubmodel submodel,
             ImportTimeSeriesRecord options,
             string fn, LogInstance log = null)
