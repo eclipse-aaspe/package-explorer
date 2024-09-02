@@ -45,7 +45,7 @@ function PackageRelease($outputDir)
 	"AasxPluginProductChangeNotifications",
         "AasxPluginSmdExporter",
         "AasxPluginTechnicalData"
-        "AasxPluginUaNetClient",
+        "AasxPluginUaNetClient"
     )
 
     $blazorPlugins = $(
