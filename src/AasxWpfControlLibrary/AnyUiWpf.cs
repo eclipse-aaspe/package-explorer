@@ -887,7 +887,7 @@ namespace AnyUi
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiCountryFlag), typeof(CountryFlag.Wpf.CountryFlag), (a, b, mode, rd) =>
+                /*new RenderRec(typeof(AnyUiCountryFlag), typeof(CountryFlag.Wpf.CountryFlag), (a, b, mode, rd) =>
                 {
                    if (a is AnyUiCountryFlag cntl && b is CountryFlag.Wpf.CountryFlag wpf
                        && mode == AnyUiRenderMode.All)
@@ -900,7 +900,7 @@ namespace AnyUi
                         // dead-csharp on
                         wpf.CountryCode = cntl.ISO3166Code;
                    }
-                }),
+                }),*/
 
                 new RenderRec(typeof(AnyUiTextBox), typeof(TextBox), (a, b, mode, rd) =>
                 {
