@@ -8,12 +8,14 @@ This source code may use other Open Source software components (see LICENSE.txt)
 */
 
 using AdminShellNS;
+using AngleSharp.Text;
 using Extensions;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.CodeDom;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using Aas = AasCore.Aas3_0;
 
@@ -497,7 +499,10 @@ namespace AasxPackageLogic
                             {
                                 ls = new LangStringDefinitionTypeIec61360(ni.Attributes["language_code"].InnerText, ni.InnerText);
                             }
-                            action((T)ls);
+
+                            // new: only add, if not null
+                            if (ls != null)
+                                action((T)ls);
                         }
             }
         }
@@ -551,16 +556,6 @@ namespace AasxPackageLogic
                     if (n1 != null)
                         res.Administration.Revision = "" + n1.InnerText;
 
-                    // short name -> TBD in future
-                    FindChildLangStrings<ILangStringShortNameTypeIec61360>(node, "short_name", "label", "language_code", (ls) =>
-                    {
-                        ds.ShortName = new List<Aas.ILangStringShortNameTypeIec61360>
-                        {
-                            new Aas.LangStringShortNameTypeIec61360(AdminShellUtil.GetDefaultLngIso639(), ls.Text)
-                        };
-                        res.IdShort = ls.Text;
-                    });
-
                     // guess data type
                     var nd = node.SelectSingleNode("domain");
                     if (nd != null)
@@ -604,6 +599,15 @@ namespace AasxPackageLogic
                     ds.PreferredName.Add(ls);
                 });
 
+                FindChildLangStrings<ILangStringShortNameTypeIec61360>(node, "short_name", "label", "language_code", (ls) =>
+                {
+                    if (ds.ShortName == null)
+                        ds.ShortName = new List<Aas.ILangStringShortNameTypeIec61360>();
+
+                    // ReSharper disable PossibleNullReferenceException -- ignore a false positive
+                    ds.ShortName.Add(ls);
+                });
+
                 FindChildLangStrings<ILangStringDefinitionTypeIec61360>(node, "definition", "text", "language_code", (ls) =>
                 {
                     if (ds.Definition == null)
@@ -612,7 +616,6 @@ namespace AasxPackageLogic
                     // ReSharper disable PossibleNullReferenceException -- ignore a false positive
                     ds.Definition.Add(ls);
                 });
-
             }
 
             // Phase 2: fix some shortcomings
@@ -664,6 +667,9 @@ namespace AasxPackageLogic
             {
                 AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
             }
+
+            // after all, find the idShort from all available languages
+            res.IdShort = AdminShellUtil.CapitalizeFirstLetter("" + ds?.PreferredName?.GetDefaultString());
 
             // ok
             return res;

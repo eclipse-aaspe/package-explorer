@@ -9,6 +9,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 using AdminShellNS;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace Extensions
 {
@@ -118,6 +119,53 @@ namespace Extensions
 
             op.InoutputVariables = value;
             return op.InoutputVariables;
+        }
+
+        public static void Add(this Operation operation, ISubmodelElement submodelElement,
+            OperationVariableDirection direction = OperationVariableDirection.In)
+        {
+            var ovl = GetVars(operation, direction);
+            if (ovl == null)
+            {
+                ovl = new List<IOperationVariable>();
+                SetVars(operation, direction, ovl);
+            }
+            ovl.Add(new OperationVariable(submodelElement));
+        }
+
+        public static void Remove(this Operation operation, ISubmodelElement submodelElement)
+        {
+            foreach (var ovd in AdminShellUtil.GetEnumValues<OperationVariableDirection>())
+            {
+                var ovl = GetVars(operation, ovd);
+                if (ovl == null)
+                    continue;
+                foreach (var ov in ovl)
+                    if (submodelElement != null
+                        && ov.Value == submodelElement)
+                    {
+                        ovl.Remove(ov);
+                        break;
+                    }
+            }
+        }
+
+        public static int Replace(
+            this Operation operation,
+            ISubmodelElement oldElem, ISubmodelElement newElem)
+        {
+            foreach (var ovd in AdminShellUtil.GetEnumValues<OperationVariableDirection>())
+            {
+                var ovl = GetVars(operation, ovd);
+                foreach (var ov in ovl)
+                    if (oldElem != null
+                        && ov.Value == oldElem)
+                    {
+                        ov.Value = newElem;
+                        return 1;
+                    }
+            }
+            return -1;
         }
 
         #endregion

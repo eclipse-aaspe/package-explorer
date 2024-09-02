@@ -13,32 +13,40 @@ namespace Extensions
 {
     public static class ExtendILangStringPreferredNameTypeIec61360
     {
-        public static List<ILangStringPreferredNameTypeIec61360> CreateLangStringPreferredNameType(string language, string text)
-        {
-            return new List<ILangStringPreferredNameTypeIec61360> { new LangStringPreferredNameTypeIec61360(language, text) };
-        }
-
         public static string GetDefaultString(this List<ILangStringPreferredNameTypeIec61360> langStringSet, string defaultLang = null)
         {
             return ExtendLangString.GetDefaultStringGen(langStringSet, defaultLang);
-            // dead-csharp off
-            //// start
-            //if (defaultLang == null)
-            //    defaultLang = "en"; //Default Lang in old implementation is en
+        }
 
-            //string res = null;
+        public static List<ILangStringPreferredNameTypeIec61360> CreateFrom(string text, string lang = "en")
+        {
+            if (text == null)
+                return null;
 
-            //// search
-            //foreach (var langString in langStringSet)
-            //    if (langString.Language.Equals(defaultLang, StringComparison.OrdinalIgnoreCase))
-            //        res = langString.Text;
+            var res = new List<ILangStringPreferredNameTypeIec61360>();
+            res.Add(new LangStringPreferredNameTypeIec61360(lang, text));
+            return res;
+        }
 
-            //if (res == null && langStringSet.Count > 0)
-            //    res = langStringSet[0].Text;
+        public static bool IsEmpty(this List<ILangStringPreferredNameTypeIec61360> langStringSet)
+        {
+            if (langStringSet == null || langStringSet.Count == 0)
+            {
+                return true;
+            }
 
-            //// found?
-            //return res;
-            // dead-csharp on
+            return false;
+        }
+
+        public static bool IsValid(this List<ILangStringPreferredNameTypeIec61360> elems)
+        {
+            if (elems == null || elems.Count < 1)
+                return false;
+            foreach (var ls in elems)
+                if (ls?.Language == null || ls.Language.Trim().Length < 1
+                    || ls.Text == null || ls.Text.Trim().Length < 1)
+                    return false;
+            return true;
         }
 
         public static List<ILangStringPreferredNameTypeIec61360> ConvertFromV20(

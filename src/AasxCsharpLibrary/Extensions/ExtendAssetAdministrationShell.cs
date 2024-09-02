@@ -39,30 +39,27 @@ namespace Extensions
             //    yield return new LocatedReference(assetAdministrationShell, assetAdministrationShell.AssetInformation);
             // dead-csharp on
             // Submodel references
-            if (assetAdministrationShell.Submodels != null)
-                foreach (var r in assetAdministrationShell.Submodels)
-                    yield return new LocatedReference(assetAdministrationShell, r);
-
+            foreach (var r in assetAdministrationShell.AllSubmodels())
+                yield return new LocatedReference(assetAdministrationShell, r);
         }
 
         #endregion
 
-        public static bool HasSubmodelReference(this IAssetAdministrationShell assetAdministrationShell, Reference submodelReference)
+        public static IReference FindSubmodelReference(this IAssetAdministrationShell aas, IReference smRef)
         {
-            if (submodelReference == null)
-            {
-                return false;
-            }
+            if (aas?.Submodels == null || smRef == null)
+                return null;
 
-            foreach (var aasSubmodelReference in assetAdministrationShell.Submodels)
-            {
-                if (aasSubmodelReference.Matches(submodelReference))
-                {
-                    return true;
-                }
-            }
+            foreach (var smr in aas.AllSubmodels())
+                if (smr.Matches(smRef))
+                    return smr;
 
-            return false;
+            return null;
+        }
+
+        public static bool HasSubmodelReference(this IAssetAdministrationShell aas, Reference smRef)
+        {
+            return aas.FindSubmodelReference(smRef) != null;
         }
 
         public static void AddSubmodelReference(this IAssetAdministrationShell assetAdministrationShell, IReference newSubmodelReference)
@@ -73,6 +70,67 @@ namespace Extensions
             }
 
             assetAdministrationShell.Submodels.Add(newSubmodelReference);
+        }
+
+        /// <summary>
+        /// Enumerates any references to Submodels in the AAS. Will not return <c>null</c>.
+        /// Is tolerant, if the list is <c>null</c>.
+        /// </summary>
+        public static IEnumerable<IReference> AllSubmodels(this IAssetAdministrationShell aas)
+        {
+            if (aas?.Submodels != null)
+                foreach (var sm in aas.Submodels)
+                    if (sm != null)
+                        yield return sm;
+        }
+
+        /// <summary>
+        /// Returns the number of references to Submodels.
+        /// Is tolerant, if the list is <c>null</c>.
+        /// </summary>
+        public static int SubmodelCount(this IAssetAdministrationShell aas)
+        {
+            if (aas?.Submodels != null)
+                return aas.Submodels.Count;
+            return 0;
+        }
+
+
+        /// <summary>
+        /// Returns the <c>index</c>-th Submodel, if exists. Returns <c>null</c> in any other case.
+        /// </summary>
+        public static IReference SubmodelByIndex(this IAssetAdministrationShell aas, int index)
+        {
+            if (aas?.Submodels == null || index < 0 || index >= aas.Submodels.Count)
+                return null;
+            return aas.Submodels[index];
+        }
+
+        /// <summary>
+        /// Adds. Might create the list.
+        /// </summary>
+        public static void Add(this IAssetAdministrationShell aas, IReference newSmRef)
+        {
+            if (aas == null)
+                return;
+            if (aas.Submodels == null)
+                aas.Submodels = new List<IReference>();
+
+            aas.Submodels.Add(newSmRef);
+        }
+
+        /// <summary>
+        /// Removes the reference, if contained in list. Might set the list to <c>null</c> !!
+        /// Note: <c>smRef</c> must be the exact object, not only match it!
+        /// </summary>
+        public static void Remove(this IAssetAdministrationShell aas, IReference smRef)
+        {
+            if (aas?.Submodels == null)
+                return;
+            if (aas.Submodels.Contains(smRef))
+                aas.Submodels.Remove(smRef);
+            if (aas.Submodels.Count < 1)
+                aas.Submodels = null;
         }
 
         //TODO (jtikekar, 0000-00-00): Change the name, currently based on older implementation
@@ -150,8 +208,7 @@ namespace Extensions
                                 Console.WriteLine($"KeyType value {refKey.type} not found.");
                             }
                         }
-                        assetAdministrationShell.Submodels ??= new List<IReference>();
-                        assetAdministrationShell.Submodels.Add(new Reference(ReferenceTypes.ModelReference, keyList)); 
+                        assetAdministrationShell.Add(new Reference(ReferenceTypes.ModelReference, keyList)); 
                     }
                 }
             }
@@ -238,8 +295,7 @@ namespace Extensions
                                 Console.WriteLine($"KeyType value {refKey.type} not found.");
                             }
                         }
-                        assetAdministrationShell.Submodels ??= new List<IReference>();
-                        assetAdministrationShell.Submodels.Add(new Reference(ReferenceTypes.ModelReference, keyList)); 
+                        assetAdministrationShell.Add(new Reference(ReferenceTypes.ModelReference, keyList)); 
                     }
                 }
             }

@@ -346,10 +346,13 @@ namespace BlazorUI
         /// Carefully checks and tries to select a tree item which is identified
         /// by the main data object (e.g. an AAS, SME, ..)
         /// </summary>
-        public bool TrySelectMainDataObject(object dataObject, bool? wishExpanded)
+        public bool TrySelectMainDataObject(
+            object dataObject, bool? wishExpanded,
+            bool alsoDereferenceObjects = false)
         {
             // access?
-            var ve = SearchVisualElementOnMainDataObject(dataObject);
+            var ve = SearchVisualElementOnMainDataObject(dataObject,
+                alsoDereferenceObjects: alsoDereferenceObjects);
             if (ve == null)
                 return false;
 

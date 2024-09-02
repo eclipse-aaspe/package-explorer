@@ -186,23 +186,22 @@ namespace AasOpcUaServer
         /// Top level creation functions. Uses the definitions of RootAAS, RootConceptDescriptions, 
         /// RootDataSpecifications to synthesize information model
         /// </summary>
-        public void CreateAddInstanceObjects(Aas.Environment env)
+        public void CreateAddInstanceObjects(Aas.IEnvironment env)
         {
             if (RootAAS == null)
                 return;
 
             // CDs (build 1st to be "remembered" as targets for "HasDictionaryEntry")
-            if (env.ConceptDescriptions != null && this.RootConceptDescriptions != null)
-                foreach (var cd in env.ConceptDescriptions)
+            if (this.RootConceptDescriptions != null)
+                foreach (var cd in env.AllConceptDescriptions())
                 {
                     this.AasTypes.ConceptDescription.CreateAddElements(this.RootConceptDescriptions,
                         AasUaBaseEntity.CreateMode.Instance, cd);
                 }
 
             // AAS
-            if (env.AssetAdministrationShells != null)
-                foreach (var aas in env.AssetAdministrationShells)
-                    this.AasTypes.AAS.CreateAddInstanceObject(RootAAS, env, aas);
+            foreach (var aas in env.AllAssetAdministrationShells())
+                this.AasTypes.AAS.CreateAddInstanceObject(RootAAS, env, aas);
 
             // go through late actions
             foreach (var la in this.noteLateActions)

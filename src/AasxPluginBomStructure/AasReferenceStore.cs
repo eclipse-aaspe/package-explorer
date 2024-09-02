@@ -173,18 +173,18 @@ namespace AasxPluginBomStructure
                 RecurseIndexSME(currRef, sme);
         }
 
-        public void Index(Aas.Environment env)
+        public void Index(Aas.IEnvironment env)
         {
             // access
-            if (env == null || env.Submodels == null)
+            if (env == null)
                 return;
 
             // iterate
-            foreach (var sm in env.Submodels)
+            foreach (var sm in env.AllSubmodels())
                 this.Index(sm);
 
             // Concept Descriptions
-            foreach (var cd in env.ConceptDescriptions)
+            foreach (var cd in env.AllConceptDescriptions())
                 this.Index(cd);
         }
     }

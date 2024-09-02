@@ -9,6 +9,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AasxIntegrationBase;
 using AdminShellNS;
+using Extensions;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -273,7 +274,7 @@ namespace AasxPackageLogic.PackageCentral
                             description: new List<Aas.ILangStringTextType>() {
                                 new Aas.LangStringTextType(AdminShellUtil.GetDefaultLngIso639(), "" + fi.Description)
                             });
-                        pkg.AasEnv?.AssetAdministrationShells.Add(aas);
+                        pkg.AasEnv?.Add(aas);
 
                         // matching AssetId?
                         if (fi.AssetIds != null && i < fi.AssetIds.Count)

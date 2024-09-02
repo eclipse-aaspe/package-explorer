@@ -1,0 +1,28 @@
+﻿{
+  "Records": [
+    {
+      "IsDescription": true,
+      "IsMapping": false,
+      "AllowSubmodelSemanticId": [
+        {
+          "type": "Submodel",
+          "value": "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Submodel"
+        }
+      ],
+      "UseHttp": false,
+      "UseModbus": false,
+      "UseMqtt": false,
+      "UseOpcUa": true
+    },
+    {
+      "IsDescription": false,
+      "IsMapping": true,
+      "AllowSubmodelSemanticId": [
+        {
+          "type": "Submodel",
+          "value": "https://admin-shell.io/idta/AssetInterfacesMappingConfiguration/1/0/Submodel"
+        }
+      ]
+    }
+  ]
+}

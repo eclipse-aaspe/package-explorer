@@ -31,7 +31,7 @@ namespace AasxDictionaryImport.Cdd
     /// </summary>
     internal class Importer
     {
-        private readonly Aas.Environment _env;
+        private readonly Aas.IEnvironment _env;
         private readonly Context _context;
         private readonly bool _all;
 
@@ -40,7 +40,7 @@ namespace AasxDictionaryImport.Cdd
         /// </summary>
         /// <param name="env">The environment to import the data into</param>
         /// <param name="context">The data context of the IEC CDD data</param>
-        public Importer(Aas.Environment env, Context context)
+        public Importer(Aas.IEnvironment env, Context context)
         {
             _env = env;
             _context = context;

@@ -30,6 +30,8 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
         private DocumentShelfOptions _options =
             new DocumentShelfOptions();
 
+        private ShelfPreviewService _previewService = null;
+
         public class Session : PluginSessionBase
         {
             public AasxPluginDocumentShelf.ShelfAnyUiControl AnyUiControl = null;
@@ -60,6 +62,10 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
 
             // index them!
             _options.IndexListOfRecords(_options.Records);
+
+            // start preview service
+            _previewService = new ShelfPreviewService();
+            _previewService.StartOperation(_log);
         }
 
         public new AasxPluginActionDescriptionBase[] ListActions()
@@ -157,7 +163,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 var opContext = args[5] as PluginOperationContextBase;
                 session.AnyUiControl = AasxPluginDocumentShelf.ShelfAnyUiControl.FillWithAnyUiControls(
                     _log, args[0], args[1], _options, _eventStack, session, args[2], opContext,
-                    args[3] as AnyUiContextPlusDialogs, this);
+                    args[3] as AnyUiContextPlusDialogs, this, _previewService);
 
                 // give object back
                 var res = new AasxPluginResultBaseObject();
@@ -207,8 +213,9 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
             {
                 // prepare list
                 var list = new List<string>();
-                list.Add("Document (recommended version)");
-                list.Add("Document (development version V1.1)");
+                list.Add("Documentation (V1.2)");
+                list.Add("Documentation (V1.1)");
+                list.Add("Documentation (V1.0)");
 
                 // make result
                 var res = new AasxPluginResultBaseObject();
@@ -232,9 +239,16 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                     sm.IdShort = "ManufacturerDocumentation";
                 }
                 else
+                if (smName.Contains("V1.0"))
                 {
                     sm.SemanticId = ExtendReference.CreateFromKey(DocuShelfSemanticConfig.Singleton.SemIdDocumentation);
                     sm.IdShort = "Documentation";
+                }
+                else
+                {
+                    sm.SemanticId = ExtendReference.CreateFromKey(
+                        AasxPredefinedConcepts.IdtaHandoverDocumentationV12.Static.SM_HandoverDocumentation.GetSemanticKey());
+                    sm.IdShort = "HandoverDocumentation";
                 }
 
                 // make result

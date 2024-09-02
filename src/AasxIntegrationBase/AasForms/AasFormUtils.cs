@@ -18,9 +18,29 @@ namespace AasxIntegrationBase.AasForms
 {
     public static class AasFormUtils
     {
+        public static FormMultiplicity? GetCardinality(List<Aas.IQualifier> qs)
+        {
+            if (qs == null)
+                return null;
+
+            var multiTrigger = new[] { "Multiplicity", "Cardinality", "SMT/Cardinality" };
+            foreach (var mt in multiTrigger)
+            {
+                var q = qs?.FindQualifierOfType(mt);
+                if (q != null)
+                {
+                    foreach (var m in (FormMultiplicity[])Enum.GetValues(typeof(FormMultiplicity)))
+                        if (("" + q.Value) == Enum.GetName(typeof(FormMultiplicity), m))
+                            return m;
+                }
+            }
+
+            return null;
+        }
+
         private static void RecurseExportAsTemplate(
             List<Aas.ISubmodelElement> smwc, FormDescListOfElement tels,
-            Aas.Environment env = null, List<Aas.ConceptDescription> cds = null)
+            Aas.IEnvironment env = null, List<Aas.ConceptDescription> cds = null)
         {
             // access
             if (smwc == null || tels == null)
@@ -115,6 +135,9 @@ namespace AasxIntegrationBase.AasForms
                         if (q != null)
                             tsme.FormEditDescription = q.Value.Trim().ToLower() == "true";
 
+                        // TODO (MIHO, 24-01-01): reorganize access to qualifiers
+
+#if __old__
                         var multiTrigger = new[] { "Multiplicity", "Cardinality", "SMT/Cardinality" };
                         foreach (var mt in multiTrigger)
                         {
@@ -126,6 +149,11 @@ namespace AasxIntegrationBase.AasForms
                                         tsme.Multiplicity = m;
                             }
                         }
+#else
+                        var mlc = GetCardinality(qs);
+                        if (mlc.HasValue)
+                            tsme.Multiplicity = mlc.Value;
+#endif
 
                         q = qs?.FindQualifierOfType("PresetValue");
                         if (q != null && tsme is FormDescProperty)
@@ -146,7 +174,7 @@ namespace AasxIntegrationBase.AasForms
                         // adopt presetIdShort
                         if (tsme.Multiplicity == FormMultiplicity.ZeroToMany ||
                             tsme.Multiplicity == FormMultiplicity.OneToMany)
-                            tsme.PresetIdShort += "{0:00}";
+                            tsme.PresetIdShort += "{00}";
 
                         // Ignore this element
                         q = qs?.FindQualifierOfType("FormIgnore");
@@ -193,8 +221,8 @@ namespace AasxIntegrationBase.AasForms
 
             // build templates
             var templateArr = new List<FormDescSubmodel>();
-            foreach (var aas in package.AasEnv.AssetAdministrationShells)
-                foreach (var smref in aas.Submodels)
+            foreach (var aas in package.AasEnv.AllAssetAdministrationShells())
+                foreach (var smref in aas.AllSubmodels())
                 {
                     // get Submodel
                     var sm = package.AasEnv.FindSubmodel(smref);
@@ -264,7 +292,7 @@ namespace AasxIntegrationBase.AasForms
         }
 
         public static void ExportAsGenericFormsOptions(
-            Aas.Environment env, Aas.ISubmodel sm, string fn)
+            Aas.IEnvironment env, Aas.ISubmodel sm, string fn)
         {
             // access
             if (fn == null || env == null || sm == null || sm.SubmodelElements == null)

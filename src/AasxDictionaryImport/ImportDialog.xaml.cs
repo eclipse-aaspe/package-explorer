@@ -200,9 +200,9 @@ namespace AasxDictionaryImport
         {
             switch (ImportMode)
             {
-                case ImportMode.SubmodelElements:
+                case ImportMode.ForSubmodelElements:
                     return context.LoadSubmodelElements();
-                case ImportMode.Submodels:
+                case ImportMode.ForSubmodels:
                     return context.LoadSubmodels();
                 default:
                     return new List<Model.IElement>();
@@ -405,12 +405,12 @@ namespace AasxDictionaryImport
         /// <summary>
         /// Show all elements that correspond to AAS submodels.
         /// </summary>
-        Submodels,
+        ForSubmodels,
         /// <summary>
         /// Show all elements that correspond to AAS submodel elements, i. e.
         /// collections and properties.
         /// </summary>
-        SubmodelElements,
+        ForSubmodelElements,
     }
 
     internal class ElementWrapper : INotifyPropertyChanged

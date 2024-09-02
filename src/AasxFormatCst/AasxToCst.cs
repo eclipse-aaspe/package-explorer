@@ -287,7 +287,7 @@ namespace AasxFormatCst
             if (cdReferables != null)
                 foreach (var rf in cdReferables)
                     if (rf is Aas.ConceptDescription cd)
-                        env?.AasEnv.ConceptDescriptions.AddConceptDescriptionOrReturnExisting(cd);
+                        env?.AasEnv.AddConceptDescriptionOrReturnExisting(cd);
 
             // Step 2: make up a list of used semantic references and write to default file
             var tmpIdStore = new CstIdStore();

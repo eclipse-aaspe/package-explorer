@@ -21,6 +21,12 @@ namespace Extensions
             return keys.Count < 1;
         }
 
+        public static bool IsOneBlank(this List<IKey> keys)
+        {
+            return keys.Count == 1
+                && keys[0].Value?.HasContent() != true;
+        }
+
         public static bool Matches(this List<IKey> keys, List<IKey> other, MatchMode matchMode = MatchMode.Strict)
         {
             if (other == null || other.Count != keys.Count)
@@ -42,6 +48,13 @@ namespace Extensions
             res.Remove(res.Last());
             res.AddRange(newKeys);
             return res;
+        }
+
+        public static void AddCheckBlank(this List<IKey> keys, IKey newKey)
+        {
+            if (keys.Count > 0 && (keys.Last().Value == null || keys.Last().Value.Trim().Length < 1))
+                keys.RemoveAt(keys.Count - 1);
+            keys.Add(newKey);
         }
 
         public static bool StartsWith(this List<IKey> keyList, List<IKey> otherKeyList)

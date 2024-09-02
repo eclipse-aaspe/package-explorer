@@ -54,6 +54,11 @@ namespace AasxPackageExplorer
         void LogShow();
 
         /// <summary>
+        /// Take a screenshot and save to file
+        /// </summary>
+        void SaveScreenshot(string filename = "noname");
+
+        /// <summary>
         /// Make sure the file repo is visible
         /// </summary>
 		void UiShowRepositories(bool visible);

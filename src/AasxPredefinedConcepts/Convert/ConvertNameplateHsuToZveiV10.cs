@@ -77,9 +77,7 @@ namespace AasxPredefinedConcepts.Convert
                     if (sme != null && sme.SemanticId != null)
                     {
                         var cd = package.AasEnv.FindConceptDescriptionByReference(sme.SemanticId);
-                        if (cd != null)
-                            if (package.AasEnv.ConceptDescriptions.Contains(cd))
-                                package.AasEnv.ConceptDescriptions.Remove(cd);
+                        package.AasEnv.Remove(cd);
                     }
                     // recurse
                     return true;
@@ -90,7 +88,7 @@ namespace AasxPredefinedConcepts.Convert
             if (addNewCDs)
                 foreach (var rf in defsV10.GetAllReferables())
                     if (rf is Aas.ConceptDescription conceptDescription)
-                        package.AasEnv.ConceptDescriptions.AddConceptDescriptionOrReturnExisting(
+                        package.AasEnv.AddConceptDescriptionOrReturnExisting(
                             new Aas.ConceptDescription(
                                 conceptDescription.Id, conceptDescription.Extensions,
                                 conceptDescription.Category, conceptDescription.IdShort,

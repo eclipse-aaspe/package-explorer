@@ -9,6 +9,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AasxIntegrationBase;
 using AasxIntegrationBase.AdminShellEvents;
+using AdminShellNS;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -131,12 +132,20 @@ namespace AasxPackageLogic
                 return this.BasicInvokeMethod("ActivateAction", name, args);
             }
 
-            public Task<object> InvokeActionAsync(string name, params object[] args)
+            public async Task<object> InvokeActionAsync(string name, params object[] args)
             {
                 var a = this.FindAction(name, useAsync: true);
                 if (a == null)
                     return null;
-                return this.BasicInvokeMethodAsync("ActivateActionAsync", name, args);
+                return await this.BasicInvokeMethodAsync("ActivateActionAsync", name, args);
+            }
+
+            public async Task<object> InvokeActionSyncAndAsync(string name, params object[] args)
+            {
+                var o = InvokeAction(name, args);
+                if (o == null)
+                    o = await InvokeActionAsync(name, args);
+                return o;
             }
         }
 

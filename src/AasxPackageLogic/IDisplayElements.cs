@@ -60,7 +60,8 @@ namespace AasxPackageExplorer
         /// Carefully checks and tries to select a tree item which is identified
         /// by the main data object (e.g. an AAS, SME, ..)
         /// </summary>
-        bool TrySelectMainDataObject(object dataObject, bool? wishExpanded);
+        bool TrySelectMainDataObject(object dataObject, bool? wishExpanded,
+            bool alsoDereferenceObjects = false);
 
     }
 

@@ -10,14 +10,16 @@
   // "AasxRepositoryFn": "C:\\Users\\miho\\Desktop\\201112_Festo_AAS_Demo_Koffer\\repo3\\Festo-DemoBox-repo-local.json",
   /* "AasxRepositoryFn": "C:\\Users\\miho\\Desktop\\201112_Festo_AAS_Demo_Koffer\\Festo_Demo_Box\\Festo-DemoBox-repo-CPX_E.json", */
   /* "AasxRepositoryFn": "C:\\Users\\miho\\Desktop\\new-aasx-repo.json", */
-  "AasxRepositoryFn": "C:\\HOMI\\Develop\\Aasx\\repo_demo_case\\Festo-DemoCase-repo-local.json",
+  // "AasxRepositoryFn": "C:\\HOMI\\Develop\\Aasx\\repo_demo_case\\Festo-DemoCase-repo-local.json",
+  // "AasxRepositoryFn": "C:\\HOMI\\Develop\\Aasx\\repo\\samm-smt-templates.json",
   /* "AasxToLoad": "C:\\Users\\miho\\Desktop\\200806_Sample_Repo_with_Fluidic_Plan\\MTPsample.aasx", */
   /* "AasxToLoad": "http://localhost:51310/server/getaasx/0", */
   /* "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\AasxFesto\\AasxFesto\\AasxFctTool\\bin\\Debug\\net472\\test.aasx", */
   /* "AasxToLoad": "C:\\Users\\miho\\Desktop\\Festo_SPAU_VR3_UA.aasx", */
   /* "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\Festo_SPAU_VR3.aasx", */
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\PxC_aasT_2900542_ELR_H3_I_SC__24DC_500AC_0_6.aasx",
-  "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\Festo_SPAU-B2R-H-G18FD-L-PNLK-PNVBA-M8U_V3c.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\Festo_SPAU-B2R-H-G18FD-L-PNLK-PNVBA-M8U_V3c.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\TempDesktop\\230619 Digi Twin Festo AASX Assessment\\231002_Feedback_1\\8001203_64be10f8-d4c8-4226-a56b-901b9fcbe29c_fb1.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\01_Festo_SPAU_VR3_DPPV2.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\bomtest1.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\leitungssatz_tier1.aasx",
@@ -25,6 +27,49 @@
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\SMT_Sample_B.aasx",
   // "AuxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\SMT_Sample_A.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\00_FestoDemoBox-Module-2-Kopie2.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\SMT_and_SAMM_Showcase_v01.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\samm-test\\Run2_DNP_plus_CD_SM_step_2.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\Test1.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\samm-test\\SMT_and_SAMM_Showcase_v02.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_TechData_Work\\IDTA 02003-1-2_SubmodelTemplate_TechnicalData_v1.3_workingFile_MIHO.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\g.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\IDTA 02006-3-0_Template_Digital Nameplate_AsciiDoc_Draft_v13_Test_a.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\SMT_and_SAMM_Showcase_v02.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\nearnull.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_TechData_Work\\IDTA 02003-1-2_SubmodelTemplate_TechnicalData_v1.2__with_Draft_1_3_and_AsciiDoc_v01.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\IDTA_02036-1-0_SMT_ProductChangeNotification_Draft_v22.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\IDTA_02036-1-0_SMT_ProductChangeNotification_Examples_v08.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\SMT_ProductChangeNotification_Draft_v20_spiel.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\aaspe-testing\\210_Copy_Paste\\Sample_AAS.aasx",
+  "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\aaspe-testing\\310_Plugin_DNP\\Sample_AAS.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\aaspe-testing\\200_Find_Replace\\Sample_SMT.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\IDTA_02036-1-0_SMT_ProductChangeNotification_Examples_v08.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\Syn2tecMachine_P2518_AAS__V3_DL2.aasx",
+  // "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\Syn2tecMachine_P2518_AAS__V3_DL2.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\test-data\\MTP\\test-data-SMT_MTP.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\00_FestoDemoBox-Module-2-Kopie.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\8001203_SPAU-P10R-T-R18M-L-PNLK-PNVBA-M8D_060ff64f-9fd2-422d-81ce-b17e49f007c5_work_spiel.aasx",
+  // "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\SMT_and_SAMM_Showcase_v02.aasx",
+  // "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\SMT_and_SAMM_Showcase_v01.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\SAMSON_TROVIS_3730-3_Vorlage_Demo_Achema.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\Prototyp_DPP_SkillsConveyor\\Prototyp_SkillsConveyor.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\samm-test\\Aspect_Example_SML_MLP.ttl",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\8001203_SPAU-P10R-T-R18M-L-PNLK-PNVBA-M8D_060ff64f-9fd2-422d-81ce-b17e49f007c5_work.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\bugfix\\techdata-prod-class-larger.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\aid\\2023_AID1.0_Template_Rework_MIHO.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\aid\\aid-test-2.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\aid\\aid-test-3_new_opcua.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\test-data\\OpcUaReadSubmodel\\OpcUaReadSubmodel.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\aid\\Aid-HMI-2024_v1.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\aid\\robotic_cell_for_demo_suitcase_new-v3.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\IDTA 02006-2-1_Template_Digital Nameplate_V3_Demo_ExportSMT - Kopie.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\SMT_ProductChangeNotification_Draft_play_02.aasx",
+  "AasxRepositoryFn": "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\Festo-DemoCase-repo-V3-local.json",
+  // "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\smt_pcn\\SMT_ProductChangeNotification_Draft_play_02.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\dnp30\\IDTA 02006-3-0_Template_Digital Nameplate_AsciiDoc_Draft_v06.aasx",
+  // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\contactv11\\IDTA 02002-1-1_Template_ContactInformation_AsciiDoc_Draft_v04.aasx",
+  // "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\smt_pcn\\SMT_PCN_Examples_v03.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\SMT_PCN_Examples_v06.aasx",
   "WindowLeft": 200,
   "WindowTop": -1,
   "WindowWidth": 900,
@@ -33,10 +78,12 @@
   "TemplateIdAas": "www.example.com/ids/aas/DDDD_DDDD_DDDD_DDDD",
   "TemplateIdAsset": "www.example.com/ids/asset/DDDD_DDDD_DDDD_DDDD",
   "TemplateIdSubmodelInstance": "www.example.com/ids/sm/DDDD_DDDD_DDDD_DDDD",
-  "TemplateIdSubmodelTemplate": "www.example.com/ids/sm/DDDD_DDDD_DDDD_DDDD",
+  "TemplateIdSubmodelTemplate": "www.example.com/ids/smt/DDDD_DDDD_DDDD_DDDD",
   "TemplateIdConceptDescription": "www.example.com/ids/cd/DDDD_DDDD_DDDD_DDDD",
   "EclassDir": ".\\eclass\\",
   "DefaultLang": "en,de",
+  "DefaultEmptyLangText": "", /* change for having a preset when creating new language lists */
+  "DefaultEmptyReferenceKey": "", /* change for having a preset when creating new References */
   /* "LogoFile": "SpecPI40_t.png", */
   "LogoFile": "PI40_and_IDTA.png",
   "QualifiersFile": "qualifier-presets.json",
@@ -46,6 +93,8 @@
   "ContentHome": "https://github.com/admin-shell/io/blob/master/README.md",
   "UseFlyovers": true,
   "SplashTime": 0,
+  "PercentageLeftColumn": 12,
+  "PercentageRightColumn": 60,
   "InternalBrowser": false,
   "EclassTwoPass": true,
   "BackupDir": ".\\backup",
@@ -59,8 +108,10 @@
   "ShowIdAsIri": false,
   "VerboseConnect": true,
   "WorkDir": ".\\work",
+  "CdSortOrder": "Structured",
   "ObserveEvents": true,
   "CompressEvents": true,
+  "CheckSmtElements": false,
   "DefaultStayConnected": true,
   "DefaultUpdatePeriod": 1000,
   "StayConnectOptions": "REST-QUEUE", // SIM
@@ -97,17 +148,18 @@
       ],
       "Options": null
     },
-    /*
     {
-      "Path": "..\\..\\..\\..\\..\\AasxPluginUaNetClient\\bin\\Debug\\net472\\AasxPluginUaNetClient.dll",
-      "Args": [],
-      "Options": null
-    }, 
-    {
-      "Path": "..\\..\\..\\..\\..\\AasxPluginBomStructure\\bin\\Debug\\net472\\AasxPluginBomStructure.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginUaNetClient\\bin\\Debug\\net6.0-windows\\AasxPluginUaNetClient.dll",
       "Args": []
     },
-    */
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginProductChangeNotifications\\bin\\Debug\\net6.0-windows\\AasxPluginProductChangeNotifications.dll",
+      "Args": []
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginAssetInterfaceDesc\\bin\\Debug\\net6.0-windows\\AasxPluginAssetInterfaceDesc.dll",
+      "Args": []
+    },
     {
       "Path": "..\\..\\..\\..\\..\\..\\AasxPluginKnownSubmodels\\bin\\Debug\\net6.0-windows\\AasxPluginKnownSubmodels.dll",
       "Args": []
@@ -155,32 +207,21 @@
     {
       "Path": "..\\..\\..\\..\\..\\..\\AasxPluginExportTable\\bin\\Debug\\net6.0-windows\\AasxPluginExportTable.dll",
       "Args": []
-    } /* ,    
-,
+    },
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginWebBrowser\\bin\\x64\\Debug\\net6.0-windows\\AasxPluginWebBrowser.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginWebBrowser\\bin\\x64\\Debug\\AasxPluginWebBrowser.dll",
       "Args": []
-    }
+    },
 
     // Festo specific from here on
     {
-      "Path": "..\\..\\..\\..\\..\\..\\..\\AasxFesto\\AasxFesto\\AasxPluginFluiddrawViewer\\bin\\Debug\\net6.0-windows\\AasxPluginFluiddrawViewer.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\..\\..\\AasxFesto\\AasxFesto\\AasxPluginFluiddrawViewer\\bin\\Debug\\net6.0-windows\\AasxPluginFluiddrawViewer.dll",
       "Args": []
     },
     {
-      "Path": "..\\..\\..\\..\\..\\..\\..\\AasxFesto\\AasxFesto\\AasxPluginFluiddrawBom\\bin\\Debug\\net6.0-windows\\AasxPluginFluiddrawBom.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\..\\..\\AasxFesto\\AasxFesto\\AasxPluginFluiddrawBom\\bin\\Debug\\net6.0-windows\\AasxPluginFluiddrawBom.dll",
       "Args": []
     }
-    // Festo specific from here on
-    {
-      "Path": "..\\..\\..\\..\\..\\..\\..\\AasxFesto\\AasxFesto\\AasxPluginFluiddrawViewer\\bin\\Debug\\AasxPluginFluiddrawViewer.dll",
-      "Args": []
-    },
-    {
-      "Path": "..\\..\\..\\..\\..\\..\\..\\AasxFesto\\AasxFesto\\AasxPluginFluiddrawBom\\bin\\Debug\\AasxPluginFluiddrawBom.dll",
-      "Args": [] 
-    }
-    */
   ],
   "SecureConnectPresets": [
     {
@@ -369,7 +410,11 @@
     {
       "Name": "Test 7",
       "Lines": [
-        "Tool(\"aas-elem-delete\");"
+        "Tool(\"LocationPush\");",
+        "Select(\"Submodel\", \"First\");",
+        "Select(\"Submodel\", \"Next\");",
+        "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\homi0002\\Desktop\\tmp\\new.zip\");",
+        "Tool(\"LocationPop\");"
       ]
     }
   ],

@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AasxIntegrationBaseWpf\AasxIntegrationBaseWpf.csproj" />
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
+    <ProjectReference Include="..\AasxOpcUa2Client\AasxOpcUa2Client.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="LICENSE.txt">
@@ -18,6 +19,5 @@
   <ItemGroup>
     <PackageReference Include="Aml.Engine" Version="2.0.9" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.370.12" />
   </ItemGroup>
 </Project>

@@ -238,7 +238,7 @@ namespace AasxDictionaryImport.Model
         /// <param name="adminShell">The admin shell to add the submodel to</param>
         /// <returns>true if the import was successful, or false if the import failed or if this element cannot be
         /// converted to an AAS submodel</returns>
-        bool ImportSubmodelInto(Aas.Environment env,
+        bool ImportSubmodelInto(Aas.IEnvironment env,
             Aas.IAssetAdministrationShell adminShell);
 
         /// <summary>
@@ -254,7 +254,7 @@ namespace AasxDictionaryImport.Model
         /// <param name="parent">The parent element to add the submodel elements to</param>
         /// <returns>true if the import was successful, or false if the import failed or
         /// if this element cannot be converted to an AAS submodel element</returns>
-        bool ImportSubmodelElementsInto(Aas.Environment env,
+        bool ImportSubmodelElementsInto(Aas.IEnvironment env,
             Aas.IReferable parent);
 
         /// <summary>
@@ -434,11 +434,11 @@ namespace AasxDictionaryImport.Model
         public virtual Uri? GetDetailsUrl() => null;
 
         /// <inheritdoc/>
-        public virtual bool ImportSubmodelInto(Aas.Environment env,
+        public virtual bool ImportSubmodelInto(Aas.IEnvironment env,
             Aas.IAssetAdministrationShell adminShell) => false;
 
         /// <inheritdoc/>
-        public virtual bool ImportSubmodelElementsInto(Aas.Environment env,
+        public virtual bool ImportSubmodelElementsInto(Aas.IEnvironment env,
             Aas.IReferable parent) => false;
 
         /// <inheritdoc/>

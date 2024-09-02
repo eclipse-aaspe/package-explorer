@@ -6,6 +6,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 
 This source code may use other Open Source software components (see LICENSE.txt).
 */
+using AdminShellNS;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -130,22 +131,46 @@ namespace Extensions
 
         #region QualifierCollection
 
-        public static IQualifier FindQualifierOfType(this List<IQualifier> qualifiers, string qualifierType)
+        public static bool IsValid(this List<IQualifier> elems)
         {
-            if (qualifierType == null)
-            {
+            if (elems == null || elems.Count < 1)
+                return false;
+            foreach (var q in elems)
+                if (q?.Type == null || q.Type.Trim().Length < 1)
+                    return false;
+            return true;
+        }
+
+        public static bool IsOneBlank(this List<IQualifier> elems)
+        {
+            if (elems == null || elems.Count != 1)
+                return false;
+            return elems[0].Value?.HasContent() != true;
+        }
+
+        public static IQualifier FindQualifierOfType(this IEnumerable<IQualifier> qualifiers, string qualifierType)
+        {
+            if (qualifiers == null || qualifierType == null)
                 return null;
-            }
 
             foreach (var qualifier in qualifiers)
-            {
                 if (qualifier != null && qualifierType.Equals(qualifier.Type))
-                {
                     return qualifier;
-                }
-            }
 
             return null;
+        }
+
+        public static IEnumerable<IQualifier> FindQualifierOfAnyType(
+            this IEnumerable<IQualifier> qualifiers, string[] qualifierTypes)
+        {
+            if (qualifierTypes == null || qualifierTypes.Length < 1)
+                yield break;
+            foreach (var qualifierType in qualifierTypes)
+            {
+                var res = FindQualifierOfType(qualifiers, qualifierType);
+                if (res != null)
+                    yield return res;
+            }
         }
 
         // ReSharper disable MethodOverloadWithOptionalParameter .. this seems to work, anyhow

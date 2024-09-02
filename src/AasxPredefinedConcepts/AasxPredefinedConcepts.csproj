@@ -12,14 +12,19 @@
     <None Remove="Resources\IdtaContactInformationV10.json" />
     <None Remove="Resources\IdtaHandoverDocumentationV12.json" />
     <None Remove="Resources\IdtaHierarchicalStructV10.json" />
+    <None Remove="Resources\IdtaHierarchicalStructV11.json" />
+    <None Remove="Resources\IdtaProductChangeNotificationsV10.json" />
     <None Remove="Resources\IdtaTechnicalDataV12.json" />
     <None Remove="Resources\ZveiDigitalTypeplate.json" />
     <None Remove="Resources\ZveiTimeSeriesDataV10.json" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AasCore.Aas3_0\AasCore.Aas3_0.csproj" />
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\IdtaHierarchicalStructV11.json" />
+    <EmbeddedResource Include="Resources\IdtaProductChangeNotificationsV10.json" />
     <EmbeddedResource Include="Resources\IdtaHandoverDocumentationV12.json" />
     <EmbeddedResource Include="Resources\IdtaHierarchicalStructV10.json" />
     <EmbeddedResource Include="Resources\IdtaContactInformationV10.json" />
@@ -35,7 +40,7 @@
     <Content Include="README\Old_JSON_ConceptDescriptions.txt" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 </Project>
