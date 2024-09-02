@@ -42,7 +42,7 @@ function PackageRelease($outputDir)
         "AasxPluginImageMap",
         "AasxPluginMtpViewer",
         "AasxPluginPlotting",
-	"AasxPluginProductChangeNotifications",
+	      "AasxPluginProductChangeNotifications",
         "AasxPluginSmdExporter",
         "AasxPluginTechnicalData"
         "AasxPluginUaNetClient"
