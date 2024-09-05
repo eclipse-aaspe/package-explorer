@@ -64,7 +64,7 @@ namespace AasxPackageLogic
 						helper.Set(
 							helper.AddSmallComboBoxTo(g, 0, 3,
 								text: innerDiaData.AttributeLang,
-								items: AasxLanguageHelper.GetLangCodes().ToArray(),
+								items: AasxLanguageHelper.Languages.GetAllLanguages().ToArray(),
 								isEditable: true),
 							minWidth: 200),
 						(s) => { innerDiaData.AttributeLang = s; });

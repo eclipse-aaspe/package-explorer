@@ -152,7 +152,7 @@ namespace AasxPluginPlotting
                 LabelPanelTitle.Content = _panelArgs.title;
 
             // languages
-            foreach (var lng in AasxLanguageHelper.GetLangCodes())
+            foreach (var lng in AasxLanguageHelper.Languages.GetAllLanguages())
                 ComboBoxLang.Items.Add("" + lng);
             ComboBoxLang.Text = "en";
 

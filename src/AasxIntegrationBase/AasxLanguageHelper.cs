@@ -42,6 +42,11 @@ namespace AasxIntegrationBase
             return LangCode == "" && CountryCode == ""
                 || LangCode == "All" && CountryCode == "All";
         }
+
+        public static AasxLanguageTuple GetAny()
+        {
+            return new AasxLanguageTuple() { LangCode = "All", CountryCode = "All" };
+        }
     }
 
     /// <summary>
@@ -51,10 +56,13 @@ namespace AasxIntegrationBase
     /// </summary>
     public class AasxLanguageTupleSet : MultiValueDictionary<string, AasxLanguageTuple>
     {
-        public void Add(string lang, string country)
+        public void Add(string lang, string country, bool correctInput = true)
         {
-            lang = lang?.ToLower().Trim();
-            country = country?.ToLower().Trim();
+            if (correctInput)
+            {
+                lang = lang?.ToLower().Trim();
+                country = country?.ToUpper().Trim();
+            }
 
             if (lang != null && lang != "" 
                 && country != null && country != "")
@@ -63,13 +71,18 @@ namespace AasxIntegrationBase
             }
         }
 
+        public AasxLanguageTupleSet()
+        {
+            Init();
+        }
+
         /// <summary>
         /// Rationale for default languages/ countries: member in IDTA or IEC TC65 WG24
         /// </summary>
         public void Init()
         {
             this.Clear();
-            Add("All", "All"); 
+            Add("All", "All", correctInput: false); 
             Add("en", "GB");
             Add("en", "US");
             Add("de", "DE");
@@ -91,7 +104,7 @@ namespace AasxIntegrationBase
         public IEnumerable<AasxLanguageTuple> FindByLang(string lang)
         {
             lang = lang?.ToLower().Trim();
-            if (lang != null && lang != "" || this.ContainsKey(lang) == false)
+            if (lang == null || lang == "" || this.ContainsKey(lang) == false)
                 yield break;
             foreach (var x in this[lang])
                 yield return x;
@@ -99,35 +112,68 @@ namespace AasxIntegrationBase
 
         public IEnumerable<AasxLanguageTuple> FindByCountry(string country)
         {
-            country = country?.ToLower().Trim();
-            if (country != null && country != "")
+            country = country?.ToUpper().Trim();
+            if (country == null || country == "")
                 yield break;
             foreach (var tp in this.Values)
-                if (country == tp.CountryCode)
+                if (country == tp.CountryCode.ToUpper())
                     yield return tp;
         }
 
-        public IEnumerable<string> GetAllLanguages()
+        public IEnumerable<string> GetAllLanguages(bool nullForAny = false)
         {
+            var temp = new List<string>();
             foreach (var tp in this.Values)
                 if (!tp.IsAny())
-                    yield return tp.LangCode;
+                    temp.Add(tp.LangCode);
+                else
+                {
+                    if (nullForAny)
+                        temp.Add(null);
+                    else
+                        temp.Add(tp.LangCode);
+                }
+
+            if (temp.Count < 1)
+                yield break;
+
+            temp = temp.Distinct().ToList();
+            var first = temp[0];
+            temp.RemoveAt(0);
+            temp.Sort();
+            temp.Insert(0, first);
+
+            foreach (var t in temp)
+                yield return t;
         }
 
         public IEnumerable<string> GetAllCountries()
         {
+            var temp = new List<string>();
             foreach (var tp in this.Values)
-                if (!tp.IsAny())
-                    yield return tp.CountryCode;
+                temp.Add(tp.CountryCode);
+
+            if (temp.Count < 1)
+                yield break;
+
+            temp = temp.Distinct().ToList();
+            var first = temp[0];
+            temp.RemoveAt(0);
+            temp.Sort();
+            temp.Insert(0, first);
+
+            foreach (var t in temp)
+                yield return t;
         }
 
         public void InitByCustomString(string input)
         {
             this.Clear();
+            Add("All", "All", correctInput: false);
             var pairs = input.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             foreach (var pair in pairs)
             {
-                var m = Regex.Match(pair, @"(\w+)\s*/\s*(\w+)");
+                var m = Regex.Match(pair, @"(\w+)\s*-\s*(\w+)");
                 if (m.Success)
                     Add(m.Groups[1].ToString(), m.Groups[2].ToString());
             }
@@ -136,7 +182,9 @@ namespace AasxIntegrationBase
 
     public static class AasxLanguageHelper
     {
+        public static AasxLanguageTupleSet Languages = new AasxLanguageTupleSet();
 
+#if __old
         public enum LangEnum { Any = 0, EN, DE, ZH, JA, KO, FR, ES };
 
         public static string[] LangEnumToISO639String = {
@@ -184,6 +232,7 @@ namespace AasxIntegrationBase
             for (int i = 1; i < LangEnumToISO639String.Length; i++)
                 yield return LangEnumToISO639String[i];
         }
+#endif
 
         public static string GetFirstLangCode(string codes)
         {
