@@ -406,6 +406,8 @@ namespace AasxPluginExportTable.Smt
                         ProcessTextBlob("=== ", blob);
                     if (semId.Matches(defs.CD_Heading3.GetCdReference(), mm))
                         ProcessTextBlob("==== ", blob);
+                    if (semId.Matches(defs.CD_Heading4.GetCdReference(), mm))
+                        ProcessTextBlob("===== ", blob);
                 }
 
                 if (sme is Aas.IFile || sme is Aas.IBlob)
