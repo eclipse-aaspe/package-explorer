@@ -219,6 +219,7 @@ namespace AasxPluginExportTable.Smt
                 pumlName = AdminShellUtil.FilterFriendlyName(refel.IdShort);
             var pumlFn = pumlName + ".puml";
             var absPumlFn = Path.Combine(_locationDiagrams, pumlFn);
+            var extraAntoraPath = _optionsSmt.AntoraStyle ? "partial$diagrams/" : "";
 
             // make options
             var umlOptions = new ExportUmlRecord();
@@ -240,7 +241,7 @@ namespace AasxPluginExportTable.Smt
             _adoc.AppendLine("");
             _adoc.AppendLine($"[plantuml, {pumlName}, svg, id=\"{pumlName}\", {astr}]");
             _adoc.AppendLine("----");
-            _adoc.AppendLine("include::" + pumlFn + "[]");
+            _adoc.AppendLine("include::" + extraAntoraPath + pumlFn + "[]");
             _adoc.AppendLine("----");
             _adoc.AppendLine("");
         }
@@ -363,17 +364,37 @@ namespace AasxPluginExportTable.Smt
             {
                 try
                 {
-                    _locationPages = Path.Combine(_tempDir, "pages");
-                    _locationImages = Path.Combine(_tempDir, "images");
-                    _locationDiagrams = Path.Combine(Path.Combine(_tempDir, "partials"), "diagrams");
+                    // create a lot of directories
+                    var docRoot = Path.Combine(_tempDir, "documentation");
+                    Directory.CreateDirectory(docRoot);
 
+                    var modules = Path.Combine(docRoot, "modules");
+                    Directory.CreateDirectory(modules);
+
+                    var root = Path.Combine(modules, "root");
+                    Directory.CreateDirectory(root);
+
+                    _locationPages = Path.Combine(root, "pages");
                     Directory.CreateDirectory(_locationPages);
+                    
+                    _locationImages = Path.Combine(root, "images");
                     Directory.CreateDirectory(_locationImages);
+                    
+                    _locationDiagrams = Path.Combine(Path.Combine(root, "partials"), "diagrams");
                     Directory.CreateDirectory(Path.Combine(_tempDir, "partials"));
                     Directory.CreateDirectory(_locationDiagrams);
 
                     _log?.Info(StoredPrint.Color.Black,
-                        "Created dedicated sub-folders for pages, images, partials/diagrams.");
+                        "Created dedicated sub-folders for documentation, modules, root, pages, images, partials/diagrams.");
+
+                    // create some boiler plate 
+                    var antoraYamlTxt = AdminShellUtil.CleanHereStringWithNewlines(
+                        @"name: IDTA-00000
+                        title: 'TODO'
+                        version: 'v1.0'
+                        start_page: ROOT:index.adoc");
+
+                    System.IO.File.WriteAllText(Path.Combine(docRoot, "antora.yml"), antoraYamlTxt);
                 }
                 catch (Exception ex)
                 {
@@ -432,9 +453,9 @@ namespace AasxPluginExportTable.Smt
             var adocText = _adoc.ToString();
 
             // build adoc file
-            var title = (_srcSm.IdShort?.HasContent() == true)
+            var title = (!optionsSmt.AntoraStyle && (_srcSm.IdShort?.HasContent() == true))
                     ? AdminShellUtil.FilterFriendlyName(_srcSm.IdShort)
-                    : "output";
+                    : "index";
             var adocFn = title + ".adoc";
             var absAdocFn = Path.Combine(_locationPages, adocFn);
 
@@ -461,6 +482,18 @@ namespace AasxPluginExportTable.Smt
                     .Replace("%ADOC%", "" + adocFn);
 
                 displayContext?.MenuExecuteSystemCommand("Exporting PDF", _tempDir, cmd, args);
+            }
+
+            if (_optionsSmt.ViewResult)
+            {
+                var cmd = _optionsAll.SmtExportViewCmd;
+                var args = _optionsAll.SmtExportViewArgs
+                    .Replace("%WD%", "" + _tempDir)
+                    .Replace("%ADOC%", "" + adocFn)
+                    .Replace("%HTML%", "" + adocFn.Replace(".adoc", ".html"))
+                    .Replace("%PDF%", "" + adocFn.Replace(".adoc", ".pdf"));
+
+                displayContext?.MenuExecuteSystemCommand("Viewing results", _tempDir, cmd, args);
             }
 
             // now, how to handle files?
