@@ -371,7 +371,7 @@ namespace AasxPluginExportTable.Smt
                     var modules = Path.Combine(docRoot, "modules");
                     Directory.CreateDirectory(modules);
 
-                    var root = Path.Combine(modules, "root");
+                    var root = Path.Combine(modules, "ROOT");
                     Directory.CreateDirectory(root);
 
                     _locationPages = Path.Combine(root, "pages");
