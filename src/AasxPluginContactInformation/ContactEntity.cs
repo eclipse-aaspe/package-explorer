@@ -117,7 +117,7 @@ namespace AasxPluginContactInformation
         //
 
         public static ListOfContactEntity ParseSubmodelForV10(
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageFileBasedEnv thePackage,
             Aas.Submodel subModel, AasxPluginContactInformation.ContactInformationOptions options,
             string defaultLang,
             int selectedDocClass, AasxLanguageHelper.LangEnum selectedLanguage)

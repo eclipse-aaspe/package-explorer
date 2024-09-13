@@ -6,6 +6,10 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 
 This source code may use other Open Source software components (see LICENSE.txt).
 */
+using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
+
 namespace Extensions
 {
     public class LocatedReference
@@ -18,6 +22,16 @@ namespace Extensions
         {
             Identifiable = identifiable;
             Reference = reference;
+        }
+    }
+
+    public static class LocatedReferenceExtensions
+    {
+        public static void AddIfNew(this IList<LocatedReference> refs, LocatedReference newLR)
+        {
+            var same = refs?.FirstOrDefault((lr) => lr?.Reference?.Matches(newLR?.Reference, MatchMode.Relaxed) == true);
+            if (same == null)
+                refs.Add(newLR);
         }
     }
 }

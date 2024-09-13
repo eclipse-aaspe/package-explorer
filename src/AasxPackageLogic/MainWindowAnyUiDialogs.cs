@@ -242,11 +242,11 @@ namespace AasxPackageLogic
                 try
                 {
                     // preferred format
-                    var prefFmt = AdminShellPackageEnv.SerializationFormat.None;
+                    var prefFmt = AdminShellPackageFileBasedEnv.SerializationFormat.None;
                     if (ucsf.FilterIndex == 1)
-                        prefFmt = AdminShellPackageEnv.SerializationFormat.Xml;
+                        prefFmt = AdminShellPackageFileBasedEnv.SerializationFormat.Xml;
                     if (ucsf.FilterIndex == 2)
-                        prefFmt = AdminShellPackageEnv.SerializationFormat.Json;
+                        prefFmt = AdminShellPackageFileBasedEnv.SerializationFormat.Json;
 
                     // save 
                     DisplayContextPlus.RememberForInitialDirectory(ucsf.TargetFileName);
@@ -1257,7 +1257,7 @@ namespace AasxPackageLogic
 
                     // TODO (MIHO, 2022-11-17): not very elegant
                     if (ticket.PostResults != null && ticket.PostResults.ContainsKey("TakeOver")
-                        && ticket.PostResults["TakeOver"] is AdminShellPackageEnv pe)
+                        && ticket.PostResults["TakeOver"] is AdminShellPackageFileBasedEnv pe)
                         PackageCentral.MainItem.TakeOver(pe);
 
                     MainWindow.RestartUIafterNewPackage();

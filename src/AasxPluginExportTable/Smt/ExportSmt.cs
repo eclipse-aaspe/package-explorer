@@ -43,7 +43,7 @@ namespace AasxPluginExportTable.Smt
     public class ExportSmt
     {
         protected LogInstance _log = null;
-        protected AdminShellPackageEnv _package = null;
+        protected AdminShellPackageEnvBase _package = null;
         protected Aas.ISubmodel _srcSm = null;
         protected ExportTableOptions _optionsAll = null;
         protected ExportSmtRecord _optionsSmt = null;
@@ -333,7 +333,7 @@ namespace AasxPluginExportTable.Smt
         public void ExportSmtToFile(
             LogInstance log,
             AnyUiContextPlusDialogs displayContext,
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.ISubmodel submodel,
             ExportTableOptions optionsAll,
             ExportSmtRecord optionsSmt,

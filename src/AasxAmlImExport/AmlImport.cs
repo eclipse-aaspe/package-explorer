@@ -38,7 +38,7 @@ namespace AasxAmlImExport
 
         public class AmlParser
         {
-            public AdminShellPackageEnv package = null;
+            public AdminShellPackageEnvBase package = null;
 
             private class TargetIdAction
             {
@@ -87,7 +87,7 @@ namespace AasxAmlImExport
 
             public AmlParser() { }
 
-            public AmlParser(AdminShellPackageEnv package)
+            public AmlParser(AdminShellPackageEnvBase package)
             {
                 this.package = package;
             }
@@ -1634,7 +1634,7 @@ namespace AasxAmlImExport
             }
         }
 
-        public static void ImportInto(AdminShellPackageEnv package, string amlfn)
+        public static void ImportInto(AdminShellPackageEnvBase package, string amlfn)
         {
             // try open file
             var doc = CAEXDocument.LoadFromFile(amlfn);

@@ -319,7 +319,7 @@ namespace AasxPackageLogic.PackageCentral
             // open
             try
             {
-                Env = new AdminShellPackageEnv(TempFn, indirectLoadSave: false);
+                Env = new AdminShellPackageFileBasedEnv(TempFn, indirectLoadSave: false);
                 runtimeOptions?.Log?.Info($".. successfully opened as AASX environment: {Env?.AasEnv?.ToString()}");
             }
             catch (Exception ex)
@@ -445,7 +445,7 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         public override async Task SaveToSourceAsync(string saveAsNewFileName = null,
-            AdminShellPackageEnv.SerializationFormat prefFmt = AdminShellPackageEnv.SerializationFormat.None,
+            AdminShellPackageFileBasedEnv.SerializationFormat prefFmt = AdminShellPackageFileBasedEnv.SerializationFormat.None,
             PackCntRuntimeOptions runtimeOptions = null,
             bool doNotRememberLocation = false)
         {

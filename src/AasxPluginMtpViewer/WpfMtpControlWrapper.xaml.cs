@@ -32,7 +32,7 @@ namespace AasxPluginMtpViewer
         // internal members
 
         private LogInstance theLog = null;
-        private AdminShellPackageEnv thePackage = null;
+        private AdminShellPackageFileBasedEnv thePackage = null;
         private Aas.Submodel theSubmodel = null;
         private AasxPluginMtpViewer.MtpViewerOptions theOptions = null;
         private PluginEventStack theEventStack = null;
@@ -67,7 +67,7 @@ namespace AasxPluginMtpViewer
         }
 
         public void Start(
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageFileBasedEnv thePackage,
             Aas.Submodel theSubmodel,
             AasxPluginMtpViewer.MtpViewerOptions theOptions,
             PluginEventStack eventStack,
@@ -88,7 +88,7 @@ namespace AasxPluginMtpViewer
             object masterDockPanel)
         {
             // access
-            var package = opackage as AdminShellPackageEnv;
+            var package = opackage as AdminShellPackageFileBasedEnv;
             var sm = osm as Aas.Submodel;
             var master = masterDockPanel as DockPanel;
             if (package == null || sm == null || master == null)

@@ -168,7 +168,7 @@ namespace BlazorUI.Data
         // dead-csharp on
         // old stuff, to be refactored
 
-        public AdminShellPackageEnv env = null;
+        public AdminShellPackageFileBasedEnv env = null;
         public IndexOfSignificantAasElements significantElements = null;
 
         public string[] aasxFiles = new string[1];

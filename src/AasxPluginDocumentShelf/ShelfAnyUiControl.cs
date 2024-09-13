@@ -35,7 +35,7 @@ namespace AasxPluginDocumentShelf
         //=============
 
         private LogInstance _log = new LogInstance();
-        private AdminShellPackageEnv _package = null;
+        private AdminShellPackageFileBasedEnv _package = null;
         private Aas.Submodel _submodel = null;
         private DocumentShelfOptions _options = null;
         private PluginEventStack _eventStack = null;
@@ -144,7 +144,7 @@ namespace AasxPluginDocumentShelf
 
         public void Start(
             LogInstance log,
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageFileBasedEnv thePackage,
             Aas.Submodel theSubmodel,
             DocumentShelfOptions theOptions,
             PluginEventStack eventStack,
@@ -187,7 +187,7 @@ namespace AasxPluginDocumentShelf
             ShelfPreviewService previewService)
         {
             // access
-            var package = opackage as AdminShellPackageEnv;
+            var package = opackage as AdminShellPackageFileBasedEnv;
             var sm = osm as Aas.Submodel;
             var panel = opanel as AnyUiStackPanel;
             if (package == null || sm == null || panel == null)
@@ -1083,7 +1083,7 @@ namespace AasxPluginDocumentShelf
                         _package.PrepareSupplementaryFileParameters(ref ptd, ref ptfn);
 
                         // get content type
-                        var mimeType = AdminShellPackageEnv.GuessMimeType(ptfn);
+                        var mimeType = AdminShellPackageFileBasedEnv.GuessMimeType(ptfn);
 
                         // call "add"
                         var targetPath = _package.AddSupplementaryFileToStore(

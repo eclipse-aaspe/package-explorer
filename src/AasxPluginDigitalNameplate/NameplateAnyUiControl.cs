@@ -40,7 +40,7 @@ namespace AasxPluginDigitalNameplate
         //=============
 
         private LogInstance _log = new LogInstance();
-        private AdminShellPackageEnv _package = null;
+        private AdminShellPackageFileBasedEnv _package = null;
         private Aas.Submodel _submodel = null;
         private DigitalNameplateOptions _options = null;
         private PluginEventStack _eventStack = null;
@@ -75,7 +75,7 @@ namespace AasxPluginDigitalNameplate
 
         public void Start(
             LogInstance log,
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageFileBasedEnv thePackage,
             Aas.Submodel theSubmodel,
             DigitalNameplateOptions theOptions,
             PluginEventStack eventStack,
@@ -112,7 +112,7 @@ namespace AasxPluginDigitalNameplate
             AasxPluginBase plugin)
         {
             // access
-            var package = opackage as AdminShellPackageEnv;
+            var package = opackage as AdminShellPackageFileBasedEnv;
             var sm = osm as Aas.Submodel;
             var panel = opanel as AnyUiStackPanel;
             if (package == null || sm == null || panel == null)

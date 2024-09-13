@@ -844,7 +844,7 @@ namespace AasxIntegrationBase
         /// <summary>
         /// Filled by the currently selected element.
         /// </summary>
-        public AdminShellPackageEnv Package;
+        public AdminShellPackageEnvBase Package;
 
         /// <summary>
         /// Filled by the currently selected element.

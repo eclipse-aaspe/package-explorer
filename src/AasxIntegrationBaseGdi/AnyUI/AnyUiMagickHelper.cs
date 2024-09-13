@@ -83,7 +83,7 @@ namespace AasxIntegrationBaseGdi
             return null;
         }
 
-        public static AnyUiBitmapInfo LoadBitmapInfoFromPackage(AdminShellPackageEnv package, string path)
+        public static AnyUiBitmapInfo LoadBitmapInfoFromPackage(AdminShellPackageFileBasedEnv package, string path)
         {
             if (package == null || path == null)
                 return null;
@@ -113,7 +113,7 @@ namespace AasxIntegrationBaseGdi
         // TODO (MIHO, 2023-02-23): make the whole thing async!!
 
         public static AnyUiBitmapInfo MakePreviewFromPackageOrUrl(
-            AdminShellPackageEnv package, string path,
+            AdminShellPackageFileBasedEnv package, string path,
             double dpi = 75)
         {
             if (path == null)

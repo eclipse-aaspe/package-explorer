@@ -36,7 +36,7 @@ namespace AasxPluginBomStructure
     /// </summary>
     public class GenericBomControl
     {
-        private AdminShellPackageEnv _package;
+        private AdminShellPackageFileBasedEnv _package;
         private Aas.Submodel _submodel;
         private bool _createOnPackage = false;
 
@@ -244,7 +244,7 @@ namespace AasxPluginBomStructure
             object opackage, object osm, object masterDockPanel)
         {
             // access
-            _package = opackage as AdminShellPackageEnv;
+            _package = opackage as AdminShellPackageFileBasedEnv;
             _submodel = osm as Aas.Submodel;
             _createOnPackage = false;
             _bomOptions = bomOptions;
@@ -979,7 +979,7 @@ namespace AasxPluginBomStructure
             DockPanel master)
         {
             // access
-            _package = opackage as AdminShellPackageEnv;
+            _package = opackage as AdminShellPackageFileBasedEnv;
             _submodel = null;
             _createOnPackage = true;
             _bomOptions = bomOptions;
@@ -1047,7 +1047,7 @@ namespace AasxPluginBomStructure
         }
 
         private Microsoft.Msagl.Drawing.Graph CreateGraph(
-            AdminShellPackageEnv env,
+            AdminShellPackageFileBasedEnv env,
             Aas.Submodel sm,
             GenericBomCreatorOptions options,
             bool createOnPackage = false)

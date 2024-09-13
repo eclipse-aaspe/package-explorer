@@ -118,7 +118,7 @@ namespace AasxPackageExplorer
         /// <param name="indexItems">Index loaded contents, e.g. for animate of event sending</param>
         void UiLoadPackageWithNew(
             PackageCentralItem packItem,
-            AdminShellPackageEnv takeOverEnv = null,
+            AdminShellPackageFileBasedEnv takeOverEnv = null,
             string loadLocalFilename = null,
             string info = null,
             bool onlyAuxiliary = false,

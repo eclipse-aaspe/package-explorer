@@ -27,7 +27,7 @@ namespace AasxPluginKnownSubmodels
         //=============
 
         private LogInstance _log = new LogInstance();
-        private AdminShellPackageEnv _package = null;
+        private AdminShellPackageFileBasedEnv _package = null;
         private Aas.Submodel _submodel = null;
         private KnownSubmodelsOptions _options = null;
         private PluginEventStack _eventStack = null;
@@ -58,7 +58,7 @@ namespace AasxPluginKnownSubmodels
 
         public void Start(
             LogInstance log,
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageFileBasedEnv thePackage,
             Aas.Submodel theSubmodel,
             KnownSubmodelsOptions theOptions,
             PluginEventStack eventStack,
@@ -83,7 +83,7 @@ namespace AasxPluginKnownSubmodels
             object opanel)
         {
             // access
-            var package = opackage as AdminShellPackageEnv;
+            var package = opackage as AdminShellPackageFileBasedEnv;
             var sm = osm as Aas.Submodel;
             var panel = opanel as AnyUiStackPanel;
             if (package == null || sm == null || panel == null)
@@ -107,7 +107,7 @@ namespace AasxPluginKnownSubmodels
 
         private void RenderFullView(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
-            AdminShellPackageEnv package,
+            AdminShellPackageFileBasedEnv package,
             Aas.Submodel sm)
         {
             // test trivial access
@@ -127,7 +127,7 @@ namespace AasxPluginKnownSubmodels
         protected void RenderPanelOutside(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             IEnumerable<KnownSubmodelsOptionsRecord> foundRecs,
-            AdminShellPackageEnv package,
+            AdminShellPackageFileBasedEnv package,
             Aas.Submodel sm)
         {
             // make an outer grid, very simple grid of two rows: header & body
@@ -197,7 +197,7 @@ namespace AasxPluginKnownSubmodels
         protected void RenderPanelInner(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             KnownSubmodelsOptionsRecord rec,
-            AdminShellPackageEnv package,
+            AdminShellPackageFileBasedEnv package,
             Aas.Submodel sm)
         {
             // access

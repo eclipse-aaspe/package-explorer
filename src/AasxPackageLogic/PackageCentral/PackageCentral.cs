@@ -111,7 +111,7 @@ namespace AasxPackageLogic.PackageCentral
             }
         }
 
-        public bool TakeOver(AdminShellPackageEnv env)
+        public bool TakeOver(AdminShellPackageFileBasedEnv env)
         {
             try
             {
@@ -165,7 +165,7 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         public async Task<bool> SaveAsAsync(string saveAsNewFileName = null,
-            AdminShellPackageEnv.SerializationFormat prefFmt = AdminShellPackageEnv.SerializationFormat.None,
+            AdminShellPackageFileBasedEnv.SerializationFormat prefFmt = AdminShellPackageFileBasedEnv.SerializationFormat.None,
             PackCntRuntimeOptions runtimeOptions = null,
             bool doNotRememberLocation = false)
         {
@@ -250,12 +250,12 @@ namespace AasxPackageLogic.PackageCentral
             get { return _aux; }
         }
 
-        public AdminShellPackageEnv Main
+        public AdminShellPackageEnvBase Main
         {
             get { return _main?.Container?.Env; }
         }
 
-        public AdminShellPackageEnv Aux
+        public AdminShellPackageEnvBase Aux
         {
             get { return _aux?.Container?.Env; }
         }
@@ -307,7 +307,7 @@ namespace AasxPackageLogic.PackageCentral
                     yield return cnr;
         }
 
-        public IEnumerable<AdminShellPackageEnv> GetAllPackageEnv()
+        public IEnumerable<AdminShellPackageEnvBase> GetAllPackageEnv()
         {
             if (_main?.Container?.Env != null)
                 yield return _main?.Container.Env;
@@ -320,7 +320,7 @@ namespace AasxPackageLogic.PackageCentral
                             yield return ri.Env;
         }
 
-        public IEnumerable<AdminShellPackageEnv> GetAllPackageEnv(Func<AdminShellPackageEnv, bool> lambda)
+        public IEnumerable<AdminShellPackageEnvBase> GetAllPackageEnv(Func<AdminShellPackageEnvBase, bool> lambda)
         {
             foreach (var pe in GetAllPackageEnv())
                 if (lambda == null || lambda.Invoke(pe))

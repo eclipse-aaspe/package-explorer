@@ -190,7 +190,7 @@ namespace AasxPackageLogic.PackageCentral
             }
         }
 
-        public void AddByAasPackage(PackageCentral packageCentral, AdminShellPackageEnv env, string fn)
+        public void AddByAasPackage(PackageCentral packageCentral, AdminShellPackageFileBasedEnv env, string fn)
         {
             // access
             if (env == null)
@@ -219,7 +219,7 @@ namespace AasxPackageLogic.PackageCentral
             try
             {
                 // load
-                var pkg = new AdminShellPackageEnv(fn);
+                var pkg = new AdminShellPackageFileBasedEnv(fn);
 
                 // for each Admin Shell and then each AssetInformation
                 this.AddByAasPackage(packageCentral, pkg, fn);
@@ -243,7 +243,7 @@ namespace AasxPackageLogic.PackageCentral
         // Converters & generators
         //
 
-        public void PopulateFakePackage(AdminShellPackageEnv pkg)
+        public void PopulateFakePackage(AdminShellPackageFileBasedEnv pkg)
         {
             // access
             if (pkg == null)

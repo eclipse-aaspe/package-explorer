@@ -213,7 +213,7 @@ namespace AasxIntegrationBase.AasForms
                 }
         }
 
-        public static void ExportAsTemplate(AdminShellPackageEnv package, string fn)
+        public static void ExportAsTemplate(AdminShellPackageFileBasedEnv package, string fn)
         {
             // access
             if (fn == null || package == null || package.AasEnv == null)

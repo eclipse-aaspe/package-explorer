@@ -17,7 +17,7 @@ namespace AasxToolkit
     public static class Extract
     {
         public static void Extract2770Doc(
-            AdminShellPackageEnv package,
+            AdminShellPackageFileBasedEnv package,
             string findSys, string findClass, string targetFn)
         {
             // access

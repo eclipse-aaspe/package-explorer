@@ -24,13 +24,13 @@ namespace AasxBammRdfImExport
     public static class BAMMRDFimport
     {
 
-        public static AdminShellNS.AdminShellPackageEnv thePackageEnv;
+        public static AdminShellNS.AdminShellPackageFileBasedEnv thePackageEnv;
 
         public static void ImportInto(
             string rdffn, Aas.IEnvironment env, Aas.ISubmodel sm,
             Aas.Reference smref)
         {
-            thePackageEnv = new AdminShellNS.AdminShellPackageEnv();
+            thePackageEnv = new AdminShellNS.AdminShellPackageFileBasedEnv();
             List<string> entity_subject = new List<string>();
             List<string> autos_list = new List<string>();
             List<string> set_list = new List<string>();
