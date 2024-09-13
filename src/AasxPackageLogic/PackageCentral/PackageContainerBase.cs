@@ -225,8 +225,8 @@ namespace AasxPackageLogic.PackageCentral
     /// </summary>
     public class PackageContainerBase : IPackageConnectorManageEvents
     {
-        public enum Format { Unknown = 0, AASX, XML, JSON }
-        public static string[] FormatExt = { ".bin", ".aasx", ".xml", ".json" };
+        public enum Format { Unknown = 0, AASX, XML, JSON, Elements }
+        public static string[] FormatExt = { ".bin", ".aasx", ".xml", ".json", ".unknown" };
 
         public enum BackupType { XML = 0, FullCopy }
 
@@ -234,7 +234,7 @@ namespace AasxPackageLogic.PackageCentral
         public enum CopyMode { None = 0, Serialized = 1, BusinessData = 2 }
 
         [JsonIgnore]
-        public AdminShellPackageEnv Env = new AdminShellPackageEnv();
+        public AdminShellPackageEnvBase Env = new AdminShellPackageFileBasedEnv();
         
         [JsonIgnore]
         public Format IsFormat = Format.Unknown;
@@ -267,7 +267,7 @@ namespace AasxPackageLogic.PackageCentral
         public PackageContainerOptionsBase ContainerOptions = new PackageContainerOptionsBase();
 
         /// <summary>
-        /// Links (optionally) to the ContainerList, which hold this Container.
+        /// Links (optionally) to the ContainerList, which holds this Container.
         /// To be set after adding to the list.
         /// </summary>
         [JsonIgnore]
@@ -371,7 +371,7 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         public virtual async Task SaveToSourceAsync(string saveAsNewFileName = null,
-            AdminShellPackageEnv.SerializationFormat prefFmt = AdminShellPackageEnv.SerializationFormat.None,
+            AdminShellPackageFileBasedEnv.SerializationFormat prefFmt = AdminShellPackageFileBasedEnv.SerializationFormat.None,
             PackCntRuntimeOptions runtimeOptions = null,
             bool doNotRememberLocation = false)
         {

@@ -2548,7 +2548,7 @@ namespace AasxPackageLogic
                                 var tempFn = System.IO.Path.GetTempFileName().Replace(".tmp", ".txt");
                                 System.IO.File.WriteAllText(tempFn, "");
 
-                                var mimeType = AdminShellPackageEnv.GuessMimeType(ptfn);
+                                var mimeType = AdminShellPackageFileBasedEnv.GuessMimeType(ptfn);
 
                                 var targetPath = packages.Main.AddSupplementaryFileToStore(
                                     tempFn, ptd, ptfn,
@@ -2705,7 +2705,7 @@ namespace AasxPackageLogic
                                     var ptfn = System.IO.Path.GetFileName(uploadAssistance.SourcePath);
                                     packages.Main.PrepareSupplementaryFileParameters(ref ptd, ref ptfn);
 
-                                    var mimeType = AdminShellPackageEnv.GuessMimeType(ptfn);
+                                    var mimeType = AdminShellPackageFileBasedEnv.GuessMimeType(ptfn);
 
                                     var targetPath = packages.Main.AddSupplementaryFileToStore(
                                         uploadAssistance.SourcePath, ptd, ptfn,

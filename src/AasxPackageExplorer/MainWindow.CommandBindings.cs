@@ -415,7 +415,7 @@ namespace AasxPackageExplorer
 
                 // validate as XML
                 var ms = new MemoryStream();
-                PackageCentral.Main.SaveAs("noname.xml", true, AdminShellPackageEnv.SerializationFormat.Xml, ms,
+                PackageCentral.Main.SaveAs("noname.xml", true, AdminShellPackageFileBasedEnv.SerializationFormat.Xml, ms,
                     saveOnlyCopy: true);
                 ms.Flush();
                 ms.Position = 0;
@@ -424,7 +424,7 @@ namespace AasxPackageExplorer
 
                 // validate as JSON
                 var ms2 = new MemoryStream();
-                PackageCentral.Main.SaveAs("noname.json", true, AdminShellPackageEnv.SerializationFormat.Json, ms2,
+                PackageCentral.Main.SaveAs("noname.json", true, AdminShellPackageFileBasedEnv.SerializationFormat.Json, ms2,
                     saveOnlyCopy: true);
                 ms2.Flush();
                 ms2.Position = 0;
@@ -530,7 +530,7 @@ namespace AasxPackageExplorer
 
             // start CONNECT as a worker (will start in the background)
             var worker = new BackgroundWorker();
-            AdminShellPackageEnv envToload = null;
+            AdminShellPackageFileBasedEnv envToload = null;
             worker.DoWork += (s1, e1) =>
             {
                 for (int i = 0; i < 15; i++)

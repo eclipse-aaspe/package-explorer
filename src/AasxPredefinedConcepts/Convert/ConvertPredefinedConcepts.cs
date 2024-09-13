@@ -37,7 +37,7 @@ namespace AasxPredefinedConcepts.Convert
         }
 
         public virtual bool ExecuteOffer(
-            AdminShellPackageEnv package, Aas.IReferable currentReferable, ConvertOfferBase offer,
+            AdminShellPackageEnvBase package, Aas.IReferable currentReferable, ConvertOfferBase offer,
             bool deleteOldCDs, bool addNewCDs)
         {
             return true;

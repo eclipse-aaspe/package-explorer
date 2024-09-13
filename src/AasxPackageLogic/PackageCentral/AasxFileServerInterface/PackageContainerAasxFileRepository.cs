@@ -73,7 +73,7 @@ namespace AasxPackageLogic.PackageCentral.AasxFileServerInterface
             {
                 var container = new AasxFilePackageContainerBase
                 {
-                    Env = new AdminShellPackageEnv(fileName, indirectLoadSave: false),
+                    Env = new AdminShellPackageFileBasedEnv(fileName, indirectLoadSave: false),
                     ContainerList = this,
                     IsFormat = PackageContainerBase.Format.AASX,        //TODO (jtikekar, 2022-04-04): Based on file
                     PackageId = packageId
@@ -125,7 +125,7 @@ namespace AasxPackageLogic.PackageCentral.AasxFileServerInterface
             try
             {
                 // load
-                var packageEnv = new AdminShellPackageEnv(fileName);
+                var packageEnv = new AdminShellPackageFileBasedEnv(fileName);
 
                 // for each Admin Shell and then each Aas.AssetInformation
                 var packageContainer = new PackageContainerRepoItem()

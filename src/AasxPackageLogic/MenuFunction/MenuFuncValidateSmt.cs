@@ -255,7 +255,7 @@ namespace AasxPackageExplorer
         }
 
         public void PerformValidation(
-            Aas.Environment givenEnv = null, AdminShellPackageEnv package = null, string fn = null)
+            Aas.Environment givenEnv = null, AdminShellPackageEnvBase package = null, string fn = null)
         {
             // access
             Env = givenEnv;

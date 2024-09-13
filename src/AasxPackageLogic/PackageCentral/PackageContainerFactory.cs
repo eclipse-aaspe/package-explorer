@@ -70,6 +70,16 @@ namespace AasxPackageLogic.PackageCentral
                 };
             }
 
+            // has some API patterns indicating that it is part / element of a HTTP based repository
+            if (PackageContainerHttpRepoSubset.IsValidUriAnyMatch(location))
+            {
+                return new PackageContainerGuess()
+                {
+                    Location = location,
+                    GuessedType = typeof(PackageContainerHttpRepoSubset)
+                };
+            }
+
             // starts with http ?
             if (ll.StartsWith("http://") || ll.StartsWith("https://"))
             {
@@ -199,6 +209,15 @@ namespace AasxPackageLogic.PackageCentral
                             packageCentral, location, fullItemLocation,
                             overrideLoadResident, takeOver,
                             containerOptions, runtimeOptions);
+                return cnt;
+            }
+
+            if (guess.GuessedType == typeof(PackageContainerHttpRepoSubset))
+            {
+                var cnt = await PackageContainerHttpRepoSubset.CreateAndLoadAsync(
+                            packageCentral, location, fullItemLocation,
+                            overrideLoadResident, takeOver: takeOver,
+                            containerOptions: containerOptions, runtimeOptions: runtimeOptions);
                 return cnt;
             }
 

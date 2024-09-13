@@ -39,7 +39,7 @@ namespace AasxPluginPlotting
             InitializeComponent();
         }
 
-        private AdminShellPackageEnv _package = null;
+        private AdminShellPackageFileBasedEnv _package = null;
         private Aas.Submodel _submodel = null;
         private PlottingOptions _options = null;
         private PluginEventStack _pluginEvents = null;
@@ -52,7 +52,7 @@ namespace AasxPluginPlotting
         private string _defaultLang = null;
 
         public void Start(
-            AdminShellPackageEnv package,
+            AdminShellPackageFileBasedEnv package,
             Aas.Submodel sm,
             PlottingOptions options,
             PluginEventStack pluginEvents,

@@ -174,7 +174,7 @@ namespace AasxPluginDocumentShelf
         //
 
         public static ListOfDocumentEntity ParseSubmodelForV10(
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageFileBasedEnv thePackage,
             Aas.Submodel subModel, AasxPluginDocumentShelf.DocumentShelfOptions options,
             string defaultLang,
             int selectedDocClass, AasxLanguageTuple selectedLanguage)
@@ -348,7 +348,7 @@ namespace AasxPluginDocumentShelf
         }
 
         public static ListOfDocumentEntity ParseSubmodelForV11(
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageFileBasedEnv thePackage,
             Aas.Submodel subModel, AasxPredefinedConcepts.VDI2770v11 defs11,
             string defaultLang,
             int selectedDocClass, AasxLanguageTuple selectedLanguage)
@@ -553,7 +553,7 @@ namespace AasxPluginDocumentShelf
         }
 
         public static ListOfDocumentEntity ParseSubmodelForV12(
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageFileBasedEnv thePackage,
             Aas.Submodel subModel, AasxPredefinedConcepts.IdtaHandoverDocumentationV12 defs12,
             string defaultLang,
             int selectedDocClass, AasxLanguageTuple selectedLanguage)

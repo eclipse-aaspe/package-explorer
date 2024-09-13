@@ -246,11 +246,175 @@ namespace AdminShellNS
         // dead-csharp on
     }
 
+    public abstract class AdminShellPackageEnvBase : IDisposable
+    {
+        public enum SerializationFormat { None, Xml, Json };
+
+        protected IEnvironment _aasEnv = new AasCore.Aas3_0.Environment();
+
+        public AdminShellPackageEnvBase() { }
+
+        public AdminShellPackageEnvBase(AasCore.Aas3_0.Environment env)
+        {
+            if (env != null)
+                _aasEnv = env;
+        }
+
+        public IEnvironment AasEnv
+        {
+            get
+            {
+                return _aasEnv;
+            }
+        }
+
+        public void SetEnvironment(IEnvironment environment)
+        {
+            _aasEnv = environment;
+        }
+
+        // TODO: remove, is not for base class!!
+        public virtual void SetFilename(string fileName)
+        {
+        }
+
+        // TODO: remove, is not for base class!!
+        public virtual string Filename
+        {
+            get
+            {
+                return "";
+            }
+        }
+
+        public virtual Stream GetLocalStreamFromPackage(
+            string uriString, 
+            FileMode mode = FileMode.Open, 
+            FileAccess access = FileAccess.Read)
+        {
+            return null;
+        }
+
+        public virtual void PrepareSupplementaryFileParameters(ref string targetDir, ref string targetFn)
+        {
+        }
+
+        public virtual string AddSupplementaryFileToStore(
+            string sourcePath, string targetDir, string targetFn, bool embedAsThumb,
+            AdminShellPackageSupplementaryFile.SourceGetByteChunk sourceGetBytesDel = null, string useMimeType = null)
+        {
+            return null;
+        }
+
+        public virtual byte[] GetByteArrayFromUriOrLocalPackage(string uriString)
+        {
+            return null;
+        }
+
+        /// <remarks>
+        /// Ensures:
+        /// <ul><li><c>result == null || result.CanRead</c></li></ul>
+        /// </remarks>
+        public Stream GetLocalThumbnailStream()
+        {
+            Uri dummy = null;
+            var result = GetLocalThumbnailStream(ref dummy);
+
+            // Post-condition
+            if (!(result == null || result.CanRead))
+            {
+                throw new InvalidOperationException("Unexpected unreadable result stream");
+            }
+
+            return result;
+        }
+
+        /// <remarks>
+        /// Ensures:
+        /// <ul><li><c>result == null || result.CanRead</c></li></ul>
+        /// </remarks>
+        public virtual Stream GetLocalThumbnailStream(ref Uri thumbUri)
+        {
+            return null;
+        }
+
+        public virtual Stream GetStreamFromUriOrLocalPackage(string uriString,
+            FileMode mode = FileMode.Open,
+            FileAccess access = FileAccess.Read)
+        {
+            return null;
+        }
+
+        public virtual ListOfAasSupplementaryFile GetListOfSupplementaryFiles()
+        {
+            return null;
+        }
+
+        public virtual void DeleteSupplementaryFile(AdminShellPackageSupplementaryFile psf)
+        {
+        }
+
+        /// <summary>
+        /// Copies/ download contents and will return filenam of temp file.
+        /// </summary>
+        /// <returns></returns>
+        public virtual string MakePackageFileAvailableAsTempFile(string packageUri, bool keepFilename = false)
+        {
+            return null;
+        }
+
+        public virtual bool SaveAs(
+            string fn, bool writeFreshly = false, 
+            SerializationFormat prefFmt = SerializationFormat.None,
+            MemoryStream useMemoryStream = null, bool saveOnlyCopy = false)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Temporariyl saves & closes package and executes lambda. Afterwards, the package is re-opened
+        /// under the same file name
+        /// </summary>
+        /// <param name="lambda">Action which is to be executed while the file is CLOSED</param>
+        /// <param name="prefFmt">Format for the saved file</param>
+        public virtual void TemporarilySaveCloseAndReOpenPackage(
+            Action lambda,
+            AdminShellPackageFileBasedEnv.SerializationFormat prefFmt = AdminShellPackageFileBasedEnv.SerializationFormat.None)
+        {
+        }
+
+        public virtual bool IsOpen
+        {
+            get
+            {
+                // negative default behaviour
+                return false;
+            }
+        }
+
+        public virtual bool IsLocalFile(string uriString)
+        {
+            return false;
+        }
+
+        public virtual void Close()
+        {
+        }
+
+        public virtual void Flush()
+        {
+        }
+
+        public virtual void Dispose()
+        {
+        }
+    }
+
     /// <summary>
     /// This class encapsulates an AdminShellEnvironment and supplementary files into an AASX Package.
     /// Specifically has the capability to load, update and store .XML, .JSON and .AASX packages.
     /// </summary>
-    public class AdminShellPackageEnv : IDisposable
+    public class AdminShellPackageFileBasedEnv : AdminShellPackageEnvBase
     {
         // Note: the first array element [0] should be conforming the actual spec (for saving)
         protected static string[] relTypesOrigin = new[] {
@@ -276,25 +440,20 @@ namespace AdminShellNS
 
         private string _tempFn = null;
 
-        private IEnvironment _aasEnv = new AasCore.Aas3_0.Environment();
         private Package _openPackage = null;
         private readonly ListOfAasSupplementaryFile _pendingFilesToAdd = new ListOfAasSupplementaryFile();
         private readonly ListOfAasSupplementaryFile _pendingFilesToDelete = new ListOfAasSupplementaryFile();
 
-        public AdminShellPackageEnv() { }
+        public AdminShellPackageFileBasedEnv() : base() { }
 
-        public AdminShellPackageEnv(AasCore.Aas3_0.Environment env)
-        {
-            if (env != null)
-                _aasEnv = env;
-        }
+        public AdminShellPackageFileBasedEnv(AasCore.Aas3_0.Environment env) : base(env) { }
 
-        public AdminShellPackageEnv(string fn, bool indirectLoadSave = false)
+        public AdminShellPackageFileBasedEnv(string fn, bool indirectLoadSave = false) : base()
         {
             Load(fn, indirectLoadSave);
         }
 
-        public bool IsOpen
+        public override bool IsOpen
         {
             get
             {
@@ -302,30 +461,17 @@ namespace AdminShellNS
             }
         }
 
-        public void SetFilename(string fileName)
+        public override void SetFilename(string fileName)
         {
             _fn = fileName;
         }
 
-        public string Filename
+        public override string Filename
         {
             get
             {
                 return _fn;
             }
-        }
-
-        public IEnvironment AasEnv
-        {
-            get
-            {
-                return _aasEnv;
-            }
-        }
-
-        public void SetEnvironment(IEnvironment environment)
-        {
-            _aasEnv = environment;
         }
 
         private class FindRelTuple
@@ -631,7 +777,7 @@ namespace AdminShellNS
             }
         }
 
-        public enum SerializationFormat { None, Xml, Json };
+        
         // dead-csharp off
         //public static XmlSerializerNamespaces GetXmlDefaultNamespaces()
         //{
@@ -643,7 +789,8 @@ namespace AdminShellNS
         //    return nss;
         //}
         // dead-csharp on
-        public bool SaveAs(string fn, bool writeFreshly = false, SerializationFormat prefFmt = SerializationFormat.None,
+        
+        public override bool SaveAs(string fn, bool writeFreshly = false, SerializationFormat prefFmt = SerializationFormat.None,
                 MemoryStream useMemoryStream = null, bool saveOnlyCopy = false)
         {
             // silently fix flaws
@@ -1091,7 +1238,7 @@ namespace AdminShellNS
                                 var mimeType = psfAdd.UseMimeType;
                                 // reconcile mime
                                 if (mimeType == null && psfAdd.SourceLocalPath != null)
-                                    mimeType = AdminShellPackageEnv.GuessMimeType(psfAdd.SourceLocalPath);
+                                    mimeType = AdminShellPackageFileBasedEnv.GuessMimeType(psfAdd.SourceLocalPath);
                                 // still null?
                                 if (mimeType == null)
                                     // see: https://stackoverflow.com/questions/6783921/
@@ -1172,9 +1319,9 @@ namespace AdminShellNS
         /// </summary>
         /// <param name="lambda">Action which is to be executed while the file is CLOSED</param>
         /// <param name="prefFmt">Format for the saved file</param>
-        public void TemporarilySaveCloseAndReOpenPackage(
+        public override void TemporarilySaveCloseAndReOpenPackage(
             Action lambda,
-            AdminShellPackageEnv.SerializationFormat prefFmt = AdminShellPackageEnv.SerializationFormat.None)
+            AdminShellPackageFileBasedEnv.SerializationFormat prefFmt = AdminShellPackageFileBasedEnv.SerializationFormat.None)
         {
             // access 
             if (!this.IsOpen)
@@ -1274,7 +1421,7 @@ namespace AdminShellNS
             }
         }
 
-        public Stream GetStreamFromUriOrLocalPackage(string uriString,
+        public override Stream GetStreamFromUriOrLocalPackage(string uriString,
             FileMode mode = FileMode.Open,
             FileAccess access = FileAccess.Read)
         {
@@ -1286,7 +1433,7 @@ namespace AdminShellNS
             return System.IO.File.Open(uriString, mode, access);
         }
 
-        public byte[] GetByteArrayFromUriOrLocalPackage(string uriString)
+        public override byte[] GetByteArrayFromUriOrLocalPackage(string uriString)
         {
             try
             {
@@ -1306,7 +1453,7 @@ namespace AdminShellNS
             }
         }
 
-        public bool IsLocalFile(string uriString)
+        public override bool IsLocalFile(string uriString)
         {
             // access
             if (_openPackage == null)
@@ -1321,7 +1468,7 @@ namespace AdminShellNS
 
         private static WebProxy proxy = null;
 
-        public Stream GetLocalStreamFromPackage(string uriString, FileMode mode = FileMode.Open, FileAccess access = FileAccess.Read)
+        public override Stream GetLocalStreamFromPackage(string uriString, FileMode mode = FileMode.Open, FileAccess access = FileAccess.Read)
         {
             // Check, if remote
             if (uriString.ToLower().Substring(0, 4) == "http")
@@ -1486,7 +1633,7 @@ namespace AdminShellNS
         /// Ensures:
         /// <ul><li><c>result == null || result.CanRead</c></li></ul>
         /// </remarks>
-        public Stream GetLocalThumbnailStream(ref Uri thumbUri)
+        public virtual Stream GetLocalThumbnailStream(ref Uri thumbUri)
         {
             // access
             if (_openPackage == null)
@@ -1517,27 +1664,9 @@ namespace AdminShellNS
             }
 
             return result;
-        }
+        }        
 
-        /// <remarks>
-        /// Ensures:
-        /// <ul><li><c>result == null || result.CanRead</c></li></ul>
-        /// </remarks>
-        public Stream GetLocalThumbnailStream()
-        {
-            Uri dummy = null;
-            var result = GetLocalThumbnailStream(ref dummy);
-
-            // Post-condition
-            if (!(result == null || result.CanRead))
-            {
-                throw new InvalidOperationException("Unexpected unreadable result stream");
-            }
-
-            return result;
-        }
-
-        public ListOfAasSupplementaryFile GetListOfSupplementaryFiles()
+        public override ListOfAasSupplementaryFile GetListOfSupplementaryFiles()
         {
             // new result
             var result = new ListOfAasSupplementaryFile();
@@ -1648,7 +1777,7 @@ namespace AdminShellNS
             return content_type;
         }
 
-        public void PrepareSupplementaryFileParameters(ref string targetDir, ref string targetFn)
+        public override void PrepareSupplementaryFileParameters(ref string targetDir, ref string targetFn)
         {
             // re-work target dir
             if (targetDir != null)
@@ -1664,7 +1793,7 @@ namespace AdminShellNS
         /// materialize embedding.
         /// </summary>
         /// <returns>Target path of file in package</returns>
-        public string AddSupplementaryFileToStore(
+        public override string AddSupplementaryFileToStore(
             string sourcePath, string targetDir, string targetFn, bool embedAsThumb,
             AdminShellPackageSupplementaryFile.SourceGetByteChunk sourceGetBytesDel = null, string useMimeType = null)
         {
@@ -1714,7 +1843,7 @@ namespace AdminShellNS
 
         }
 
-        public void DeleteSupplementaryFile(AdminShellPackageSupplementaryFile psf)
+        public override void DeleteSupplementaryFile(AdminShellPackageSupplementaryFile psf)
         {
             if (psf == null)
                 throw (new Exception("No supplementary file given!"));
@@ -1732,7 +1861,7 @@ namespace AdminShellNS
             }
         }
 
-        public void Close()
+        public override void Close()
         {
             _openPackage?.Close();
             _openPackage = null;
@@ -1740,18 +1869,18 @@ namespace AdminShellNS
             _aasEnv = null;
         }
 
-        public void Flush()
+        public override void Flush()
         {
             if (_openPackage != null)
                 _openPackage.Flush();
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             Close();
         }
 
-        public string MakePackageFileAvailableAsTempFile(string packageUri, bool keepFilename = false)
+        public override string MakePackageFileAvailableAsTempFile(string packageUri, bool keepFilename = false)
         {
             // access
             if (packageUri == null)

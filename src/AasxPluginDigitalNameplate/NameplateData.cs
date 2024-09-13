@@ -63,7 +63,7 @@ namespace AasxPluginDigitalNameplate
         //
 
         public static string TryGuessAssetId(
-            AdminShellPackageEnv package,
+            AdminShellPackageFileBasedEnv package,
             Aas.Submodel subModel)
         {
             // access
@@ -82,7 +82,7 @@ namespace AasxPluginDigitalNameplate
         //
 
         public static NameplateData ParseSubmodelForV10(
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageFileBasedEnv thePackage,
             Aas.Submodel subModel, DigitalNameplateOptions options,
             string defaultLang = null)
         {
@@ -205,7 +205,7 @@ namespace AasxPluginDigitalNameplate
         //
 
         public static NameplateData ParseSubmodelForV20(
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageFileBasedEnv thePackage,
             Aas.Submodel subModel, DigitalNameplateOptions options,
             string defaultLang = null)
         {

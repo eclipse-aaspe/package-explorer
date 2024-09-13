@@ -590,14 +590,14 @@ namespace AasxPackageLogic
         }
 
         public string thePackageSourceFn;
-        public AdminShellPackageEnv thePackage = null;
+        public AdminShellPackageEnvBase thePackage = null;
         public Aas.IEnvironment theEnv = null;
         public ItemType theItemType = ItemType.Env;
         private object _mainDataObject;
         private static ConceptDescSortOrder _cdSortOrder = ConceptDescSortOrder.None;
 
         public VisualElementEnvironmentItem(
-            VisualElementGeneric parent, TreeViewLineCache cache, AdminShellPackageEnv package,
+            VisualElementGeneric parent, TreeViewLineCache cache, AdminShellPackageEnvBase package,
             Aas.IEnvironment env, ItemType itemType,
             string packageSourceFn = null,
             object mainDataObject = null)
@@ -687,12 +687,12 @@ namespace AasxPackageLogic
 
     public class VisualElementAdminShell : VisualElementGeneric
     {
-        public AdminShellPackageEnv thePackage = null;
+        public AdminShellPackageEnvBase thePackage = null;
         public Aas.IEnvironment theEnv = null;
         public Aas.IAssetAdministrationShell theAas = null;
 
         public VisualElementAdminShell(
-            VisualElementGeneric parent, TreeViewLineCache cache, AdminShellPackageEnv package,
+            VisualElementGeneric parent, TreeViewLineCache cache, AdminShellPackageEnvBase package,
             Aas.IEnvironment env, Aas.IAssetAdministrationShell aas)
             : base()
         {
@@ -787,14 +787,14 @@ namespace AasxPackageLogic
     public class VisualElementSubmodelRef : VisualElementGeneric
     {
         public Aas.IEnvironment theEnv = null;
-        public AdminShellPackageEnv thePackage = null;
+        public AdminShellPackageEnvBase thePackage = null;
         public Aas.IAssetAdministrationShell theAas = null;
         public Aas.IReference theSubmodelRef = null;
         public Aas.ISubmodel theSubmodel = null;
 
         public VisualElementSubmodelRef(
             VisualElementGeneric parent, TreeViewLineCache cache, Aas.IEnvironment env,
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.IAssetAdministrationShell aas,
             Aas.IReference smr, Aas.ISubmodel sm)
             : base()
@@ -1475,11 +1475,11 @@ namespace AasxPackageLogic
 
     public class VisualElementSupplementalFile : VisualElementGeneric
     {
-        public AdminShellPackageEnv thePackage = null;
+        public AdminShellPackageEnvBase thePackage = null;
         public AdminShellPackageSupplementaryFile theFile = null;
 
         public VisualElementSupplementalFile(
-            VisualElementGeneric parent, TreeViewLineCache cache, AdminShellPackageEnv package,
+            VisualElementGeneric parent, TreeViewLineCache cache, AdminShellPackageEnvBase package,
             AdminShellPackageSupplementaryFile sf)
             : base()
         {
@@ -1532,7 +1532,7 @@ namespace AasxPackageLogic
 
     public class VisualElementPluginExtension : VisualElementGeneric
     {
-        public AdminShellPackageEnv thePackage = null;
+        public AdminShellPackageEnvBase thePackage = null;
         public Aas.IReferable theReferable = null;
 
         public Plugins.PluginInstance thePlugin = null;
@@ -1541,7 +1541,7 @@ namespace AasxPackageLogic
         public VisualElementPluginExtension(
             VisualElementGeneric parent,
             TreeViewLineCache cache,
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.IReferable referable,
             Plugins.PluginInstance plugin,
             AasxIntegrationBase.AasxPluginResultVisualExtension ext)
@@ -1834,7 +1834,7 @@ namespace AasxPackageLogic
         }
 
         private void GenerateInnerElementsForSubmodelRef(
-            TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnv package,
+            TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnvBase package,
             Aas.ISubmodel sm,
             VisualElementSubmodelRef tiSm)
         {
@@ -1877,7 +1877,7 @@ namespace AasxPackageLogic
             Aas.ISubmodel sm,
             Aas.IReference smr,
             VisualElementGeneric parent,
-            TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnv package = null)
+            TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnvBase package = null)
         {
             // trivial
             if (smr == null || sm == null)
@@ -1904,7 +1904,7 @@ namespace AasxPackageLogic
 
         private VisualElementAdminShell GenerateVisuElemForAAS(
             Aas.IAssetAdministrationShell aas,
-            TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnv package = null,
+            TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnvBase package = null,
             bool editMode = false)
         {
             // trivial
@@ -2205,7 +2205,7 @@ namespace AasxPackageLogic
         }
 
         public void AddVisualElementsFromShellEnv(
-            TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnv package = null,
+            TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnvBase package = null,
             string packageSourceFn = null,
             bool editMode = false, int expandMode = 0, bool lazyLoadingFirst = false)
         {
@@ -2425,7 +2425,7 @@ namespace AasxPackageLogic
         }
 
         private void SetElementToLazyLoading(
-            TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnv package,
+            TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnvBase package,
             VisualElementGeneric parent)
         {
             var tiDummy = new VisualElementEnvironmentItem(parent, cache, package, env,

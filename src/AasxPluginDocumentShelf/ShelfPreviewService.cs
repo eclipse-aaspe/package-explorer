@@ -63,11 +63,11 @@ namespace AasxPluginDocumentShelf
 
 			public AnyUiBitmapInfo Bitmap = null;
 
-			public AdminShellPackageEnv Package = null;
+			public AdminShellPackageFileBasedEnv Package = null;
 
 			public DateTime LastUse = DateTime.Now;
 
-			public RenderEntity(AdminShellPackageEnv package, string supplFn)
+			public RenderEntity(AdminShellPackageFileBasedEnv package, string supplFn)
 			{
 				Package = package;
 				PackageFn = package?.Filename;

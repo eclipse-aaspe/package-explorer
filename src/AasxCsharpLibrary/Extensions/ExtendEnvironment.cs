@@ -964,6 +964,24 @@ namespace Extensions
                         yield return new LocatedReference(cd, r);
         }
 
+        // TODO: Integrate into above function
+        public static IEnumerable<LocatedReference> FindAllSubmodelReferences(
+            this AasCore.Aas3_0.IEnvironment environment,
+            bool onlyNotExisting = false)
+        {
+            // unique set of references
+            var refs = new List<LocatedReference>();
+            foreach (var aas in environment.AllAssetAdministrationShells())
+                foreach (var smr in aas?.Submodels)
+                    refs.AddIfNew(new LocatedReference() { Identifiable = aas, Reference = smr});
+
+            // only existing
+            foreach (var lr in refs)
+                if (!onlyNotExisting
+                    || null == environment.FindSubmodel(lr?.Reference))
+                    yield return lr;
+        }
+
         /// <summary>
         /// Tries renaming an Identifiable, specifically: the identification of an Identifiable and
         /// all references to it.

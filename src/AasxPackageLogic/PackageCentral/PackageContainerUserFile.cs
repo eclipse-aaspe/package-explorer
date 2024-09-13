@@ -243,7 +243,7 @@ namespace AasxPackageLogic.PackageCentral
             try
             {
                 // TODO (MIHO, 2020-12-15): consider removing "indirectLoadSave" from AdminShellPackageEnv
-                Env = new AdminShellPackageEnv(fn, indirectLoadSave: false);
+                Env = new AdminShellPackageFileBasedEnv(fn, indirectLoadSave: false);
             }
             catch (Exception ex)
             {
@@ -256,7 +256,7 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         public override async Task SaveToSourceAsync(string saveAsNewFileName = null,
-            AdminShellPackageEnv.SerializationFormat prefFmt = AdminShellPackageEnv.SerializationFormat.None,
+            AdminShellPackageFileBasedEnv.SerializationFormat prefFmt = AdminShellPackageFileBasedEnv.SerializationFormat.None,
             PackCntRuntimeOptions runtimeOptions = null,
             bool doNotRememberLocation = false)
         {

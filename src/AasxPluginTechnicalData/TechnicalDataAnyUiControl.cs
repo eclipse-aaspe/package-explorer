@@ -36,7 +36,7 @@ namespace AasxPluginTechnicalData
         //=============
 
         private LogInstance _log = new LogInstance();
-        private AdminShellPackageEnv _package = null;
+        private AdminShellPackageFileBasedEnv _package = null;
         private Aas.Submodel _submodel = null;
         private TechnicalDataOptions _options = null;
         private PluginEventStack _eventStack = null;
@@ -68,7 +68,7 @@ namespace AasxPluginTechnicalData
 
         public void Start(
             LogInstance log,
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageFileBasedEnv thePackage,
             Aas.Submodel theSubmodel,
             TechnicalDataOptions theOptions,
             PluginEventStack eventStack,
@@ -96,7 +96,7 @@ namespace AasxPluginTechnicalData
             AasxPluginBase plugin)
         {
             // access
-            var package = opackage as AdminShellPackageEnv;
+            var package = opackage as AdminShellPackageFileBasedEnv;
             var sm = osm as Aas.Submodel;
             var panel = opanel as AnyUiStackPanel;
             if (package == null || sm == null || panel == null)
@@ -120,7 +120,7 @@ namespace AasxPluginTechnicalData
 
         private void RenderFullView(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
-            AdminShellPackageEnv package,
+            AdminShellPackageFileBasedEnv package,
             Aas.Submodel sm, string defaultLang = null)
         {
             // test trivial access
@@ -146,7 +146,7 @@ namespace AasxPluginTechnicalData
         protected void RenderPanelOutside(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             ConceptModelZveiTechnicalData theDefs,
-            AdminShellPackageEnv package,
+            AdminShellPackageFileBasedEnv package,
             Aas.Submodel sm, string defaultLang = null)
         {
             // make an outer grid, very simple grid of two rows: header & body
@@ -281,7 +281,7 @@ namespace AasxPluginTechnicalData
         protected void RenderPanelHeader(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             ConceptModelZveiTechnicalData theDefs,
-            AdminShellPackageEnv package,
+            AdminShellPackageFileBasedEnv package,
             Aas.Submodel sm, string defaultLang = null)
         {
             // access
@@ -562,7 +562,7 @@ namespace AasxPluginTechnicalData
         }
 
         protected void TableAddPropertyRows_Recurse(
-            ConceptModelZveiTechnicalData theDefs, string defaultLang, AdminShellPackageEnv package,
+            ConceptModelZveiTechnicalData theDefs, string defaultLang, AdminShellPackageFileBasedEnv package,
             List<TripleRowData> rows, List<Aas.ISubmodelElement> smec, int depth = 0)
         {
             // access
@@ -713,7 +713,7 @@ namespace AasxPluginTechnicalData
         protected void RenderPanelInner(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             ConceptModelZveiTechnicalData theDefs,
-            AdminShellPackageEnv package,
+            AdminShellPackageFileBasedEnv package,
             Aas.Submodel sm, string defaultLang = null)
         {
             // access
@@ -752,7 +752,7 @@ namespace AasxPluginTechnicalData
         protected void RenderPanelFooter(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             ConceptModelZveiTechnicalData theDefs,
-            AdminShellPackageEnv package,
+            AdminShellPackageFileBasedEnv package,
             Aas.Submodel sm, string defaultLang = null)
         {
             // access

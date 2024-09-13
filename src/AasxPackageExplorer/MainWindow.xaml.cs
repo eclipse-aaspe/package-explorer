@@ -261,16 +261,16 @@ namespace AasxPackageExplorer
             }
         }
 
-        private AdminShellPackageEnv LoadPackageFromFile(string fn)
+        private AdminShellPackageFileBasedEnv LoadPackageFromFile(string fn)
         {
             if (fn.Trim().ToLower().EndsWith(".aml"))
             {
-                var res = new AdminShellPackageEnv();
+                var res = new AdminShellPackageFileBasedEnv();
                 AasxAmlImExport.AmlImport.ImportInto(res, fn);
                 return res;
             }
             else
-                return new AdminShellPackageEnv(fn, Options.Curr.IndirectLoadSave);
+                return new AdminShellPackageFileBasedEnv(fn, Options.Curr.IndirectLoadSave);
         }
 
         public void TakeOverContentEnable(bool enabled)
@@ -366,7 +366,7 @@ namespace AasxPackageExplorer
         /// <param name="indexItems">Index loaded contents, e.g. for animate of event sending</param>
         public void UiLoadPackageWithNew(
             PackageCentralItem packItem,
-            AdminShellPackageEnv takeOverEnv = null,
+            AdminShellPackageFileBasedEnv takeOverEnv = null,
             string loadLocalFilename = null,
             string info = null,
             bool onlyAuxiliary = false,
@@ -590,7 +590,7 @@ namespace AasxPackageExplorer
         }
 
         public void PrepareDispEditEntity(
-            AdminShellPackageEnv package, ListOfVisualElementBasic entities,
+            AdminShellPackageEnvBase package, ListOfVisualElementBasic entities,
             bool editMode, bool hintMode, bool showIriMode, bool checkSmt,
             DispEditHighlight.HighlightFieldInfo hightlightField = null)
         {

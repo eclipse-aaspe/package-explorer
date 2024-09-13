@@ -50,7 +50,7 @@ namespace BlazorUI.Data
         /// </summary>
         public string HtmlImageData { get; set; }
 
-        public void SetInfos(Aas.IAssetAdministrationShell aas, AdminShellPackageEnv env)
+        public void SetInfos(Aas.IAssetAdministrationShell aas, AdminShellPackageEnvBase env)
         {
             // access
             AasId = "<id missing!>";
