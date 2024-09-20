@@ -9,6 +9,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AasxCompatibilityModels;
 using Extensions;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -1192,6 +1193,22 @@ namespace AdminShellNS
         {
             var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
             return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+        }
+
+        //
+        // Base 64 URL
+        //        
+
+        // Note: requires Microsoft.IdentityModel.Tokens
+
+        public static string Base64UrlEncode(string plainUrl)
+        {
+            return Base64UrlEncoder.Encode(plainUrl);
+        }
+
+        public static string Base64UrlDecode(string base64Url)
+        {
+            return Base64UrlEncoder.Decode(base64Url);
         }
 
         /// <summary>

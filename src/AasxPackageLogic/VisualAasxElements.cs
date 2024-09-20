@@ -10,6 +10,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 using AasxIntegrationBase;
 using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
+using AdminShellNS.DiaryData;
 using AnyUi;
 using Extensions;
 using Namotion.Reflection;
@@ -34,6 +35,11 @@ namespace AasxPackageLogic
     public interface IManageVisualAasxElements
     {
         VisualElementGeneric GetSelectedItem();
+    }
+
+    public interface ITaintableIdentifiable
+    {
+        DateTime? GetTaintedTime();
     }
 
     public class TreeViewLineCache
@@ -685,7 +691,7 @@ namespace AasxPackageLogic
 		}
 	}
 
-    public class VisualElementAdminShell : VisualElementGeneric
+    public class VisualElementAdminShell : VisualElementGeneric, ITaintableIdentifiable
     {
         public AdminShellPackageEnvBase thePackage = null;
         public Aas.IEnvironment theEnv = null;
@@ -720,6 +726,13 @@ namespace AasxPackageLogic
         public override object GetMainDataObject()
         {
             return theAas;
+        }
+
+        public DateTime? GetTaintedTime()
+        {
+            if (theAas is ITaintedData itd && itd.TaintedData?.Tainted != null)
+                return itd.TaintedData.Tainted;
+            return null;
         }
 
         public override void RefreshFromMainData()
@@ -784,7 +797,7 @@ namespace AasxPackageLogic
         }
     }
 
-    public class VisualElementSubmodelRef : VisualElementGeneric
+    public class VisualElementSubmodelRef : VisualElementGeneric, ITaintableIdentifiable
     {
         public Aas.IEnvironment theEnv = null;
         public AdminShellPackageEnvBase thePackage = null;
@@ -832,12 +845,23 @@ namespace AasxPackageLogic
             return theSubmodel;
         }
 
+        public DateTime? GetTaintedTime()
+        {
+            if (theSubmodel is ITaintedData itd && itd.TaintedData?.Tainted != null)
+                return itd.TaintedData.Tainted;
+            return null;
+        }
+
         public override void RefreshFromMainData()
         {
             if (theSubmodel != null)
             {
+                var td = "";
+                if (GetTaintedTime() != null)
+                    td = "\u273d ";
+
                 var ci = theSubmodel.ToCaptionInfo();
-                this.Caption = ((theSubmodel.Kind != null && theSubmodel.Kind == Aas.ModellingKind.Template) ? "<T> " : "") + ci.Item1;
+                this.Caption = td + ((theSubmodel.Kind != null && theSubmodel.Kind == Aas.ModellingKind.Template) ? "<T> " : "") + ci.Item1;
                 this.Info = ci.Item2;
             }
             else
@@ -845,11 +869,10 @@ namespace AasxPackageLogic
                 this.Caption = "Missing Aas.Submodel for Reference!";
                 this.Info = "->" + ((this.theSubmodelRef == null) ? "<null>" : this.theSubmodelRef.ToString());
             }
-        }
-
+        }        
     }
 
-    public class VisualElementSubmodel : VisualElementGeneric
+    public class VisualElementSubmodel : VisualElementGeneric, ITaintableIdentifiable
     {
         public Aas.IEnvironment theEnv = null;
         public Aas.ISubmodel theSubmodel = null;
@@ -884,13 +907,70 @@ namespace AasxPackageLogic
             return theSubmodel;
         }
 
+        public DateTime? GetTaintedTime()
+        {
+            if (theSubmodel is ITaintedData itd && itd.TaintedData?.Tainted != null)
+                return itd.TaintedData.Tainted;
+            return null;
+        }
+
         public override void RefreshFromMainData()
         {
             if (theSubmodel != null)
             {
+                var td = "";
+                if (GetTaintedTime() != null)
+                    td = "\u273d ";
+
                 var ci = theSubmodel.ToCaptionInfo();
-                this.Caption = ((theSubmodel.Kind != null && theSubmodel.Kind == Aas.ModellingKind.Template) ? "<T> " : "") + ci.Item1;
+                this.Caption = td + ((theSubmodel.Kind != null && theSubmodel.Kind == Aas.ModellingKind.Template) ? "<T> " : "") + ci.Item1;
                 this.Info = ci.Item2;
+            }
+        }
+
+    }
+
+    public class VisualElementSubmodelStub : VisualElementGeneric
+    {
+        public AdminShellPackageEnvBase thePackEnv = null;
+        public AasIdentifiableSideInfo theSideInfo = null;
+
+        public VisualElementSubmodelStub(
+            VisualElementGeneric parent, TreeViewLineCache cache, AdminShellPackageEnvBase packEnv,
+            AasIdentifiableSideInfo si)
+            : base()
+        {
+            this.Parent = parent;
+            this.Cache = cache;
+            this.thePackEnv = packEnv;
+            this.theSideInfo = si;
+
+            this.Background = new AnyUiColor(0xffd0d0d0u);
+            this.Border = new AnyUiColor(0xff606060u);
+            this.TagBg = new AnyUiColor(0xff707070u);
+            this.TagFg = AnyUiColors.White;
+
+            this.TagString = "SM";
+            RefreshFromMainData();
+            RestoreFromCache();
+        }
+
+        public override string GetFilterElementInfo()
+        {
+            return "SubmodelStub";
+        }
+
+        public override object GetMainDataObject()
+        {
+            return theSideInfo;
+        }
+
+        public override void RefreshFromMainData()
+        {
+            if (theSideInfo != null)
+            {
+                this.Caption = "\u2205 " + theSideInfo.Id ;
+                this.Info = "(Submodel stub)";
             }
         }
 
@@ -1930,6 +2010,24 @@ namespace AasxPackageLogic
                 var sm = env.FindSubmodel(smr);
                 if (sm == null)
                 {
+                    // check if Submodel with only side info is present
+                    if (smr?.IsValid() == true 
+                        && env.Submodels is OnDemandListIdentifiable<Aas.ISubmodel> smsi)
+                    {
+                        var ndx = smsi.FindSideInfoIndexFromId(smr.GetAsIdentifier());
+                        if (ndx >= 0)
+                        {
+                            var si = smsi.GetSideInfo(ndx);
+
+                            // add stub
+                            var tiSmSi = new VisualElementSubmodelStub(tiAas, cache, package, si);
+                            tiAas.Members.Add(tiSmSi);
+
+                            // not further here!!
+                            continue;
+                        }
+                    }
+
                     // notify user
                     Log.Singleton.Error("Cannot find some submodel!");
 
@@ -2317,20 +2415,6 @@ namespace AasxPackageLogic
                 // if edit mode, then display further ..
                 if (editMode)
                 {
-                    // dead-csharp off
-                    //
-                    // over all assets
-                    //
-                    //foreach (var asset in env.Assets)
-                    //{
-                    //    // item
-                    //    var tiAsset = new VisualElementAsset(tiAssets, cache, env, asset);
-                    //    tiAssets.Members.Add(tiAsset);
-                    //}
-                    // dead-csharp on
-                    //
-                    // over all Submodels (not the refs)
-                    //
                     var tiAllSubmodels = new VisualElementEnvironmentItem(
                         tiEnv, cache, package, env, VisualElementEnvironmentItem.ItemType.AllSubmodels,
                         mainDataObject: env.Submodels);
@@ -2338,11 +2422,28 @@ namespace AasxPackageLogic
                     tiEnv.Members.Add(tiAllSubmodels);
 
                     // show all Submodels
-                    if (env != null)
+                    // be aware of not loaded / side infos
+                    if (env != null && env.Submodels != null)
                     {
-                        foreach (var sm in env.AllSubmodels())
+                        for (int smi=0; smi < env.Submodels.Count; smi++)
                         {
+                            // check if Submodel with only side info is present
+                            if (env.Submodels[smi] == null && env.Submodels is OnDemandList<Aas.ISubmodel, AasIdentifiableSideInfo> smsi)
+                            {
+                                var si = smsi.GetSideInfo(smi);
+                                if (si != null)
+                                {
+                                    // add stub
+                                    var tiSmSi = new VisualElementSubmodelStub(tiAllSubmodels, cache, package, si);
+                                    tiAllSubmodels.Members.Add(tiSmSi);
+
+                                    // not further here!!
+                                    continue;
+                                }
+                            }
+
                             // Submodel
+                            var sm = env.Submodels[smi];
                             var tiSm = new VisualElementSubmodel(tiAllSubmodels, cache, env, sm);
                             tiSm.SetIsExpandedIfNotTouched(expandMode > 1);
                             tiAllSubmodels.Members.Add(tiSm);
@@ -2461,7 +2562,7 @@ namespace AasxPackageLogic
                 if (vesf.thePackage != null)
                 {
                     var files = vesf.thePackage.GetListOfSupplementaryFiles();
-                    foreach (var fi in files)
+                    foreach (var fi in files.ForEachSafe())
                         ve.Members.Add(new VisualElementSupplementalFile(ve, vesf.Cache, vesf.thePackage, fi));
                 }
 
@@ -2509,6 +2610,28 @@ namespace AasxPackageLogic
 
             foreach (var e in this.FindAllVisualElement())
                 if (p(e))
+                    yield return e;
+        }
+
+        public IEnumerable<VisualElementGeneric> FindAllVisualElementTopToIdentifiableInternal(VisualElementGeneric ve)
+        {
+            // check if Identifiable
+            if (ve is VisualElementAdminShell
+                || ve is VisualElementSubmodel || ve is VisualElementSubmodelRef || ve is VisualElementSubmodelStub
+                || ve is VisualElementConceptDescription)
+                yield return ve;
+
+            // top elements to recurse
+            if (ve is VisualElementEnvironmentItem || ve is VisualElementAdminShell)
+                foreach (var child in ve.Members)
+                    foreach (var x in FindAllVisualElementTopToIdentifiableInternal(child))
+                        yield return x;
+        }
+
+        public IEnumerable<VisualElementGeneric> FindAllVisualElementTopToIdentifiable()
+        {
+            foreach (var tvl in this)
+                foreach (var e in FindAllVisualElementTopToIdentifiableInternal(tvl))
                     yield return e;
         }
 

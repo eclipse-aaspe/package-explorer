@@ -93,7 +93,7 @@ namespace AasxPackageLogic.PackageCentral
             res.ContainerList = containerList;
 
             if (overrideLoadResident || true == res.ContainerOptions?.LoadResident)
-                await res.LoadFromSourceAsync(fullItemLocation, runtimeOptions);
+                await res.LoadFromSourceAsync(fullItemLocation, containerOptions, runtimeOptions);
 
             return res;
         }
@@ -302,6 +302,7 @@ namespace AasxPackageLogic.PackageCentral
 
         public override async Task LoadFromSourceAsync(
             string fullItemLocation,
+            PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
         {
             // buffer to temp file

@@ -190,7 +190,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 if (_sessions.AccessSession(args[0], out Session session))
                 {
                     // dispose all ressources
-                    session.AnyUiControl.Dispose();
+                    session.AnyUiControl?.Dispose();
 
                     // remove
                     _sessions.Remove(args[0]);

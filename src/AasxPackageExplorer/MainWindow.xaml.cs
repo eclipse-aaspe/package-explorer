@@ -705,7 +705,6 @@ namespace AasxPackageExplorer
                 var asset = tvlaas.theAas.AssetInformation;
                 if (asset != null)
                 {
-
                     // text id
                     if (asset.GlobalAssetId != null)
                         this.AssetId.Text = WpfStringAddWrapChars(
@@ -717,8 +716,37 @@ namespace AasxPackageExplorer
 						// identify which stream to use..
 						var picFound = false;
 
-						// specific for the AAS
-						if (PackageCentral.MainAvailable)
+                        // new approach
+                        if (PackageCentral.MainAvailable)
+                            try
+                            {
+                                var thumbStream = PackageCentral.Main.GetThumbnailStreamFromAasOrPackage(tvlaas.theAas.Id);
+                                if (thumbStream != null)
+                                { 
+                                    // load image
+                                    var bi = new BitmapImage();
+                                    bi.BeginInit();
+
+                                    // See https://stackoverflow.com/a/5346766/1600678
+                                    bi.CacheOption = BitmapCacheOption.OnLoad;
+
+                                    bi.StreamSource = thumbStream;
+                                    bi.EndInit();
+
+                                    this.AssetPic.Source = bi;
+                                    picFound = true;
+                                    thumbStream.Close();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
+                            }
+
+
+                        // specific for the AAS
+#if __old1
+                        if (PackageCentral.MainAvailable)
 							try
 							{
 								if (asset?.DefaultThumbnail?.Path?.HasContent() == true)
@@ -747,10 +775,10 @@ namespace AasxPackageExplorer
 							{
 								AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
 							}
+#endif
 
-
-						// no, ask online server?
-						if (!picFound && this.theOnlineConnection != null 
+                        // no, ask online server?
+                        if (!picFound && this.theOnlineConnection != null 
                             && this.theOnlineConnection.IsValid() 
                             && this.theOnlineConnection.IsConnected())
 							try
@@ -776,8 +804,9 @@ namespace AasxPackageExplorer
 								AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
 							}
 
-						// no, from the AASX?
-						if (!picFound && PackageCentral.MainAvailable)
+#if __old2
+                        // no, from the AASX?
+                        if (!picFound && PackageCentral.MainAvailable)
                             try
                             {
                                 using (var thumbStream = PackageCentral.Main.GetLocalThumbnailStream())
@@ -800,10 +829,8 @@ namespace AasxPackageExplorer
                             catch (Exception ex)
                             {
                                 AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
-                            }
-
-                        
-
+                            }        
+#endif
                     }
                     catch (Exception ex)
                     {
@@ -826,7 +853,7 @@ namespace AasxPackageExplorer
 
         }
 
-        #endregion
+#endregion
         #region Callbacks
         //===============
 
@@ -2334,6 +2361,27 @@ namespace AasxPackageExplorer
             }
         }
 
+        private void MainTimer_CheckTaintedIdentifiables(
+            DateTime lastTime,
+            Aas.IEnvironment env)
+        {
+            // trivial
+            if (env == null || DisplayElements == null)
+                return;
+
+            // find visual elements for Identifiables and check for tainted state
+            foreach (var ve in DisplayElements.FindAllVisualElementTopToIdentifiable())
+                if (ve is ITaintableIdentifiable ttidf)
+                {
+                    var tt = ttidf.GetTaintedTime();
+                    if (tt == null || tt < lastTime)
+                        continue;
+
+                    // kick off redisplay
+                    ve.RefreshFromMainData();
+                }
+        }
+
         protected EventHandlingStatus _eventHandling = new EventHandlingStatus();
 
         private void MainTimer_PeriodicalTaskForSelectedEntity()
@@ -2554,6 +2602,7 @@ namespace AasxPackageExplorer
         }
 
         private DateTime _mainTimer_LastCheckForDiaryEvents;
+        private DateTime _mainTimer_LastCheckForTaintedIdentifiables;
         private DateTime _mainTimer_LastCheckForAnimationElements = DateTime.Now;
 
         private bool _mainTimer_PendingReIndexElements = false;
@@ -2561,10 +2610,12 @@ namespace AasxPackageExplorer
 
         private async Task MainTimer_Tick(object sender, EventArgs e)
         {
+            // different functions
             MainTimer_HandleLogMessages();
             await MainTimer_HandleEntityPanel();
             await MainTimer_HandleApplicationEvents();
 
+            // diary dates -> events, animation
             if (PackageCentral?.MainItem?.Container?.SignificantElements != null)
             {
                 MainTimer_CheckDiaryDateToEmitEvents(
@@ -2587,8 +2638,14 @@ namespace AasxPackageExplorer
                 }
 			}
 
-			// do re-index?
-			var deltaSecs2 = (DateTime.Now - _mainTimer_LastCheckForReIndexElements).TotalSeconds;
+            // flags for tainted Identifiables
+            MainTimer_CheckTaintedIdentifiables(
+                _mainTimer_LastCheckForTaintedIdentifiables,
+                PackageCentral.MainItem.Container.Env?.AasEnv);
+            _mainTimer_LastCheckForTaintedIdentifiables = DateTime.UtcNow;
+
+            // pending re-index?
+            var deltaSecs2 = (DateTime.Now - _mainTimer_LastCheckForReIndexElements).TotalSeconds;
             if (deltaSecs2 >= 1.0 && _mainTimer_PendingReIndexElements)
             {
                 // dis-engage
@@ -2601,6 +2658,7 @@ namespace AasxPackageExplorer
                 Log.Singleton.Info("Re-indexing Identifiables for faster access.");
 			}
 
+            // normal stuff
             MainTimer_PeriodicalTaskForSelectedEntity();
             MainTaimer_HandleIncomingAasEvents();
             DisplayElements.UpdateFromQueuedEvents();

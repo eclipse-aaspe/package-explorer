@@ -939,18 +939,24 @@ namespace AasxPackageLogic
                                 var success = false;
                                 if (ve.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.IdShort)
                                 {
-                                    env.ConceptDescriptions.Sort(new ComparerIdShort());
+                                    var x = env.ConceptDescriptions.ToList();
+                                    x.Sort(new ComparerIdShort());
+                                    env.ConceptDescriptions = x;
                                     success = true;
                                 }
                                 if (ve.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.Id)
                                 {
-                                    env.ConceptDescriptions.Sort(new ComparerIdentification());
+                                    var x = env.ConceptDescriptions.ToList();
+                                    x.Sort(new ComparerIdentification());
+                                    env.ConceptDescriptions = x;
                                     success = true;
                                 }
                                 if (ve.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySubmodel)
                                 {
                                     var cmp = env.CreateIndexedComparerCdsForSmUsage();
-                                    env.ConceptDescriptions.Sort(cmp);
+                                    var x = env.ConceptDescriptions.ToList();
+                                    x.Sort(cmp);
+                                    env.ConceptDescriptions = x;
                                     success = true;
                                 }
 
@@ -1229,7 +1235,9 @@ namespace AasxPackageLogic
         //
 
         public void DisplayOrEditAasEntityAas(
-            PackageCentral.PackageCentral packages, Aas.IEnvironment env,
+            PackageCentral.PackageCentral packages, 
+            AdminShellPackageEnvBase package,
+            Aas.IEnvironment env,
             Aas.IAssetAdministrationShell aas,
             bool editMode, AnyUiStackPanel stack, bool hintMode = false,
             AasxMenu superMenu = null)
@@ -1490,7 +1498,42 @@ namespace AasxPackageLogic
                         }
 
                         return new AnyUiLambdaActionNone();
-                    });                
+                    });   
+                
+                // on demand loading?
+                if (package is AdminShellPackageDynamicFetchEnv dynPack)
+                {
+                    this.AddActionPanel(
+                    stack, "Load missing stubs:",
+                    repo: repo,
+                    superMenu: superMenu,
+                    ticketMenu: new AasxMenu()
+                        .AddAction("stub-load-submodels", "Submodels",
+                            "Load missing Submodels only for this AAS.")
+                        .AddAction("stub-load-concepts", "ConceptDescriptions",
+                            "Load missing ConceptDescriptions only for this AAS."),
+                    ticketActionAsync: async (buttonNdx, ticket) =>
+                    {
+                        List<LocatedReference> lrs = null;
+
+                        if (buttonNdx == 0)
+                            lrs = aas?.FindAllSubmodelReferences().ToList();
+                                    
+
+                        if (buttonNdx == 1)
+                            lrs = env.FindAllSemanticIdsForAas(aas).ToList();
+
+                        if (lrs != null)
+                        { 
+                            var ids = lrs.Select((lr) => (lr?.Reference?.IsValid() == true) ? lr.Reference.Keys[0].Value : null).ToList();
+                            var fetched = await dynPack.TryFetchSpecificIds(ids);
+                            if (fetched)
+                                return new AnyUiLambdaActionRedrawAllElements(nextFocus: aas);
+                        }
+
+                        return new AnyUiLambdaActionNone();
+                    });
+                }
             }
 
             // Referable
@@ -2349,6 +2392,72 @@ namespace AasxPackageLogic
                     this.AddKeyValue(stack, "# of elements", "" + submodel.SubmodelElements.Count);
                 else
                     this.AddKeyValue(stack, "Elements", "Please add elements via editing of sub-ordinate entities");
+            }
+        }
+
+        //
+        //
+        // --- Submodel Stub
+        //
+        //
+
+        public void DisplayOrEditAasEntitySubmodelStub(
+            PackageCentral.PackageCentral packages, AdminShellPackageEnvBase packEnv,
+            Aas.IAssetAdministrationShell aas,
+            Aas.IReference smref,
+            Action setSmRefNull,
+            AasIdentifiableSideInfo sideInfo,
+            bool editMode,
+            AnyUiStackPanel stack, bool hintMode = false, bool checkSmt = false,
+            AasxMenu superMenu = null)
+        {
+            // access the on demand classes
+            var packOD = packEnv as AdminShellPackageDynamicFetchEnv;
+
+            // header
+            this.AddGroup(stack, "Submodel stub data (Identifiable not already loaded)", this.levelColors.MainSection);
+
+            // error?
+            if (packOD == null)
+            {
+                AddHintBubble(stack, true,
+                    new HintCheck(
+                        () => true, "Package environment does not provide on demand functionality",
+                        severityLevel: HintCheck.Severity.High));
+            }
+            else
+            {
+                AddActionPanel(stack, "Action:",
+                    repo: repo,
+                    superMenu: superMenu,
+                    ticketMenu: new AasxMenu()
+                        .AddAction("stub-load", "Load",
+                            "Loads the Identifiable data from available data source.")
+                        .AddAction("stub-load-all", "Load all",
+                            "Loads data from available data source for all " +
+                            "Identifiable stubs in environment."),
+                    ticketActionAsync: async (buttonNdx, ticket) =>
+                    {
+                        if (buttonNdx == 0)
+                        {
+                            var fetchedSm = await packOD.FindOrFetchIdentifiable(sideInfo?.Id);
+                            if (fetchedSm != null)
+                            {
+                                return new AnyUiLambdaActionRedrawAllElements(nextFocus: fetchedSm);
+                            }
+                        }
+
+                        if (buttonNdx == 1)
+                        {
+                            var res = await packOD.TryFetchAllMissingIdentifiables();
+                            if (res)
+                            {
+                                return new AnyUiLambdaActionRedrawAllElements(nextFocus: null);
+                            }
+                        }
+
+                        return new AnyUiLambdaActionNone();
+                    });
             }
         }
 
@@ -4829,7 +4938,7 @@ namespace AasxPackageLogic
             else if (entity is VisualElementAdminShell veaas)
             {
                 DisplayOrEditAasEntityAas(
-                    packages, veaas.theEnv, veaas.theAas, editMode, stack, hintMode: hintMode,
+                    packages, veaas.thePackage, veaas.theEnv, veaas.theAas, editMode, stack, hintMode: hintMode,
                     superMenu: superMenu);
             }
             else if (entity is VisualElementAsset veas)
@@ -4866,6 +4975,15 @@ namespace AasxPackageLogic
                     submodel: vesm.theSubmodel, editMode: editMode, stack: stack,
                     hintMode: hintMode, checkSmt: checkSmt,
 					superMenu: superMenu);
+            }
+            else if (entity is VisualElementSubmodelStub vesms && vesms.theSideInfo != null)
+            {
+                DisplayOrEditAasEntitySubmodelStub(
+                    packages, vesms.thePackEnv,
+                    aas: null, smref: null, setSmRefNull: null,
+                    sideInfo: vesms.theSideInfo, editMode: editMode, stack: stack,
+                    hintMode: hintMode, checkSmt: checkSmt,
+                    superMenu: superMenu);
             }
             else if (entity is VisualElementSubmodelElement vesme)
             {

@@ -91,7 +91,7 @@ namespace AasxPackageLogic.PackageCentral
                 packageCentral, location, containerOptions);
 
             if (overrideLoadResident || true == res.ContainerOptions?.LoadResident)
-                await res.LoadFromSourceAsync(fullItemLocation, runtimeOptions);
+                await res.LoadFromSourceAsync(fullItemLocation, containerOptions, runtimeOptions);
 
             return res;
         }
@@ -207,6 +207,7 @@ namespace AasxPackageLogic.PackageCentral
 
         public override async Task LoadFromSourceAsync(
             string fullItemLocation,
+            PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
         {
             // check extension
@@ -350,7 +351,9 @@ namespace AasxPackageLogic.PackageCentral
             try
             {
                 if (!IsOpen && Location.HasContent())
-                    await LoadFromSourceAsync(fullItemLocation, PackageCentral?.CentralRuntimeOptions);
+                    await LoadFromSourceAsync(fullItemLocation,
+                        // Note: container options missing?!
+                        runtimeOptions: PackageCentral?.CentralRuntimeOptions);
                 OnPropertyChanged("VisualIsLoaded");
             }
             catch (Exception ex)
