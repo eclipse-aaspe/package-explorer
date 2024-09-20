@@ -83,7 +83,7 @@ namespace AasxIntegrationBaseGdi
             return null;
         }
 
-        public static AnyUiBitmapInfo LoadBitmapInfoFromPackage(AdminShellPackageFileBasedEnv package, string path)
+        public static AnyUiBitmapInfo LoadBitmapInfoFromPackage(AdminShellPackageEnvBase package, string path)
         {
             if (package == null || path == null)
                 return null;

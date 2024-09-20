@@ -214,6 +214,7 @@ namespace AasxPackageLogic.PackageCentral
 
             if (guess.GuessedType == typeof(PackageContainerHttpRepoSubset))
             {
+                runtimeOptions.AllowFakeResponses = false;
                 var cnt = await PackageContainerHttpRepoSubset.CreateAndLoadAsync(
                             packageCentral, location, fullItemLocation,
                             overrideLoadResident, takeOver: takeOver,

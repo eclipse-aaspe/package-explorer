@@ -65,6 +65,11 @@ namespace AasxPackageLogic.PackageCentral
                             string content, string text, string caption,
                             AnyUiMessageBoxButton buttons = 0);
         public ShowMessageDelegate ShowMesssageBox;
+
+        /// <summary>
+        /// Allow simulating a repo by predefined JSON web responses.
+        /// </summary>
+        public bool AllowFakeResponses = false;
     }
 
     /// <summary>
@@ -357,6 +362,7 @@ namespace AasxPackageLogic.PackageCentral
 
         public virtual async Task LoadFromSourceAsync(
             string fullItemLocation,
+            PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
         {
             await Task.Yield();

@@ -24,6 +24,7 @@ using System.Reflection;
 using System.Security.Cryptography.Pkcs;
 using System.Text;
 using System.Threading.Tasks;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 using Aas = AasCore.Aas3_0;
 
 // ReSharper disable MethodHasAsyncOverload
@@ -497,6 +498,63 @@ namespace AasxPackageLogic
                 catch (Exception ex)
                 {
                     LogErrorToTicket(ticket, ex, "when assessing Submodel template");
+                }
+            }
+
+            if (cmd == "connectextended")
+            {
+                // start
+                ticket.StartExec();
+
+                //do
+                try
+                {
+                    var record = new ConnectExtendedRecord();
+
+                    var uiRes = await PackageContainerHttpRepoSubset.PerformConnectExtendedDialogue(
+                        ticket, DisplayContext,
+                        "Connect AAS Repository",
+                        record);
+
+                    if (!uiRes)
+                        return;
+
+                    var location = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    if (location == null)
+                    {
+                        LogErrorToTicket(ticket, "Error building location from query selection. Aborting.");
+                        return;
+                    }
+
+                    // more details into container options
+                    var containerOptions = new PackageContainerHttpRepoSubset.
+                        PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
+                        record);
+
+                    // load
+                    Log.Singleton.Info($"For extended connect, loading " +
+                        $"from {location} into container");
+
+                    var container = await PackageContainerFactory.GuessAndCreateForAsync(
+                        PackageCentral,
+                        location,
+                        location,
+                        overrideLoadResident: true,
+                        containerOptions: containerOptions,
+                        runtimeOptions: PackageCentral.CentralRuntimeOptions);
+
+                    if (container == null)
+                        Log.Singleton.Error($"Failed to load from {location}");
+                    else
+                        MainWindow.UiLoadPackageWithNew(PackageCentral.MainItem,
+                            takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
+                            storeFnToLRU: location);
+
+                    Log.Singleton.Info($"Successfully loaded {location}");
+                }
+                catch (Exception ex)
+                {
+                    LogErrorToTicket(ticket, ex, "when performing extended connect");
                 }
             }
 

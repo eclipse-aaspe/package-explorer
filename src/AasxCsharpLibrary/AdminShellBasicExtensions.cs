@@ -44,6 +44,14 @@ namespace AdminShellNS
                 yield return x;
         }
 
+        public static void ForEach<T>(this IList<T> list, Action <T> action)
+        {
+            if (list == null)
+                return;
+            foreach (var x in list)
+                action?.Invoke(x);
+        }
+
         /// <summary>
         /// Multiple a string into a iterable list
         /// </summary>

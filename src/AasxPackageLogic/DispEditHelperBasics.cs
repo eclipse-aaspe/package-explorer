@@ -2288,7 +2288,7 @@ namespace AasxPackageLogic
         // List manipulations (single entities)
         //
 
-        public int MoveElementInListUpwards<T>(List<T> list, T entity)
+        public int MoveElementInListUpwards<T>(IList<T> list, T entity)
         {
             if (list == null || list.Count < 2 || entity == null)
                 return -1;
@@ -2301,7 +2301,7 @@ namespace AasxPackageLogic
             return newndx;
         }
 
-        public int MoveElementInListDownwards<T>(List<T> list, T entity)
+        public int MoveElementInListDownwards<T>(IList<T> list, T entity)
         {
             if (list == null || list.Count < 2 || entity == null)
                 return -1;
@@ -2314,7 +2314,7 @@ namespace AasxPackageLogic
             return newndx;
         }
 
-        public int MoveElementToTopOfList<T>(List<T> list, T entity)
+        public int MoveElementToTopOfList<T>(IList<T> list, T entity)
         {
             if (list == null || list.Count < 2 || entity == null)
                 return -1;
@@ -2327,7 +2327,7 @@ namespace AasxPackageLogic
             return newndx;
         }
 
-        public int MoveElementToBottomOfList<T>(List<T> list, T entity)
+        public int MoveElementToBottomOfList<T>(IList<T> list, T entity)
         {
             if (list == null || list.Count < 2 || entity == null)
                 return -1;
@@ -2340,7 +2340,7 @@ namespace AasxPackageLogic
             return newndx;
         }
 
-        public object DeleteElementInList<T>(List<T> list, T entity, object alternativeReturn)
+        public object DeleteElementInList<T>(IList<T> list, T entity, object alternativeReturn)
         {
             if (list == null || entity == null)
                 return alternativeReturn;
@@ -2353,7 +2353,7 @@ namespace AasxPackageLogic
             return alternativeReturn;
         }
 
-        public int AddElementInListBefore<T>(List<T> list, T entity, T existing)
+        public int AddElementInListBefore<T>(IList<T> list, T entity, T existing)
         {
             if (list == null || list.Count < 1 || entity == null)
                 return -1;
@@ -2364,7 +2364,7 @@ namespace AasxPackageLogic
             return ndx;
         }
 
-        public int AddElementInListAfter<T>(List<T> list, T entity, T existing)
+        public int AddElementInListAfter<T>(IList<T> list, T entity, T existing)
         {
             if (list == null || list.Count < 1 || entity == null)
                 return -1;
@@ -2379,7 +2379,7 @@ namespace AasxPackageLogic
         // List manipulations (multiple entities)
         //
 
-        public int MoveElementsToStartingIndex<T>(List<T> list, List<T> entities, int startingIndex)
+        public int MoveElementsToStartingIndex<T>(IList<T> list, List<T> entities, int startingIndex)
         {
             // check
             if (list == null || list.Count < 1 || entities == null)
@@ -2401,7 +2401,7 @@ namespace AasxPackageLogic
             return si2;
         }
 
-        public int DeleteElementsInList<T>(List<T> list, List<T> entities)
+        public int DeleteElementsInList<T>(IList<T> list, List<T> entities)
         {
             // check
             if (list == null || list.Count < 1 || entities == null)
@@ -2419,7 +2419,7 @@ namespace AasxPackageLogic
         //
 
         public int AddElementInSmeListBefore<T>(
-            List<T> list,
+            IList<T> list,
             T entity, T existing,
             bool makeUniqueIfNeeded = false)
             where T : Aas.ISubmodelElement
@@ -2438,7 +2438,7 @@ namespace AasxPackageLogic
         }
 
         public int AddElementInSmeListAfter<T>(
-            List<T> list,
+            IList<T> list,
             T entity, T existing,
             bool makeUniqueIfNeeded = false)
             where T : Aas.ISubmodelElement
@@ -2462,7 +2462,7 @@ namespace AasxPackageLogic
 
         public void EntityListUpDownDeleteHelper<T>(
             AnyUiPanel stack, ModifyRepo repo,
-            List<T> list, Action<List<T>> setOutputList,
+            IList<T> list, Action<List<T>> setOutputList,
             T entity,
             object alternativeFocus, string label = "Entities:",
             object nextFocus = null, PackCntChangeEventData sendUpdateEvent = null, bool preventMove = false,
@@ -3028,6 +3028,9 @@ namespace AasxPackageLogic
             // trivial
             if (de == null)
                 return;
+
+            // tainting
+            TaintedDataDef.TaintIdentifiable(rf);
 
             // structure?
             if (de is DiaryEntryStructChange desc)

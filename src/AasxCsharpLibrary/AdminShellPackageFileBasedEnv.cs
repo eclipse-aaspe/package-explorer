@@ -345,6 +345,14 @@ namespace AdminShellNS
             return null;
         }
 
+        /// <summary>
+        /// This is intended to be the "new" one
+        /// </summary>
+        public virtual Stream GetThumbnailStreamFromAasOrPackage(string aasId)
+        {
+            return null;
+        }
+
         public virtual ListOfAasSupplementaryFile GetListOfSupplementaryFiles()
         {
             return null;
@@ -1633,7 +1641,7 @@ namespace AdminShellNS
         /// Ensures:
         /// <ul><li><c>result == null || result.CanRead</c></li></ul>
         /// </remarks>
-        public virtual Stream GetLocalThumbnailStream(ref Uri thumbUri)
+        public override Stream GetLocalThumbnailStream(ref Uri thumbUri)
         {
             // access
             if (_openPackage == null)
@@ -1664,7 +1672,42 @@ namespace AdminShellNS
             }
 
             return result;
-        }        
+        }
+
+        public override Stream GetThumbnailStreamFromAasOrPackage(string aasId)
+        {
+            // find aas?
+            var aas = AasEnv?.FindAasById(aasId);
+            if (aas?.AssetInformation?.DefaultThumbnail?.Path?.HasContent() == true)
+            {
+                try
+                {
+                    // Note: could also use http://...
+                    var s1 = GetLocalStreamFromPackage(uriString: aas.AssetInformation.DefaultThumbnail.Path);
+                    if (s1 != null)
+                        return s1;
+                } catch (Exception ex)
+                {
+                    LogInternally.That.CompletelyIgnoredError(ex);
+                }
+            }
+
+            // or local package?
+            try
+            {
+                Uri dummy = null;
+                var s2 = GetLocalThumbnailStream(ref dummy);
+                if (s2 != null)
+                    return s2;
+            }
+            catch (Exception ex)
+            {
+                LogInternally.That.CompletelyIgnoredError(ex);
+            }
+
+            // no
+            return null;
+        }
 
         public override ListOfAasSupplementaryFile GetListOfSupplementaryFiles()
         {

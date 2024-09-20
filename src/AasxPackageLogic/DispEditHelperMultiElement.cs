@@ -125,7 +125,7 @@ namespace AasxPackageLogic
         /// </summary>
         public void EntityListMultipleUpDownDeleteHelper<T>(
             AnyUiPanel stack, ModifyRepo repo,
-            List<T> list, List<T> entities, ListOfVisualElementBasic.IndexInfo indexInfo,
+            IList<T> list, List<T> entities, ListOfVisualElementBasic.IndexInfo indexInfo,
             object alternativeFocus = null, string label = "Entities:",
             PackCntChangeEventData sendUpdateEvent = null, bool preventMove = false, bool reFocus = false,
             AasxMenu superMenu = null)

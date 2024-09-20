@@ -11,7 +11,6 @@ This source code may use other Open Source software components (see LICENSE.txt)
 */
 
 using AdminShellNS.Extensions;
-using Microsoft.IdentityModel.Tokens;
 using System.Collections.Generic;
 using System.Windows.Forms;
 

@@ -365,6 +365,13 @@ namespace AasxPackageExplorer
                     yield return ve;
         }
 
+        public IEnumerable<VisualElementGeneric> FindAllVisualElementTopToIdentifiable()
+        {
+            if (displayedTreeViewLines != null)
+                foreach (var ve in displayedTreeViewLines.FindAllVisualElementTopToIdentifiable())
+                    yield return ve;
+        }
+
         public bool Contains(VisualElementGeneric ve)
         {
             if (displayedTreeViewLines != null)

@@ -468,7 +468,7 @@ namespace Extensions
             if (cd == null)
                 return null;
             if (env.ConceptDescriptions == null)
-                env.ConceptDescriptions = new();
+                env.ConceptDescriptions = new List<IConceptDescription>();
             env.ConceptDescriptions.Add(cd);
             return cd;
         }
@@ -505,7 +505,7 @@ namespace Extensions
             if (sm == null)
                 return null;
             if (env.Submodels == null)
-                env.Submodels = new();
+                env.Submodels = new List<ISubmodel>();
             env.Submodels.Add(sm);
             return sm;
         }
@@ -519,7 +519,7 @@ namespace Extensions
             if (aas == null)
                 return null;
             if (env.AssetAdministrationShells == null)
-                env.AssetAdministrationShells = new();
+                env.AssetAdministrationShells = new List<IAssetAdministrationShell>();
             env.AssetAdministrationShells.Add(aas);
             return aas;
         }
@@ -972,7 +972,7 @@ namespace Extensions
             // unique set of references
             var refs = new List<LocatedReference>();
             foreach (var aas in environment.AllAssetAdministrationShells())
-                foreach (var smr in aas?.Submodels)
+                foreach (var smr in aas?.AllSubmodels())
                     refs.AddIfNew(new LocatedReference() { Identifiable = aas, Reference = smr});
 
             // only existing
@@ -980,6 +980,31 @@ namespace Extensions
                 if (!onlyNotExisting
                     || null == environment.FindSubmodel(lr?.Reference))
                     yield return lr;
+        }
+
+        /// <summary>
+        /// Warning: very inefficient!
+        /// </summary>
+        public static IEnumerable<LocatedReference> FindAllSemanticIdsForAas(
+            this AasCore.Aas3_0.IEnvironment environment,
+            IAssetAdministrationShell aas)
+        {
+            // unique set of references
+            var refs = new List<LocatedReference>();
+            foreach (var smr in aas?.AllSubmodels())
+            {
+                var sm = environment.FindSubmodel(smr);
+                sm?.RecurseOnSubmodelElements(null, (state, parents, sme) =>
+                {
+                    if (sme.SemanticId != null)
+                        refs.AddIfNew(new LocatedReference() { Identifiable = sm, Reference = sme.SemanticId });
+
+                    // recurse
+                    return true;
+                });
+            }
+
+            return refs;
         }
 
         /// <summary>

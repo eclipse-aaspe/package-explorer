@@ -26,6 +26,9 @@ using System.Reflection;
 using Newtonsoft.Json;
 using static AasxPredefinedConcepts.ConceptModel.ConceptModelZveiTechnicalData;
 using System.Text.RegularExpressions;
+using System.Net.Http.Headers;
+using System.Text;
+using AasCore.Aas3_0;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -78,9 +81,9 @@ namespace AasxPackageLogic.PackageCentral
             return res;
         }
 
-        public static async Task DownloadToMemoryStream(
+        public static async Task HttpGetToMemoryStream(
             Uri sourceUri,
-            Action<MemoryStream> lambdaDownloadDone,
+            Action<MemoryStream, string> lambdaDownloadDone,
             PackCntRuntimeOptions runtimeOptions = null,
             PackageContainerListBase containerList = null,
             bool allowFakeResponses = false)
@@ -101,13 +104,10 @@ namespace AasxPackageLogic.PackageCentral
                             writer.Flush();
                             memStream.Flush();
                             memStream.Seek(0, SeekOrigin.Begin);
-                            lambdaDownloadDone?.Invoke(memStream);
+                            lambdaDownloadDone?.Invoke(memStream, "content.json");
                             return;
                         }
                     }
-
-            // TODO: debug, remove!!
-            return;
 
             // read via HttpClient (uses standard proxies)
             var handler = new HttpClientHandler();
@@ -121,7 +121,7 @@ namespace AasxPackageLogic.PackageCentral
             var requestPath = sourceUri.PathAndQuery;
 
             // Log
-            runtimeOptions?.Log?.Info($"HttpClient() with base-address {client.BaseAddress} " +
+            runtimeOptions?.Log?.Info($"HttpClient GET() with base-address {client.BaseAddress} " +
                 $"and request {requestPath} .. ");
 
             // Token existing?
@@ -270,7 +270,7 @@ namespace AasxPackageLogic.PackageCentral
                         // execute lambda
                         memStream.Flush();
                         memStream.Seek(0, SeekOrigin.Begin);
-                        lambdaDownloadDone?.Invoke(memStream);
+                        lambdaDownloadDone?.Invoke(memStream, contentFn);
                     }
                 }
                 else
@@ -281,62 +281,114 @@ namespace AasxPackageLogic.PackageCentral
             }
         }
 
-        public static Uri GetBaseUri(string location)
+        public static async Task<bool> HttpPutFromMemoryStream(
+            MemoryStream ms,
+            Uri destUri,
+            PackCntRuntimeOptions runtimeOptions = null,
+            PackageContainerListBase containerList = null,
+            bool allowFakeResponses = false)
         {
-            // try an explicit search for known parts of ressources
-            // (preserves scheme, host and leading pathes)
-            var m = Regex.Match(location, @"^(.*?)(/shells|/submodel|/conceptdescription)");
-            if (m.Success)
-                return new Uri(m.Groups[1].ToString() + "/");
+            // access
+            if (ms == null || destUri == null)
+                return false;
 
-            // just go to the first slash
-            var p0 = location.IndexOf("//");
-            if (p0 > 0)
+            // for the time being: fake responses -> always return true
+            if (allowFakeResponses)
+                return true;
+
+            // read via HttpClient (uses standard proxies)
+            var handler = new HttpClientHandler();
+            handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
+
+            // new http client
+            var client = new HttpClient(handler);
+            
+            client.BaseAddress = new Uri(destUri.GetLeftPart(UriPartial.Authority));
+            var requestPath = destUri.PathAndQuery;
+
+            // Log
+            runtimeOptions?.Log?.Info($"HttpClient PUT() with base-address {client.BaseAddress} " +
+                $"and request {requestPath} .. ");
+
+            // Token existing?
+            var clhttp = containerList as PackageContainerListHttpRestBase;
+            var oidc = clhttp?.OpenIdClient;
+            if (oidc == null)
             {
-                var p = location.IndexOf('/', p0 + 2);
-                if (p > 0)
+                runtimeOptions?.Log?.Info("  no ContainerList available. No OpecIdClient possible!");
+                if (clhttp != null && OpenIDClient.email != "")
                 {
-                    return new Uri(location.Substring(0, p) + "/");
+                    clhttp.OpenIdClient = new OpenIdClientInstance();
+                    clhttp.OpenIdClient.email = OpenIDClient.email;
+                    clhttp.OpenIdClient.ssiURL = OpenIDClient.ssiURL;
+                    clhttp.OpenIdClient.keycloak = OpenIDClient.keycloak;
+                    oidc = clhttp.OpenIdClient;
+                }
+            }
+            if (oidc != null)
+            {
+                if (oidc.token != "")
+                {
+                    runtimeOptions?.Log?.Info($"  using existing bearer token.");
+                    client.SetBearerToken(oidc.token);
+                }
+                else
+                {
+                    if (oidc.email != "")
+                    {
+                        runtimeOptions?.Log?.Info($"  using existing email token.");
+                        client.DefaultRequestHeaders.Add("Email", OpenIDClient.email);
+                    }
                 }
             }
 
-            // go to error
-            return null;
-        }
+            // BEGIN Workaround behind some proxies
+            // Stream is sent twice, if proxy-authorization header is not set
+            string proxyFile = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal) + "/proxy.dat";
+            string username = "";
+            string password = "";
+            if (System.IO.File.Exists(proxyFile))
+            {
+                using (StreamReader sr = new StreamReader(proxyFile))
+                {
+                    // ReSharper disable MethodHasAsyncOverload
+                    sr.ReadLine();
+                    username = sr.ReadLine();
+                    password = sr.ReadLine();
+                    // ReSharper enable MethodHasAsyncOverload
+                }
+            }
+            if (username != "" && password != "")
+            {
+                var authToken = Encoding.ASCII.GetBytes(username + ":" + password);
+                client.DefaultRequestHeaders.ProxyAuthorization = new AuthenticationHeaderValue("Basic",
+                    Convert.ToBase64String(authToken));
+            }
+            // END Workaround behind some proxies
 
-        //public static string CombineUri (string uri1, string uri2)
-        //{
-        //    var res = "" + uri1;
-        //    if (uri2?.HasContent() == true)
-        //    {
-        //        if (!res.EndsWith("/"))
-        //            res += "/";
-        //        res += uri2;
-        //    }
-        //    return res;
-        //}
+            // make base64
+            //var ba = ms.ToArray();
+            //var base64 = Convert.ToBase64String(ba);
 
-        public static Uri CombineUri(Uri baseUri, string relativeUri)
-        {
-            if (baseUri == null || relativeUri?.HasContent() != true)
-                return null;
+            // customised HttpContent to track progress
+            // var data = new ProgressableStreamContent(Encoding.UTF8.GetBytes(base64), runtimeOptions);
+            var data = new ProgressableStreamContent(ms.ToArray(), runtimeOptions);
 
-            if (Uri.TryCreate(baseUri, relativeUri, out var res))
-                return res;
+            // get response?
+            using (var response = await client.PutAsync(requestPath, data))
+            {
+                if (response.IsSuccessStatusCode)
+                    await response.Content.ReadAsStringAsync();
 
-            return null;
-        }
+                if (!response.IsSuccessStatusCode)
+                {
+                    runtimeOptions?.Log?.Error("HttpPutFromMemoryStream Server gave: Operation not allowed!");
+                    throw new PackageContainerException($"Server operation not allowed!");
+                }
 
-        public static Uri BuildUriForSubmodel(Uri baseUri, Aas.IReference submodelRef)
-        {
-            // access
-            if (baseUri == null || submodelRef?.IsValid() != true 
-                || submodelRef.Count() != 1 || submodelRef.Keys[0].Type != KeyTypes.Submodel)
-                return null;
-
-            // try combine
-            var smidenc = AdminShellUtil.Base64Encode(submodelRef.Keys[0].Value);
-            return CombineUri(baseUri, $"submodels/{smidenc}");
+                // ok!
+                return true;
+            }
         }
 
     }
