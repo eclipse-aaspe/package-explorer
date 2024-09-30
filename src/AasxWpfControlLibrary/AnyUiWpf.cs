@@ -456,7 +456,8 @@ namespace AnyUi
                                                 few.Margin.Bottom + cntl.Padding.Bottom);
                                         }
                                     }
-                                    wpf.Children.Add(chw);
+                                    if (chw != null)
+                                        wpf.Children.Add(chw);
                                 }
                         }
                    }
@@ -882,6 +883,21 @@ namespace AnyUi
                             }
 
                             wpf.Stretch = (Stretch)(int) cntl.Stretch;
+                            wpf.StretchDirection = StretchDirection.Both;
+                        }
+                   }
+                }),
+
+                new RenderRec(typeof(AnyUiCountryFlag), typeof(Image), (a, b, mode, rd) =>
+                {
+                   if (a is AnyUiCountryFlag cntl && b is Image wpf)
+                   {
+                        if (mode == AnyUiRenderMode.All || mode == AnyUiRenderMode.StatusToUi)
+                        {
+
+                            wpf.Source = AasxIntegrationBaseWpf.CountryFlagWpf.GetCroppedFlag(cntl.ISO3166Code);
+
+                            wpf.Stretch = Stretch.Fill;
                             wpf.StretchDirection = StretchDirection.Both;
                         }
                    }

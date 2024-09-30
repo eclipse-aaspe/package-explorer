@@ -120,7 +120,7 @@ namespace AasxPluginContactInformation
             AdminShellPackageEnv thePackage,
             Aas.Submodel subModel, AasxPluginContactInformation.ContactInformationOptions options,
             string defaultLang,
-            int selectedDocClass, AasxLanguageHelper.LangEnum selectedLanguage)
+            int selectedDocClass, AasxLanguageTuple selectedLanguage)
         {
             // set a new list
             var its = new ListOfContactEntity();
