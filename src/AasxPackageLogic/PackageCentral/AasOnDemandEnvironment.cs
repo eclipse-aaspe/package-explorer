@@ -30,17 +30,20 @@ using System.Linq;
 
 namespace AasxPackageLogic.PackageCentral
 {
-    public enum AasIdentifiableSideInfoLevel { IdOnly, IdAndMore, IdWithEndpoint };
+    public enum AasIdentifiableSideInfoLevel { None, IdOnly, IdAndMore, IdWithEndpoint };
 
     /// <summary>
     /// This side information helps managing Identifiables, which are not already loaded.
     /// </summary>
     public class AasIdentifiableSideInfo : OnDemandSideInfoBase
     {
-        public AasIdentifiableSideInfoLevel Level = AasIdentifiableSideInfoLevel.IdOnly;
+        public bool IsStub = false;
+        public AasIdentifiableSideInfoLevel StubLevel = AasIdentifiableSideInfoLevel.None;
 
         public string Id = "";
         public string IdShort = "";
+
+        public bool ShowCursorBelow = false;
     }
 
     /// <summary>

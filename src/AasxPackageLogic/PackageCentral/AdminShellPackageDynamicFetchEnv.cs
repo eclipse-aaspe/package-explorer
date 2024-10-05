@@ -27,9 +27,18 @@ using System.Collections.Generic;
 using System.Linq;
 using AdminShellNS.DiaryData;
 using System.Text.Json;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 
 namespace AasxPackageLogic.PackageCentral
 {
+    /// <summary>
+    /// Base class for storing further data which led to the creation of this dynamic
+    /// set of elements
+    /// </summary>
+    public class AdminShellPackageDynamicFetchContextBase
+    {
+    }
+
     /// <summary>
     /// This class creates a package env, which can handle dynamic loading of elements
     /// </summary>
@@ -38,6 +47,10 @@ namespace AasxPackageLogic.PackageCentral
         protected PackCntRuntimeOptions _runtimeOptions = null;
 
         protected Uri _defaultRepoBaseUri = null;
+
+        protected AdminShellPackageDynamicFetchContextBase _context = null;
+        public AdminShellPackageDynamicFetchContextBase GetContext() => _context;
+        public void SetContext(AdminShellPackageDynamicFetchContextBase cursor) { _context = cursor; }
 
         protected Dictionary<string, byte[]> _thumbStreamPerAasId = new Dictionary<string, byte[]>();
 
@@ -62,6 +75,34 @@ namespace AasxPackageLogic.PackageCentral
             }
         }
 
+        public async Task<bool> TryFetchThumbnail(Aas.IAssetAdministrationShell aas)
+        {
+            // access
+            if (aas?.Id?.HasContent() != true)
+                return false;
+
+            // try
+            try
+            {
+                await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                    sourceUri: PackageContainerHttpRepoSubset.BuildUriForAasThumbnail(_defaultRepoBaseUri, aas.Id),
+                    runtimeOptions: _runtimeOptions,
+                    lambdaDownloadDone: (ms, contentFn) =>
+                    {
+                        AddThumbnail(aas.Id, ms.ToArray());
+                    });
+
+                // happy
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogInternally.That.CompletelyIgnoredError(ex);
+            }
+
+            return false;
+        }
+
         public async Task<Aas.IIdentifiable> FindOrFetchIdentifiable(string id)
         {
             // access
@@ -69,50 +110,61 @@ namespace AasxPackageLogic.PackageCentral
                 || !(_aasEnv is AasOnDemandEnvironment odEnv))
                 return null;
 
-            // find existing?
-            Aas.IIdentifiable idf = _aasEnv?.FindAasById(id);
-            idf = idf ?? _aasEnv?.FindSubmodelById(id);
-            idf = idf ?? _aasEnv?.FindConceptDescriptionById(id);
-            if (idf != null)
-                return idf;
-
-            // try locate id in Submodels?
-            var sms = _aasEnv?.Submodels as OnDemandListIdentifiable<Aas.ISubmodel>;
-            var smndx = sms?.FindSideInfoIndexFromId(id);
-            if (smndx.HasValue && smndx.Value >= 0)
+            // try
+            try
             {
-                // directly use id to fetch Identifiable
-                Aas.IIdentifiable res = null;
+                // find existing?
+                Aas.IIdentifiable idf = _aasEnv?.FindAasById(id);
+                idf = idf ?? _aasEnv?.FindSubmodelById(id);
+                idf = idf ?? _aasEnv?.FindConceptDescriptionById(id);
+                if (idf != null)
+                    return idf;
 
-                // build the location
-                var loc = PackageContainerHttpRepoSubset.BuildUriForSubmodel(_defaultRepoBaseUri, id);
-                if (loc == null)
-                    return null;
+                // try locate id in Submodels?
+                var sms = _aasEnv?.Submodels as OnDemandListIdentifiable<Aas.ISubmodel>;
+                var smndx = sms?.FindSideInfoIndexFromId(id);
+                if (smndx.HasValue && smndx.Value >= 0)
+                {
+                    // directly use id to fetch Identifiable
+                    Aas.IIdentifiable res = null;
 
-                await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                    sourceUri: loc,
-                    allowFakeResponses: _runtimeOptions?.AllowFakeResponses ?? false,
-                    lambdaDownloadDone: (ms, contentFn) =>
-                    {
-                        try
+                    // build the location
+                    var loc = PackageContainerHttpRepoSubset.BuildUriForSubmodel(_defaultRepoBaseUri, id);
+                    if (loc == null)
+                        return null;
+
+                    await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                        sourceUri: loc,
+                        allowFakeResponses: _runtimeOptions?.AllowFakeResponses ?? false,
+                        runtimeOptions: _runtimeOptions,
+                        lambdaDownloadDone: (ms, contentFn) =>
                         {
-                            // load?
-                            var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                            var sm = Jsonization.Deserialize.SubmodelFrom(node);
+                            try
+                            {
+                                // load?
+                                var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                                var sm = Jsonization.Deserialize.SubmodelFrom(node);
 
-                            // replace, side info will go null
-                            sms[smndx.Value] = sm;
+                                // replace, side info will go null
+                                lock (_aasEnv.Submodels)
+                                {
+                                    sms[smndx.Value] = sm;
+                                }
 
-                            // ok
-                            res = sm;
-                        }
-                        catch (Exception ex)
-                        {
-                            _runtimeOptions?.Log?.Error(ex, "Parsing on demand loaded Submodel");
-                        }
-                    });
+                                // ok
+                                res = sm;
+                            }
+                            catch (Exception ex)
+                            {
+                                _runtimeOptions?.Log?.Error(ex, "Parsing on demand loaded Submodel");
+                            }
+                        });
 
-                return res;
+                    return res;
+                }
+            } catch (Exception ex)
+            {
+                LogInternally.That.CompletelyIgnoredError(ex);
             }
 
             // nope
@@ -122,11 +174,11 @@ namespace AasxPackageLogic.PackageCentral
         public async Task<bool> TryFetchSpecificIds(IEnumerable<string> ids)
         {
             var someFetched = false;
-            if (false)
+            if (true)
             {
-                // buggy
+                // parallel
                 await Parallel.ForEachAsync(
-                    ids, new ParallelOptions() { MaxDegreeOfParallelism = 10 },
+                    ids, new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
                     async (id, token) =>
                     {
                         var idf = await FindOrFetchIdentifiable(id);
@@ -282,10 +334,14 @@ namespace AasxPackageLogic.PackageCentral
         {
             if (aasId?.HasContent() != true)
                 return;
-            if (_thumbStreamPerAasId.ContainsKey(aasId))
-                _thumbStreamPerAasId[aasId] = content;
-            else
-                _thumbStreamPerAasId.Add(aasId, content);
+
+            lock (_thumbStreamPerAasId)
+            {
+                if (_thumbStreamPerAasId.ContainsKey(aasId))
+                    _thumbStreamPerAasId[aasId] = content;
+                else
+                    _thumbStreamPerAasId.Add(aasId, content);
+            }
         }
 
         public byte[] GetThumbnail(string aasId)

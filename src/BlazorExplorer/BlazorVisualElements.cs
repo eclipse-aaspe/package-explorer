@@ -465,5 +465,11 @@ namespace BlazorUI
                 // dead-csharp on
             }
         }
+
+        public bool IsAnyTaintedIdentifiable()
+        {
+            return TreeItems?.IsAnyTaintedIdentifiable() == true;
+        }
+
     }
 }

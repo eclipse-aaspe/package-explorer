@@ -53,7 +53,7 @@ namespace AasxPackageExplorer
                     args: new AasxMenuListOfArgDefs()
                         .Add("File", "Source filename including a path and extension."))
                 .AddWpfBlazor(name: "ConnectIntegrated", header: "Connect …", inputGesture: "Ctrl+Shift+I")
-                .AddWpfBlazor(name: "ConnectExtended", header: "Connect (extended) …", inputGesture: "Ctrl+Shift+E")
+                .AddWpfBlazor(name: "ConnectExtended", header: "Connect (extended) …")
                 .AddWpfBlazor(name: "Save", header: "_Save", inputGesture: "Ctrl+S")
                 .AddWpfBlazor(name: "SaveAs", header: "_Save as …", 
                     help: "Saves current package to given file name and typr",

@@ -496,7 +496,8 @@ namespace BlazorUI.Data
                     elementPanel,
                     superMenu, EditMode, HintMode, CheckSmtMode,
                     tiCds?.CdSortOrder ?? VisualElementEnvironmentItem.ConceptDescSortOrder.None,
-                    DisplayElements.SelectedItem);
+                    DisplayElements.SelectedItem,
+                    mainWindow: null); // TODO: fix mainWindow
 
                 if (common)
                 {

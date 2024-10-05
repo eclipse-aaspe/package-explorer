@@ -26,6 +26,9 @@ using Aas = AasCore.Aas3_0;
 using AasCore.Samm2_2_0;
 using static AasxPackageLogic.DispEditHelperBasics;
 using System.Windows.Controls;
+using AasxPackageExplorer;
+using System.Threading.Tasks;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 
 namespace AasxPackageLogic
 {
@@ -427,7 +430,8 @@ namespace AasxPackageLogic
             PackageCentral.PackageCentral packages, Aas.IEnvironment env,
             VisualElementEnvironmentItem ve, bool editMode, AnyUiStackPanel stack,
             bool hintMode = false,
-            AasxMenu superMenu = null)
+            AasxMenu superMenu = null,
+            IMainWindow mainWindow = null)
         {
             this.AddGroup(stack, "Environment of AssetInformation Administration Shells", this.levelColors.MainSection);
             if (env == null)
@@ -1119,6 +1123,109 @@ namespace AasxPackageLogic
                     });
                 stack.Children.Add(g);
             }
+            else if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext)
+            {
+                // check all pre-requisites
+                if (!(context is AnyUiContextPlusDialogs plusDialogs
+                     && ve.thePackage is AdminShellPackageDynamicFetchEnv dynPack
+                     && dynPack.GetContext() is PackageContainerHttpRepoSubsetFetchContext fetchContext
+                     && fetchContext.Record != null
+                     && mainWindow != null))
+                {
+                    AddHintBubble(stack, hintMode, new HintCheck(
+                        () => true,
+                            "Not enough data to provide dynamic fetch operations.",
+                            severityLevel: HintCheck.Severity.High));
+                    return;
+                }
+
+                // at the end?
+                if (fetchContext.Cursor?.HasContent() != true)
+                {
+                    AddHintBubble(stack, hintMode, new HintCheck(
+                        () => true,
+                            "No further fetch operation available " +
+                            "(at the end of the selected subset of elements?).",
+                            severityLevel: HintCheck.Severity.Notice));
+                    return;
+                }
+
+                // go ahead
+                AddHintBubble(stack, hintMode, new HintCheck(
+                        () => true,
+                            "The entities in this structure were fetched dynamically from " +
+                            "endpoints such as registries and repositories. This fetch could " +
+                            "be advanced to the next set of elements.",
+                            severityLevel: HintCheck.Severity.Notice));
+
+                AddActionPanel(stack, "Actions:",
+                    repo: repo,
+                    superMenu: superMenu,
+                    ticketMenu: new AasxMenu()
+                        .AddAction("fetch-next", "Fetch next",
+                            "Fetch the next set of elements."),
+                    ticketActionAsync: async (buttonNdx, ticket) =>
+                    {
+                        //await Task.Yield();
+
+                        //if (buttonNdx == 0)
+                        //{
+                        //    // check if something is tainted
+                        //    if (mainWindow?.CheckIsAnyTaintedIdentifiableInMain() == true)
+                        //    {
+                        //        if (AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                        //            "There are unsafed data changes in Identifiables. A fetch of elements " +
+                        //            "might result in data loss.",
+                        //            "Proceed with fetch?",
+                        //            AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                        //            return new AnyUiLambdaActionNone();
+                        //    }
+
+                        //    // modify (!) record data to do no skip anymore, using cursor data
+                        //    fetchContext.Record.PageSkip = 0;
+                        //    var location = PackageContainerHttpRepoSubset.BuildLocationFrom(
+                        //            fetchContext.Record, fetchContext.Cursor);
+                        //    if (location == null)
+                        //    {
+                        //        MainWindowLogic.LogErrorToTicketStatic(ticket,
+                        //            new InvalidDataException(),
+                        //            "Error building location from next fetch selection. Aborting.");
+                        //        return new AnyUiLambdaActionNone();
+                        //    }
+
+                        //    // more details into container options
+                        //    var containerOptions = new PackageContainerHttpRepoSubset.
+                        //        PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
+                        //        fetchContext.Record);
+
+                        //    // load
+                        //    Log.Singleton.Info($"For refining extended connect, loading " +
+                        //        $"from {location} into container");
+
+                        //    var container = await PackageContainerFactory.GuessAndCreateForAsync(
+                        //        packages,
+                        //        location,
+                        //        location,
+                        //        overrideLoadResident: true,
+                        //        containerOptions: containerOptions,
+                        //        runtimeOptions: packages.CentralRuntimeOptions);
+
+                        //    if (container == null)
+                        //        Log.Singleton.Error($"Failed to load from {location}");
+                        //    else
+                        //        mainWindow.UiLoadPackageWithNew(packages.MainItem,
+                        //            takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
+                        //            storeFnToLRU: location,
+                        //            nextEditMode: editMode);
+
+                        //    Log.Singleton.Info($"Successfully loaded {location}");
+                        //}
+                        //return new AnyUiLambdaActionNone();
+
+                        return await ExecuteUiForFetchOfElements
+                            ("fetch-next", packages, context, editMode, ticket, mainWindow, fetchContext);
+                    });
+            }
             else
             {
                 // Default
@@ -1144,16 +1251,91 @@ namespace AasxPackageLogic
                 // overview information
 
                 var g = this.AddSmallGrid(
-                    6, 1, new[] { "*" }, margin: new AnyUiThickness(5, 5, 0, 0));
+                            6, 1, new[] { "*" }, margin: new AnyUiThickness(5, 5, 0, 0));
                 this.AddSmallLabelTo(
-                    g, 0, 0, content: "This structure hold the main entites of Administration shells.");
+                    g, 0, 0, content: "This structure holds the main entities of Administration shells.");
                 this.AddSmallLabelTo(
-                    g, 1, 0, content: String.Format("#admin shells: {0}.", env.AssetAdministrationShellCount()),
+                    g, 1, 0, content: String.Format("#AssetAdministrationShells: {0}.", env.AssetAdministrationShellCount()),
                     margin: new AnyUiThickness(0, 5, 0, 0));
-                this.AddSmallLabelTo(g, 3, 0, content: String.Format("#submodels: {0}.", env.SubmodelCount()));
+                this.AddSmallLabelTo(g, 3, 0, content: String.Format("#Submodels: {0}.", env.SubmodelCount()));
                 this.AddSmallLabelTo(
-                    g, 4, 0, content: String.Format("#concept descriptions: {0}.", env.ConceptDescriptionCount()));
+                    g, 4, 0, content: String.Format("#ConceptDescriptions: {0}.", env.ConceptDescriptionCount()));
                 stack.Children.Add(g);
+
+                // dynamic fetched
+                if (ve.thePackage is AdminShellPackageDynamicFetchEnv dynPack
+                    && mainWindow != null)
+                {
+                    AddHintBubble(stack, hintMode, new HintCheck(
+                        () => true,
+                            "The entities in this structure were fetched dynamically from " +
+                            "endpoints such as registries and repositories.", 
+                            severityLevel: HintCheck.Severity.Notice));
+
+                    AddActionPanel(stack, "Actions:",
+                        repo: repo,
+                        superMenu: superMenu,
+                        ticketMenu: new AasxMenu()
+                            .AddAction("refine-fetch", "Refine fetch ..",
+                                "Refine the fetch parameters which led to this dynamic set of elements."),
+                        ticketActionAsync: async (buttonNdx, ticket) =>
+                        {
+                            if (buttonNdx == 0
+                                && context is AnyUiContextPlusDialogs plusDialogs)
+                            {
+                                // default, but better: used record
+                                var record = (((ve.thePackage as AdminShellPackageDynamicFetchEnv)?.GetContext()
+                                              as PackageContainerHttpRepoSubsetFetchContext)?.Record
+                                              as ConnectExtendedRecord)
+                                             ?? new PackageContainerHttpRepoSubset.ConnectExtendedRecord();
+
+                                var uiRes = await PackageContainerHttpRepoSubset.PerformConnectExtendedDialogue(
+                                    ticket, plusDialogs,
+                                    "Connect AAS repositories and registries",
+                                    record);
+
+                                if (!uiRes)
+                                    return new AnyUiLambdaActionNone(); ;
+
+                                var location = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                                if (location == null)
+                                {
+                                    MainWindowLogic.LogErrorToTicketStatic(ticket, 
+                                        new InvalidDataException(),
+                                        "Error building location from query selection. Aborting.");
+                                    return new AnyUiLambdaActionNone();
+                                }
+
+                                // more details into container options
+                                var containerOptions = new PackageContainerHttpRepoSubset.
+                                    PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
+                                    record);
+
+                                // load
+                                Log.Singleton.Info($"For refining extended connect, loading " +
+                                    $"from {location} into container");
+
+                                var container = await PackageContainerFactory.GuessAndCreateForAsync(
+                                    packages,
+                                    location,
+                                    location,
+                                    overrideLoadResident: true,
+                                    containerOptions: containerOptions,
+                                    runtimeOptions: packages.CentralRuntimeOptions);
+
+                                if (container == null)
+                                    Log.Singleton.Error($"Failed to load from {location}");
+                                else
+                                    mainWindow.UiLoadPackageWithNew(packages.MainItem,
+                                        takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
+                                        storeFnToLRU: location,
+                                        nextEditMode: editMode);
+
+                                Log.Singleton.Info($"Successfully loaded {location}");
+                            }
+                            return new AnyUiLambdaActionNone();
+                        });
+                }
             }
         }
 
@@ -1226,6 +1408,79 @@ namespace AasxPackageLogic
                         return new AnyUiLambdaActionNone();
                     });
             }
+        }
+
+        //
+        //
+        // --- Dynamic fetch of elements
+        //
+        //
+
+        public static async Task<AnyUiLambdaActionBase> ExecuteUiForFetchOfElements(
+            string mode,
+            PackageCentral.PackageCentral packages,
+            AnyUiContextBase displayContext,
+            bool editMode,
+            AasxMenuActionTicket ticket,
+            IMainWindow mainWindow,
+            PackageContainerHttpRepoSubsetFetchContext fetchContext)
+        {
+            await Task.Yield();
+            
+            if (mode == "fetch-next")
+            {
+                // check if something is tainted
+                if (mainWindow?.CheckIsAnyTaintedIdentifiableInMain() == true)
+                {
+                    if (AnyUiMessageBoxResult.Yes != displayContext.MessageBoxFlyoutShow(
+                        "There are unsafed data changes in Identifiables. A fetch of elements " +
+                        "might result in data loss.",
+                        "Proceed with fetch?",
+                        AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                        return new AnyUiLambdaActionNone();
+                }
+
+                // modify (!) record data to do no skip anymore, using cursor data
+                fetchContext.Record.PageSkip = 0;
+                var location = PackageContainerHttpRepoSubset.BuildLocationFrom(
+                        fetchContext.Record, fetchContext.Cursor);
+                if (location == null)
+                {
+                    MainWindowLogic.LogErrorToTicketStatic(ticket,
+                        new InvalidDataException(),
+                        "Error building location from next fetch selection. Aborting.");
+                    return new AnyUiLambdaActionNone();
+                }
+
+                // more details into container options
+                var containerOptions = new PackageContainerHttpRepoSubset.
+                    PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
+                    fetchContext.Record);
+
+                // load
+                Log.Singleton.Info($"For refining extended connect, loading " +
+                    $"from {location} into container");
+
+                var container = await PackageContainerFactory.GuessAndCreateForAsync(
+                    packages,
+                    location,
+                    location,
+                    overrideLoadResident: true,
+                    containerOptions: containerOptions,
+                    runtimeOptions: packages.CentralRuntimeOptions);
+
+                if (container == null)
+                    Log.Singleton.Error($"Failed to load from {location}");
+                else
+                    mainWindow.UiLoadPackageWithNew(packages.MainItem,
+                        takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
+                        storeFnToLRU: location,
+                        nextEditMode: editMode);
+
+                Log.Singleton.Info($"Successfully loaded {location}");                
+            }
+            
+            return new AnyUiLambdaActionNone();
         }
 
         //
@@ -1511,22 +1766,34 @@ namespace AasxPackageLogic
                         .AddAction("stub-load-submodels", "Submodels",
                             "Load missing Submodels only for this AAS.")
                         .AddAction("stub-load-concepts", "ConceptDescriptions",
-                            "Load missing ConceptDescriptions only for this AAS."),
+                            "Load missing ConceptDescriptions only for this AAS.")
+                        .AddAction("stub-load-thumbnail", "Thumbnail",
+                            "Load missing Thumbnail only for this AAS."),
                     ticketActionAsync: async (buttonNdx, ticket) =>
                     {
-                        List<LocatedReference> lrs = null;
+                        if (buttonNdx >= 0 && buttonNdx <= 1)
+                        {
 
-                        if (buttonNdx == 0)
-                            lrs = aas?.FindAllSubmodelReferences().ToList();
-                                    
+                            List<LocatedReference> lrs = null;
 
-                        if (buttonNdx == 1)
-                            lrs = env.FindAllSemanticIdsForAas(aas).ToList();
+                            if (buttonNdx == 0)
+                                lrs = aas?.FindAllSubmodelReferences().ToList();
 
-                        if (lrs != null)
-                        { 
-                            var ids = lrs.Select((lr) => (lr?.Reference?.IsValid() == true) ? lr.Reference.Keys[0].Value : null).ToList();
-                            var fetched = await dynPack.TryFetchSpecificIds(ids);
+                            if (buttonNdx == 1)
+                                lrs = env.FindAllSemanticIdsForAas(aas).ToList();
+
+                            if (lrs != null)
+                            {
+                                var ids = lrs.Select((lr) => (lr?.Reference?.IsValid() == true) ? lr.Reference.Keys[0].Value : null).ToList();
+                                var fetched = await dynPack.TryFetchSpecificIds(ids);
+                                if (fetched)
+                                    return new AnyUiLambdaActionRedrawAllElements(nextFocus: aas);
+                            }
+                        }
+
+                        if (buttonNdx == 2)
+                        {
+                            var fetched = await dynPack.TryFetchThumbnail(aas);
                             if (fetched)
                                 return new AnyUiLambdaActionRedrawAllElements(nextFocus: aas);
                         }
@@ -4921,19 +5188,25 @@ namespace AasxPackageLogic
         }
 
 
+        /// <summary>
+        /// Super function to basically edit all known visual elements.
+        /// Note: With hesitation, the <c>mainWindow</c> is passed into this function and shall only 
+        ///       be used in exceptional cases.
+        /// </summary>
         public bool DisplayOrEditCommonEntity(
             PackageCentral.PackageCentral packages,
             AnyUiStackPanel stack,
             AasxMenu superMenu,
             bool editMode, bool hintMode, bool checkSmt,
 			VisualElementEnvironmentItem.ConceptDescSortOrder? cdSortOrder,
-            VisualElementGeneric entity)
+            VisualElementGeneric entity,
+            IMainWindow mainWindow)
         {
             if (entity is VisualElementEnvironmentItem veei)
             {
                 DisplayOrEditAasEntityAasEnv(
                     packages, veei.theEnv, veei, editMode, stack, hintMode: hintMode,
-                    superMenu: superMenu);
+                    superMenu: superMenu, mainWindow: mainWindow);
             }
             else if (entity is VisualElementAdminShell veaas)
             {

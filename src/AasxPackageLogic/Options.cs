@@ -438,8 +438,11 @@ namespace AasxPackageLogic
             Cmd = "-backupdir", Arg = "<path>")]
         public string BackupDir = null;
 
-        [OptionDescription(Description = "At max such much different files are used for backing up")]
+        [OptionDescription(Description = "At max such much different files are used for backing up.")]
         public int BackupFiles = 10;
+
+        [OptionDescription(Description = "Maximum parallel operations, such as HTTP downloads.")]
+        public int MaxParallelOps = 20;
 
         [OptionDescription(Description = "If set, load and store AASX files via temporary package to " +
             "avoid corruptions. RECOMMENDED!",

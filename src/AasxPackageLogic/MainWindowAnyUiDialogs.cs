@@ -513,7 +513,7 @@ namespace AasxPackageLogic
 
                     var uiRes = await PackageContainerHttpRepoSubset.PerformConnectExtendedDialogue(
                         ticket, DisplayContext,
-                        "Connect AAS Repository",
+                        "Connect AAS repositories and registries",
                         record);
 
                     if (!uiRes)
@@ -548,7 +548,8 @@ namespace AasxPackageLogic
                     else
                         MainWindow.UiLoadPackageWithNew(PackageCentral.MainItem,
                             takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
-                            storeFnToLRU: location);
+                            storeFnToLRU: location,
+                            preserveEditMode: true) ;
 
                     Log.Singleton.Info($"Successfully loaded {location}");
                 }
