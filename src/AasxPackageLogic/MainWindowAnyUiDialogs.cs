@@ -509,49 +509,65 @@ namespace AasxPackageLogic
                 //do
                 try
                 {
-                    var record = new ConnectExtendedRecord();
-
-                    var uiRes = await PackageContainerHttpRepoSubset.PerformConnectExtendedDialogue(
-                        ticket, DisplayContext,
-                        "Connect AAS repositories and registries",
-                        record);
-
-                    if (!uiRes)
-                        return;
-
-                    var location = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
-                    if (location == null)
+                    var fetchContext = new PackageContainerHttpRepoSubsetFetchContext()
                     {
-                        LogErrorToTicket(ticket, "Error building location from query selection. Aborting.");
-                        return;
-                    }
+                        Record = new ConnectExtendedRecord()
+                    };
 
-                    // more details into container options
-                    var containerOptions = new PackageContainerHttpRepoSubset.
-                        PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
-                        record);
+                    // refer to (static) function
+                    var res = await DispEditHelperEntities.ExecuteUiForFetchOfElements(
+                        PackageCentral, DisplayContext, ticket, MainWindow, fetchContext,
+                        preserveEditMode: true,
+                        doEditNewRecord: true,
+                        doCheckTainted: true,
+                        doFetchGoNext: false,
+                        doFetchExec: true);
 
-                    // load
-                    Log.Singleton.Info($"For extended connect, loading " +
-                        $"from {location} into container");
+                    // success will trigger redraw independently, therefore always do nothing
 
-                    var container = await PackageContainerFactory.GuessAndCreateForAsync(
-                        PackageCentral,
-                        location,
-                        location,
-                        overrideLoadResident: true,
-                        containerOptions: containerOptions,
-                        runtimeOptions: PackageCentral.CentralRuntimeOptions);
+                    //var record = new ConnectExtendedRecord();
 
-                    if (container == null)
-                        Log.Singleton.Error($"Failed to load from {location}");
-                    else
-                        MainWindow.UiLoadPackageWithNew(PackageCentral.MainItem,
-                            takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
-                            storeFnToLRU: location,
-                            preserveEditMode: true) ;
+                    //var uiRes = await PackageContainerHttpRepoSubset.PerformConnectExtendedDialogue(
+                    //    ticket, DisplayContext,
+                    //    "Connect AAS repositories and registries",
+                    //    record);
 
-                    Log.Singleton.Info($"Successfully loaded {location}");
+                    //if (!uiRes)
+                    //    return;
+
+                    //var location = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    //if (location == null)
+                    //{
+                    //    LogErrorToTicket(ticket, "Error building location from query selection. Aborting.");
+                    //    return;
+                    //}
+
+                    //// more details into container options
+                    //var containerOptions = new PackageContainerHttpRepoSubset.
+                    //    PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
+                    //    record);
+
+                    //// load
+                    //Log.Singleton.Info($"For extended connect, loading " +
+                    //    $"from {location} into container");
+
+                    //var container = await PackageContainerFactory.GuessAndCreateForAsync(
+                    //    PackageCentral,
+                    //    location,
+                    //    location,
+                    //    overrideLoadResident: true,
+                    //    containerOptions: containerOptions,
+                    //    runtimeOptions: PackageCentral.CentralRuntimeOptions);
+
+                    //if (container == null)
+                    //    Log.Singleton.Error($"Failed to load from {location}");
+                    //else
+                    //    MainWindow.UiLoadPackageWithNew(PackageCentral.MainItem,
+                    //        takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
+                    //        storeFnToLRU: location,
+                    //        preserveEditMode: true) ;
+
+                    //Log.Singleton.Info($"Successfully loaded {location}");
                 }
                 catch (Exception ex)
                 {

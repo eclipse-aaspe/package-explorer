@@ -24,6 +24,7 @@ using Newtonsoft.Json;
 using NPOI.HPSF;
 using Org.BouncyCastle.Asn1.X509;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -2929,7 +2930,7 @@ namespace AasxPackageExplorer
             RedrawElementView();
         }
 
-        private void DisplayElements_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private async void DisplayElements_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             // we're assuming, that SelectedItem point to the right business object
             var si = DisplayElements.SelectedItem;
@@ -2937,13 +2938,40 @@ namespace AasxPackageExplorer
                 return;
 
             // act depending on selectedItem
-
             if (si is VisualElementEnvironmentItem siei 
                 && (siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev
                     || siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext))
             {
                 // want to refetch elements
-                ;
+                // check all pre-requisites
+                if (!(siei.thePackage is AdminShellPackageDynamicFetchEnv dynPack
+                     && dynPack.GetContext() is PackageContainerHttpRepoSubsetFetchContext fetchContext
+                     && fetchContext.Record != null))
+                {
+                    Log.Singleton.Error("Fetch next within dynamic environment: " +
+                        "Not enough data to provide dynamic fetch operations.");
+                    return;
+                }
+
+                // at the end?
+                if (siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext
+                    && fetchContext.Cursor?.HasContent() != true)
+                {
+                    Log.Singleton.Error("No further fetch operation available " +
+                            "(at the end of the selected subset of elements?).");
+                    return;
+                }
+
+                // refer to (static) function
+                var res = await DispEditHelperEntities.ExecuteUiForFetchOfElements(
+                    PackageCentral, DisplayContext, new AasxMenuActionTicket(), this /* MainWindow */, fetchContext,
+                    preserveEditMode: true,
+                    doEditNewRecord: false,
+                    doCheckTainted: true,
+                    doFetchGoNext: true,
+                    doFetchExec: true);
+
+                // success will trigger redraw independently, therefore always do nothing
             }
             else
             if (si is VisualElementSubmodelElement)

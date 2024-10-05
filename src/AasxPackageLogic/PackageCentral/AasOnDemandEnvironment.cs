@@ -43,6 +43,7 @@ namespace AasxPackageLogic.PackageCentral
         public string Id = "";
         public string IdShort = "";
 
+        public bool ShowCursorAbove = false;
         public bool ShowCursorBelow = false;
     }
 
