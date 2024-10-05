@@ -39,7 +39,17 @@ namespace AasxPackageLogic.PackageCentral
     public class PackageContainerHttpRepoSubsetFetchContext : AdminShellPackageDynamicFetchContextBase
     {
         public PackageContainerHttpRepoSubset.ConnectExtendedRecord Record;
+
+        /// <summary>
+        /// Cursor, as provided by the server.
+        /// </summary>
         public string Cursor;
+
+        /// <summary>
+        /// This offset in elements is thought-out by this client by "counting". It does NOT come form
+        /// the server!
+        /// </summary>
+        public int PageOffset;
     }
 
     /// <summary>
@@ -384,10 +394,12 @@ namespace AasxPackageLogic.PackageCentral
                                             continue;
                                         }
 
-                                        // on last child, attach side info for fetch next cursor
-                                        var lastChildAndMore = n2 == resChilds.Last() && record.PageLimit > 0;
-                                        var si = (!lastChildAndMore) ? null
-                                                 : new AasIdentifiableSideInfo()
+                                        // on last child, attach side info for fetch prev/ next cursor
+                                        AasIdentifiableSideInfo si = null;
+                                        // if (n2 == resChilds.First() && record.Pa)
+
+                                        if (n2 == resChilds.Last() && record.PageLimit > 0)
+                                            si = new AasIdentifiableSideInfo()
                                                  {
                                                      IsStub = false,
                                                      ShowCursorBelow = true
@@ -564,7 +576,8 @@ namespace AasxPackageLogic.PackageCentral
             EnvDynPack?.SetContext(new PackageContainerHttpRepoSubsetFetchContext()
             {
                 Record = record,
-                Cursor = cursor
+                Cursor = cursor,
+                PageOffset = 0 // by definition
             });
         }
 
@@ -642,6 +655,25 @@ namespace AasxPackageLogic.PackageCentral
                 GetSingleSubmodel = (choice == 3);
                 GetSingleCD = (choice == 4);
                 ExecuteQuery = (choice == 5);
+            }
+
+            public string GetBaseTypStr()
+            {
+                return AdminShellUtil.MapIntToStringArray((int)BaseType,
+                        "Unknown", ConnectExtendedRecord.BaseTypeEnumNames);
+            }
+
+            public string GetFetchOperationStr()
+            {
+                var res = "Unknown";
+
+                if (GetAllAas) res = "GetAllAssetAdministrationShells";
+                if (GetSingleAas) res = "GetAssetAdministrationShellById";
+                if (GetSingleSubmodel) res = "GetSubmodelById";
+                if (GetSingleCD) res = "GetConceptDescriptionById";
+                if (ExecuteQuery) res = "ExecuteQuery";
+
+                return res;
             }
         }
 

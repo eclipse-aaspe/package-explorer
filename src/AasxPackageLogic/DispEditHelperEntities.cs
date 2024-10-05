@@ -29,6 +29,7 @@ using System.Windows.Controls;
 using AasxPackageExplorer;
 using System.Threading.Tasks;
 using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
+using VDS.Common.Filters;
 
 namespace AasxPackageLogic
 {
@@ -1166,64 +1167,16 @@ namespace AasxPackageLogic
                             "Fetch the next set of elements."),
                     ticketActionAsync: async (buttonNdx, ticket) =>
                     {
-                        //await Task.Yield();
+                        var res = await ExecuteUiForFetchOfElements(
+                            packages, context, ticket, mainWindow, fetchContext,
+                            preserveEditMode: true,
+                            doEditNewRecord: false,
+                            doCheckTainted: true,
+                            doFetchGoNext: true,
+                            doFetchExec: true);
 
-                        //if (buttonNdx == 0)
-                        //{
-                        //    // check if something is tainted
-                        //    if (mainWindow?.CheckIsAnyTaintedIdentifiableInMain() == true)
-                        //    {
-                        //        if (AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
-                        //            "There are unsafed data changes in Identifiables. A fetch of elements " +
-                        //            "might result in data loss.",
-                        //            "Proceed with fetch?",
-                        //            AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
-                        //            return new AnyUiLambdaActionNone();
-                        //    }
-
-                        //    // modify (!) record data to do no skip anymore, using cursor data
-                        //    fetchContext.Record.PageSkip = 0;
-                        //    var location = PackageContainerHttpRepoSubset.BuildLocationFrom(
-                        //            fetchContext.Record, fetchContext.Cursor);
-                        //    if (location == null)
-                        //    {
-                        //        MainWindowLogic.LogErrorToTicketStatic(ticket,
-                        //            new InvalidDataException(),
-                        //            "Error building location from next fetch selection. Aborting.");
-                        //        return new AnyUiLambdaActionNone();
-                        //    }
-
-                        //    // more details into container options
-                        //    var containerOptions = new PackageContainerHttpRepoSubset.
-                        //        PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
-                        //        fetchContext.Record);
-
-                        //    // load
-                        //    Log.Singleton.Info($"For refining extended connect, loading " +
-                        //        $"from {location} into container");
-
-                        //    var container = await PackageContainerFactory.GuessAndCreateForAsync(
-                        //        packages,
-                        //        location,
-                        //        location,
-                        //        overrideLoadResident: true,
-                        //        containerOptions: containerOptions,
-                        //        runtimeOptions: packages.CentralRuntimeOptions);
-
-                        //    if (container == null)
-                        //        Log.Singleton.Error($"Failed to load from {location}");
-                        //    else
-                        //        mainWindow.UiLoadPackageWithNew(packages.MainItem,
-                        //            takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
-                        //            storeFnToLRU: location,
-                        //            nextEditMode: editMode);
-
-                        //    Log.Singleton.Info($"Successfully loaded {location}");
-                        //}
-                        //return new AnyUiLambdaActionNone();
-
-                        return await ExecuteUiForFetchOfElements
-                            ("fetch-next", packages, context, editMode, ticket, mainWindow, fetchContext);
+                        // success will trigger redraw independently, therefore always return none
+                        return new AnyUiLambdaActionNone();
                     });
             }
             else
@@ -1272,6 +1225,36 @@ namespace AasxPackageLogic
                             "endpoints such as registries and repositories.", 
                             severityLevel: HintCheck.Severity.Notice));
 
+                    this.AddGroup(stack, "Dynamic fetch environment", this.levelColors.SubSection);
+
+                    // more infos?
+                    if (dynPack.GetContext() is PackageContainerHttpRepoSubsetFetchContext fetchContext
+                        && fetchContext.Record != null)
+                    {
+                        var record = fetchContext.Record;
+
+                        AddKeyValue(stack, key: "BaseType", repo: null,
+                            value: record.GetBaseTypStr().ToUpper());
+
+                        AddKeyValue(stack, key: "BaseAddress", repo: null,
+                            value: record.BaseAddress);
+
+                        AddKeyValue(stack, key: "Operation", repo: null,
+                            value: record.GetFetchOperationStr());
+
+                        if (record.GetAllAas)
+                        {
+                            AddKeyValue(stack, key: "Page limit", repo: null,
+                                value: "" + record.PageLimit);
+
+                            AddKeyValue(stack, key: "Page skip", repo: null,
+                                value: "" + record.PageSkip);
+
+                            AddKeyValue(stack, key: "Page offset", repo: null,
+                                value: "" + fetchContext.PageOffset + " (counted)");
+                        }
+                    }
+
                     AddActionPanel(stack, "Actions:",
                         repo: repo,
                         superMenu: superMenu,
@@ -1289,49 +1272,69 @@ namespace AasxPackageLogic
                                               as ConnectExtendedRecord)
                                              ?? new PackageContainerHttpRepoSubset.ConnectExtendedRecord();
 
-                                var uiRes = await PackageContainerHttpRepoSubset.PerformConnectExtendedDialogue(
-                                    ticket, plusDialogs,
-                                    "Connect AAS repositories and registries",
-                                    record);
+                                //record.PageSkip = 0;
 
-                                if (!uiRes)
-                                    return new AnyUiLambdaActionNone(); ;
+                                //var uiRes = await PackageContainerHttpRepoSubset.PerformConnectExtendedDialogue(
+                                //    ticket, plusDialogs,
+                                //    "Connect AAS repositories and registries",
+                                //    record);
 
-                                var location = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
-                                if (location == null)
+                                //if (!uiRes)
+                                //    return new AnyUiLambdaActionNone();
+
+                                // ok, prepare new fetch context (no continuiation)
+                                var fetchContext = new PackageContainerHttpRepoSubsetFetchContext()
                                 {
-                                    MainWindowLogic.LogErrorToTicketStatic(ticket, 
-                                        new InvalidDataException(),
-                                        "Error building location from query selection. Aborting.");
-                                    return new AnyUiLambdaActionNone();
-                                }
+                                    Record = record
+                                };
 
-                                // more details into container options
-                                var containerOptions = new PackageContainerHttpRepoSubset.
-                                    PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
-                                    record);
+                                // refer to (static) function
+                                var res = await ExecuteUiForFetchOfElements(
+                                    packages, context, ticket, mainWindow, fetchContext,
+                                    preserveEditMode: true,
+                                    doEditNewRecord: true,
+                                    doCheckTainted: true,
+                                    doFetchGoNext: false,
+                                    doFetchExec: true);
 
-                                // load
-                                Log.Singleton.Info($"For refining extended connect, loading " +
-                                    $"from {location} into container");
+                                // success will trigger redraw independently, therefore always return none
+                                return new AnyUiLambdaActionNone();
 
-                                var container = await PackageContainerFactory.GuessAndCreateForAsync(
-                                    packages,
-                                    location,
-                                    location,
-                                    overrideLoadResident: true,
-                                    containerOptions: containerOptions,
-                                    runtimeOptions: packages.CentralRuntimeOptions);
+                                //var location = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                                //if (location == null)
+                                //{
+                                //    MainWindowLogic.LogErrorToTicketStatic(ticket, 
+                                //        new InvalidDataException(),
+                                //        "Error building location from query selection. Aborting.");
+                                //    return new AnyUiLambdaActionNone();
+                                //}
 
-                                if (container == null)
-                                    Log.Singleton.Error($"Failed to load from {location}");
-                                else
-                                    mainWindow.UiLoadPackageWithNew(packages.MainItem,
-                                        takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
-                                        storeFnToLRU: location,
-                                        nextEditMode: editMode);
+                                //// more details into container options
+                                //var containerOptions = new PackageContainerHttpRepoSubset.
+                                //    PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
+                                //    record);
 
-                                Log.Singleton.Info($"Successfully loaded {location}");
+                                //// load
+                                //Log.Singleton.Info($"For refining extended connect, loading " +
+                                //    $"from {location} into container");
+
+                                //var container = await PackageContainerFactory.GuessAndCreateForAsync(
+                                //    packages,
+                                //    location,
+                                //    location,
+                                //    overrideLoadResident: true,
+                                //    containerOptions: containerOptions,
+                                //    runtimeOptions: packages.CentralRuntimeOptions);
+
+                                //if (container == null)
+                                //    Log.Singleton.Error($"Failed to load from {location}");
+                                //else
+                                //    mainWindow.UiLoadPackageWithNew(packages.MainItem,
+                                //        takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
+                                //        storeFnToLRU: location,
+                                //        nextEditMode: editMode);
+
+                                //Log.Singleton.Info($"Successfully loaded {location}");
                             }
                             return new AnyUiLambdaActionNone();
                         });
@@ -1416,18 +1419,29 @@ namespace AasxPackageLogic
         //
         //
 
-        public static async Task<AnyUiLambdaActionBase> ExecuteUiForFetchOfElements(
-            string mode,
+        /// <summary>
+        /// Fetch helper. Different <c>do...</c> flags are to be set!
+        /// </summary>
+        /// <returns><c>True</c>, when a new fetch has been executed successfully</returns>
+        public static async Task<bool> ExecuteUiForFetchOfElements(
             PackageCentral.PackageCentral packages,
             AnyUiContextBase displayContext,
-            bool editMode,
             AasxMenuActionTicket ticket,
             IMainWindow mainWindow,
-            PackageContainerHttpRepoSubsetFetchContext fetchContext)
+            PackageContainerHttpRepoSubsetFetchContext fetchContext,
+            bool preserveEditMode = true,
+            bool doCheckTainted = false,
+            bool doEditNewRecord = false,
+            bool doFetchGoNext = false,
+            bool doFetchExec = false)
         {
             await Task.Yield();
-            
-            if (mode == "fetch-next")
+
+            // fetchContext is required!!
+            if (fetchContext == null)
+                return false;
+
+            if (doCheckTainted)
             {
                 // check if something is tainted
                 if (mainWindow?.CheckIsAnyTaintedIdentifiableInMain() == true)
@@ -1437,19 +1451,47 @@ namespace AasxPackageLogic
                         "might result in data loss.",
                         "Proceed with fetch?",
                         AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
-                        return new AnyUiLambdaActionNone();
+                        return false;
                 }
+            }
 
+            if (doEditNewRecord)
+            {
+                var record = fetchContext.Record ?? new PackageContainerHttpRepoSubset.ConnectExtendedRecord();
+
+                var uiRes = await PackageContainerHttpRepoSubset.PerformConnectExtendedDialogue(
+                    ticket, displayContext,
+                    "Connect AAS repositories and registries",
+                    record);
+
+                if (!uiRes)
+                    return false;
+
+                // modify fetch context to be "fresh"
+                fetchContext.PageOffset = 0;
+                fetchContext.Cursor = null;
+                fetchContext.Record = record;
+            }
+
+            if (doFetchGoNext)
+            {
                 // modify (!) record data to do no skip anymore, using cursor data
+                fetchContext.PageOffset += (fetchContext.Record.PageLimit + fetchContext.Record.PageSkip);
                 fetchContext.Record.PageSkip = 0;
+            }
+
+            if (doFetchExec)
+            {
+                // build location
                 var location = PackageContainerHttpRepoSubset.BuildLocationFrom(
-                        fetchContext.Record, fetchContext.Cursor);
+                    fetchContext.Record, fetchContext.Cursor);
+
                 if (location == null)
                 {
                     MainWindowLogic.LogErrorToTicketStatic(ticket,
                         new InvalidDataException(),
                         "Error building location from next fetch selection. Aborting.");
-                    return new AnyUiLambdaActionNone();
+                    return false;
                 }
 
                 // more details into container options
@@ -1470,17 +1512,31 @@ namespace AasxPackageLogic
                     runtimeOptions: packages.CentralRuntimeOptions);
 
                 if (container == null)
+                {
                     Log.Singleton.Error($"Failed to load from {location}");
-                else
-                    mainWindow.UiLoadPackageWithNew(packages.MainItem,
-                        takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
-                        storeFnToLRU: location,
-                        nextEditMode: editMode);
+                    return false;
+                }
 
-                Log.Singleton.Info($"Successfully loaded {location}");                
+                // manual update of page offset
+                if ((container.Env as AdminShellPackageDynamicFetchEnv)?.GetContext()
+                    is PackageContainerHttpRepoSubsetFetchContext fc2)
+                {
+                    fc2.PageOffset = fetchContext.PageOffset;
+                }
+
+                // display
+                mainWindow.UiLoadPackageWithNew(packages.MainItem,
+                    takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
+                    storeFnToLRU: location,
+                    preserveEditMode: preserveEditMode);
+
+                Log.Singleton.Info($"Successfully loaded {location}");
+
+                // okay
+                return true;
             }
             
-            return new AnyUiLambdaActionNone();
+            return false;
         }
 
         //

@@ -22,6 +22,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Windows;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 using Aas = AasCore.Aas3_0;
 using Samm = AasCore.Samm2_2_0;
 
@@ -645,7 +646,20 @@ namespace AasxPackageLogic
                 {
                     TagString = " \U0001f517 ";
                     TagWeight = FontWeights.Normal;
-                    Info += "" + dynPack.Filename;
+
+                    // add knowledge from record
+                    if (dynPack.GetContext() is PackageContainerHttpRepoSubsetFetchContext fetchContext
+                        && fetchContext.Record != null)
+                    {
+                        // show base of Repo/ Registry
+                        Caption = fetchContext.Record.GetBaseTypStr().ToUpper();
+                        Info += fetchContext.Record.BaseAddress;
+                    }
+                    else
+                    {
+                        // normal
+                        Info += "" + dynPack.Filename;
+                    }
                 }
                 else
                 {
