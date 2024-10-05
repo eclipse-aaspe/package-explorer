@@ -21,6 +21,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Windows;
 using Aas = AasCore.Aas3_0;
 using Samm = AasCore.Samm2_2_0;
 
@@ -67,6 +68,7 @@ namespace AasxPackageLogic
         private bool _isExpandedTouched = false;
         private bool _isSelected = false;
         public string TagString { get; set; }
+        public FontWeight TagWeight { get; set; } = FontWeights.Bold;
 
         private string _caption = "";
         public string Caption
@@ -569,16 +571,21 @@ namespace AasxPackageLogic
         public enum ItemType
         {
             Env = 0, Shells, AllConceptDescriptions, Package, OrphanSubmodels, AllSubmodels, SupplFiles,
+            FetchPrev, FetchNext,
             CdValueReference, EmptySet, DummyNode
         };
 
         public static string[] ItemTypeNames = new string[] {
             "Environment", "AdministrationShells", "ConceptDescriptions", "Package", "Orphan Submodels",
-            "All Submodels", "Supplemental files", "Value Aas.Reference", "Empty", "Dummy" };
+            "All Submodels", "Supplemental files",
+            "Fetch previous", "Fetch next",
+            "Value Aas.Reference", "Empty", "Dummy" };
 
         public static string[] ItemTypeFilter = new string[] {
             "Environment", "AdministrationShells", "ConceptDescriptions", "Package", "OrphanSubmodels",
-            "AllSubmodels", "SupplementalFiles", "Value.Aas.Reference", "Empty", "Dummy" };
+            "AllSubmodels", "SupplementalFiles", 
+            "Fetch previous", "Fetch next",
+            "Value.Aas.Reference", "Empty", "Dummy" };
 
         public enum ConceptDescSortOrder {
             [EnumMember(Value = "ListIndex")]
@@ -634,11 +641,26 @@ namespace AasxPackageLogic
             }
             if (theItemType == ItemType.Package && thePackage != null)
             {
-                this.TagString = "\u25a2";
-                if (thePackageSourceFn != null)
-                    this.Info += "" + thePackageSourceFn;
+                if (thePackage is AdminShellPackageDynamicFetchEnv dynPack)
+                {
+                    TagString = " \U0001f517 ";
+                    TagWeight = FontWeights.Normal;
+                    Info += "" + dynPack.Filename;
+                }
                 else
-                    this.Info += "" + thePackage.Filename;
+                {
+                    TagString = "Env";
+                    TagWeight = FontWeights.Normal;
+                    if (thePackageSourceFn != null)
+                        this.Info += "" + thePackageSourceFn;
+                    else
+                        this.Info += "" + thePackage.Filename;
+                }
+            }
+            if (theItemType == ItemType.FetchNext)
+            {
+                TagString = " \u21ca ";
+                TagWeight = FontWeights.Normal;
             }
             RestoreFromCache();
         }
@@ -739,8 +761,12 @@ namespace AasxPackageLogic
         {
             if (theAas != null)
             {
+                var td = "";
+                if (GetTaintedTime() != null)
+                    td = "\u273d ";
+
                 var ci = theAas.ToCaptionInfo();
-                this.Caption = ci.Item1;
+                this.Caption = td + ci.Item1;
                 this.Info = ci.Item2;
                 var asset = theAas.AssetInformation;
                 if (asset != null)
@@ -1682,6 +1708,8 @@ namespace AasxPackageLogic
 
     public class ListOfVisualElement : ObservableCollection<VisualElementGeneric>
     {
+        public static int ConstThresholdExpandAas = 5;
+
         public bool OptionLazyLoadingFirst = false;
         public int OptionExpandMode = 0;
 
@@ -1985,7 +2013,8 @@ namespace AasxPackageLogic
         private VisualElementAdminShell GenerateVisuElemForAAS(
             Aas.IAssetAdministrationShell aas,
             TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnvBase package = null,
-            bool editMode = false)
+            bool editMode = false,
+            bool aasIsExpanded = true)
         {
             // trivial
             if (aas == null)
@@ -2001,6 +2030,7 @@ namespace AasxPackageLogic
             {
                 // item
                 var tiAsset = new VisualElementAsset(tiAas, cache, env, aas, asset);
+                tiAas.IsExpanded = aasIsExpanded;
                 tiAas.Members.Add(tiAsset);
             }
 
@@ -2019,12 +2049,16 @@ namespace AasxPackageLogic
                         {
                             var si = smsi.GetSideInfo(ndx);
 
-                            // add stub
-                            var tiSmSi = new VisualElementSubmodelStub(tiAas, cache, package, si);
-                            tiAas.Members.Add(tiSmSi);
+                            if (si.IsStub)
+                            {
 
-                            // not further here!!
-                            continue;
+                                // add stub
+                                var tiSmSi = new VisualElementSubmodelStub(tiAas, cache, package, si);
+                                tiAas.Members.Add(tiSmSi);
+
+                                // not further here!!
+                                continue;
+                            }
                         }
                     }
 
@@ -2389,25 +2423,48 @@ namespace AasxPackageLogic
                 }
 
                 // over all Admin shells
-                if (env != null)
+                if (env != null && env.AssetAdministrationShellCount() > 0)
                 {
-                    foreach (var aas in env.AllAssetAdministrationShells())
+                    for (int aasi=0; aasi< env.AssetAdministrationShellCount(); aasi++)
                     {
+                        // get info(s)
+                        var aas = env.AssetAdministrationShells[aasi];
+                        var si = (env.AssetAdministrationShells is 
+                                   OnDemandListIdentifiable<Aas.IAssetAdministrationShell> dynAass) 
+                                 ? dynAass.GetSideInfo(aasi) : null;
+
                         // item
-                        var tiAas = GenerateVisuElemForAAS(aas, cache, env, package, editMode);
+                        var tiAas = GenerateVisuElemForAAS(
+                            aas, cache, env, package, editMode,
+                            aasIsExpanded: env.AssetAdministrationShellCount() <= ConstThresholdExpandAas);
+
+                        // lambda to add
+                        Action<VisualElementGeneric> lambdaAdd = (ve) =>
+                        {
+                            if (ve != null)
+                            {
+                                if (editMode)
+                                {
+                                    ve.Parent = tiShells;
+                                    tiShells.Members.Add(ve);
+                                }
+                                else
+                                {
+                                    res.Add(ve);
+                                }
+                            }
+                        };
 
                         // add item
-                        if (tiAas != null)
+                        lambdaAdd(tiAas);
+
+                        // display elements after?
+                        if (si?.ShowCursorBelow == true)
                         {
-                            if (editMode)
-                            {
-                                tiAas.Parent = tiShells;
-                                tiShells.Members.Add(tiAas);
-                            }
-                            else
-                            {
-                                res.Add(tiAas);
-                            }
+                            lambdaAdd(new VisualElementEnvironmentItem(
+                                    null /* Parent */, cache, package, env,
+                                    VisualElementEnvironmentItem.ItemType.FetchNext,
+                                    mainDataObject: null));
                         }
                     } 
                 }
@@ -2431,7 +2488,7 @@ namespace AasxPackageLogic
                             if (env.Submodels[smi] == null && env.Submodels is OnDemandList<Aas.ISubmodel, AasIdentifiableSideInfo> smsi)
                             {
                                 var si = smsi.GetSideInfo(smi);
-                                if (si != null)
+                                if (si != null && si.IsStub)
                                 {
                                     // add stub
                                     var tiSmSi = new VisualElementSubmodelStub(tiAllSubmodels, cache, package, si);
@@ -2644,6 +2701,14 @@ namespace AasxPackageLogic
             foreach (var e in this.FindAllVisualElement())
                 if (e is T te && p(te))
                     yield return te;
+        }
+
+        public bool IsAnyTaintedIdentifiable()
+        {
+            foreach (var ve in this.FindAllVisualElementTopToIdentifiable())
+                if (ve is ITaintableIdentifiable tain && tain.GetTaintedTime() != null)
+                    return true;
+            return false;
         }
 
         public bool ContainsDeep(VisualElementGeneric ve)

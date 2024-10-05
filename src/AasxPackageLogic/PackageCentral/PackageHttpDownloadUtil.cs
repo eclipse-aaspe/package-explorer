@@ -274,9 +274,14 @@ namespace AasxPackageLogic.PackageCentral
                     }
                 }
                 else
+                if (response.StatusCode == HttpStatusCode.NotFound)
                 {
-                    Log.Singleton.Error("DownloadFromSource Server gave: Operation not allowed!");
-                    throw new PackageContainerException($"Server operation not allowed!");
+                    // not found but also no error: intentionally do nothing
+                }
+                else
+                {
+                    Log.Singleton.Error($"DownloadFromSource server gave status code {response.StatusCode}!");
+                    throw new PackageContainerException($"Unsuccessfull status code {response.StatusCode}");
                 }
             }
         }

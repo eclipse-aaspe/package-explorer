@@ -271,6 +271,7 @@ namespace AasxPackageExplorer
             bool editMode, bool hintMode = false, bool showIriMode = false, bool checkSmt = false,
 			VisualElementEnvironmentItem.ConceptDescSortOrder? cdSortOrder = null,
             IFlyoutProvider flyoutProvider = null,
+            IMainWindow mainWindow = null,
             IPushApplicationEvent appEventProvider = null,
             DispEditHighlight.HighlightFieldInfo hightlightField = null,
             AasxMenu superMenu = null)
@@ -375,7 +376,8 @@ namespace AasxPackageExplorer
 
                 // try to delegate to common routine
                 var common = _helper.DisplayOrEditCommonEntity(
-                    packages, stack, superMenu, editMode, hintMode, checkSmt, cdSortOrder, entity);
+                    packages, stack, superMenu, editMode, hintMode, checkSmt, cdSortOrder, entity,
+                    mainWindow: mainWindow);
 
                 if (common)
                 {

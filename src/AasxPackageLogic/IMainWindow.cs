@@ -97,10 +97,16 @@ namespace AasxPackageExplorer
         public void RedrawAllElementsAndFocus(object nextFocus = null, bool isExpanded = true);
 
         /// <summary>
+        /// Checks, if any identifiable is tainted (modified). Helps asking the user if to save
+        /// data before losing it.
+        /// </summary>
+        bool CheckIsAnyTaintedIdentifiableInMain();
+
+        /// <summary>
         /// Large extend. Basially redraws everything after new package has been loaded.
         /// </summary>
         /// <param name="onlyAuxiliary">Only tghe AUX package has been altered.</param>
-        void RestartUIafterNewPackage(bool onlyAuxiliary = false);
+        void RestartUIafterNewPackage(bool onlyAuxiliary = false, bool? nextEditMode = null);
 
         /// <summary>
         /// This function serve as a kind of unified contact point for all kind
@@ -125,7 +131,9 @@ namespace AasxPackageExplorer
             bool doNotNavigateAfterLoaded = false,
             PackageContainerBase takeOverContainer = null,
             string storeFnToLRU = null,
-            bool indexItems = false);
+            bool indexItems = false,
+            bool preserveEditMode = false,
+            bool? nextEditMode = null);
 
         /// <summary>
         /// Check for menu switch and flush events, if required.

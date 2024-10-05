@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using AasxIntegrationBase;
 using AdminShellNS;
 using AnyUi;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -214,11 +215,16 @@ namespace AasxPackageLogic.PackageCentral
 
             if (guess.GuessedType == typeof(PackageContainerHttpRepoSubset))
             {
+                // prepare (extend) container options
+                var extCntOpt = new PackageContainerHttpRepoSubsetOptions(containerOptions, 
+                    new ConnectExtendedRecord());
+
+                // prepare runtime options
                 runtimeOptions.AllowFakeResponses = false;
                 var cnt = await PackageContainerHttpRepoSubset.CreateAndLoadAsync(
                             packageCentral, location, fullItemLocation,
                             overrideLoadResident, takeOver: takeOver,
-                            containerOptions: containerOptions, runtimeOptions: runtimeOptions);
+                            containerOptions: extCntOpt, runtimeOptions: runtimeOptions);
                 return cnt;
             }
 

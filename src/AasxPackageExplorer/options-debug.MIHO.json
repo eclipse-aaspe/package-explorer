@@ -102,6 +102,7 @@
   "EclassTwoPass": true,
   "BackupDir": ".\\backup",
   "BackupFiles": 10,
+  "MaxParallelOps": 20,
   "RestServerHost": "localhost",
   "RestServerPort": "1111",
   "WriteDefaultOptionsFN": null /* "options-written.json" */,

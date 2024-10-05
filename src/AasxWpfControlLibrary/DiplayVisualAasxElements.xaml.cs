@@ -1214,6 +1214,11 @@ namespace AasxPackageExplorer
             FireSelectedItem();
         }
 
+        public bool IsAnyTaintedIdentifiable()
+        {
+            return displayedTreeViewLines?.IsAnyTaintedIdentifiable() == true;
+        }
+
     }
 }
 

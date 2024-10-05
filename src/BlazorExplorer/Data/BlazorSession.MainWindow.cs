@@ -132,7 +132,9 @@ namespace BlazorUI.Data
             bool doNotNavigateAfterLoaded = false,
             PackageContainerBase takeOverContainer = null,
             string storeFnToLRU = null,
-            bool indexItems = false)
+            bool indexItems = false,
+            bool preserveEditMode = false,
+            bool? nextEditMode = null)
         {
             // access
             if (packItem == null)
@@ -221,7 +223,12 @@ namespace BlazorUI.Data
             Log.Singleton.Info("AASX {0} loaded.", info);
         }
 
-        public void RestartUIafterNewPackage(bool onlyAuxiliary = false)
+        public bool CheckIsAnyTaintedIdentifiableInMain()
+        {
+            return DisplayElements.IsAnyTaintedIdentifiable();
+        }        
+
+        public void RestartUIafterNewPackage(bool onlyAuxiliary = false, bool? nextEditMode = null)
         {
             if (onlyAuxiliary)
             {

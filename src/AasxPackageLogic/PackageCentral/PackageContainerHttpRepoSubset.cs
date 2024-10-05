@@ -26,9 +26,22 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using AasxPackageExplorer;
 using AnyUi;
+using Microsoft.Win32;
+using Namotion.Reflection;
+using System.Text.Json.Nodes;
+using System.Linq;
 
 namespace AasxPackageLogic.PackageCentral
 {
+    /// <summary>
+    /// Context data to fetched packages to remember record, cursor and more
+    /// </summary>
+    public class PackageContainerHttpRepoSubsetFetchContext : AdminShellPackageDynamicFetchContextBase
+    {
+        public PackageContainerHttpRepoSubset.ConnectExtendedRecord Record;
+        public string Cursor;
+    }
+
     /// <summary>
     /// This container represents a subset of AAS elements retrieved from a HTTP / networked repository.
     /// </summary>
@@ -44,6 +57,9 @@ namespace AasxPackageLogic.PackageCentral
             get { return _location; }
             set { SetNewLocation(value); OnPropertyChanged("InfoLocation"); }
         }
+
+        public AdminShellPackageDynamicFetchEnv EnvDynPack { get => Env as AdminShellPackageDynamicFetchEnv; }
+
         //
         // Constructors
         //
@@ -124,14 +140,14 @@ namespace AasxPackageLogic.PackageCentral
 
         public static bool IsValidUriForAllAAS(string location)
         {
-            var m = Regex.Match(location, @"^(http(|s))://(.*?)/shells(|/)$",
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/shells(|/|/?\?(.*))$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
 
         public static bool IsValidUriForSingleAAS(string location)
         {
-            var m = Regex.Match(location, @"^(http(|s))://(.*?)/shells/(.{1,99})$", 
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/shells/([^?]{1,99})", 
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
@@ -217,6 +233,28 @@ namespace AasxPackageLogic.PackageCentral
             return null;
         }
 
+        public static Uri BuildUriForAllAAS(Uri baseUri, int pageLimit = 100, string cursor = null)
+        {
+            // access
+            if (baseUri == null)
+                return null;
+
+            // try combine
+            // see: https://code-maze.com/how-to-create-a-url-query-string/
+            // (not an simple & obvious approach even with Uri/ UriBuilder)
+            var uri = new UriBuilder(CombineUri(baseUri, $"shells"));
+            if (pageLimit > 0)
+                uri.Query = $"Limit={pageLimit:D}";
+            if (cursor != null)
+                uri.Query += $"&Cursor={cursor}";
+
+            // Note: cursor comes from the internet (server?) and is used unmodified, simply
+            // trusted to be continous string and/ or BASE64 encoded. This is not checked, so
+            // theoretically, a MITM attack could modify the cursor to modify this query!!
+
+            return uri.Uri;
+        }
+
         public static Uri BuildUriForAAS(Uri baseUri, string id, bool encryptIds = true)
         {
             // access
@@ -292,9 +330,6 @@ namespace AasxPackageLogic.PackageCentral
             PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
         {
-            //PackageHttpDownloadUtil.TryLoadFakeRequests(Assembly.GetExecutingAssembly(),
-            //    "AasxPackageLogic.Resources.PackageContainerFakeAnswers.json");
-
             var allowFakeResponses = runtimeOptions?.AllowFakeResponses ?? false;
 
             var baseUri = GetBaseUri(fullItemLocation);
@@ -319,12 +354,77 @@ namespace AasxPackageLogic.PackageCentral
             // get the record data
             var record = (containerOptions as PackageContainerHttpRepoSubsetOptions)?.Record;
 
-            // start with AAS?
+            // invalidate cursor data
+            string cursor = null;
+
+            // start with a list of AAS?
+            if (IsValidUriForAllAAS(fullItemLocation))
+            {
+                await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                    sourceUri: new Uri(fullItemLocation),
+                    allowFakeResponses: allowFakeResponses,
+                    runtimeOptions: runtimeOptions,
+                    lambdaDownloadDone: (ms, contentFn) =>
+                    {
+                        try
+                        {
+                            var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                            if (node["result"] is JsonArray resChilds
+                                && resChilds.Count > 0)
+                            {
+                                int childsToSkip = Math.Max(0, record.PageSkip);
+
+                                foreach (var n2 in resChilds)
+                                    // second try to reduce side effects
+                                    try
+                                    {
+                                        if (childsToSkip > 0)
+                                        {
+                                            childsToSkip--;
+                                            continue;
+                                        }
+
+                                        // on last child, attach side info for fetch next cursor
+                                        var lastChildAndMore = n2 == resChilds.Last() && record.PageLimit > 0;
+                                        var si = (!lastChildAndMore) ? null
+                                                 : new AasIdentifiableSideInfo()
+                                                 {
+                                                     IsStub = false,
+                                                     ShowCursorBelow = true
+                                                 };
+
+                                        // add
+                                        prepAas.Add(
+                                            Jsonization.Deserialize.AssetAdministrationShellFrom(n2), 
+                                            si);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        runtimeOptions?.Log?.Error(ex, "Parsing single AAS of list of all AAS");
+                                    }
+                            }
+
+                            // cursor data
+                            if (node["paging_metadata"] is JsonNode nodePaging
+                                && nodePaging["cursor"] is JsonNode nodeCursor)
+                            {
+                                cursor = nodeCursor.ToString();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            runtimeOptions?.Log?.Error(ex, "Parsing list of all AAS");
+                        }
+                    });
+            }
+
+            // start with single AAS?
             if (IsValidUriForSingleAAS(fullItemLocation))
             {
                 await PackageHttpDownloadUtil.HttpGetToMemoryStream(
                     sourceUri: new Uri(fullItemLocation),
                     allowFakeResponses: allowFakeResponses,
+                    runtimeOptions: runtimeOptions,
                     lambdaDownloadDone: (ms, contentFn) =>
                     {
                         try
@@ -344,6 +444,7 @@ namespace AasxPackageLogic.PackageCentral
                 await PackageHttpDownloadUtil.HttpGetToMemoryStream(
                     sourceUri: new Uri(fullItemLocation),
                     allowFakeResponses: allowFakeResponses,
+                    runtimeOptions: runtimeOptions,
                     lambdaDownloadDone: (ms, contentFn) =>
                     {
                         try
@@ -364,6 +465,7 @@ namespace AasxPackageLogic.PackageCentral
                 await PackageHttpDownloadUtil.HttpGetToMemoryStream(
                     sourceUri: new Uri(fullItemLocation),
                     allowFakeResponses: allowFakeResponses,
+                    runtimeOptions: runtimeOptions,
                     lambdaDownloadDone: (ms, contentFn) =>
                     {
                         try
@@ -380,56 +482,73 @@ namespace AasxPackageLogic.PackageCentral
 
             // start auto-load missing Submodels?
             if (record?.AutoLoadSubmodels ?? false)
-                foreach (var lr in env.FindAllSubmodelReferences(onlyNotExisting: true))
-                {
-                    if (record?.AutoLoadOnDemand ?? true)
+            {
+                var lrs = env.FindAllSubmodelReferences(onlyNotExisting: true).ToList();
+
+                await Parallel.ForEachAsync(lrs,
+                    new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
+                    async (lr, token) =>
                     {
-                        // side info level 1
-                        prepSM.Add(null, new AasIdentifiableSideInfo() { 
-                            Level = AasIdentifiableSideInfoLevel.IdOnly,
-                            Id = lr.Reference.Keys[0].Value
-                        });
-                    }
-                    else
-                    {
-                        // no side info => full element
-                        await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                        sourceUri: BuildUriForSubmodel(baseUri, lr.Reference),
-                        allowFakeResponses: allowFakeResponses,
-                        lambdaDownloadDone: (ms, contentFn) =>
+                        if (record?.AutoLoadOnDemand ?? true)
                         {
-                            try
+                            // side info level 1
+                            lock (prepSM)
                             {
-                                var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                                env.Add(Jsonization.Deserialize.SubmodelFrom(node));
+                                prepSM.Add(null, new AasIdentifiableSideInfo()
+                                {
+                                    IsStub = true,
+                                    StubLevel = AasIdentifiableSideInfoLevel.IdOnly,
+                                    Id = lr.Reference.Keys[0].Value
+                                });
                             }
-                            catch (Exception ex)
+                        }
+                        else
+                        {
+                            // no side info => full element
+                            await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                            sourceUri: BuildUriForSubmodel(baseUri, lr.Reference),
+                            allowFakeResponses: allowFakeResponses,
+                            runtimeOptions: runtimeOptions,
+                            lambdaDownloadDone: (ms, contentFn) =>
                             {
-                                runtimeOptions?.Log?.Error(ex, "Parsing auto-loaded Submodel");
-                            }
-                        });
-                    }
-                }
+                                try
+                                {
+                                    var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                                    lock (prepSM)
+                                    {
+                                        prepSM.Add(Jsonization.Deserialize.SubmodelFrom(node), null);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    runtimeOptions?.Log?.Error(ex, "Parsing auto-loaded Submodel");
+                                }
+                            });
+                        }
+                    });
+            }
 
             // start auto-load missing thumbnails?
-            if (true)
-                foreach (var aas in env.AllAssetAdministrationShells())
-                {
-                    await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                        sourceUri: BuildUriForAasThumbnail(baseUri, aas.Id),
-                        allowFakeResponses: allowFakeResponses,
-                        lambdaDownloadDone: (ms, contentFn) =>
-                        {
-                            try
+            if (record?.AutoLoadThumbnails ?? false)
+                await Parallel.ForEachAsync(env.AllAssetAdministrationShells(),
+                    new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
+                    async (aas, token) => {
+                        await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                            sourceUri: BuildUriForAasThumbnail(baseUri, aas.Id),
+                            allowFakeResponses: allowFakeResponses,
+                            runtimeOptions: runtimeOptions,
+                            lambdaDownloadDone: (ms, contentFn) =>
                             {
-                                dynPack.AddThumbnail(aas.Id, ms.ToArray());
-                            }
-                            catch (Exception ex)
-                            {
-                                runtimeOptions?.Log?.Error(ex, "Managing auto-loaded tumbnail");
-                            }
-                        });
-                }
+                                try
+                                {
+                                    dynPack.AddThumbnail(aas.Id, ms.ToArray());
+                                }
+                                catch (Exception ex)
+                                {
+                                    runtimeOptions?.Log?.Error(ex, "Managing auto-loaded tumbnail");
+                                }
+                            });
+                    });
 
             // remove, what is not need
             if (env.AssetAdministrationShellCount() < 1)
@@ -442,6 +561,11 @@ namespace AasxPackageLogic.PackageCentral
             // commit
             Env = dynPack;
             Env.SetEnvironment(env);
+            EnvDynPack?.SetContext(new PackageContainerHttpRepoSubsetFetchContext()
+            {
+                Record = record,
+                Cursor = cursor
+            });
         }
 
         public override async Task<bool> SaveLocalCopyAsync(
@@ -477,13 +601,19 @@ namespace AasxPackageLogic.PackageCentral
         // UI
         //
 
-        public class ConnectExtendedRecord
+        public class ConnectExtendedRecord 
         {
+            public enum BaseTypeEnum { Repository, Registry }
+            public static string[] BaseTypeEnumNames = new[] { "Repository", "Registry" };
+
             public string BaseAddress = "https://eis-data.aas-voyager.com/";
+            // public string BaseAddress = "http://smt-repo.admin-shell-io.com/";
 
-            public bool GetAllAas;
+            public BaseTypeEnum BaseType = BaseTypeEnum.Repository;
 
-            public bool GetSingleAas = true;
+            public bool GetAllAas = true;
+
+            public bool GetSingleAas;
             public string AasId = "https://new.abb.com/products/de/2CSF204101R1400/aas";
 
             public bool GetSingleSubmodel;
@@ -501,6 +631,9 @@ namespace AasxPackageLogic.PackageCentral
             public bool AutoLoadOnDemand = true;
             public bool EncryptIds = true;
             public bool StayConnected;
+
+            public int PageLimit = 6;
+            public int PageSkip = 0;
 
             public void SetQueryChoices(int choice)
             {
@@ -521,13 +654,19 @@ namespace AasxPackageLogic.PackageCentral
                 LoadResident = baseOpt.LoadResident;
                 StayConnected = baseOpt.StayConnected;
                 UpdatePeriod = baseOpt.UpdatePeriod;
-                Record = record;
+
+                if (baseOpt is PackageContainerHttpRepoSubsetOptions fullOpt)
+                    Record = fullOpt.Record?.Copy();
+                else
+                    Record = record;
             }
 
             public ConnectExtendedRecord Record;
         }
 
-        public static string BuildLocationFrom(ConnectExtendedRecord record)
+        public static string BuildLocationFrom(
+            ConnectExtendedRecord record,
+            string cursor = null)
         {
             // access
             if (record == null || record.BaseAddress?.HasContent() != true)
@@ -538,7 +677,9 @@ namespace AasxPackageLogic.PackageCentral
             // All AAS?
             if (record.GetAllAas)
             {
-
+                // if a skip has been requested, these AAS need to be loaded, as well
+                var uri = BuildUriForAllAAS(baseUri, record.PageLimit + record.PageSkip, cursor);
+                return uri.ToString();
             }
 
             // Single AAS?
@@ -646,19 +787,32 @@ namespace AasxPackageLogic.PackageCentral
                     // dynamic rows
                     int row = 0;
 
-                    // Base address
+                    // Base address + Type
                     helper.AddSmallLabelTo(g, row, 0, content: "Base address:",
                             verticalAlignment: AnyUiVerticalAlignment.Center,
                             verticalContentAlignment: AnyUiVerticalAlignment.Center);
 
+                    var g2 = helper.AddSmallGridTo(g, row, 1, 1, 2, new[] { "#", "*" });
+
+                    AnyUiUIElement.SetIntFromControl(
+                            helper.Set(
+                                helper.AddSmallComboBoxTo(g2, 0, 0,
+                                    items: ConnectExtendedRecord.BaseTypeEnumNames,
+                                    selectedIndex: (int)record.BaseType,
+                                    margin: new AnyUiThickness(0, 0, 5, 0),
+                                    padding: new AnyUiThickness(0, -1, 0, -3)),
+                                minWidth: 200, maxWidth: 200),
+                                (i) => { record.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
+
                     AnyUiUIElement.SetStringFromControl(
                             helper.Set(
-                                helper.AddSmallTextBoxTo(g, row, 1,
+                                helper.AddSmallTextBoxTo(g2, 0, 1,
                                     text: $"{record.BaseAddress}",
                                     verticalAlignment: AnyUiVerticalAlignment.Center,
                                     verticalContentAlignment: AnyUiVerticalAlignment.Center),
                                 horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
                             (s) => { record.BaseAddress = s; });
+
                     row++;
 
                     // All AASes
@@ -879,6 +1033,45 @@ namespace AasxPackageLogic.PackageCentral
                                     isChecked: record.StayConnected,
                                     verticalContentAlignment: AnyUiVerticalAlignment.Center)),
                             (b) => { record.StayConnected = b; });
+
+                    row++;
+
+                    // Pagination
+                    helper.AddSmallLabelTo(g, row, 0, content: "Pagination:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    var g3 = helper.AddSmallGridTo(g, row, 1, 1, 4, new[] { "#", "*", "#", "*" });
+
+                    helper.AddSmallLabelTo(g3, 0, 0, content: "Limit results:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetIntFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g3, 0, 1,
+                                    margin: new AnyUiThickness(10, 0, 0, 0),
+                                    text: $"{record.PageLimit:D}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    minWidth: 80, maxWidth: 80,
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Left),
+                                    (i) => { record.PageLimit = i; });
+
+                    helper.AddSmallLabelTo(g3, 0, 2, content: "Skip results:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetIntFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g3, 0, 3,
+                                    margin: new AnyUiThickness(10, 0, 0, 0),
+                                    text: $"{record.PageSkip:D}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    minWidth: 80, maxWidth: 80,
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Left),
+                                    (i) => { record.PageSkip = i; });
 
                     row++;
 

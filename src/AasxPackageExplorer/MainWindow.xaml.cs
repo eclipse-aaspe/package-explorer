@@ -237,10 +237,19 @@ namespace AasxPackageExplorer
         }
 
         /// <summary>
+        /// Checks, if any identifiable is tainted (modified). Helps asking the user if to save
+        /// data before losing it.
+        /// </summary>
+        public bool CheckIsAnyTaintedIdentifiableInMain()
+        {
+            return DisplayElements.IsAnyTaintedIdentifiable();
+        }
+
+        /// <summary>
         /// Large extend. Basially redraws everything after new package has been loaded.
         /// </summary>
         /// <param name="onlyAuxiliary">Only tghe AUX package has been altered.</param>
-        public void RestartUIafterNewPackage(bool onlyAuxiliary = false)
+        public void RestartUIafterNewPackage(bool onlyAuxiliary = false, bool? nextEditMode = null)
         {
             if (onlyAuxiliary)
             {
@@ -252,7 +261,7 @@ namespace AasxPackageExplorer
                 // visually a new content
                 // switch off edit mode -> will will cause the browser to show the AAS as selected element
                 // and -> this will update the left side of the screen correctly!
-                MainMenu?.SetChecked("EditMenu", false);
+                MainMenu?.SetChecked("EditMenu", nextEditMode.HasValue ? nextEditMode.Value : false);
                 ClearAllViews();
                 RedrawAllAasxElements();
                 RedrawElementView();
@@ -364,6 +373,7 @@ namespace AasxPackageExplorer
         /// <param name="takeOverContainer">Already loaded container to take over (alternative 3)</param>
         /// <param name="storeFnToLRU">Store this filename into last recently used list</param>
         /// <param name="indexItems">Index loaded contents, e.g. for animate of event sending</param>
+        /// <param name="nextEditMode">Set the edit mode AFTER loading</param>
         public void UiLoadPackageWithNew(
             PackageCentralItem packItem,
             AdminShellPackageFileBasedEnv takeOverEnv = null,
@@ -373,12 +383,19 @@ namespace AasxPackageExplorer
             bool doNotNavigateAfterLoaded = false,
             PackageContainerBase takeOverContainer = null,
             string storeFnToLRU = null,
-            bool indexItems = false)
+            bool indexItems = false,
+            bool preserveEditMode = false,
+            bool? nextEditMode = null)
         {
             // access
             if (packItem == null)
                 return;
 
+            // do a bit logic for easy calling via IMainWindow
+            if (preserveEditMode)
+                nextEditMode = MainMenu?.IsChecked("EditMenu") == true;
+
+            // start loading new stuff
             if (loadLocalFilename != null)
             {
                 if (info == null)
@@ -420,7 +437,7 @@ namespace AasxPackageExplorer
             // displaying
             try
             {
-                RestartUIafterNewPackage(onlyAuxiliary);
+                RestartUIafterNewPackage(onlyAuxiliary, nextEditMode);
             }
             catch (Exception ex)
             {
@@ -604,6 +621,7 @@ namespace AasxPackageExplorer
                 PackageCentral, DisplayContext,
                 entities, editMode, hintMode, showIriMode, checkSmt, tiCds?.CdSortOrder,
                 flyoutProvider: this,
+                mainWindow: this,
                 appEventProvider: this,
                 hightlightField: hightlightField,
                 superMenu: DynamicMenu.Menu);
@@ -2914,14 +2932,28 @@ namespace AasxPackageExplorer
         private void DisplayElements_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             // we're assuming, that SelectedItem point to the right business object
-            if (DisplayElements.SelectedItem == null)
+            var si = DisplayElements.SelectedItem;
+            if (si == null)
                 return;
 
-            // redraw view
-            RedrawElementView();
+            // act depending on selectedItem
 
-            // "simulate" click on "ShowContents"
-            this.ShowContent_Click(this.ShowContent, null);
+            if (si is VisualElementEnvironmentItem siei 
+                && (siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev
+                    || siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext))
+            {
+                // want to refetch elements
+                ;
+            }
+            else
+            if (si is VisualElementSubmodelElement)
+            {
+                // redraw view
+                RedrawElementView();
+
+                // "simulate" click on "ShowContents"
+                this.ShowContent_Click(this.ShowContent, null);
+            }
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
