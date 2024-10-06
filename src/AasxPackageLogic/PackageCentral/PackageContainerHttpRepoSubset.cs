@@ -651,8 +651,8 @@ namespace AasxPackageLogic.PackageCentral
             public enum BaseTypeEnum { Repository, Registry }
             public static string[] BaseTypeEnumNames = new[] { "Repository", "Registry" };
 
-            public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
-            // public string BaseAddress = "https://eis-data.aas-voyager.com/";
+            // public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
+            public string BaseAddress = "https://eis-data.aas-voyager.com/";
             // public string BaseAddress = "http://smt-repo.admin-shell-io.com/";
 
             public BaseTypeEnum BaseType = BaseTypeEnum.Repository;
@@ -662,9 +662,9 @@ namespace AasxPackageLogic.PackageCentral
             public bool GetSingleAas;
             public string AasId = "https://new.abb.com/products/de/2CSF204101R1400/aas";
 
-            public bool GetAllSubmodel;
+            public bool GetAllSubmodel = true;
 
-            public bool GetSingleSubmodel = true;
+            public bool GetSingleSubmodel;
             public string SmId = "aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMjAxNV82MDIwXzMwMTJfMDU4NQ==";
 
             public bool GetSingleCD;
@@ -683,7 +683,7 @@ namespace AasxPackageLogic.PackageCentral
             /// <summary>
             /// Pagenation. Limit to <c>n</c> resulsts.
             /// </summary>
-            public int PageLimit = 6;
+            public int PageLimit = 12;
 
             /// <summary>
             /// When fetching, skip first <c>n</c> elements of the results
