@@ -220,7 +220,6 @@ namespace AasxPackageLogic.PackageCentral
                     new ConnectExtendedRecord());
 
                 // prepare runtime options
-                runtimeOptions.AllowFakeResponses = false;
                 var cnt = await PackageContainerHttpRepoSubset.CreateAndLoadAsync(
                             packageCentral, location, fullItemLocation,
                             overrideLoadResident, takeOver: takeOver,

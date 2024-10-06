@@ -45,11 +45,6 @@ namespace AasxPackageLogic.PackageCentral
         /// </summary>
         public string Cursor;
 
-        /// <summary>
-        /// This offset in elements is thought-out by this client by "counting". It does NOT come form
-        /// the server!
-        /// </summary>
-        public int PageOffset;
     }
 
     /// <summary>
@@ -162,6 +157,13 @@ namespace AasxPackageLogic.PackageCentral
             return m.Success;
         }
 
+        public static bool IsValidUriForAllSubmodel(string location)
+        {
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/submodels(|/|/?\?(.*))$",
+                RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+            return m.Success;
+        }
+
         public static bool IsValidUriForSingleSubmodel(string location)
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/submodels/(.{1,99})$", 
@@ -192,6 +194,7 @@ namespace AasxPackageLogic.PackageCentral
         {
             return IsValidUriForAllAAS(location)
                 || IsValidUriForSingleAAS(location)
+                || IsValidUriForAllSubmodel(location)
                 || IsValidUriForSingleSubmodel(location)
                 || IsValidUriForSingleCD(location)
                 || IsValidUriForQuery(location);
@@ -287,6 +290,22 @@ namespace AasxPackageLogic.PackageCentral
             return CombineUri(baseUri, $"shells/{smidenc}/asset-information/thumbnail");
         }
 
+        public static Uri BuildUriForAllSubmodel(Uri baseUri, int pageLimit = 100, string cursor = null)
+        {
+            // for more info: see BuildUriForAllAAS
+            // access
+            if (baseUri == null)
+                return null;
+
+            var uri = new UriBuilder(CombineUri(baseUri, $"submodels"));
+            if (pageLimit > 0)
+                uri.Query = $"Limit={pageLimit:D}";
+            if (cursor != null)
+                uri.Query += $"&Cursor={cursor}";
+
+            return uri.Uri;
+        }
+
         public static Uri BuildUriForSubmodel(Uri baseUri, string id, bool encryptIds = true)
         {
             // access
@@ -367,8 +386,10 @@ namespace AasxPackageLogic.PackageCentral
             // invalidate cursor data
             string cursor = null;
 
-            // start with a list of AAS?
-            if (IsValidUriForAllAAS(fullItemLocation))
+            // start with a list of AAS or Submodels (very similar)
+            var isAllAAS = IsValidUriForAllAAS(fullItemLocation);
+            var isAllSM = IsValidUriForAllSubmodel(fullItemLocation);
+            if (isAllAAS || isAllSM)
             {
                 await PackageHttpDownloadUtil.HttpGetToMemoryStream(
                     sourceUri: new Uri(fullItemLocation),
@@ -383,6 +404,7 @@ namespace AasxPackageLogic.PackageCentral
                                 && resChilds.Count > 0)
                             {
                                 int childsToSkip = Math.Max(0, record.PageSkip);
+                                bool firstNonSkipped = true;
 
                                 foreach (var n2 in resChilds)
                                     // second try to reduce side effects
@@ -396,7 +418,13 @@ namespace AasxPackageLogic.PackageCentral
 
                                         // on last child, attach side info for fetch prev/ next cursor
                                         AasIdentifiableSideInfo si = null;
-                                        // if (n2 == resChilds.First() && record.Pa)
+                                        if (firstNonSkipped && record.PageOffset > 0)
+                                            si = new AasIdentifiableSideInfo()
+                                            {
+                                                IsStub = false,
+                                                ShowCursorAbove = true
+                                            };
+                                        firstNonSkipped = false;
 
                                         if (n2 == resChilds.Last() && record.PageLimit > 0)
                                             si = new AasIdentifiableSideInfo()
@@ -406,9 +434,14 @@ namespace AasxPackageLogic.PackageCentral
                                                  };
 
                                         // add
-                                        prepAas.Add(
-                                            Jsonization.Deserialize.AssetAdministrationShellFrom(n2), 
-                                            si);
+                                        if (isAllAAS)
+                                            prepAas.Add(
+                                                Jsonization.Deserialize.AssetAdministrationShellFrom(n2), 
+                                                si);
+                                        if (isAllSM)
+                                            prepSM.Add(
+                                                Jsonization.Deserialize.SubmodelFrom(n2),
+                                                si);
                                     }
                                     catch (Exception ex)
                                     {
@@ -576,8 +609,7 @@ namespace AasxPackageLogic.PackageCentral
             EnvDynPack?.SetContext(new PackageContainerHttpRepoSubsetFetchContext()
             {
                 Record = record,
-                Cursor = cursor,
-                PageOffset = 0 // by definition
+                Cursor = cursor
             });
         }
 
@@ -619,18 +651,21 @@ namespace AasxPackageLogic.PackageCentral
             public enum BaseTypeEnum { Repository, Registry }
             public static string[] BaseTypeEnumNames = new[] { "Repository", "Registry" };
 
-            public string BaseAddress = "https://eis-data.aas-voyager.com/";
+            public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
+            // public string BaseAddress = "https://eis-data.aas-voyager.com/";
             // public string BaseAddress = "http://smt-repo.admin-shell-io.com/";
 
             public BaseTypeEnum BaseType = BaseTypeEnum.Repository;
 
-            public bool GetAllAas = true;
+            public bool GetAllAas;
 
             public bool GetSingleAas;
             public string AasId = "https://new.abb.com/products/de/2CSF204101R1400/aas";
 
-            public bool GetSingleSubmodel;
-            public string SmId;
+            public bool GetAllSubmodel;
+
+            public bool GetSingleSubmodel = true;
+            public string SmId = "aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMjAxNV82MDIwXzMwMTJfMDU4NQ==";
 
             public bool GetSingleCD;
             public string CdId;
@@ -642,19 +677,33 @@ namespace AasxPackageLogic.PackageCentral
             public bool AutoLoadCds = true;
             public bool AutoLoadThumbnails = true;
             public bool AutoLoadOnDemand = true;
-            public bool EncryptIds = true;
+            public bool EncryptIds = false;
             public bool StayConnected;
 
+            /// <summary>
+            /// Pagenation. Limit to <c>n</c> resulsts.
+            /// </summary>
             public int PageLimit = 6;
+
+            /// <summary>
+            /// When fetching, skip first <c>n</c> elements of the results
+            /// </summary>
             public int PageSkip = 0;
+
+            /// <summary>
+            /// This offset in elements is computed by this client by "counting". It does NOT come form
+            /// the server!
+            /// </summary>
+            public int PageOffset;
 
             public void SetQueryChoices(int choice)
             {
                 GetAllAas = (choice == 1);
                 GetSingleAas = (choice == 2);
-                GetSingleSubmodel = (choice == 3);
-                GetSingleCD = (choice == 4);
-                ExecuteQuery = (choice == 5);
+                GetAllSubmodel = (choice == 3);
+                GetSingleSubmodel = (choice == 4);
+                GetSingleCD = (choice == 5);
+                ExecuteQuery = (choice == 6);
             }
 
             public string GetBaseTypStr()
@@ -669,6 +718,7 @@ namespace AasxPackageLogic.PackageCentral
 
                 if (GetAllAas) res = "GetAllAssetAdministrationShells";
                 if (GetSingleAas) res = "GetAssetAdministrationShellById";
+                if (GetAllSubmodel) res = "GetAllSubmodels";
                 if (GetSingleSubmodel) res = "GetSubmodelById";
                 if (GetSingleCD) res = "GetConceptDescriptionById";
                 if (ExecuteQuery) res = "ExecuteQuery";
@@ -718,6 +768,14 @@ namespace AasxPackageLogic.PackageCentral
             if (record.GetSingleAas)
             {
                 var uri = BuildUriForAAS(baseUri, record.AasId, encryptIds: record.EncryptIds);
+                return uri.ToString();
+            }
+
+            // All Submodels?
+            if (record.GetAllSubmodel)
+            {
+                // if a skip has been requested, these AAS need to be loaded, as well
+                var uri = BuildUriForAllSubmodel(baseUri, record.PageLimit + record.PageSkip, cursor);
                 return uri.ToString();
             }
 
@@ -895,6 +953,23 @@ namespace AasxPackageLogic.PackageCentral
 
                     row += 2;
 
+                    // All Submodels
+                    AnyUiUIElement.RegisterControl(
+                            helper.Set(
+                                helper.AddSmallCheckBoxTo(g, row, 0,
+                                    content: "Get all Submodels",
+                                    isChecked: record.GetAllSubmodel,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                colSpan: 2),
+                            (o) => {
+                                if ((bool)o)
+                                    record.SetQueryChoices(3);
+                                else
+                                    record.GetAllSubmodel = false;
+                                return new AnyUiLambdaActionModalPanelReRender(uc);
+                            });
+                    row++;
+
                     // Single Submodel
                     AnyUiUIElement.RegisterControl(
                             helper.Set(
@@ -905,7 +980,7 @@ namespace AasxPackageLogic.PackageCentral
                                 colSpan: 2),
                             (o) => {
                                 if ((bool)o)
-                                    record.SetQueryChoices(3);
+                                    record.SetQueryChoices(4);
                                 else
                                     record.GetSingleSubmodel = false;
                                 return new AnyUiLambdaActionModalPanelReRender(uc);
@@ -936,7 +1011,7 @@ namespace AasxPackageLogic.PackageCentral
                                 colSpan: 2),
                             (o) => {
                                 if ((bool)o)
-                                    record.SetQueryChoices(4);
+                                    record.SetQueryChoices(5);
                                 else
                                     record.GetSingleCD = false;
                                 return new AnyUiLambdaActionModalPanelReRender(uc);
@@ -967,7 +1042,7 @@ namespace AasxPackageLogic.PackageCentral
                                 colSpan: 2),
                             (o) => {
                                 if ((bool)o)
-                                    record.SetQueryChoices(5);
+                                    record.SetQueryChoices(6);
                                 else
                                     record.ExecuteQuery = false;
                                 return new AnyUiLambdaActionModalPanelReRender(uc);

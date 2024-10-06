@@ -1124,7 +1124,8 @@ namespace AasxPackageLogic
                     });
                 stack.Children.Add(g);
             }
-            else if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext)
+            else if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext
+                || ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev)
             {
                 // check all pre-requisites
                 if (!(context is AnyUiContextPlusDialogs plusDialogs
@@ -1140,8 +1141,21 @@ namespace AasxPackageLogic
                     return;
                 }
 
+                // at the beginning already
+                if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev
+                    && fetchContext.Record.PageOffset == 0)
+                {
+                    AddHintBubble(stack, hintMode, new HintCheck(
+                        () => true,
+                            "No further fetch operation available " +
+                            "(at the beginning of the selected subset of elements?).",
+                            severityLevel: HintCheck.Severity.Notice));
+                    return;
+                }
+
                 // at the end?
-                if (fetchContext.Cursor?.HasContent() != true)
+                if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext
+                    && fetchContext.Cursor?.HasContent() != true)
                 {
                     AddHintBubble(stack, hintMode, new HintCheck(
                         () => true,
@@ -1152,32 +1166,71 @@ namespace AasxPackageLogic
                 }
 
                 // go ahead
-                AddHintBubble(stack, hintMode, new HintCheck(
-                        () => true,
-                            "The entities in this structure were fetched dynamically from " +
-                            "endpoints such as registries and repositories. This fetch could " +
-                            "be advanced to the next set of elements.",
-                            severityLevel: HintCheck.Severity.Notice));
-
-                AddActionPanel(stack, "Actions:",
-                    repo: repo,
-                    superMenu: superMenu,
-                    ticketMenu: new AasxMenu()
-                        .AddAction("fetch-next", "Fetch next",
-                            "Fetch the next set of elements."),
-                    ticketActionAsync: async (buttonNdx, ticket) =>
-                    {
-                        var res = await ExecuteUiForFetchOfElements(
-                            packages, context, ticket, mainWindow, fetchContext,
-                            preserveEditMode: true,
-                            doEditNewRecord: false,
-                            doCheckTainted: true,
-                            doFetchGoNext: true,
-                            doFetchExec: true);
-
-                        // success will trigger redraw independently, therefore always return none
-                        return new AnyUiLambdaActionNone();
+                if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev)
+                    AddHintBubble(stack, hintMode, new[] {
+                        new HintCheck(
+                            () => true,
+                                "The entities in this structure were fetched dynamically from " +
+                                "endpoints such as registries and repositories. This fetch could " +
+                                "be modified to load elements prior to the displayed set of elements. ",
+                                severityLevel: HintCheck.Severity.Notice),
+                        new HintCheck(
+                            () => true,                                
+                                "Note: This operation causes many elements to be reloaded and skipped, " +
+                                "therefore might be a long-lasting operation.",
+                                severityLevel: HintCheck.Severity.Notice) 
                     });
+
+                if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext)
+                    AddHintBubble(stack, hintMode, new HintCheck(
+                            () => true,
+                                "The entities in this structure were fetched dynamically from " +
+                                "endpoints such as registries and repositories. This fetch could " +
+                                "be advanced to the next set of elements.",
+                                severityLevel: HintCheck.Severity.Notice));
+
+                if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev)
+                    AddActionPanel(stack, "Actions:",
+                        repo: repo,
+                        superMenu: superMenu,
+                        ticketMenu: new AasxMenu()
+                            .AddAction("fetch-prev", "Fetch prev",
+                                "Fetch the previous set of elements."),
+                        ticketActionAsync: async (buttonNdx, ticket) =>
+                        {
+                            var res = await ExecuteUiForFetchOfElements(
+                                packages, context, ticket, mainWindow, fetchContext,
+                                preserveEditMode: true,
+                                doEditNewRecord: false,
+                                doCheckTainted: true,
+                                doFetchGoPrev: true,
+                                doFetchExec: true);
+
+                            // success will trigger redraw independently, therefore always return none
+                            return new AnyUiLambdaActionNone();
+                        });
+
+
+                if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext)
+                    AddActionPanel(stack, "Actions:",
+                        repo: repo,
+                        superMenu: superMenu,
+                        ticketMenu: new AasxMenu()
+                            .AddAction("fetch-next", "Fetch next",
+                                "Fetch the next set of elements."),
+                        ticketActionAsync: async (buttonNdx, ticket) =>
+                        {
+                            var res = await ExecuteUiForFetchOfElements(
+                                packages, context, ticket, mainWindow, fetchContext,
+                                preserveEditMode: true,
+                                doEditNewRecord: false,
+                                doCheckTainted: true,
+                                doFetchGoNext: true,
+                                doFetchExec: true);
+
+                            // success will trigger redraw independently, therefore always return none
+                            return new AnyUiLambdaActionNone();
+                        });
             }
             else
             {
@@ -1242,7 +1295,7 @@ namespace AasxPackageLogic
                         AddKeyValue(stack, key: "Operation", repo: null,
                             value: record.GetFetchOperationStr());
 
-                        if (record.GetAllAas)
+                        if (record.GetAllAas || record.GetAllSubmodel)
                         {
                             AddKeyValue(stack, key: "Page limit", repo: null,
                                 value: "" + record.PageLimit);
@@ -1251,7 +1304,7 @@ namespace AasxPackageLogic
                                 value: "" + record.PageSkip);
 
                             AddKeyValue(stack, key: "Page offset", repo: null,
-                                value: "" + fetchContext.PageOffset + " (counted)");
+                                value: "" + record.PageOffset + " (counted)");
                         }
                     }
 
@@ -1432,6 +1485,7 @@ namespace AasxPackageLogic
             bool preserveEditMode = true,
             bool doCheckTainted = false,
             bool doEditNewRecord = false,
+            bool doFetchGoPrev = false,
             bool doFetchGoNext = false,
             bool doFetchExec = false)
         {
@@ -1468,15 +1522,24 @@ namespace AasxPackageLogic
                     return false;
 
                 // modify fetch context to be "fresh"
-                fetchContext.PageOffset = 0;
                 fetchContext.Cursor = null;
                 fetchContext.Record = record;
+            }
+
+            if (doFetchGoPrev)
+            {
+                // provide no cursor, therefore fetch from very beginning, skip elements
+                fetchContext.Cursor = null;
+                fetchContext.Record.PageSkip = Math.Max(0, fetchContext.Record.PageOffset - fetchContext.Record.PageLimit);
+                fetchContext.Record.PageOffset -= fetchContext.Record.PageLimit;
+                fetchContext.Record.PageOffset = Math.Max(0, fetchContext.Record.PageOffset);
             }
 
             if (doFetchGoNext)
             {
                 // modify (!) record data to do no skip anymore, using cursor data
-                fetchContext.PageOffset += (fetchContext.Record.PageLimit + fetchContext.Record.PageSkip);
+                fetchContext.Record.PageOffset += (fetchContext.Record.PageLimit + fetchContext.Record.PageSkip);
+                fetchContext.Record.PageOffset = Math.Max(0, fetchContext.Record.PageOffset);
                 fetchContext.Record.PageSkip = 0;
             }
 
@@ -1515,13 +1578,6 @@ namespace AasxPackageLogic
                 {
                     Log.Singleton.Error($"Failed to load from {location}");
                     return false;
-                }
-
-                // manual update of page offset
-                if ((container.Env as AdminShellPackageDynamicFetchEnv)?.GetContext()
-                    is PackageContainerHttpRepoSubsetFetchContext fc2)
-                {
-                    fc2.PageOffset = fetchContext.PageOffset;
                 }
 
                 // display
