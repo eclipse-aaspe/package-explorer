@@ -671,6 +671,13 @@ namespace AasxPackageLogic
                         this.Info += "" + thePackage.Filename;
                 }
             }
+
+            if (theItemType == ItemType.FetchPrev)
+            {
+                TagString = " \u21c8 ";
+                TagWeight = FontWeights.Normal;
+            }
+
             if (theItemType == ItemType.FetchNext)
             {
                 TagString = " \u21ca ";
@@ -2469,6 +2476,15 @@ namespace AasxPackageLogic
                             }
                         };
 
+                        // display elements above?
+                        if (si?.ShowCursorAbove == true)
+                        {
+                            lambdaAdd(new VisualElementEnvironmentItem(
+                                    null /* Parent */, cache, package, env,
+                                    VisualElementEnvironmentItem.ItemType.FetchPrev,
+                                    mainDataObject: null));
+                        }
+
                         // add item
                         lambdaAdd(tiAas);
 
@@ -2498,23 +2514,33 @@ namespace AasxPackageLogic
                     {
                         for (int smi=0; smi < env.Submodels.Count; smi++)
                         {
-                            // check if Submodel with only side info is present
-                            if (env.Submodels[smi] == null && env.Submodels is OnDemandList<Aas.ISubmodel, AasIdentifiableSideInfo> smsi)
-                            {
-                                var si = smsi.GetSideInfo(smi);
-                                if (si != null && si.IsStub)
-                                {
-                                    // add stub
-                                    var tiSmSi = new VisualElementSubmodelStub(tiAllSubmodels, cache, package, si);
-                                    tiAllSubmodels.Members.Add(tiSmSi);
+                            // get info(s)
+                            var sm = env.Submodels[smi];
+                            var si = (env.Submodels is
+                                       OnDemandListIdentifiable<Aas.ISubmodel> dynSms)
+                                     ? dynSms.GetSideInfo(smi) : null;
 
-                                    // not further here!!
-                                    continue;
-                                }
+                            // check if Submodel with only side info is present
+                            if (si != null && si.IsStub)
+                            {
+                                // add stub
+                                var tiSmSi = new VisualElementSubmodelStub(tiAllSubmodels, cache, package, si);
+                                tiAllSubmodels.Members.Add(tiSmSi);
+
+                                // not further here!!
+                                continue;
+                            }
+
+                            // display elements above?
+                            if (si?.ShowCursorAbove == true)
+                            {
+                                tiAllSubmodels.Members.Add(new VisualElementEnvironmentItem(
+                                        null /* Parent */, cache, package, env,
+                                        VisualElementEnvironmentItem.ItemType.FetchPrev,
+                                        mainDataObject: null));
                             }
 
                             // Submodel
-                            var sm = env.Submodels[smi];
                             var tiSm = new VisualElementSubmodel(tiAllSubmodels, cache, env, sm);
                             tiSm.SetIsExpandedIfNotTouched(expandMode > 1);
                             tiAllSubmodels.Members.Add(tiSm);
@@ -2540,6 +2566,15 @@ namespace AasxPackageLogic
                                         tiSm.Members.Add(tiCD);
                                     }
                                 } 
+                            }
+
+                            // display elements above?
+                            if (si?.ShowCursorBelow == true)
+                            {
+                                tiAllSubmodels.Members.Add(new VisualElementEnvironmentItem(
+                                        null /* Parent */, cache, package, env,
+                                        VisualElementEnvironmentItem.ItemType.FetchNext,
+                                        mainDataObject: null));
                             }
                         } 
                     }

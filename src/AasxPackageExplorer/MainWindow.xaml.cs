@@ -355,7 +355,8 @@ namespace AasxPackageExplorer
                         return AnyUiMessageBoxResult.Cancel;
                     else
                         return ucic.MessageBoxShow(content, text, title, buttons);
-                }
+                },
+                AllowFakeResponses = Options.Curr.AllowFakeResponses
             };
             return ro;
         }
@@ -2968,7 +2969,8 @@ namespace AasxPackageExplorer
                     preserveEditMode: true,
                     doEditNewRecord: false,
                     doCheckTainted: true,
-                    doFetchGoNext: true,
+                    doFetchGoPrev: siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev,
+                    doFetchGoNext: siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext,
                     doFetchExec: true);
 
                 // success will trigger redraw independently, therefore always do nothing

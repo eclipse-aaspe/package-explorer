@@ -444,6 +444,13 @@ namespace AasxPackageLogic
         [OptionDescription(Description = "Maximum parallel operations, such as HTTP downloads.")]
         public int MaxParallelOps = 20;
 
+        [OptionDescription(Description =
+            "If true, will answer the HTTP GET requests of selected ressources by internal, fixed responses " +
+            "(see PackageContainerFakeAnswers.json). This allows quick testing of repository functions without " +
+            "internet connection (shoutout to Deutsche Bahn).",
+            Cmd = "-allow-fake-responses")]
+        public bool AllowFakeResponses = true;
+
         [OptionDescription(Description = "If set, load and store AASX files via temporary package to " +
             "avoid corruptions. RECOMMENDED!",
             Cmd = "-indirect-load-save")]

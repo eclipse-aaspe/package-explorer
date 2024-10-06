@@ -43,7 +43,14 @@ namespace AasxPackageLogic.PackageCentral
         public string Id = "";
         public string IdShort = "";
 
+        /// <summary>
+        /// In the tree of virtual elements, place a visual element below this entity
+        /// </summary>
         public bool ShowCursorAbove = false;
+
+        /// <summary>
+        /// In the tree of virtual elements, place a visual element below this entity
+        /// </summary>
         public bool ShowCursorBelow = false;
     }
 
