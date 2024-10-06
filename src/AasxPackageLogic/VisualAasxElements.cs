@@ -921,16 +921,18 @@ namespace AasxPackageLogic
 
     public class VisualElementSubmodel : VisualElementGeneric, ITaintableIdentifiable
     {
+        public AdminShellPackageEnvBase thePackage = null;
         public Aas.IEnvironment theEnv = null;
         public Aas.ISubmodel theSubmodel = null;
 
         public VisualElementSubmodel(
-            VisualElementGeneric parent, TreeViewLineCache cache, Aas.IEnvironment env,
+            VisualElementGeneric parent, TreeViewLineCache cache, AdminShellPackageEnvBase package, Aas.IEnvironment env,
             Aas.ISubmodel sm)
             : base()
         {
             this.Parent = parent;
             this.Cache = cache;
+            this.thePackage = package;
             this.theEnv = env;
             this.theSubmodel = sm;
 
@@ -1962,10 +1964,10 @@ namespace AasxPackageLogic
             return ti;
         }
 
-        private void GenerateInnerElementsForSubmodelRef(
+        private void GenerateInnerElementsForSubmodelOrRef(
             TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnvBase package,
             Aas.ISubmodel sm,
-            VisualElementSubmodelRef tiSm)
+            VisualElementGeneric tiSm)
         {
             // access
             if (sm == null || tiSm == null)
@@ -2024,7 +2026,7 @@ namespace AasxPackageLogic
             else
             {
                 // inner items directly
-                GenerateInnerElementsForSubmodelRef(cache, env, package, sm, tiSm);
+                GenerateInnerElementsForSubmodelOrRef(cache, env, package, sm, tiSm);
             }
 
             // ok
@@ -2372,6 +2374,7 @@ namespace AasxPackageLogic
             // remember options
             OptionExpandMode = expandMode;
             OptionLazyLoadingFirst = lazyLoadingFirst;
+            var addSMEtoSME = env.AssetAdministrationShellCount() < 1;
 
             // quickly connect the Identifiables to the environment
             // and index them in order to quickly look them up
@@ -2541,9 +2544,25 @@ namespace AasxPackageLogic
                             }
 
                             // Submodel
-                            var tiSm = new VisualElementSubmodel(tiAllSubmodels, cache, env, sm);
+                            var tiSm = new VisualElementSubmodel(tiAllSubmodels, cache, package, env, sm);
                             tiSm.SetIsExpandedIfNotTouched(expandMode > 1);
                             tiAllSubmodels.Members.Add(tiSm);
+
+                            // add SME to Submodel?
+                            if (addSMEtoSME)
+                            {
+                                if (true)
+                                {
+                                    // set lazy loading first
+                                    tiSm.IsExpanded = false;
+                                    SetElementToLazyLoading(cache, env, package, tiSm);
+                                }
+                                else
+                                {
+                                    // inner items directly
+                                    GenerateInnerElementsForSubmodelOrRef(cache, env, package, sm, tiSm);
+                                }
+                            }
 
                             // render ConceptDescriptions?
                             if (tiCDs.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySubmodel)
@@ -2680,8 +2699,19 @@ namespace AasxPackageLogic
             if (ve is VisualElementSubmodelRef vesmr)
             {
                 ve.Members.Clear();
-                GenerateInnerElementsForSubmodelRef(vesmr.Cache, vesmr.theEnv, vesmr.thePackage, vesmr.theSubmodel,
+                GenerateInnerElementsForSubmodelOrRef(vesmr.Cache, vesmr.theEnv, vesmr.thePackage, vesmr.theSubmodel,
                     vesmr);
+
+                ve.RestoreFromCache();
+                if (forceExpanded)
+                    ve.IsExpanded = true;
+            }
+
+            if (ve is VisualElementSubmodel vesm)
+            {
+                ve.Members.Clear();
+                GenerateInnerElementsForSubmodelOrRef(vesm.Cache, vesm.theEnv, vesm.thePackage, vesm.theSubmodel,
+                    vesm);
 
                 ve.RestoreFromCache();
                 if (forceExpanded)
@@ -3130,6 +3160,7 @@ namespace AasxPackageLogic
                          && veei.theItemType == VisualElementEnvironmentItem.ItemType.AllSubmodels)))
                     {
                         var tiSm = new VisualElementSubmodel(tiAllSubmodels, cache,
+                                    data.Container?.Env,
                                     data.Container?.Env?.AasEnv, thisSm);
                         tiSm.SetIsExpandedIfNotTouched(false);
                         tiAllSubmodels.Members.Add(tiSm);
