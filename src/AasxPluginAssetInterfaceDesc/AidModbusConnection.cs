@@ -72,7 +72,7 @@ namespace AasxPluginAssetInterfaceDescription
         {
             // access
             if (item?.FormData?.Href?.HasContent() != true
-                || item.FormData.Modbus_function?.HasContent() != true)
+                || item.FormData.Modv_function?.HasContent() != true)
                 return 0;
             int res = 0;
 
@@ -90,10 +90,15 @@ namespace AasxPluginAssetInterfaceDescription
 
             // perform function (id = in data)
             byte[] id = null;
-            if (item.FormData.Modbus_function.Trim().ToLower() == "readholdingregisters")
+            if (item.FormData.Modv_function.Trim().ToLower() == "readholdingregisters")
             {
+                //Get device unitID
+                int.TryParse(TargetUri.LocalPath.Replace("/", ""), out var unitID);
+
                 // readHoldingRegisters
-                id = (Client.ReadHoldingRegisters<byte>(99, address, 2 * quantity)).ToArray();
+                id = (Client.ReadHoldingRegisters<byte>(unitID, address, 2 * quantity)).ToArray();
+                if (BitConverter.IsLittleEndian)
+                    Array.Reverse(id);
                 // time
                 LastActive = DateTime.Now;
             }
@@ -104,90 +109,128 @@ namespace AasxPluginAssetInterfaceDescription
 
             // swapping (od = out data)
             // https://doc.iobroker.net/#de/adapters/adapterref/iobroker.modbus/README.md?wp
-            var mbtp = item.FormData.Modbus_type?.ToLower().Trim();
+            var mbtp = item.FormData.Modv_type?.ToLower();
+            var byteSequence = item.FormData.Modv_mostSignificantByte;
+            var wordSequence = item.FormData.Modv_mostSignificantWord;
             byte[] od = id.ToArray();
             if (quantity == 2)
             {
-                // 32bit operation on AABBCCDD
-                if (mbtp.EndsWith("be"))
-                {
-                    // big endian AABBCCDD => AABBCCDD
-                    od[3] = id[3]; od[2] = id[2]; od[1] = id[1]; od[0] = id[0];
-                }
-                else
-                if (mbtp.EndsWith("le"))
-                {
-                    // little endian AABBCCDD => DDCCBBAA
-                    od[3] = id[0]; od[2] = id[1]; od[1] = id[2]; od[0] = id[3];
-                }
-                else
-                if (mbtp.EndsWith("sw"))
-                {
-                    // Big Endian Word Swap AABBCCDD => CCDDAABB
-                    od[3] = id[2]; od[2] = id[3]; od[1] = id[0]; od[0] = id[1];
-                }
-                else
-                if (mbtp.EndsWith("sb"))
-                {
-                    // Big Endian Byte Swap AABBCCDD => DDCCBBAA
-                    od[3] = id[0]; od[2] = id[1]; od[1] = id[2]; od[0] = id[3];
-                }
+                if (byteSequence == "" && wordSequence == "") // //byte sequence defined at the local level
+
+                    //byte sequence defined at the global level
+                    if ((mostSignificantByte == "" && mostSignificantWord == "") || 
+                        (mostSignificantByte == "true" && mostSignificantWord == "") || 
+                        (mostSignificantByte == "" && mostSignificantWord == "true") || 
+                        (mostSignificantByte == "true" && mostSignificantWord == "true"))
+                    {
+                        //use default, byte == true and word  == true (Big endian and no word swapping)
+                    }
+
+                    else if ((mostSignificantByte == "" && mostSignificantWord == "false") || 
+                        (mostSignificantByte == "true" && mostSignificantWord == "false"))
+                    {
+                        //big endian wordswap AABBCCDD => CCDDAABB
+                        od[3] = id[1]; od[2] = id[0]; od[1] = id[3]; od[0] = id[2];
+                    }
+                    else if ((mostSignificantByte == "false" && mostSignificantWord == "true") || 
+                        (mostSignificantByte == "false" && mostSignificantWord == ""))
+                    {
+                        // Little Endian AABBCCDD => DDCCBBAA
+                        Array.Reverse(od);
+                    }
+
+                    //byte sequence defined at the global level
+                    else if ((byteSequence == "true" && wordSequence == "") || 
+                        (byteSequence == "" && wordSequence == "true") || 
+                        (byteSequence == "true" && wordSequence == "true"))
+                    {
+                        //use default, byte == true and word  == true (Big endian and no word swapping)
+                    }
+
+                    //byte sequence defined at the global level
+                    else if ((byteSequence == "true" && wordSequence == "false") || 
+                        (byteSequence == "" && wordSequence == "false"))
+                    {
+                        //big endian wordswap AABBCCDD => CCDDAABB
+                        od[3] = id[1]; od[2] = id[0]; od[1] = id[3]; od[0] = id[2];
+                    }
+
+                    //byte sequence defined at the global level
+                    else if ((byteSequence == "false" && wordSequence == "true") || 
+                        (byteSequence == "false" && wordSequence == ""))
+                    {
+                        // Little Endian little endian AABBCCDD => DDCCBBAA
+                        Array.Reverse(od);
+                    }
+
+
+
             }
             else
             if (quantity == 1)
             {
-                // 16bit operation on AABB
-                if (mbtp.EndsWith("le"))
+
+                if (byteSequence == "" && mostSignificantByte == "false")  //byte sequence defined at the global level
                 {
                     // little endian AABB => BBAA
                     od[1] = id[0]; od[0] = id[1];
+                }
+
+                else if (byteSequence != "" && byteSequence.ToLower() == "false")  //byte sequence defined at local level, it overrides gloabal level
+                {
+                    // little endian AABB => BBAA
+                    od[1] = id[0]; od[0] = id[1];
+                }
+                else
+                {
+                    // big endian AABB => AABB
                 }
             }
 
             // conversion to value
             // idea: (1) convert to binary type, (2) convert to adequate string representation
             var strval = "";
-            if (mbtp.StartsWith("uint32") && quantity >= 2)
+            if (mbtp == "xsd:unsignedint" && quantity >= 2)
             {
                 strval = BitConverter.ToUInt32(od).ToString();
             }
             else
-            if (mbtp.StartsWith("int32") && quantity >= 2)
+            if (mbtp == "xsd:integer" && quantity >= 2)
             {
                 strval = BitConverter.ToInt32(od).ToString();
             }
             else
-            if (mbtp.StartsWith("uint16") && quantity >= 1)
+            if (mbtp == "xsd:int" && quantity >= 1)
             {
                 strval = BitConverter.ToUInt16(od).ToString();
             }
             else
-            if (mbtp.StartsWith("int16") && quantity >= 1)
+            if (mbtp == "xsd:int" && quantity >= 1)
             {
                 strval = BitConverter.ToInt16(od).ToString();
             }
             else
-            if (mbtp.StartsWith("uint8") && quantity >= 1)
+            if (mbtp == "xsd:unsignedshort" && quantity >= 1)
             {
                 strval = Convert.ToByte(od[0]).ToString();
             }
             else
-            if (mbtp.StartsWith("int8") && quantity >= 1)
+            if (mbtp == "xsd:short" && quantity >= 1)
             {
                 strval = Convert.ToSByte(od[0]).ToString();
             }
             else
-            if (mbtp.StartsWith("float") && quantity >= 2)
+            if (mbtp == "xsd:float" && quantity >= 2)
             {
                 strval = BitConverter.ToSingle(od).ToString("R", CultureInfo.InvariantCulture);
             }
             else
-            if (mbtp.StartsWith("double") && quantity >= 4)
+            if (mbtp == "xsd:double" && quantity >= 4)
             {
                 strval = BitConverter.ToDouble(od).ToString("R", CultureInfo.InvariantCulture);
             }
             else
-            if (mbtp.StartsWith("string") && quantity >= 1)
+            if (mbtp == "xsd:string" && quantity >= 1)
             {
                 strval = BitConverter.ToString(od);
             }
