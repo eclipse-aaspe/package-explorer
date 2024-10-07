@@ -31,20 +31,20 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
         [AasConcept(Cd = "https://www.w3.org/2019/wot/td#title", Card = AasxPredefinedCardinality.One)]
         public string Title;
 
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/td#created", Card = AasxPredefinedCardinality.ZeroToOne)]
+        [AasConcept(Cd = "http://purl.org/dc/terms/created", Card = AasxPredefinedCardinality.ZeroToOne)]
         public DateTime? Created;
 
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/td#modified", Card = AasxPredefinedCardinality.ZeroToOne)]
+        [AasConcept(Cd = "http://purl.org/dc/terms/modified", Card = AasxPredefinedCardinality.ZeroToOne)]
         public DateTime? Modified;
 
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/td#support", Card = AasxPredefinedCardinality.ZeroToOne)]
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/td#supportContact", Card = AasxPredefinedCardinality.ZeroToOne)]
         public string Support;
 
         [AasConcept(Cd = "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/EndpointMetadata", Card = AasxPredefinedCardinality.One)]
         public CD_EndpointMetadata EndpointMetadata = new CD_EndpointMetadata();
 
-        [AasConcept(Cd = "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/InterfaceMetadata", Card = AasxPredefinedCardinality.One)]
-        public CD_InterfaceMetadata InterfaceMetadata = new CD_InterfaceMetadata();
+        [AasConcept(Cd = "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/InteractionMetadata", Card = AasxPredefinedCardinality.One)]
+        public CD_InterfaceMetadata InteractionMetadata = new CD_InterfaceMetadata();
 
         [AasConcept(Cd = "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/ExternalDescriptor", Card = AasxPredefinedCardinality.ZeroToOne)]
         public CD_ExternalDescriptor ExternalDescriptor = null;
@@ -56,11 +56,17 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
     [AasConcept(Cd = "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/EndpointMetadata")]
     public class CD_EndpointMetadata
     {
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/td#base", Card = AasxPredefinedCardinality.One)]
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/td#baseURI", Card = AasxPredefinedCardinality.One)]
         public string Base;
 
         [AasConcept(Cd = "https://www.w3.org/2019/wot/hypermedia#forContentType", Card = AasxPredefinedCardinality.One)]
         public string ContentType;
+
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/modbus#hasMostSignificantByte", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public string Modv_mostSignificantByte = "";
+
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/modbus#hasMostSignificantWord", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public string Modv_mostSignificantWord = "";
 
         [AasConcept(Cd = "https://www.w3.org/2019/wot/td#hasSecurityConfiguration", Card = AasxPredefinedCardinality.One)]
         public CD_Security Security = new CD_Security();
@@ -117,7 +123,7 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
     [AasConcept(Cd = "https://www.w3.org/2019/wot/security#NoSecurityScheme")]
     public class CD_Nosec_sc
     {
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/td#definesSecurityScheme", Card = AasxPredefinedCardinality.One)]
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/security#SecurityScheme", Card = AasxPredefinedCardinality.One)]
         public string Scheme;
 
         // auto-generated informations
@@ -127,7 +133,7 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
     [AasConcept(Cd = "https://www.w3.org/2019/wot/security#AutoSecurityScheme")]
     public class CD_Auto_sc
     {
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/td#definesSecurityScheme", Card = AasxPredefinedCardinality.One)]
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/security#SecurityScheme", Card = AasxPredefinedCardinality.One)]
         public string Scheme;
 
         [AasConcept(Cd = "https://www.w3.org/2019/wot/security#proxy", Card = AasxPredefinedCardinality.ZeroToOne)]
@@ -140,7 +146,7 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
     [AasConcept(Cd = "https://www.w3.org/2019/wot/security#BasicSecurityScheme")]
     public class CD_Basic_sc
     {
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/td#definesSecurityScheme", Card = AasxPredefinedCardinality.One)]
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/security#SecurityScheme", Card = AasxPredefinedCardinality.One)]
         public string Scheme;
 
         [AasConcept(Cd = "https://www.w3.org/2019/wot/security#name", Card = AasxPredefinedCardinality.ZeroToOne)]
@@ -159,7 +165,7 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
     [AasConcept(Cd = "https://www.w3.org/2019/wot/security#ComboSecurityScheme")]
     public class CD_Combo_sc
     {
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/td#definesSecurityScheme", Card = AasxPredefinedCardinality.One)]
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/security#SecurityScheme", Card = AasxPredefinedCardinality.One)]
         public string Scheme;
 
         [AasConcept(Cd = "https://www.w3.org/2019/wot/json-schema#oneOf", Card = AasxPredefinedCardinality.One)]
@@ -194,7 +200,7 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
     [AasConcept(Cd = "https://www.w3.org/2019/wot/security#APIKeySecurityScheme")]
     public class CD_Apikey_sc
     {
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/td#definesSecurityScheme", Card = AasxPredefinedCardinality.One)]
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/security#SecurityScheme", Card = AasxPredefinedCardinality.One)]
         public string Scheme;
 
         [AasConcept(Cd = "https://www.w3.org/2019/wot/security#name", Card = AasxPredefinedCardinality.ZeroToOne)]
@@ -213,7 +219,7 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
     [AasConcept(Cd = "https://www.w3.org/2019/wot/security#PSKSecurityScheme")]
     public class CD_Psk_sc
     {
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/td#definesSecurityScheme", Card = AasxPredefinedCardinality.One)]
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/security#SecurityScheme", Card = AasxPredefinedCardinality.One)]
         public string Scheme;
 
         [AasConcept(Cd = "https://www.w3.org/2019/wot/security#identity", Card = AasxPredefinedCardinality.ZeroToOne)]
@@ -229,7 +235,7 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
     [AasConcept(Cd = "https://www.w3.org/2019/wot/security#DigestSecurityScheme")]
     public class CD_Digest_sc
     {
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/td#definesSecurityScheme", Card = AasxPredefinedCardinality.One)]
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/security#SecurityScheme", Card = AasxPredefinedCardinality.One)]
         public string Scheme;
 
         [AasConcept(Cd = "https://www.w3.org/2019/wot/security#name", Card = AasxPredefinedCardinality.ZeroToOne)]
@@ -250,7 +256,7 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
     [AasConcept(Cd = "https://www.w3.org/2019/wot/security#BearerSecurityScheme")]
     public class CD_Bearer_sc
     {
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/td#definesSecurityScheme", Card = AasxPredefinedCardinality.One)]
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/security#SecurityScheme", Card = AasxPredefinedCardinality.One)]
         public string Scheme;
 
         [AasConcept(Cd = "https://www.w3.org/2019/wot/security#name", Card = AasxPredefinedCardinality.ZeroToOne)]
@@ -278,7 +284,7 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
     [AasConcept(Cd = "https://www.w3.org/2019/wot/security#OAuth2SecurityScheme")]
     public class CD_Oauth2_sc
     {
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/td#definesSecurityScheme", Card = AasxPredefinedCardinality.One)]
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/security#SecurityScheme", Card = AasxPredefinedCardinality.One)]
         public string Scheme;
 
         [AasConcept(Cd = "https://www.w3.org/2019/wot/security#token", Card = AasxPredefinedCardinality.ZeroToOne)]
@@ -441,23 +447,29 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
         [AasConcept(Cd = "https://www.w3.org/2019/wot/http#timeout", Card = AasxPredefinedCardinality.ZeroToOne)]
         public string Htv_timeout;
 
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/modbus#Function", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public string Modbus_function;
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/modbus#hasFunction", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public string Modv_function;
 
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/modbus#Entity", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public string Modbus_entity;
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/modbus#hasEntity", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public string Modv_entity;
 
         [AasConcept(Cd = "https://www.w3.org/2019/wot/modbus#hasZeroBasedAddressingFlag", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public string Modbus_zeroBasedAddressing;
+        public string Modv_zeroBasedAddressing;
 
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/modbus#pollingTime", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public string Modbus_pollingTime;
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/modbus#hasPollingTime", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public string Modv_pollingTime;
 
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/modbus#timeout", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public string Modbus_timeout;
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/modbus#hasTimeout", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public string Modv_timeout;
 
-        [AasConcept(Cd = "https://www.w3.org/2019/wot/modbus#type", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public string Modbus_type;
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/modbus#hasPayloadDataType", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public string Modv_type;
+
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/modbus#hasMostSignificantByte", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public string Modv_mostSignificantByte = "";
+
+        [AasConcept(Cd = "https://www.w3.org/2019/wot/modbus#hasMostSignificantWord", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public string Modv_mostSignificantWord = "";
 
         [AasConcept(Cd = "https://www.w3.org/2019/wot/mqtt#hasRetainFlag", Card = AasxPredefinedCardinality.ZeroToOne)]
         public string Mqv_retain;
