@@ -30,6 +30,7 @@ using Microsoft.Win32;
 using Namotion.Reflection;
 using System.Text.Json.Nodes;
 using System.Linq;
+using System.Web;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -185,7 +186,7 @@ namespace AasxPackageLogic.PackageCentral
 
         public static bool IsValidUriForQuery(string location)
         {
-            var m = Regex.Match(location, @"^(http(|s))://(.*?)/aaspe-query/(.{1,9999})$",
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/graphql(|/|/?\?(.*))$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
@@ -338,9 +339,13 @@ namespace AasxPackageLogic.PackageCentral
             if (query?.HasContent() != true)
                 return null;
 
-            // try combine
-            var queryEnc = AdminShellUtil.Base64Encode(query);
-            return CombineUri(baseUri, $"aaspe-query/{queryEnc}");
+            // For the time being, only POST is possible, therefore only
+            // endpoint name is required for the real call. 
+            // However, lets store the query as BASE64 query parameter
+            var queryEnc = AdminShellUtil.Base64UrlEncode(query);            
+            var uri = new UriBuilder(CombineUri(baseUri, $"graphql"));
+            uri.Query = $"query={queryEnc}";
+            return uri.Uri;
         }
 
         public static Uri BuildUriForSubmodel(Uri baseUri, Aas.IReference submodelRef)
@@ -352,6 +357,13 @@ namespace AasxPackageLogic.PackageCentral
 
             // pass on
             return BuildUriForSubmodel(baseUri, submodelRef.Keys[0].Value);
+        }
+
+        protected enum FetchItemType { SmUrl, SmId }
+        protected class FetchItem
+        {
+            public FetchItemType Type;
+            public string Value;
         }
 
         public override async Task LoadFromSourceAsync(
@@ -525,6 +537,150 @@ namespace AasxPackageLogic.PackageCentral
                     });
             }
 
+            // start with a query?
+            if (IsValidUriForQuery(fullItemLocation))
+            {
+                // try extract query from the location
+                var query = "";
+                var quri = new Uri(fullItemLocation);
+                if (quri.Query?.HasContent() == true)
+                {
+                    var pc = HttpUtility.ParseQueryString(quri.Query);
+                    foreach (var key in pc.AllKeys)
+                        if (key == "query")
+                            query = AdminShellUtil.Base64UrlDecode(pc[key]);
+                }
+
+                // if not, try to get from record
+                if (!query.HasContent() && record?.QueryScript?.HasContent() == true)
+                    query = record.QueryScript;
+
+                // error
+                if (!query.HasContent())
+                {
+                    runtimeOptions?.Log?.Error("Could not determine valid query script. Aborting!");
+                    return;
+                }
+
+                // but, the query needs to be reformatted as JSON
+                // query = "{ searchSMs(expression: \"\"\"$LOG  \"\"\") { url smId } }";
+                // query = "{ searchSMs(expression: \"\"\"$LOG filter=or(str_contains(sm.IdShort, \"Technical\"), str_contains(sm.IdShort, \"Nameplate\")) \"\"\") { url smId } }";
+                query = query.Replace("\\", "\\\\");
+                query = query.Replace("\"", "\\\"");
+                query = query.Replace("\r", " ");
+                query = query.Replace("\n", " ");
+                var jsonQuery = $"{{ \"query\" : \"{query}\" }} ";
+
+                // there are subsequent fetch operations necessary
+                var fetchItems = new List<FetchItem>();
+
+                // HTTP POST
+                var statCode = await PackageHttpDownloadUtil.HttpPostRequestToMemoryStream(
+                    sourceUri: new Uri(quri.GetLeftPart(UriPartial.Path)),
+                    requestBody: jsonQuery,
+                    requestContentType: "application/json",
+                    allowFakeResponses: allowFakeResponses,
+                    runtimeOptions: runtimeOptions,
+                    lambdaDownloadDone: (ms, contentFn) =>
+                    {
+                        try
+                        {
+                            var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                            if (node["data"]?["searchSMs"] is JsonArray smdata
+                                && smdata.Count >= 1)
+                            {
+                                foreach (var smrec in smdata)
+                                {
+                                    var url = smrec["url"]?.ToString();
+                                    var smId = smrec["smId"]?.ToString();
+                                    if (smId?.HasContent() == true)
+                                        fetchItems.Add(new FetchItem() { Type = FetchItemType.SmId, Value = smId });
+                                    else
+                                    if (url?.HasContent() == true)
+                                        fetchItems.Add(new FetchItem() { Type = FetchItemType.SmUrl, Value = url });
+                                }
+                            }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            runtimeOptions?.Log?.Error(ex, "Parsing graphql result set");
+                        }
+                    });
+
+                if (statCode != HttpStatusCode.OK)
+                {
+                    Log.Singleton.Error("Could not fetch new dynamic elements by graphql. Aborting!");
+                    Log.Singleton.Error("  POST request was: {0}", jsonQuery);
+                    return;
+                }
+
+                // only makes sense, if query returns something
+                if (fetchItems.Count < 1)
+                {
+                    Log.Singleton.Info(StoredPrint.Color.Blue, "Query resulted in zero elements, " +
+                        "which could be fetched. Aborting!");
+                    return;
+                }
+
+                // skip items?
+                if (record.PageSkip > 0)
+                {
+                    fetchItems.RemoveRange(0, Math.Min(fetchItems.Count, record.PageSkip));
+                }
+                var numItem = 0;
+
+                // TODO: convert to parallel for each async
+                var dlErrors = 0;
+                foreach (var fi in fetchItems)
+                {
+                    // reached end
+                    numItem++;
+                    if (record.PageLimit > 0 && numItem > record.PageLimit)
+                        break;
+
+                    // prepare download
+                    Uri loc = null;
+                    if (fi.Type == FetchItemType.SmUrl)
+                        loc = new Uri(fi.Value);
+                    if (fi.Type == FetchItemType.SmId)
+                        loc = BuildUriForSubmodel(baseUri, fi.Value, encryptIds: true);
+
+                    if (loc == null)
+                        continue;
+
+                    // download (and skip errors)
+                    try
+                    {
+                        await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                            sourceUri: loc,
+                            allowFakeResponses: allowFakeResponses,
+                            runtimeOptions: runtimeOptions,
+                            lambdaDownloadDone: (ms, contentFn) =>
+                            {
+                                try
+                                {
+                                    var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                                    if (fi.Type == FetchItemType.SmUrl || fi.Type == FetchItemType.SmId)
+                                        prepSM.Add(Jsonization.Deserialize.SubmodelFrom(node), null);
+                                }
+                                catch (Exception ex)
+                                {
+                                    dlErrors++;
+                                    runtimeOptions?.Log?.Error(ex, "Parsing individual fetch element of query.");
+                                }
+                            });
+                    } catch (Exception ex)
+                    {
+                        dlErrors++;
+                        LogInternally.That.CompletelyIgnoredError(ex);
+                    }
+                }
+
+                Log.Singleton.Info(StoredPrint.Color.Blue, "Executed GraphQL query. Receiving list of {0} elements, " +
+                    "found {1} errors when individually downloading elements.", fetchItems.Count, dlErrors);
+            }
+
             // start auto-load missing Submodels?
             if (record?.AutoLoadSubmodels ?? false)
             {
@@ -651,9 +807,10 @@ namespace AasxPackageLogic.PackageCentral
             public enum BaseTypeEnum { Repository, Registry }
             public static string[] BaseTypeEnumNames = new[] { "Repository", "Registry" };
 
-            // public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
-            public string BaseAddress = "https://eis-data.aas-voyager.com/";
+            public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
+            // public string BaseAddress = "https://eis-data.aas-voyager.com/";
             // public string BaseAddress = "http://smt-repo.admin-shell-io.com/";
+            // public string BaseAddress = "https://techday2-registry.admin-shell-io.com/";
 
             public BaseTypeEnum BaseType = BaseTypeEnum.Repository;
 
@@ -662,7 +819,7 @@ namespace AasxPackageLogic.PackageCentral
             public bool GetSingleAas;
             public string AasId = "https://new.abb.com/products/de/2CSF204101R1400/aas";
 
-            public bool GetAllSubmodel = true;
+            public bool GetAllSubmodel;
 
             public bool GetSingleSubmodel;
             public string SmId = "aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMjAxNV82MDIwXzMwMTJfMDU4NQ==";
@@ -670,8 +827,9 @@ namespace AasxPackageLogic.PackageCentral
             public bool GetSingleCD;
             public string CdId;
 
-            public bool ExecuteQuery;
-            public string QueryScript;
+            public bool ExecuteQuery = true;
+            // public string QueryScript = "{\r\n  searchSMs(\r\n    expression: \"\"\"$LOG\r\n     filter=\r\n      or(\r\n        str_contains(sm.IdShort, \"Technical\"),\r\n        str_contains(sm.IdShort, \"Nameplate\")\r\n      )\r\n   \"\"\"\r\n  )\r\n  {\r\n    url\r\n    smId\r\n  }\r\n}";
+            public string QueryScript = "{\r\n  searchSMs(\r\n    expression: \"\"\"$LOG$QL\r\n          ( contains(sm.idShort, \"Technical\") and\r\n          sme.value ge 100 and\r\n          sme.value le 200 )\r\n        or\r\n          ( contains(sm.idShort, \"Nameplate\") and\r\n          contains(sme.idShort,\"ManufacturerName\") and\r\n          not(contains(sme.value,\"Phoenix\")))\r\n    \"\"\"\r\n  )\r\n  {\r\n    url\r\n    smId\r\n  }\r\n}";
             
             public bool AutoLoadSubmodels = true;
             public bool AutoLoadCds = true;
@@ -683,7 +841,7 @@ namespace AasxPackageLogic.PackageCentral
             /// <summary>
             /// Pagenation. Limit to <c>n</c> resulsts.
             /// </summary>
-            public int PageLimit = 12;
+            public int PageLimit = 4;
 
             /// <summary>
             /// When fetching, skip first <c>n</c> elements of the results
