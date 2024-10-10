@@ -1,3 +1,16 @@
+/********************************************************************************
+* Copyright (c) {2019 - 2024} Contributors to the Eclipse Foundation
+*
+* See the NOTICE file(s) distributed with this work for additional
+* information regarding copyright ownership.
+*
+* This program and the accompanying materials are made available under the
+* terms of the Apache License Version 2.0 which is available at
+* https://www.apache.org/licenses/LICENSE-2.0
+*
+* SPDX-License-Identifier: Apache-2.0
+********************************************************************************/
+
 /*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
@@ -9,310 +22,39 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
-using AasxPluginExportTable.TimeSeries;
+using AasxIntegrationBase;
 using AasxPluginExportTable.Uml;
-using AnyUi;
-using JetBrains.Annotations;
-using Aas = AasCore.Aas3_0;
-using AdminShellNS;
-using Extensions;
-using static AnyUi.AnyUiDialogueDataSaveFile;
-using DocumentFormat.OpenXml.Drawing.Charts;
+using AasxPluginExportTable.TimeSeries;
 using AasxPluginExportTable.Table;
-using AasxPluginExportTable;
-using AasxPluginExportTable.Smt;
+using AdminShellNS;
 
-namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
+namespace AasxPluginExportTable
 {
-    [UsedImplicitlyAttribute]
-    // the class names has to be: AasxPlugin and subclassing IAasxPluginInterface
-    public class AasxPlugin : AasxPluginBase
+    public class ExportTableOptions : AasxPluginOptionsBase
     {
-        private ExportTableOptions _options = new AasxPluginExportTable.ExportTableOptions();
+        public string TemplateIdConceptDescription = "www.example.com/ids/cd/DDDD_DDDD_DDDD_DDDD";
 
-        public new void InitPlugin(string[] args)
-        {
-            // start ..
-            PluginName = "AasxPluginExportTable";
-            _log.Info("InitPlugin() called with args = {0}", (args == null) ? "" : string.Join(", ", args));
+        public string SmtExportHtmlCmd = "";
+        public string SmtExportHtmlArgs = "";
+        public string SmtExportPdfCmd = "";
+        public string SmtExportPdfArgs = "";
 
-            // .. with built-in options
-            _options = ExportTableOptions.CreateDefault();
+        public ExportUmlRecord UmlExport = null;
 
-            // try load defaults options from assy directory
-            try
-            {
-                var newOpt =
-                    AasxPluginOptionsBase.LoadDefaultOptionsFromAssemblyDir<ExportTableOptions>(
-                        this.GetPluginName(), Assembly.GetExecutingAssembly());
-                if (newOpt != null)
-                    this._options = newOpt;
-            }
-            catch (Exception ex)
-            {
-                _log.Error(ex, "Exception when reading default options {1}");
-            }
-        }
+        public ImportTimeSeriesRecord TimeSeriesImport = null;
 
-        public new AasxPluginActionDescriptionBase[] ListActions()
-        {
-            var res = ListActionsBasicHelper(
-                enableOptions: true,
-                enableEventsGet: true,
-                enablePresetsGet: true,
-                enableMenuItems: true,
-                enableCheckVisualExt: false);
-
-#if __not_needed_anymore
-            res.Add(new AasxPluginActionDescriptionBase("export-submodel", "Exports a Submodel."));
-            res.Add(new AasxPluginActionDescriptionBase("import-submodel", "Imports a Submodel."));
-            res.Add(new AasxPluginActionDescriptionBase("export-uml", "Exports a Submodel to an UML file."));
-            res.Add(new AasxPluginActionDescriptionBase(
-                "export-uml-dialogs", "Exports a Submodel to an UML file using AnyUI modal dialogs.",
-                useAsync: true));
-            res.Add(new AasxPluginActionDescriptionBase(
-                "import-time-series", "Import time series data from a table file."));
-#endif
-
-            res.Add(new AasxPluginActionDescriptionBase(
-                "interop-export", "Provides service to export a interop table into specific formats."));
-
-            return res.ToArray();
-        }
-
-        public new AasxPluginResultBase ActivateAction(string action, params object[] args)
-        {
-            // can basic helper help to reduce lines of code?
-            var help = ActivateActionBasicHelper(action, ref _options, args,
-                disableDefaultLicense: true,
-                enableGetCheckVisuExt: true);
-            if (help != null)
-                return help;
-
-            // rest follows
-
-            if (action == "get-licenses")
-            {
-                var lic = new AasxPluginResultLicense();
-                lic.shortLicense = "The OpenXML SDK is under MIT license." + System.Environment.NewLine +
-                    "The ClosedXML library is under MIT license." + System.Environment.NewLine +
-                    "The ExcelNumberFormat number parser is licensed under the MIT license."
-                    + System.Environment.NewLine +
-                    "The FastMember reflection access is licensed under Apache License 2.0 (Apache - 2.0).";
-
-                lic.isStandardLicense = true;
-                lic.longLicense = AasxPluginHelper.LoadLicenseTxtFromAssemblyDir(
-                    "LICENSE.txt", Assembly.GetExecutingAssembly());
-
-                return lic;
-            }
-
-            if (action == "get-presets")
-            {
-                var presets = new object[]
-                {
-                    _options.Presets,
-                    _options.UmlExport,
-                    _options.TimeSeriesImport
-                };
-                return new AasxPluginResultBaseObject("presets", presets);
-            }
-
-            if (action == "get-menu-items")
-            {
-                // result list 
-                var res = new List<AasxPluginResultSingleMenuItem>();
-
-                // import table
-                res.Add(new AasxPluginResultSingleMenuItem()
-                {
-                    AttachPoint = "Import",
-                    MenuItem = new AasxMenuItem()
-                    {
-                        Name = "ImportTable",
-                        Header = "Import SubmodelElements from Table …",
-                        HelpText = "Import sets of SubmodelElements from table data in multiple common formats.",
-                        ArgDefs = new AasxMenuListOfArgDefs()
-                                .Add("File", "Filename and path of file to imported.")
-                                .Add("Preset", "Name of preset to load.")
-                                .Add("Format", "Format to be either " +
-                                        "'Tab separated', 'LaTex', 'Word', 'Excel', 'Markdown'.")
-                                .Add("Record", "Record data", hidden: true)
-                    }
-                });
-
-                // export table
-                res.Add(new AasxPluginResultSingleMenuItem()
-                {
-                    AttachPoint = "Export",
-                    MenuItem = new AasxMenuItem()
-                    {
-                        Name = "ExportTable",
-                        Header = "Export SubmodelElements as Table …",
-                        HelpText = "Export table(s) for sets of SubmodelElements in multiple common formats.",
-                        ArgDefs = new AasxMenuListOfArgDefs()
-                            .Add("File", "Filename and path of file to exported.")
-                            .Add("Location", "Location of the file (local, user, download).")
-                            .Add("Preset", "Name of preset to load.")
-                            .Add("Format", "Format to be either " +
-                                    "'Tab separated', 'LaTex', 'Word', 'Excel', 'Markdown'.")
-                            .Add("Record", "Record data", hidden: true)
-                    }
-                });
-
-                // export uml
-                res.Add(new AasxPluginResultSingleMenuItem()
-                {
-                    AttachPoint = "Export",
-                    MenuItem = new AasxMenuItem()
-                    {
-                        Name = "ExportUml",
-                        Header = "Export Submodel as UML …",
-                        HelpText = "Export UML of Submodel in multiple common formats.",
-                        ArgDefs = new AasxMenuListOfArgDefs()
-                            .Add("File", "Filename and path of file to exported.")
-                            .Add("Location", "Location of the file (local, user, download).")
-                            .Add("Format", "Format to be either 'XMI v1.1', 'XML v2.1', 'PlantUML'.")
-                            .Add("Record", "Record data", hidden: true)
-                            .AddFromReflection(new ExportUmlRecord())
-                    }
-                });
-
-                // export SMT AsciiDoc
-                res.Add(new AasxPluginResultSingleMenuItem()
-                {
-                    AttachPoint = "Export",
-                    MenuItem = new AasxMenuItem()
-                    {
-                        Name = "ExportSmtAsciiDoc",
-                        Header = "Export Submodel as AsciiDoc SMT spec …",
-                        HelpText = "Export Submodel and referenced arctifacts to an integrated " +
-                            "AsciiDoc document.",
-                        ArgDefs = new AasxMenuListOfArgDefs()
-                            .Add("File", "Filename and path of file to exported.")
-                            .Add("Location", "Location of the file (local, user, download).")
-                            .Add("Format", "Format to be either 'adoc' or 'zip'.")
-                            .Add("Record", "Record data", hidden: true)
-                            .AddFromReflection(new ExportSmtRecord())
-                    }
-                });
-
-                // import time series
-                res.Add(new AasxPluginResultSingleMenuItem()
-                {
-                    AttachPoint = "Import",
-                    MenuItem = new AasxMenuItem()
-                    {
-                        Name = "ImportTimeSeries",
-                        Header = "Read time series values into SubModel …",
-                        HelpText = "Import sets of time series values from an table in common format.",
-                        ArgDefs = new AasxMenuListOfArgDefs()
-                                .Add("File", "Filename and path of file to imported.")
-                                .Add("Format", "Format to be 'Excel'.")
-                                .Add("Record", "Record data", hidden: true)
-                                .AddFromReflection(new ImportTimeSeriesRecord())
-                    }
-                });
-
-                // return
-                return new AasxPluginResultProvideMenuItems()
-                {
-                    MenuItems = res
-                };
-            }
-
-            if (action == "interop-export")
-            {
-                if (args != null && args.Length >= 3
-                    && args[0] is string fmt
-                    && args[1] is string fn
-                    && args[2] is AasxPluginExportTableInterop.InteropTable table)
-                {
-                    if (fmt == "excel")
-                    {
-                        var res = InteropUtils.ExportExcel(fn, table);
-                        return new AasxPluginResultBaseObject(res.ToString(), res);
-                    }
-                }
-            }
-
-            // default
-            return null;
-        }
+        public List<ImportExportTableRecord> Presets = new List<ImportExportTableRecord>();
 
         /// <summary>
-        /// Async variant of <c>ActivateAction</c>.
-        /// Note: for some reason of type conversion, it has to return <c>Task<object></c>.
+        /// Create a set of minimal options
         /// </summary>
-        public new async Task<object> ActivateActionAsync(string action, params object[] args)
+        public static ExportTableOptions CreateDefault()
         {
-            if (action == "call-menu-item")
-            {
-                if (args != null && args.Length >= 3
-                    && args[0] is string cmd
-                    && args[1] is AasxMenuActionTicket ticket
-                    && args[2] is AnyUiContextPlusDialogs displayContext)
-                {
-                    try
-                    {
-                        if (cmd == "exporttable")
-                        {
-                            await AnyUiDialogueTable.ImportExportTableDialogBased(
-                                _options, _log, ticket, displayContext, _options, doImport: false);
-                            return new AasxPluginResultBase();
-                        }
-
-                        if (cmd == "importtable")
-                        {
-                            await AnyUiDialogueTable.ImportExportTableDialogBased(
-                                _options, _log, ticket, displayContext, _options, doImport: true);
-                            return new AasxPluginResultEventRedrawAllElements();
-                        }
-
-                        if (cmd == "exportuml")
-                        {
-                            await AnyUiDialogueUmlExport.ExportUmlDialogBased(
-                                _log, ticket, displayContext);
-                            return new AasxPluginResultBase();
-                        }
-
-                        if (cmd == "exportuml")
-                        {
-                            await AnyUiDialogueUmlExport.ExportUmlDialogBased(
-                                _log, ticket, displayContext);
-                            return new AasxPluginResultBase();
-                        }
-
-                        if (cmd == "exportsmtasciidoc")
-                        {
-                            await AnyUiDialogueSmtExport.ExportSmtDialogBased(
-                                _log, ticket, displayContext, _options);
-                            return new AasxPluginResultBase();
-                        }
-
-                        if (cmd == "importtimeseries")
-                        {
-                            await AnyUiDialogueTimeSeries.ImportTimeSeriesDialogBased(
-                                _log, ticket, displayContext);
-                            return new AasxPluginResultBase();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _log?.Error(ex, "when executing plugin menu item " + cmd);
-                    }
-                }
-            }
-
-            // default
-            return null;
+            var opt = new ExportTableOptions();
+            return opt;
         }
-
     }
 }
