@@ -355,7 +355,8 @@ namespace AasxPackageLogic
             int comboBoxMinWidth = -1,
             int firstColumnWidth = -1, // -1 = Standard
             int maxLines = -1,
-            bool keyVertCenter = false)
+            bool keyVertCenter = false,
+            bool auxButtonOverride = false)
         {
             // draw anyway?
             if (repo != null && value == null)
@@ -384,7 +385,8 @@ namespace AasxPackageLogic
             if (auxButtonToolTips != null)
                 intButtonToolTips.AddRange(auxButtonToolTips);
 
-            var auxButton = repo != null && intButtonTitles.Count > 0 && auxButtonLambda != null;
+            var auxButton = auxButtonOverride
+                    || (repo != null && intButtonTitles.Count > 0 && auxButtonLambda != null);
 
             // Grid
             var g = new AnyUiGrid();

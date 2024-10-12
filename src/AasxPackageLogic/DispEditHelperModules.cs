@@ -33,6 +33,7 @@ using System.Text.RegularExpressions;
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.Serialization;
 using System.Text;
+using AasxPackageLogic.PackageCentral;
 
 namespace AasxPackageLogic
 {
@@ -336,6 +337,35 @@ namespace AasxPackageLogic
 				setOutput: (v) => { referable.Extensions = v; },
 				relatedReferable: referable, superMenu: superMenu);
 		}
+
+        public void DisplayOrEditEntitySideInfo(
+            Aas.IEnvironment env, AnyUiStackPanel stack,
+            Aas.IReferable referable,
+            AasIdentifiableSideInfo si,
+            string key,
+            AasxMenu superMenu = null)
+        {
+            // access
+            if (stack == null || referable == null || si == null)
+                return;
+
+            this.AddGroup(stack, $"{key} was provided by Endpoint of dynamic fetch environment",
+                    this.levelColors.SubSection);
+
+            AddKeyValue(stack, "StubLevel", "" + si.StubLevel.ToString(), repo: null);
+            AddKeyValue(stack, "IdShort", "" + si.IdShort, repo: null);
+            AddKeyValue(stack, "Id", "" + si.Id, repo: null);
+            AddKeyValue(stack, "Endpoint", "" + si.Endpoint.ToString(), repo: null,
+                auxButtonTitle: "Copy",
+                auxButtonLambda: (i) => {
+                    this.context?.ClipboardSet(new AnyUiClipboardData(
+                        text: si.Endpoint.ToString())
+                    { });
+                    Log.Singleton.Info(StoredPrint.Color.Blue, "Endpoint copied to clipboard.");
+                    return new AnyUiLambdaActionNone();
+                },
+                auxButtonOverride: true);
+        }
 
         //
         // Extensions

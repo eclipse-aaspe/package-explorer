@@ -851,12 +851,14 @@ namespace AasxPackageLogic
         public Aas.IAssetAdministrationShell theAas = null;
         public Aas.IReference theSubmodelRef = null;
         public Aas.ISubmodel theSubmodel = null;
+        public AasIdentifiableSideInfo theSideInfo = null;
 
         public VisualElementSubmodelRef(
             VisualElementGeneric parent, TreeViewLineCache cache, Aas.IEnvironment env,
             AdminShellPackageEnvBase package,
             Aas.IAssetAdministrationShell aas,
-            Aas.IReference smr, Aas.ISubmodel sm)
+            Aas.IReference smr, Aas.ISubmodel sm,
+            AasIdentifiableSideInfo sideInfo)
             : base()
         {
             this.Parent = parent;
@@ -866,6 +868,7 @@ namespace AasxPackageLogic
             this.theAas = aas;
             this.theSubmodelRef = smr;
             this.theSubmodel = sm;
+            this.theSideInfo = sideInfo;
 
             this.Background = Options.Curr.GetColor(OptionsInformation.ColorNames.DarkAccentColor);
             this.Border = Options.Curr.GetColor(OptionsInformation.ColorNames.DarkAccentColor);
@@ -924,10 +927,13 @@ namespace AasxPackageLogic
         public AdminShellPackageEnvBase thePackage = null;
         public Aas.IEnvironment theEnv = null;
         public Aas.ISubmodel theSubmodel = null;
+        public AasIdentifiableSideInfo theSideInfo = null;
 
         public VisualElementSubmodel(
-            VisualElementGeneric parent, TreeViewLineCache cache, AdminShellPackageEnvBase package, Aas.IEnvironment env,
-            Aas.ISubmodel sm)
+            VisualElementGeneric parent, TreeViewLineCache cache, AdminShellPackageEnvBase package, 
+            Aas.IEnvironment env,
+            Aas.ISubmodel sm,
+            AasIdentifiableSideInfo sideInfo)
             : base()
         {
             this.Parent = parent;
@@ -935,6 +941,7 @@ namespace AasxPackageLogic
             this.thePackage = package;
             this.theEnv = env;
             this.theSubmodel = sm;
+            this.theSideInfo = sideInfo;
 
             this.Background = new AnyUiColor(0xffd0d0d0u);
             this.Border = new AnyUiColor(0xff606060u);
@@ -1798,7 +1805,8 @@ namespace AasxPackageLogic
 
         private VisualElementConceptDescription GenerateVisualElementsForSingleCD(
             TreeViewLineCache cache, Aas.IEnvironment env,
-            Aas.IConceptDescription cd, VisualElementGeneric parent,
+            Aas.IConceptDescription cd, 
+            VisualElementGeneric parent,
             Aas.ISubmodel submodelForCDs)
         {
             // access
@@ -1820,7 +1828,7 @@ namespace AasxPackageLogic
                         continue;
 
                     // try find in CDs
-                    var vrpCD = env?.FindConceptDescriptionByReference(vlp.ValueId);                    
+                    var vrpCD = env?.FindConceptDescriptionByReference(vlp.ValueId);
                     if (vrpCD != null && tiCDs?.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySme)
                     {
                         // nice, add "real" CD
@@ -2006,6 +2014,7 @@ namespace AasxPackageLogic
         private VisualElementSubmodelRef GenerateVisuElemForVisualElementSubmodelRef(
             Aas.IAssetAdministrationShell aas,
             Aas.ISubmodel sm,
+            AasIdentifiableSideInfo sideInfo,
             Aas.IReference smr,
             VisualElementGeneric parent,
             TreeViewLineCache cache, Aas.IEnvironment env, AdminShellPackageEnvBase package = null)
@@ -2015,7 +2024,7 @@ namespace AasxPackageLogic
                 return null;
 
             // item (even if sm is null)
-            var tiSm = new VisualElementSubmodelRef(parent, cache, env, package, aas, smr, sm);
+            var tiSm = new VisualElementSubmodelRef(parent, cache, env, package, aas, smr, sm, sideInfo);
             tiSm.SetIsExpandedIfNotTouched(OptionExpandMode > 1);
 
             if (OptionLazyLoadingFirst && !tiSm.GetExpandedStateFromCache())
@@ -2060,47 +2069,52 @@ namespace AasxPackageLogic
             // have submodels?
             foreach (var smr in aas.AllSubmodels())
             {
+                // find sideInfo
+                AasIdentifiableSideInfo si = null;
+                if (smr?.IsValid() == true
+                        && env.Submodels is OnDemandListIdentifiable<Aas.ISubmodel> smsi)
+                {
+                    var ndx = smsi.FindSideInfoIndexFromId(smr.GetAsIdentifier());
+                    if (ndx >= 0)
+                        si = smsi.GetSideInfo(ndx);
+                }
+                
+                // find Submodel itself
                 var sm = env.FindSubmodel(smr);
+
+                // check for Submodel is available
                 if (sm == null)
                 {
-                    // check if Submodel with only side info is present
-                    if (smr?.IsValid() == true 
-                        && env.Submodels is OnDemandListIdentifiable<Aas.ISubmodel> smsi)
+                    // no SM available, but show a stub?
+                    if (si != null && si.IsStub)
                     {
-                        var ndx = smsi.FindSideInfoIndexFromId(smr.GetAsIdentifier());
-                        if (ndx >= 0)
-                        {
-                            var si = smsi.GetSideInfo(ndx);
 
-                            if (si.IsStub)
-                            {
+                        // add stub
+                        var tiSmSi = new VisualElementSubmodelStub(tiAas, cache, package, si);
+                        tiAas.Members.Add(tiSmSi);
 
-                                // add stub
-                                var tiSmSi = new VisualElementSubmodelStub(tiAas, cache, package, si);
-                                tiAas.Members.Add(tiSmSi);
-
-                                // not further here!!
-                                continue;
-                            }
-                        }
+                        // not further here!!
+                        continue;
                     }
 
-                    // notify user
+                    // no, notify user
                     Log.Singleton.Error("Cannot find some submodel!");
 
                     // make reference with NO submodel behind
                     var tiNoSm = new VisualElementSubmodelRef(
-                        tiAas, cache, env, package, aas, smr, sm: null);
+                        tiAas, cache, env, package, aas, smr, sm: null, sideInfo: si);
                     tiAas.Members.Add(tiNoSm);
                 }
+                else
+                {
+                    // generate
+                    var tiSm = GenerateVisuElemForVisualElementSubmodelRef(
+                        tiAas.theAas, sm, si, smr, tiAas, cache, env, package);
 
-                // generate
-                var tiSm = GenerateVisuElemForVisualElementSubmodelRef(
-                    tiAas.theAas, sm, smr, tiAas, cache, env, package);
-
-                // add
-                if (tiSm != null)
-                    tiAas.Members.Add(tiSm);
+                    // add
+                    if (tiSm != null)
+                        tiAas.Members.Add(tiSm);
+                }
             }
 
             // ok            
@@ -2544,7 +2558,7 @@ namespace AasxPackageLogic
                             }
 
                             // Submodel
-                            var tiSm = new VisualElementSubmodel(tiAllSubmodels, cache, package, env, sm);
+                            var tiSm = new VisualElementSubmodel(tiAllSubmodels, cache, package, env, sm, si);
                             tiSm.SetIsExpandedIfNotTouched(expandMode > 1);
                             tiAllSubmodels.Members.Add(tiSm);
 
@@ -3145,8 +3159,9 @@ namespace AasxPackageLogic
                             continue;
 
                         // generate
+                        // TODO (MIHO, 2024-10-12): check, if to provide sideInfo
                         var tiSm = GenerateVisuElemForVisualElementSubmodelRef(
-                            parentAas, thisSm, smr, parentVE, cache,
+                            parentAas, thisSm, null, smr, parentVE, cache,
                             data.Container?.Env?.AasEnv, data.Container?.Env);
 
                         // add
@@ -3159,9 +3174,11 @@ namespace AasxPackageLogic
                         (ve is VisualElementEnvironmentItem veei
                          && veei.theItemType == VisualElementEnvironmentItem.ItemType.AllSubmodels)))
                     {
+                        // TODO (MIHO, 2024-10-12): check, if sideInfo would be available
                         var tiSm = new VisualElementSubmodel(tiAllSubmodels, cache,
                                     data.Container?.Env,
-                                    data.Container?.Env?.AasEnv, thisSm);
+                                    data.Container?.Env?.AasEnv, thisSm,
+                                    sideInfo: null);
                         tiSm.SetIsExpandedIfNotTouched(false);
                         tiAllSubmodels.Members.Add(tiSm);
                     }

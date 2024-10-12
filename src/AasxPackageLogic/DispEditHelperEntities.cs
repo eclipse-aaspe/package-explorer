@@ -1915,6 +1915,12 @@ namespace AasxPackageLogic
                 }
             }
 
+            // info about sideInfo
+            var sideInfo = OnDemandListIdentifiable<Aas.IAssetAdministrationShell>
+                    .FindSideInfoInListOfIdentifiables(
+                        env.AssetAdministrationShells, aas.GetReference());
+            DisplayOrEditEntitySideInfo(env, stack, aas, sideInfo, "AAS", superMenu);
+
             // Referable
             this.DisplayOrEditEntityReferable(
                 env, stack,
@@ -2045,7 +2051,8 @@ namespace AasxPackageLogic
             Aas.IAssetAdministrationShell aas,
             Aas.IReference smref, 
             Action setSmRefNull,
-            Aas.ISubmodel submodel, 
+            Aas.ISubmodel submodel,
+            AasIdentifiableSideInfo sideInfo,
             bool editMode,
             AnyUiStackPanel stack, bool hintMode = false, bool checkSmt = false,
 			AasxMenu superMenu = null)
@@ -2053,7 +2060,7 @@ namespace AasxPackageLogic
             // This panel renders first the SubmodelReference and then the Submodel, below
             if (smref != null)
             {
-                this.AddGroup(stack, "SubmodelReference", this.levelColors.MainSection);
+                this.AddGroup(stack, "SubmodelReference of AAS", this.levelColors.MainSection);
 
                 Func<List<Aas.IKey>, AnyUiLambdaActionBase> lambda = (kl) =>
                  {
@@ -2073,7 +2080,7 @@ namespace AasxPackageLogic
             // entities when under AAS (smref)
             if (editMode && smref != null)
             {
-                this.AddGroup(stack, "Editing of entities", this.levelColors.MainSection);
+                this.AddGroup(stack, "Editing of entities (within specific AAS)", this.levelColors.SubSection);
 
                 // the event template will help speed up visual updates of the tree
                 var evTemplate = new PackCntChangeEventData()
@@ -2114,7 +2121,7 @@ namespace AasxPackageLogic
             if (editMode && smref == null && submodel != null)
             {
                 this.AddGroup(
-                    stack, "Editing of entities (environment's Submodel collection)",
+                    stack, "Editing of entities (within environment)",
                     this.levelColors.MainSection);
 
                 AddActionPanel(stack, "Submodel:",
@@ -2627,7 +2634,11 @@ namespace AasxPackageLogic
 
 			}
 
-			if (submodel != null)
+            // info about sideInfo
+            DisplayOrEditEntitySideInfo(env, stack, submodel, sideInfo, "Submodel", superMenu);
+
+            // Submodel attributes
+            if (submodel != null)
             {
 
                 // Submodel
@@ -2742,9 +2753,12 @@ namespace AasxPackageLogic
             // ConceptDescription <- via semantic ID ?!
             //
 
-            if (submodel?.SemanticId != null && submodel.SemanticId.Keys.Count > 0)
+            if (submodel?.SemanticId?.Keys != null && submodel.SemanticId.Keys.Count > 0)
             {
+                // cd is easy
                 var cd = env.FindConceptDescriptionByReference(submodel.SemanticId);
+
+                // available?
                 if (cd == null)
                 {
                     this.AddGroup(
@@ -2848,8 +2862,9 @@ namespace AasxPackageLogic
 
         public void DisplayOrEditAasEntityConceptDescription(
             PackageCentral.PackageCentral packages, Aas.IEnvironment env,
-            Aas.IReferable parentContainer, Aas.IConceptDescription cd, bool editMode,
-            ModifyRepo repo,
+            Aas.IReferable parentContainer, 
+            Aas.IConceptDescription cd, 
+            bool editMode, ModifyRepo repo,
             AnyUiStackPanel stack, bool embedded = false, bool hintMode = false, bool preventMove = false,
             AasxMenu superMenu = null)
         {
@@ -2885,6 +2900,13 @@ namespace AasxPackageLogic
                     env.ConceptDescriptions, cd, (o) => { return (o as Aas.ConceptDescription).Copy(); },
                     label: "Buffer:", superMenu: superMenu);
             }
+
+            // info about sideInfo
+            var sideInfo = OnDemandListIdentifiable<Aas.IConceptDescription>
+                .FindSideInfoInListOfIdentifiables(
+                    env.ConceptDescriptions, cd.GetCdReference());
+
+            DisplayOrEditEntitySideInfo(env, stack, cd, sideInfo, "ConceptDescription", superMenu);
 
             // IReferable
             Action<bool> lambdaRf = (hideExtensions) =>
@@ -4165,7 +4187,10 @@ namespace AasxPackageLogic
 
 				if (sme.SemanticId != null && sme.SemanticId.Keys.Count > 0 && !nestedCds)
                 {
+                    // CD
                     var cd = env.FindConceptDescriptionByReference(sme.SemanticId);
+
+                    // available
                     if (cd == null)
                     {
                         this.AddGroup(
@@ -5323,7 +5348,9 @@ namespace AasxPackageLogic
             else if (entity is VisualElementAdminShell veaas)
             {
                 DisplayOrEditAasEntityAas(
-                    packages, veaas.thePackage, veaas.theEnv, veaas.theAas, editMode, stack, hintMode: hintMode,
+                    packages, veaas.thePackage, veaas.theEnv, 
+                    veaas.theAas, 
+                    editMode, stack, hintMode: hintMode,
                     superMenu: superMenu);
             }
             else if (entity is VisualElementAsset veas)
@@ -5348,7 +5375,9 @@ namespace AasxPackageLogic
                     {
                         vesmref.theAas.Remove(vesmref.theSubmodelRef);
                     },
-                    vesmref.theSubmodel, editMode, stack,
+                    vesmref.theSubmodel,
+                    vesmref.theSideInfo,
+                    editMode, stack,
                     hintMode: hintMode, checkSmt: checkSmt,
 					superMenu: superMenu);
             }
@@ -5357,7 +5386,9 @@ namespace AasxPackageLogic
                 DisplayOrEditAasEntitySubmodelOrRef(
                     packages, vesm.theEnv, 
                     aas: null, smref: null, setSmRefNull: null, 
-                    submodel: vesm.theSubmodel, editMode: editMode, stack: stack,
+                    submodel: vesm.theSubmodel, 
+                    sideInfo: vesm.theSideInfo,
+                    editMode: editMode, stack: stack,
                     hintMode: hintMode, checkSmt: checkSmt,
 					superMenu: superMenu);
             }
@@ -5389,7 +5420,9 @@ namespace AasxPackageLogic
             else if (entity is VisualElementConceptDescription vecd)
             {
                 DisplayOrEditAasEntityConceptDescription(
-                    packages, vecd.theEnv, null, vecd.theCD, editMode, repo, stack, hintMode: hintMode,
+                    packages, vecd.theEnv, null, 
+                    vecd.theCD, 
+                    editMode, repo, stack, hintMode: hintMode,
                     superMenu: superMenu,
                     preventMove: cdSortOrder.HasValue &&
                         cdSortOrder.Value != VisualElementEnvironmentItem.ConceptDescSortOrder.None);
