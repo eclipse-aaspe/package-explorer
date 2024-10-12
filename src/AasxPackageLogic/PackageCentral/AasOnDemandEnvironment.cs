@@ -75,6 +75,20 @@ namespace AasxPackageLogic.PackageCentral
 
             return -1;
         }
+
+        public static AasIdentifiableSideInfo FindSideInfoInListOfIdentifiables(
+            object listIdf,
+            Aas.IReference rf)
+        {
+            if (rf?.IsValid() == true
+                && listIdf is OnDemandListIdentifiable<T> smsi)
+            {
+                var ndx = smsi.FindSideInfoIndexFromId(rf.GetAsIdentifier());
+                if (ndx >= 0)
+                    return smsi.GetSideInfo(ndx);
+            }
+            return null;
+        }
     }
 
     /// <summary>

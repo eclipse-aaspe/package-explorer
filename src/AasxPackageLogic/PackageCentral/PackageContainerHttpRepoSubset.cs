@@ -466,10 +466,8 @@ namespace AasxPackageLogic.PackageCentral
                         sourceUri: lambdaGetLocation?.Invoke(ent),
                         allowFakeResponses: allowFakeResponses,
                         runtimeOptions: runtimeOptions,
-                        lambdaDownloadDoneOrFail: async (code, ms, contentFn) =>
+                        lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
                         {
-                            await Task.Yield();
-
                             try
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
@@ -495,10 +493,8 @@ namespace AasxPackageLogic.PackageCentral
                             sourceUri: lambdaGetLocation?.Invoke(ent),
                             allowFakeResponses: allowFakeResponses,
                             runtimeOptions: runtimeOptions,
-                            lambdaDownloadDoneOrFail: async (code, ms, contentFn) =>
+                            lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
                             {
-                                await Task.Yield();
-
                                 try
                                 {
                                     var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
@@ -532,10 +528,8 @@ namespace AasxPackageLogic.PackageCentral
                 lambdaGetLocation: (loc) => loc,
                 runtimeOptions: runtimeOptions,
                 allowFakeResponses: allowFakeResponses,
-                lambdaDownloadDoneOrFail: async (code, idf, contentFn, ent) =>
+                lambdaDownloadDoneOrFail: (code, idf, contentFn, ent) =>
                 {
-                    await Task.Yield();
-
                     if (code == HttpStatusCode.OK)
                         res = idf;
                 });
@@ -586,11 +580,15 @@ namespace AasxPackageLogic.PackageCentral
                 // AAS descriptors?
                 if (IsValidUriForRegistryAllAAS(fullItemLocation))
                 {
+                    // prepare receing the descriptors
+                    dynamic resObj = null;
+
+                    // GET
                     await PackageHttpDownloadUtil.HttpGetToMemoryStream(
                         sourceUri: new Uri(fullItemLocation),
                         allowFakeResponses: allowFakeResponses,
                         runtimeOptions: runtimeOptions,
-                        lambdaDownloadDoneOrFail: async (code, ms, contentFn) =>
+                        lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
                         {
                             if (code != HttpStatusCode.OK)
                                 return;
@@ -602,116 +600,7 @@ namespace AasxPackageLogic.PackageCentral
                                 using (var jsonTextReader = new JsonTextReader(reader))
                                 {
                                     JsonSerializer serializer = new JsonSerializer();
-                                    dynamic resObj = serializer.Deserialize(jsonTextReader);
-
-                                    // do the naive approach first und simply go ahead with dynamic parsing
-                                    // these data
-                                    foreach (var res in resObj.result)
-                                    {
-                                        foreach (var ep in res.endpoints)
-                                        {
-                                            // strictly check IFC
-                                            var aasIfc = "" + ep["interface"];
-                                            if (aasIfc != "AAS-1.0")
-                                                continue;
-
-                                            // direct access HREF
-                                            var aasUri = new Uri("" + ep.protocolInformation.href);
-
-                                            // but in order to operate as registry, a list if Submodel endpoints
-                                            // is required as well
-                                            var smRegged = new List<AasIdentifiableSideInfo>();
-                                            if (HasProperty(res, "submodelDescriptors"))
-                                                foreach (var smdesc in res.submodelDescriptors)
-                                                {
-                                                    foreach (var smep in smdesc.endpoints)
-                                                    {
-                                                        // strictly check IFC
-                                                        var smIfc = "" + smep["interface"];
-                                                        if (smIfc != "SUBMODEL-1.0")
-                                                            continue;
-
-                                                        // ok
-                                                        string href = smep.protocolInformation.href;
-                                                        if (href.HasContent() == true)
-                                                            smRegged.Add(new AasIdentifiableSideInfo()
-                                                            {
-                                                                IsStub = true,
-                                                                StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
-                                                                Id = smdesc.id,
-                                                                IdShort = smdesc.idshort,
-                                                                Endpoint = new Uri(href)
-                                                            });
-                                                    }                
-                                                }
-
-                                            // ok
-                                            var aas = await DownloadIdentifiableToOK<Aas.IAssetAdministrationShell>(aasUri, 
-                                                runtimeOptions, allowFakeResponses);
-                                            if (aas != null)
-                                            {
-                                                // found culprit: Submodels are listed twice (or more) in an AAS
-                                                // try filter
-                                                var uniqSms = aas.Submodels?.Distinct(
-                                                    new AdminShellComparers.PredicateEqualityComparer<Aas.IReference>(
-                                                        (x, y) => x?.Matches(y, MatchMode.Relaxed) == true))
-                                                    ?? new List<Aas.Reference>();
-
-                                                // make sure the list of Submodel endpoints is the same 
-                                                // as the AAS expects
-                                                if (smRegged.Count != uniqSms.Count())
-                                                {
-                                                    Log.Singleton.Info(StoredPrint.Color.Blue,
-                                                        "For downloading AAS at {0}, the number of Submodels " +
-                                                        "was different to the number of given Submodel endpoints.",
-                                                        aasUri.ToString());
-                                                    
-                                                    // cycle to next endpoint or next descriptor (more likely)
-                                                    // continue;
-                                                }
-
-                                                // makes most sense to "recrate" the AAS.Submodels with the side infos
-                                                // from the registry
-                                                aas.Submodels = null;
-                                                foreach (var smrr in smRegged)
-                                                    aas.AddSubmodelReference(new Aas.Reference(
-                                                        ReferenceTypes.ModelReference,
-                                                        (new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, smrr.Id) }).ToList()));
-
-                                                // add this AAS
-                                                prepAas.Add(aas, null);
-
-                                                // check if to add the Submodels
-                                                // be prepared to download them
-                                                var numRes = await DownloadListOfIdentifiables<Aas.ISubmodel, AasIdentifiableSideInfo>(
-                                                    smRegged,
-                                                    lambdaGetLocation: (si) => si.Endpoint,
-                                                    runtimeOptions: runtimeOptions,
-                                                    allowFakeResponses: allowFakeResponses,
-                                                    lambdaDownloadDoneOrFail: async (code, sm, contentFn, si) =>
-                                                    {
-                                                        // error ?
-                                                        if (code != HttpStatusCode.OK)
-                                                        {
-                                                            Log.Singleton.Error(
-                                                                "Could not download Submodel from endpoint given by registry: {0}",
-                                                                si.Endpoint.ToString());
-
-                                                            // add as pure side info
-                                                            si.IsStub = true;
-                                                            prepSM.Add(null, si);
-                                                        }
-
-                                                        // no, add with data
-                                                        si.IsStub = false;
-                                                        prepSM.Add(sm, si);
-                                                    });
-                                            }
-
-                                            // ok
-                                            ;
-                                        }
-                                    }
+                                    resObj = serializer.Deserialize(jsonTextReader);                                    
                                 }
                             }
                             catch (Exception ex)
@@ -719,6 +608,136 @@ namespace AasxPackageLogic.PackageCentral
                                 runtimeOptions?.Log?.Error(ex, "Parsing initially downloaded AAS");
                             }
                         });
+
+                    // have a list of descriptors?!
+                    if (resObj?.result == null)
+                    {
+                        runtimeOptions?.Log?.Error("Registry did not return any AAS descriptors! Aborting.");
+                        return;
+                    }
+
+                    // do the naive approach first und simply go ahead with dynamic parsing
+                    // these data
+                    foreach (var res in resObj.result)
+                    {
+                        foreach (var ep in res.endpoints)
+                        {
+                            // strictly check IFC
+                            var aasIfc = "" + ep["interface"];
+                            if (aasIfc != "AAS-1.0")
+                                continue;
+
+                            // direct access HREF
+                            // var aasUri = new Uri("" + ep.protocolInformation.href);
+                            var aasSi = new AasIdentifiableSideInfo()
+                            {
+                                IsStub = false,
+                                StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                Id = "" + res.id,
+                                IdShort = "" + res.idShort,
+                                Endpoint = new Uri("" + ep.protocolInformation.href)
+                            };
+
+                            // but in order to operate as registry, a list if Submodel endpoints
+                            // is required as well
+                            var smRegged = new List<AasIdentifiableSideInfo>();
+                            if (HasProperty(res, "submodelDescriptors"))
+                                foreach (var smdesc in res.submodelDescriptors)
+                                {
+                                    foreach (var smep in smdesc.endpoints)
+                                    {
+                                        // strictly check IFC
+                                        var smIfc = "" + smep["interface"];
+                                        if (smIfc != "SUBMODEL-1.0")
+                                            continue;
+
+                                        // ok
+                                        string href = smep.protocolInformation.href;
+                                        if (href.HasContent() == true)
+                                            smRegged.Add(new AasIdentifiableSideInfo()
+                                            {
+                                                IsStub = true,
+                                                StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                                Id = smdesc.id,
+                                                IdShort = smdesc.idShort,
+                                                Endpoint = new Uri(href)
+                                            });
+                                    }
+                                }
+
+                            // ok
+                            var aas = await DownloadIdentifiableToOK<Aas.IAssetAdministrationShell>(
+                                aasSi.Endpoint, runtimeOptions, allowFakeResponses);
+                            if (aas == null)
+                            {
+                                runtimeOptions?.Log?.Error(
+                                    "Unable to download AAS via registry. Skipping! Location: {0}",
+                                    aasSi.Endpoint.ToString());
+                                continue;
+                            }
+                            // possible culprit: Submodels are listed twice (or more) in an AAS
+                            // try filter (actually: false alarm, but leave in)
+                            var uniqSms = aas.Submodels?.Distinct(
+                                new AdminShellComparers.PredicateEqualityComparer<Aas.IReference>(
+                                    (x, y) => x?.Matches(y, MatchMode.Relaxed) == true))
+                                ?? new List<Aas.Reference>();
+
+                            // make sure the list of Submodel endpoints is the same (in numbers)
+                            // as the AAS expects
+                            if (smRegged.Count != uniqSms.Count())
+                            {
+                                Log.Singleton.Info(StoredPrint.Color.Blue,
+                                    "For downloading AAS at {0}, the number of Submodels " +
+                                    "was different to the number of given Submodel endpoints.",
+                                    aasSi.Endpoint.ToString());
+
+                                // cycle to next endpoint or next descriptor (more likely)
+                                // continue;
+                            }
+
+                            // makes most sense to "recrate" the AAS.Submodels with the side infos
+                            // from the registry
+                            aas.Submodels = null;
+                            foreach (var smrr in smRegged)
+                                aas.AddSubmodelReference(new Aas.Reference(
+                                    ReferenceTypes.ModelReference,
+                                    (new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, smrr.Id) }).ToList()));
+
+                            // add this AAS
+                            prepAas.Add(aas, aasSi);
+
+                            // check if to add the Submodels
+                            // be prepared to download them
+                            var numRes = await DownloadListOfIdentifiables<Aas.ISubmodel, AasIdentifiableSideInfo>(
+                                smRegged,
+                                lambdaGetLocation: (si) => si.Endpoint,
+                                runtimeOptions: runtimeOptions,
+                                allowFakeResponses: allowFakeResponses,
+                                lambdaDownloadDoneOrFail: (code, sm, contentFn, si) =>
+                                {
+                                    // error ?
+                                    if (code != HttpStatusCode.OK)
+                                    {
+                                        Log.Singleton.Error(
+                                            "Could not download Submodel from endpoint given by registry: {0}",
+                                            si.Endpoint.ToString());
+
+                                        // add as pure side info
+                                        si.IsStub = true;
+                                        prepSM.Add(null, si);
+                                    }
+
+                                    // no, add with data
+                                    si.IsStub = false;
+                                    prepSM.Add(sm, si);
+                                });
+
+                            // a little debug
+                            runtimeOptions?.Log?.Info(StoredPrint.Color.Blue,
+                                "Retieved AAS (potentially with Submodels) from: {0}",
+                                aasSi.Endpoint.ToString());
+                        }
+                    }
                 }
             }
 
