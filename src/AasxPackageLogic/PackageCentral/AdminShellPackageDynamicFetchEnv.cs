@@ -84,8 +84,8 @@ namespace AasxPackageLogic.PackageCentral
             // try
             try
             {
-                await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                    sourceUri: PackageContainerHttpRepoSubset.BuildUriForAasThumbnail(_defaultRepoBaseUri, aas.Id),
+                await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                    sourceUri: PackageContainerHttpRepoSubset.BuildUriForRepoAasThumbnail(_defaultRepoBaseUri, aas.Id),
                     runtimeOptions: _runtimeOptions,
                     lambdaDownloadDone: (ms, contentFn) =>
                     {
@@ -129,11 +129,11 @@ namespace AasxPackageLogic.PackageCentral
                     Aas.IIdentifiable res = null;
 
                     // build the location
-                    var loc = PackageContainerHttpRepoSubset.BuildUriForSubmodel(_defaultRepoBaseUri, id);
+                    var loc = PackageContainerHttpRepoSubset.BuildUriForRepoSingleSubmodel(_defaultRepoBaseUri, id);
                     if (loc == null)
                         return null;
 
-                    await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                    await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
                         sourceUri: loc,
                         allowFakeResponses: _runtimeOptions?.AllowFakeResponses ?? false,
                         runtimeOptions: _runtimeOptions,
@@ -317,15 +317,15 @@ namespace AasxPackageLogic.PackageCentral
             
             if (allAas) count += await TrySaveAllTaintedIdentifiablesOf<Aas.IAssetAdministrationShell>(
                 _aasEnv?.AssetAdministrationShells,
-                (defBase, id) => PackageContainerHttpRepoSubset.BuildUriForAAS(defBase, id));
+                (defBase, id) => PackageContainerHttpRepoSubset.BuildUriForRepoSingleAAS(defBase, id));
 
             if (allSubmodels) count += await TrySaveAllTaintedIdentifiablesOf<Aas.ISubmodel>(
                 _aasEnv?.Submodels,
-                (defBase, id) => PackageContainerHttpRepoSubset.BuildUriForSubmodel(defBase, id));
+                (defBase, id) => PackageContainerHttpRepoSubset.BuildUriForRepoSingleSubmodel(defBase, id));
 
             if (allCDs) count += await TrySaveAllTaintedIdentifiablesOf<Aas.IConceptDescription>(
                 _aasEnv?.ConceptDescriptions,
-                (defBase, id) => PackageContainerHttpRepoSubset.BuildUriForCD(defBase, id));
+                (defBase, id) => PackageContainerHttpRepoSubset.BuildUriForRepoSingleCD(defBase, id));
 
             return count;
         }

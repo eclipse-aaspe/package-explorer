@@ -31,6 +31,9 @@ using Namotion.Reflection;
 using System.Text.Json.Nodes;
 using System.Linq;
 using System.Web;
+using Newtonsoft.Json;
+using System.Dynamic;
+using Newtonsoft.Json.Linq;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -144,28 +147,32 @@ namespace AasxPackageLogic.PackageCentral
             return "HTTP Repository element: " + Location;
         }
 
-        public static bool IsValidUriForAllAAS(string location)
+        //
+        // REPO
+        //
+
+        public static bool IsValidUriForRepoAllAAS(string location)
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/shells(|/|/?\?(.*))$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
 
-        public static bool IsValidUriForSingleAAS(string location)
+        public static bool IsValidUriForRepoSingleAAS(string location)
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/shells/([^?]{1,99})", 
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
 
-        public static bool IsValidUriForAllSubmodel(string location)
+        public static bool IsValidUriForRepoAllSubmodel(string location)
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/submodels(|/|/?\?(.*))$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
 
-        public static bool IsValidUriForSingleSubmodel(string location)
+        public static bool IsValidUriForRepoSingleSubmodel(string location)
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/submodels/(.{1,99})$", 
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
@@ -174,31 +181,46 @@ namespace AasxPackageLogic.PackageCentral
 
             // TODO: Add AAS based Submodel
             return false;
-
         }
 
-        public static bool IsValidUriForSingleCD(string location)
+        public static bool IsValidUriForRepoSingleCD(string location)
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/conceptdescriptions/(.{1,99})$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
 
-        public static bool IsValidUriForQuery(string location)
+        public static bool IsValidUriForRepoQuery(string location)
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/graphql(|/|/?\?(.*))$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
 
+        //
+        // REGISTRY
+        //
+
+        public static bool IsValidUriForRegistryAllAAS(string location)
+        {
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/shell-descriptors(|/|/?\?(.*))$",
+                RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+            return m.Success;
+        }
+
+        //
+        // ALL
+        //
+
         public static bool IsValidUriAnyMatch(string location)
         {
-            return IsValidUriForAllAAS(location)
-                || IsValidUriForSingleAAS(location)
-                || IsValidUriForAllSubmodel(location)
-                || IsValidUriForSingleSubmodel(location)
-                || IsValidUriForSingleCD(location)
-                || IsValidUriForQuery(location);
+            return IsValidUriForRepoAllAAS(location)
+                || IsValidUriForRepoSingleAAS(location)
+                || IsValidUriForRepoAllSubmodel(location)
+                || IsValidUriForRepoSingleSubmodel(location)
+                || IsValidUriForRepoSingleCD(location)
+                || IsValidUriForRepoQuery(location)
+                || IsValidUriForRegistryAllAAS(location);
         }
 
         public static Uri GetBaseUri(string location)
@@ -224,18 +246,6 @@ namespace AasxPackageLogic.PackageCentral
             return null;
         }
 
-        //public static string CombineUri (string uri1, string uri2)
-        //{
-        //    var res = "" + uri1;
-        //    if (uri2?.HasContent() == true)
-        //    {
-        //        if (!res.EndsWith("/"))
-        //            res += "/";
-        //        res += uri2;
-        //    }
-        //    return res;
-        //}
-
         public static Uri CombineUri(Uri baseUri, string relativeUri)
         {
             if (baseUri == null || relativeUri?.HasContent() != true)
@@ -247,7 +257,11 @@ namespace AasxPackageLogic.PackageCentral
             return null;
         }
 
-        public static Uri BuildUriForAllAAS(Uri baseUri, int pageLimit = 100, string cursor = null)
+        //
+        // REPO
+        //
+
+        public static Uri BuildUriForRepoAllAAS(Uri baseUri, int pageLimit = 100, string cursor = null)
         {
             // access
             if (baseUri == null)
@@ -269,7 +283,7 @@ namespace AasxPackageLogic.PackageCentral
             return uri.Uri;
         }
 
-        public static Uri BuildUriForAAS(Uri baseUri, string id, bool encryptIds = true)
+        public static Uri BuildUriForRepoSingleAAS(Uri baseUri, string id, bool encryptIds = true)
         {
             // access
             if (id?.HasContent() != true)
@@ -280,7 +294,7 @@ namespace AasxPackageLogic.PackageCentral
             return CombineUri(baseUri, $"shells/{smidenc}");
         }
 
-        public static Uri BuildUriForAasThumbnail(Uri baseUri, string id, bool encryptIds = true)
+        public static Uri BuildUriForRepoAasThumbnail(Uri baseUri, string id, bool encryptIds = true)
         {
             // access
             if (id?.HasContent() != true)
@@ -291,9 +305,9 @@ namespace AasxPackageLogic.PackageCentral
             return CombineUri(baseUri, $"shells/{smidenc}/asset-information/thumbnail");
         }
 
-        public static Uri BuildUriForAllSubmodel(Uri baseUri, int pageLimit = 100, string cursor = null)
+        public static Uri BuildUriForRepoAllSubmodel(Uri baseUri, int pageLimit = 100, string cursor = null)
         {
-            // for more info: see BuildUriForAllAAS
+            // for more info: see BuildUriForRepoAllAAS
             // access
             if (baseUri == null)
                 return null;
@@ -307,7 +321,7 @@ namespace AasxPackageLogic.PackageCentral
             return uri.Uri;
         }
 
-        public static Uri BuildUriForSubmodel(Uri baseUri, string id, bool encryptIds = true)
+        public static Uri BuildUriForRepoSingleSubmodel(Uri baseUri, string id, bool encryptIds = true)
         {
             // access
             if (id?.HasContent() != true)
@@ -318,7 +332,18 @@ namespace AasxPackageLogic.PackageCentral
             return CombineUri(baseUri, $"submodels/{smidenc}");
         }
 
-        public static Uri BuildUriForCD(Uri baseUri, string id, bool encryptIds = true)
+        public static Uri BuildUriForRepoSingleSubmodel(Uri baseUri, Aas.IReference submodelRef)
+        {
+            // access
+            if (baseUri == null || submodelRef?.IsValid() != true
+                || submodelRef.Count() != 1 || submodelRef.Keys[0].Type != KeyTypes.Submodel)
+                return null;
+
+            // pass on
+            return BuildUriForRepoSingleSubmodel(baseUri, submodelRef.Keys[0].Value);
+        }
+
+        public static Uri BuildUriForRepoSingleCD(Uri baseUri, string id, bool encryptIds = true)
         {
             // access
             if (id?.HasContent() != true)
@@ -333,7 +358,7 @@ namespace AasxPackageLogic.PackageCentral
         /// Note: this is an AASPE specific, proprietary extension.
         /// This REST ressource does not exist in the official specification!
         /// </summary>
-        public static Uri BuildUriForQuery(Uri baseUri, string query)
+        public static Uri BuildUriForRepoQuery(Uri baseUri, string query)
         {
             // access
             if (query?.HasContent() != true)
@@ -348,22 +373,174 @@ namespace AasxPackageLogic.PackageCentral
             return uri.Uri;
         }
 
-        public static Uri BuildUriForSubmodel(Uri baseUri, Aas.IReference submodelRef)
+        //
+        // REGISTRY
+        //
+
+        public static Uri BuildUriForRegistryAllAAS(Uri baseUri, int pageLimit = 100, string cursor = null)
         {
+            // for more info: see BuildUriForRepoAllAAS
             // access
-            if (baseUri == null || submodelRef?.IsValid() != true
-                || submodelRef.Count() != 1 || submodelRef.Keys[0].Type != KeyTypes.Submodel)
+            if (baseUri == null)
                 return null;
 
-            // pass on
-            return BuildUriForSubmodel(baseUri, submodelRef.Keys[0].Value);
+            var uri = new UriBuilder(CombineUri(baseUri, $"shell-descriptors"));
+            if (pageLimit > 0)
+                uri.Query = $"Limit={pageLimit:D}";
+            if (cursor != null)
+                uri.Query += $"&Cursor={cursor}";
+
+            return uri.Uri;
         }
+
+        //
+        // ALL
+        //
 
         protected enum FetchItemType { SmUrl, SmId }
         protected class FetchItem
         {
             public FetchItemType Type;
             public string Value;
+        }
+
+        /// see: https://stackoverflow.com/questions/9956648/how-do-i-check-if-a-property-exists-on-a-dynamic-anonymous-type-in-c
+        /// see: https://stackoverflow.com/questions/63972270/newtonsoft-json-check-if-property-and-its-value-exists
+        public static bool HasProperty(dynamic obj, string name)
+        {
+            Type objType = obj.GetType();
+
+            if (obj is Newtonsoft.Json.Linq.JObject jo)
+            {
+                return jo.ContainsKey(name);
+            }
+
+            if (objType == typeof(ExpandoObject))
+            {
+                return ((IDictionary<string, object>)obj).ContainsKey(name);
+            }
+
+            return objType.GetProperty(name) != null;
+        }
+
+        /// <summary>
+        /// This utility is able to parallel download Identifiables and will call lambda upon.
+        /// Insted of a list of location, it is taking a list of objects (entities) and a lambda
+        /// to extract the location from.
+        /// </summary>
+        /// <typeparam name="T">Type of Identifiable</typeparam>
+        /// <typeparam name="E">Type of entity element</typeparam>
+        protected async Task<int> DownloadListOfIdentifiables<T, E>(
+            IEnumerable<E> entities,
+            Func<E, Uri> lambdaGetLocation,
+            Action<HttpStatusCode, T, string, E> lambdaDownloadDoneOrFail,
+            PackCntRuntimeOptions runtimeOptions = null,
+            bool allowFakeResponses = false,
+            bool useParallel = false) where T : Aas.IIdentifiable
+        {
+            // access
+            if (entities == null)
+                return 0;
+
+            // result
+            int numRes = 0;
+
+            // lambda for deserialize
+            Func<JsonNode, T> lambdaDeserialize = (node) =>
+            {
+                if (typeof(T).IsAssignableFrom(typeof(Aas.IAssetAdministrationShell)))
+                    return (T)((Aas.IIdentifiable)Jsonization.Deserialize.AssetAdministrationShellFrom(node));
+                if (typeof(T).IsAssignableFrom(typeof(Aas.ISubmodel)))
+                    return (T)((Aas.IIdentifiable)Jsonization.Deserialize.SubmodelFrom(node));
+                if (typeof(T).IsAssignableFrom(typeof(Aas.IConceptDescription)))
+                    return (T)((Aas.IIdentifiable)Jsonization.Deserialize.ConceptDescriptionFrom(node));
+                return default(T);
+            };
+
+            // over all locations
+            if (!useParallel)
+            {
+                foreach (var ent in entities)
+                {
+                    await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                        sourceUri: lambdaGetLocation?.Invoke(ent),
+                        allowFakeResponses: allowFakeResponses,
+                        runtimeOptions: runtimeOptions,
+                        lambdaDownloadDoneOrFail: async (code, ms, contentFn) =>
+                        {
+                            await Task.Yield();
+
+                            try
+                            {
+                                var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                                T idf = lambdaDeserialize(node);
+                                lambdaDownloadDoneOrFail?.Invoke(code, idf, contentFn, ent);
+                                if (code == HttpStatusCode.OK)
+                                    numRes++;
+                            }
+                            catch (Exception ex)
+                            {
+                                runtimeOptions?.Log?.Error(ex, $"Parsing downloaded {typeof(T).GetDisplayName()}");
+                            }
+                        });
+                }
+            } else
+            {
+                await Parallel.ForEachAsync(entities,
+                    new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
+                    async (ent, token) =>
+                    {
+                        var thisEnt = ent;
+                        await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                            sourceUri: lambdaGetLocation?.Invoke(ent),
+                            allowFakeResponses: allowFakeResponses,
+                            runtimeOptions: runtimeOptions,
+                            lambdaDownloadDoneOrFail: async (code, ms, contentFn) =>
+                            {
+                                await Task.Yield();
+
+                                try
+                                {
+                                    var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                                    T idf = lambdaDeserialize(node);
+                                    lambdaDownloadDoneOrFail?.Invoke(code, idf, contentFn, thisEnt);
+                                    if (code == HttpStatusCode.OK)
+                                        numRes++;
+                                }
+                                catch (Exception ex)
+                                {
+                                    runtimeOptions?.Log?.Error(ex, $"Parsing downloaded {typeof(T).GetDisplayName()}");
+                                }
+                            });
+                    });
+
+            }
+
+            // ok
+            return numRes;
+        }
+
+        protected async Task<T> DownloadIdentifiableToOK<T>(
+            Uri location,
+            PackCntRuntimeOptions runtimeOptions = null,
+            bool allowFakeResponses = false) where T : Aas.IIdentifiable
+        {
+            T res = default(T);
+
+            await DownloadListOfIdentifiables<T, Uri>(
+                new[] { location },
+                lambdaGetLocation: (loc) => loc,
+                runtimeOptions: runtimeOptions,
+                allowFakeResponses: allowFakeResponses,
+                lambdaDownloadDoneOrFail: async (code, idf, contentFn, ent) =>
+                {
+                    await Task.Yield();
+
+                    if (code == HttpStatusCode.OK)
+                        res = idf;
+                });
+
+            return res;
         }
 
         public override async Task LoadFromSourceAsync(
@@ -398,358 +575,520 @@ namespace AasxPackageLogic.PackageCentral
             // invalidate cursor data
             string cursor = null;
 
-            // start with a list of AAS or Submodels (very similar)
-            var isAllAAS = IsValidUriForAllAAS(fullItemLocation);
-            var isAllSM = IsValidUriForAllSubmodel(fullItemLocation);
-            if (isAllAAS || isAllSM)
+            // TODO: very long function, needs to be refactored
+
+            //
+            // REGISTRY
+            //
+
+            if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Registry)
             {
-                await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                    sourceUri: new Uri(fullItemLocation),
-                    allowFakeResponses: allowFakeResponses,
-                    runtimeOptions: runtimeOptions,
-                    lambdaDownloadDone: (ms, contentFn) =>
+                // AAS descriptors?
+                if (IsValidUriForRegistryAllAAS(fullItemLocation))
+                {
+                    await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                        sourceUri: new Uri(fullItemLocation),
+                        allowFakeResponses: allowFakeResponses,
+                        runtimeOptions: runtimeOptions,
+                        lambdaDownloadDoneOrFail: async (code, ms, contentFn) =>
+                        {
+                            if (code != HttpStatusCode.OK)
+                                return;
+
+                            try
+                            {
+                                // try working with dynamic objects
+                                using (StreamReader reader = new StreamReader(ms, System.Text.Encoding.UTF8, true))
+                                using (var jsonTextReader = new JsonTextReader(reader))
+                                {
+                                    JsonSerializer serializer = new JsonSerializer();
+                                    dynamic resObj = serializer.Deserialize(jsonTextReader);
+
+                                    // do the naive approach first und simply go ahead with dynamic parsing
+                                    // these data
+                                    foreach (var res in resObj.result)
+                                    {
+                                        foreach (var ep in res.endpoints)
+                                        {
+                                            // strictly check IFC
+                                            var aasIfc = "" + ep["interface"];
+                                            if (aasIfc != "AAS-1.0")
+                                                continue;
+
+                                            // direct access HREF
+                                            var aasUri = new Uri("" + ep.protocolInformation.href);
+
+                                            // but in order to operate as registry, a list if Submodel endpoints
+                                            // is required as well
+                                            var smRegged = new List<AasIdentifiableSideInfo>();
+                                            if (HasProperty(res, "submodelDescriptors"))
+                                                foreach (var smdesc in res.submodelDescriptors)
+                                                {
+                                                    foreach (var smep in smdesc.endpoints)
+                                                    {
+                                                        // strictly check IFC
+                                                        var smIfc = "" + smep["interface"];
+                                                        if (smIfc != "SUBMODEL-1.0")
+                                                            continue;
+
+                                                        // ok
+                                                        string href = smep.protocolInformation.href;
+                                                        if (href.HasContent() == true)
+                                                            smRegged.Add(new AasIdentifiableSideInfo()
+                                                            {
+                                                                IsStub = true,
+                                                                StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                                                Id = smdesc.id,
+                                                                IdShort = smdesc.idshort,
+                                                                Endpoint = new Uri(href)
+                                                            });
+                                                    }                
+                                                }
+
+                                            // ok
+                                            var aas = await DownloadIdentifiableToOK<Aas.IAssetAdministrationShell>(aasUri, 
+                                                runtimeOptions, allowFakeResponses);
+                                            if (aas != null)
+                                            {
+                                                // found culprit: Submodels are listed twice (or more) in an AAS
+                                                // try filter
+                                                var uniqSms = aas.Submodels?.Distinct(
+                                                    new AdminShellComparers.PredicateEqualityComparer<Aas.IReference>(
+                                                        (x, y) => x?.Matches(y, MatchMode.Relaxed) == true))
+                                                    ?? new List<Aas.Reference>();
+
+                                                // make sure the list of Submodel endpoints is the same 
+                                                // as the AAS expects
+                                                if (smRegged.Count != uniqSms.Count())
+                                                {
+                                                    Log.Singleton.Info(StoredPrint.Color.Blue,
+                                                        "For downloading AAS at {0}, the number of Submodels " +
+                                                        "was different to the number of given Submodel endpoints.",
+                                                        aasUri.ToString());
+                                                    
+                                                    // cycle to next endpoint or next descriptor (more likely)
+                                                    // continue;
+                                                }
+
+                                                // makes most sense to "recrate" the AAS.Submodels with the side infos
+                                                // from the registry
+                                                aas.Submodels = null;
+                                                foreach (var smrr in smRegged)
+                                                    aas.AddSubmodelReference(new Aas.Reference(
+                                                        ReferenceTypes.ModelReference,
+                                                        (new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, smrr.Id) }).ToList()));
+
+                                                // add this AAS
+                                                prepAas.Add(aas, null);
+
+                                                // check if to add the Submodels
+                                                // be prepared to download them
+                                                var numRes = await DownloadListOfIdentifiables<Aas.ISubmodel, AasIdentifiableSideInfo>(
+                                                    smRegged,
+                                                    lambdaGetLocation: (si) => si.Endpoint,
+                                                    runtimeOptions: runtimeOptions,
+                                                    allowFakeResponses: allowFakeResponses,
+                                                    lambdaDownloadDoneOrFail: async (code, sm, contentFn, si) =>
+                                                    {
+                                                        // error ?
+                                                        if (code != HttpStatusCode.OK)
+                                                        {
+                                                            Log.Singleton.Error(
+                                                                "Could not download Submodel from endpoint given by registry: {0}",
+                                                                si.Endpoint.ToString());
+
+                                                            // add as pure side info
+                                                            si.IsStub = true;
+                                                            prepSM.Add(null, si);
+                                                        }
+
+                                                        // no, add with data
+                                                        si.IsStub = false;
+                                                        prepSM.Add(sm, si);
+                                                    });
+                                            }
+
+                                            // ok
+                                            ;
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                runtimeOptions?.Log?.Error(ex, "Parsing initially downloaded AAS");
+                            }
+                        });
+                }
+            }
+
+            //
+            // REPO
+            //
+
+            if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Registry)
+            {
+                // start with a list of AAS or Submodels (very similar)
+                var isAllAAS = IsValidUriForRepoAllAAS(fullItemLocation);
+                var isAllSM = IsValidUriForRepoAllSubmodel(fullItemLocation);
+                if (isAllAAS || isAllSM)
+                {
+                    await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                        sourceUri: new Uri(fullItemLocation),
+                        allowFakeResponses: allowFakeResponses,
+                        runtimeOptions: runtimeOptions,
+                        lambdaDownloadDone: (ms, contentFn) =>
+                        {
+                            try
+                            {
+                                var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                                if (node["result"] is JsonArray resChilds
+                                    && resChilds.Count > 0)
+                                {
+                                    int childsToSkip = Math.Max(0, record.PageSkip);
+                                    bool firstNonSkipped = true;
+
+                                    foreach (var n2 in resChilds)
+                                        // second try to reduce side effects
+                                        try
+                                        {
+                                            if (childsToSkip > 0)
+                                            {
+                                                childsToSkip--;
+                                                continue;
+                                            }
+
+                                            // on last child, attach side info for fetch prev/ next cursor
+                                            AasIdentifiableSideInfo si = null;
+                                            if (firstNonSkipped && record.PageOffset > 0)
+                                                si = new AasIdentifiableSideInfo()
+                                                {
+                                                    IsStub = false,
+                                                    ShowCursorAbove = true
+                                                };
+                                            firstNonSkipped = false;
+
+                                            if (n2 == resChilds.Last() && record.PageLimit > 0)
+                                                si = new AasIdentifiableSideInfo()
+                                                {
+                                                    IsStub = false,
+                                                    ShowCursorBelow = true
+                                                };
+
+                                            // add
+                                            if (isAllAAS)
+                                                prepAas.Add(
+                                                    Jsonization.Deserialize.AssetAdministrationShellFrom(n2),
+                                                    si);
+                                            if (isAllSM)
+                                                prepSM.Add(
+                                                    Jsonization.Deserialize.SubmodelFrom(n2),
+                                                    si);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            runtimeOptions?.Log?.Error(ex, "Parsing single AAS of list of all AAS");
+                                        }
+                                }
+
+                                // cursor data
+                                if (node["paging_metadata"] is JsonNode nodePaging
+                                    && nodePaging["cursor"] is JsonNode nodeCursor)
+                                {
+                                    cursor = nodeCursor.ToString();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                runtimeOptions?.Log?.Error(ex, "Parsing list of all AAS");
+                            }
+                        });
+                }
+
+                // start with single AAS?
+                if (IsValidUriForRepoSingleAAS(fullItemLocation))
+                {
+                    await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                        sourceUri: new Uri(fullItemLocation),
+                        allowFakeResponses: allowFakeResponses,
+                        runtimeOptions: runtimeOptions,
+                        lambdaDownloadDone: (ms, contentFn) =>
+                        {
+                            try
+                            {
+                                var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                                prepAas.Add(Jsonization.Deserialize.AssetAdministrationShellFrom(node), null);
+                            }
+                            catch (Exception ex)
+                            {
+                                runtimeOptions?.Log?.Error(ex, "Parsing initially downloaded AAS");
+                            }
+                        });
+                }
+
+                // start with Submodel?
+                if (IsValidUriForRepoSingleSubmodel(fullItemLocation))
+                {
+                    await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                        sourceUri: new Uri(fullItemLocation),
+                        allowFakeResponses: allowFakeResponses,
+                        runtimeOptions: runtimeOptions,
+                        lambdaDownloadDone: (ms, contentFn) =>
+                        {
+                            try
+                            {
+                                var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                                prepSM.Add(Jsonization.Deserialize.SubmodelFrom(node), null);
+                            }
+                            catch (Exception ex)
+                            {
+                                runtimeOptions?.Log?.Error(ex, "Parsing initially downloaded Submodel");
+                            }
+                        });
+                }
+
+                // start with CD?
+                if (IsValidUriForRepoSingleCD(fullItemLocation))
+                {
+                    await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                        sourceUri: new Uri(fullItemLocation),
+                        allowFakeResponses: allowFakeResponses,
+                        runtimeOptions: runtimeOptions,
+                        lambdaDownloadDone: (ms, contentFn) =>
+                        {
+                            try
+                            {
+                                var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                                prepCD.Add(Jsonization.Deserialize.ConceptDescriptionFrom(node), null);
+                            }
+                            catch (Exception ex)
+                            {
+                                runtimeOptions?.Log?.Error(ex, "Parsing initially downloaded ConceptDescription");
+                            }
+                        });
+                }
+
+                // start with a query?
+                if (IsValidUriForRepoQuery(fullItemLocation))
+                {
+                    // try extract query from the location
+                    var query = "";
+                    var quri = new Uri(fullItemLocation);
+                    if (quri.Query?.HasContent() == true)
                     {
+                        var pc = HttpUtility.ParseQueryString(quri.Query);
+                        foreach (var key in pc.AllKeys)
+                            if (key == "query")
+                                query = AdminShellUtil.Base64UrlDecode(pc[key]);
+                    }
+
+                    // if not, try to get from record
+                    if (!query.HasContent() && record?.QueryScript?.HasContent() == true)
+                        query = record.QueryScript;
+
+                    // error
+                    if (!query.HasContent())
+                    {
+                        runtimeOptions?.Log?.Error("Could not determine valid query script. Aborting!");
+                        return;
+                    }
+
+                    // but, the query needs to be reformatted as JSON
+                    // query = "{ searchSMs(expression: \"\"\"$LOG  \"\"\") { url smId } }";
+                    // query = "{ searchSMs(expression: \"\"\"$LOG filter=or(str_contains(sm.IdShort, \"Technical\"), str_contains(sm.IdShort, \"Nameplate\")) \"\"\") { url smId } }";
+                    query = query.Replace("\\", "\\\\");
+                    query = query.Replace("\"", "\\\"");
+                    query = query.Replace("\r", " ");
+                    query = query.Replace("\n", " ");
+                    var jsonQuery = $"{{ \"query\" : \"{query}\" }} ";
+
+                    // there are subsequent fetch operations necessary
+                    var fetchItems = new List<FetchItem>();
+
+                    // HTTP POST
+                    var statCode = await PackageHttpDownloadUtil.HttpPostRequestToMemoryStream(
+                        sourceUri: new Uri(quri.GetLeftPart(UriPartial.Path)),
+                        requestBody: jsonQuery,
+                        requestContentType: "application/json",
+                        allowFakeResponses: allowFakeResponses,
+                        runtimeOptions: runtimeOptions,
+                        lambdaDownloadDone: (ms, contentFn) =>
+                        {
+                            try
+                            {
+                                var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                                if (node["data"]?["searchSMs"] is JsonArray smdata
+                                    && smdata.Count >= 1)
+                                {
+                                    foreach (var smrec in smdata)
+                                    {
+                                        var url = smrec["url"]?.ToString();
+                                        var smId = smrec["smId"]?.ToString();
+                                        if (smId?.HasContent() == true)
+                                            fetchItems.Add(new FetchItem() { Type = FetchItemType.SmId, Value = smId });
+                                        else
+                                        if (url?.HasContent() == true)
+                                            fetchItems.Add(new FetchItem() { Type = FetchItemType.SmUrl, Value = url });
+                                    }
+                                }
+
+                            }
+                            catch (Exception ex)
+                            {
+                                runtimeOptions?.Log?.Error(ex, "Parsing graphql result set");
+                            }
+                        });
+
+                    if (statCode != HttpStatusCode.OK)
+                    {
+                        Log.Singleton.Error("Could not fetch new dynamic elements by graphql. Aborting!");
+                        Log.Singleton.Error("  POST request was: {0}", jsonQuery);
+                        return;
+                    }
+
+                    // only makes sense, if query returns something
+                    if (fetchItems.Count < 1)
+                    {
+                        Log.Singleton.Info(StoredPrint.Color.Blue, "Query resulted in zero elements, " +
+                            "which could be fetched. Aborting!");
+                        return;
+                    }
+
+                    // skip items?
+                    if (record.PageSkip > 0)
+                    {
+                        fetchItems.RemoveRange(0, Math.Min(fetchItems.Count, record.PageSkip));
+                    }
+                    var numItem = 0;
+
+                    // TODO: convert to parallel for each async
+                    var dlErrors = 0;
+                    foreach (var fi in fetchItems)
+                    {
+                        // reached end
+                        numItem++;
+                        if (record.PageLimit > 0 && numItem > record.PageLimit)
+                            break;
+
+                        // prepare download
+                        Uri loc = null;
+                        if (fi.Type == FetchItemType.SmUrl)
+                            loc = new Uri(fi.Value);
+                        if (fi.Type == FetchItemType.SmId)
+                            loc = BuildUriForRepoSingleSubmodel(baseUri, fi.Value, encryptIds: true);
+
+                        if (loc == null)
+                            continue;
+
+                        // download (and skip errors)
                         try
                         {
-                            var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                            if (node["result"] is JsonArray resChilds
-                                && resChilds.Count > 0)
-                            {
-                                int childsToSkip = Math.Max(0, record.PageSkip);
-                                bool firstNonSkipped = true;
-
-                                foreach (var n2 in resChilds)
-                                    // second try to reduce side effects
+                            await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                                sourceUri: loc,
+                                allowFakeResponses: allowFakeResponses,
+                                runtimeOptions: runtimeOptions,
+                                lambdaDownloadDone: (ms, contentFn) =>
+                                {
                                     try
                                     {
-                                        if (childsToSkip > 0)
-                                        {
-                                            childsToSkip--;
-                                            continue;
-                                        }
-
-                                        // on last child, attach side info for fetch prev/ next cursor
-                                        AasIdentifiableSideInfo si = null;
-                                        if (firstNonSkipped && record.PageOffset > 0)
-                                            si = new AasIdentifiableSideInfo()
-                                            {
-                                                IsStub = false,
-                                                ShowCursorAbove = true
-                                            };
-                                        firstNonSkipped = false;
-
-                                        if (n2 == resChilds.Last() && record.PageLimit > 0)
-                                            si = new AasIdentifiableSideInfo()
-                                                 {
-                                                     IsStub = false,
-                                                     ShowCursorBelow = true
-                                                 };
-
-                                        // add
-                                        if (isAllAAS)
-                                            prepAas.Add(
-                                                Jsonization.Deserialize.AssetAdministrationShellFrom(n2), 
-                                                si);
-                                        if (isAllSM)
-                                            prepSM.Add(
-                                                Jsonization.Deserialize.SubmodelFrom(n2),
-                                                si);
+                                        var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                                        if (fi.Type == FetchItemType.SmUrl || fi.Type == FetchItemType.SmId)
+                                            prepSM.Add(Jsonization.Deserialize.SubmodelFrom(node), null);
                                     }
                                     catch (Exception ex)
                                     {
-                                        runtimeOptions?.Log?.Error(ex, "Parsing single AAS of list of all AAS");
+                                        dlErrors++;
+                                        runtimeOptions?.Log?.Error(ex, "Parsing individual fetch element of query.");
                                     }
-                            }
-
-                            // cursor data
-                            if (node["paging_metadata"] is JsonNode nodePaging
-                                && nodePaging["cursor"] is JsonNode nodeCursor)
-                            {
-                                cursor = nodeCursor.ToString();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            runtimeOptions?.Log?.Error(ex, "Parsing list of all AAS");
-                        }
-                    });
-            }
-
-            // start with single AAS?
-            if (IsValidUriForSingleAAS(fullItemLocation))
-            {
-                await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                    sourceUri: new Uri(fullItemLocation),
-                    allowFakeResponses: allowFakeResponses,
-                    runtimeOptions: runtimeOptions,
-                    lambdaDownloadDone: (ms, contentFn) =>
-                    {
-                        try
-                        {
-                            var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                            prepAas.Add(Jsonization.Deserialize.AssetAdministrationShellFrom(node), null);
-                        } catch (Exception ex)
-                        {
-                            runtimeOptions?.Log?.Error(ex, "Parsing initially downloaded AAS");
-                        }
-                    });
-            }
-
-            // start with Submodel?
-            if (IsValidUriForSingleSubmodel(fullItemLocation))
-            {
-                await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                    sourceUri: new Uri(fullItemLocation),
-                    allowFakeResponses: allowFakeResponses,
-                    runtimeOptions: runtimeOptions,
-                    lambdaDownloadDone: (ms, contentFn) =>
-                    {
-                        try
-                        {
-                            var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                            prepSM.Add(Jsonization.Deserialize.SubmodelFrom(node), null);
-                        }
-                        catch (Exception ex)
-                        {
-                            runtimeOptions?.Log?.Error(ex, "Parsing initially downloaded Submodel");
-                        }
-                    });
-            }
-
-            // start with CD?
-            if (IsValidUriForSingleCD(fullItemLocation))
-            {
-                await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                    sourceUri: new Uri(fullItemLocation),
-                    allowFakeResponses: allowFakeResponses,
-                    runtimeOptions: runtimeOptions,
-                    lambdaDownloadDone: (ms, contentFn) =>
-                    {
-                        try
-                        {
-                            var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                            prepCD.Add(Jsonization.Deserialize.ConceptDescriptionFrom(node), null);
-                        }
-                        catch (Exception ex)
-                        {
-                            runtimeOptions?.Log?.Error(ex, "Parsing initially downloaded ConceptDescription");
-                        }
-                    });
-            }
-
-            // start with a query?
-            if (IsValidUriForQuery(fullItemLocation))
-            {
-                // try extract query from the location
-                var query = "";
-                var quri = new Uri(fullItemLocation);
-                if (quri.Query?.HasContent() == true)
-                {
-                    var pc = HttpUtility.ParseQueryString(quri.Query);
-                    foreach (var key in pc.AllKeys)
-                        if (key == "query")
-                            query = AdminShellUtil.Base64UrlDecode(pc[key]);
-                }
-
-                // if not, try to get from record
-                if (!query.HasContent() && record?.QueryScript?.HasContent() == true)
-                    query = record.QueryScript;
-
-                // error
-                if (!query.HasContent())
-                {
-                    runtimeOptions?.Log?.Error("Could not determine valid query script. Aborting!");
-                    return;
-                }
-
-                // but, the query needs to be reformatted as JSON
-                // query = "{ searchSMs(expression: \"\"\"$LOG  \"\"\") { url smId } }";
-                // query = "{ searchSMs(expression: \"\"\"$LOG filter=or(str_contains(sm.IdShort, \"Technical\"), str_contains(sm.IdShort, \"Nameplate\")) \"\"\") { url smId } }";
-                query = query.Replace("\\", "\\\\");
-                query = query.Replace("\"", "\\\"");
-                query = query.Replace("\r", " ");
-                query = query.Replace("\n", " ");
-                var jsonQuery = $"{{ \"query\" : \"{query}\" }} ";
-
-                // there are subsequent fetch operations necessary
-                var fetchItems = new List<FetchItem>();
-
-                // HTTP POST
-                var statCode = await PackageHttpDownloadUtil.HttpPostRequestToMemoryStream(
-                    sourceUri: new Uri(quri.GetLeftPart(UriPartial.Path)),
-                    requestBody: jsonQuery,
-                    requestContentType: "application/json",
-                    allowFakeResponses: allowFakeResponses,
-                    runtimeOptions: runtimeOptions,
-                    lambdaDownloadDone: (ms, contentFn) =>
-                    {
-                        try
-                        {
-                            var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                            if (node["data"]?["searchSMs"] is JsonArray smdata
-                                && smdata.Count >= 1)
-                            {
-                                foreach (var smrec in smdata)
-                                {
-                                    var url = smrec["url"]?.ToString();
-                                    var smId = smrec["smId"]?.ToString();
-                                    if (smId?.HasContent() == true)
-                                        fetchItems.Add(new FetchItem() { Type = FetchItemType.SmId, Value = smId });
-                                    else
-                                    if (url?.HasContent() == true)
-                                        fetchItems.Add(new FetchItem() { Type = FetchItemType.SmUrl, Value = url });
-                                }
-                            }
-
-                        }
-                        catch (Exception ex)
-                        {
-                            runtimeOptions?.Log?.Error(ex, "Parsing graphql result set");
-                        }
-                    });
-
-                if (statCode != HttpStatusCode.OK)
-                {
-                    Log.Singleton.Error("Could not fetch new dynamic elements by graphql. Aborting!");
-                    Log.Singleton.Error("  POST request was: {0}", jsonQuery);
-                    return;
-                }
-
-                // only makes sense, if query returns something
-                if (fetchItems.Count < 1)
-                {
-                    Log.Singleton.Info(StoredPrint.Color.Blue, "Query resulted in zero elements, " +
-                        "which could be fetched. Aborting!");
-                    return;
-                }
-
-                // skip items?
-                if (record.PageSkip > 0)
-                {
-                    fetchItems.RemoveRange(0, Math.Min(fetchItems.Count, record.PageSkip));
-                }
-                var numItem = 0;
-
-                // TODO: convert to parallel for each async
-                var dlErrors = 0;
-                foreach (var fi in fetchItems)
-                {
-                    // reached end
-                    numItem++;
-                    if (record.PageLimit > 0 && numItem > record.PageLimit)
-                        break;
-
-                    // prepare download
-                    Uri loc = null;
-                    if (fi.Type == FetchItemType.SmUrl)
-                        loc = new Uri(fi.Value);
-                    if (fi.Type == FetchItemType.SmId)
-                        loc = BuildUriForSubmodel(baseUri, fi.Value, encryptIds: true);
-
-                    if (loc == null)
-                        continue;
-
-                    // download (and skip errors)
-                    try
-                    {
-                        await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                            sourceUri: loc,
-                            allowFakeResponses: allowFakeResponses,
-                            runtimeOptions: runtimeOptions,
-                            lambdaDownloadDone: (ms, contentFn) =>
-                            {
-                                try
-                                {
-                                    var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                                    if (fi.Type == FetchItemType.SmUrl || fi.Type == FetchItemType.SmId)
-                                        prepSM.Add(Jsonization.Deserialize.SubmodelFrom(node), null);
-                                }
-                                catch (Exception ex)
-                                {
-                                    dlErrors++;
-                                    runtimeOptions?.Log?.Error(ex, "Parsing individual fetch element of query.");
-                                }
-                            });
-                    } catch (Exception ex)
-                    {
-                        dlErrors++;
-                        LogInternally.That.CompletelyIgnoredError(ex);
-                    }
-                }
-
-                Log.Singleton.Info(StoredPrint.Color.Blue, "Executed GraphQL query. Receiving list of {0} elements, " +
-                    "found {1} errors when individually downloading elements.", fetchItems.Count, dlErrors);
-            }
-
-            // start auto-load missing Submodels?
-            if (record?.AutoLoadSubmodels ?? false)
-            {
-                var lrs = env.FindAllSubmodelReferences(onlyNotExisting: true).ToList();
-
-                await Parallel.ForEachAsync(lrs,
-                    new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
-                    async (lr, token) =>
-                    {
-                        if (record?.AutoLoadOnDemand ?? true)
-                        {
-                            // side info level 1
-                            lock (prepSM)
-                            {
-                                prepSM.Add(null, new AasIdentifiableSideInfo()
-                                {
-                                    IsStub = true,
-                                    StubLevel = AasIdentifiableSideInfoLevel.IdOnly,
-                                    Id = lr.Reference.Keys[0].Value
                                 });
-                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            // no side info => full element
-                            await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                            sourceUri: BuildUriForSubmodel(baseUri, lr.Reference),
-                            allowFakeResponses: allowFakeResponses,
-                            runtimeOptions: runtimeOptions,
-                            lambdaDownloadDone: (ms, contentFn) =>
-                            {
-                                try
-                                {
-                                    var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                                    lock (prepSM)
-                                    {
-                                        prepSM.Add(Jsonization.Deserialize.SubmodelFrom(node), null);
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    runtimeOptions?.Log?.Error(ex, "Parsing auto-loaded Submodel");
-                                }
-                            });
+                            dlErrors++;
+                            LogInternally.That.CompletelyIgnoredError(ex);
                         }
-                    });
+                    }
+
+                    Log.Singleton.Info(StoredPrint.Color.Blue, "Executed GraphQL query. Receiving list of {0} elements, " +
+                        "found {1} errors when individually downloading elements.", fetchItems.Count, dlErrors);
+                }
+
+                // start auto-load missing Submodels?
+                if (record?.AutoLoadSubmodels ?? false)
+                {
+                    var lrs = env.FindAllSubmodelReferences(onlyNotExisting: true).ToList();
+
+                    await Parallel.ForEachAsync(lrs,
+                        new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
+                        async (lr, token) =>
+                        {
+                            if (record?.AutoLoadOnDemand ?? true)
+                            {
+                                // side info level 1
+                                lock (prepSM)
+                                {
+                                    prepSM.Add(null, new AasIdentifiableSideInfo()
+                                    {
+                                        IsStub = true,
+                                        StubLevel = AasIdentifiableSideInfoLevel.IdOnly,
+                                        Id = lr.Reference.Keys[0].Value
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                // no side info => full element
+                                await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                                    sourceUri: BuildUriForRepoSingleSubmodel(baseUri, lr.Reference),
+                                    allowFakeResponses: allowFakeResponses,
+                                    runtimeOptions: runtimeOptions,
+                                    lambdaDownloadDone: (ms, contentFn) =>
+                                    {
+                                        try
+                                        {
+                                            var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                                            lock (prepSM)
+                                            {
+                                                prepSM.Add(Jsonization.Deserialize.SubmodelFrom(node), null);
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            runtimeOptions?.Log?.Error(ex, "Parsing auto-loaded Submodel");
+                                        }
+                                    });
+                            }
+                        });
+                }
+
+                // start auto-load missing thumbnails?
+                if (record?.AutoLoadThumbnails ?? false)
+                    await Parallel.ForEachAsync(env.AllAssetAdministrationShells(),
+                        new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
+                        async (aas, token) =>
+                        {
+                            await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                                sourceUri: BuildUriForRepoAasThumbnail(baseUri, aas.Id),
+                                allowFakeResponses: allowFakeResponses,
+                                runtimeOptions: runtimeOptions,
+                                lambdaDownloadDone: (ms, contentFn) =>
+                                {
+                                    try
+                                    {
+                                        dynPack.AddThumbnail(aas.Id, ms.ToArray());
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        runtimeOptions?.Log?.Error(ex, "Managing auto-loaded tumbnail");
+                                    }
+                                });
+                        });
+
             }
 
-            // start auto-load missing thumbnails?
-            if (record?.AutoLoadThumbnails ?? false)
-                await Parallel.ForEachAsync(env.AllAssetAdministrationShells(),
-                    new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
-                    async (aas, token) => {
-                        await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                            sourceUri: BuildUriForAasThumbnail(baseUri, aas.Id),
-                            allowFakeResponses: allowFakeResponses,
-                            runtimeOptions: runtimeOptions,
-                            lambdaDownloadDone: (ms, contentFn) =>
-                            {
-                                try
-                                {
-                                    dynPack.AddThumbnail(aas.Id, ms.ToArray());
-                                }
-                                catch (Exception ex)
-                                {
-                                    runtimeOptions?.Log?.Error(ex, "Managing auto-loaded tumbnail");
-                                }
-                            });
-                    });
+            //
+            // FINALIZE
+            //
 
             // remove, what is not need
             if (env.AssetAdministrationShellCount() < 1)
@@ -807,14 +1146,15 @@ namespace AasxPackageLogic.PackageCentral
             public enum BaseTypeEnum { Repository, Registry }
             public static string[] BaseTypeEnumNames = new[] { "Repository", "Registry" };
 
-            public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
+            // public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
             // public string BaseAddress = "https://eis-data.aas-voyager.com/";
             // public string BaseAddress = "http://smt-repo.admin-shell-io.com/";
-            // public string BaseAddress = "https://techday2-registry.admin-shell-io.com/";
+            public string BaseAddress = "https://techday2-registry.admin-shell-io.com/";
 
-            public BaseTypeEnum BaseType = BaseTypeEnum.Repository;
+            // public BaseTypeEnum BaseType = BaseTypeEnum.Repository;
+            public BaseTypeEnum BaseType = BaseTypeEnum.Registry;
 
-            public bool GetAllAas;
+            public bool GetAllAas = true;
 
             public bool GetSingleAas;
             public string AasId = "https://new.abb.com/products/de/2CSF204101R1400/aas";
@@ -827,7 +1167,7 @@ namespace AasxPackageLogic.PackageCentral
             public bool GetSingleCD;
             public string CdId;
 
-            public bool ExecuteQuery = true;
+            public bool ExecuteQuery;
             // public string QueryScript = "{\r\n  searchSMs(\r\n    expression: \"\"\"$LOG\r\n     filter=\r\n      or(\r\n        str_contains(sm.IdShort, \"Technical\"),\r\n        str_contains(sm.IdShort, \"Nameplate\")\r\n      )\r\n   \"\"\"\r\n  )\r\n  {\r\n    url\r\n    smId\r\n  }\r\n}";
             public string QueryScript = "{\r\n  searchSMs(\r\n    expression: \"\"\"$LOG$QL\r\n          ( contains(sm.idShort, \"Technical\") and\r\n          sme.value ge 100 and\r\n          sme.value le 200 )\r\n        or\r\n          ( contains(sm.idShort, \"Nameplate\") and\r\n          contains(sme.idShort,\"ManufacturerName\") and\r\n          not(contains(sme.value,\"Phoenix\")))\r\n    \"\"\"\r\n  )\r\n  {\r\n    url\r\n    smId\r\n  }\r\n}";
             
@@ -914,49 +1254,76 @@ namespace AasxPackageLogic.PackageCentral
 
             var baseUri = new Uri(record.BaseAddress);
 
-            // All AAS?
-            if (record.GetAllAas)
+            //
+            // REPO
+            //
+
+            if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
             {
-                // if a skip has been requested, these AAS need to be loaded, as well
-                var uri = BuildUriForAllAAS(baseUri, record.PageLimit + record.PageSkip, cursor);
-                return uri.ToString();
+                // All AAS?
+                if (record.GetAllAas)
+                {
+                    // if a skip has been requested, these AAS need to be loaded, as well
+                    var uri = BuildUriForRepoAllAAS(baseUri, record.PageLimit + record.PageSkip, cursor);
+                    return uri.ToString();
+                }
+
+                // Single AAS?
+                if (record.GetSingleAas)
+                {
+                    var uri = BuildUriForRepoSingleAAS(baseUri, record.AasId, encryptIds: record.EncryptIds);
+                    return uri.ToString();
+                }
+
+                // All Submodels?
+                if (record.GetAllSubmodel)
+                {
+                    // if a skip has been requested, these AAS need to be loaded, as well
+                    var uri = BuildUriForRepoAllSubmodel(baseUri, record.PageLimit + record.PageSkip, cursor);
+                    return uri.ToString();
+                }
+
+                // Single Submodel?
+                if (record.GetSingleSubmodel)
+                {
+                    var uri = BuildUriForRepoSingleSubmodel(baseUri, record.SmId, encryptIds: record.EncryptIds);
+                    return uri.ToString();
+                }
+
+                // Single CD?
+                if (record.GetSingleCD)
+                {
+                    var uri = BuildUriForRepoSingleCD(baseUri, record.CdId, encryptIds: record.EncryptIds);
+                    return uri.ToString();
+                }
+
+                // Query?
+                if (record.ExecuteQuery)
+                {
+                    var uri = BuildUriForRepoQuery(baseUri, record.QueryScript);
+                    return uri.ToString();
+                }
+
             }
 
-            // Single AAS?
-            if (record.GetSingleAas)
+            //
+            // REGISTRY
+            //
+
+            if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Registry)
             {
-                var uri = BuildUriForAAS(baseUri, record.AasId, encryptIds: record.EncryptIds);
-                return uri.ToString();
+                // All AAS?
+                if (record.GetAllAas)
+                {
+                    // if a skip has been requested, these AAS need to be loaded, as well
+                    var uri = BuildUriForRegistryAllAAS(baseUri, record.PageLimit + record.PageSkip, cursor);
+                    return uri.ToString();
+                }
             }
 
-            // All Submodels?
-            if (record.GetAllSubmodel)
-            {
-                // if a skip has been requested, these AAS need to be loaded, as well
-                var uri = BuildUriForAllSubmodel(baseUri, record.PageLimit + record.PageSkip, cursor);
-                return uri.ToString();
-            }
-
-            // Single Submodel?
-            if (record.GetSingleSubmodel)
-            {
-                var uri = BuildUriForSubmodel(baseUri, record.SmId, encryptIds: record.EncryptIds);
-                return uri.ToString();
-            }
-
-            // Single CD?
-            if (record.GetSingleCD)
-            {
-                var uri = BuildUriForCD(baseUri, record.CdId, encryptIds: record.EncryptIds);
-                return uri.ToString();
-            }
-
-            // Query?
-            if (record.ExecuteQuery)
-            {
-                var uri = BuildUriForQuery(baseUri, record.QueryScript);
-                return uri.ToString();
-            }
+            // 
+            // END
+            //
 
             // nope
             return null;
@@ -1019,7 +1386,7 @@ namespace AasxPackageLogic.PackageCentral
             uc.ActivateRenderPanel(record,
                 disableScrollArea: false,
                 dialogButtons: AnyUiMessageBoxButton.OK,
-                extraButtons: new[] { "A", "B" },
+                // extraButtons: new[] { "A", "B" },
                 renderPanel: (uci) =>
                 {
                     // create panel
