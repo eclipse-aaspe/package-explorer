@@ -2052,7 +2052,7 @@ namespace AasxPackageLogic
             Aas.IReference smref, 
             Action setSmRefNull,
             Aas.ISubmodel submodel,
-            AasIdentifiableSideInfo sideInfo,
+            // AasIdentifiableSideInfo sideInfo,
             bool editMode,
             AnyUiStackPanel stack, bool hintMode = false, bool checkSmt = false,
 			AasxMenu superMenu = null)
@@ -2635,6 +2635,9 @@ namespace AasxPackageLogic
 			}
 
             // info about sideInfo
+            var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
+                    .FindSideInfoInListOfIdentifiables(
+                        env.Submodels, submodel.GetReference());
             DisplayOrEditEntitySideInfo(env, stack, submodel, sideInfo, "Submodel", superMenu);
 
             // Submodel attributes
@@ -5376,7 +5379,6 @@ namespace AasxPackageLogic
                         vesmref.theAas.Remove(vesmref.theSubmodelRef);
                     },
                     vesmref.theSubmodel,
-                    vesmref.theSideInfo,
                     editMode, stack,
                     hintMode: hintMode, checkSmt: checkSmt,
 					superMenu: superMenu);
@@ -5387,7 +5389,6 @@ namespace AasxPackageLogic
                     packages, vesm.theEnv, 
                     aas: null, smref: null, setSmRefNull: null, 
                     submodel: vesm.theSubmodel, 
-                    sideInfo: vesm.theSideInfo,
                     editMode: editMode, stack: stack,
                     hintMode: hintMode, checkSmt: checkSmt,
 					superMenu: superMenu);
