@@ -169,9 +169,8 @@ namespace AasxPluginTechnicalData
 
             // languages
             var langs = new List<string>();
-            foreach (var dc in (AasxLanguageHelper.LangEnum[])Enum.GetValues(
-                                    typeof(AasxLanguageHelper.LangEnum)))
-                langs.Add("Lang - " + AasxLanguageHelper.LangEnumToISO639String[(int)dc]);
+            foreach (var dc in AasxLanguageHelper.Languages.GetAllLanguages())
+                langs.Add("Lang - " + dc);
 
             if (_selectedLangStr == null)
                 _selectedLangStr = defaultLang;
@@ -190,8 +189,8 @@ namespace AasxPluginTechnicalData
                     if (!(cbLang?.SelectedIndex.HasValue == true))
                         return new AnyUiLambdaActionNone();
                     _selectedLangIndex = cbLang.SelectedIndex.Value;
-                    _selectedLangStr = AasxLanguageHelper.GetLangCodeFromEnum(
-                        (AasxLanguageHelper.LangEnum)_selectedLangIndex, nullForDefault: true);
+                    _selectedLangStr = AasxLanguageHelper.Languages.GetAllLanguages(nullForAny: true)
+                        .ElementAtOrDefault(_selectedLangIndex);
                     return new AnyUiLambdaActionPluginUpdateAnyUi()
                     {
                         PluginName = _plugin?.GetPluginName(),
