@@ -125,30 +125,49 @@ namespace AasxPackageLogic.PackageCentral
                 var smndx = sms?.FindSideInfoIndexFromId(id);
                 if (smndx.HasValue && smndx.Value >= 0)
                 {
+                    // side info
+                    var si = sms.GetSideInfo(smndx.Value);
+                    
                     // directly use id to fetch Identifiable
                     Aas.IIdentifiable res = null;
 
                     // build the location
-                    var loc = PackageContainerHttpRepoSubset.BuildUriForRepoSingleSubmodel(_defaultRepoBaseUri, id);
+                    var loc = (si.StubLevel >= AasIdentifiableSideInfoLevel.IdWithEndpoint && si.Endpoint != null)
+                        ? si.Endpoint
+                        : PackageContainerHttpRepoSubset.BuildUriForRepoSingleSubmodel(_defaultRepoBaseUri, id);
                     if (loc == null)
                         return null;
 
-                    await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                    await PackageHttpDownloadUtil.HttpGetToMemoryStream(
                         sourceUri: loc,
                         allowFakeResponses: _runtimeOptions?.AllowFakeResponses ?? false,
                         runtimeOptions: _runtimeOptions,
-                        lambdaDownloadDone: (ms, contentFn) =>
+                        lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
                         {
+                            // fail!!
+                            if (code != HttpStatusCode.OK)
+                            {
+                                _runtimeOptions?.Log?.Error($"Error while downloading on-demand loaded Submodel. " +
+                                    $"Endpoint was expected to be available! Status: {(int)code} {code}. " +
+                                    $"Location: {loc.ToString()}");
+                                return;
+                            }
+
                             try
                             {
                                 // load?
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var sm = Jsonization.Deserialize.SubmodelFrom(node);
 
-                                // replace, side info will go null
+                                // replace, side info need to be preserved!
                                 lock (_aasEnv.Submodels)
                                 {
+                                    // data
                                     sms[smndx.Value] = sm;
+
+                                    // side info
+                                    si.IsStub = false;
+                                    sms.SetSideInfo(smndx.Value, si);
                                 }
 
                                 // ok
@@ -171,10 +190,12 @@ namespace AasxPackageLogic.PackageCentral
             return null;
         }
 
-        public async Task<bool> TryFetchSpecificIds(IEnumerable<string> ids)
+        public async Task<bool> TryFetchSpecificIds(
+            IEnumerable<string> ids,
+            bool useParallel = true)
         {
             var someFetched = false;
-            if (true)
+            if (useParallel)
             {
                 // parallel
                 await Parallel.ForEachAsync(
@@ -233,7 +254,7 @@ namespace AasxPackageLogic.PackageCentral
 
         protected async Task<int> TrySaveAllTaintedIdentifiablesOf<T>(
             object listOfIdf,
-            Func<Uri, string, Uri> lambdaBuildRessource,
+            Func<Uri, string, Uri> lambdaBuildRessourceForNoEndpoint,
             bool clearTaintedFlags = true) where T : Aas.IIdentifiable
         {
             var list = listOfIdf as OnDemandListIdentifiable<T>;
@@ -260,8 +281,11 @@ namespace AasxPackageLogic.PackageCentral
                 if (tidf?.TaintedData != null && tidf.TaintedData.Tainted == null)
                     continue;
 
-                // try save, need a REST ressource
-                var uri = lambdaBuildRessource(_defaultRepoBaseUri, idf.Id);
+                // try save, need a REST ressource. Either use the existing endpoint
+                // or build the uri.
+                var uri = (si.StubLevel >= AasIdentifiableSideInfoLevel.IdWithEndpoint && si.Endpoint != null)
+                        ? si.Endpoint
+                        : lambdaBuildRessourceForNoEndpoint(_defaultRepoBaseUri, idf.Id);
                 if (uri == null)
                     continue;
 

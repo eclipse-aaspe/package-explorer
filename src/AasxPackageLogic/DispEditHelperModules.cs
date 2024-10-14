@@ -346,22 +346,29 @@ namespace AasxPackageLogic
             AasxMenu superMenu = null)
         {
             // access
-            if (stack == null || referable == null || si == null)
+            if (stack == null || si == null)
                 return;
 
-            this.AddGroup(stack, $"{key} was provided by Endpoint of dynamic fetch environment",
+            this.AddGroup(stack, $"{key} is provided by Endpoint of dynamic fetch environment",
                     this.levelColors.SubSection);
 
             AddKeyValue(stack, "StubLevel", "" + si.StubLevel.ToString(), repo: null);
             AddKeyValue(stack, "IdShort", "" + si.IdShort, repo: null);
             AddKeyValue(stack, "Id", "" + si.Id, repo: null);
-            AddKeyValue(stack, "Endpoint", "" + si.Endpoint.ToString(), repo: null,
+            AddKeyValue(stack, "Endpoint", "" + si.Endpoint?.ToString(), repo: null,
                 auxButtonTitle: "Copy",
                 auxButtonLambda: (i) => {
-                    this.context?.ClipboardSet(new AnyUiClipboardData(
-                        text: si.Endpoint.ToString())
-                    { });
-                    Log.Singleton.Info(StoredPrint.Color.Blue, "Endpoint copied to clipboard.");
+                    if (si.Endpoint == null)
+                    {
+                        Log.Singleton.Error("No endpoint data available");
+                    }
+                    else
+                    {
+                        this.context?.ClipboardSet(new AnyUiClipboardData(
+                            text: si.Endpoint.ToString())
+                        { });
+                        Log.Singleton.Info(StoredPrint.Color.Blue, "Endpoint copied to clipboard.");
+                    }
                     return new AnyUiLambdaActionNone();
                 },
                 auxButtonOverride: true);

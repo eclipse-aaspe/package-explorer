@@ -707,30 +707,52 @@ namespace AasxPackageLogic.PackageCentral
                             prepAas.Add(aas, aasSi);
 
                             // check if to add the Submodels
-                            // be prepared to download them
-                            var numRes = await DownloadListOfIdentifiables<Aas.ISubmodel, AasIdentifiableSideInfo>(
-                                smRegged,
-                                lambdaGetLocation: (si) => si.Endpoint,
-                                runtimeOptions: runtimeOptions,
-                                allowFakeResponses: allowFakeResponses,
-                                lambdaDownloadDoneOrFail: (code, sm, contentFn, si) =>
-                                {
-                                    // error ?
-                                    if (code != HttpStatusCode.OK)
+                            if (!record.AutoLoadOnDemand)
+                            {
+                                // be prepared to download them
+                                var numRes = await DownloadListOfIdentifiables<Aas.ISubmodel, AasIdentifiableSideInfo>(
+                                    smRegged,
+                                    lambdaGetLocation: (si) => si.Endpoint,
+                                    runtimeOptions: runtimeOptions,
+                                    allowFakeResponses: allowFakeResponses,
+                                    lambdaDownloadDoneOrFail: (code, sm, contentFn, si) =>
                                     {
-                                        Log.Singleton.Error(
-                                            "Could not download Submodel from endpoint given by registry: {0}",
-                                            si.Endpoint.ToString());
+                                        // error ?
+                                        if (code != HttpStatusCode.OK)
+                                        {
+                                            Log.Singleton.Error(
+                                                "Could not download Submodel from endpoint given by registry: {0}",
+                                                si.Endpoint.ToString());
 
-                                        // add as pure side info
-                                        si.IsStub = true;
-                                        prepSM.Add(null, si);
-                                    }
+                                            // add as pure side info
+                                            si.IsStub = true;
+                                            prepSM.Add(null, si);
+                                        }
 
-                                    // no, add with data
-                                    si.IsStub = false;
-                                    prepSM.Add(sm, si);
-                                });
+                                        // no, add with data
+                                        si.IsStub = false;
+                                        prepSM.Add(sm, si);
+                                    });
+                            }
+                            else
+                            {
+                                foreach (var si in smRegged)
+                                {
+                                    // valid Id is required
+                                    if (si?.Id?.HasContent() != true)
+                                        continue;
+
+                                    // for the Submodels add Identifiables with null content, but side infos
+                                    var siEx = prepSM.FindSideInfoFromId(si.Id);
+                                    if (siEx != null)
+                                        // already existing!
+                                        continue;
+
+                                    // need to do
+                                    si.IsStub = true;
+                                    prepSM.Add(null, si);
+                                }
+                            }
 
                             // a little debug
                             runtimeOptions?.Log?.Info(StoredPrint.Color.Blue,
@@ -745,7 +767,7 @@ namespace AasxPackageLogic.PackageCentral
             // REPO
             //
 
-            if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Registry)
+            if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
             {
                 // start with a list of AAS or Submodels (very similar)
                 var isAllAAS = IsValidUriForRepoAllAAS(fullItemLocation);

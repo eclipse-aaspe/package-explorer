@@ -106,7 +106,7 @@
   "EclassTwoPass": true,
   "BackupDir": ".\\backup",
   "BackupFiles": 10,
-  "MaxParallelOps": 20,
+  "MaxParallelOps": 1,
   "AllowFakeResponses": true,
   "RestServerHost": "localhost",
   "RestServerPort": "1111",

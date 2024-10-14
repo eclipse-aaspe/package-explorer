@@ -1897,7 +1897,8 @@ namespace AasxPackageLogic
                             if (lrs != null)
                             {
                                 var ids = lrs.Select((lr) => (lr?.Reference?.IsValid() == true) ? lr.Reference.Keys[0].Value : null).ToList();
-                                var fetched = await dynPack.TryFetchSpecificIds(ids);
+                                var fetched = await dynPack.TryFetchSpecificIds(ids,
+                                        useParallel: Options.Curr.MaxParallelOps > 1);
                                 if (fetched)
                                     return new AnyUiLambdaActionRedrawAllElements(nextFocus: aas);
                             }
@@ -2798,7 +2799,8 @@ namespace AasxPackageLogic
         //
 
         public void DisplayOrEditAasEntitySubmodelStub(
-            PackageCentral.PackageCentral packages, AdminShellPackageEnvBase packEnv,
+            PackageCentral.PackageCentral packages, 
+            AdminShellPackageEnvBase packEnv,
             Aas.IAssetAdministrationShell aas,
             Aas.IReference smref,
             Action setSmRefNull,
@@ -2823,6 +2825,10 @@ namespace AasxPackageLogic
             }
             else
             {
+                // infos
+                DisplayOrEditEntitySideInfo(packEnv?.AasEnv, stack, aas, sideInfo, "Submodel", superMenu);
+
+                // actions
                 AddActionPanel(stack, "Action:",
                     repo: repo,
                     superMenu: superMenu,

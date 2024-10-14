@@ -76,6 +76,14 @@ namespace AasxPackageLogic.PackageCentral
             return -1;
         }
 
+        public AasIdentifiableSideInfo FindSideInfoFromId(string id)
+        {
+            var ndx = FindSideInfoIndexFromId(id);
+            if (ndx >= 0)
+                return GetSideInfo(ndx);
+            return null;
+        }
+
         public static AasIdentifiableSideInfo FindSideInfoInListOfIdentifiables(
             object listIdf,
             Aas.IReference rf)
