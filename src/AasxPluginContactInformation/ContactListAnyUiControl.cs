@@ -47,7 +47,7 @@ namespace AasxPluginContactInformation
 
         protected AnyUiSmallWidgetToolkit _uitk = new AnyUiSmallWidgetToolkit();
 
-        protected AasxLanguageHelper.LangEnum _selectedLang = AasxLanguageHelper.LangEnum.Any;
+        protected AasxLanguageTuple _selectedLang = AasxLanguageTuple.GetAny();
 
         protected string _selectedRole = null;
 
@@ -224,10 +224,7 @@ namespace AasxPluginContactInformation
             //
 
             // countries
-            var allLangs = new List<object>();
-            foreach (var dc in (AasxLanguageHelper.LangEnum[])Enum.GetValues(
-                                    typeof(AasxLanguageHelper.LangEnum)))
-                allLangs.Add("Nation - " + AasxLanguageHelper.LangEnumToISO3166String[(int)dc]);
+            var countries = AasxLanguageHelper.Languages.GetAllCountries().ToList();
 
             // controls
             var controls = uitk.AddSmallWrapPanelTo(outer, 1, 0,
@@ -238,21 +235,23 @@ namespace AasxPluginContactInformation
             //
 
             AnyUiComboBox cbCountries = null;
-            cbCountries = AnyUiUIElement.RegisterControl(controls.Add(new AnyUiComboBox()
-            {
-                Margin = new AnyUiThickness(6, 4, 4, 4),
-                MinWidth = 120,
-                Items = allLangs,
-                SelectedIndex = (int)_selectedLang
-            }), (o) =>
-            {
-                // ReSharper disable PossibleInvalidOperationException
-                if (cbCountries != null)
-                    _selectedLang = (AasxLanguageHelper.LangEnum)cbCountries.SelectedIndex;
-                // ReSharper enable PossibleInvalidOperationException
-                PushUpdateEvent();
-                return new AnyUiLambdaActionNone();
-            });
+            cbCountries = AnyUiUIElement.RegisterControl(
+                controls.Add(new AnyUiComboBox()
+                    {
+                        Margin = new AnyUiThickness(6, 4, 4, 4),
+                        MinWidth = 120,
+                        Items = countries.Select((s) => "Nation - " + s).Cast<object>().ToList(),
+                        SelectedIndex = _selectedLang == null ? 0 : (countries.IndexOf(_selectedLang.CountryCode))
+                    }), 
+                (o) => {
+                    // ReSharper disable PossibleInvalidOperationException
+                    if (cbCountries != null)
+                        _selectedLang = AasxLanguageHelper.Languages.FindByCountry(
+                            countries.ElementAt(cbCountries.SelectedIndex.Value)).FirstOrDefault();
+                    // ReSharper enable PossibleInvalidOperationException
+                    PushUpdateEvent();
+                    return new AnyUiLambdaActionNone();
+                });
 
             //
             // Role
@@ -365,9 +364,9 @@ namespace AasxPluginContactInformation
                 foreach (var ce in its)
                 {
                     // Country?
-                    if (_selectedLang != AasxLanguageHelper.LangEnum.Any
-                        && !AasxLanguageHelper.LangEnumToISO3166String[(int)_selectedLang]
-                                .Equals(ce.CountryCode, StringComparison.InvariantCultureIgnoreCase))
+                    if (_selectedLang != null
+                        && (!_selectedLang.IsAny()
+                            && _selectedLang.CountryCode != ce.CountryCode?.ToUpper().Trim()))
                         continue;
 
                     // Role

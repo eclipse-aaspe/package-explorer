@@ -1955,8 +1955,8 @@ namespace AasxPackageLogic
                                 mlp.Value = new List<ILangStringTextType>();
 
                                 // add defaults?
-                                if (Options.Curr.DefaultLang.HasContent())
-                                    foreach (var lng in Options.Curr.DefaultLang.Split(',',
+                                if (Options.Curr.DefaultLangs.HasContent())
+                                    foreach (var lng in Options.Curr.DefaultLangs.Split(',',
                                         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                                         mlp.Value.Add(new LangStringTextType("" + lng, ""));
                             }
