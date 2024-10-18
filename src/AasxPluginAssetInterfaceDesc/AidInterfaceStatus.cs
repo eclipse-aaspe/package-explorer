@@ -27,6 +27,8 @@ using AnyUi;
 using System.Windows.Media.Animation;
 using AasxIntegrationBase.AdminShellEvents;
 using System.IO;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace AasxPluginAssetInterfaceDescription
 {
@@ -67,6 +69,11 @@ namespace AasxPluginAssetInterfaceDescription
         /// technology.
         /// </summary>
         public CD_Forms FormData = null;
+
+        /// <summary>
+        /// To help map object payloads(JSON, XML or Octet-stream that is complex)
+        /// </summary>
+        public string payloadType = null;
 
         /// <summary>
         /// String data for value incl. unit information.
@@ -120,6 +127,17 @@ namespace AasxPluginAssetInterfaceDescription
         /// Base connect information.
         /// </summary>
         public string EndpointBase = "";
+
+
+        /// <summary>
+        /// Used by byteStream payload for decoding, presently, mainly used by Modbus but other protocols will also be using it
+        /// </summary>
+        public string mostSignificantByte = "";
+
+        /// <summary>
+        /// Used by byteStream payload for decoding, presently, mainly used by Modbus but other protocols will also be using it
+        /// </summary>
+        public string mostSignificantWord = "";
 
         /// <summary>
         /// Actual summary of the status of the interface.
@@ -240,6 +258,16 @@ namespace AasxPluginAssetInterfaceDescription
         public string Password = null;
 
         /// <summary>
+        /// Used by byteStream payload for decoding, presently, mainly used by Modbus but other protocols will also be using it
+        /// </summary>
+        public string mostSignificantByte = "";
+
+        /// <summary>
+        /// Used by byteStream payload for decoding, presently, mainly used by Modbus but other protocols will also be using it
+        /// </summary>
+        public string mostSignificantWord = "";
+
+        /// <summary>
         /// If greater 10, specifies the time rate in milli seconds for polling the 
         /// respective subscriptions.
         /// </summary>
@@ -310,27 +338,70 @@ namespace AasxPluginAssetInterfaceDescription
                 foreach (var moi in item.MapOutputItems)
                 {
                     // valid?
-                    if (moi?.MapRelation?.Second == null
-                        || !(moi.MapRelation.SecondHint is Aas.Property prop))
+                    if (moi?.MapRelation?.Second == null)
                         continue;
 
-                    // set here
-                    prop.Value = strval;
+                    // For literal payloads
+                    else if (moi.MapRelation.SecondHint is Aas.Property prop)
+                    {
+                        // set here
+                        prop.Value = strval;
 
-                    // create
-                    var evi = new AasPayloadUpdateValueItem(
-                        path: (prop)?.GetModelReference()?.Keys,
-                        value: prop.ValueAsText());
+                        // create
+                        var evi = new AasPayloadUpdateValueItem(
+                            path: (prop)?.GetModelReference()?.Keys,
+                            value: prop.ValueAsText());
 
-                    evi.ValueId = prop.ValueId;
+                        evi.ValueId = prop.ValueId;
 
-                    evi.FoundReferable = prop;
+                        evi.FoundReferable = prop;
 
-                    // add to the aas element itself
-                    DiaryDataDef.AddAndSetTimestamps(prop, evi, isCreate: false);
+                        // add to the aas element itself
+                        DiaryDataDef.AddAndSetTimestamps(prop, evi, isCreate: false);
 
-                    // give upwards for animation
-                    AnimateSingleValueChange?.Invoke(prop);
+                        // give upwards for animation
+                        AnimateSingleValueChange?.Invoke(prop);
+                    }
+
+                    // for object payloads--only JSON for now.
+                    else if (moi.MapRelation.SecondHint is Aas.SubmodelElementCollection coll)
+                    {
+                        //run complex mappping here 
+
+                        JObject payloadJObject;
+
+                        using (var tdStringReader = new StringReader(strval))
+                        using (var jsonTextReader = new JsonTextReader(tdStringReader)
+                        { DateParseHandling = DateParseHandling.None })
+                        {
+                            payloadJObject = JObject.FromObject(JToken.ReadFrom(jsonTextReader));
+                        }
+                        foreach (var internalProperty in coll.Value)
+                        {
+                            if ((internalProperty is Aas.Property internalProp) && payloadJObject.ContainsKey(internalProperty.IdShort))
+                            {
+                                // set The value related to the json key found here
+                                internalProp.Value = payloadJObject[internalProperty.IdShort].ToString();
+
+                                // create
+                                var evi = new AasPayloadUpdateValueItem(
+                                    path: (internalProp)?.GetModelReference()?.Keys,
+                                    value: internalProp.ValueAsText());
+
+                                evi.ValueId = internalProp.ValueId;
+
+                                evi.FoundReferable = internalProp;
+
+                                // add to the aas element itself
+                                DiaryDataDef.AddAndSetTimestamps(internalProp, evi, isCreate: false);
+
+                                // give upwards for animation
+                                AnimateSingleValueChange?.Invoke(internalProp);
+                            }
+                        }
+                    }
+
+                  
                 }
         }
     }
@@ -762,6 +833,8 @@ namespace AasxPluginAssetInterfaceDescription
                         DisplayName = $"{dn}",
                         Info = $"{ifx.EndpointMetadata?.Base}",
                         EndpointBase = "" + ifx.EndpointMetadata?.Base,
+                        mostSignificantByte = "" + ifx.EndpointMetadata?.Modv_mostSignificantByte,
+                        mostSignificantWord = "" + ifx.EndpointMetadata?.Modv_mostSignificantWord,
                         Tag = ifx
                     };
                     InterfaceStatus.Add(aidIfx);
@@ -780,7 +853,7 @@ namespace AasxPluginAssetInterfaceDescription
                             FormData = propName.Forms,
                             Value = "???"
                         };
-                        aidIfx.AddItem(ifcItem);
+                        
 
                         // does (some) mapping have a source with this property name?
                         var lst = new List<AidMappingOutputItem>();
@@ -797,19 +870,26 @@ namespace AasxPluginAssetInterfaceDescription
                                                 MapRelation = mr
                                             });
                         if (lst.Count > 0)
+                        {
+                            aidIfx.AddItem(ifcItem);
                             ifcItem.MapOutputItems = lst;
+                        }
+                            
 
                         // directly recurse?
-                        /*
                         if (propName?.Properties?.Property != null)
                             foreach (var child in propName.Properties.Property)
+                            {
+                                //added this to cater for internal object mapping. 
+                                child.Forms = propName.Forms;
                                 recurseProp(location + " . " + ifcItem.DisplayName, child);
-                        */
+                            }
+                   
                     };
 
-                    if (ifx.InterfaceMetadata?.Properties?.Property == null)
+                    if (ifx.InteractionMetadata?.Properties?.Property == null)
                         continue;
-                    foreach (var propName in ifx.InterfaceMetadata?.Properties?.Property)
+                    foreach (var propName in ifx.InteractionMetadata?.Properties?.Property)
                         recurseProp("\u2302", propName);
                 }
             }
@@ -869,12 +949,12 @@ namespace AasxPluginAssetInterfaceDescription
                 // polltimes
                 SetDoubleOnDefaultOrAvgOfIntList(
                     ref ifc.UpdateFreqMs, 10.0, defaultUpdateFreqMs,
-                    SelectValuesToIntList(ifc?.Items?.Values, (it) => it.FormData?.Modbus_pollingTime));
+                    SelectValuesToIntList(ifc?.Items?.Values, (it) => it.FormData?.Modv_pollingTime));
 
                 // time out
                 SetDoubleOnDefaultOrAvgOfIntList(
                     ref ifc.TimeOutMs, 10.0, defaultTimeOutMs,
-                    SelectValuesToIntList(ifc?.Items?.Values, (it) => it.FormData?.Modbus_timeout));
+                    SelectValuesToIntList(ifc?.Items?.Values, (it) => it.FormData?.Modv_timeout));
             }
 
             // for OPC UA, analyze update frequency and timeout
