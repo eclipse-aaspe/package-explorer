@@ -52,8 +52,7 @@ namespace AasxPackageExplorer
                     help: "Open existing AASX package.",
                     args: new AasxMenuListOfArgDefs()
                         .Add("File", "Source filename including a path and extension."))
-                .AddWpfBlazor(name: "ConnectIntegrated", header: "Connect …", inputGesture: "Ctrl+Shift+I")
-                .AddWpfBlazor(name: "ConnectExtended", header: "Connect (extended) …")
+                .AddWpfBlazor(name: "ConnectIntegrated", header: "Connect …", inputGesture: "Ctrl+Shift+I")                
                 .AddWpfBlazor(name: "Save", header: "_Save", inputGesture: "Ctrl+S")
                 .AddWpfBlazor(name: "SaveAs", header: "_Save as …", 
                     help: "Saves current package to given file name and typr",
@@ -106,6 +105,11 @@ namespace AasxPackageExplorer
                     .AddWpfBlazor(name: "ConnectSecure", header: "Secure Connect …", inputGesture: "Ctrl+Shift+S")
                     .AddWpfBlazor(name: "ConnectOpcUa", header: "Connect via OPC-UA …")
                     .AddWpfBlazor(name: "ConnectRest", header: "Connect via REST …", inputGesture: "F6"))
+                .AddSeparator()
+                .AddMenu(header: "API for Registry and Repository …", childs: (new AasxMenu())
+                    .AddWpfBlazor(name: "ConnectExtended", header: "Connect (extended) …")
+                    .AddWpfBlazor(name: "ApiUploadAssistant", header: "Upload assistant …")
+                )
                 .AddSeparator()
                 .AddMenu(header: "AASX File Repository …", childs: (new AasxMenu())
                     .AddWpfBlazor(name: "FileRepoNew", header: "New (local) repository …",

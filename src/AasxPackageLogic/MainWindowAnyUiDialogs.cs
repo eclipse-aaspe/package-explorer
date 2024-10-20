@@ -522,56 +522,60 @@ namespace AasxPackageLogic
                         doCheckTainted: true,
                         doFetchGoNext: false,
                         doFetchExec: true);
-
-                    // success will trigger redraw independently, therefore always do nothing
-
-                    //var record = new ConnectExtendedRecord();
-
-                    //var uiRes = await PackageContainerHttpRepoSubset.PerformConnectExtendedDialogue(
-                    //    ticket, DisplayContext,
-                    //    "Connect AAS repositories and registries",
-                    //    record);
-
-                    //if (!uiRes)
-                    //    return;
-
-                    //var location = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
-                    //if (location == null)
-                    //{
-                    //    LogErrorToTicket(ticket, "Error building location from query selection. Aborting.");
-                    //    return;
-                    //}
-
-                    //// more details into container options
-                    //var containerOptions = new PackageContainerHttpRepoSubset.
-                    //    PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
-                    //    record);
-
-                    //// load
-                    //Log.Singleton.Info($"For extended connect, loading " +
-                    //    $"from {location} into container");
-
-                    //var container = await PackageContainerFactory.GuessAndCreateForAsync(
-                    //    PackageCentral,
-                    //    location,
-                    //    location,
-                    //    overrideLoadResident: true,
-                    //    containerOptions: containerOptions,
-                    //    runtimeOptions: PackageCentral.CentralRuntimeOptions);
-
-                    //if (container == null)
-                    //    Log.Singleton.Error($"Failed to load from {location}");
-                    //else
-                    //    MainWindow.UiLoadPackageWithNew(PackageCentral.MainItem,
-                    //        takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
-                    //        storeFnToLRU: location,
-                    //        preserveEditMode: true) ;
-
-                    //Log.Singleton.Info($"Successfully loaded {location}");
                 }
                 catch (Exception ex)
                 {
                     LogErrorToTicket(ticket, ex, "when performing extended connect");
+                }
+            }
+
+            if (cmd == "apiuploadassistant")
+            {
+                // start
+                ticket.StartExec();
+
+                //do
+                try
+                {
+                    // work in one environment
+                    var env = PackageCentral.Main?.AasEnv;
+                    if (env == null)
+                    {
+                        LogErrorToTicket(ticket, "No main package environment available. Aborting!");
+                        return;
+                    }
+
+                    // make a list of Identifiables
+                    var idfs = new List<Aas.IIdentifiable>();
+                    foreach (var idf in ticket.SelectedDereferencedMainDataObjects
+                        .Where((o) => o is Aas.IIdentifiable)
+                        .Cast<Aas.IIdentifiable>())
+                    {
+                        idfs.AddRange(env.FindAllIdentifiableReferencesFor(idf, makeDistint: false)
+                                .Select((lr) => lr.Identifiable));
+                    }
+
+                    // suffice?
+                    if (idfs.Count < 1)
+                    {
+                        LogErrorToTicket(ticket, "No specific AAS, Submodel, ConceptDescription in " +
+                            "main package environment selected. Aborting!");
+                        return;
+                    }
+
+                    // make distinct (default comparer should work on list of Identifiables)
+                    var idfs2 = idfs.Distinct();
+
+                    // call assistant
+                    await PackageContainerHttpRepoSubset.PerformUploadAssistant(
+                        ticket, DisplayContext,
+                        "Upload current to Registry or Repository",
+                        PackageCentral.Main,
+                        idfs2);
+                }
+                catch (Exception ex)
+                {
+                    LogErrorToTicket(ticket, ex, "when performing api upload assistant");
                 }
             }
 

@@ -25,6 +25,28 @@ namespace Extensions
         }
     }
 
+    /// <summary>
+    /// This comparer takes a shortcut and does ONLY compare the object references, but
+    /// NOT the complicated AAS references. In a <c>LocatedReference</c> they are assumed
+    /// to be equivalent to each other!!
+    /// </summary>
+    public class LocatedReferenceComparer : IEqualityComparer<LocatedReference>
+    {
+        bool IEqualityComparer<LocatedReference>.Equals(LocatedReference x, LocatedReference y)
+        {
+            if (x == null && y == null)
+                return true;
+            if (x == null || y == null)
+                return false;
+            return (x.Identifiable == y.Identifiable);
+        }
+
+        int IEqualityComparer<LocatedReference>.GetHashCode(LocatedReference obj)
+        {
+            return obj?.Identifiable?.GetHashCode() ?? 0;
+        }
+    }
+
     public static class LocatedReferenceExtensions
     {
         public static void AddIfNew(this IList<LocatedReference> refs, LocatedReference newLR)
