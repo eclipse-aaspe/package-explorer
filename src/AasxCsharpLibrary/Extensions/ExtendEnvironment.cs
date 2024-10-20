@@ -8,6 +8,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 */
 using AdminShellNS;
 using AdminShellNS.Extensions;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -985,6 +986,27 @@ namespace Extensions
         /// <summary>
         /// Warning: very inefficient!
         /// </summary>
+        public static IEnumerable<LocatedReference> FindAllSemanticIdsForSubmodel(
+            this AasCore.Aas3_0.IEnvironment environment,
+            ISubmodel sm)
+        {
+            // unique set of references
+            var refs = new List<LocatedReference>();
+            sm?.RecurseOnSubmodelElements(null, (state, parents, sme) =>
+            {
+                if (sme.SemanticId != null)
+                    refs.AddIfNew(new LocatedReference() { Identifiable = sm, Reference = sme.SemanticId });
+
+                // recurse
+                return true;
+            });
+
+            return refs;
+        }
+
+        /// <summary>
+        /// Warning: very inefficient!
+        /// </summary>
         public static IEnumerable<LocatedReference> FindAllSemanticIdsForAas(
             this AasCore.Aas3_0.IEnvironment environment,
             IAssetAdministrationShell aas)
@@ -994,17 +1016,65 @@ namespace Extensions
             foreach (var smr in aas?.AllSubmodels())
             {
                 var sm = environment.FindSubmodel(smr);
-                sm?.RecurseOnSubmodelElements(null, (state, parents, sme) =>
-                {
-                    if (sme.SemanticId != null)
-                        refs.AddIfNew(new LocatedReference() { Identifiable = sm, Reference = sme.SemanticId });
-
-                    // recurse
-                    return true;
-                });
+                refs.AddRange(environment.FindAllSemanticIdsForSubmodel(sm));
             }
 
             return refs;
+        }
+
+        public static IEnumerable<LocatedReference> FindAllSubmodelReferencesForAAS(
+            this AasCore.Aas3_0.IEnvironment environment,
+            IAssetAdministrationShell aas)
+        {
+            // set of references
+            var refs = new List<LocatedReference>();
+            foreach (var smr in aas?.AllSubmodels())
+            {
+                var sm = environment.FindSubmodel(smr);
+                if (sm != null)
+                    refs.AddIfNew(new LocatedReference() { Identifiable = sm, Reference = smr });
+            }
+            return refs;
+        }
+
+        /// <summary>
+        /// Warning: very inefficient!
+        /// </summary>
+        public static IEnumerable<LocatedReference> FindAllIdentifiableReferencesFor(
+            this AasCore.Aas3_0.IEnvironment env,
+            IIdentifiable idf,
+            bool makeDistint = true)
+        {
+            // set of references
+            var refs = new List<LocatedReference>();
+
+            if (idf is IAssetAdministrationShell aas)
+            {
+                refs.AddRange(env.FindAllSubmodelReferencesForAAS(aas));
+                refs.AddRange(env.FindAllSemanticIdsForAas(aas));
+            }
+
+            if (idf is ISubmodel sm)
+            {
+                refs.AddRange(env.FindAllSemanticIdsForSubmodel(sm));
+            }
+
+            if (idf is IConceptDescription cd)
+            {
+                refs.Add(new LocatedReference() {
+                    Identifiable = cd,
+                    Reference = cd.GetReference()
+                });
+            }
+
+            // more distinct?
+            if (makeDistint)
+            {
+                var refs2 = refs.Distinct(new LocatedReferenceComparer());
+                return refs2;
+            }
+            else
+                return refs;
         }
 
         /// <summary>
