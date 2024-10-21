@@ -469,7 +469,7 @@ namespace AasxPackageLogic.PackageCentral
         /// </summary>
         /// <typeparam name="T">Type of Identifiable</typeparam>
         /// <typeparam name="E">Type of entity element</typeparam>
-        protected async Task<int> DownloadListOfIdentifiables<T, E>(
+        protected static async Task<int> DownloadListOfIdentifiables<T, E>(
             IEnumerable<E> entities,
             Func<E, Uri> lambdaGetLocation,
             Action<HttpStatusCode, T, string, E> lambdaDownloadDoneOrFail,
@@ -2012,7 +2012,7 @@ namespace AasxPackageLogic.PackageCentral
             return true;
         }
 
-        protected class UploadAssistantRecord
+        protected class UploadAssistantJobRecord
         {
             // public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
             public string BaseAddress = "https://eis-data.aas-voyager.com/";
@@ -2022,7 +2022,26 @@ namespace AasxPackageLogic.PackageCentral
             public ConnectExtendedRecord.BaseTypeEnum BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository;
             // public ConnectExtendedRecord.BaseTypeEnum BaseType = ConnectExtendedRecord.BaseTypeEnum.Registry;
 
+            public bool IncludeSubmodels = true;
+            public bool IncludeCDs = true;
 
+            public bool OverwriteIfExist = true;
+        }
+
+        protected class UploadAssistantElement
+        {
+            public string TypeName = "";
+            public string Id = "";
+            public string IdShort = "";
+            public string VersionServer = "";
+            public string VersionLocal = "";
+
+            public bool Upload = true;
+        }
+
+        protected class UploadAssistantElementsRecord
+        {
+            public List<UploadAssistantElement> Elements = new List<UploadAssistantElement>();
         }
 
         public static async Task<bool> PerformUploadAssistant(
@@ -2030,7 +2049,8 @@ namespace AasxPackageLogic.PackageCentral
             AnyUiContextBase displayContext,
             string caption,
             AdminShellPackageEnvBase packEnv,
-            IEnumerable<Aas.IIdentifiable> idfs)
+            IEnumerable<Aas.IIdentifiable> idfs,
+            PackCntRuntimeOptions runtimeOptions = null)
         {
             // access
             if (displayContext == null || caption?.HasContent() != true || packEnv == null || idfs == null)
@@ -2078,9 +2098,9 @@ namespace AasxPackageLogic.PackageCentral
             var numCD = idfs.Where((idf) => idf is Aas.IConceptDescription).Count();
 
             // Screen 1 : Data
-            var record = new UploadAssistantRecord();
+            var recordJob = new UploadAssistantJobRecord();
             var uc = new AnyUiDialogueDataModalPanel(caption);
-            uc.ActivateRenderPanel(record,
+            uc.ActivateRenderPanel(recordJob,
                 disableScrollArea: false,
                 dialogButtons: AnyUiMessageBoxButton.OK,
                 // extraButtons: new[] { "A", "B" },
@@ -2090,7 +2110,7 @@ namespace AasxPackageLogic.PackageCentral
                     var panel = new AnyUiStackPanel();
                     var helper = new AnyUiSmallWidgetToolkit();
 
-                    var g = helper.AddSmallGrid(25, 2, new[] { "120:", "*" },
+                    var g = helper.AddSmallGrid(25, 2, new[] { "200:", "*" },
                                 padding: new AnyUiThickness(0, 5, 0, 5),
                                 margin: new AnyUiThickness(10, 0, 30, 0));
 
@@ -2098,6 +2118,22 @@ namespace AasxPackageLogic.PackageCentral
 
                     // dynamic rows
                     int row = 0;
+
+                    // Statistics
+                    helper.AddSmallLabelTo(g, row, 0, content: "Available for upload:");
+
+                    helper.AddSmallLabelTo(g, row, 1, content: "# of AAS: " + numAas);
+                    helper.AddSmallLabelTo(g, row + 1, 1, content: "# of Submodel: " + numSm);
+                    helper.AddSmallLabelTo(g, row + 2, 1, content: "# of ConceptDescription: " + numCD);
+
+                    row += 3;
+
+                    // separation
+                    helper.AddSmallBorderTo(g, row, 0, 
+                        borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White, 
+                        colSpan: 2,
+                        margin: new AnyUiThickness(0, 0, 0, 20));
+                    row++;
 
                     // Base address + Type
                     helper.AddSmallLabelTo(g, row, 0, content: "Base address:",
@@ -2110,37 +2146,155 @@ namespace AasxPackageLogic.PackageCentral
                             helper.Set(
                                 helper.AddSmallComboBoxTo(g2, 0, 0,
                                     items: ConnectExtendedRecord.BaseTypeEnumNames,
-                                    selectedIndex: (int)record.BaseType,
+                                    selectedIndex: (int)recordJob.BaseType,
                                     margin: new AnyUiThickness(0, 0, 5, 0),
                                     padding: new AnyUiThickness(0, -1, 0, -3)),
                                 minWidth: 200, maxWidth: 200),
-                                (i) => { record.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
+                                (i) => { recordJob.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
 
                     AnyUiUIElement.SetStringFromControl(
                             helper.Set(
                                 helper.AddSmallTextBoxTo(g2, 0, 1,
-                                    text: $"{record.BaseAddress}",
+                                    text: $"{recordJob.BaseAddress}",
                                     verticalAlignment: AnyUiVerticalAlignment.Center,
                                     verticalContentAlignment: AnyUiVerticalAlignment.Center),
                                 horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
-                            (s) => { record.BaseAddress = s; });
+                            (s) => { recordJob.BaseAddress = s; });
 
                     row++;
 
-                    // Statistics
-                    helper.AddSmallLabelTo(g, row, 0, content: "Statistics:");
-                    
-                    helper.AddSmallLabelTo(g, row, 1, content: "# of AAS: " + numAas);
-                    helper.AddSmallLabelTo(g, row+1, 1, content: "# of Submodel: " + numSm);
-                    helper.AddSmallLabelTo(g, row+2, 1, content: "# of ConceptDescriptions: " + numCD);
+                    // Include Submodels
+                    AnyUiUIElement.SetBoolFromControl(
+                            helper.Set(
+                                helper.AddSmallCheckBoxTo(g, row, 1,
+                                    content: "Include Submodels (in upload)",
+                                    isChecked: recordJob.IncludeSubmodels,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                            (b) => { recordJob.IncludeSubmodels = b; });
 
-                    row += 3;
+                    row++;
+
+                    // Include CDs
+                    AnyUiUIElement.SetBoolFromControl(
+                            helper.Set(
+                                helper.AddSmallCheckBoxTo(g, row, 1,
+                                    content: "Include ConceptDescriptions (in upload)",
+                                    isChecked: recordJob.IncludeCDs,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                            (b) => { recordJob.IncludeCDs = b; });
+
+                    row++;
+
+                    // Overwrite if exists?
+                    AnyUiUIElement.SetBoolFromControl(
+                            helper.Set(
+                                helper.AddSmallCheckBoxTo(g, row, 1,
+                                    content: "Upload to overwrite on repository, if exists",
+                                    isChecked: recordJob.OverwriteIfExist,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                            (b) => { recordJob.OverwriteIfExist = b; });
+
+                    row++;
 
                     // give back
                     return g;
                 });
 
             if (!(await displayContext.StartFlyoverModalAsync(uc)))
+                return false;
+
+            // sort Identifiables to look nice
+            var sorted = idfs.ToList();
+            Func<Aas.IIdentifiable, int> rankLambda = (idf) =>
+            {
+                if (idf is Aas.IAssetAdministrationShell)
+                    return 1;
+                if (idf is Aas.ISubmodel)
+                    return 2;
+                if (idf is Aas.IConceptDescription)
+                    return 3;
+                return 4;
+            };
+            sorted.Sort((i1, i2) => {
+                if (rankLambda(i1) < rankLambda(i2))
+                    return -1;
+                if (rankLambda(i1) > rankLambda(i2))
+                    return +1;
+                return i1?.IdShort?.CompareTo(i2?.IdShort) ?? 0;
+            });
+            
+            if (sorted.Count < 1)
+                return false;
+
+            // build list
+            var rows = sorted
+                .Where((idf) => (
+                       (!(idf is Aas.ISubmodel) || recordJob.IncludeSubmodels)
+                    && (!(idf is Aas.IConceptDescription) || recordJob.IncludeCDs)
+                ))
+                .Select((idf) => new AnyUiDialogueDataGridRow() { 
+                    Tag = idf,
+                    Cells = (new[] { 
+                        // Type, IdShort, Id, Ver. Local, Exists?, Ver. Server
+                        "" + idf?.GetSelfDescription()?.ElementAbbreviation,
+                        "" + idf?.IdShort,
+                        "" + idf?.Id, 
+                        "" + (idf?.Administration?.ToStringExtended(1) ?? "-"),
+                        "New?",
+                        "-"
+                    }).ToList()
+                });
+
+            // ask server
+            if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+            {
+                // for the Repo, there is simply no other chance than to ask for existence of
+                // an Identifiable that to try downloading it ..
+
+                var baseUri = new Uri(recordJob.BaseAddress);
+
+                var numRes = await DownloadListOfIdentifiables<Aas.ISubmodel, AnyUiDialogueDataGridRow>(
+                        rows,
+                        lambdaGetLocation: (row) =>
+                        {
+                            if (!(row.Tag is Aas.IIdentifiable idf))
+                                return null;
+                            if (idf is Aas.IAssetAdministrationShell)
+                                return BuildUriForRepoSingleAAS(baseUri, idf?.Id, encryptIds: true);
+                            if (idf is Aas.ISubmodel)
+                                return BuildUriForRepoSingleSubmodel(baseUri, idf?.Id, encryptIds: true);
+                            if (idf is Aas.IConceptDescription)
+                                return BuildUriForRepoSingleCD(baseUri, idf?.Id, encryptIds: true);
+                            return null;
+                        },
+                        runtimeOptions: runtimeOptions,
+                        allowFakeResponses: false,
+                        lambdaDownloadDoneOrFail: (code, sm, contentFn, si) =>
+                        {
+                            // error by HTTP?
+                            if (code != HttpStatusCode.OK)
+                            {
+                                return;
+                            }
+
+                            // error by no data available?
+                            if (false)
+                            {
+
+                            }
+                        });
+            }
+
+            // show list of elements
+            var uc2 = new AnyUiDialogueDataSelectFromDataGrid(
+                        "Select element(s) to be uploaded ..",
+                        maxWidth: 9999);
+
+            uc2.ColumnDefs = AnyUiListOfGridLength.Parse(new[] { "50:", "1*", "3*", "70:", "70:", "70:" });
+            uc2.ColumnHeaders = new[] { "Type", "IdShort", "Id", "V.Local", "Exist?", "V.Server" };
+            uc2.Rows = rows.ToList();
+
+            if (!(await displayContext.StartFlyoverModalAsync(uc2)))
                 return false;
 
             // ok

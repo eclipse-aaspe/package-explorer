@@ -551,8 +551,7 @@ namespace AasxPackageLogic
                         .Where((o) => o is Aas.IIdentifiable)
                         .Cast<Aas.IIdentifiable>())
                     {
-                        idfs.AddRange(env.FindAllIdentifiableReferencesFor(idf, makeDistint: false)
-                                .Select((lr) => lr.Identifiable));
+                        idfs.AddRange(env.FindAllReferencedIdentifiablesFor(idf, makeDistint: false));
                     }
 
                     // suffice?
@@ -571,7 +570,8 @@ namespace AasxPackageLogic
                         ticket, DisplayContext,
                         "Upload current to Registry or Repository",
                         PackageCentral.Main,
-                        idfs2);
+                        idfs2,
+                        PackageCentral.CentralRuntimeOptions);
                 }
                 catch (Exception ex)
                 {
