@@ -503,191 +503,7 @@ namespace AasxPackageLogic.PackageCentral
             return objType.GetProperty(name) != null;
         }
 
-        /// <summary>
-        /// This utility is able to parallel download Identifiables and will call lambda upon.
-        /// Insted of a list of location, it is taking a list of objects (entities) and a lambda
-        /// to extract the location from.
-        /// </summary>
-        /// <typeparam name="T">Type of Identifiable</typeparam>
-        /// <typeparam name="E">Type of entity element</typeparam>
-        protected static async Task<int> DownloadListOfIdentifiables<T, E>(
-            IEnumerable<E> entities,
-            Func<E, Uri> lambdaGetLocation,            
-            Action<HttpStatusCode, T, string, E> lambdaDownloadDoneOrFail,
-            PackCntRuntimeOptions runtimeOptions = null,
-            bool allowFakeResponses = false,
-            bool useParallel = false,
-            Func<E, Type> lambdaGetTypeToSerialize = null) where T : Aas.IIdentifiable
-        {
-            // access
-            if (entities == null)
-                return 0;
-
-            // result
-            int numRes = 0;
-
-            // lambda for deserialize
-            Func<JsonNode, E, T> lambdaDeserialize = (node, ent) =>
-            {
-                if (typeof(T).IsInterface && lambdaGetTypeToSerialize != null)
-                {
-                    var t = lambdaGetTypeToSerialize(ent);
-                    if (t.IsAssignableTo(typeof(Aas.IAssetAdministrationShell)))
-                        return (T)((Aas.IIdentifiable)Jsonization.Deserialize.AssetAdministrationShellFrom(node));
-                    if (t.IsAssignableTo(typeof(Aas.ISubmodel)))
-                        return (T)((Aas.IIdentifiable)Jsonization.Deserialize.SubmodelFrom(node));
-                    if (t.IsAssignableTo(typeof(Aas.IConceptDescription)))
-                        return (T)((Aas.IIdentifiable)Jsonization.Deserialize.ConceptDescriptionFrom(node));
-                }
-
-                if (typeof(T).IsAssignableFrom(typeof(Aas.IAssetAdministrationShell)))
-                    return (T)((Aas.IIdentifiable)Jsonization.Deserialize.AssetAdministrationShellFrom(node));
-                if (typeof(T).IsAssignableFrom(typeof(Aas.ISubmodel)))
-                    return (T)((Aas.IIdentifiable)Jsonization.Deserialize.SubmodelFrom(node));
-                if (typeof(T).IsAssignableFrom(typeof(Aas.IConceptDescription)))
-                    return (T)((Aas.IIdentifiable)Jsonization.Deserialize.ConceptDescriptionFrom(node));
-                return default(T);
-            };
-
-            // over all locations
-            if (!useParallel)
-            {
-                foreach (var ent in entities)
-                {
-                    await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                        sourceUri: lambdaGetLocation?.Invoke(ent),
-                        allowFakeResponses: allowFakeResponses,
-                        runtimeOptions: runtimeOptions,
-                        lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
-                        {
-                            // not OK?
-                            if (code != HttpStatusCode.OK)
-                            {
-                                lambdaDownloadDoneOrFail?.Invoke(code, default(T), null, ent);
-                                return;
-                            }
-                            
-                            // go on
-                            try
-                            {
-                                var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                                T idf = lambdaDeserialize(node, ent);
-                                lambdaDownloadDoneOrFail?.Invoke(code, idf, contentFn, ent);
-                                if (code == HttpStatusCode.OK)
-                                    numRes++;
-                            }
-                            catch (Exception ex)
-                            {
-                                runtimeOptions?.Log?.Error(ex, $"Parsing downloaded {typeof(T).GetDisplayName()}");
-                                lambdaDownloadDoneOrFail?.Invoke(HttpStatusCode.UnprocessableEntity, default(T), null, ent);
-                            }
-                        });
-                }
-            } 
-            else
-            {
-                await Parallel.ForEachAsync(entities,
-                    new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
-                    async (ent, token) =>
-                    {
-                        var thisEnt = ent;
-                        await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                            sourceUri: lambdaGetLocation?.Invoke(ent),
-                            allowFakeResponses: allowFakeResponses,
-                            runtimeOptions: runtimeOptions,
-                            lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
-                            {
-                                // not OK?
-                                if (code != HttpStatusCode.OK)
-                                {
-                                    lambdaDownloadDoneOrFail?.Invoke(code, default(T), null, ent);
-                                    return;
-                                }
-
-                                // go on
-                                try
-                                {
-                                    var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                                    T idf = lambdaDeserialize(node, ent);
-                                    lambdaDownloadDoneOrFail?.Invoke(code, idf, contentFn, thisEnt);
-                                    if (code == HttpStatusCode.OK)
-                                        numRes++;
-                                }
-                                catch (Exception ex)
-                                {
-                                    runtimeOptions?.Log?.Error(ex, $"Parsing downloaded {typeof(T).GetDisplayName()}");
-                                    lambdaDownloadDoneOrFail?.Invoke(HttpStatusCode.UnprocessableEntity, default(T), null, thisEnt);
-                                }
-                            });
-                    });
-
-            }
-
-            // ok
-            return numRes;
-        }
-
-        protected async Task<T> DownloadIdentifiableToOK<T>(
-            Uri location,
-            PackCntRuntimeOptions runtimeOptions = null,
-            bool allowFakeResponses = false) where T : Aas.IIdentifiable
-        {
-            T res = default(T);
-
-            await DownloadListOfIdentifiables<T, Uri>(
-                new[] { location },
-                lambdaGetLocation: (loc) => loc,
-                runtimeOptions: runtimeOptions,
-                allowFakeResponses: allowFakeResponses,
-                lambdaDownloadDoneOrFail: (code, idf, contentFn, ent) =>
-                {
-                    if (code == HttpStatusCode.OK)
-                        res = idf;
-                });
-
-            return res;
-        }
-
-        /// <summary>
-        /// Can download arbitrary dynamic entity.
-        /// </summary>
-        /// <returns>Either dynamic object or <c>null</c></returns>
-        protected async Task<dynamic> DownloadEntityToDynamicObject(
-            Uri uri,
-            PackCntRuntimeOptions runtimeOptions = null,
-            bool allowFakeResponses = false)
-        {
-            // prepare receing the descriptors
-            dynamic resObj = null;
-
-            // GET
-            await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                sourceUri: uri,
-                allowFakeResponses: allowFakeResponses,
-                runtimeOptions: runtimeOptions,
-                lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
-                {
-                    if (code != HttpStatusCode.OK)
-                        return;
-
-                    try
-                    {
-                        // try working with dynamic objects
-                        using (StreamReader reader = new StreamReader(ms, System.Text.Encoding.UTF8, true))
-                        using (var jsonTextReader = new JsonTextReader(reader))
-                        {
-                            JsonSerializer serializer = new JsonSerializer();
-                            resObj = serializer.Deserialize(jsonTextReader);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        runtimeOptions?.Log?.Error(ex, "Parsing initially downloaded AAS");
-                    }
-                });
-
-            return resObj;
-        }
+        
 
         private async Task<bool> FromRegistryGetAasAndSubmodels(            
             OnDemandListIdentifiable<IAssetAdministrationShell> prepAas, 
@@ -747,7 +563,7 @@ namespace AasxPackageLogic.PackageCentral
                     }
 
                 // ok
-                var aas = await DownloadIdentifiableToOK<Aas.IAssetAdministrationShell>(
+                var aas = await PackageHttpDownloadUtil.DownloadIdentifiableToOK<Aas.IAssetAdministrationShell>(
                     aasSi.Endpoint, runtimeOptions, allowFakeResponses);
                 if (aas == null)
                 {
@@ -791,7 +607,7 @@ namespace AasxPackageLogic.PackageCentral
                 if (!record.AutoLoadOnDemand)
                 {
                     // be prepared to download them
-                    var numRes = await DownloadListOfIdentifiables<Aas.ISubmodel, AasIdentifiableSideInfo>(
+                    var numRes = await PackageHttpDownloadUtil.DownloadListOfIdentifiables<Aas.ISubmodel, AasIdentifiableSideInfo>(
                         smRegged,
                         lambdaGetLocation: (si) => si.Endpoint,
                         runtimeOptions: runtimeOptions,
@@ -895,7 +711,7 @@ namespace AasxPackageLogic.PackageCentral
                     operationFound = true;
 
                     // prepare receing the descriptors
-                    var resObj = await DownloadEntityToDynamicObject(
+                    var resObj = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
                         new Uri(fullItemLocation), runtimeOptions, allowFakeResponses);
 
                     // Note: the result format for GetAllAAS and GetAllAssetAdministrationShellIdsByAssetLink
@@ -917,7 +733,7 @@ namespace AasxPackageLogic.PackageCentral
                     {
                         // in res, have only an id. Get the descriptor
                         var id = "" + res;
-                        var singleDesc = await DownloadEntityToDynamicObject(
+                        var singleDesc = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
                                 BuildUriForRegistrySingleAAS(baseUri, id, encryptIds: true), 
                                 runtimeOptions, allowFakeResponses);
                         if (singleDesc == null || !HasProperty(singleDesc, "endpoints"))
@@ -2356,7 +2172,7 @@ namespace AasxPackageLogic.PackageCentral
                 {
                     var baseUri = new Uri(recordJob.BaseAddress);
 
-                    var numRes = await DownloadListOfIdentifiables<Aas.IIdentifiable, AnyUiDialogueDataGridRow>(
+                    var numRes = await PackageHttpDownloadUtil.DownloadListOfIdentifiables<Aas.IIdentifiable, AnyUiDialogueDataGridRow>(
                         rows,
                         lambdaGetLocation: (row) =>
                         {
@@ -2671,7 +2487,7 @@ namespace AasxPackageLogic.PackageCentral
                     var baseUri = new Uri(recordJob.BaseAddress);
 
                     // first, test which ids exist as CD in repo
-                    await DownloadListOfIdentifiables<Aas.IConceptDescription, string>(
+                    await PackageHttpDownloadUtil.DownloadListOfIdentifiables<Aas.IConceptDescription, string>(
                         cdIdsDis,
                         lambdaGetLocation: (id) =>
                         {
@@ -2715,7 +2531,8 @@ namespace AasxPackageLogic.PackageCentral
             // test
             if (cdExist.Count < 1)
             {
-                runtimeOptions?.Log.Error("No ConceptDescriptions to delete found. Aborting! Location: {0}",
+                runtimeOptions?.Log.Info(StoredPrint.Color.Blue, 
+                    "No ConceptDescriptions to delete found. Finalizing! Location: {0}",
                     recordJob.BaseAddress);
                 return false;
             }
@@ -2753,42 +2570,40 @@ namespace AasxPackageLogic.PackageCentral
                 {
                     var baseUri = new Uri(recordJob.BaseAddress);
 
-                    // first, test which ids exist as CD in repo
-
-                    var numRes = await DownloadListOfIdentifiables<Aas.IConceptDescription, string>(
-                        cdIdsDis,
-                        lambdaGetLocation: (id) =>
+                    // second, send deletes
+                    await PackageHttpDownloadUtil.DeleteListOfEntities<Aas.IConceptDescription>(
+                        cdExist,
+                        lambdaGetLocation: (cd) =>
                         {
                             // return new Uri("https://eis-data.aas-voyager.com/shells/aHR0cHM6Ly9uZXcuYWJiLmNvbS9wcm9kdWN0cy9kZS8yQ1NSMjU1MTYzUjExNjUvYWFz");
-                            return BuildUriForRepoSingleCD(baseUri, id, encryptIds: true);
+                            return BuildUriForRepoSingleCD(baseUri, cd.Id, encryptIds: true);
                         },
                         runtimeOptions: runtimeOptions,
                         useParallel: Options.Curr.MaxParallelOps > 1,
-                        lambdaDownloadDoneOrFail: (code, idf, contentFn, id) =>
+                        lambdaDeleteDoneOrFail: (code, content, cd2) =>
                         {
                             // stat
                             Action<bool> lambdaStat = (ok) =>
                             {
                                 if (ok) { numOK++; } else { numNOK++; };
-                                ucProgTest.Info = $"{numOK} entities exist, {numNOK} entities NOT found in {numTotal}\n" +
-                                        $"Id: {idf?.Id}";
-                                ucProgTest.Progress = 100.0 * (1.0 * (numOK + numNOK) / Math.Max(1, numTotal));
+                                ucProgDel.Info = $"{numOK} entities exist, {numNOK} entities NOT found in {numTotal}\n" +
+                                        $"Id: {cd2?.Id}";
+                                ucProgDel.Progress = 100.0 * (1.0 * (numOK + numNOK) / Math.Max(1, numTotal));
                             };
 
                             // any error?
-                            if (code != HttpStatusCode.OK || idf == null)
+                            if (code != HttpStatusCode.OK && code != HttpStatusCode.NoContent)
                             {
                                 lambdaStat(false);
                                 return;
                             }
 
-                            // remember for later
-                            cdExist.Add(idf);
+                            // ok
                             lambdaStat(true);
                         });
                 }
 
-                ucProgTest.DialogShallClose = true;
+                ucProgDel.DialogShallClose = true;
 
             };
             workerDel.RunWorkerAsync();
