@@ -70,6 +70,11 @@ namespace AasxPackageLogic.PackageCentral
         /// Allow simulating a repo by predefined JSON web responses.
         /// </summary>
         public bool AllowFakeResponses = false;
+
+        /// <summary>
+        /// Log more 
+        /// </summary>
+        public bool ExtendedConnectionDebug = false;
     }
 
     /// <summary>

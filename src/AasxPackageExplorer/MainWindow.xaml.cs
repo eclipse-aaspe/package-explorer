@@ -356,7 +356,8 @@ namespace AasxPackageExplorer
                     else
                         return ucic.MessageBoxShow(content, text, title, buttons);
                 },
-                AllowFakeResponses = Options.Curr.AllowFakeResponses
+                AllowFakeResponses = Options.Curr.AllowFakeResponses,
+                ExtendedConnectionDebug = Options.Curr.ExtendedConnectionDebug
             };
             return ro;
         }

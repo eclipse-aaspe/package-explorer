@@ -34,6 +34,7 @@ using System.Web;
 using Newtonsoft.Json;
 using System.Dynamic;
 using Newtonsoft.Json.Linq;
+using System.ComponentModel;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -54,7 +55,7 @@ namespace AasxPackageLogic.PackageCentral
     /// <summary>
     /// This container represents a subset of AAS elements retrieved from a HTTP / networked repository.
     /// </summary>
-    [DisplayName("HttpRepoSubset")]
+    [AasxIntegrationBase.DisplayName("HttpRepoSubset")]
     public class PackageContainerHttpRepoSubset : PackageContainerRepoItem
     {
         /// <summary>
@@ -267,10 +268,16 @@ namespace AasxPackageLogic.PackageCentral
             if (baseUri == null || relativeUri?.HasContent() != true)
                 return null;
 
-            if (Uri.TryCreate(baseUri, relativeUri, out var res))
-                return res;
+            // for problems see:
+            // https://stackoverflow.com/questions/372865/path-combine-for-urls
+            //if (Uri.TryCreate(baseUri, relativeUri, out var res))
+            //    return res;
+            //return null;
 
-            return null;
+            var bu = baseUri.ToString().TrimEnd('/');
+            bu += "/" + relativeUri.TrimStart('/');
+
+            return new Uri(bu);
         }
 
         //
@@ -299,15 +306,25 @@ namespace AasxPackageLogic.PackageCentral
             return uri.Uri;
         }
 
-        public static Uri BuildUriForRepoSingleAAS(Uri baseUri, string id, bool encryptIds = true)
+        public static Uri BuildUriForRepoSingleAAS(
+            Uri baseUri, string id, 
+            bool encryptIds = true,
+            bool usePost = false)
         {
             // access
             if (id?.HasContent() != true)
                 return null;
 
             // try combine
-            var smidenc = encryptIds ? AdminShellUtil.Base64UrlEncode(id) : id;
-            return CombineUri(baseUri, $"shells/{smidenc}");
+            if (!usePost)
+            {
+                var smidenc = encryptIds ? AdminShellUtil.Base64UrlEncode(id) : id;
+                return CombineUri(baseUri, $"shells/{smidenc}");
+            }
+            else
+            {
+                return CombineUri(baseUri, "shells");
+            }
         }
 
         public static Uri BuildUriForRepoAasThumbnail(Uri baseUri, string id, bool encryptIds = true)
@@ -337,18 +354,31 @@ namespace AasxPackageLogic.PackageCentral
             return uri.Uri;
         }
 
-        public static Uri BuildUriForRepoSingleSubmodel(Uri baseUri, string id, bool encryptIds = true)
+        public static Uri BuildUriForRepoSingleSubmodel(
+            Uri baseUri, string id, 
+            bool encryptIds = true,
+            bool usePost = false)
         {
             // access
             if (id?.HasContent() != true)
                 return null;
 
             // try combine
-            var smidenc = encryptIds ? AdminShellUtil.Base64UrlEncode(id) : id;
-            return CombineUri(baseUri, $"submodels/{smidenc}");
+            if (!usePost)
+            {
+                var smidenc = encryptIds ? AdminShellUtil.Base64UrlEncode(id) : id;
+                return CombineUri(baseUri, $"submodels/{smidenc}");
+            }
+            else
+            {
+                return CombineUri(baseUri, "submodels");
+            }
         }
 
-        public static Uri BuildUriForRepoSingleSubmodel(Uri baseUri, Aas.IReference submodelRef)
+        public static Uri BuildUriForRepoSingleSubmodel(
+            Uri baseUri, Aas.IReference submodelRef,
+            bool encryptIds = true,
+            bool usePost = false)
         {
             // access
             if (baseUri == null || submodelRef?.IsValid() != true
@@ -356,18 +386,29 @@ namespace AasxPackageLogic.PackageCentral
                 return null;
 
             // pass on
-            return BuildUriForRepoSingleSubmodel(baseUri, submodelRef.Keys[0].Value);
+            return BuildUriForRepoSingleSubmodel(baseUri, submodelRef.Keys[0].Value,
+                encryptIds: encryptIds, usePost: usePost);
         }
 
-        public static Uri BuildUriForRepoSingleCD(Uri baseUri, string id, bool encryptIds = true)
+        public static Uri BuildUriForRepoSingleCD(
+            Uri baseUri, string id, 
+            bool encryptIds = true,
+            bool usePost = false)
         {
             // access
             if (id?.HasContent() != true)
                 return null;
 
             // try combine
-            var smidenc = encryptIds ? AdminShellUtil.Base64UrlEncode(id) : id;
-            return CombineUri(baseUri, $"concept-descriptions/{smidenc}");
+            if (!usePost)
+            {
+                var smidenc = encryptIds ? AdminShellUtil.Base64UrlEncode(id) : id;
+                return CombineUri(baseUri, $"concept-descriptions/{smidenc}");
+            }
+            else
+            {
+                return CombineUri(baseUri, "concept-descriptions");
+            }
         }
 
         /// <summary>
@@ -471,11 +512,12 @@ namespace AasxPackageLogic.PackageCentral
         /// <typeparam name="E">Type of entity element</typeparam>
         protected static async Task<int> DownloadListOfIdentifiables<T, E>(
             IEnumerable<E> entities,
-            Func<E, Uri> lambdaGetLocation,
+            Func<E, Uri> lambdaGetLocation,            
             Action<HttpStatusCode, T, string, E> lambdaDownloadDoneOrFail,
             PackCntRuntimeOptions runtimeOptions = null,
             bool allowFakeResponses = false,
-            bool useParallel = false) where T : Aas.IIdentifiable
+            bool useParallel = false,
+            Func<E, Type> lambdaGetTypeToSerialize = null) where T : Aas.IIdentifiable
         {
             // access
             if (entities == null)
@@ -485,8 +527,19 @@ namespace AasxPackageLogic.PackageCentral
             int numRes = 0;
 
             // lambda for deserialize
-            Func<JsonNode, T> lambdaDeserialize = (node) =>
+            Func<JsonNode, E, T> lambdaDeserialize = (node, ent) =>
             {
+                if (typeof(T).IsInterface && lambdaGetTypeToSerialize != null)
+                {
+                    var t = lambdaGetTypeToSerialize(ent);
+                    if (t.IsAssignableTo(typeof(Aas.IAssetAdministrationShell)))
+                        return (T)((Aas.IIdentifiable)Jsonization.Deserialize.AssetAdministrationShellFrom(node));
+                    if (t.IsAssignableTo(typeof(Aas.ISubmodel)))
+                        return (T)((Aas.IIdentifiable)Jsonization.Deserialize.SubmodelFrom(node));
+                    if (t.IsAssignableTo(typeof(Aas.IConceptDescription)))
+                        return (T)((Aas.IIdentifiable)Jsonization.Deserialize.ConceptDescriptionFrom(node));
+                }
+
                 if (typeof(T).IsAssignableFrom(typeof(Aas.IAssetAdministrationShell)))
                     return (T)((Aas.IIdentifiable)Jsonization.Deserialize.AssetAdministrationShellFrom(node));
                 if (typeof(T).IsAssignableFrom(typeof(Aas.ISubmodel)))
@@ -518,7 +571,7 @@ namespace AasxPackageLogic.PackageCentral
                             try
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                                T idf = lambdaDeserialize(node);
+                                T idf = lambdaDeserialize(node, ent);
                                 lambdaDownloadDoneOrFail?.Invoke(code, idf, contentFn, ent);
                                 if (code == HttpStatusCode.OK)
                                     numRes++;
@@ -526,6 +579,7 @@ namespace AasxPackageLogic.PackageCentral
                             catch (Exception ex)
                             {
                                 runtimeOptions?.Log?.Error(ex, $"Parsing downloaded {typeof(T).GetDisplayName()}");
+                                lambdaDownloadDoneOrFail?.Invoke(HttpStatusCode.UnprocessableEntity, default(T), null, ent);
                             }
                         });
                 }
@@ -554,7 +608,7 @@ namespace AasxPackageLogic.PackageCentral
                                 try
                                 {
                                     var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                                    T idf = lambdaDeserialize(node);
+                                    T idf = lambdaDeserialize(node, ent);
                                     lambdaDownloadDoneOrFail?.Invoke(code, idf, contentFn, thisEnt);
                                     if (code == HttpStatusCode.OK)
                                         numRes++;
@@ -562,6 +616,7 @@ namespace AasxPackageLogic.PackageCentral
                                 catch (Exception ex)
                                 {
                                     runtimeOptions?.Log?.Error(ex, $"Parsing downloaded {typeof(T).GetDisplayName()}");
+                                    lambdaDownloadDoneOrFail?.Invoke(HttpStatusCode.UnprocessableEntity, default(T), null, thisEnt);
                                 }
                             });
                     });
@@ -1375,59 +1430,102 @@ namespace AasxPackageLogic.PackageCentral
             public enum BaseTypeEnum { Repository, Registry }
             public static string[] BaseTypeEnumNames = new[] { "Repository", "Registry" };
 
+            [AasxMenuArgument(help: "Specifies the part of the URI of the Repository/ Registry, which is " +
+                "common to all operations.")]
+            public string BaseAddress = "";
             // public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
             // public string BaseAddress = "https://eis-data.aas-voyager.com/";
-            // public string BaseAddress = "http://smt-repo.admin-shell-io.com/";
-            public string BaseAddress = "https://techday2-registry.admin-shell-io.com/";
+            // public string BaseAddress = "http://smt-repo.admin-shell-io.com/api/v3.0";
+            // public string BaseAddress = "https://techday2-registry.admin-shell-io.com/";
 
             // public BaseTypeEnum BaseType = BaseTypeEnum.Repository;
+            [AasxMenuArgument(help: "Either: Repository or Registry")]
             public BaseTypeEnum BaseType = BaseTypeEnum.Registry;
 
+            [AasxMenuArgument(help: "Retrieve all AAS from Repository or Registry. " +
+                "Note: Use of PageLimit is recommended.")]
             public bool GetAllAas;
 
-            public bool GetSingleAas;
+            [AasxMenuArgument(help: "Get a single AAS, which is specified by AasId.")]
+            public bool GetSingleAas = true;
+
+            [AasxMenuArgument(help: "Specicies the Id of the AAS to be retrieved.")]
             // public string AasId = "https://new.abb.com/products/de/2CSF204101R1400/aas";
             public string AasId = "";
             // public string AasId = "https://phoenixcontact.com/qr/2900542/1/aas/1B";
 
-            public bool GetAasByAssetLink = true;
-            public string AssetId = "https://pk.harting.com/?.20P=ZSN1";
+            [AasxMenuArgument(help: "Get a single AAS, which is specified by a asset link/ asset id.")]
+            public bool GetAasByAssetLink;
+            public string AssetId = "";
+            // public string AssetId = "https://pk.harting.com/?.20P=ZSN1";
 
+            [AasxMenuArgument(help: "Retrieve all Submodels from Repository or Registry. " +
+                "Note: Use of PageLimit is recommended.")]
             public bool GetAllSubmodel;
 
+            [AasxMenuArgument(help: "Get a single AAS, which is specified by SmId.")]
             public bool GetSingleSubmodel;
+
+            [AasxMenuArgument(help: "Specicies the Id of the Submodel to be retrieved.")]
             // public string SmId = "aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMjAxNV82MDIwXzMwMTJfMDU4NQ==";
             public string SmId = "";
 
+            [AasxMenuArgument(help: "Get a single ConceptDescription, which is specified by CdId.")]
             public bool GetSingleCD;
+
+            [AasxMenuArgument(help: "Specicies the Id of the ConceptDescription to be retrieved.")]
             public string CdId;
 
+            [AasxMenuArgument(help: "Executes a GraphQL query on the Repository/ Registry. ")]
             public bool ExecuteQuery;
+
+            [AasxMenuArgument(help: "Specicies the contents of the query script to be executed. " +
+                "Note: Complex syntax and quoting needs to be applied!")]
             public string QueryScript = "";
             // public string QueryScript = "{\r\n  searchSMs(\r\n    expression: \"\"\"$LOG\r\n     filter=\r\n      or(\r\n        str_contains(sm.IdShort, \"Technical\"),\r\n        str_contains(sm.IdShort, \"Nameplate\")\r\n      )\r\n   \"\"\"\r\n  )\r\n  {\r\n    url\r\n    smId\r\n  }\r\n}";
             // public string QueryScript = "{\r\n  searchSMs(\r\n    expression: \"\"\"$LOG$QL\r\n          ( contains(sm.idShort, \"Technical\") and\r\n          sme.value ge 100 and\r\n          sme.value le 200 )\r\n        or\r\n          ( contains(sm.idShort, \"Nameplate\") and\r\n          contains(sme.idShort,\"ManufacturerName\") and\r\n          not(contains(sme.value,\"Phoenix\")))\r\n    \"\"\"\r\n  )\r\n  {\r\n    url\r\n    smId\r\n  }\r\n}";
 
+            [AasxMenuArgument(help: "When a AAS is retrieved, try to retrieve Submodels as well. " +
+                "Note: For this retrieveal, AutoLoadOnDemand may apply.")]
             public bool AutoLoadSubmodels = true;
+
+            [AasxMenuArgument(help: "When a Submodel is retrieved, try to retrieve ConceptDescriptions " +
+                "identified by semanticIds as well. " +
+                "Note: For this retrieveal, AutoLoadOnDemand may apply. " +
+                "Note: This might significantly increase the number of retrievals.")]
             public bool AutoLoadCds = true;
+
+            [AasxMenuArgument(help: "When a AAS is retrieved, try to retrieve the associated thumbnail as well.")]
             public bool AutoLoadThumbnails = true;
+            
+            [AasxMenuArgument(help: "When a Submodel/ ConceptDescription is auto-loaded, either load the element " +
+                "directly (true) or just create a side-information for later fetch.")]
             public bool AutoLoadOnDemand = true;
+
+            [AasxMenuArgument(help: "Encrypt given Ids.")]
             public bool EncryptIds = true;
+
+            [AasxMenuArgument(help: "Stay connected with Repository/ Registry and eventually subscribe to " +
+                "AAS events.")]
             public bool StayConnected;
 
             /// <summary>
-            /// Pagenation. Limit to <c>n</c> resulsts.
+            /// Pagenation. Limit to <c>n</c> results.
             /// </summary>
+            [AasxMenuArgument(help: "Pagenation. Limit to n results.")]
             public int PageLimit = 15;
 
             /// <summary>
-            /// When fetching, skip first <c>n</c> elements of the results
+            /// When fetching, skip first <c>n</c> elements of the results.
             /// </summary>
+            [AasxMenuArgument(help: "When fetching, skip first n elements of the results.")] 
             public int PageSkip = 0;
 
             /// <summary>
             /// This offset in elements is computed by this client by "counting". It does NOT come form
             /// the server!
             /// </summary>
+            [JsonIgnore]
             public int PageOffset;
 
             public void SetQueryChoices(int choice)
@@ -1640,6 +1738,9 @@ namespace AasxPackageLogic.PackageCentral
 
             // arguments by reflection
             ticket?.ArgValue?.PopulateObjectFromArgs(record);
+
+            if (ticket?.ScriptMode == true)
+                return true;
 
             // reserve some states for the inner viewing routine
             bool wrap = false;
@@ -2016,32 +2117,16 @@ namespace AasxPackageLogic.PackageCentral
         {
             // public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
             public string BaseAddress = "https://eis-data.aas-voyager.com/";
-            // public string BaseAddress = "http://smt-repo.admin-shell-io.com/";
+            // public string BaseAddress = "http://smt-repo.admin-shell-io.com/api/v3.0";
             // public string BaseAddress = "https://techday2-registry.admin-shell-io.com/";
 
             public ConnectExtendedRecord.BaseTypeEnum BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository;
             // public ConnectExtendedRecord.BaseTypeEnum BaseType = ConnectExtendedRecord.BaseTypeEnum.Registry;
 
-            public bool IncludeSubmodels = true;
-            public bool IncludeCDs = true;
+            public bool IncludeSubmodels = false;
+            public bool IncludeCDs = false;
 
             public bool OverwriteIfExist = true;
-        }
-
-        protected class UploadAssistantElement
-        {
-            public string TypeName = "";
-            public string Id = "";
-            public string IdShort = "";
-            public string VersionServer = "";
-            public string VersionLocal = "";
-
-            public bool Upload = true;
-        }
-
-        protected class UploadAssistantElementsRecord
-        {
-            public List<UploadAssistantElement> Elements = new List<UploadAssistantElement>();
         }
 
         public static async Task<bool> PerformUploadAssistant(
@@ -2050,7 +2135,8 @@ namespace AasxPackageLogic.PackageCentral
             string caption,
             AdminShellPackageEnvBase packEnv,
             IEnumerable<Aas.IIdentifiable> idfs,
-            PackCntRuntimeOptions runtimeOptions = null)
+            PackCntRuntimeOptions runtimeOptions = null,
+            PackageContainerListBase containerList = null)
         {
             // access
             if (displayContext == null || caption?.HasContent() != true || packEnv == null || idfs == null)
@@ -2097,10 +2183,13 @@ namespace AasxPackageLogic.PackageCentral
             var numSm = idfs.Where((idf) => idf is Aas.ISubmodel).Count();
             var numCD = idfs.Where((idf) => idf is Aas.IConceptDescription).Count();
 
-            // Screen 1 : Data
+            //
+            // Screen 1 : Job attributes
+            //
+            
             var recordJob = new UploadAssistantJobRecord();
-            var uc = new AnyUiDialogueDataModalPanel(caption);
-            uc.ActivateRenderPanel(recordJob,
+            var ucJob = new AnyUiDialogueDataModalPanel(caption);
+            ucJob.ActivateRenderPanel(recordJob,
                 disableScrollArea: false,
                 dialogButtons: AnyUiMessageBoxButton.OK,
                 // extraButtons: new[] { "A", "B" },
@@ -2200,7 +2289,7 @@ namespace AasxPackageLogic.PackageCentral
                     return g;
                 });
 
-            if (!(await displayContext.StartFlyoverModalAsync(uc)))
+            if (!(await displayContext.StartFlyoverModalAsync(ucJob)))
                 return false;
 
             // sort Identifiables to look nice
@@ -2235,28 +2324,44 @@ namespace AasxPackageLogic.PackageCentral
                 .Select((idf) => new AnyUiDialogueDataGridRow() { 
                     Tag = idf,
                     Cells = (new[] { 
-                        // Type, IdShort, Id, Ver. Local, Exists?, Ver. Server
+                        // Type, IdShort, Id, Ver. Local, Method, Ver. Server
                         "" + idf?.GetSelfDescription()?.ElementAbbreviation,
                         "" + idf?.IdShort,
                         "" + idf?.Id, 
                         "" + (idf?.Administration?.ToStringExtended(1) ?? "-"),
-                        "New?",
+                        "POST?",
                         "-"
                     }).ToList()
-                });
+                })
+                .ToList();
+            
+            //
+            // Screen 2: make a progress on the check of existence
+            //
+            var ucProgExist = new AnyUiDialogueDataProgress(
+                "Check existence of Identifiables",
+                info: "Preparing ...", symbol: AnyUiMessageBoxImage.Information);
+            ucProgExist.Progress = 0.0;
 
-            // ask server
-            if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+            var numTotal = rows.Count;
+            var numOK = 0;
+            var numNOK = 0;
+
+            // setup worker
+            var workerCheck = new BackgroundWorker();
+            workerCheck.DoWork += async (sender, e) =>
             {
-                // for the Repo, there is simply no other chance than to ask for existence of
-                // an Identifiable that to try downloading it ..
+                // ask server
+                if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+                {
+                    var baseUri = new Uri(recordJob.BaseAddress);
 
-                var baseUri = new Uri(recordJob.BaseAddress);
-
-                var numRes = await DownloadListOfIdentifiables<Aas.ISubmodel, AnyUiDialogueDataGridRow>(
+                    var numRes = await DownloadListOfIdentifiables<Aas.IIdentifiable, AnyUiDialogueDataGridRow>(
                         rows,
                         lambdaGetLocation: (row) =>
                         {
+                            // return new Uri("https://eis-data.aas-voyager.com/shells/aHR0cHM6Ly9uZXcuYWJiLmNvbS9wcm9kdWN0cy9kZS8yQ1NSMjU1MTYzUjExNjUvYWFz");
+
                             if (!(row.Tag is Aas.IIdentifiable idf))
                                 return null;
                             if (idf is Aas.IAssetAdministrationShell)
@@ -2267,37 +2372,431 @@ namespace AasxPackageLogic.PackageCentral
                                 return BuildUriForRepoSingleCD(baseUri, idf?.Id, encryptIds: true);
                             return null;
                         },
+                        lambdaGetTypeToSerialize: (row) => row.Tag?.GetType(),
                         runtimeOptions: runtimeOptions,
                         allowFakeResponses: false,
-                        lambdaDownloadDoneOrFail: (code, sm, contentFn, si) =>
+                        useParallel: Options.Curr.MaxParallelOps > 1,
+                        lambdaDownloadDoneOrFail: (code, idf, contentFn, row) =>
                         {
-                            // error by HTTP?
-                            if (code != HttpStatusCode.OK)
+                            // can change row?
+                            if (row?.Cells == null || row.Cells.Count < 6)
+                                return;
+
+                            Action<bool> lambdaStat = (found) =>
                             {
+                                if (found) { numOK++; } else { numNOK++; };
+                                ucProgExist.Info = $"{numOK} entities found, {numNOK} entities missed of {numTotal}\n" +
+                                    $"Id: {idf?.Id}";
+                                ucProgExist.Progress = 100.0 * (1.0 * (numOK + numNOK) / Math.Max(1, numTotal));
+                            };
+
+                            // error by HTTP?
+                            if (code == HttpStatusCode.NotFound)
+                            {
+                                row.Cells[4] = "POST(404)";
+                                lambdaStat(false);
                                 return;
                             }
 
-                            // error by no data available?
-                            if (false)
+                            if (code != HttpStatusCode.OK || idf == null)
                             {
+                                row.Cells[4] = $"POST({(int)code})";
+                                lambdaStat(false);
+                                return;
+                            }
 
+                            if (row?.Cells != null && row.Cells.Count >= 6)
+                            {
+                                // status
+                                row.Cells[4] = "-";
+                                if (recordJob.OverwriteIfExist)
+                                    row.Cells[4] = "PUT";
+                                row.Cells[5] = (idf.Administration?.ToStringExtended(1)) ?? "-";
+                                lambdaStat(true);
                             }
                         });
-            }
 
-            // show list of elements
-            var uc2 = new AnyUiDialogueDataSelectFromDataGrid(
+                }
+
+                ucProgExist.DialogShallClose = true;
+
+            };
+            workerCheck.RunWorkerAsync();
+
+            // close again
+            await displayContext.StartFlyoverModalAsync(ucProgExist);
+
+            //
+            // Screen 3: show list of elements
+            //
+            var ucSelect = new AnyUiDialogueDataSelectFromDataGrid(
                         "Select element(s) to be uploaded ..",
                         maxWidth: 9999);
 
-            uc2.ColumnDefs = AnyUiListOfGridLength.Parse(new[] { "50:", "1*", "3*", "70:", "70:", "70:" });
-            uc2.ColumnHeaders = new[] { "Type", "IdShort", "Id", "V.Local", "Exist?", "V.Server" };
-            uc2.Rows = rows.ToList();
+            ucSelect.ColumnDefs = AnyUiListOfGridLength.Parse(new[] { "50:", "1*", "3*", "70:", "70:", "70:" });
+            ucSelect.ColumnHeaders = new[] { "Type", "IdShort", "Id", "V.Local", "Exist?", "V.Server" };
+            ucSelect.Rows = rows.ToList();
+            ucSelect.EmptySelectOk = true;
 
-            if (!(await displayContext.StartFlyoverModalAsync(uc2)))
+            if (!(await displayContext.StartFlyoverModalAsync(ucSelect)))
                 return false;
 
+            // translate result items
+            var rowsToUpload = ucSelect.ResultItems;
+            if (rowsToUpload == null || rowsToUpload.Count() < 1)
+                // nothings means: everything!
+                rowsToUpload = rows;
+
+            //
+            // Screen 4: make a progress on the upload of Identifiables
+            //
+            var ucProgUpload = new AnyUiDialogueDataProgress(
+                "Upload of Identifiables",
+                info: "Preparing ...", symbol: AnyUiMessageBoxImage.Information);
+            ucProgUpload.Progress = 0.0;
+
+            numTotal = rowsToUpload
+                .Where((row) => row?.Cells != null && row?.Cells.Count >= 6 &&
+                    row.Cells[4].StartsWith("P"))
+                .Count();
+            numOK = 0;
+            numNOK = 0;
+
+            // setup worker
+            var workerUpload = new BackgroundWorker();
+            workerUpload.DoWork += async (sender, e) =>
+            {
+                // ask server
+                if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+                {
+                    var baseUri = new Uri(recordJob.BaseAddress);
+
+                    // make a sequential upload, first
+                    foreach (var row in rowsToUpload)
+                    {
+                        // idf?
+                        if (!(row?.Tag is Aas.IIdentifiable idf))
+                            continue;
+
+                        // put / post
+                        var usePost = row.Cells != null && row.Cells.Count >= 6 &&
+                                row.Cells[4].StartsWith("POST");
+
+                        // location
+                        Uri location = null;
+                        if (idf is Aas.IAssetAdministrationShell)
+                            location = BuildUriForRepoSingleAAS(baseUri, idf?.Id, encryptIds: true, usePost: usePost);
+                        if (idf is Aas.ISubmodel)
+                            location = BuildUriForRepoSingleSubmodel(baseUri, idf?.Id, encryptIds: true, usePost: usePost);
+                        if (idf is Aas.IConceptDescription)
+                            location = BuildUriForRepoSingleCD(baseUri, idf?.Id, encryptIds: true, usePost: usePost);
+                        if (location == null)
+                            continue;
+
+                        var res2 = await PackageHttpDownloadUtil.HttpPutPostIdentifiable(
+                            idf,
+                            destUri: location,
+                            usePost: usePost,
+                            runtimeOptions: runtimeOptions,
+                            containerList: containerList);
+
+                        Action<bool> lambdaStat = (ok) =>
+                        {
+                            if (ok) { numOK++; } else { numNOK++; };
+                            ucProgUpload.Info = $"{numOK} entities OK, {numNOK} entities NOT OK of {numTotal}\n" +
+                                    $"Id: {idf?.Id}";
+                            ucProgUpload.Progress = 100.0 * (1.0 * (numOK + numNOK) / Math.Max(1, numTotal));
+                        };
+
+                        if (res2 != null 
+                            && (res2.Item1 == HttpStatusCode.Created || res2.Item1 == HttpStatusCode.NoContent))
+                        {
+                            lambdaStat(true);
+                        }
+                        else
+                        {
+                            runtimeOptions?.Log?.Error("Put/Post of modified Identifiable returned error {0} for id={1} at {2}",
+                                "" + ((res2 != null) ? (int)res2.Item1 : -1),
+                                idf.Id,
+                                location.ToString());
+                            lambdaStat(false);
+                        }
+                    }
+                }
+
+                ucProgUpload.DialogShallClose = true;
+
+            };
+            workerUpload.RunWorkerAsync();
+
+            // close again
+            await displayContext.StartFlyoverModalAsync(ucProgUpload);
+
+            // make stat on Log
+            if (numNOK > 0)
+            {
+                runtimeOptions?.Log?.Error("When Put/ Push to Registry/ Repository, {0} element(s) were not uploaded " +
+                    "while {1} uploaded ok. Location: {2}",
+                    numNOK, numOK, recordJob.BaseAddress);
+            }
+            else
+            {
+                runtimeOptions?.Log?.Info(StoredPrint.Color.Blue, "Successful Put/ Push of {0} element(s) " +
+                    "to Registry/ Repository. Location {1}",
+                    numOK, recordJob.BaseAddress);
+            }
+
             // ok
+            return true;
+        }
+
+        protected class DeleteAssistantJobRecord
+        {
+            // public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
+            public string BaseAddress = "https://eis-data.aas-voyager.com/";
+            // public string BaseAddress = "http://smt-repo.admin-shell-io.com/api/v3.0";
+            // public string BaseAddress = "https://techday2-registry.admin-shell-io.com/";
+
+            public ConnectExtendedRecord.BaseTypeEnum BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository;
+            // public ConnectExtendedRecord.BaseTypeEnum BaseType = ConnectExtendedRecord.BaseTypeEnum.Registry;
+        }
+
+        public static async Task<bool> AssistantDeleteCDsInRepo(
+            AasxMenuActionTicket ticket,
+            AnyUiContextBase displayContext,
+            string caption,
+            IEnumerable<string> cdIds,
+            PackCntRuntimeOptions runtimeOptions = null,
+            PackageContainerListBase containerList = null)
+        {
+            // access
+            if (displayContext == null || caption?.HasContent() != true || cdIds == null || cdIds.Count() < 1)
+                return false;
+
+            var cdIdsDis = cdIds.Distinct().ToList();
+
+            //
+            // Screen 1 : ask for job / Repo
+            //
+
+            var recordJob = new DeleteAssistantJobRecord();
+            var ucJob = new AnyUiDialogueDataModalPanel(caption);
+            ucJob.ActivateRenderPanel(recordJob,
+                disableScrollArea: false,
+                dialogButtons: AnyUiMessageBoxButton.OK,
+                renderPanel: (uci) =>
+                {
+                    // create panel
+                    var panel = new AnyUiStackPanel();
+                    var helper = new AnyUiSmallWidgetToolkit();
+
+                    var g = helper.AddSmallGrid(25, 2, new[] { "200:", "*" },
+                                padding: new AnyUiThickness(0, 5, 0, 5),
+                                margin: new AnyUiThickness(10, 0, 30, 0));
+
+                    panel.Add(g);
+
+                    // dynamic rows
+                    int row = 0;
+
+                    // Statistics
+                    helper.AddSmallLabelTo(g, row, 0, content: "Requested to delete:");
+                    helper.AddSmallLabelTo(g, row + 0, 1, content: "# of ConceptDescription: " + cdIds.Count());
+
+                    row += 1;
+
+                    // separation
+                    helper.AddSmallBorderTo(g, row, 0,
+                        borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
+                        colSpan: 2,
+                        margin: new AnyUiThickness(0, 0, 0, 20));
+                    row++;
+
+                    // Base address + Type
+                    helper.AddSmallLabelTo(g, row, 0, content: "Base address:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    var g2 = helper.AddSmallGridTo(g, row, 1, 1, 2, new[] { "#", "*" });
+
+                    AnyUiUIElement.SetIntFromControl(
+                            helper.Set(
+                                helper.AddSmallComboBoxTo(g2, 0, 0,
+                                    items: ConnectExtendedRecord.BaseTypeEnumNames,
+                                    selectedIndex: (int)recordJob.BaseType,
+                                    margin: new AnyUiThickness(0, 0, 5, 0),
+                                    padding: new AnyUiThickness(0, -1, 0, -3)),
+                                minWidth: 200, maxWidth: 200),
+                                (i) => { recordJob.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
+
+                    AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g2, 0, 1,
+                                    text: $"{recordJob.BaseAddress}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                            (s) => { recordJob.BaseAddress = s; });
+
+                    row++;
+
+                    // give back
+                    return g;
+                });
+
+            if (!(await displayContext.StartFlyoverModalAsync(ucJob)))
+                return false;
+
+            //
+            // Screen 2: make a progress on checking, which CDs are existing
+            //
+
+            var ucProgTest = new AnyUiDialogueDataProgress(
+                "Checking individual ConceptDescription to exist",
+                info: "Preparing ...", symbol: AnyUiMessageBoxImage.Information);
+            ucProgTest.Progress = 0.0;
+
+            var numTotal = cdIdsDis.Count;
+            var cdExist = new List<Aas.IConceptDescription>();
+            var numOK = 0;
+            var numNOK = 0;
+
+            // setup worker
+            var workerTest = new BackgroundWorker();
+            workerTest.DoWork += async (sender, e) =>
+            {
+                // ask server
+                if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+                {
+                    var baseUri = new Uri(recordJob.BaseAddress);
+
+                    // first, test which ids exist as CD in repo
+                    await DownloadListOfIdentifiables<Aas.IConceptDescription, string>(
+                        cdIdsDis,
+                        lambdaGetLocation: (id) =>
+                        {
+                            // return new Uri("https://eis-data.aas-voyager.com/shells/aHR0cHM6Ly9uZXcuYWJiLmNvbS9wcm9kdWN0cy9kZS8yQ1NSMjU1MTYzUjExNjUvYWFz");
+                            return BuildUriForRepoSingleCD(baseUri, id, encryptIds: true);
+                        },
+                        runtimeOptions: runtimeOptions,
+                        useParallel: Options.Curr.MaxParallelOps > 1,
+                        lambdaDownloadDoneOrFail: (code, idf, contentFn, id) =>
+                        {
+                            // stat
+                            Action<bool> lambdaStat = (ok) =>
+                            {
+                                if (ok) { numOK++; } else { numNOK++; };
+                                ucProgTest.Info = $"{numOK} entities exist, {numNOK} entities NOT found in {numTotal}\n" +
+                                        $"Id: {idf?.Id}";
+                                ucProgTest.Progress = 100.0 * (1.0 * (numOK + numNOK) / Math.Max(1, numTotal));
+                            };
+
+                            // any error?
+                            if (code != HttpStatusCode.OK || idf == null)
+                            {
+                                lambdaStat(false);
+                                return;
+                            }
+
+                            // remember for later
+                            cdExist.Add(idf);
+                            lambdaStat(true);
+                        });
+                }
+
+                ucProgTest.DialogShallClose = true;
+
+            };
+            workerTest.RunWorkerAsync();
+
+            // show and close again
+            await displayContext.StartFlyoverModalAsync(ucProgTest);
+
+            // test
+            if (cdExist.Count < 1)
+            {
+                runtimeOptions?.Log.Error("No ConceptDescriptions to delete found. Aborting! Location: {0}",
+                    recordJob.BaseAddress);
+                return false;
+            }
+            
+            // ask to proceed?
+            if (AnyUiMessageBoxResult.Yes != displayContext.MessageBoxFlyoutShow(
+                $"After checking individual ids, {cdExist.Count} ConceptDescriptions seem to " +
+                $"exist on the server. Proceed with deleting these?",
+                "Delete ConceptDescriptions",
+                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+            {
+                runtimeOptions?.Log.Info("Aborted.");
+                return false;
+            }
+
+            //
+            // Screen 4: make a progress on deleting
+            //
+
+            var ucProgDel = new AnyUiDialogueDataProgress(
+                "Deleting individual ConceptDescription to exist",
+                info: "Preparing ...", symbol: AnyUiMessageBoxImage.Information);
+            ucProgTest.Progress = 0.0;
+
+            numTotal = cdExist.Count;
+            numOK = 0;
+            numNOK = 0;
+
+            // setup worker
+            var workerDel = new BackgroundWorker();
+            workerDel.DoWork += async (sender, e) =>
+            {
+                // ask server
+                if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+                {
+                    var baseUri = new Uri(recordJob.BaseAddress);
+
+                    // first, test which ids exist as CD in repo
+
+                    var numRes = await DownloadListOfIdentifiables<Aas.IConceptDescription, string>(
+                        cdIdsDis,
+                        lambdaGetLocation: (id) =>
+                        {
+                            // return new Uri("https://eis-data.aas-voyager.com/shells/aHR0cHM6Ly9uZXcuYWJiLmNvbS9wcm9kdWN0cy9kZS8yQ1NSMjU1MTYzUjExNjUvYWFz");
+                            return BuildUriForRepoSingleCD(baseUri, id, encryptIds: true);
+                        },
+                        runtimeOptions: runtimeOptions,
+                        useParallel: Options.Curr.MaxParallelOps > 1,
+                        lambdaDownloadDoneOrFail: (code, idf, contentFn, id) =>
+                        {
+                            // stat
+                            Action<bool> lambdaStat = (ok) =>
+                            {
+                                if (ok) { numOK++; } else { numNOK++; };
+                                ucProgTest.Info = $"{numOK} entities exist, {numNOK} entities NOT found in {numTotal}\n" +
+                                        $"Id: {idf?.Id}";
+                                ucProgTest.Progress = 100.0 * (1.0 * (numOK + numNOK) / Math.Max(1, numTotal));
+                            };
+
+                            // any error?
+                            if (code != HttpStatusCode.OK || idf == null)
+                            {
+                                lambdaStat(false);
+                                return;
+                            }
+
+                            // remember for later
+                            cdExist.Add(idf);
+                            lambdaStat(true);
+                        });
+                }
+
+                ucProgTest.DialogShallClose = true;
+
+            };
+            workerDel.RunWorkerAsync();
+
+            // show and close again
+            await displayContext.StartFlyoverModalAsync(ucProgDel);
+
+            // okay?
             return true;
         }
     }

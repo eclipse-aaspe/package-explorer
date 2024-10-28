@@ -2632,6 +2632,7 @@ namespace AasxPackageLogic
                 "Import ConceptDescriptions from ECLASS",
                 info: "Preparing ...", symbol: AnyUiMessageBoxImage.Information);
             uc.Progress = 0.0;
+            
             // show this
             this.context.StartFlyover(uc);
 

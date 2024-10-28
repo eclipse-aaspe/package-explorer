@@ -526,6 +526,7 @@ namespace AnyUi
 
 		// in
 		public List<AnyUiDialogueDataGridRow> Rows = null;
+        public bool EmptySelectOk = false;
 		              
 		// out
 		public int ResultIndex = -1;
@@ -562,6 +563,11 @@ namespace AnyUi
         }
 
         public AnyUiMessageBoxImage Symbol;
+
+        /// <summary>
+        /// Set this to <c>true</c> in order to let the dialogue close itself
+        /// </summary>
+        public bool DialogShallClose = false;
 
         // out
         // currently, no out

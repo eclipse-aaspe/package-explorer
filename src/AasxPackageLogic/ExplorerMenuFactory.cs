@@ -12,6 +12,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AasxIntegrationBase;
 using AasxPackageLogic;
+using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using Extensions;
 
@@ -107,7 +108,9 @@ namespace AasxPackageExplorer
                     .AddWpfBlazor(name: "ConnectRest", header: "Connect via REST …", inputGesture: "F6"))
                 .AddSeparator()
                 .AddMenu(header: "API for Registry and Repository …", childs: (new AasxMenu())
-                    .AddWpfBlazor(name: "ConnectExtended", header: "Connect (extended) …")
+                    .AddWpfBlazor(name: "ConnectExtended", header: "Connect (extended) …",
+                        args: new AasxMenuListOfArgDefs()
+                            .AddFromReflection(new PackageContainerHttpRepoSubset.ConnectExtendedRecord()))
                     .AddWpfBlazor(name: "ApiUploadAssistant", header: "Upload assistant …")
                 )
                 .AddSeparator()

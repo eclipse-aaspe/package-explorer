@@ -201,7 +201,7 @@ namespace AasxIntegrationBase
                     foreach (var ad in this)
                         if (ad.Key?.Name?.Trim().ToLower() == name.ToLower())
                         {
-                            AdminShellUtil.SetFieldLazyValue(f, o, ad.Value);
+                            AdminShellUtil.SetFieldLazyValue(f, o, ad.Value, enableEnums: true);
                             break;
                         }
                 }

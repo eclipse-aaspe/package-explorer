@@ -2304,9 +2304,8 @@ namespace AasxPackageLogic
                 });
 
                 this.AddActionPanel(
-                    stack, "ConceptDescriptions (missing):",
+                    stack, "ConceptDescriptions:",
                     repo: repo, superMenu: superMenu,
-                    firstColumnWidth: FirstColumnWidth.Large,
                     ticketMenu: new AasxMenu()
                         .AddAction("create-eclass", "Create \U0001f844 ECLASS",
                             "Create missing CDs searching from ECLASS.")
@@ -2314,8 +2313,11 @@ namespace AasxPackageLogic
                             "Creates an ConceptDescription from this element and " +
                             "assigns the SubmodelElement to it.")
                         .AddAction("create-smes", "Create \U0001f844 SMEs (all)",
-                            "Create missing CDs from semanticId of used SMEs."),
-                    ticketAction: (buttonNdx, ticket) =>
+                            "Create missing CDs from semanticId of used SMEs.")
+                        .AddAction("delete-cd-in-repo", "Delete \u274c in Repo",
+                            "Delete ConceptDescriptions which are referenced by semanticId of SubmodelElements " +
+                            "in a given Repository or Registry."),
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
                         {
@@ -2373,13 +2375,37 @@ namespace AasxPackageLogic
                                         submodel, isExpanded: true);
                         }
 
+                        if (buttonNdx == 3)
+                        {
+                            // check, if Submodel is sitting in Repo
+                            var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
+                                    .FindSideInfoInListOfIdentifiables(
+                                        env.Submodels, submodel.GetReference());
+
+                            // collect Ids of SubmodelElements.semanticId
+                            var lrs = env?.FindAllSemanticIdsForSubmodel(submodel);
+                            if (lrs == null)
+                                return new AnyUiLambdaActionNone();
+
+                            var cdIds = lrs.Select((lr) => lr?.Reference?.GetAsExactlyOneKey()?.Value);
+
+                            // call function
+                            await PackageContainerHttpRepoSubset.AssistantDeleteCDsInRepo(
+                                ticket, context,
+                                "Delete CDs in Repository/ Registry",
+                                cdIds,
+                                runtimeOptions: packages.CentralRuntimeOptions);
+
+                            // ok
+                            return new AnyUiLambdaActionNone();
+                        }
+
                         return new AnyUiLambdaActionNone();
                     });
 
                 this.AddActionPanel(
-                    stack, "Submodel & -elements:",
+                    stack, "Submodel&-elems:",
                     repo: repo, superMenu: superMenu,
-                    firstColumnWidth: FirstColumnWidth.Large,
                     ticketMenu: new AasxMenu()
                         .AddAction("upgrade-qualifiers", "Upgrade qualifiers",
                             "Upgrades particular qualifiers from V2.0 to V3.0 for selected element.")
