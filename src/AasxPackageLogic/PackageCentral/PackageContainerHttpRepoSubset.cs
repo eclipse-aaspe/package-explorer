@@ -502,9 +502,7 @@ namespace AasxPackageLogic.PackageCentral
 
             return objType.GetProperty(name) != null;
         }
-
-        
-
+       
         private async Task<bool> FromRegistryGetAasAndSubmodels(            
             OnDemandListIdentifiable<IAssetAdministrationShell> prepAas, 
             OnDemandListIdentifiable<ISubmodel> prepSM,
@@ -608,6 +606,7 @@ namespace AasxPackageLogic.PackageCentral
                 {
                     // be prepared to download them
                     var numRes = await PackageHttpDownloadUtil.DownloadListOfIdentifiables<Aas.ISubmodel, AasIdentifiableSideInfo>(
+                        null,
                         smRegged,
                         lambdaGetLocation: (si) => si.Endpoint,
                         runtimeOptions: runtimeOptions,
@@ -756,6 +755,7 @@ namespace AasxPackageLogic.PackageCentral
 
                     // GET
                     await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                        null,
                         sourceUri: new Uri(fullItemLocation),
                         allowFakeResponses: allowFakeResponses,
                         runtimeOptions: runtimeOptions,
@@ -2150,7 +2150,16 @@ namespace AasxPackageLogic.PackageCentral
                     }).ToList()
                 })
                 .ToList();
-            
+
+            // in order to re-use sockets
+            Uri baseUri = null;
+            HttpClient client = null;
+            if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+            {
+                baseUri = new Uri(recordJob.BaseAddress);
+                client = PackageHttpDownloadUtil.CreateHttpClient(baseUri, runtimeOptions, containerList);
+            }
+
             //
             // Screen 2: make a progress on the check of existence
             //
@@ -2170,14 +2179,12 @@ namespace AasxPackageLogic.PackageCentral
                 // ask server
                 if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
                 {
-                    var baseUri = new Uri(recordJob.BaseAddress);
-
                     var numRes = await PackageHttpDownloadUtil.DownloadListOfIdentifiables<Aas.IIdentifiable, AnyUiDialogueDataGridRow>(
+                        client,
                         rows,
                         lambdaGetLocation: (row) =>
                         {
                             // return new Uri("https://eis-data.aas-voyager.com/shells/aHR0cHM6Ly9uZXcuYWJiLmNvbS9wcm9kdWN0cy9kZS8yQ1NSMjU1MTYzUjExNjUvYWFz");
-
                             if (!(row.Tag is Aas.IIdentifiable idf))
                                 return null;
                             if (idf is Aas.IAssetAdministrationShell)
@@ -2285,8 +2292,6 @@ namespace AasxPackageLogic.PackageCentral
                 // ask server
                 if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
                 {
-                    var baseUri = new Uri(recordJob.BaseAddress);
-
                     // make a sequential upload, first
                     foreach (var row in rowsToUpload)
                     {
@@ -2295,8 +2300,13 @@ namespace AasxPackageLogic.PackageCentral
                             continue;
 
                         // put / post
+                        var usePut = row.Cells != null && row.Cells.Count >= 6 &&
+                                row.Cells[4].StartsWith("PUT");
                         var usePost = row.Cells != null && row.Cells.Count >= 6 &&
                                 row.Cells[4].StartsWith("POST");
+
+                        if (!usePut && !usePost)
+                            continue;
 
                         // location
                         Uri location = null;
@@ -2310,6 +2320,7 @@ namespace AasxPackageLogic.PackageCentral
                             continue;
 
                         var res2 = await PackageHttpDownloadUtil.HttpPutPostIdentifiable(
+                            client,
                             idf,
                             destUri: location,
                             usePost: usePost,
@@ -2477,6 +2488,15 @@ namespace AasxPackageLogic.PackageCentral
             var numOK = 0;
             var numNOK = 0;
 
+            // in order to re-use sockets
+            Uri baseUri = null;
+            HttpClient client = null;
+            if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+            {
+                baseUri = new Uri(recordJob.BaseAddress);
+                client = PackageHttpDownloadUtil.CreateHttpClient(baseUri, runtimeOptions, containerList);
+            }
+
             // setup worker
             var workerTest = new BackgroundWorker();
             workerTest.DoWork += async (sender, e) =>
@@ -2484,10 +2504,9 @@ namespace AasxPackageLogic.PackageCentral
                 // ask server
                 if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
                 {
-                    var baseUri = new Uri(recordJob.BaseAddress);
-
                     // first, test which ids exist as CD in repo
                     await PackageHttpDownloadUtil.DownloadListOfIdentifiables<Aas.IConceptDescription, string>(
+                        client,
                         cdIdsDis,
                         lambdaGetLocation: (id) =>
                         {
@@ -2572,6 +2591,7 @@ namespace AasxPackageLogic.PackageCentral
 
                     // second, send deletes
                     await PackageHttpDownloadUtil.DeleteListOfEntities<Aas.IConceptDescription>(
+                        client,
                         cdExist,
                         lambdaGetLocation: (cd) =>
                         {
@@ -2612,6 +2632,10 @@ namespace AasxPackageLogic.PackageCentral
             await displayContext.StartFlyoverModalAsync(ucProgDel);
 
             // okay?
+            runtimeOptions?.Log.Info(StoredPrint.Color.Blue,
+                "{0} ConceptDescriptions deleted successfull, {1} NOK. Location: {2}",
+                numOK, numNOK, recordJob.BaseAddress);
+
             return true;
         }
     }
