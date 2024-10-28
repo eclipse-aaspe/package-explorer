@@ -290,43 +290,22 @@ namespace AasxPackageLogic.PackageCentral
                     continue;
 
                 // serialize to memory stream
-                var res = false;
-                using (var ms = new MemoryStream())
+                var res2 = await PackageHttpDownloadUtil.HttpPutPostIdentifiable(
+                    idf,
+                    destUri: uri);
+                if (res2 == null || res2.Item1 != HttpStatusCode.OK)
                 {
-                    var jsonWriterOptions = new System.Text.Json.JsonWriterOptions
-                    {
-                        Indented = false                        
-                    };
-                    
-                    using (var wr = new System.Text.Json.Utf8JsonWriter(ms, jsonWriterOptions))
-                    {
-                        // serialize
-                        Jsonization.Serialize.ToJsonObject(idf).WriteTo(wr);
-                        wr.Flush();
-                        ms.Flush();
-
-                        // prepare for reading again
-                        ms.Seek(0, SeekOrigin.Begin);
-
-                        // write
-                        var res2 = await PackageHttpDownloadUtil.HttpPutFromMemoryStream(
-                            ms,
-                            destUri: uri,
-                            allowFakeResponses: _runtimeOptions?.AllowFakeResponses ?? false);
-                        if (!res2)
-                        {
-                            _runtimeOptions?.Log?.Error("Save of modified Identifiable returned error for id={0} at {1}",
-                                idf.Id,
-                                uri.ToString());
-                        }
-                        else
-                            res = true;
-                    }
+                    _runtimeOptions?.Log?.Error("Save of modified Identifiable returned error {0} for id={1} at {2}",
+                        "" + ((res2 != null) ? (int)res2.Item1 : -1),
+                        idf.Id,
+                        uri.ToString());
                 }
-
-                // clear the tainted flag
-                if (res && clearTaintedFlags && tidf?.TaintedData != null)
-                    tidf.TaintedData.Tainted = null;
+                else
+                {
+                    // clear the tainted flag
+                    if (clearTaintedFlags && tidf?.TaintedData != null)
+                        tidf.TaintedData.Tainted = null;
+                }
             }
 
             return count;

@@ -108,6 +108,7 @@
   "BackupDir": ".\\backup",
   "BackupFiles": 10,
   "MaxParallelOps": 1,
+  "ExtendedConnectionDebug": false,
   "AllowFakeResponses": true,
   "RestServerHost": "localhost",
   "RestServerPort": "1111",

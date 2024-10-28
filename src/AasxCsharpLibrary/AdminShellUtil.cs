@@ -871,14 +871,29 @@ namespace AdminShellNS
         /// for reflection of type specific data.
         /// Works for most scalars, dateTime, string.
         /// </summary>
-        public static void SetFieldLazyValue(FieldInfo f, object obj, object value)
+        public static void SetFieldLazyValue(
+            FieldInfo f, object obj, object value,
+            bool enableEnums = false)
         {
             // access
             if (f == null || obj == null)
                 return;
 
+            var tut = GetTypeOrUnderlyingType(f.FieldType);
+
+            // enum?
+            if (enableEnums && tut?.IsEnum == true && value is string vstr)
+            {
+                foreach (var v in Enum.GetValues(tut))
+                    if (v.ToString().ToLower() == vstr.Trim().ToLower())
+                    {
+                        f.SetValue(obj, v);
+                    }
+                return;
+            }
+
             // 2024-01-04: make function more suitable for <DateTime?>
-            switch (Type.GetTypeCode(GetTypeOrUnderlyingType(f.FieldType)))
+            switch (Type.GetTypeCode(tut))
             {
                 case TypeCode.String:
                     f.SetValue(obj, "" + value);

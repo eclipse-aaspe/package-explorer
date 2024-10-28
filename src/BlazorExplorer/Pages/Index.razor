@@ -102,6 +102,12 @@
                                                        DialogueData="evs.DialogueData" />
                     }
 
+                    @if (evs.DialogueData is AnyUiDialogueDataProgress)
+                    {
+                        <AnyUiFlyoutProgressBar EventSession="evs"
+                                                DialogueData="evs.DialogueData" />
+                    }
+
                     @if (evs.DialogueData is AnyUiDialogueDataOpenFile)
                     {
                         <AnyUiFlyoutOpenFile 

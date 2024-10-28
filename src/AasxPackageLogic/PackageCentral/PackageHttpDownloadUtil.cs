@@ -29,6 +29,7 @@ using System.Text.RegularExpressions;
 using System.Net.Http.Headers;
 using System.Text;
 using AasCore.Aas3_0;
+using System.ServiceModel;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -117,7 +118,9 @@ namespace AasxPackageLogic.PackageCentral
 
             var client = new HttpClient(handler);
 
-            client.DefaultRequestHeaders.Add("Accept", "application/aas");
+            // TODO/CHECK: Basyx does not like this: 
+            // client.DefaultRequestHeaders.Add("Accept", "application/aas");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.BaseAddress = new Uri(sourceUri.GetLeftPart(UriPartial.Authority));
             var requestPath = sourceUri.PathAndQuery;
 
@@ -329,20 +332,24 @@ namespace AasxPackageLogic.PackageCentral
 
             var client = new HttpClient(handler);
 
-            client.DefaultRequestHeaders.Add("Accept", "application/aas");
+            // TODO/CHECK: Basyx does not like this: 
+            // client.DefaultRequestHeaders.Add("Accept", "application/aas");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.BaseAddress = new Uri(sourceUri.GetLeftPart(UriPartial.Authority));
             var requestPath = sourceUri.PathAndQuery;
 
             // Log
-            runtimeOptions?.Log?.Info($"HttpClient GET() with base-address {client.BaseAddress} " +
-                $"and request {requestPath} .. ");
+            if (runtimeOptions?.ExtendedConnectionDebug == true)
+                runtimeOptions.Log?.Info($"HttpClient GET() with base-address {client.BaseAddress} " +
+                    $"and request {requestPath} .. ");
 
             // Token existing?
             var clhttp = containerList as PackageContainerListHttpRestBase;
             var oidc = clhttp?.OpenIdClient;
             if (oidc == null)
             {
-                runtimeOptions?.Log?.Info("  no ContainerList available. No OpecIdClient possible!");
+                if (runtimeOptions?.ExtendedConnectionDebug == true)
+                    runtimeOptions.Log?.Info("  no ContainerList available. No OpecIdClient possible!");
                 if (clhttp != null && OpenIDClient.email != "")
                 {
                     clhttp.OpenIdClient = new OpenIdClientInstance();
@@ -356,14 +363,16 @@ namespace AasxPackageLogic.PackageCentral
             {
                 if (oidc.token != "")
                 {
-                    runtimeOptions?.Log?.Info($"  using existing bearer token.");
+                    if (runtimeOptions?.ExtendedConnectionDebug == true)
+                        runtimeOptions.Log?.Info($"  using existing bearer token.");
                     client.SetBearerToken(oidc.token);
                 }
                 else
                 {
                     if (oidc.email != "")
                     {
-                        runtimeOptions?.Log?.Info($"  using existing email token.");
+                        if (runtimeOptions?.ExtendedConnectionDebug == true)
+                            runtimeOptions.Log?.Info($"  using existing email token.");
                         client.DefaultRequestHeaders.Add("Email", OpenIDClient.email);
                     }
                 }
@@ -392,11 +401,13 @@ namespace AasxPackageLogic.PackageCentral
                         break;
                     }
 
-                    runtimeOptions?.Log?.Info("Redirect to: " + splitResult[0]);
+                    if (runtimeOptions?.ExtendedConnectionDebug == true)
+                        runtimeOptions.Log?.Info("Redirect to: " + splitResult[0]);
 
                     if (oidc == null)
                     {
-                        runtimeOptions?.Log?.Info("Creating new OpenIdClient..");
+                        if (runtimeOptions?.ExtendedConnectionDebug == true)
+                            runtimeOptions.Log?.Info("Creating new OpenIdClient..");
                         oidc = new OpenIdClientInstance();
                         clhttp.OpenIdClient = oidc;
                         clhttp.OpenIdClient.email = OpenIDClient.email;
@@ -406,7 +417,8 @@ namespace AasxPackageLogic.PackageCentral
 
                     oidc.authServer = splitResult[0];
 
-                    runtimeOptions?.Log?.Info($".. authentication at auth server {oidc.authServer} needed");
+                    if (runtimeOptions?.ExtendedConnectionDebug == true)
+                        runtimeOptions.Log?.Info($".. authentication at auth server {oidc.authServer} needed");
 
                     var response2 = await oidc.RequestTokenAsync(null,
                         GenerateUiLambdaSet(runtimeOptions));
@@ -427,8 +439,9 @@ namespace AasxPackageLogic.PackageCentral
                     var contentFn = response.Content.Headers.ContentDisposition?.FileName;
 
                     // log
-                    runtimeOptions?.Log?.Info($".. response with header-content-len {contentLength} " +
-                        $"and file-name {contentFn} ..");
+                    if (runtimeOptions?.ExtendedConnectionDebug == true)
+                        runtimeOptions.Log?.Info($".. response with header-content-len {contentLength} " +
+                            $"and file-name {contentFn} ..");
 
                     var contentStream = await response?.Content?.ReadAsStreamAsync();
                     if (contentStream == null)
@@ -440,8 +453,9 @@ namespace AasxPackageLogic.PackageCentral
                     var givenFn = sourceUri.ToString();
                     if (contentFn != null)
                         givenFn = contentFn;
-                    runtimeOptions?.Log?.Info($".. downloading and scanning by proxy/firewall {client.BaseAddress} " +
-                        $"and request {requestPath} .. ");
+                    if (runtimeOptions?.ExtendedConnectionDebug == true)
+                        runtimeOptions.Log?.Info($".. downloading and scanning by proxy/firewall {client.BaseAddress} " +
+                            $"and request {requestPath} .. ");
 
                     using (var memStream = new MemoryStream())
                     {
@@ -466,7 +480,8 @@ namespace AasxPackageLogic.PackageCentral
 
                             if (totalBytesRead > lastBytesRead + deltaSize)
                             {
-                                runtimeOptions?.Log?.Info($".. downloading to memory stream");
+                                if (runtimeOptions?.ExtendedConnectionDebug == true)
+                                    runtimeOptions.Log?.Info($".. downloading to memory stream");
                                 runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Ongoing,
                                     contentLength, totalBytesRead);
                                 lastBytesRead = totalBytesRead;
@@ -478,7 +493,8 @@ namespace AasxPackageLogic.PackageCentral
                             totalBytesRead, totalBytesRead);
 
                         // log                
-                        runtimeOptions?.Log?.Info($".. download done with {totalBytesRead} bytes read!");
+                        if (runtimeOptions?.ExtendedConnectionDebug == true)
+                            runtimeOptions.Log?.Info($".. download done with {totalBytesRead} bytes read!");
 
                         // execute lambda
                         memStream.Flush();
@@ -524,15 +540,17 @@ namespace AasxPackageLogic.PackageCentral
             var requestPath = sourceUri.PathAndQuery;
 
             // Log
-            runtimeOptions?.Log?.Info($"HttpClient GET() with base-address {client.BaseAddress} " +
-                $"and request {requestPath} .. ");
+            if (runtimeOptions?.ExtendedConnectionDebug == true)
+                runtimeOptions.Log?.Info($"HttpClient GET() with base-address {client.BaseAddress} " +
+                    $"and request {requestPath} .. ");
 
             // Token existing?
             var clhttp = containerList as PackageContainerListHttpRestBase;
             var oidc = clhttp?.OpenIdClient;
             if (oidc == null)
             {
-                runtimeOptions?.Log?.Info("  no ContainerList available. No OpecIdClient possible!");
+                if (runtimeOptions?.ExtendedConnectionDebug == true)
+                    runtimeOptions.Log?.Info("  no ContainerList available. No OpecIdClient possible!");
                 if (clhttp != null && OpenIDClient.email != "")
                 {
                     clhttp.OpenIdClient = new OpenIdClientInstance();
@@ -546,14 +564,16 @@ namespace AasxPackageLogic.PackageCentral
             {
                 if (oidc.token != "")
                 {
-                    runtimeOptions?.Log?.Info($"  using existing bearer token.");
+                    if (runtimeOptions?.ExtendedConnectionDebug == true)
+                        runtimeOptions.Log?.Info($"  using existing bearer token.");
                     client.SetBearerToken(oidc.token);
                 }
                 else
                 {
                     if (oidc.email != "")
                     {
-                        runtimeOptions?.Log?.Info($"  using existing email token.");
+                        if (runtimeOptions?.ExtendedConnectionDebug == true)
+                            runtimeOptions.Log?.Info($"  using existing email token.");
                         client.DefaultRequestHeaders.Add("Email", OpenIDClient.email);
                     }
                 }
@@ -581,15 +601,18 @@ namespace AasxPackageLogic.PackageCentral
 
                     if (splitResult.Length < 1)
                     {
+                        if (runtimeOptions?.ExtendedConnectionDebug == true)
                         runtimeOptions?.Log?.Error("TemporaryRedirect, but url split to successful");
                         break;
                     }
 
-                    runtimeOptions?.Log?.Info("Redirect to: " + splitResult[0]);
+                    if (runtimeOptions?.ExtendedConnectionDebug == true)
+                        runtimeOptions.Log?.Info("Redirect to: " + splitResult[0]);
 
                     if (oidc == null)
                     {
-                        runtimeOptions?.Log?.Info("Creating new OpenIdClient..");
+                        if (runtimeOptions?.ExtendedConnectionDebug == true)
+                            runtimeOptions.Log?.Info("Creating new OpenIdClient..");
                         oidc = new OpenIdClientInstance();
                         clhttp.OpenIdClient = oidc;
                         clhttp.OpenIdClient.email = OpenIDClient.email;
@@ -599,7 +622,8 @@ namespace AasxPackageLogic.PackageCentral
 
                     oidc.authServer = splitResult[0];
 
-                    runtimeOptions?.Log?.Info($".. authentication at auth server {oidc.authServer} needed");
+                    if (runtimeOptions?.ExtendedConnectionDebug == true)
+                        runtimeOptions.Log?.Info($".. authentication at auth server {oidc.authServer} needed");
 
                     var response2 = await oidc.RequestTokenAsync(null,
                         GenerateUiLambdaSet(runtimeOptions));
@@ -624,8 +648,9 @@ namespace AasxPackageLogic.PackageCentral
                     var contentFn = response.Content.Headers.ContentDisposition?.FileName;
 
                     // log
-                    runtimeOptions?.Log?.Info($".. response with header-content-len {contentLength} " +
-                        $"and file-name {contentFn} ..");
+                    if (runtimeOptions?.ExtendedConnectionDebug == true)
+                        runtimeOptions  .Log?.Info($".. response with header-content-len {contentLength} " +
+                            $"and file-name {contentFn} ..");
 
                     var contentStream = await response?.Content?.ReadAsStreamAsync();
                     if (contentStream == null)
@@ -637,8 +662,9 @@ namespace AasxPackageLogic.PackageCentral
                     var givenFn = sourceUri.ToString();
                     if (contentFn != null)
                         givenFn = contentFn;
-                    runtimeOptions?.Log?.Info($".. downloading and scanning by proxy/firewall {client.BaseAddress} " +
-                        $"and request {requestPath} .. ");
+                    if (runtimeOptions?.ExtendedConnectionDebug == true)
+                        runtimeOptions  .Log?.Info($".. downloading and scanning by proxy/firewall {client.BaseAddress} " +
+                            $"and request {requestPath} .. ");
 
                     using (var memStream = new MemoryStream())
                     {
@@ -663,7 +689,8 @@ namespace AasxPackageLogic.PackageCentral
 
                             if (totalBytesRead > lastBytesRead + deltaSize)
                             {
-                                runtimeOptions?.Log?.Info($".. downloading to memory stream");
+                                if (runtimeOptions?.ExtendedConnectionDebug == true)
+                                    runtimeOptions.Log?.Info($".. downloading to memory stream");
                                 runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Ongoing,
                                     contentLength, totalBytesRead);
                                 lastBytesRead = totalBytesRead;
@@ -675,7 +702,8 @@ namespace AasxPackageLogic.PackageCentral
                             totalBytesRead, totalBytesRead);
 
                         // log                
-                        runtimeOptions?.Log?.Info($".. download done with {totalBytesRead} bytes read!");
+                        if (runtimeOptions?.ExtendedConnectionDebug == true)
+                            runtimeOptions.Log?.Info($".. download done with {totalBytesRead} bytes read!");
 
                         // execute lambda
                         memStream.Flush();
@@ -700,9 +728,12 @@ namespace AasxPackageLogic.PackageCentral
                     }
                     else
                     {
-                        Log.Singleton.Error($"HttpPostRequestToMemoryStream server gave status code " +
-                            $"{(int) response.StatusCode} {response.StatusCode}!");
-                        Log.Singleton.Error("  response content: {0}", responseContents);
+                        if (runtimeOptions?.ExtendedConnectionDebug == true)
+                        {
+                            Log.Singleton.Error($"HttpPostRequestToMemoryStream server gave status code " +
+                                $"{(int)response.StatusCode} {response.StatusCode}!");
+                            Log.Singleton.Error("  response content: {0}", responseContents);
+                        }
                         return response.StatusCode;
                     }
                 }
@@ -711,20 +742,16 @@ namespace AasxPackageLogic.PackageCentral
             return null;
         }
 
-        public static async Task<bool> HttpPutFromMemoryStream(
+        public static async Task<Tuple<HttpStatusCode, string>> HttpPutPostFromMemoryStream(
             MemoryStream ms,
             Uri destUri,
+            bool usePost = false,
             PackCntRuntimeOptions runtimeOptions = null,
-            PackageContainerListBase containerList = null,
-            bool allowFakeResponses = false)
+            PackageContainerListBase containerList = null)
         {
             // access
             if (ms == null || destUri == null)
-                return false;
-
-            // for the time being: fake responses -> always return true
-            if (allowFakeResponses)
-                return true;
+                return null;
 
             // read via HttpClient (uses standard proxies)
             var handler = new HttpClientHandler();
@@ -737,15 +764,17 @@ namespace AasxPackageLogic.PackageCentral
             var requestPath = destUri.PathAndQuery;
 
             // Log
-            runtimeOptions?.Log?.Info($"HttpClient PUT() with base-address {client.BaseAddress} " +
-                $"and request {requestPath} .. ");
+            if (runtimeOptions?.ExtendedConnectionDebug == true)
+                runtimeOptions.Log?.Info($"HttpClient PUT/POSTZ() with base-address {client.BaseAddress} " +
+                    $"and request {requestPath} .. ");
 
             // Token existing?
             var clhttp = containerList as PackageContainerListHttpRestBase;
             var oidc = clhttp?.OpenIdClient;
             if (oidc == null)
             {
-                runtimeOptions?.Log?.Info("  no ContainerList available. No OpecIdClient possible!");
+                if (runtimeOptions?.ExtendedConnectionDebug == true)
+                    runtimeOptions.Log?.Info("  no ContainerList available. No OpecIdClient possible!");
                 if (clhttp != null && OpenIDClient.email != "")
                 {
                     clhttp.OpenIdClient = new OpenIdClientInstance();
@@ -759,14 +788,16 @@ namespace AasxPackageLogic.PackageCentral
             {
                 if (oidc.token != "")
                 {
-                    runtimeOptions?.Log?.Info($"  using existing bearer token.");
+                    if (runtimeOptions?.ExtendedConnectionDebug == true)
+                        runtimeOptions.Log?.Info($"  using existing bearer token.");
                     client.SetBearerToken(oidc.token);
                 }
                 else
                 {
                     if (oidc.email != "")
                     {
-                        runtimeOptions?.Log?.Info($"  using existing email token.");
+                        if (runtimeOptions?.ExtendedConnectionDebug == true)
+                            runtimeOptions.Log?.Info($"  using existing email token.");
                         client.DefaultRequestHeaders.Add("Email", OpenIDClient.email);
                     }
                 }
@@ -805,19 +836,57 @@ namespace AasxPackageLogic.PackageCentral
             var data = new ProgressableStreamContent(ms.ToArray(), runtimeOptions);
 
             // get response?
-            using (var response = await client.PutAsync(requestPath, data))
+            using (var response = (!usePost) 
+                ? await client.PutAsync(requestPath, data)
+                : await client.PostAsync(requestPath, data))
             {
+                var content = "";
                 if (response.IsSuccessStatusCode)
-                    await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    runtimeOptions?.Log?.Error("HttpPutFromMemoryStream Server gave: Operation not allowed!");
-                    throw new PackageContainerException($"Server operation not allowed!");
-                }
+                    // TODO: give back?
+                    content = await response.Content.ReadAsStringAsync();
 
                 // ok!
-                return true;
+                return new Tuple<HttpStatusCode, string>(response.StatusCode, content);
+            }
+        }
+
+        public static async Task<Tuple<HttpStatusCode, string>> HttpPutPostIdentifiable(
+            Aas.IIdentifiable idf,
+            Uri destUri,
+            bool usePost = false,
+            PackCntRuntimeOptions runtimeOptions = null,
+            PackageContainerListBase containerList = null)
+        {
+            // access
+            if (idf == null || destUri == null)
+                return null;
+
+            // serialize to memory stream
+            using (var ms = new MemoryStream())
+            {
+                var jsonWriterOptions = new System.Text.Json.JsonWriterOptions
+                {
+                    Indented = false
+                };
+
+                using (var wr = new System.Text.Json.Utf8JsonWriter(ms, jsonWriterOptions))
+                {
+                    // serialize
+                    Jsonization.Serialize.ToJsonObject(idf).WriteTo(wr);
+                    wr.Flush();
+                    ms.Flush();
+
+                    // prepare for reading again
+                    ms.Seek(0, SeekOrigin.Begin);
+
+                    // write
+                    return await PackageHttpDownloadUtil.HttpPutPostFromMemoryStream(
+                        ms,
+                        destUri: destUri,
+                        runtimeOptions: runtimeOptions,
+                        containerList: containerList,
+                        usePost: usePost);
+                }
             }
         }
 

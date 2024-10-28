@@ -451,6 +451,11 @@ namespace AasxPackageLogic
             Cmd = "-allow-fake-responses")]
         public bool AllowFakeResponses = true;
 
+        [OptionDescription(Description =
+            "When connecting to Registry/ Repository, add more details to the log messages.",
+            Cmd = "-extended-connection-debug")]
+        public bool ExtendedConnectionDebug = false;
+
         [OptionDescription(Description = "If set, load and store AASX files via temporary package to " +
             "avoid corruptions. RECOMMENDED!",
             Cmd = "-indirect-load-save")]
