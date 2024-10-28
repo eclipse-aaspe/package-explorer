@@ -139,6 +139,7 @@ namespace AasxPackageLogic.PackageCentral
                         return null;
 
                     await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                        null,
                         sourceUri: loc,
                         allowFakeResponses: _runtimeOptions?.AllowFakeResponses ?? false,
                         runtimeOptions: _runtimeOptions,
@@ -291,7 +292,8 @@ namespace AasxPackageLogic.PackageCentral
 
                 // serialize to memory stream
                 var res2 = await PackageHttpDownloadUtil.HttpPutPostIdentifiable(
-                    idf,
+                    reUseClient: null,
+                    idf: idf,
                     destUri: uri);
                 if (res2 == null || res2.Item1 != HttpStatusCode.OK)
                 {

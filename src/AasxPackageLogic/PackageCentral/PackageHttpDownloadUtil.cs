@@ -84,6 +84,86 @@ namespace AasxPackageLogic.PackageCentral
             return res;
         }
 
+        public static HttpClient CreateHttpClient(
+            Uri baseUri,
+            PackCntRuntimeOptions runtimeOptions = null,
+            PackageContainerListBase containerList = null)
+        {
+            // read via HttpClient (uses standard proxies)
+            var handler = new HttpClientHandler();
+            handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
+            handler.AllowAutoRedirect = false;
+
+            // new http client
+            var client = new HttpClient(handler);
+
+            // TODO/CHECK: Basyx does not like this: 
+            // client.DefaultRequestHeaders.Add("Accept", "application/aas");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.BaseAddress = new Uri(baseUri.GetLeftPart(UriPartial.Authority));
+
+            // Token existing?
+            var clhttp = containerList as PackageContainerListHttpRestBase;
+            var oidc = clhttp?.OpenIdClient;
+            if (oidc == null)
+            {
+                if (runtimeOptions?.ExtendedConnectionDebug == true)
+                    runtimeOptions.Log?.Info("  no ContainerList available. No OpecIdClient possible!");
+                if (clhttp != null && OpenIDClient.email != "")
+                {
+                    clhttp.OpenIdClient = new OpenIdClientInstance();
+                    clhttp.OpenIdClient.email = OpenIDClient.email;
+                    clhttp.OpenIdClient.ssiURL = OpenIDClient.ssiURL;
+                    clhttp.OpenIdClient.keycloak = OpenIDClient.keycloak;
+                    oidc = clhttp.OpenIdClient;
+                }
+            }
+            if (oidc != null)
+            {
+                if (oidc.token != "")
+                {
+                    if (runtimeOptions?.ExtendedConnectionDebug == true)
+                        runtimeOptions.Log?.Info($"  using existing bearer token.");
+                    client.SetBearerToken(oidc.token);
+                }
+                else
+                {
+                    if (oidc.email != "")
+                    {
+                        if (runtimeOptions?.ExtendedConnectionDebug == true)
+                            runtimeOptions.Log?.Info($"  using existing email token.");
+                        client.DefaultRequestHeaders.Add("Email", OpenIDClient.email);
+                    }
+                }
+            }
+
+            // BEGIN Workaround behind some proxies
+            // Stream is sent twice, if proxy-authorization header is not set
+            string proxyFile = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal) + "/proxy.dat";
+            string username = "";
+            string password = "";
+            if (System.IO.File.Exists(proxyFile))
+            {
+                using (StreamReader sr = new StreamReader(proxyFile))
+                {
+                    // ReSharper disable MethodHasAsyncOverload
+                    sr.ReadLine();
+                    username = sr.ReadLine();
+                    password = sr.ReadLine();
+                    // ReSharper enable MethodHasAsyncOverload
+                }
+            }
+            if (username != "" && password != "")
+            {
+                var authToken = Encoding.ASCII.GetBytes(username + ":" + password);
+                client.DefaultRequestHeaders.ProxyAuthorization = new AuthenticationHeaderValue("Basic",
+                    Convert.ToBase64String(authToken));
+            }
+            // END Workaround behind some proxies
+
+            return client;
+        }
+
         // TODO: Refactor
         public static async Task HttpGetToMemoryStreamOLD(
             Uri sourceUri,
@@ -298,6 +378,7 @@ namespace AasxPackageLogic.PackageCentral
         /// <param name="lambdaDownloadDoneOrFail">Called also for failed status codes!</param>
         /// <exception cref="Exception">Any exception might occur outside the HTTP status codes.</exception>
         public static async Task HttpGetToMemoryStream(
+            HttpClient reUseClient,
             Uri sourceUri,
             Action<HttpStatusCode, MemoryStream, string> lambdaDownloadDoneOrFail,
             PackCntRuntimeOptions runtimeOptions = null,
@@ -325,19 +406,8 @@ namespace AasxPackageLogic.PackageCentral
                         }
                     }
 
-            // 
-
-            // read via HttpClient (uses standard proxies)
-            var handler = new HttpClientHandler();
-            handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
-            handler.AllowAutoRedirect = false;
-
-            var client = new HttpClient(handler);
-
-            // TODO/CHECK: Basyx does not like this: 
-            // client.DefaultRequestHeaders.Add("Accept", "application/aas");
-            client.DefaultRequestHeaders.Add("Accept", "application/json");
-            client.BaseAddress = new Uri(sourceUri.GetLeftPart(UriPartial.Authority));
+            // client
+            var client = reUseClient ?? CreateHttpClient(sourceUri, runtimeOptions, containerList);
             var requestPath = sourceUri.PathAndQuery;
 
             // Log
@@ -345,49 +415,15 @@ namespace AasxPackageLogic.PackageCentral
                 runtimeOptions.Log?.Info($"HttpClient GET() with base-address {client.BaseAddress} " +
                     $"and request {requestPath} .. ");
 
-            // Token existing?
-            var clhttp = containerList as PackageContainerListHttpRestBase;
-            var oidc = clhttp?.OpenIdClient;
-            if (oidc == null)
-            {
-                if (runtimeOptions?.ExtendedConnectionDebug == true)
-                    runtimeOptions.Log?.Info("  no ContainerList available. No OpecIdClient possible!");
-                if (clhttp != null && OpenIDClient.email != "")
-                {
-                    clhttp.OpenIdClient = new OpenIdClientInstance();
-                    clhttp.OpenIdClient.email = OpenIDClient.email;
-                    clhttp.OpenIdClient.ssiURL = OpenIDClient.ssiURL;
-                    clhttp.OpenIdClient.keycloak = OpenIDClient.keycloak;
-                    oidc = clhttp.OpenIdClient;
-                }
-            }
-            if (oidc != null)
-            {
-                if (oidc.token != "")
-                {
-                    if (runtimeOptions?.ExtendedConnectionDebug == true)
-                        runtimeOptions.Log?.Info($"  using existing bearer token.");
-                    client.SetBearerToken(oidc.token);
-                }
-                else
-                {
-                    if (oidc.email != "")
-                    {
-                        if (runtimeOptions?.ExtendedConnectionDebug == true)
-                            runtimeOptions.Log?.Info($"  using existing email token.");
-                        client.DefaultRequestHeaders.Add("Email", OpenIDClient.email);
-                    }
-                }
-            }
-
             bool repeat = true;
-
             while (repeat)
             {
                 // get response?
                 var response = await client.GetAsync(requestPath,
                     HttpCompletionOption.ResponseHeadersRead);
 
+                var clhttp = containerList as PackageContainerListHttpRestBase;
+                var oidc = clhttp?.OpenIdClient;
                 if (clhttp != null
                     && response.StatusCode == System.Net.HttpStatusCode.TemporaryRedirect)
                 {
@@ -745,6 +781,7 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         public static async Task<Tuple<HttpStatusCode, string>> HttpPutPostFromMemoryStream(
+            HttpClient reUseClient,
             MemoryStream ms,
             Uri destUri,
             bool usePost = false,
@@ -755,14 +792,8 @@ namespace AasxPackageLogic.PackageCentral
             if (ms == null || destUri == null)
                 return null;
 
-            // read via HttpClient (uses standard proxies)
-            var handler = new HttpClientHandler();
-            handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
-
-            // new http client
-            var client = new HttpClient(handler);
-            
-            client.BaseAddress = new Uri(destUri.GetLeftPart(UriPartial.Authority));
+            // client
+            var client = reUseClient ?? CreateHttpClient(destUri, runtimeOptions, containerList);
             var requestPath = destUri.PathAndQuery;
 
             // Log
@@ -770,71 +801,7 @@ namespace AasxPackageLogic.PackageCentral
                 runtimeOptions.Log?.Info($"HttpClient PUT/POSTZ() with base-address {client.BaseAddress} " +
                     $"and request {requestPath} .. ");
 
-            // Token existing?
-            var clhttp = containerList as PackageContainerListHttpRestBase;
-            var oidc = clhttp?.OpenIdClient;
-            if (oidc == null)
-            {
-                if (runtimeOptions?.ExtendedConnectionDebug == true)
-                    runtimeOptions.Log?.Info("  no ContainerList available. No OpecIdClient possible!");
-                if (clhttp != null && OpenIDClient.email != "")
-                {
-                    clhttp.OpenIdClient = new OpenIdClientInstance();
-                    clhttp.OpenIdClient.email = OpenIDClient.email;
-                    clhttp.OpenIdClient.ssiURL = OpenIDClient.ssiURL;
-                    clhttp.OpenIdClient.keycloak = OpenIDClient.keycloak;
-                    oidc = clhttp.OpenIdClient;
-                }
-            }
-            if (oidc != null)
-            {
-                if (oidc.token != "")
-                {
-                    if (runtimeOptions?.ExtendedConnectionDebug == true)
-                        runtimeOptions.Log?.Info($"  using existing bearer token.");
-                    client.SetBearerToken(oidc.token);
-                }
-                else
-                {
-                    if (oidc.email != "")
-                    {
-                        if (runtimeOptions?.ExtendedConnectionDebug == true)
-                            runtimeOptions.Log?.Info($"  using existing email token.");
-                        client.DefaultRequestHeaders.Add("Email", OpenIDClient.email);
-                    }
-                }
-            }
-
-            // BEGIN Workaround behind some proxies
-            // Stream is sent twice, if proxy-authorization header is not set
-            string proxyFile = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal) + "/proxy.dat";
-            string username = "";
-            string password = "";
-            if (System.IO.File.Exists(proxyFile))
-            {
-                using (StreamReader sr = new StreamReader(proxyFile))
-                {
-                    // ReSharper disable MethodHasAsyncOverload
-                    sr.ReadLine();
-                    username = sr.ReadLine();
-                    password = sr.ReadLine();
-                    // ReSharper enable MethodHasAsyncOverload
-                }
-            }
-            if (username != "" && password != "")
-            {
-                var authToken = Encoding.ASCII.GetBytes(username + ":" + password);
-                client.DefaultRequestHeaders.ProxyAuthorization = new AuthenticationHeaderValue("Basic",
-                    Convert.ToBase64String(authToken));
-            }
-            // END Workaround behind some proxies
-
-            // make base64
-            //var ba = ms.ToArray();
-            //var base64 = Convert.ToBase64String(ba);
-
-            // customised HttpContent to track progress
-            // var data = new ProgressableStreamContent(Encoding.UTF8.GetBytes(base64), runtimeOptions);
+            // make data
             var data = new ProgressableStreamContent(ms.ToArray(), runtimeOptions);
 
             // get response?
@@ -852,7 +819,12 @@ namespace AasxPackageLogic.PackageCentral
             }
         }
 
+        /// <summary>
+        /// Send a DELETE to the client.
+        /// </summary>
+        /// <param name="availClient">If not <c>null</c>, re-use client</param>
         public static async Task<Tuple<HttpStatusCode, string>> HttpDeleteUri(
+            HttpClient reUseClient,
             Uri delUri,
             PackCntRuntimeOptions runtimeOptions = null,
             PackageContainerListBase containerList = null)
@@ -861,79 +833,14 @@ namespace AasxPackageLogic.PackageCentral
             if (delUri == null)
                 return null;
 
-            // read via HttpClient (uses standard proxies)
-            var handler = new HttpClientHandler();
-            handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
-
-            // new http client
-            var client = new HttpClient(handler);
-
-            client.BaseAddress = new Uri(delUri.GetLeftPart(UriPartial.Authority));
+            // client
+            var client = reUseClient ?? CreateHttpClient(delUri, runtimeOptions, containerList);
             var requestPath = delUri.PathAndQuery;
 
             // Log
             if (runtimeOptions?.ExtendedConnectionDebug == true)
                 runtimeOptions.Log?.Info($"HttpClient DELETE() with base-address {client.BaseAddress} " +
                     $"and request {requestPath} .. ");
-
-            // Token existing?
-            var clhttp = containerList as PackageContainerListHttpRestBase;
-            var oidc = clhttp?.OpenIdClient;
-            if (oidc == null)
-            {
-                if (runtimeOptions?.ExtendedConnectionDebug == true)
-                    runtimeOptions.Log?.Info("  no ContainerList available. No OpecIdClient possible!");
-                if (clhttp != null && OpenIDClient.email != "")
-                {
-                    clhttp.OpenIdClient = new OpenIdClientInstance();
-                    clhttp.OpenIdClient.email = OpenIDClient.email;
-                    clhttp.OpenIdClient.ssiURL = OpenIDClient.ssiURL;
-                    clhttp.OpenIdClient.keycloak = OpenIDClient.keycloak;
-                    oidc = clhttp.OpenIdClient;
-                }
-            }
-            if (oidc != null)
-            {
-                if (oidc.token != "")
-                {
-                    if (runtimeOptions?.ExtendedConnectionDebug == true)
-                        runtimeOptions.Log?.Info($"  using existing bearer token.");
-                    client.SetBearerToken(oidc.token);
-                }
-                else
-                {
-                    if (oidc.email != "")
-                    {
-                        if (runtimeOptions?.ExtendedConnectionDebug == true)
-                            runtimeOptions.Log?.Info($"  using existing email token.");
-                        client.DefaultRequestHeaders.Add("Email", OpenIDClient.email);
-                    }
-                }
-            }
-
-            // BEGIN Workaround behind some proxies
-            // Stream is sent twice, if proxy-authorization header is not set
-            string proxyFile = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal) + "/proxy.dat";
-            string username = "";
-            string password = "";
-            if (System.IO.File.Exists(proxyFile))
-            {
-                using (StreamReader sr = new StreamReader(proxyFile))
-                {
-                    // ReSharper disable MethodHasAsyncOverload
-                    sr.ReadLine();
-                    username = sr.ReadLine();
-                    password = sr.ReadLine();
-                    // ReSharper enable MethodHasAsyncOverload
-                }
-            }
-            if (username != "" && password != "")
-            {
-                var authToken = Encoding.ASCII.GetBytes(username + ":" + password);
-                client.DefaultRequestHeaders.ProxyAuthorization = new AuthenticationHeaderValue("Basic",
-                    Convert.ToBase64String(authToken));
-            }
-            // END Workaround behind some proxies
 
             // get response?
             using (var response = await client.DeleteAsync(requestPath))
@@ -950,6 +857,7 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         public static async Task<Tuple<HttpStatusCode, string>> HttpPutPostIdentifiable(
+            HttpClient reUseClient,
             Aas.IIdentifiable idf,
             Uri destUri,
             bool usePost = false,
@@ -980,6 +888,7 @@ namespace AasxPackageLogic.PackageCentral
 
                     // write
                     return await PackageHttpDownloadUtil.HttpPutPostFromMemoryStream(
+                        reUseClient,
                         ms,
                         destUri: destUri,
                         runtimeOptions: runtimeOptions,
@@ -997,6 +906,7 @@ namespace AasxPackageLogic.PackageCentral
         /// <typeparam name="T">Type of Identifiable</typeparam>
         /// <typeparam name="E">Type of entity element</typeparam>
         public static async Task<int> DownloadListOfIdentifiables<T, E>(
+            HttpClient reUseClient,
             IEnumerable<E> entities,
             Func<E, Uri> lambdaGetLocation,
             Action<HttpStatusCode, T, string, E> lambdaDownloadDoneOrFail,
@@ -1041,6 +951,7 @@ namespace AasxPackageLogic.PackageCentral
                 foreach (var ent in entities)
                 {
                     await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                        reUseClient,
                         sourceUri: lambdaGetLocation?.Invoke(ent),
                         allowFakeResponses: allowFakeResponses,
                         runtimeOptions: runtimeOptions,
@@ -1078,6 +989,7 @@ namespace AasxPackageLogic.PackageCentral
                     {
                         var thisEnt = ent;
                         await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                            reUseClient,
                             sourceUri: lambdaGetLocation?.Invoke(ent),
                             allowFakeResponses: allowFakeResponses,
                             runtimeOptions: runtimeOptions,
@@ -1121,6 +1033,7 @@ namespace AasxPackageLogic.PackageCentral
             T res = default(T);
 
             await DownloadListOfIdentifiables<T, Uri>(
+                null,
                 new[] { location },
                 lambdaGetLocation: (loc) => loc,
                 runtimeOptions: runtimeOptions,
@@ -1148,6 +1061,7 @@ namespace AasxPackageLogic.PackageCentral
 
             // GET
             await HttpGetToMemoryStream(
+                null,
                 sourceUri: uri,
                 allowFakeResponses: allowFakeResponses,
                 runtimeOptions: runtimeOptions,
@@ -1176,6 +1090,7 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         public static async Task<int> DeleteListOfEntities<E>(
+            HttpClient reUseClient,
             IEnumerable<E> entities,
             Func<E, Uri> lambdaGetLocation,
             Action<HttpStatusCode, string, E> lambdaDeleteDoneOrFail,
@@ -1197,6 +1112,7 @@ namespace AasxPackageLogic.PackageCentral
                 {
                     // delete
                     var res = await HttpDeleteUri(
+                        reUseClient,
                         delUri: lambdaGetLocation?.Invoke(ent),
                         runtimeOptions: runtimeOptions);
 
@@ -1212,6 +1128,7 @@ namespace AasxPackageLogic.PackageCentral
                     {
                         // delete
                         var res = await HttpDeleteUri(
+                            reUseClient,
                             delUri: lambdaGetLocation?.Invoke(ent),
                             runtimeOptions: runtimeOptions);
 
