@@ -84,11 +84,14 @@ namespace AasxPackageLogic.PackageCentral
             // try
             try
             {
-                await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                    null,
                     sourceUri: PackageContainerHttpRepoSubset.BuildUriForRepoAasThumbnail(_defaultRepoBaseUri, aas.Id),
                     runtimeOptions: _runtimeOptions,
-                    lambdaDownloadDone: (ms, contentFn) =>
+                    lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
                     {
+                        if (code != HttpStatusCode.OK)
+                            return;
                         AddThumbnail(aas.Id, ms.ToArray());
                     });
 

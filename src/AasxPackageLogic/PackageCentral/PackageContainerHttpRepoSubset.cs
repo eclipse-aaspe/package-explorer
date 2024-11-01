@@ -242,6 +242,10 @@ namespace AasxPackageLogic.PackageCentral
 
         public static Uri GetBaseUri(string location)
         {
+            // access
+            if (location?.HasContent() != true)
+                return null;
+
             // try an explicit search for known parts of ressources
             // (preserves scheme, host and leading pathes)
             var m = Regex.Match(location, @"^(.*?)(/shells|/submodel|/conceptdescription|/lookup)");
@@ -357,11 +361,18 @@ namespace AasxPackageLogic.PackageCentral
         public static Uri BuildUriForRepoSingleSubmodel(
             Uri baseUri, string id, 
             bool encryptIds = true,
-            bool usePost = false)
+            bool usePost = false,
+            bool addAasId = false,
+            string aasId = null)
         {
             // access
             if (id?.HasContent() != true)
                 return null;
+
+            // query string for aasId?
+            var queryAasId = "";
+            if (addAasId && aasId?.HasContent() == true)
+                queryAasId = "?aasIdentifier=" + aasId;
 
             // try combine
             if (!usePost)
@@ -371,7 +382,7 @@ namespace AasxPackageLogic.PackageCentral
             }
             else
             {
-                return CombineUri(baseUri, "submodels");
+                return CombineUri(baseUri, "submodels" + queryAasId);
             }
         }
 
@@ -666,6 +677,8 @@ namespace AasxPackageLogic.PackageCentral
         {
             var allowFakeResponses = runtimeOptions?.AllowFakeResponses ?? false;
 
+            PackageContainerListBase containerList = null;
+
             var baseUri = GetBaseUri(fullItemLocation);
 
             // for the time being, make sure, we have the correct list implementations
@@ -701,25 +714,42 @@ namespace AasxPackageLogic.PackageCentral
 
             if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Registry)
             {
-                // AAS descriptors?
-                var isAllAas = IsValidUriForRegistryAllAAS(fullItemLocation);
-                var isAasByAssetId = IsValidUriForRegistryAasByAssetId(fullItemLocation);
-                if (isAllAas || isAasByAssetId)
+                // All AAS descriptors?
+                if (IsValidUriForRegistryAllAAS(fullItemLocation))
                 {
                     // ok
                     operationFound = true;
 
-                    // prepare receing the descriptors
+                    // prepare receiving the descriptors
                     var resObj = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
                         new Uri(fullItemLocation), runtimeOptions, allowFakeResponses);
 
-                    // Note: the result format for GetAllAAS and GetAllAssetAdministrationShellIdsByAssetLink
-                    // is diffeent!
-                    var arrObj = resObj;
-                    if (isAllAas)
-                        arrObj = resObj?.result;
+                    // have directly a list of descriptors?!
+                    if (resObj?.result == null)
+                    {
+                        runtimeOptions?.Log?.Error("Registry did not return any AAS descriptors! Aborting.");
+                        return;
+                    }
 
-                    // have a list of descriptors?!
+                    foreach (var res in resObj.result)
+                    {
+                        // refer to dedicated function
+                        await FromRegistryGetAasAndSubmodels(
+                            prepAas, prepSM, record, runtimeOptions, allowFakeResponses, res);
+                    }
+                }
+
+                // Asset Link
+                if (IsValidUriForRegistryAasByAssetId(fullItemLocation))
+                {
+                    // ok
+                    operationFound = true;
+
+                    // prepare receiving the descriptors
+                    var resObj = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
+                        new Uri(fullItemLocation), runtimeOptions, allowFakeResponses);
+
+                    // Note: GetAllAssetAdministrationShellIdsByAssetLink only returns a list of ids
                     if (resObj == null)
                     {
                         runtimeOptions?.Log?.Error("Registry did not return any AAS descriptors! Aborting.");
@@ -728,12 +758,15 @@ namespace AasxPackageLogic.PackageCentral
 
                     // Have  a list of ids. Decompose into single id.
                     // Note: Parallel makes no sense, ideally only 1 result (is per AssetId)!!
+                    var noRes = true;
                     foreach (var res in resObj)
                     {
+                        noRes = false;
+
                         // in res, have only an id. Get the descriptor
                         var id = "" + res;
                         var singleDesc = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
-                                BuildUriForRegistrySingleAAS(baseUri, id, encryptIds: true), 
+                                BuildUriForRegistrySingleAAS(baseUri, id, encryptIds: true),
                                 runtimeOptions, allowFakeResponses);
                         if (singleDesc == null || !HasProperty(singleDesc, "endpoints"))
                             continue;
@@ -741,6 +774,13 @@ namespace AasxPackageLogic.PackageCentral
                         // refer to dedicated function
                         await FromRegistryGetAasAndSubmodels(
                             prepAas, prepSM, record, runtimeOptions, allowFakeResponses, singleDesc);
+                    }
+
+                    // check again (count)
+                    if (noRes)
+                    {
+                        runtimeOptions?.Log?.Error("Registry did not return any AAS descriptors! Aborting.");
+                        return;
                     }
                 }
 
@@ -804,6 +844,9 @@ namespace AasxPackageLogic.PackageCentral
 
             if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
             {
+                // for all repo access, use the same client
+                var client = PackageHttpDownloadUtil.CreateHttpClient(baseUri, runtimeOptions, containerList);
+
                 // start with a list of AAS or Submodels (very similar)
                 var isAllAAS = IsValidUriForRepoAllAAS(fullItemLocation);
                 var isAllSM = IsValidUriForRepoAllSubmodel(fullItemLocation);
@@ -812,12 +855,16 @@ namespace AasxPackageLogic.PackageCentral
                     // ok
                     operationFound = true;
 
-                    await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                    await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                        client,
                         sourceUri: new Uri(fullItemLocation),
                         allowFakeResponses: allowFakeResponses,
                         runtimeOptions: runtimeOptions,
-                        lambdaDownloadDone: (ms, contentFn) =>
+                        lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
                         {
+                            if (code != HttpStatusCode.OK)
+                                return;
+
                             try
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
@@ -831,42 +878,52 @@ namespace AasxPackageLogic.PackageCentral
                                         // second try to reduce side effects
                                         try
                                         {
+                                            // skip
                                             if (childsToSkip > 0)
                                             {
                                                 childsToSkip--;
                                                 continue;
                                             }
 
+                                            // get identifiable
+                                            Aas.IIdentifiable idf = null;
+                                            if (isAllAAS)
+                                                idf = Jsonization.Deserialize.AssetAdministrationShellFrom(n2);
+                                            if (isAllSM)
+                                                idf = Jsonization.Deserialize.SubmodelFrom(n2);
+                                            if (idf == null)
+                                                continue;
+
                                             // on last child, attach side info for fetch prev/ next cursor
-                                            AasIdentifiableSideInfo si = null;
+                                            AasIdentifiableSideInfo si = new AasIdentifiableSideInfo()
+                                            {
+                                                IsStub = false,
+                                                StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                                Id = idf.Id,
+                                                IdShort = idf.IdShort,
+                                                Endpoint = new Uri(fullItemLocation)
+                                            };
                                             if (firstNonSkipped && record.PageOffset > 0)
-                                                si = new AasIdentifiableSideInfo()
-                                                {
-                                                    IsStub = false,
-                                                    ShowCursorAbove = true
-                                                };
-                                            firstNonSkipped = false;
+                                                si.ShowCursorAbove = true;
 
                                             if (n2 == resChilds.Last() && record.PageLimit > 0)
-                                                si = new AasIdentifiableSideInfo()
-                                                {
-                                                    IsStub = false,
-                                                    ShowCursorBelow = true
-                                                };
+                                                si.ShowCursorBelow = true;
+                                            
+                                            firstNonSkipped = false;
 
                                             // add
                                             if (isAllAAS)
                                                 prepAas.Add(
-                                                    Jsonization.Deserialize.AssetAdministrationShellFrom(n2),
+                                                    idf as Aas.IAssetAdministrationShell,
                                                     si);
                                             if (isAllSM)
                                                 prepSM.Add(
-                                                    Jsonization.Deserialize.SubmodelFrom(n2),
+                                                    idf as Aas.ISubmodel,
                                                     si);
                                         }
                                         catch (Exception ex)
                                         {
-                                            runtimeOptions?.Log?.Error(ex, "Parsing single AAS of list of all AAS");
+                                            runtimeOptions?.Log?.Error(ex, "Parsing single AAS/ Submodel of list of all AAS/ Submodel");
                                         }
                                 }
 
@@ -890,16 +947,27 @@ namespace AasxPackageLogic.PackageCentral
                     // ok
                     operationFound = true;
 
-                    await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                    await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                        client,
                         sourceUri: new Uri(fullItemLocation),
                         allowFakeResponses: allowFakeResponses,
                         runtimeOptions: runtimeOptions,
-                        lambdaDownloadDone: (ms, contentFn) =>
+                        lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
                         {
+                            if (code != HttpStatusCode.OK)
+                                return;
+
                             try
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                                prepAas.Add(Jsonization.Deserialize.AssetAdministrationShellFrom(node), null);
+                                var aas = Jsonization.Deserialize.AssetAdministrationShellFrom(node);
+                                prepAas.Add(aas, new AasIdentifiableSideInfo() { 
+                                    IsStub = false,
+                                    StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                    Id = aas.Id,
+                                    IdShort = aas.IdShort,
+                                    Endpoint = new Uri(fullItemLocation)
+                                });
                             }
                             catch (Exception ex)
                             {
@@ -914,16 +982,28 @@ namespace AasxPackageLogic.PackageCentral
                     // ok
                     operationFound = true;
 
-                    await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                    await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                        client,
                         sourceUri: new Uri(fullItemLocation),
                         allowFakeResponses: allowFakeResponses,
                         runtimeOptions: runtimeOptions,
-                        lambdaDownloadDone: (ms, contentFn) =>
+                        lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
                         {
+                            if (code != HttpStatusCode.OK)
+                                return;
+
                             try
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                                prepSM.Add(Jsonization.Deserialize.SubmodelFrom(node), null);
+                                var sm = Jsonization.Deserialize.SubmodelFrom(node);
+                                prepSM.Add(sm, new AasIdentifiableSideInfo()
+                                {
+                                    IsStub = false,
+                                    StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                    Id = sm.Id,
+                                    IdShort = sm.IdShort,
+                                    Endpoint = new Uri(fullItemLocation)
+                                });
                             }
                             catch (Exception ex)
                             {
@@ -938,16 +1018,28 @@ namespace AasxPackageLogic.PackageCentral
                     // ok
                     operationFound = true;
 
-                    await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                    await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                        client,
                         sourceUri: new Uri(fullItemLocation),
                         allowFakeResponses: allowFakeResponses,
                         runtimeOptions: runtimeOptions,
-                        lambdaDownloadDone: (ms, contentFn) =>
+                        lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
                         {
+                            if (code != HttpStatusCode.OK)
+                                return;
+
                             try
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                                prepCD.Add(Jsonization.Deserialize.ConceptDescriptionFrom(node), null);
+                                var cd = Jsonization.Deserialize.ConceptDescriptionFrom(node);
+                                prepCD.Add(cd, new AasIdentifiableSideInfo()
+                                {
+                                    IsStub = false,
+                                    StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                    Id = cd.Id,
+                                    IdShort = cd.IdShort,
+                                    Endpoint = new Uri(fullItemLocation)
+                                });
                             }
                             catch (Exception ex)
                             {
@@ -998,10 +1090,10 @@ namespace AasxPackageLogic.PackageCentral
 
                     // HTTP POST
                     var statCode = await PackageHttpDownloadUtil.HttpPostRequestToMemoryStream(
+                        client,
                         sourceUri: new Uri(quri.GetLeftPart(UriPartial.Path)),
                         requestBody: jsonQuery,
                         requestContentType: "application/json",
-                        allowFakeResponses: allowFakeResponses,
                         runtimeOptions: runtimeOptions,
                         lambdaDownloadDone: (ms, contentFn) =>
                         {
@@ -1074,17 +1166,29 @@ namespace AasxPackageLogic.PackageCentral
                         // download (and skip errors)
                         try
                         {
-                            await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                            await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                                null,
                                 sourceUri: loc,
                                 allowFakeResponses: allowFakeResponses,
                                 runtimeOptions: runtimeOptions,
-                                lambdaDownloadDone: (ms, contentFn) =>
+                                lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
                                 {
+                                    if (code != HttpStatusCode.OK)
+                                        return;
+
                                     try
                                     {
                                         var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                                        var sm = Jsonization.Deserialize.SubmodelFrom(node);
                                         if (fi.Type == FetchItemType.SmUrl || fi.Type == FetchItemType.SmId)
-                                            prepSM.Add(Jsonization.Deserialize.SubmodelFrom(node), null);
+                                            prepSM.Add(sm, new AasIdentifiableSideInfo()
+                                            {
+                                                IsStub = false,
+                                                StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                                Id = sm.Id,
+                                                IdShort = sm.IdShort,
+                                                Endpoint = new Uri(fullItemLocation)
+                                            });
                                     }
                                     catch (Exception ex)
                                     {
@@ -1129,18 +1233,30 @@ namespace AasxPackageLogic.PackageCentral
                             else
                             {
                                 // no side info => full element
-                                await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                                await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                                    null,
                                     sourceUri: BuildUriForRepoSingleSubmodel(baseUri, lr.Reference),
                                     allowFakeResponses: allowFakeResponses,
                                     runtimeOptions: runtimeOptions,
-                                    lambdaDownloadDone: (ms, contentFn) =>
+                                    lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
                                     {
+                                        if (code != HttpStatusCode.OK)
+                                            return;
+
                                         try
                                         {
                                             var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                                            var sm = Jsonization.Deserialize.SubmodelFrom(node);
                                             lock (prepSM)
                                             {
-                                                prepSM.Add(Jsonization.Deserialize.SubmodelFrom(node), null);
+                                                prepSM.Add(sm, new AasIdentifiableSideInfo()
+                                                {
+                                                    IsStub = false,
+                                                    StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                                    Id = sm.Id,
+                                                    IdShort = sm.IdShort,
+                                                    Endpoint = new Uri(fullItemLocation)
+                                                });
                                             }
                                         }
                                         catch (Exception ex)
@@ -1158,12 +1274,16 @@ namespace AasxPackageLogic.PackageCentral
                         new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
                         async (aas, token) =>
                         {
-                            await PackageHttpDownloadUtil.HttpGetToMemoryStreamOLD(
+                            await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                                client,
                                 sourceUri: BuildUriForRepoAasThumbnail(baseUri, aas.Id),
                                 allowFakeResponses: allowFakeResponses,
                                 runtimeOptions: runtimeOptions,
-                                lambdaDownloadDone: (ms, contentFn) =>
+                                lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
                                 {
+                                    if (code != HttpStatusCode.OK)
+                                        return;
+
                                     try
                                     {
                                         dynPack.AddThumbnail(aas.Id, ms.ToArray());
@@ -1254,9 +1374,9 @@ namespace AasxPackageLogic.PackageCentral
             // public string BaseAddress = "http://smt-repo.admin-shell-io.com/api/v3.0";
             // public string BaseAddress = "https://techday2-registry.admin-shell-io.com/";
 
-            // public BaseTypeEnum BaseType = BaseTypeEnum.Repository;
             [AasxMenuArgument(help: "Either: Repository or Registry")]
-            public BaseTypeEnum BaseType = BaseTypeEnum.Registry;
+            public BaseTypeEnum BaseType = BaseTypeEnum.Repository;
+            // public BaseTypeEnum BaseType = BaseTypeEnum.Registry;
 
             [AasxMenuArgument(help: "Retrieve all AAS from Repository or Registry. " +
                 "Note: Use of PageLimit is recommended.")]
@@ -1272,6 +1392,8 @@ namespace AasxPackageLogic.PackageCentral
 
             [AasxMenuArgument(help: "Get a single AAS, which is specified by a asset link/ asset id.")]
             public bool GetAasByAssetLink;
+
+            [AasxMenuArgument(help: "Specicies the Id of the asset to be retrieved.")]
             public string AssetId = "";
             // public string AssetId = "https://pk.harting.com/?.20P=ZSN1";
 
@@ -1929,7 +2051,7 @@ namespace AasxPackageLogic.PackageCentral
             return true;
         }
 
-        protected class UploadAssistantJobRecord
+        public class UploadAssistantJobRecord
         {
             // public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
             public string BaseAddress = "https://eis-data.aas-voyager.com/";
@@ -1942,7 +2064,7 @@ namespace AasxPackageLogic.PackageCentral
             public bool IncludeSubmodels = false;
             public bool IncludeCDs = false;
 
-            public bool OverwriteIfExist = true;
+            public bool OverwriteIfExist = false;
         }
 
         public static async Task<bool> PerformUploadAssistant(
@@ -2008,7 +2130,6 @@ namespace AasxPackageLogic.PackageCentral
             ucJob.ActivateRenderPanel(recordJob,
                 disableScrollArea: false,
                 dialogButtons: AnyUiMessageBoxButton.OK,
-                // extraButtons: new[] { "A", "B" },
                 renderPanel: (uci) =>
                 {
                     // create panel
@@ -2257,7 +2378,7 @@ namespace AasxPackageLogic.PackageCentral
                         maxWidth: 9999);
 
             ucSelect.ColumnDefs = AnyUiListOfGridLength.Parse(new[] { "50:", "1*", "3*", "70:", "70:", "70:" });
-            ucSelect.ColumnHeaders = new[] { "Type", "IdShort", "Id", "V.Local", "Exist?", "V.Server" };
+            ucSelect.ColumnHeaders = new[] { "Type", "IdShort", "Id", "V.Local", "Action", "V.Server" };
             ucSelect.Rows = rows.ToList();
             ucSelect.EmptySelectOk = true;
 
@@ -2292,12 +2413,11 @@ namespace AasxPackageLogic.PackageCentral
                 // ask server
                 if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
                 {
-                    // make a sequential upload, first
-                    foreach (var row in rowsToUpload)
+                    Func<AnyUiDialogueDataGridRow, Task> lambdaRow = async (row) =>
                     {
                         // idf?
                         if (!(row?.Tag is Aas.IIdentifiable idf))
-                            continue;
+                            return;
 
                         // put / post
                         var usePut = row.Cells != null && row.Cells.Count >= 6 &&
@@ -2306,7 +2426,16 @@ namespace AasxPackageLogic.PackageCentral
                                 row.Cells[4].StartsWith("POST");
 
                         if (!usePut && !usePost)
-                            continue;
+                            return;
+
+                        // workaround: API for POST Submodel seems to require Aas.Id
+                        // TODO (MIHO, 2024-11-01): follow up, if this is really required!
+                        string aasId = null;
+                        if (idf is Aas.ISubmodel)
+                        {
+                            var aas = packEnv?.AasEnv?.FindAasWithSubmodelId(idf.Id);
+                            aasId = aas?.Id;
+                        }
 
                         // location
                         Uri location = null;
@@ -2317,7 +2446,7 @@ namespace AasxPackageLogic.PackageCentral
                         if (idf is Aas.IConceptDescription)
                             location = BuildUriForRepoSingleCD(baseUri, idf?.Id, encryptIds: true, usePost: usePost);
                         if (location == null)
-                            continue;
+                            return;
 
                         var res2 = await PackageHttpDownloadUtil.HttpPutPostIdentifiable(
                             client,
@@ -2327,27 +2456,49 @@ namespace AasxPackageLogic.PackageCentral
                             runtimeOptions: runtimeOptions,
                             containerList: containerList);
 
-                        Action<bool> lambdaStat = (ok) =>
+                        // mutex (after all async calls!)
+                        lock (rowsToUpload)
                         {
-                            if (ok) { numOK++; } else { numNOK++; };
-                            ucProgUpload.Info = $"{numOK} entities OK, {numNOK} entities NOT OK of {numTotal}\n" +
-                                    $"Id: {idf?.Id}";
-                            ucProgUpload.Progress = 100.0 * (1.0 * (numOK + numNOK) / Math.Max(1, numTotal));
-                        };
+                            Action<bool> lambdaStat = (ok) =>
+                            {
+                                if (ok) { numOK++; } else { numNOK++; };
+                                ucProgUpload.Info = $"{numOK} entities OK, {numNOK} entities NOT OK of {numTotal}\n" +
+                                        $"Id: {idf?.Id}";
+                                ucProgUpload.Progress = 100.0 * (1.0 * (numOK + numNOK) / Math.Max(1, numTotal));
+                            };
 
-                        if (res2 != null 
-                            && (res2.Item1 == HttpStatusCode.Created || res2.Item1 == HttpStatusCode.NoContent))
-                        {
-                            lambdaStat(true);
+                            if (res2 != null
+                                && (res2.Item1 == HttpStatusCode.Created || res2.Item1 == HttpStatusCode.NoContent))
+                            {
+                                lambdaStat(true);
+                            }
+                            else
+                            {
+                                runtimeOptions?.Log?.Error("Put/Post of modified Identifiable returned error {0} for id={1} at {2}",
+                                    "" + ((res2 != null) ? (int)res2.Item1 : -1),
+                                    idf.Id,
+                                    location.ToString());
+                                lambdaStat(false);
+                            }
                         }
-                        else
-                        {
-                            runtimeOptions?.Log?.Error("Put/Post of modified Identifiable returned error {0} for id={1} at {2}",
-                                "" + ((res2 != null) ? (int)res2.Item1 : -1),
-                                idf.Id,
-                                location.ToString());
-                            lambdaStat(false);
-                        }
+                    };
+
+                    // simple or parallel?
+                    // TODO: currently suspecting aasx server to be not thread safe (error 500?)
+                    if (true || Options.Curr.MaxParallelOps <= 1)
+                    {
+                        // simple to debug
+                        foreach (var row in rowsToUpload)
+                            await lambdaRow(row);
+                    }
+                    else
+                    {
+                        await Parallel.ForEachAsync(rowsToUpload,
+                            new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
+                            async (row, token) =>
+                            {
+                                await lambdaRow(row);
+                            });
                     }
                 }
 
@@ -2366,6 +2517,11 @@ namespace AasxPackageLogic.PackageCentral
                     "while {1} uploaded ok. Location: {2}",
                     numNOK, numOK, recordJob.BaseAddress);
             }
+            else if (numOK < 1)
+            {
+                runtimeOptions?.Log?.Info(StoredPrint.Color.Blue, "No need of Put/ Push element(s) " +
+                    "to Registry/ Repository. Location {0}", recordJob.BaseAddress);
+            }
             else
             {
                 runtimeOptions?.Log?.Info(StoredPrint.Color.Blue, "Successful Put/ Push of {0} element(s) " +
@@ -2377,10 +2533,11 @@ namespace AasxPackageLogic.PackageCentral
             return true;
         }
 
-        protected class DeleteAssistantJobRecord
+        public class DeleteAssistantJobRecord
         {
             // public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
-            public string BaseAddress = "https://eis-data.aas-voyager.com/";
+            public string BaseAddress = "";
+            // public string BaseAddress = "https://eis-data.aas-voyager.com/";
             // public string BaseAddress = "http://smt-repo.admin-shell-io.com/api/v3.0";
             // public string BaseAddress = "https://techday2-registry.admin-shell-io.com/";
 
@@ -2394,7 +2551,8 @@ namespace AasxPackageLogic.PackageCentral
             string caption,
             IEnumerable<string> cdIds,
             PackCntRuntimeOptions runtimeOptions = null,
-            PackageContainerListBase containerList = null)
+            PackageContainerListBase containerList = null,
+            DeleteAssistantJobRecord presetRecord = null)
         {
             // access
             if (displayContext == null || caption?.HasContent() != true || cdIds == null || cdIds.Count() < 1)
@@ -2406,7 +2564,7 @@ namespace AasxPackageLogic.PackageCentral
             // Screen 1 : ask for job / Repo
             //
 
-            var recordJob = new DeleteAssistantJobRecord();
+            var recordJob = presetRecord ?? new DeleteAssistantJobRecord();
             var ucJob = new AnyUiDialogueDataModalPanel(caption);
             ucJob.ActivateRenderPanel(recordJob,
                 disableScrollArea: false,
@@ -2517,25 +2675,29 @@ namespace AasxPackageLogic.PackageCentral
                         useParallel: Options.Curr.MaxParallelOps > 1,
                         lambdaDownloadDoneOrFail: (code, idf, contentFn, id) =>
                         {
-                            // stat
-                            Action<bool> lambdaStat = (ok) =>
+                            // need mutex
+                            lock (cdExist)
                             {
-                                if (ok) { numOK++; } else { numNOK++; };
-                                ucProgTest.Info = $"{numOK} entities exist, {numNOK} entities NOT found in {numTotal}\n" +
-                                        $"Id: {idf?.Id}";
-                                ucProgTest.Progress = 100.0 * (1.0 * (numOK + numNOK) / Math.Max(1, numTotal));
-                            };
+                                // stat
+                                Action<bool> lambdaStat = (ok) =>
+                                {
+                                    if (ok) { numOK++; } else { numNOK++; };
+                                    ucProgTest.Info = $"{numOK} entities exist, {numNOK} entities NOT found in {numTotal}\n" +
+                                            $"Id: {idf?.Id}";
+                                    ucProgTest.Progress = 100.0 * (1.0 * (numOK + numNOK) / Math.Max(1, numTotal));
+                                };
 
-                            // any error?
-                            if (code != HttpStatusCode.OK || idf == null)
-                            {
-                                lambdaStat(false);
-                                return;
+                                // any error?
+                                if (code != HttpStatusCode.OK || idf == null)
+                                {
+                                    lambdaStat(false);
+                                    return;
+                                }
+
+                                // remember for later
+                                cdExist.Add(idf);
+                                lambdaStat(true);
                             }
-
-                            // remember for later
-                            cdExist.Add(idf);
-                            lambdaStat(true);
                         });
                 }
 
@@ -2602,24 +2764,28 @@ namespace AasxPackageLogic.PackageCentral
                         useParallel: Options.Curr.MaxParallelOps > 1,
                         lambdaDeleteDoneOrFail: (code, content, cd2) =>
                         {
-                            // stat
-                            Action<bool> lambdaStat = (ok) =>
+                            // need mutex
+                            lock (cdExist)
                             {
-                                if (ok) { numOK++; } else { numNOK++; };
-                                ucProgDel.Info = $"{numOK} entities exist, {numNOK} entities NOT found in {numTotal}\n" +
-                                        $"Id: {cd2?.Id}";
-                                ucProgDel.Progress = 100.0 * (1.0 * (numOK + numNOK) / Math.Max(1, numTotal));
-                            };
+                                // stat
+                                Action<bool> lambdaStat = (ok) =>
+                                {
+                                    if (ok) { numOK++; } else { numNOK++; };
+                                    ucProgDel.Info = $"{numOK} entities exist, {numNOK} entities NOT found in {numTotal}\n" +
+                                            $"Id: {cd2?.Id}";
+                                    ucProgDel.Progress = 100.0 * (1.0 * (numOK + numNOK) / Math.Max(1, numTotal));
+                                };
 
-                            // any error?
-                            if (code != HttpStatusCode.OK && code != HttpStatusCode.NoContent)
-                            {
-                                lambdaStat(false);
-                                return;
+                                // any error?
+                                if (code != HttpStatusCode.OK && code != HttpStatusCode.NoContent)
+                                {
+                                    lambdaStat(false);
+                                    return;
+                                }
+
+                                // ok
+                                lambdaStat(true);
                             }
-
-                            // ok
-                            lambdaStat(true);
                         });
                 }
 
