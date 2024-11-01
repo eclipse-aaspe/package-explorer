@@ -2662,7 +2662,7 @@ namespace AasxPackageExplorer
             // flags for tainted Identifiables
             MainTimer_CheckTaintedIdentifiables(
                 _mainTimer_LastCheckForTaintedIdentifiables,
-                PackageCentral.MainItem.Container.Env?.AasEnv);
+                PackageCentral.MainItem.Container?.Env?.AasEnv);
             _mainTimer_LastCheckForTaintedIdentifiables = DateTime.UtcNow;
 
             // pending re-index?

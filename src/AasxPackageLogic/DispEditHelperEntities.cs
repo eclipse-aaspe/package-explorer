@@ -1553,7 +1553,7 @@ namespace AasxPackageLogic
                 {
                     MainWindowLogic.LogErrorToTicketStatic(ticket,
                         new InvalidDataException(),
-                        "Error building location from next fetch selection. Aborting.");
+                        "Error building location from fetch selection. Aborting.");
                     return false;
                 }
 
@@ -2128,9 +2128,11 @@ namespace AasxPackageLogic
                 AddActionPanel(stack, "Submodel:",
                     repo: repo, superMenu: superMenu,
                     ticketMenu: new AasxMenu()
-                        .AddAction("aas-elem-del", "Delete",
-                            "Deletes the currently selected element.",
-                        inputGesture: "Ctrl+Shift+Delete"),
+                        .AddAction("aas-elem-del", "Delete \U0001f847 here",
+                            "Deletes the currently selected Submodel in the local environment.",
+                            inputGesture: "Ctrl+Shift+Delete")
+                        .AddAction("delete-sm-in-repo", "Delete SM \u274c in Repo",
+                            "Delete Submodel by Id in a given Repository or Registry."),
                     ticketAction: (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
@@ -2314,7 +2316,7 @@ namespace AasxPackageLogic
                             "assigns the SubmodelElement to it.")
                         .AddAction("create-smes", "Create \U0001f844 SMEs (all)",
                             "Create missing CDs from semanticId of used SMEs.")
-                        .AddAction("delete-cd-in-repo", "Delete \u274c in Repo",
+                        .AddAction("delete-cd-in-repo", "Delete CD \u274c in Repo",
                             "Delete ConceptDescriptions which are referenced by semanticId of SubmodelElements " +
                             "in a given Repository or Registry."),
                     ticketActionAsync: async (buttonNdx, ticket) =>
@@ -2390,11 +2392,22 @@ namespace AasxPackageLogic
                             var cdIds = lrs.Select((lr) => lr?.Reference?.GetAsExactlyOneKey()?.Value);
 
                             // call function
+                            // (only the side info in the _specific_ endpoint gives information, in which
+                            //  repo the CDs could be deleted)
                             await PackageContainerHttpRepoSubset.AssistantDeleteCDsInRepo(
                                 ticket, context,
                                 "Delete CDs in Repository/ Registry",
                                 cdIds,
-                                runtimeOptions: packages.CentralRuntimeOptions);
+                                runtimeOptions: packages.CentralRuntimeOptions,
+                                presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                                {
+                                    // assume Repo ?!
+                                    BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                    // extract base address
+                                    BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                        sideInfo?.Endpoint?.AbsoluteUri)?.AbsoluteUri
+                                });
 
                             // ok
                             return new AnyUiLambdaActionNone();
