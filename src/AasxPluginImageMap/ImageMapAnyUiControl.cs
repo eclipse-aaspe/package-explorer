@@ -373,15 +373,28 @@ namespace AasxPluginImageMap
                 return;
 
             // image
+            AnyUiBitmapInfo bi = null;
+            
             // file?
-            var fe = _submodel.SubmodelElements.FindFirstSemanticIdAs<Aas.File>(
+            var fe = _submodel.SubmodelElements.FindFirstSemanticIdAs<Aas.IFile>(
                 AasxPredefinedConcepts.ImageMap.Static.CD_ImageFile,
                 MatchMode.Relaxed);
-            if (fe?.Value == null)
-                return;
+            if (fe?.Value != null)
+            {
+                bi = AnyUiGdiHelper.LoadBitmapInfoFromPackage(_package, fe.Value);
+            }
 
-            var bi = AnyUiGdiHelper.LoadBitmapInfoFromPackage(_package, fe.Value);
-            if (_backgroundImage != null)
+            // BLOB
+            var be = _submodel.SubmodelElements.FindFirstSemanticIdAs<Aas.IBlob>(
+                AasxPredefinedConcepts.ImageMap.Static.CD_ImageFile,
+                MatchMode.Relaxed);
+            if (be?.Value != null)
+            { 
+                bi = AnyUiGdiHelper.LoadBitmapInfoFromBytes(be.Value);
+            }
+
+            // set
+            if (bi != null && _backgroundImage != null)
             {
                 if (bi != null)
                 {

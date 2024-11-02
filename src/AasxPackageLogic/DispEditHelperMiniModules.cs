@@ -1928,7 +1928,7 @@ namespace AasxPackageLogic
                                         Aas.AasSubmodelElements.Blob,
                                         Aas.AasSubmodelElements.ReferenceElement};
 
-                            en = this.SelectAdequateEnum("Select SubmodelElement to create ..", ticket: ticket,
+                            en = await this.SelectAdequateEnum("Select SubmodelElement to create ..", ticket: ticket,
                                 includeValues: includes,
                                 excludeValues: new[] { 
                                     Aas.AasSubmodelElements.DataElement,

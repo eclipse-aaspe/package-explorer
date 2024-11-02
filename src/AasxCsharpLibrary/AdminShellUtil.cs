@@ -267,6 +267,7 @@ namespace AdminShellNS
                 };
         }
 
+
         public static bool CheckForTextContentType(string input)
         {
             if (input == null)
@@ -284,6 +285,40 @@ namespace AdminShellNS
                 if (input.Contains(tst.ToLower()))
                     return true;
             return false;
+        }
+        
+        public static string GuessExtension(string contentType = null, byte[] contents = null)
+        {
+            if (contentType?.HasContent() == true)
+            {
+                var list = GetPopularMimeTypes().ToList();
+                var p = list.IndexOf(contentType);
+                if (p >= 0)
+                    return (new[] {
+                        ".txt",
+                        ".xml",
+                        ".html",
+                        ".md",
+                        ".adoc",
+                        ".json",
+                        ".rdf",
+                        ".pdf",
+                        ".jpg",
+                        ".png",
+                        ".gif",
+                        ".iges",
+                        ".stp"
+                    })[p];
+            }
+
+            // ok, guess by bytes
+            if (contents != null && contents.Length > 0)
+            {
+                return GuessImageTypeExtension(contents);
+            }
+
+            // ok, nop
+            return ".tmp";
         }
 
         public static IEnumerable<AasSubmodelElements> GetAdequateEnums(AasSubmodelElements[] excludeValues = null, AasSubmodelElements[] includeValues = null)

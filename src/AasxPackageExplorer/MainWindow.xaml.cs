@@ -85,7 +85,7 @@ namespace AasxPackageExplorer
 		
 		public AasxMenuWpf MainMenu = new AasxMenuWpf();
 
-        private Aas.ISubmodelElement showContentElement = null;
+        private Aas.ISubmodelElement _showContentElement = null;
         private VisualElementGeneric currentEntityForUpdate = null;
         private IFlyoutControl currentFlyoutControl = null;
 
@@ -666,7 +666,7 @@ namespace AasxPackageExplorer
             ShowContent.IsEnabled = false;
             DragSource.Foreground = Brushes.DarkGray;
             UpdateContent.IsEnabled = false;
-            this.showContentElement = null;
+            _showContentElement = null;
 
             // show it
             if (ElementTabControl.SelectedIndex != 0)
@@ -678,15 +678,14 @@ namespace AasxPackageExplorer
                 if (sme?.theWrapper is Aas.IFile file)
                 {
                     ShowContent.IsEnabled = true;
-                    this.showContentElement = file;
+                    _showContentElement = file;
                     DragSource.Foreground = Brushes.Black;
                 }
 
-                if (sme?.theWrapper is Aas.IBlob blb
-                    && AdminShellUtil.CheckForTextContentType(blb.ContentType))
+                if (sme?.theWrapper is Aas.IBlob blb)
                 {
                     ShowContent.IsEnabled = true;
-                    this.showContentElement = blb;
+                    this._showContentElement = blb;
                     DragSource.Foreground = Brushes.Black;
                 }
             }
@@ -3082,35 +3081,63 @@ namespace AasxPackageExplorer
 
         private void ShowContent_Click(object sender, RoutedEventArgs e)
         {
-            if (sender == ShowContent && this.showContentElement != null && PackageCentral.MainAvailable)
+            if (sender == ShowContent && _showContentElement != null && PackageCentral.MainAvailable)
             {
-                if (this.showContentElement is Aas.IFile scFile)
+                Tuple<object, string> contentFound = null;
+                if (_showContentElement is Aas.IFile scFile)
+                    contentFound = new Tuple<object, string>(scFile.Value, scFile.ContentType);
+                if (_showContentElement is Aas.IBlob scBlob && MainMenu?.IsChecked("EditMenu") == false)
+                    contentFound = new Tuple<object, string>(scBlob.Value, scBlob.ContentType);
+
+                if (contentFound != null)
                 {
-                    Log.Singleton.Info("Trying display content {0} ..", scFile.Value);
+                    Log.Singleton.Info("Trying display content {0} ..", contentFound.Item1);
                     try
                     {
-                        var contentUri = scFile.Value;
-
-                        // if local in the package, then make a tempfile
-                        if (!contentUri.ToLower().Trim().StartsWith("http://")
-                            && !contentUri.ToLower().Trim().StartsWith("https://"))
+                        if (contentFound.Item1 is string contentUri)
                         {
-                            // make it as file
-                            contentUri = PackageCentral.Main.MakePackageFileAvailableAsTempFile(contentUri);
-                        }
+                            // if local in the package, then make a tempfile
+                            if (!contentUri.ToLower().Trim().StartsWith("http://")
+                                && !contentUri.ToLower().Trim().StartsWith("https://"))
+                            {
+                                // make it as file
+                                contentUri = PackageCentral.Main.MakePackageFileAvailableAsTempFile(contentUri);
+                            }
 
-                        BrowserDisplayLocalFile(contentUri, scFile.ContentType);
+                            BrowserDisplayLocalFile(contentUri, contentFound.Item2);
+                        }
+                        else
+                        if (contentFound.Item1 is byte[] ba)
+                        {
+                            try
+                            {
+                                // generate tempfile name
+                                string tempext = AdminShellUtil.GuessExtension(
+                                    contentType: contentFound.Item2,
+                                    contents: ba);
+                                string temppath = System.IO.Path.GetTempFileName().Replace(".tmp", tempext);
+
+                                // write it
+                                System.IO.File.WriteAllBytes(temppath, ba);
+
+                                // display
+                                BrowserDisplayLocalFile(temppath, contentFound.Item2);
+                            } catch (Exception ex)
+                            {
+                                Log.Singleton.Error(ex, "when preparing BLOB contents to be displayed as file.");
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
                         Log.Singleton.Error(
-                            ex, $"When displaying content {scFile.Value}, an error occurred");
+                            ex, $"When displaying content {contentFound.Item1}, an error occurred");
                         return;
                     }
-                    Log.Singleton.Info("Content {0} displayed.", scFile.Value);
+                    Log.Singleton.Info("Content {0} displayed.", contentFound.Item1);
                 }
 
-                if (this.showContentElement is Aas.IBlob blb
+                if (this._showContentElement is Aas.IBlob blb
                     && MainMenu?.IsChecked("EditMenu") == true
                     && AdminShellUtil.CheckForTextContentType(blb.ContentType))
                 {
@@ -3648,7 +3675,7 @@ namespace AasxPackageExplorer
             //// && (Math.Abs(dragStartPoint.X) < 0.001 && Math.Abs(dragStartPoint.Y) < 0.001)
             if (e.LeftButton == MouseButtonState.Pressed && !isDragging
                 && PackageCentral.MainAvailable
-                && this.showContentElement is Aas.IFile scFile)
+                && this._showContentElement is Aas.IFile scFile)
             {
                 Point position = e.GetPosition(null);
                 if (Math.Abs(position.X - dragStartPoint.X) > SystemParameters.MinimumHorizontalDragDistance ||
