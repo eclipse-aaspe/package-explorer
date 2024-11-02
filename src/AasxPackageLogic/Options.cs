@@ -452,6 +452,11 @@ namespace AasxPackageLogic
         public bool AllowFakeResponses = true;
 
         [OptionDescription(Description =
+            "Presets for base addresses for Registries and Repositories.",
+            Cmd = "-base-addresses")]
+        public List<string> BaseAddresses = new List<string>();
+
+        [OptionDescription(Description =
             "When connecting to Registry/ Repository, add more details to the log messages.",
             Cmd = "-extended-connection-debug")]
         public bool ExtendedConnectionDebug = false;

@@ -372,7 +372,10 @@ namespace AasxPackageLogic.PackageCentral
             // query string for aasId?
             var queryAasId = "";
             if (addAasId && aasId?.HasContent() == true)
-                queryAasId = "?aasIdentifier=" + aasId;
+            {
+                var aasidenc = encryptIds ? AdminShellUtil.Base64UrlEncode(aasId) : aasId;
+                queryAasId = "?aasIdentifier=" + aasidenc;
+            }
 
             // try combine
             if (!usePost)
@@ -1225,17 +1228,20 @@ namespace AasxPackageLogic.PackageCentral
                                     prepSM.Add(null, new AasIdentifiableSideInfo()
                                     {
                                         IsStub = true,
-                                        StubLevel = AasIdentifiableSideInfoLevel.IdOnly,
-                                        Id = lr.Reference.Keys[0].Value
+                                        StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                        Id = lr.Reference.Keys[0].Value,
+                                        IdShort = "",
+                                        Endpoint = BuildUriForRepoSingleSubmodel(baseUri, lr.Reference)
                                     });
                                 }
                             }
                             else
                             {
                                 // no side info => full element
+                                var sourceUri = BuildUriForRepoSingleSubmodel(baseUri, lr.Reference);
                                 await PackageHttpDownloadUtil.HttpGetToMemoryStream(
                                     null,
-                                    sourceUri: BuildUriForRepoSingleSubmodel(baseUri, lr.Reference),
+                                    sourceUri: sourceUri,
                                     allowFakeResponses: allowFakeResponses,
                                     runtimeOptions: runtimeOptions,
                                     lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
@@ -1255,7 +1261,7 @@ namespace AasxPackageLogic.PackageCentral
                                                     StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                                     Id = sm.Id,
                                                     IdShort = sm.IdShort,
-                                                    Endpoint = new Uri(fullItemLocation)
+                                                    Endpoint = sourceUri
                                                 });
                                             }
                                         }
@@ -1717,18 +1723,35 @@ namespace AasxPackageLogic.PackageCentral
                                     items: ConnectExtendedRecord.BaseTypeEnumNames,
                                     selectedIndex: (int)record.BaseType,
                                     margin: new AnyUiThickness(0, 0, 5, 0),
-                                    padding: new AnyUiThickness(0, -1, 0, -3)),
+                                    padding: new AnyUiThickness(0, 0, 0, 0)),
                                 minWidth: 200, maxWidth: 200),
                                 (i) => { record.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
 
-                    AnyUiUIElement.SetStringFromControl(
+                    if (displayContext is AnyUiContextPlusDialogs cpd
+                            && cpd.HasCapability(AnyUiContextCapability.WPF))
+                    {
+                        AnyUiUIElement.SetStringFromControl(
                             helper.Set(
-                                helper.AddSmallTextBoxTo(g2, 0, 1,
-                                    text: $"{record.BaseAddress}",
-                                    verticalAlignment: AnyUiVerticalAlignment.Center,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
-                            (s) => { record.BaseAddress = s; });
+                                helper.AddSmallComboBoxTo(g2, 0, 1,
+                                    isEditable: true,
+                                    items: Options.Curr.BaseAddresses?.ToArray(),
+                                    text: "" + record.BaseAddress,
+                                    margin: new AnyUiThickness(0, 0, 0, 0),
+                                    padding: new AnyUiThickness(0, 0, 0, 0),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
+                                (s) => { record.BaseAddress = s; });
+                    }
+                    else
+                    {
+                        AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallTextBoxTo(g2, 0, 1,
+                                        text: $"{record.BaseAddress}",
+                                        verticalAlignment: AnyUiVerticalAlignment.Center,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                                (s) => { record.BaseAddress = s; });
+                    }
 
                     row++;
 
@@ -2178,14 +2201,31 @@ namespace AasxPackageLogic.PackageCentral
                                 minWidth: 200, maxWidth: 200),
                                 (i) => { recordJob.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
 
-                    AnyUiUIElement.SetStringFromControl(
+                    if (displayContext is AnyUiContextPlusDialogs cpd
+                            && cpd.HasCapability(AnyUiContextCapability.WPF))
+                    {
+                        AnyUiUIElement.SetStringFromControl(
                             helper.Set(
-                                helper.AddSmallTextBoxTo(g2, 0, 1,
-                                    text: $"{recordJob.BaseAddress}",
-                                    verticalAlignment: AnyUiVerticalAlignment.Center,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
-                            (s) => { recordJob.BaseAddress = s; });
+                                helper.AddSmallComboBoxTo(g2, 0, 1,
+                                    isEditable: true,
+                                    items: Options.Curr.BaseAddresses?.ToArray(),
+                                    text: "" + recordJob.BaseAddress,
+                                    margin: new AnyUiThickness(0, 0, 0, 0),
+                                    padding: new AnyUiThickness(0, 0, 0, 0),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
+                                (s) => { recordJob.BaseAddress = s; });
+                    }
+                    else
+                    {
+                        AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallTextBoxTo(g2, 0, 1,
+                                        text: $"{recordJob.BaseAddress}",
+                                        verticalAlignment: AnyUiVerticalAlignment.Center,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                                (s) => { recordJob.BaseAddress = s; });
+                    }
 
                     row++;
 
@@ -2442,7 +2482,8 @@ namespace AasxPackageLogic.PackageCentral
                         if (idf is Aas.IAssetAdministrationShell)
                             location = BuildUriForRepoSingleAAS(baseUri, idf?.Id, encryptIds: true, usePost: usePost);
                         if (idf is Aas.ISubmodel)
-                            location = BuildUriForRepoSingleSubmodel(baseUri, idf?.Id, encryptIds: true, usePost: usePost);
+                            location = BuildUriForRepoSingleSubmodel(baseUri, idf?.Id, encryptIds: true, usePost: usePost,
+                                            addAasId: true, aasId: aasId);
                         if (idf is Aas.IConceptDescription)
                             location = BuildUriForRepoSingleCD(baseUri, idf?.Id, encryptIds: true, usePost: usePost);
                         if (location == null)
@@ -2535,30 +2576,29 @@ namespace AasxPackageLogic.PackageCentral
 
         public class DeleteAssistantJobRecord
         {
-            // public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
             public string BaseAddress = "";
-            // public string BaseAddress = "https://eis-data.aas-voyager.com/";
-            // public string BaseAddress = "http://smt-repo.admin-shell-io.com/api/v3.0";
-            // public string BaseAddress = "https://techday2-registry.admin-shell-io.com/";
-
             public ConnectExtendedRecord.BaseTypeEnum BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository;
-            // public ConnectExtendedRecord.BaseTypeEnum BaseType = ConnectExtendedRecord.BaseTypeEnum.Registry;
         }
 
-        public static async Task<bool> AssistantDeleteCDsInRepo(
+        /// <summary>
+        /// Deletes a range of Identifiables from an Repo / Registry.
+        /// </summary>
+        /// <param name="idfIds">Each key to be an individual Identifiable!</param>
+        public static async Task<bool> AssistantDeleteIdfsInRepo(
             AasxMenuActionTicket ticket,
             AnyUiContextBase displayContext,
             string caption,
-            IEnumerable<string> cdIds,
+            string elemKindName,
+            IEnumerable<Aas.IKey> idfIds,
             PackCntRuntimeOptions runtimeOptions = null,
             PackageContainerListBase containerList = null,
             DeleteAssistantJobRecord presetRecord = null)
         {
             // access
-            if (displayContext == null || caption?.HasContent() != true || cdIds == null || cdIds.Count() < 1)
+            if (displayContext == null || caption?.HasContent() != true || idfIds == null || idfIds.Count() < 1)
                 return false;
 
-            var cdIdsDis = cdIds.Distinct().ToList();
+            var idfIdsDis = idfIds.Distinct().ToList();
 
             //
             // Screen 1 : ask for job / Repo
@@ -2586,7 +2626,8 @@ namespace AasxPackageLogic.PackageCentral
 
                     // Statistics
                     helper.AddSmallLabelTo(g, row, 0, content: "Requested to delete:");
-                    helper.AddSmallLabelTo(g, row + 0, 1, content: "# of ConceptDescription: " + cdIds.Count());
+                    helper.AddSmallLabelTo(g, row + 0, 1, 
+                        content: $"# of {elemKindName}: " + idfIds.Count());
 
                     row += 1;
 
@@ -2614,14 +2655,31 @@ namespace AasxPackageLogic.PackageCentral
                                 minWidth: 200, maxWidth: 200),
                                 (i) => { recordJob.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
 
-                    AnyUiUIElement.SetStringFromControl(
+                    if (displayContext is AnyUiContextPlusDialogs cpd
+                        && cpd.HasCapability(AnyUiContextCapability.WPF))
+                    {
+                        AnyUiUIElement.SetStringFromControl(
                             helper.Set(
-                                helper.AddSmallTextBoxTo(g2, 0, 1,
-                                    text: $"{recordJob.BaseAddress}",
-                                    verticalAlignment: AnyUiVerticalAlignment.Center,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
-                            (s) => { recordJob.BaseAddress = s; });
+                                helper.AddSmallComboBoxTo(g2, 0, 1,
+                                    isEditable: true,
+                                    items: Options.Curr.BaseAddresses?.ToArray(),
+                                    text: "" + recordJob.BaseAddress,
+                                    margin: new AnyUiThickness(0, 0, 0, 0),
+                                    padding: new AnyUiThickness(0, 0, 0, 0),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
+                                (s) => { recordJob.BaseAddress = s; });
+                    }
+                    else
+                    {
+                        AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallTextBoxTo(g2, 0, 1,
+                                        text: $"{recordJob.BaseAddress}",
+                                        verticalAlignment: AnyUiVerticalAlignment.Center,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                                (s) => { recordJob.BaseAddress = s; });
+                    }
 
                     row++;
 
@@ -2637,13 +2695,14 @@ namespace AasxPackageLogic.PackageCentral
             //
 
             var ucProgTest = new AnyUiDialogueDataProgress(
-                "Checking individual ConceptDescription to exist",
+                $"Checking individual {elemKindName}s to exist",
                 info: "Preparing ...", symbol: AnyUiMessageBoxImage.Information);
             ucProgTest.Progress = 0.0;
 
-            var numTotal = cdIdsDis.Count;
-            var cdExist = new List<Aas.IConceptDescription>();
+            var numTotal = idfIdsDis.Count;
+            var idfExist = new List<Aas.IIdentifiable>();
             var numOK = 0;
+            var numWrongType = 0;
             var numNOK = 0;
 
             // in order to re-use sockets
@@ -2663,39 +2722,66 @@ namespace AasxPackageLogic.PackageCentral
                 if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
                 {
                     // first, test which ids exist as CD in repo
-                    await PackageHttpDownloadUtil.DownloadListOfIdentifiables<Aas.IConceptDescription, string>(
+                    await PackageHttpDownloadUtil.DownloadListOfIdentifiables<Aas.IIdentifiable, Aas.IKey>(
                         client,
-                        cdIdsDis,
-                        lambdaGetLocation: (id) =>
+                        idfIdsDis,
+                        lambdaGetLocation: (key) =>
                         {
-                            // return new Uri("https://eis-data.aas-voyager.com/shells/aHR0cHM6Ly9uZXcuYWJiLmNvbS9wcm9kdWN0cy9kZS8yQ1NSMjU1MTYzUjExNjUvYWFz");
-                            return BuildUriForRepoSingleCD(baseUri, id, encryptIds: true);
+                            Uri location = null;
+                            if (key?.Type == KeyTypes.AssetAdministrationShell)
+                                location = BuildUriForRepoSingleAAS(baseUri, key.Value, encryptIds: true);
+                            if (key?.Type == KeyTypes.Submodel)
+                                location = BuildUriForRepoSingleSubmodel(baseUri, key.Value, encryptIds: true);
+                            if (key?.Type == KeyTypes.ConceptDescription)
+                                location = BuildUriForRepoSingleCD(baseUri, key.Value, encryptIds: true);
+                            return location;
+                        },
+                        lambdaGetTypeToSerialize: (key) =>
+                        {
+                            Type type = null;
+                            if (key?.Type == KeyTypes.AssetAdministrationShell)
+                                type = typeof(Aas.IAssetAdministrationShell);
+                            if (key?.Type == KeyTypes.Submodel)
+                                type = typeof(Aas.ISubmodel);
+                            if (key?.Type == KeyTypes.ConceptDescription)
+                                type = typeof(Aas.IConceptDescription);
+                            return type;
                         },
                         runtimeOptions: runtimeOptions,
                         useParallel: Options.Curr.MaxParallelOps > 1,
-                        lambdaDownloadDoneOrFail: (code, idf, contentFn, id) =>
+                        lambdaDownloadDoneOrFail: (code, idf, contentFn, key) =>
                         {
                             // need mutex
-                            lock (cdExist)
+                            lock (idfExist)
                             {
                                 // stat
                                 Action<bool> lambdaStat = (ok) =>
                                 {
                                     if (ok) { numOK++; } else { numNOK++; };
-                                    ucProgTest.Info = $"{numOK} entities exist, {numNOK} entities NOT found in {numTotal}\n" +
-                                            $"Id: {idf?.Id}";
+                                    ucProgTest.Info = $"{numOK} entities exist, {numNOK} entities NOT found in {numTotal}\n"
+                                        + $"{numWrongType} were of wrong type,\n"
+                                        + $"Id: {idf?.Id}";
                                     ucProgTest.Progress = 100.0 * (1.0 * (numOK + numNOK) / Math.Max(1, numTotal));
                                 };
 
+                                // match the types
+                                var matchType = (idf != null && key != null) && (
+                                    (idf is Aas.IAssetAdministrationShell && key.Type == KeyTypes.AssetAdministrationShell)
+                                    || (idf is Aas.ISubmodel && key.Type == KeyTypes.Submodel)
+                                    || (idf is Aas.IConceptDescription && key.Type == KeyTypes.ConceptDescription)
+                                );
+                                if (idf != null && !matchType)
+                                    numWrongType++;
+
                                 // any error?
-                                if (code != HttpStatusCode.OK || idf == null)
+                                if (code != HttpStatusCode.OK || idf == null || !matchType)
                                 {
                                     lambdaStat(false);
                                     return;
                                 }
 
                                 // remember for later
-                                cdExist.Add(idf);
+                                idfExist.Add(idf);
                                 lambdaStat(true);
                             }
                         });
@@ -2710,19 +2796,19 @@ namespace AasxPackageLogic.PackageCentral
             await displayContext.StartFlyoverModalAsync(ucProgTest);
 
             // test
-            if (cdExist.Count < 1)
+            if (idfExist.Count < 1)
             {
                 runtimeOptions?.Log.Info(StoredPrint.Color.Blue, 
-                    "No ConceptDescriptions to delete found. Finalizing! Location: {0}",
+                    $"No {elemKindName} to delete found. Finalizing! Location: {0}",
                     recordJob.BaseAddress);
                 return false;
             }
             
             // ask to proceed?
             if (AnyUiMessageBoxResult.Yes != displayContext.MessageBoxFlyoutShow(
-                $"After checking individual ids, {cdExist.Count} ConceptDescriptions seem to " +
+                $"After checking individual ids, {idfExist.Count} {elemKindName}s seem to " +
                 $"exist on the server. Proceed with deleting these?",
-                "Delete ConceptDescriptions",
+                $"Delete {elemKindName}",
                 AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
             {
                 runtimeOptions?.Log.Info("Aborted.");
@@ -2734,11 +2820,11 @@ namespace AasxPackageLogic.PackageCentral
             //
 
             var ucProgDel = new AnyUiDialogueDataProgress(
-                "Deleting individual ConceptDescription to exist",
+                $"Deleting individual {elemKindName} to exist",
                 info: "Preparing ...", symbol: AnyUiMessageBoxImage.Information);
             ucProgTest.Progress = 0.0;
 
-            numTotal = cdExist.Count;
+            numTotal = idfExist.Count;
             numOK = 0;
             numNOK = 0;
 
@@ -2752,27 +2838,33 @@ namespace AasxPackageLogic.PackageCentral
                     var baseUri = new Uri(recordJob.BaseAddress);
 
                     // second, send deletes
-                    await PackageHttpDownloadUtil.DeleteListOfEntities<Aas.IConceptDescription>(
+                    await PackageHttpDownloadUtil.DeleteListOfEntities<Aas.IIdentifiable>(
                         client,
-                        cdExist,
-                        lambdaGetLocation: (cd) =>
+                        idfExist,
+                        lambdaGetLocation: (idf) =>
                         {
-                            // return new Uri("https://eis-data.aas-voyager.com/shells/aHR0cHM6Ly9uZXcuYWJiLmNvbS9wcm9kdWN0cy9kZS8yQ1NSMjU1MTYzUjExNjUvYWFz");
-                            return BuildUriForRepoSingleCD(baseUri, cd.Id, encryptIds: true);
+                            Uri location = null;
+                            if (idf is Aas.IAssetAdministrationShell)
+                                location = BuildUriForRepoSingleAAS(baseUri, idf?.Id, encryptIds: true);
+                            if (idf is Aas.ISubmodel)
+                                location = BuildUriForRepoSingleSubmodel(baseUri, idf?.Id, encryptIds: true);
+                            if (idf is Aas.IConceptDescription)
+                                location = BuildUriForRepoSingleCD(baseUri, idf?.Id, encryptIds: true);
+                            return location;
                         },
                         runtimeOptions: runtimeOptions,
                         useParallel: Options.Curr.MaxParallelOps > 1,
-                        lambdaDeleteDoneOrFail: (code, content, cd2) =>
+                        lambdaDeleteDoneOrFail: (code, content, idf) =>
                         {
                             // need mutex
-                            lock (cdExist)
+                            lock (idfExist)
                             {
                                 // stat
                                 Action<bool> lambdaStat = (ok) =>
                                 {
                                     if (ok) { numOK++; } else { numNOK++; };
                                     ucProgDel.Info = $"{numOK} entities exist, {numNOK} entities NOT found in {numTotal}\n" +
-                                            $"Id: {cd2?.Id}";
+                                            $"Id: {idf?.Id}";
                                     ucProgDel.Progress = 100.0 * (1.0 * (numOK + numNOK) / Math.Max(1, numTotal));
                                 };
 
@@ -2799,8 +2891,8 @@ namespace AasxPackageLogic.PackageCentral
 
             // okay?
             runtimeOptions?.Log.Info(StoredPrint.Color.Blue,
-                "{0} ConceptDescriptions deleted successfull, {1} NOK. Location: {2}",
-                numOK, numNOK, recordJob.BaseAddress);
+                "{0} {1}s deleted successfully, {2} NOK. Location: {3}",
+                numOK, elemKindName, numNOK, recordJob.BaseAddress);
 
             return true;
         }

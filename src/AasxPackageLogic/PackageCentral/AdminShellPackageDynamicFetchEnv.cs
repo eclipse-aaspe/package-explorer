@@ -268,11 +268,19 @@ namespace AasxPackageLogic.PackageCentral
             var count = 0;
             for (int i = 0; i < list.Count(); i++)
             {
+#if __old
                 // Note: elements with side info are not relevant, as only fetched elements
                 // need to be written back ..
                 var si = list.GetSideInfo(i);
                 if (si != null)
                     continue;
+#else
+                // Get the side info. Continue, if side info present (was dynamically fetched) but
+                // is no stub
+                var si = list.GetSideInfo(i);
+                if (si == null || si.IsStub)
+                    continue;
+#endif
 
                 // access
                 var idf = list[i];
@@ -298,7 +306,7 @@ namespace AasxPackageLogic.PackageCentral
                     reUseClient: null,
                     idf: idf,
                     destUri: uri);
-                if (res2 == null || res2.Item1 != HttpStatusCode.OK)
+                if (res2 == null || ((res2.Item1 != HttpStatusCode.OK) && (res2.Item1 != HttpStatusCode.NoContent)))
                 {
                     _runtimeOptions?.Log?.Error("Save of modified Identifiable returned error {0} for id={1} at {2}",
                         "" + ((res2 != null) ? (int)res2.Item1 : -1),

@@ -579,6 +579,35 @@ namespace AasxPackageLogic
                 }
             }
 
+            if (cmd == "addbaseaddress")
+            {
+                // start
+                ticket.StartExec();
+
+                //do
+                try
+                {
+                    // ask for an additional address
+                    var uc = new AnyUiDialogueDataTextBox("Add base address:",
+                                symbol: AnyUiMessageBoxImage.Question);
+                    await DisplayContext.StartFlyoverModalAsync(uc);
+                    if (!uc.Result)
+                        return;
+
+                    // add
+                    if (uc.Text.HasContent())
+                    {
+                        Options.Curr.BaseAddresses.Add(uc.Text);
+                        Log.Singleton.Info("Base address temporarily added to presets: {0}",
+                            uc.Text);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogErrorToTicket(ticket, ex, "when performing api upload assistant");
+                }
+            }
+
             if (cmd == "comparesmt")
             {
                 // start

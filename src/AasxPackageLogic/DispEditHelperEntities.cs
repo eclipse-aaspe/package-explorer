@@ -1621,14 +1621,58 @@ namespace AasxPackageLogic
                 //
 
                 // main group
-                this.AddGroup(stack, "Editing of entities", this.levelColors.MainSection);
+                this.AddGroup(stack, "Editing of entities", this.levelColors.SubSection);
 
                 // Up/ down/ del
                 this.EntityListUpDownDeleteHelper<Aas.IAssetAdministrationShell>(
                     stack, repo, 
                     env.AssetAdministrationShells, (lst) => { env.AssetAdministrationShells = lst; },
                     aas, env, "AAS:",
-                    superMenu: superMenu);
+                    superMenu: superMenu,
+                    extraMenu: new AasxMenu()
+                        .AddAction("delete-aas-in-repo", "Delete AAS \u274c in Repo",
+                            "Delete AAS by Id in a given Repository or Registry."),
+                    lambdaExtraMenuAsync: async (buttonNdx) =>
+                    {
+                        if (buttonNdx == 0)
+                        {
+                            // check, if Submodel is sitting in Repo
+                            var sideInfo = OnDemandListIdentifiable<Aas.IAssetAdministrationShell>
+                                    .FindSideInfoInListOfIdentifiables(
+                                        env.AssetAdministrationShells, aas.GetReference());
+
+                            // simply prepare some Keys!
+                            var idfKeys = (new Aas.IKey[] { 
+                                new Aas.Key(KeyTypes.AssetAdministrationShell, "" + aas.Id) }).ToList();
+                            foreach (var smr in aas.Submodels.ForEachSafe())
+                                if (smr?.IsValid() == true)
+                                    idfKeys.Add(new Aas.Key(KeyTypes.Submodel, smr.Keys.First().Value));
+
+                            // call function
+                            // (only the side info in the _specific_ endpoint gives information, in which
+                            //  repo the Indentifiables could be deleted)
+                            await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
+                                null, context,
+                                "Delete AAS and Submodels in Repository/ Registry",
+                                "AAS and Submodel",
+                                idfKeys,
+                                runtimeOptions: packages.CentralRuntimeOptions,
+                                presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                                {
+                                    // assume Repo ?!
+                                    BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                    // extract base address
+                                    BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                        sideInfo?.Endpoint?.AbsoluteUri)?.AbsoluteUri
+                                });
+
+                            // ok
+                            return new AnyUiLambdaActionNone();
+                        }
+
+                        return new AnyUiLambdaActionNone();
+                    });
 
                 // Cut, copy, paste within list of AASes
                 this.DispPlainIdentifiableCutCopyPasteHelper<Aas.IAssetAdministrationShell>(
@@ -2115,6 +2159,46 @@ namespace AasxPackageLogic
                             // manually redraw
                             this.appEventsProvider?.PushApplicationEvent(new AasxPluginResultEventRedrawAllElements());
                         }
+                    },
+                    extraMenu: new AasxMenu()
+                        .AddAction("delete-sm-in-repo", "Delete SM \u274c in Repo",
+                            "Delete Submodel by Id in a given Repository or Registry."),
+                    lambdaExtraMenuAsync: async (buttonNdx) =>
+                    {
+                        if (buttonNdx == 0)
+                        {
+                            // check, if Submodel is sitting in Repo
+                            var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
+                                    .FindSideInfoInListOfIdentifiables(
+                                        env.Submodels, submodel.GetReference());
+
+                            // simply prepare one Key!
+                            var smKey = new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, "" + submodel.Id) };
+
+                            // call function
+                            // (only the side info in the _specific_ endpoint gives information, in which
+                            //  repo the CDs could be deleted)
+                            await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
+                                null, context,
+                                "Delete Submodel in Repository/ Registry",
+                                "Submodel",
+                                smKey,
+                                runtimeOptions: packages.CentralRuntimeOptions,
+                                presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                                {
+                                    // assume Repo ?!
+                                    BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                    // extract base address
+                                    BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                        sideInfo?.Endpoint?.AbsoluteUri)?.AbsoluteUri
+                                });
+
+                            // ok
+                            return new AnyUiLambdaActionNone();
+                        }
+
+                        return new AnyUiLambdaActionNone();
                     });
             }
 
@@ -2133,7 +2217,7 @@ namespace AasxPackageLogic
                             inputGesture: "Ctrl+Shift+Delete")
                         .AddAction("delete-sm-in-repo", "Delete SM \u274c in Repo",
                             "Delete Submodel by Id in a given Repository or Registry."),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
                             if (AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
@@ -2157,6 +2241,39 @@ namespace AasxPackageLogic
                                 this.AddDiaryEntry(submodel, new DiaryEntryStructChange(StructuralChangeReason.Delete));
                                 return new AnyUiLambdaActionRedrawAllElements(nextFocus: null, isExpanded: null);
                             }
+
+                        if (buttonNdx == 1)
+                        {
+                            // check, if Submodel is sitting in Repo
+                            var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
+                                    .FindSideInfoInListOfIdentifiables(
+                                        env.Submodels, submodel.GetReference());
+
+                            // simply prepare one Key!
+                            var smKey = new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, "" + submodel.Id) };
+                            
+                            // call function
+                            // (only the side info in the _specific_ endpoint gives information, in which
+                            //  repo the CDs could be deleted)
+                            await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
+                                ticket, context,
+                                "Delete Submodel in Repository/ Registry",
+                                "Submodel",
+                                smKey,
+                                runtimeOptions: packages.CentralRuntimeOptions,
+                                presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                                {
+                                    // assume Repo ?!
+                                    BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                    // extract base address
+                                    BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                        sideInfo?.Endpoint?.AbsoluteUri)?.AbsoluteUri
+                                });
+
+                            // ok
+                            return new AnyUiLambdaActionNone();
+                        }
 
                         return new AnyUiLambdaActionNone();
                     });
@@ -2390,14 +2507,16 @@ namespace AasxPackageLogic
                                 return new AnyUiLambdaActionNone();
 
                             var cdIds = lrs.Select((lr) => lr?.Reference?.GetAsExactlyOneKey()?.Value);
+                            var cdKeys = cdIds.Select((cdid) => new Aas.Key(KeyTypes.ConceptDescription, cdid)).Cast<Aas.IKey>();
 
                             // call function
                             // (only the side info in the _specific_ endpoint gives information, in which
                             //  repo the CDs could be deleted)
-                            await PackageContainerHttpRepoSubset.AssistantDeleteCDsInRepo(
+                            await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
                                 ticket, context,
                                 "Delete CDs in Repository/ Registry",
-                                cdIds,
+                                "ConceptDescription",
+                                cdKeys,
                                 runtimeOptions: packages.CentralRuntimeOptions,
                                 presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
                                 {
@@ -2876,7 +2995,9 @@ namespace AasxPackageLogic
                             "Loads the Identifiable data from available data source.")
                         .AddAction("stub-load-all", "Load all",
                             "Loads data from available data source for all " +
-                            "Identifiable stubs in environment."),
+                            "Identifiable stubs in environment.")
+                        .AddAction("delete-sm-in-repo", "Delete Submodel \u274c in Repo",
+                            "Delete Submodel by Id in a given Repository or Registry."),
                     ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
@@ -2895,6 +3016,43 @@ namespace AasxPackageLogic
                             {
                                 return new AnyUiLambdaActionRedrawAllElements(nextFocus: null);
                             }
+                        }
+
+                        if (buttonNdx == 2)
+                        {
+                            // enough info
+                            if (sideInfo.StubLevel < AasIdentifiableSideInfoLevel.IdOnly
+                                || sideInfo.Id?.HasContent() != true)
+                            {
+                                Log.Singleton.Error("No Id information available for deleting Identifiable in " +
+                                    "Repository or Registry.");
+                                return new AnyUiLambdaActionNone();
+                            }
+
+                            // simply prepare one Key!
+                            var smKey = new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, "" + sideInfo.Id) };
+
+                            // call function
+                            // (only the side info in the _specific_ endpoint gives information, in which
+                            //  repo the CDs could be deleted)
+                            await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
+                                ticket, context,
+                                "Delete Submodels in Repository/ Registry",
+                                "Submodel",
+                                smKey,
+                                runtimeOptions: packages.CentralRuntimeOptions,
+                                presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                                {
+                                    // assume Repo ?!
+                                    BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                    // extract base address
+                                    BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                        sideInfo?.Endpoint?.AbsoluteUri)?.AbsoluteUri
+                                });
+
+                            // ok
+                            return new AnyUiLambdaActionNone();
                         }
 
                         return new AnyUiLambdaActionNone();
