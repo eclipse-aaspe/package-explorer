@@ -83,6 +83,31 @@ namespace AasxIntegrationBaseGdi
             return null;
         }
 
+        public static AnyUiBitmapInfo LoadBitmapInfoFromBytes(byte[] ba)
+        {
+            if (ba == null || ba.Length < 1)
+                return null;
+
+            try
+            {
+                using (var ms = new MemoryStream(ba))
+                {
+                    // load image
+                    var bi = new MagickImage(ms);
+                    var binfo = CreateAnyUiBitmapInfo(bi);
+
+                    // give this back
+                    return binfo;
+                }
+            }
+            catch (Exception ex)
+            {
+                AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
+            }
+
+            return null;
+        }
+
         public static AnyUiBitmapInfo LoadBitmapInfoFromPackage(AdminShellPackageEnvBase package, string path)
         {
             if (package == null || path == null)

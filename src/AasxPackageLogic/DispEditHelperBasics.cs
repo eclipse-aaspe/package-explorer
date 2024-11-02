@@ -1114,7 +1114,7 @@ namespace AasxPackageLogic
         /// <summary>
         /// Asks the user for SME element type, allowing exclusion of types.
         /// </summary>
-        public Aas.AasSubmodelElements SelectAdequateEnum(
+        public async Task<Aas.AasSubmodelElements> SelectAdequateEnum(
             string caption, Aas.AasSubmodelElements[] excludeValues = null,
             Aas.AasSubmodelElements[] includeValues = null,
             AasxMenuActionTicket ticket = null)
@@ -1135,7 +1135,7 @@ namespace AasxPackageLogic
             var uc = new AnyUiDialogueDataSelectFromList(
                 caption: caption);
             uc.ListOfItems = fol;
-            this.context.StartFlyoverModal(uc);
+            await this.context.StartFlyoverModalAsync(uc);
             if (uc.Result && uc.ResultItem != null && uc.ResultItem.Tag != null &&
                     uc.ResultItem.Tag is Aas.AasSubmodelElements)
             {
@@ -1147,17 +1147,54 @@ namespace AasxPackageLogic
             return Aas.AasSubmodelElements.SubmodelElement;
         }
 
+        public async Task<bool> SmartRefactorSme_PostProcess(
+            AdminShellPackageEnvBase packEnv,
+            Aas.ISubmodelElement oldSme,
+            Aas.ISubmodelElement newSme)
+        {
+            if (newSme is Aas.IBlob newBlob && oldSme is Aas.IFile oldFile)
+            {
+                // get file contents from a file
+                var ba = packEnv?.GetByteArrayFromUriOrLocalPackage(oldFile.Value);
+                if (ba == null || ba.Length < 1)
+                    return false;
+
+                // ask back
+                if (AnyUiMessageBoxResult.Yes != await this.context.MessageBoxFlyoutShowAsync(
+                    $"Local file contents with a len of {ba.Length} bytes found. " +
+                    $"Convert these to BLOB contents? " +
+                    $"Note: This will significantly increase the size of serialized Submodel " +
+                    $"in total",
+                    "Convert local file to BLOB contents?", AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Question))
+                    return false;
+
+                // work & tell
+                newBlob.Value = ba;
+                Log.Singleton.Info(StoredPrint.Color.Blue,
+                    "When refactoring File to Blob, the following file was converted to BLOB contents of {0} bytes: {1}",
+                    ba.Length, oldFile.Value);
+
+                // ok!
+                return true;
+            }
+
+            // nope
+            return false;
+        }
+
         /// <summary>
         /// Asks the user, to which SME to refactor to, create the new SME and returns it.
         /// </summary>
-        public Aas.ISubmodelElement SmartRefactorSme(Aas.ISubmodelElement oldSme)
+        public async Task<Aas.ISubmodelElement> SmartRefactorSme(
+            AdminShellPackageEnvBase packEnv,
+            Aas.ISubmodelElement oldSme)
         {
             // access
             if (oldSme == null)
                 return null;
 
             // ask
-            var en = SelectAdequateEnum(
+            var en = await SelectAdequateEnum(
                 $"Refactor {oldSme.GetSelfDescription().AasElementName} '{"" + oldSme.IdShort}' to new element type ..",
                 excludeValues: new[] {
                     Aas.AasSubmodelElements.DataElement,
@@ -1166,7 +1203,7 @@ namespace AasxPackageLogic
             if (en == Aas.AasSubmodelElements.SubmodelElement)
                 return null;
 
-            if (AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
+            if (AnyUiMessageBoxResult.Yes == await this.context.MessageBoxFlyoutShowAsync(
                 "Recfactor selected entity? " +
                     "This operation will change the selected submodel element and " +
                     "delete specific attributes. It can not be reverted!",
@@ -1178,6 +1215,11 @@ namespace AasxPackageLogic
                         // which?
                         var refactorSme = AdminShellUtil.CreateSubmodelElementFromEnum(en, oldSme, 
                             defaultHelper: Options.Curr.GetCreateDefaultHelper());
+
+                        // post work?
+                        await SmartRefactorSme_PostProcess(packEnv, oldSme, refactorSme);
+
+                        // ok
                         return refactorSme;
                     }
                 }

@@ -3463,7 +3463,7 @@ namespace AasxPackageLogic
                                     "Adds a selected kind of SubmodelElement to the containing collection.",
                                     args: new AasxMenuListOfArgDefs()
                                         .Add("Kind", "Name (not abbreviated) of kind of SubmodelElement.")),
-                            ticketAction: (buttonNdx, ticket) =>
+                            ticketActionAsync: async (buttonNdx, ticket) =>
                             {
                                 if (buttonNdx >= 0 && buttonNdx <= 3)
                                 {
@@ -3476,7 +3476,7 @@ namespace AasxPackageLogic
                                     if (buttonNdx == 2)
                                         en = Aas.AasSubmodelElements.SubmodelElementCollection;
                                     if (buttonNdx == 3)
-                                        en = this.SelectAdequateEnum(
+                                        en = await this.SelectAdequateEnum(
                                             "Select SubmodelElement to create ..",
                                             excludeValues: new[] {
                                                 Aas.AasSubmodelElements.DataElement,
@@ -3698,12 +3698,12 @@ namespace AasxPackageLogic
                         ticketMenu: new AasxMenu()
                             .AddAction("refactor", "Refactor",
                                 "Takes the selected AAS element and converts it to a new kind, keeping most of the attributes."),
-                        ticketAction: (buttonNdx, ticket) =>
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx == 0)
                             {
                                 // which?
-                                var refactorSme = this.SmartRefactorSme(sme);
+                                var refactorSme = await this.SmartRefactorSme(packages.Main, sme);
                                 var parMgr = (parentContainer as Aas.IReferable);
 
                                 // ok?
@@ -4108,7 +4108,7 @@ namespace AasxPackageLogic
                                 "Adds a selected kind of SubmodelElement to the containing collection.",
                                 args: new AasxMenuListOfArgDefs()
                                     .Add("Kind", "Name (not abbreviated) of kind of SubmodelElement.")),
-                        ticketAction: (buttonNdx, ticket) =>
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx >= 0 && buttonNdx <= 3)
                             {
@@ -4121,7 +4121,7 @@ namespace AasxPackageLogic
                                 if (buttonNdx == 2)
                                     en = Aas.AasSubmodelElements.SubmodelElementCollection;
                                 if (buttonNdx == 3)
-                                    en = this.SelectAdequateEnum(
+                                    en = await this.SelectAdequateEnum(
                                         "Select SubmodelElement to create ..",
                                         excludeValues: new[] {
                                             Aas.AasSubmodelElements.DataElement,
