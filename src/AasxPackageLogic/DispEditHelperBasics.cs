@@ -2470,7 +2470,10 @@ namespace AasxPackageLogic
             object nextFocus = null, PackCntChangeEventData sendUpdateEvent = null, bool preventMove = false,
             Aas.IReferable explicitParent = null,
             AasxMenu superMenu = null,
-            Action<string, AasxMenuActionTicket> postActionHook = null)
+            Action<string, AasxMenuActionTicket> postActionHook = null,
+            AasxMenu extraMenu = null,
+            Func<int, AnyUiLambdaActionBase> lambdaExtraMenu = null,
+            Func<int, Task<AnyUiLambdaActionBase>> lambdaExtraMenuAsync = null)
         {
             if (nextFocus == null)
                 nextFocus = entity;
@@ -2499,12 +2502,15 @@ namespace AasxPackageLogic
                         "Deletes the currently selected element.",
                         inputGesture: "Ctrl+Shift+Delete");
 
+            if (extraMenu != null)
+                theMenu.AddRange(extraMenu);
+
             AddActionPanel(
                 stack, label,
                 repo: repo,
                 superMenu: superMenu,
                 ticketMenu: theMenu,
-                ticketAction: (buttonNdx, ticket) =>
+                ticketActionAsync: async (buttonNdx, ticket) =>
                 {
                     if (buttonNdx >= 0 && buttonNdx <= 3)
                     {
@@ -2572,6 +2578,15 @@ namespace AasxPackageLogic
                             else
                                 return new AnyUiLambdaActionRedrawAllElements(nextFocus: ret, isExpanded: null);
                         }
+
+                    if (buttonNdx > 4)
+                    {
+                        // invoke extra menu
+                        if (lambdaExtraMenu != null)
+                            return lambdaExtraMenu?.Invoke(buttonNdx - 5);
+                        if (lambdaExtraMenuAsync != null)
+                            return await lambdaExtraMenuAsync?.Invoke(buttonNdx - 5);
+                    }
 
                     return new AnyUiLambdaActionNone();
                 });

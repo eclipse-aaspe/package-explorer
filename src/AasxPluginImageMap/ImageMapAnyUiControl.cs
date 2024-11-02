@@ -37,7 +37,7 @@ namespace AasxPluginImageMap
         //=============
 
         private LogInstance _log = new LogInstance();
-        private AdminShellPackageFileBasedEnv _package = null;
+        private AdminShellPackageEnvBase _package = null;
         private Aas.Submodel _submodel = null;
         private ImageMapOptions _options = null;
         private PluginEventStack _eventStack = null;
@@ -79,7 +79,7 @@ namespace AasxPluginImageMap
 
         public void Start(
             LogInstance log,
-            AdminShellPackageFileBasedEnv thePackage,
+            AdminShellPackageEnvBase thePackage,
             Aas.Submodel theSubmodel,
             ImageMapOptions theOptions,
             PluginEventStack eventStack,
@@ -110,7 +110,7 @@ namespace AasxPluginImageMap
             AasxPluginBase plugin)
         {
             // access
-            var package = opackage as AdminShellPackageFileBasedEnv;
+            var package = opackage as AdminShellPackageEnvBase;
             var sm = osm as Aas.Submodel;
             var panel = opanel as AnyUiStackPanel;
             if (package == null || sm == null || panel == null)
@@ -134,7 +134,7 @@ namespace AasxPluginImageMap
 
         private void RenderFullView(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
-            AdminShellPackageFileBasedEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm)
         {
             // test trivial access
@@ -154,7 +154,7 @@ namespace AasxPluginImageMap
         protected void RenderPanelOutside(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             IEnumerable<ImageMapOptionsOptionsRecord> foundRecs,
-            AdminShellPackageFileBasedEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm)
         {
             // make an outer grid, very simple grid of two rows: header & body

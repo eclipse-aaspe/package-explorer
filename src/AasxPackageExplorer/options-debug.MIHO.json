@@ -104,6 +104,14 @@
   "BackupDir": ".\\backup",
   "BackupFiles": 10,
   "MaxParallelOps": 1,
+  "BaseAddresses": [
+    "https://cloudrepo.aas-voyager.com/",
+    "https://eis-data.aas-voyager.com/",
+    "http://smt-repo.admin-shell-io.com/api/v3.0",
+    "https://techday2-registry.admin-shell-io.com/",
+    "http://localhost:5001/",
+    "http://localhost:5001/api/v3.0/"
+  ],
   "ExtendedConnectionDebug": false,
   "AllowFakeResponses": true,
   "RestServerHost": "localhost",

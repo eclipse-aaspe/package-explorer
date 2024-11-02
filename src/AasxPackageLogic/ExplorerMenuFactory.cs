@@ -108,6 +108,7 @@ namespace AasxPackageExplorer
                     .AddWpfBlazor(name: "ConnectRest", header: "Connect via REST …", inputGesture: "F6"))
                 .AddSeparator()
                 .AddMenu(header: "API for Registry and Repository …", childs: (new AasxMenu())
+                    .AddWpf(name: "AddBaseAddress", header: "Add preset for base address …")
                     .AddWpfBlazor(name: "ConnectExtended", header: "Connect (extended) …",
                         args: new AasxMenuListOfArgDefs()
                             .AddFromReflection(new PackageContainerHttpRepoSubset.ConnectExtendedRecord()))
