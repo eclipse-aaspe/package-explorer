@@ -17,6 +17,8 @@ using System.IO.Packaging;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
@@ -287,11 +289,134 @@ namespace AdminShellNS
             }
         }
 
+        protected static WebProxy proxy = null;
+
         public virtual Stream GetLocalStreamFromPackage(
             string uriString, 
             FileMode mode = FileMode.Open, 
             FileAccess access = FileAccess.Read)
         {
+            //
+            // this part of the functionality works on HTTP and absolute files and is
+            // indepedent from a package storage.
+            //
+
+            // split scheme and part
+            var sap = AdminShellUtil.GetSchemeAndPath(uriString);
+            if (sap == null)
+                return null;
+
+            // Check, if remote
+            if (sap.Scheme.StartsWith("http"))
+            {
+                if (proxy == null)
+                {
+                    string proxyAddress = "";
+                    string username = "";
+                    string password = "";
+
+                    string proxyFile = "proxy.txt";
+                    if (System.IO.File.Exists(proxyFile))
+                    {
+                        try
+                        {   // Open the text file using a stream reader.
+                            using (StreamReader sr = new StreamReader(proxyFile))
+                            {
+                                proxyFile = sr.ReadLine();
+                            }
+                        }
+                        catch (IOException e)
+                        {
+                            Console.WriteLine("proxy.txt could not be read:");
+                            Console.WriteLine(e.Message);
+                        }
+                    }
+
+                    try
+                    {
+                        using (StreamReader sr = new StreamReader(proxyFile))
+                        {
+                            proxyAddress = sr.ReadLine();
+                            username = sr.ReadLine();
+                            password = sr.ReadLine();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        Console.WriteLine(proxyFile + " not found!");
+                    }
+
+                    if (proxyAddress != "")
+                    {
+                        proxy = new WebProxy();
+                        Uri newUri = new Uri(proxyAddress);
+                        proxy.Address = newUri;
+                        proxy.Credentials = new NetworkCredential(username, password);
+                        Console.WriteLine("Using proxy: " + proxyAddress);
+                    }
+                }
+
+                var handler = new HttpClientHandler();
+
+                if (proxy != null)
+                    handler.Proxy = proxy;
+                else
+                    handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
+                var hc = new HttpClient(handler);
+
+                var response = hc.GetAsync(uriString).GetAwaiter().GetResult();
+
+                // if you call response.EnsureSuccessStatusCode here it will throw an exception
+                if (response.StatusCode == HttpStatusCode.Moved
+                    || response.StatusCode == HttpStatusCode.Found)
+                {
+                    var location = response.Headers.Location;
+                    response = hc.GetAsync(location).GetAwaiter().GetResult();
+                }
+
+                response.EnsureSuccessStatusCode();
+                var s = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
+
+                if (s.Length < 500) // indirect load?
+                {
+                    StreamReader reader = new StreamReader(s);
+                    string json = reader.ReadToEnd();
+                    var parsed = JObject.Parse(json);
+                    try
+                    {
+                        string url = parsed.SelectToken("url").Value<string>();
+                        response = hc.GetAsync(url).GetAwaiter().GetResult();
+                        response.EnsureSuccessStatusCode();
+                        s = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogInternally.That.SilentlyIgnoredError(ex);
+                    }
+                }
+
+                return s;
+            }
+
+            // now, has to be file
+            if (sap.Scheme != "file")
+                return null;
+
+            // if not starting with "/", if has to be an absolute file
+            if (!sap.Path.StartsWith('/'))
+            {
+                try
+                {
+                    var stream = System.IO.File.Open(sap.Path, mode, access);
+                    return stream;
+                }
+                catch (Exception ex)
+                {
+                    LogInternally.That.SilentlyIgnoredError(ex);                    
+                }
+            }
+
             return null;
         }
 
@@ -415,6 +540,104 @@ namespace AdminShellNS
 
         public virtual void Dispose()
         {
+        }
+
+        //
+        // Binary file read + write
+        //
+
+        public async Task<byte[]> GetByteArrayFromExternalInternalUri(string uri)
+        {
+            // split uri and access
+            var sap = AdminShellUtil.GetSchemeAndPath(uri);
+            if (sap == null)
+                return null;
+
+            // directly a HTTP resource?
+            if (sap.Scheme.StartsWith("http"))
+            {
+                try
+                {
+                    using (var client = new HttpClient())
+                    {
+                        var ba = await client.GetByteArrayAsync(uri);
+                        return ba;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogInternally.That.SilentlyIgnoredError(ex);
+                    return null;
+                }
+            }
+
+            // no other schemes now
+            if (sap.Scheme != "file")
+                return null;
+
+            // check if package local file
+            if (IsLocalFile(sap.Path))
+            {
+                return GetByteArrayFromUriOrLocalPackage(sap.Path);
+            }
+
+            // OK, assume a file accessible to this computer
+            try
+            {
+                var ba = await System.IO.File.ReadAllBytesAsync(sap.Path);
+            }
+            catch (Exception ex)
+            {
+                LogInternally.That.SilentlyIgnoredError(ex);
+            }
+
+            // nope
+            return null;
+        }
+
+        public async Task<bool> PutByteArrayToExternalUri(string uri, byte[] ba)
+        {
+            // split uri and access
+            var sap = AdminShellUtil.GetSchemeAndPath(uri);
+            if (ba == null || sap == null)
+                return false;
+
+            // directly a HTTP resource?
+            if (sap.Scheme.StartsWith("http"))
+            {
+                try
+                {
+                    using (var client = new HttpClient())
+                    using (var content = new ByteArrayContent(ba))
+                    {
+                        content.Headers.ContentType = new MediaTypeHeaderValue("*/*");
+                        var response = await client.PostAsync(uri, content);
+                        return response.IsSuccessStatusCode;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogInternally.That.SilentlyIgnoredError(ex);
+                    return false;
+                }
+            }
+
+            // no other schemes now
+            if (sap.Scheme != "file")
+                return false;
+
+            // just write
+            try
+            {
+                System.IO.File.WriteAllBytes(sap.Path, ba);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogInternally.That.SilentlyIgnoredError(ex);
+            }
+            
+            return false;
         }
     }
 
@@ -1474,108 +1697,25 @@ namespace AdminShellNS
             return isLocal;
         }
 
-        private static WebProxy proxy = null;
-
         public override Stream GetLocalStreamFromPackage(string uriString, FileMode mode = FileMode.Open, FileAccess access = FileAccess.Read)
         {
-            // Check, if remote
-            if (uriString.ToLower().Substring(0, 4) == "http")
-            {
-                if (proxy == null)
-                {
-                    string proxyAddress = "";
-                    string username = "";
-                    string password = "";
+            // IMPORTANT! First try to use the base implementation to get an stream to
+            // HTTP or ABSOLUTE file
+            var absStream = base.GetLocalStreamFromPackage(uriString, mode, access);
+            if (absStream != null)
+                return absStream;
 
-                    string proxyFile = "proxy.txt";
-                    if (System.IO.File.Exists(proxyFile))
-                    {
-                        try
-                        {   // Open the text file using a stream reader.
-                            using (StreamReader sr = new StreamReader(proxyFile))
-                            {
-                                proxyFile = sr.ReadLine();
-                            }
-                        }
-                        catch (IOException e)
-                        {
-                            Console.WriteLine("proxy.txt could not be read:");
-                            Console.WriteLine(e.Message);
-                        }
-                    }
+            // now, split uri string (again) for ourselves
+            var sap = AdminShellUtil.GetSchemeAndPath(uriString);
+            if (sap == null)
+                return null;
 
-                    try
-                    {
-                        using (StreamReader sr = new StreamReader(proxyFile))
-                        {
-                            proxyAddress = sr.ReadLine();
-                            username = sr.ReadLine();
-                            password = sr.ReadLine();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                        Console.WriteLine(proxyFile + " not found!");
-                    }
-
-                    if (proxyAddress != "")
-                    {
-                        proxy = new WebProxy();
-                        Uri newUri = new Uri(proxyAddress);
-                        proxy.Address = newUri;
-                        proxy.Credentials = new NetworkCredential(username, password);
-                        Console.WriteLine("Using proxy: " + proxyAddress);
-                    }
-                }
-
-                var handler = new HttpClientHandler();
-
-                if (proxy != null)
-                    handler.Proxy = proxy;
-                else
-                    handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
-                var hc = new HttpClient(handler);
-
-                var response = hc.GetAsync(uriString).GetAwaiter().GetResult();
-
-                // if you call response.EnsureSuccessStatusCode here it will throw an exception
-                if (response.StatusCode == HttpStatusCode.Moved
-                    || response.StatusCode == HttpStatusCode.Found)
-                {
-                    var location = response.Headers.Location;
-                    response = hc.GetAsync(location).GetAwaiter().GetResult();
-                }
-
-                response.EnsureSuccessStatusCode();
-                var s = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
-
-                if (s.Length < 500) // indirect load?
-                {
-                    StreamReader reader = new StreamReader(s);
-                    string json = reader.ReadToEnd();
-                    var parsed = JObject.Parse(json);
-                    try
-                    {
-                        string url = parsed.SelectToken("url").Value<string>();
-                        response = hc.GetAsync(url).GetAwaiter().GetResult();
-                        response.EnsureSuccessStatusCode();
-                        s = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
-                    }
-                    catch
-                    {
-                    }
-                }
-
-                return s;
-            }
-
-            // access
+            // now, it has to be an package file
             if (_openPackage == null)
                 throw (new Exception(string.Format($"AASX Package {_fn} not opened. Aborting!")));
 
             // exist
-            var puri = new Uri(uriString, UriKind.RelativeOrAbsolute);
+            var puri = new Uri(sap.Path, UriKind.RelativeOrAbsolute);
             if (!_openPackage.PartExists(puri))
                 throw (new Exception(string.Format($"AASX Package has no part {uriString}. Aborting!")));
 

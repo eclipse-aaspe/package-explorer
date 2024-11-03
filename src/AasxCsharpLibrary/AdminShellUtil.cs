@@ -528,9 +528,10 @@ namespace AdminShellNS
         /// <code doctest="true">Assert.AreEqual("someName", AdminShellUtil.FilterFriendlyName("someName"));</code>
         /// <code doctest="true">Assert.AreEqual("some__name", AdminShellUtil.FilterFriendlyName("some!;name"));</code>
         /// </example>
-        public static string FilterFriendlyName(string src, 
+        public static string FilterFriendlyName(string src,
             bool pascalCase = false,
-            bool fixMoreBlanks = false)
+            bool fixMoreBlanks = false,
+            string regexForFilter = null)
         {
             if (src == null)
                 return null;
@@ -538,7 +539,8 @@ namespace AdminShellNS
             if (pascalCase && src.Length > 0)
                 src = char.ToUpper(src[0]) + src.Substring(1);
 
-            src = Regex.Replace(src, @"[^a-zA-Z0-9\-_]", "_");
+            var regex = regexForFilter ?? @"[^a-zA-Z0-9\-_]";
+            src = Regex.Replace(src, regex, "_");
 
             if (fixMoreBlanks)
             {
@@ -1228,6 +1230,38 @@ namespace AdminShellNS
             return ext;
         }
 
+        public class SchemeAndPath
+        {
+            public string Scheme = "";
+            public string Path = "";
+        }
+
+        /// <summary>
+        /// Split info. Limits to 5 character schemes!
+        /// </summary>
+        /// <returns><c>null</c> for any error!</returns>
+        public static SchemeAndPath GetSchemeAndPath(string uri)
+        {
+            // error?
+            if (uri?.HasContent() != true)
+                return null;
+
+            // search ://
+            var p = uri.IndexOf("://");
+            if (p > 5)
+                return null;
+
+            // nothing?
+            if (p < 0)
+                return new SchemeAndPath() { Scheme = "file", Path = uri };
+
+            // split
+            return new SchemeAndPath() { 
+                Scheme = uri.Substring(0, p).ToLower(), 
+                Path = uri.Substring(p+3) 
+            };
+        }
+
         //
         // Base 64
         //
@@ -1474,5 +1508,7 @@ namespace AdminShellNS
         {
             return DefaultLngIso639;
         }
+
+        
     }
 }

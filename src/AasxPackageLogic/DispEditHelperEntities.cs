@@ -409,7 +409,9 @@ namespace AasxPackageLogic
                 //    editMode: editMode, repo: repo, stack: substack, hintMode: hintMode);
                 // dead-csharp on
                 DisplayOrEditEntityFileResource(
-                    substack, aas, repo, superMenu,
+                    substack, 
+                    packages.Main,
+                    aas, repo, superMenu,
                     asset.DefaultThumbnail.Path, asset.DefaultThumbnail.ContentType,
                     (fn, ct) =>
                     {
@@ -4742,7 +4744,8 @@ namespace AasxPackageLogic
 
                 // refer to mini-module
                 DisplayOrEditEntityFileResource(
-                    stack, fl, repo, superMenu,
+                    stack, packages.Main,
+                    fl, repo, superMenu,
                     fl.Value, fl.ContentType,
                     (fn, ct) =>
                     {
@@ -4796,37 +4799,6 @@ namespace AasxPackageLogic
                             }
                             return new AnyUiLambdaActionNone();
                         });
-
-                    //Note: migrated in order to show fields via "real" value hash
-                    //AddKeyValueExRef(
-                    //    stack, "value", blb, (blb.Value == null) ? "" : Encoding.Default.GetString(blb.Value),
-                    //    null, repo,
-                    //    v =>
-                    //    {
-                    //        blb.Value = Encoding.Default.GetBytes((string)v);
-                    //        this.AddDiaryEntry(blb, new DiaryEntryUpdateValue());
-                    //        return new AnyUiLambdaActionNone();
-                    //    },
-                    //    limitToOneRowForNoEdit: true,
-                    //    auxButtonTitles: new[] { "\u2261" },
-                    //    auxButtonToolTips: new[] { "Edit in multiline editor" },
-                    //    auxButtonLambda: (buttonNdx) =>
-                    //    {
-                    //        if (buttonNdx == 0)
-                    //        {
-                    //            var uc = new AnyUiDialogueDataTextEditor(
-                    //                                caption: $"Edit Blob '{"" + blb.IdShort}'",
-                    //                                mimeType: blb.ContentType,
-                    //                                text: Encoding.Default.GetString(blb.Value ?? new byte[0]));
-                    //            if (this.context.StartFlyoverModal(uc))
-                    //            {
-                    //                blb.Value = Encoding.Default.GetBytes(uc.Text);
-                    //                this.AddDiaryEntry(blb, new DiaryEntryUpdateValue());
-                    //                return new AnyUiLambdaActionRedrawEntity();
-                    //            }
-                    //        }
-                    //        return new AnyUiLambdaActionNone();
-                    //    });
                 }
                 else
                 {
@@ -5373,44 +5345,8 @@ namespace AasxPackageLogic
                             this.AddDiaryEntry(ent, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionNone();
                         });
-                    //AddKeyReference(
-                    //    stack, "globalAssetId", ent.GlobalAssetId, repo, packages,
-                    //    PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
-                    //    addExistingEntities: "All", showRefSemId: false,
-                    //    jumpLambda: lambda,
-                    //    noEditJumpLambda: lambda,
-                    //    relatedReferable: ent,
-                    //    auxContextHeader: new[] { "\u2573", "Delete globalAssetId" },
-                    //    auxContextLambda: (i) =>
-                    //    {
-                    //        if (i == 0)
-                    //        {
-                    //            ent.GlobalAssetId = null;
-                    //            this.AddDiaryEntry(ent, new DiaryEntryStructChange());
-                    //            return new AnyUiLambdaActionRedrawEntity();
-                    //        }
-                    //        return new AnyUiLambdaActionNone();
-                    //    });
                 }
 
-                // in V3.0RC01 this was falsely [0..1]
-                //this.DisplayOrEditEntitySingleIdentifierKeyValuePair(
-                //    stack, ent.SpecificAssetIds,
-                //    (v) => { ent.SpecificAssetIds = v; },
-                //    key: "specificAssetId",
-                //    relatedReferable: ent,
-                //    auxContextHeader: new[] { "\u2573", "Delete SpecificAssetId" },
-                //    auxContextLambda: (o) =>
-                //    {
-                //        if (o is int i && i == 0)
-                //        {
-                //            ent.SpecificAssetIds = null;
-                //            this.AddDiaryEntry(ent, new DiaryEntryStructChange());
-                //            return new AnyUiLambdaActionRedrawEntity();
-                //        }
-                //        return new AnyUiLambdaActionNone();
-                //    });
-                // dead-csharp on
                 this.DisplayOrEditEntityListOfSpecificAssetIds(stack, ent.SpecificAssetIds,
                                 (ico) => { ent.SpecificAssetIds = ico; },
                                 key: "specificAssetId",
