@@ -117,6 +117,10 @@
     "http://localhost:5001/",
     "http://localhost:5001/api/v3.0/"
   ],
+  "CentralStores": [
+    "file://C:\\AasxStore" /* mount point for file shares, WebDAV etc */
+    "https://store.example.com/client123" /* example, not implemented */
+  ],
   "ExtendedConnectionDebug": false,
   "AllowFakeResponses": true,
   "RestServerHost": "localhost",
