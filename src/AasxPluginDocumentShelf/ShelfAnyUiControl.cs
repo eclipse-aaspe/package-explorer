@@ -35,7 +35,7 @@ namespace AasxPluginDocumentShelf
         //=============
 
         private LogInstance _log = new LogInstance();
-        private AdminShellPackageFileBasedEnv _package = null;
+        private AdminShellPackageEnvBase _package = null;
         private Aas.Submodel _submodel = null;
         private DocumentShelfOptions _options = null;
         private PluginEventStack _eventStack = null;
@@ -144,7 +144,7 @@ namespace AasxPluginDocumentShelf
 
         public void Start(
             LogInstance log,
-            AdminShellPackageFileBasedEnv thePackage,
+            AdminShellPackageEnvBase thePackage,
             Aas.Submodel theSubmodel,
             DocumentShelfOptions theOptions,
             PluginEventStack eventStack,
@@ -187,7 +187,7 @@ namespace AasxPluginDocumentShelf
             ShelfPreviewService previewService)
         {
             // access
-            var package = opackage as AdminShellPackageFileBasedEnv;
+            var package = opackage as AdminShellPackageEnvBase;
             var sm = osm as Aas.Submodel;
             var panel = opanel as AnyUiStackPanel;
             if (package == null || sm == null || panel == null)

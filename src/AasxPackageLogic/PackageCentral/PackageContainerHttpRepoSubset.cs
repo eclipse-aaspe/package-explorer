@@ -35,6 +35,8 @@ using Newtonsoft.Json;
 using System.Dynamic;
 using Newtonsoft.Json.Linq;
 using System.ComponentModel;
+using Lucene.Net.Util.Automaton;
+using RestSharp;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -386,6 +388,31 @@ namespace AasxPackageLogic.PackageCentral
             else
             {
                 return CombineUri(baseUri, "submodels" + queryAasId);
+            }
+        }
+
+        public static Uri BuildUriForRepoSingleSubmodelAttachment(
+            Uri baseUri, string smId,
+            string idShortPath,
+            bool encryptIds = true,
+            string aasId = null)
+        {
+            // access
+            if (smId?.HasContent() != true || idShortPath?.HasContent() != true)
+                return null;
+
+            // smId
+            var smIdEnc = encryptIds ? AdminShellUtil.Base64UrlEncode(smId) : smId;
+
+            // aasId present?
+            if (aasId?.HasContent() == true)
+            {
+                var aasIdEnc = encryptIds ? AdminShellUtil.Base64UrlEncode(aasId) : aasId;
+                return CombineUri(baseUri, $"/shells/{aasIdEnc}/submodels/{smIdEnc}/submodel-elements/{idShortPath}/attachment");
+            }
+            else
+            {
+                return CombineUri(baseUri, $"/submodels/{smIdEnc}/submodel-elements/{idShortPath}/attachment");
             }
         }
 
@@ -2074,6 +2101,77 @@ namespace AasxPackageLogic.PackageCentral
             return true;
         }
 
+        public class FileElementRecord
+        {
+            public List<Aas.IReferable> Parents;
+            public Aas.IFile FileSme;
+            public string IdShortPath;
+        }
+
+        public static List<FileElementRecord> FindAllUsedFileElements(
+            Aas.ISubmodel submodel,
+            Action<string> lambdaReportIdShortPathError = null,
+            char seperatorChar = '.')
+        {
+            // access
+            var res = new List<FileElementRecord>();
+            if (submodel?.SubmodelElements == null)
+                return res;
+
+            // recurse and add
+            submodel.RecurseOnSubmodelElements(null, (o, parents, sme) =>
+            {
+                // File?
+                if (sme is Aas.IFile file)
+                {
+                    // check, if there is file content available
+                    if (file?.Value?.HasContent() != true)
+                    {
+                        // do not count as severe failure; just skip
+                        return true;
+                    }
+
+                    // build idShort list
+                    var rfs = new List<Aas.IReferable>();
+                    if (parents != null)
+                        rfs.AddRange(parents);
+                    rfs.Add(sme);
+                    var idss = rfs.Select((rf) => "" + rf?.IdShort);
+
+                    // check if the elements are fully complying
+                    var comply = true;
+                    foreach (var ids in idss)
+                    {
+                        var test = Regex.Replace(ids, @"[^a-zA-Z0-9_]", "_");
+                        if (test != ids)
+                            comply = false;
+                    }
+
+                    // join and report!
+                    var idsp = string.Join(seperatorChar, idss);
+                    if (!comply)
+                    {
+                        // may report
+                        lambdaReportIdShortPathError?.Invoke(idsp);
+                        // continue with next SME
+                        return true;
+                    }
+
+                    // now add
+                    res.Add(new FileElementRecord() { 
+                        Parents = parents.Copy(),
+                        FileSme = file,
+                        IdShortPath = idsp
+                    });
+                }
+
+                // always go deeper
+                return true;
+            });
+
+            return res;
+        }
+
         public class UploadAssistantJobRecord
         {
             // public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
@@ -2086,6 +2184,7 @@ namespace AasxPackageLogic.PackageCentral
 
             public bool IncludeSubmodels = false;
             public bool IncludeCDs = false;
+            public bool IncludeSupplFiles = false;
 
             public bool OverwriteIfExist = false;
         }
@@ -2248,6 +2347,17 @@ namespace AasxPackageLogic.PackageCentral
                                     isChecked: recordJob.IncludeCDs,
                                     verticalContentAlignment: AnyUiVerticalAlignment.Center)),
                             (b) => { recordJob.IncludeCDs = b; });
+
+                    row++;
+
+                    // Include supplementary files
+                    AnyUiUIElement.SetBoolFromControl(
+                            helper.Set(
+                                helper.AddSmallCheckBoxTo(g, row, 1,
+                                    content: "Include supplementary files for File elements",
+                                    isChecked: recordJob.IncludeSupplFiles,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                            (b) => { recordJob.IncludeSupplFiles = b; });
 
                     row++;
 
@@ -2445,6 +2555,8 @@ namespace AasxPackageLogic.PackageCentral
                 .Count();
             numOK = 0;
             numNOK = 0;
+            var numAttOK = 0;
+            var numAttNOK = 0;
 
             // setup worker
             var workerUpload = new BackgroundWorker();
@@ -2477,6 +2589,10 @@ namespace AasxPackageLogic.PackageCentral
                             aasId = aas?.Id;
                         }
 
+                        //
+                        // Identifiable
+                        //
+
                         // location
                         Uri location = null;
                         if (idf is Aas.IAssetAdministrationShell)
@@ -2489,6 +2605,7 @@ namespace AasxPackageLogic.PackageCentral
                         if (location == null)
                             return;
 
+                        // put Identifiable
                         var res2 = await PackageHttpDownloadUtil.HttpPutPostIdentifiable(
                             client,
                             idf,
@@ -2497,13 +2614,100 @@ namespace AasxPackageLogic.PackageCentral
                             runtimeOptions: runtimeOptions,
                             containerList: containerList);
 
+                        //
+                        // attachments (for Submodels)
+                        //
+
+                        if (idf is Aas.ISubmodel submodel && submodel.SubmodelElements != null)
+                        {
+                            // Note: the Part 2 PDF says '/', the swagger says '.'
+                            var filEls = FindAllUsedFileElements(submodel,
+                                seperatorChar: '.',
+                                lambdaReportIdShortPathError: (idsp) =>
+                                {
+                                    Log.Singleton.Error("When uploading Submodel {0}, idShort path for File " +
+                                            "elements contains invalid characters and prevents uploading file " +
+                                            "attchment: {1}", submodel.IdShort, idsp);
+                                    lock (rowsToUpload)
+                                    {
+                                        numAttNOK++;
+                                    }
+                                });
+
+                            foreach (var filEl in filEls)
+                            {
+                                // access
+                                if (filEl?.FileSme?.Value?.HasContent() != true)
+                                    continue;
+
+                                // try read the bytes (should have try/catch in it)
+                                var ba = await packEnv.GetByteArrayFromExternalInternalUri(filEl.FileSme.Value);
+                                if (ba == null || ba.Length < 1)
+                                {
+                                    Log.Singleton.Error("Centralize file: cannot read file: {0}", filEl.FileSme.Value);
+                                    lock (rowsToUpload)
+                                    {
+                                        numAttNOK++;
+                                    }
+                                    continue;
+                                }
+
+                                // try PUT
+                                try
+                                {
+                                    // serialize to memory stream
+                                    var attLoc = BuildUriForRepoSingleSubmodelAttachment(
+                                        baseUri, submodel.Id,
+                                        idShortPath: filEl.IdShortPath,
+                                        encryptIds: true,
+                                        aasId: aasId);
+                                    using (var ms = new MemoryStream(ba))
+                                    {
+                                        // write
+                                        var res3 = await PackageHttpDownloadUtil.HttpPutPostFromMemoryStream(
+                                            client,
+                                            ms,
+                                            destUri: attLoc,
+                                            runtimeOptions: runtimeOptions,
+                                            containerList: containerList,
+                                            usePost: usePost);
+
+                                        lock (rowsToUpload)
+                                        {
+                                            if (res3.Item1 != HttpStatusCode.OK && res3.Item1 != HttpStatusCode.NoContent)
+                                            {
+                                                Log.Singleton.Error("Error uploading attachment of {0} bytes to: {1}",
+                                                    ba.Length, attLoc.ToString());
+                                                numAttNOK++;
+                                            }
+                                            else
+                                            {
+                                                numAttOK++;
+                                            }
+                                        }
+
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Singleton.Error(ex, 
+                                        $"when PUTting attachment with {ba.Length} bytes to File element {filEl.IdShortPath}");
+                                    numAttNOK++;
+                                }
+                            }
+                        }
+
+                        //
                         // mutex (after all async calls!)
+                        //
+
                         lock (rowsToUpload)
                         {
                             Action<bool> lambdaStat = (ok) =>
                             {
                                 if (ok) { numOK++; } else { numNOK++; };
                                 ucProgUpload.Info = $"{numOK} entities OK, {numNOK} entities NOT OK of {numTotal}\n" +
+                                        $"{numAttOK} attachments OK, {numAttNOK} attachments NOT OK\n" +
                                         $"Id: {idf?.Id}";
                                 ucProgUpload.Progress = 100.0 * (1.0 * (numOK + numNOK) / Math.Max(1, numTotal));
                             };

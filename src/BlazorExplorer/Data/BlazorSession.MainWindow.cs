@@ -125,7 +125,7 @@ namespace BlazorUI.Data
 
         public void UiLoadPackageWithNew(
             PackageCentralItem packItem,
-            AdminShellPackageFileBasedEnv takeOverEnv = null,
+            AdminShellPackageEnvBase takeOverEnv = null,
             string loadLocalFilename = null,
             string info = null,
             bool onlyAuxiliary = false,

@@ -32,7 +32,7 @@ namespace AasxPluginMtpViewer
         // internal members
 
         private LogInstance theLog = null;
-        private AdminShellPackageFileBasedEnv thePackage = null;
+        private AdminShellPackageEnvBase thePackage = null;
         private Aas.Submodel theSubmodel = null;
         private AasxPluginMtpViewer.MtpViewerOptions theOptions = null;
         private PluginEventStack theEventStack = null;
@@ -67,7 +67,7 @@ namespace AasxPluginMtpViewer
         }
 
         public void Start(
-            AdminShellPackageFileBasedEnv thePackage,
+            AdminShellPackageEnvBase thePackage,
             Aas.Submodel theSubmodel,
             AasxPluginMtpViewer.MtpViewerOptions theOptions,
             PluginEventStack eventStack,
@@ -88,7 +88,7 @@ namespace AasxPluginMtpViewer
             object masterDockPanel)
         {
             // access
-            var package = opackage as AdminShellPackageFileBasedEnv;
+            var package = opackage as AdminShellPackageEnvBase;
             var sm = osm as Aas.Submodel;
             var master = masterDockPanel as DockPanel;
             if (package == null || sm == null || master == null)
@@ -292,6 +292,9 @@ namespace AasxPluginMtpViewer
 
         private void LoadFile(string fn)
         {
+            // access
+            if (fn?.HasContent() != true)
+                return;
             if (!".aml .zip .mtp".Contains(System.IO.Path.GetExtension(fn.Trim().ToLower())))
                 return;
 

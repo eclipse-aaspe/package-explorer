@@ -293,6 +293,9 @@ namespace AdminShellNS
 
         public virtual Stream GetLocalStreamFromPackage(
             string uriString, 
+            string aasId = null,
+            string smId = null,
+            string idShortPath = null,
             FileMode mode = FileMode.Open, 
             FileAccess access = FileAccess.Read)
         {
@@ -418,6 +421,18 @@ namespace AdminShellNS
             }
 
             return null;
+        }
+
+        public virtual async Task<Stream> GetLocalStreamFromPackageAsync(
+            string uriString,
+            string aasId = null,
+            string smId = null,
+            string idShortPath = null,
+            FileMode mode = FileMode.Open,
+            FileAccess access = FileAccess.Read)
+        {
+            await Task.Yield();
+            return GetLocalStreamFromPackage(uriString, aasId, smId, idShortPath, mode, access);
         }
 
         public virtual void PrepareSupplementaryFileParameters(ref string targetDir, ref string targetFn)
@@ -1658,7 +1673,7 @@ namespace AdminShellNS
         {
             // local
             if (IsLocalFile(uriString))
-                return GetLocalStreamFromPackage(uriString, mode, access);
+                return GetLocalStreamFromPackage(uriString, mode: mode, access: access);
 
             // no ..
             return System.IO.File.Open(uriString, mode, access);
@@ -1697,11 +1712,17 @@ namespace AdminShellNS
             return isLocal;
         }
 
-        public override Stream GetLocalStreamFromPackage(string uriString, FileMode mode = FileMode.Open, FileAccess access = FileAccess.Read)
+        public override Stream GetLocalStreamFromPackage(
+            string uriString,
+            string aasId = null,
+            string smId = null,
+            string idShortPath = null,
+            FileMode mode = FileMode.Open, 
+            FileAccess access = FileAccess.Read)
         {
             // IMPORTANT! First try to use the base implementation to get an stream to
             // HTTP or ABSOLUTE file
-            var absStream = base.GetLocalStreamFromPackage(uriString, mode, access);
+            var absStream = base.GetLocalStreamFromPackage(uriString, mode: mode, access: access);
             if (absStream != null)
                 return absStream;
 
