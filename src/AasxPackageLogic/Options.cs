@@ -457,6 +457,11 @@ namespace AasxPackageLogic
         public List<string> BaseAddresses = new List<string>();
 
         [OptionDescription(Description =
+            "Central store to hold supplementary files for File elements.",
+            Cmd = "-central-stores")]
+        public List<string> CentralStores = new List<string>();
+
+        [OptionDescription(Description =
             "When connecting to Registry/ Repository, add more details to the log messages.",
             Cmd = "-extended-connection-debug")]
         public bool ExtendedConnectionDebug = false;

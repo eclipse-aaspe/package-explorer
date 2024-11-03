@@ -35,6 +35,8 @@ using System.Runtime.Serialization;
 using System.Text;
 using AasxPackageLogic.PackageCentral;
 using System.Threading.Tasks;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
+using System.Security.Cryptography;
 
 namespace AasxPackageLogic
 {
@@ -2394,16 +2396,168 @@ namespace AasxPackageLogic
         // File / Resource attributes
         // 
 
-        public async Task<bool> CentralizeFile(
+#if __not_required_obsolete_by_PUT_attachment_operation
+        public class CentralizeFilesRecord
+        {
+            public string CentralStoreUri = "";
+            public string UUID = "";
+            public bool DeleteFileAfter = false;
+        }
+
+        /// <summary>
+        /// Implements a crude, very short version of UUID, that is, base64 over hash over GUID.
+        /// For alternatives, see: https://stackoverflow.com/questions/9278909/net-short-unique-identifier
+        /// </summary>
+        public string GetShortUUid()
+        {
+            var uuid = Guid.NewGuid().ToString();
+            var hash = uuid.GetHashCode().ToString("X8");
+            var base64 = AdminShellUtil.Base64UrlEncode(hash);
+            return base64;
+        }
+
+        public CentralizeFilesRecord GenerateNewCentralizeFilesRecord()
+        {
+            return new CentralizeFilesRecord()
+            {
+                CentralStoreUri = "" + Options.Curr.CentralStores?.FirstOrDefault(),
+                UUID = GetShortUUid(),
+                DeleteFileAfter = false
+            };
+        }
+
+        public static async Task<bool> PerformCentralizeFilesDialogue(
+            AnyUiContextBase displayContext,
+            string caption,
+            CentralizeFilesRecord record,
+            string info = null)
+        {
+            // access
+            if (displayContext == null || caption?.HasContent() != true || record == null)
+                return false;
+
+            // ok, go on ..
+            var uc = new AnyUiDialogueDataModalPanel(caption);
+            uc.ActivateRenderPanel(record,
+                disableScrollArea: false,
+                dialogButtons: AnyUiMessageBoxButton.OK,
+                renderPanel: (uci) =>
+                {
+                    // create panel
+                    var panel = new AnyUiStackPanel();
+                    var helper = new AnyUiSmallWidgetToolkit();
+
+                    var g = helper.AddSmallGrid(25, 2, new[] { "180:", "*" },
+                                padding: new AnyUiThickness(0, 5, 0, 5),
+                                margin: new AnyUiThickness(10, 0, 30, 0));
+
+                    panel.Add(g);
+
+                    // dynamic rows
+                    int row = 0;
+
+                    // info?
+                    if (info?.HasContent() == true)
+                    {
+                        // Statistics
+                        helper.Set(
+                            helper.AddSmallLabelTo(g, row, 0, content: info),
+                            colSpan: 2);
+                        row++;
+
+                        // separation
+                        helper.AddSmallBorderTo(g, row, 0,
+                            borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
+                            colSpan: 2,
+                            margin: new AnyUiThickness(0, 0, 0, 20));
+                        row++;
+                    }
+
+                    // Central store URI
+                    helper.AddSmallLabelTo(g, row, 0, content: "Central store URI:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    if (displayContext is AnyUiContextPlusDialogs cpd
+                        && cpd.HasCapability(AnyUiContextCapability.WPF))
+                    {
+                        AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallComboBoxTo(g, row, 1,
+                                    isEditable: true,
+                                    items: Options.Curr.CentralStores?.ToArray(),
+                                    text: "" + record.CentralStoreUri,
+                                    margin: new AnyUiThickness(0, 0, 0, 0),
+                                    padding: new AnyUiThickness(0, 0, 0, 0),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
+                                (s) => { record.CentralStoreUri = s; });
+                    }
+                    else
+                    {
+                        AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallTextBoxTo(g, row, 1,
+                                        text: $"{record.CentralStoreUri}",
+                                        verticalAlignment: AnyUiVerticalAlignment.Center,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                                (s) => { record.CentralStoreUri = s; });
+                    }
+
+                    row++;
+
+                    // UUID
+                    helper.AddSmallLabelTo(g, row, 0, content: "UUID (header):",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g, row, 1,
+                                    text: $"{record.UUID}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                            (s) => { record.UUID = s; });
+
+                    row++;
+
+                    // Delete
+                    helper.AddSmallLabelTo(g, row, 0, content: "Post process:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetBoolFromControl(
+                            helper.Set(
+                                helper.AddSmallCheckBoxTo(g, row, 1,
+                                    content: "Delete supplementary file, if local",
+                                    isChecked: record.DeleteFileAfter,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                            (b) => { record.DeleteFileAfter = b; });
+                    row++;
+
+                    // give back
+                    return g;
+                });
+
+            if (!(await displayContext.StartFlyoverModalAsync(uc)))
+                return false;
+
+            // ok
+            return true;
+        }
+
+        public async Task<bool> PerformCentralizeFileExecution(
             AdminShellPackageEnvBase packEnv,
-            string centralStorePath,
+            CentralizeFilesRecord record,
             string filePath,
-            bool askForTargetPath = false,
-            bool? deleteSourcePath = false,
             Action<string> lambdaSetFilePath = null)
         {
             // access 
-            if (packEnv == null || centralStorePath?.HasContent() != true || filePath?.HasContent() != true)
+            if (packEnv == null 
+                || record?.CentralStoreUri?.HasContent() != true
+                || record?.UUID?.HasContent() != true
+                || filePath?.HasContent() != true)
                 return false;
 
             // try accessing it
@@ -2419,30 +2573,14 @@ namespace AasxPackageLogic
                             regexForFilter: @"[^a-zA-Z0-9\-_.]",
                             fixMoreBlanks: true);
 
-            // add a UUID in front
-            var newFilePath = Guid.NewGuid() + "_" + filterFilePath;
+            // add the UUID in front
+            var newFilePath = record.UUID.Trim() + "_" + filterFilePath;
 
             // build target path
+            var centralStorePath = record.CentralStoreUri;
             if (centralStorePath.EndsWith('/') || centralStorePath.EndsWith('\\'))
                 centralStorePath = centralStorePath.Substring(0, centralStorePath.Length - 1);
-            var targetPath = Path.Combine(centralStorePath, newFilePath);
-                
-            // ask for target path?
-            if (askForTargetPath)
-            {
-                var uc = new AnyUiDialogueDataTextBox(
-                    $"Centralize file with {ba.Length} bytes",
-                    text: targetPath,
-                    symbol: AnyUiMessageBoxImage.Question,
-                    maxWidth: 1400);
-                await context?.StartFlyoverModalAsync(uc);
-                if (!uc.Result)
-                    return false;
-
-                targetPath = uc.Text;
-                if (targetPath?.HasContent() != true)
-                    return false;
-            }
+            var targetPath = Path.Combine(centralStorePath, newFilePath);                           
 
             // try to write there?
             // assuming file storage writable to computer
@@ -2457,45 +2595,35 @@ namespace AasxPackageLogic
             lambdaSetFilePath?.Invoke(targetPath);
 
             // delete only possible for local files
-            if (packEnv.IsLocalFile(filePath))
+            if (packEnv.IsLocalFile(filePath) && record.DeleteFileAfter)
             {
-                if (deleteSourcePath == null)
+                var psfs = packEnv.GetListOfSupplementaryFiles();
+                var psf = psfs?.FindByUri(filePath);
+                if (psf == null)
                 {
-                    // ask if to delete
-                    deleteSourcePath = AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
-                        "Delete selected entity? This operation can not be reverted!",
-                        "Centralize file",
-                        AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Question);
+                    Log.Singleton.Error("Centralize file: unable to find existing file in package " +
+                        "before deleting: {0}", targetPath);
+                    return false;
                 }
 
-                // delete?
-                if (deleteSourcePath.Value)
-                {
-                    var psfs = packEnv.GetListOfSupplementaryFiles();
-                    var psf = psfs?.FindByUri(filePath);
-                    if (psf == null)
-                    {
-                        Log.Singleton.Error("Centralize file: unable to find existing file in package " +
-                            "before deleting: {0}", targetPath);
-                        return false;
-                    }
+                packEnv.DeleteSupplementaryFile(psf);
 
-                    packEnv.DeleteSupplementaryFile(psf);
+                Log.Singleton.Info(StoredPrint.Color.Blue,
+                    "Centralized file {0} bytes to new location and deleted original: {1}. " +
+                    "A save operation is required for the package!",
+                    ba.Length, newFilePath);
 
-                    Log.Singleton.Info(StoredPrint.Color.Blue,
-                        "Centralized file {0} bytes to new location and deleted original: {1}. " +
-                        "A save operation is required for the package!",
-                        ba.Length, newFilePath);
-                }
+                return true;
             }
 
             // do the normal info
             Log.Singleton.Info(StoredPrint.Color.Blue,
-                "Centralized file {0} bytes to new location and deleted original: {1}.",
+                "Centralized file {0} bytes to new location (preserved original): {1}.",
                 ba.Length, targetPath);
 
             return true;
         }
+#endif
 
         public void DisplayOrEditEntityFileResource(AnyUiStackPanel stack,
             AdminShellPackageEnvBase packEnv,
@@ -2606,8 +2734,11 @@ namespace AasxPackageLogic
                             "Creates a text file and adds it to the AAS environment.")
                         .AddAction("edit-text", "Edit text file",
                             "Edits the associated text file and updates it to the AAS environment.")
+#if __not_required_obsolete_by_PUT_attachment_operation
                         .AddAction("centralize-file", "Centralize file",
-                            "Rename file, copy it to central file storage and potentially delete supplemental file."),
+                            "Rename file, copy it to central file storage and potentially delete supplemental file.")
+#endif
+                        ,
                     ticketActionAsync: async (buttonNdx, ticket) =>
 
                     {
@@ -2793,15 +2924,22 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawEntity();
                         }
 
+#if __not_required_obsolete_by_PUT_attachment_operation
                         if (buttonNdx == 3 && valuePath.HasContent())
                         {
                             var changed = false;
-                            await CentralizeFile(
-                                packEnv,
-                                "file://c:\\HOMI\\Develop\\Aasx\\central-store",
+                            var record = GenerateNewCentralizeFilesRecord();
+
+                            if (!await PerformCentralizeFilesDialogue(
+                                    context, 
+                                    "Centralize file",
+                                    record,
+                                    $"File: {valuePath}"))
+                                return new AnyUiLambdaActionNone();
+
+                            await PerformCentralizeFileExecution(
+                                packEnv, record,
                                 valuePath,
-                                askForTargetPath: true,
-                                deleteSourcePath: null,
                                 lambdaSetFilePath: (v) =>
                                 {
                                     changed = true;
@@ -2813,6 +2951,7 @@ namespace AasxPackageLogic
                             if (changed)
                                 return new AnyUiLambdaActionRedrawAllElements(nextFocus: relatedReferable);
                         }
+#endif
 
                         return new AnyUiLambdaActionNone();
                     });
