@@ -41,7 +41,7 @@ namespace AasxPluginProductChangeNotifications
         //=============
 
         private LogInstance _log = new LogInstance();
-        private AdminShellPackageFileBasedEnv _package = null;
+        private AdminShellPackageEnvBase _package = null;
         private Aas.Submodel _submodel = null;
         private PcnOptions _options = null;
         private PluginEventStack _eventStack = null;
@@ -87,7 +87,7 @@ namespace AasxPluginProductChangeNotifications
 
         public void Start(
             LogInstance log,
-            AdminShellPackageFileBasedEnv thePackage,
+            AdminShellPackageEnvBase thePackage,
             Aas.Submodel theSubmodel,
             PcnOptions theOptions,
             PluginEventStack eventStack,
@@ -122,7 +122,7 @@ namespace AasxPluginProductChangeNotifications
             AnyUiContextBase displayContext)
         {
             // access
-            var package = opackage as AdminShellPackageFileBasedEnv;
+            var package = opackage as AdminShellPackageEnvBase;
             var sm = osm as Aas.Submodel;
             var panel = opanel as AnyUiStackPanel;
             if (package == null || sm == null || panel == null)
@@ -146,7 +146,7 @@ namespace AasxPluginProductChangeNotifications
 
         private void RenderFullView(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
-            AdminShellPackageFileBasedEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm)
         {
             // test trivial access
@@ -172,7 +172,7 @@ namespace AasxPluginProductChangeNotifications
         protected void RenderPanelOutside(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             IEnumerable<PcnOptionsRecord> foundRecs,
-            AdminShellPackageFileBasedEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm,
             PDPCN.CD_ProductChangeNotifications data)
         {
@@ -1139,7 +1139,7 @@ namespace AasxPluginProductChangeNotifications
         }
 
         protected void InnerDocIdentificationData(
-            AdminShellPackageFileBasedEnv package, 
+            AdminShellPackageEnvBase package, 
             AnyUiSmallWidgetToolkit uitk,
             AnyUiGrid grid,
             string header,
@@ -1223,7 +1223,7 @@ namespace AasxPluginProductChangeNotifications
         protected void RenderPanelInner(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             PcnOptionsRecord rec,
-            AdminShellPackageFileBasedEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm,
             PDPCN.CD_Record data)
         {
@@ -1576,7 +1576,7 @@ namespace AasxPluginProductChangeNotifications
         //=================
 
         protected async Task<bool> AddFromSmartPcnXml(
-            AdminShellPackageFileBasedEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm)
         {
             // access

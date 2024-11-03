@@ -25,6 +25,9 @@ using AdminShellNS;
 using Extensions;
 using AnyUi;
 using Newtonsoft.Json;
+using System.IO.Packaging;
+using System.IO;
+using System.Net.Http;
 
 // ReSharper disable NegativeEqualityExpression
 // ReSharper disable AccessToModifiedClosure
@@ -374,6 +377,10 @@ namespace AasxPluginImageMap
 
             // image
             AnyUiBitmapInfo bi = null;
+
+            // need parent information
+            _submodel.SetAllParents();
+            var aas = _package.AasEnv?.FindAasWithSubmodelId(_submodel.Id);
             
             // file?
             var fe = _submodel.SubmodelElements.FindFirstSemanticIdAs<Aas.IFile>(
@@ -381,7 +388,17 @@ namespace AasxPluginImageMap
                 MatchMode.Relaxed);
             if (fe?.Value != null)
             {
-                bi = AnyUiGdiHelper.LoadBitmapInfoFromPackage(_package, fe.Value);
+                var idShortPath = "" + fe.CollectIdShortByParent(
+                        separatorChar: '.', excludeIdentifiable: true);
+                var task = Task.Run(() => _package.GetLocalStreamFromPackageAsync(
+                    uriString: fe.Value,
+                    aasId: "" + aas?.Id,
+                    smId: "" + _submodel.Id,
+                    idShortPath: idShortPath));
+                task.Wait();
+                var stream = task.Result;
+
+                bi = AnyUiGdiHelper.LoadBitmapInfoFromStream(stream);
             }
 
             // BLOB

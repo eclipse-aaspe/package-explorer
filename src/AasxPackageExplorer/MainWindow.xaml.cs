@@ -379,7 +379,7 @@ namespace AasxPackageExplorer
         /// <param name="nextEditMode">Set the edit mode AFTER loading</param>
         public void UiLoadPackageWithNew(
             PackageCentralItem packItem,
-            AdminShellPackageFileBasedEnv takeOverEnv = null,
+            AdminShellPackageEnvBase takeOverEnv = null,
             string loadLocalFilename = null,
             string info = null,
             bool onlyAuxiliary = false,

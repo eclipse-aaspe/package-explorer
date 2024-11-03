@@ -137,7 +137,7 @@ namespace AasxIntegrationBase
             }
         }
 
-        public static BitmapImage LoadBitmapImageFromPackage(AdminShellPackageFileBasedEnv package, string path)
+        public static BitmapImage LoadBitmapImageFromPackage(AdminShellPackageEnvBase package, string path)
         {
             if (package == null || path == null)
                 return null;

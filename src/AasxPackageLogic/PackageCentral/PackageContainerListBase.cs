@@ -190,7 +190,7 @@ namespace AasxPackageLogic.PackageCentral
             }
         }
 
-        public void AddByAasPackage(PackageCentral packageCentral, AdminShellPackageFileBasedEnv env, string fn)
+        public void AddByAasPackage(PackageCentral packageCentral, AdminShellPackageEnvBase env, string fn)
         {
             // access
             if (env == null)
@@ -243,7 +243,7 @@ namespace AasxPackageLogic.PackageCentral
         // Converters & generators
         //
 
-        public void PopulateFakePackage(AdminShellPackageFileBasedEnv pkg)
+        public void PopulateFakePackage(AdminShellPackageEnvBase pkg)
         {
             // access
             if (pkg == null)

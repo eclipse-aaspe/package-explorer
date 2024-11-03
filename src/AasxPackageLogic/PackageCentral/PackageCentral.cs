@@ -111,7 +111,7 @@ namespace AasxPackageLogic.PackageCentral
             }
         }
 
-        public bool TakeOver(AdminShellPackageFileBasedEnv env)
+        public bool TakeOver(AdminShellPackageEnvBase env)
         {
             try
             {

@@ -650,6 +650,32 @@ namespace AasxPackageLogic.PackageCentral
             }
         }
 
+        public static async Task<Tuple<HttpStatusCode, string>> HttpPutPostBytes(
+            HttpClient reUseClient,
+            byte[] ba,
+            Uri destUri,
+            bool usePost = false,
+            PackCntRuntimeOptions runtimeOptions = null,
+            PackageContainerListBase containerList = null)
+        {
+            // access
+            if (ba == null || destUri == null)
+                return null;
+
+            // serialize to memory stream
+            using (var ms = new MemoryStream(ba))
+            {
+                // write
+                return await PackageHttpDownloadUtil.HttpPutPostFromMemoryStream(
+                    reUseClient,
+                    ms,
+                    destUri: destUri,
+                    runtimeOptions: runtimeOptions,
+                    containerList: containerList,
+                    usePost: usePost);
+            }
+        }
+
         /// <summary>
         /// This utility is able to parallel download Identifiables and will call lambda upon.
         /// Insted of a list of location, it is taking a list of objects (entities) and a lambda

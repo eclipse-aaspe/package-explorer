@@ -21,7 +21,7 @@ namespace AasxFormatCst
 {
     public class AasxToCst
     {
-        protected AdminShellPackageFileBasedEnv _env;
+        protected AdminShellPackageEnvBase _env;
 
         protected int _customIndex = 1;
         public string CustomNS = "UNSPEC";
@@ -267,7 +267,7 @@ namespace AasxFormatCst
         }
 
         public void ExportSingleSubmodel(
-            AdminShellPackageFileBasedEnv env, string path,
+            AdminShellPackageEnvBase env, string path,
             Aas.Key smId,
             IEnumerable<Aas.IReferable> cdReferables,
             CstIdObjectBase firstNodeId,

@@ -20,8 +20,14 @@ using System.Reflection;
 using System.Xml.Schema;
 using System.Xml;
 using AdminShellNS;
+using Aas = AasCore.Aas3_0;
+using Extensions;
 using AnyUi;
 using ImageMagick;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+using System.IO.Packaging;
 
 namespace AasxIntegrationBaseGdi
 {
@@ -135,10 +141,32 @@ namespace AasxIntegrationBaseGdi
             return null;
         }
 
+        public static AnyUiBitmapInfo LoadBitmapInfoFromStream(Stream stream)
+        {
+            if (stream == null)
+                return null;
+
+            try
+            {
+                // load image
+                var bi = new MagickImage(stream);
+                var binfo = CreateAnyUiBitmapInfo(bi);
+
+                // give this back
+                return binfo;
+            }
+            catch (Exception ex)
+            {
+                AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
+            }
+
+            return null;
+        }
+
         // TODO (MIHO, 2023-02-23): make the whole thing async!!
 
         public static AnyUiBitmapInfo MakePreviewFromPackageOrUrl(
-            AdminShellPackageFileBasedEnv package, string path,
+            AdminShellPackageEnvBase package, string path,
             double dpi = 75)
         {
             if (path == null)
@@ -207,6 +235,106 @@ namespace AasxIntegrationBaseGdi
             }
 
             return res;
+        }
+
+        //
+        // Support for loading multiple files one after each other
+        // 
+
+        public class DelayedFileContentLoadBase
+        {
+            public Action<DelayedFileContentLoadBase, AnyUiBitmapInfo> LambdaLoaded;
+        }
+
+        public class DelayedFileContentForFileElement : DelayedFileContentLoadBase
+        {
+            public AdminShellPackageEnvBase Package;
+            public string FileUri;
+            
+            public string AasId;
+            public string SmId;
+            public string IdShortPath;
+        }
+
+        public class DelayedFileContentLoader
+        {
+            protected List<DelayedFileContentLoadBase> _jobs = new List<DelayedFileContentLoadBase>();
+
+            public void Add(DelayedFileContentLoadBase job)
+            {
+                lock (_jobs)
+                {
+                    _jobs.Add(job);
+                }
+            }
+
+            /// <summary>
+            /// Make sure, that <c>Submodel.SetParents()</c> has been executed!
+            /// </summary>
+            /// <param name="package"></param>
+            /// <param name="aasId"></param>
+            /// <param name=""></param>
+            public void Add(             
+                AdminShellPackageEnvBase package, 
+                Aas.IAssetAdministrationShell aas, 
+                Aas.ISubmodel submodel,
+                Aas.IFile fileElem,
+                Action<DelayedFileContentLoadBase, AnyUiBitmapInfo> lambdaLoaded)
+            {
+                // access
+                if (package == null || aas == null || submodel == null || fileElem == null)
+                    return;
+
+                var idShortPath = "" + fileElem.CollectIdShortByParent(
+                        separatorChar: '.', excludeIdentifiable: true);
+
+
+                Add(new DelayedFileContentForFileElement()
+                {
+                    LambdaLoaded = lambdaLoaded,
+                    Package = package,
+                    AasId = "" + aas.Id,
+                    SmId = "" + submodel.Id,
+                    IdShortPath = idShortPath,
+                    FileUri = fileElem.Value
+                });
+            }
+
+            public async Task<bool> TickToLoad()
+            {
+                if (_jobs.Count < 1)
+                    return false;
+
+                // pick one and start
+                DelayedFileContentLoadBase job = null;
+                lock (_jobs)
+                {
+                    job = _jobs.First();
+                    _jobs.RemoveAt(0);
+                }
+                if (job == null)
+                    return false;
+
+                // now try loading
+                if (job is DelayedFileContentForFileElement jobfc)
+                {
+                    var stream = await jobfc.Package?.GetLocalStreamFromPackageAsync(
+                        uriString: jobfc.FileUri,
+                        aasId: "" + jobfc.AasId,
+                        smId: "" + jobfc.SmId,
+                        idShortPath: jobfc.IdShortPath);
+
+                    var bi = AnyUiGdiHelper.LoadBitmapInfoFromStream(stream);
+
+                    if (bi != null)
+                    {
+                        jobfc.LambdaLoaded?.Invoke(jobfc, bi);
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
     }
 }

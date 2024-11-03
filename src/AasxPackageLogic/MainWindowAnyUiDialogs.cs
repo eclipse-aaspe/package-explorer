@@ -1365,7 +1365,7 @@ namespace AasxPackageLogic
 
                     // TODO (MIHO, 2022-11-17): not very elegant
                     if (ticket.PostResults != null && ticket.PostResults.ContainsKey("TakeOver")
-                        && ticket.PostResults["TakeOver"] is AdminShellPackageFileBasedEnv pe)
+                        && ticket.PostResults["TakeOver"] is AdminShellPackageEnvBase pe)
                         PackageCentral.MainItem.TakeOver(pe);
 
                     MainWindow.RestartUIafterNewPackage();

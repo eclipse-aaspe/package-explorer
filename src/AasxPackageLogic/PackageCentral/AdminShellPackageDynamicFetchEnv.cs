@@ -27,7 +27,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AdminShellNS.DiaryData;
 using System.Text.Json;
-using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -379,6 +378,60 @@ namespace AasxPackageLogic.PackageCentral
             ms.Write(content, 0, content.Length);
             ms.Seek(0, SeekOrigin.Begin);
             return ms;
+        }
+
+        public override async Task<Stream> GetLocalStreamFromPackageAsync(
+            string uriString,
+            string aasId = null,
+            string smId = null,
+            string idShortPath = null,
+            FileMode mode = FileMode.Open, 
+            FileAccess access = FileAccess.Read)
+        {
+            // IMPORTANT! First try to use the base implementation to get an stream to
+            // HTTP or ABSOLUTE file
+            var absStream = base.GetLocalStreamFromPackage(uriString, mode: mode, access: access);
+            if (absStream != null)
+                return absStream;
+
+            // ok, try to load from the server
+            if (aasId?.HasContent() != true || idShortPath?.HasContent() != true
+                || _defaultRepoBaseUri == null)
+                return null;
+
+            // try contact repo
+            var attLoc = PackageContainerHttpRepoSubset.BuildUriForRepoSingleSubmodelAttachment(
+                _defaultRepoBaseUri, 
+                aasId: aasId,
+                smId: smId,
+                idShortPath: idShortPath,
+                encryptIds: true);
+
+            try
+            {
+                Stream res = null;
+
+                await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                    null,
+                    sourceUri: attLoc,
+                    runtimeOptions: _runtimeOptions,
+                    lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
+                    {
+                        // error
+                        if (code != HttpStatusCode.OK && code != HttpStatusCode.NoContent)
+                            return;
+
+                        // store (this is stupid!)
+                        res = new MemoryStream(ms.ToByteArray());
+                    });            
+
+                return res;
+            }
+            catch (Exception ex)
+            {
+                LogInternally.That.SilentlyIgnoredError(ex);
+                return null;
+            }
         }
     }
 

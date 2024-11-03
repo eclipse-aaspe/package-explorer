@@ -274,7 +274,7 @@ namespace AasxPluginPlotting
         }
 
         public void RebuildFromSubmodel(
-            AdminShellPackageFileBasedEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm, string lang)
         {
             // clear & access
