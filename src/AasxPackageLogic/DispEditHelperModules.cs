@@ -34,6 +34,7 @@ using System.Runtime.Intrinsics.X86;
 using System.Runtime.Serialization;
 using System.Text;
 using AasxPackageLogic.PackageCentral;
+using System.Threading.Tasks;
 
 namespace AasxPackageLogic
 {
@@ -2393,7 +2394,111 @@ namespace AasxPackageLogic
         // File / Resource attributes
         // 
 
+        public async Task<bool> CentralizeFile(
+            AdminShellPackageEnvBase packEnv,
+            string centralStorePath,
+            string filePath,
+            bool askForTargetPath = false,
+            bool? deleteSourcePath = false,
+            Action<string> lambdaSetFilePath = null)
+        {
+            // access 
+            if (packEnv == null || centralStorePath?.HasContent() != true || filePath?.HasContent() != true)
+                return false;
+
+            // try accessing it
+            var ba = await packEnv.GetByteArrayFromExternalInternalUri(filePath);
+            if (ba == null || ba.Length < 1)
+            {
+                Log.Singleton.Error("Centralize file: cannot read file: {0}", filePath);
+                return false;
+            }
+
+            // filePath shall only contain harmless chars and NO separators, but dots!
+            var filterFilePath = AdminShellUtil.FilterFriendlyName(filePath,
+                            regexForFilter: @"[^a-zA-Z0-9\-_.]",
+                            fixMoreBlanks: true);
+
+            // add a UUID in front
+            var newFilePath = Guid.NewGuid() + "_" + filterFilePath;
+
+            // build target path
+            if (centralStorePath.EndsWith('/') || centralStorePath.EndsWith('\\'))
+                centralStorePath = centralStorePath.Substring(0, centralStorePath.Length - 1);
+            var targetPath = Path.Combine(centralStorePath, newFilePath);
+                
+            // ask for target path?
+            if (askForTargetPath)
+            {
+                var uc = new AnyUiDialogueDataTextBox(
+                    $"Centralize file with {ba.Length} bytes",
+                    text: targetPath,
+                    symbol: AnyUiMessageBoxImage.Question,
+                    maxWidth: 1400);
+                await context?.StartFlyoverModalAsync(uc);
+                if (!uc.Result)
+                    return false;
+
+                targetPath = uc.Text;
+                if (targetPath?.HasContent() != true)
+                    return false;
+            }
+
+            // try to write there?
+            // assuming file storage writable to computer
+            var res = await packEnv.PutByteArrayToExternalUri(targetPath, ba);
+            if (!res)
+            {
+                Log.Singleton.Error("Centralize file: error writing bytes to location: {0}", targetPath);
+                return false;
+            }
+
+            // can set new filename
+            lambdaSetFilePath?.Invoke(targetPath);
+
+            // delete only possible for local files
+            if (packEnv.IsLocalFile(filePath))
+            {
+                if (deleteSourcePath == null)
+                {
+                    // ask if to delete
+                    deleteSourcePath = AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
+                        "Delete selected entity? This operation can not be reverted!",
+                        "Centralize file",
+                        AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Question);
+                }
+
+                // delete?
+                if (deleteSourcePath.Value)
+                {
+                    var psfs = packEnv.GetListOfSupplementaryFiles();
+                    var psf = psfs?.FindByUri(filePath);
+                    if (psf == null)
+                    {
+                        Log.Singleton.Error("Centralize file: unable to find existing file in package " +
+                            "before deleting: {0}", targetPath);
+                        return false;
+                    }
+
+                    packEnv.DeleteSupplementaryFile(psf);
+
+                    Log.Singleton.Info(StoredPrint.Color.Blue,
+                        "Centralized file {0} bytes to new location and deleted original: {1}. " +
+                        "A save operation is required for the package!",
+                        ba.Length, newFilePath);
+                }
+            }
+
+            // do the normal info
+            Log.Singleton.Info(StoredPrint.Color.Blue,
+                "Centralized file {0} bytes to new location and deleted original: {1}.",
+                ba.Length, targetPath);
+
+            return true;
+        }
+
         public void DisplayOrEditEntityFileResource(AnyUiStackPanel stack,
+            AdminShellPackageEnvBase packEnv,
             Aas.IReferable containingObject,
             ModifyRepo repo, AasxMenu superMenu,
             string valuePath,
@@ -2500,8 +2605,10 @@ namespace AasxPackageLogic
                         .AddAction("create-text", "Create text file",
                             "Creates a text file and adds it to the AAS environment.")
                         .AddAction("edit-text", "Edit text file",
-                            "Edits the associated text file and updates it to the AAS environment."),
-                    ticketAction: (buttonNdx, ticket) =>
+                            "Edits the associated text file and updates it to the AAS environment.")
+                        .AddAction("centralize-file", "Centralize file",
+                            "Rename file, copy it to central file storage and potentially delete supplemental file."),
+                    ticketActionAsync: async (buttonNdx, ticket) =>
 
                     {
                         if (buttonNdx == 0 && valuePath.HasContent())
@@ -2684,6 +2791,27 @@ namespace AasxPackageLogic
 
                             // reshow
                             return new AnyUiLambdaActionRedrawEntity();
+                        }
+
+                        if (buttonNdx == 3 && valuePath.HasContent())
+                        {
+                            var changed = false;
+                            await CentralizeFile(
+                                packEnv,
+                                "file://c:\\HOMI\\Develop\\Aasx\\central-store",
+                                valuePath,
+                                askForTargetPath: true,
+                                deleteSourcePath: null,
+                                lambdaSetFilePath: (v) =>
+                                {
+                                    changed = true;
+                                    valuePath = v;
+                                    setOutput?.Invoke(valuePath, valueContent);
+                                    this.AddDiaryEntry(containingObject, new DiaryEntryStructChange());
+                                });
+
+                            if (changed)
+                                return new AnyUiLambdaActionRedrawAllElements(nextFocus: relatedReferable);
                         }
 
                         return new AnyUiLambdaActionNone();
