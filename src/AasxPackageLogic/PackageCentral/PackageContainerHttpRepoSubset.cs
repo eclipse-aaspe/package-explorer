@@ -287,6 +287,33 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         //
+        // build query string
+        //
+
+        public class LittleQueryString : List<string>
+        {
+            public LittleQueryString Add(string key, string value)
+            {
+                Add(key + "=" + value);
+                return this;
+            }
+
+            public LittleQueryString IfAdd(bool condition, string key, string value)
+            {
+                if (condition)
+                    Add(key, value);
+                return this;
+            }
+
+            public string ToQueryString()
+            {
+                if (Count < 1)
+                    return "";
+                return "?" + string.Join('&', this);
+            }
+        }
+
+        //
         // REPO
         //
 
@@ -365,29 +392,35 @@ namespace AasxPackageLogic.PackageCentral
             bool encryptIds = true,
             bool usePost = false,
             bool addAasId = false,
-            string aasId = null)
+            string aasId = null,
+            bool levelDeep = true,
+            bool extentWith = true)
         {
             // access
             if (id?.HasContent() != true)
                 return null;
 
+            // start query sttring
+            var qs = new LittleQueryString()
+                .IfAdd(levelDeep, "level", "deep")
+                .IfAdd(extentWith, "extent", "withBlobValue");
+
             // query string for aasId?
-            var queryAasId = "";
-            if (addAasId && aasId?.HasContent() == true)
+            if (usePost && addAasId && aasId?.HasContent() == true)
             {
                 var aasidenc = encryptIds ? AdminShellUtil.Base64UrlEncode(aasId) : aasId;
-                queryAasId = "?aasIdentifier=" + aasidenc;
+                qs.Add("aasIdentifier", aasidenc);
             }
 
             // try combine
             if (!usePost)
             {
                 var smidenc = encryptIds ? AdminShellUtil.Base64UrlEncode(id) : id;
-                return CombineUri(baseUri, $"submodels/{smidenc}");
+                return CombineUri(baseUri, $"submodels/{smidenc}" + qs.ToQueryString());
             }
             else
             {
-                return CombineUri(baseUri, "submodels" + queryAasId);
+                return CombineUri(baseUri, "submodels" + qs.ToQueryString());
             }
         }
 

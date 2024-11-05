@@ -174,6 +174,7 @@ namespace AasxPackageLogic
                 {
                     // save
                     await PackageCentral.MainItem.SaveAsAsync(runtimeOptions: PackageCentral.CentralRuntimeOptions);
+                    
 
                     // backup
                     if (Options.Curr.BackupDir != null)

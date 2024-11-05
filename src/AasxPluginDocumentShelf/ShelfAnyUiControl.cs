@@ -36,7 +36,8 @@ namespace AasxPluginDocumentShelf
 
         private LogInstance _log = new LogInstance();
         private AdminShellPackageEnvBase _package = null;
-        private Aas.Submodel _submodel = null;
+        private Aas.IAssetAdministrationShell _aas = null;
+        private Aas.ISubmodel _submodel = null;
         private DocumentShelfOptions _options = null;
         private PluginEventStack _eventStack = null;
         private PluginSessionBase _session = null;
@@ -145,7 +146,7 @@ namespace AasxPluginDocumentShelf
         public void Start(
             LogInstance log,
             AdminShellPackageEnvBase thePackage,
-            Aas.Submodel theSubmodel,
+            Aas.ISubmodel theSubmodel,
             DocumentShelfOptions theOptions,
             PluginEventStack eventStack,
             PluginSessionBase session,
@@ -158,6 +159,7 @@ namespace AasxPluginDocumentShelf
             _log = log;
             _package = thePackage;
             _submodel = theSubmodel;
+            _aas = _package?.AasEnv?.FindAasWithSubmodelId(_submodel?.Id);
             _options = theOptions;
             _eventStack = eventStack;
             _session = session;
@@ -254,13 +256,13 @@ namespace AasxPluginDocumentShelf
             // ReSharper disable ExpressionIsAlwaysNull
             if (_renderedVersion == DocumentEntity.SubmodelVersion.V12)
                 _renderedEntities = ListOfDocumentEntity.ParseSubmodelForV12(
-                    _package, _submodel, defs12, defaultLang, (int)_selectedDocClass, _selectedLang);
+                    _package, _aas, _submodel, defs12, defaultLang, (int)_selectedDocClass, _selectedLang);
             else if (_renderedVersion == DocumentEntity.SubmodelVersion.V11)
                 _renderedEntities = ListOfDocumentEntity.ParseSubmodelForV11(
-                    _package, _submodel, defs11, defaultLang, (int)_selectedDocClass, _selectedLang);
+                    _package, _aas, _submodel, defs11, defaultLang, (int)_selectedDocClass, _selectedLang);
             else
                 _renderedEntities = ListOfDocumentEntity.ParseSubmodelForV10(
-                    _package, _submodel, _options, defaultLang, (int)_selectedDocClass, _selectedLang);
+                    _package, _aas, _submodel, _options, defaultLang, (int)_selectedDocClass, _selectedLang);
             // ReSharper enable ExpressionIsAlwaysNull
 
             // bring it to the panel            
@@ -515,7 +517,7 @@ namespace AasxPluginDocumentShelf
                     }
 
                     // attach events and add
-                    ent.DoubleClick += DocumentEntity_DoubleClick;
+                    ent.DoubleClick = async (e) => await DocumentEntity_DoubleClick(e);
                     ent.MenuClick += DocumentEntity_MenuClick;
                     ent.DragStart += DocumentEntity_DragStart;
                 }
@@ -552,13 +554,13 @@ namespace AasxPluginDocumentShelf
 
             // the border emits double clicks
             border.EmitEvent = AnyUiEventMask.LeftDouble;
-            border.setValueLambda = (o) =>
+            border.setValueAsyncLambda = async (o) =>
             {
                 if (o is AnyUiEventData ed
                     && ed.Mask == AnyUiEventMask.LeftDouble
                     && ed.ClickCount == 2)
                 {
-                    de.RaiseDoubleClick();
+                    await de.RaiseDoubleClick();
                 }
                 return new AnyUiLambdaActionNone();
             };
@@ -1032,12 +1034,12 @@ namespace AasxPluginDocumentShelf
 
             // show digital file
             if (tag == null && menuItemHeader == "View file")
-                DocumentEntity_DisplaySaveFile(e, true, false);
+                await DocumentEntity_DisplaySaveFile(e, true, false);
 
             // save digital file?
             if (tag == null && menuItemHeader == "Save file .." && e.DigitalFile?.Path.HasContent() == true)
             {
-                DocumentEntity_DisplaySaveFile(e, true, true);
+                await DocumentEntity_DisplaySaveFile(e, true, true);
             }
 
             // show digital file
@@ -1117,7 +1119,7 @@ namespace AasxPluginDocumentShelf
             }
         }
 
-        private void DocumentEntity_DisplaySaveFile(DocumentEntity e, bool display, bool save)
+        private async Task DocumentEntity_DisplaySaveFile(DocumentEntity e, bool display, bool save)
         {
             // first check
             if (e == null || e.DigitalFile?.Path == null || e.DigitalFile.Path.Trim().Length < 1
@@ -1132,7 +1134,8 @@ namespace AasxPluginDocumentShelf
                 {
                     if (!inputFn.ToLower().Trim().StartsWith("http://")
                             && !inputFn.ToLower().Trim().StartsWith("https://"))
-                        inputFn = _package?.MakePackageFileAvailableAsTempFile(inputFn);
+                        inputFn = await _package?.MakePackageFileAvailableAsTempFileAsync(
+                            inputFn, e.DigitalFile.AasId, e.DigitalFile.SmId, e.DigitalFile.IdShortPath);
                 }
                 catch (Exception ex)
                 {
@@ -1155,9 +1158,9 @@ namespace AasxPluginDocumentShelf
             }
         }
 
-        private void DocumentEntity_DoubleClick(DocumentEntity e)
+        private async Task DocumentEntity_DoubleClick(DocumentEntity e)
         {
-            DocumentEntity_DisplaySaveFile(e, true, false);
+            await DocumentEntity_DisplaySaveFile(e, true, false);
         }
 
         protected bool _inDragStart = false;
@@ -1461,7 +1464,10 @@ namespace AasxPluginDocumentShelf
                 lock (theDocEntitiesToPreview)
                 {
                     foreach (var de in theDocEntitiesToPreview)
-                        _previewService.Push(new ShelfPreviewService.RenderEntity(_package, de?.DigitalFile?.Path));
+                        _previewService.Push(new ShelfPreviewService.RenderEntity(
+                            _package,
+                            de?.DigitalFile?.AasId, de?.DigitalFile?.SmId, de?.DigitalFile?.IdShortPath,
+                            de?.DigitalFile?.Path));
                     theDocEntitiesToPreview.Clear();
                 }
             }

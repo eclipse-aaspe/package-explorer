@@ -821,7 +821,33 @@ namespace Extensions
                                 rootInfo.NrOfRootKeys = 1 + keyIndex;
                             }
 
-                            // give back the AAS
+                            // test if to go further for Submodel
+                            if (keyIndex < keyList.Count - 1
+                                && keyList[keyIndex + 1].Type == KeyTypes.Submodel)
+                            {
+                                var foundSm = environment.FindAllSubmodelGroupedByAAS((aas, sm) 
+                                            => aas == keyedAas && sm.Id?.Trim() == keyList[keyIndex + 1].Value?.Trim())
+                                    .FirstOrDefault();
+
+                                if (foundSm != null)
+                                {
+                                    keyIndex += 2;
+
+                                    var foundSme = environment.FindReferableByReference(reference, keyIndex,
+                                        foundSm, foundSm.SubmodelElements);
+
+                                    if (foundSme != null)
+                                    {
+                                        return foundSme;
+                                    }
+                                    else
+                                    {
+                                        return foundSm;
+                                    }
+                                }
+                            }
+
+                            // nope, give back the AAS
                             return keyedAas;
                         }
 
@@ -879,9 +905,7 @@ namespace Extensions
                         return environment.FindReferableByReference(reference, ++keyIndex, 
                             submodel, submodel.SubmodelElements);
                     }
-            }
-
-            
+            }            
 
             if (firstKeyType.IsSME() && submodelElems != null)
             {

@@ -497,7 +497,7 @@ namespace AasxPackageLogic
                 if (identifiable.Id.HasContent())
                 {
                     this.AddKeyValue(
-                        stack, "id (Base64)", AdminShellUtil.Base64Encode(identifiable.Id),
+                        stack, "id (base64url)", AdminShellUtil.Base64UrlEncode(identifiable.Id),
                         repo: null);
                 }
 
