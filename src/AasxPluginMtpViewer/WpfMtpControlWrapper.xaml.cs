@@ -24,6 +24,7 @@ using Extensions;
 using Newtonsoft.Json;
 using WpfMtpControl;
 using WpfMtpControl.DataSources;
+using System.IO.Packaging;
 
 namespace AasxPluginMtpViewer
 {
@@ -31,29 +32,31 @@ namespace AasxPluginMtpViewer
     {
         // internal members
 
-        private LogInstance theLog = null;
-        private AdminShellPackageEnvBase thePackage = null;
-        private Aas.Submodel theSubmodel = null;
-        private AasxPluginMtpViewer.MtpViewerOptions theOptions = null;
-        private PluginEventStack theEventStack = null;
+        private LogInstance _log = null;
+        private AdminShellPackageEnvBase _package = null;
+        private Aas.IAssetAdministrationShell _aas = null;
+        private Aas.ISubmodel _submodel = null;
+        private AasxPluginMtpViewer.MtpViewerOptions _options = null;
+        private PluginEventStack _eventStack = null;
 
-        private AasxPredefinedConcepts.DefinitionsExperimental.InteropRelations defsInterop = null;
-        private DefinitionsMTP.ModuleTypePackage defsMtp = null;
+        private AasxPredefinedConcepts.DefinitionsExperimental.InteropRelations _defsInterop = null;
+        private DefinitionsMTP.ModuleTypePackage _defsMtp = null;
 
-        public MtpDataSourceOpcUaPreLoadInfo thePreLoadInfo = new MtpDataSourceOpcUaPreLoadInfo();
+        private MtpDataSourceOpcUaPreLoadInfo _preLoadInfo = new MtpDataSourceOpcUaPreLoadInfo();
 
-        private WpfMtpControl.MtpSymbolLib theSymbolLib = null;
-        private WpfMtpControl.MtpVisualObjectLib activeVisualObjectLib = null;
-        private WpfMtpControl.MtpData activeMtpData = null;
+        private WpfMtpControl.MtpSymbolLib _theSymbolLib = null;
+        private WpfMtpControl.MtpVisualObjectLib _activeVisualObjectLib = null;
+        private WpfMtpControl.MtpData _activeMtpData = null;
 
-        private Aas.File activeMtpFileElem = null;
-        private string activeMtpFileFn = null;
+        private Aas.ISubmodel _mtpTypeSm = null;
+        private Aas.File _activeMtpFileElem = null;
+        private string _activeMtpFileFn = null;
 
-        public WpfMtpControl.MtpVisuOpcUaClient client = new WpfMtpControl.MtpVisuOpcUaClient();
+        public WpfMtpControl.MtpVisuOpcUaClient UaClient = new WpfMtpControl.MtpVisuOpcUaClient();
 
-        private MtpDataSourceSubscriber activeSubscriber = null;
+        private MtpDataSourceSubscriber _activeSubscriber = null;
 
-        private MtpSymbolMapRecordList hintsForConfigRecs = null;
+        private MtpSymbolMapRecordList _hintsForConfigRecs = null;
 
         // window / plugin mechanics
 
@@ -62,8 +65,8 @@ namespace AasxPluginMtpViewer
             InitializeComponent();
 
             // use pre-definitions
-            this.defsInterop = new AasxPredefinedConcepts.DefinitionsExperimental.InteropRelations();
-            this.defsMtp = new DefinitionsMTP.ModuleTypePackage();
+            this._defsInterop = new AasxPredefinedConcepts.DefinitionsExperimental.InteropRelations();
+            this._defsMtp = new DefinitionsMTP.ModuleTypePackage();
         }
 
         public void Start(
@@ -73,11 +76,12 @@ namespace AasxPluginMtpViewer
             PluginEventStack eventStack,
             LogInstance log)
         {
-            this.thePackage = thePackage;
-            this.theSubmodel = theSubmodel;
-            this.theOptions = theOptions;
-            this.theEventStack = eventStack;
-            this.theLog = log;
+            _package = thePackage;
+            _submodel = theSubmodel;
+            _aas = _package?.AasEnv?.FindAasWithSubmodelId(_submodel?.Id);
+            _options = theOptions;
+            _eventStack = eventStack;
+            _log = log;
         }
 
         public static WpfMtpControlWrapper FillWithWpfControls(
@@ -109,30 +113,46 @@ namespace AasxPluginMtpViewer
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             // initialize symbol library
-            this.theSymbolLib = new MtpSymbolLib();
+            this._theSymbolLib = new MtpSymbolLib();
 
             var ISO10628 = new ResourceDictionary();
             ISO10628.Source = new Uri(
                 "pack://application:,,,/WpfMtpControl;component/Resources/PNID_DIN_EN_ISO_10628.xaml");
-            this.theSymbolLib.ImportResourceDicrectory("PNID_ISO10628", ISO10628);
+            this._theSymbolLib.ImportResourceDicrectory("PNID_ISO10628", ISO10628);
 
             var FESTO = new ResourceDictionary();
             FESTO.Source = new Uri(
                 "pack://application:,,,/WpfMtpControl;component/Resources/PNID_Festo.xaml");
-            this.theSymbolLib.ImportResourceDicrectory("PNID_Festo", FESTO);
+            this._theSymbolLib.ImportResourceDicrectory("PNID_Festo", FESTO);
 
             // initialize visual object libraries
-            activeVisualObjectLib = new WpfMtpControl.MtpVisualObjectLib();
-            activeVisualObjectLib.LoadStatic(this.theSymbolLib);
+            _activeVisualObjectLib = new WpfMtpControl.MtpVisualObjectLib();
+            _activeVisualObjectLib.LoadStatic(this._theSymbolLib);
 
             // gather infos
-            var ok = GatherMtpInfos(this.thePreLoadInfo);
-            if (ok && this.activeMtpFileFn != null)
+            var ok = GatherMtpInfos(_preLoadInfo);
+            if (ok && _activeMtpFileFn != null && _mtpTypeSm != null)
             {
                 // access file
-                var inputFn = this.activeMtpFileFn;
+                var inputFn = this._activeMtpFileFn;
                 if (CheckIfPackageFile(inputFn))
-                    inputFn = thePackage.MakePackageFileAvailableAsTempFile(inputFn);
+                {
+                    // build idShort Path
+                    var idShortPath = "" + _activeMtpFileElem.CollectIdShortByParent(
+                            separatorChar: '.', excludeIdentifiable: true);
+
+                    // _mtpTypeSm might be in another AAS
+                    var mtpTypeAas = _package?.AasEnv?.FindAasWithSubmodelId(_mtpTypeSm.Id);
+
+                    // wrap async
+                    var task = Task.Run(() => _package.MakePackageFileAvailableAsTempFileAsync(
+                        packageUri: inputFn,
+                        aasId: "" + mtpTypeAas?.Id,
+                        smId: "" + _mtpTypeSm.Id,
+                        idShortPath: idShortPath));
+                    task.Wait();
+                    inputFn = task.Result;
+                }
 
                 // load file
                 LoadFile(inputFn);
@@ -154,12 +174,12 @@ namespace AasxPluginMtpViewer
 
         private async void dispatcherTimer_Tick(object sender, EventArgs e)
         {
-            if (this.client == null)
+            if (this.UaClient == null)
                 textBoxDataSourceStatus.Text = "(no OPC UA client enabled)";
             else
             {
-                await client.TickAsync(100);
-                textBoxDataSourceStatus.Text = this.client.GetStatus();
+                await UaClient.TickAsync(100);
+                textBoxDataSourceStatus.Text = this.UaClient.GetStatus();
             }
         }
 
@@ -168,23 +188,23 @@ namespace AasxPluginMtpViewer
         private bool GatherMtpInfos(MtpDataSourceOpcUaPreLoadInfo preLoadInfo)
         {
             // access
-            var env = this.thePackage?.AasEnv;
-            if (this.theSubmodel?.SemanticId == null || this.theSubmodel.SubmodelElements == null
-                || this.defsMtp == null
+            var env = _package?.AasEnv;
+            if (_submodel?.SemanticId == null || _submodel.SubmodelElements == null
+                || this._defsMtp == null
                 || env?.AssetAdministrationShells == null
-                || this.thePackage.AasEnv.Submodels == null)
+                || _package.AasEnv.Submodels == null)
                 return false;
 
             // need to find the type Submodel
-            Aas.ISubmodel mtpTypeSm = null;
+            _mtpTypeSm = null;
 
             // check, if the user pointed to the instance submodel
-            if (this.theSubmodel.SemanticId.Matches(this.defsMtp.SEM_MtpInstanceSubmodel))
+            if (_submodel.SemanticId.Matches(this._defsMtp.SEM_MtpInstanceSubmodel))
             {
                 // Source list
-                foreach (var srcLst in this.theSubmodel.SubmodelElements
+                foreach (var srcLst in _submodel.SubmodelElements
                     .FindAllSemanticIdAs<Aas.SubmodelElementCollection>(
-                        this.defsMtp.CD_SourceList?.GetReference(), MatchMode.Relaxed))
+                        this._defsMtp.CD_SourceList?.GetReference(), MatchMode.Relaxed))
                 {
                     // found a source list, might contain sources
                     if (srcLst?.Value == null)
@@ -192,12 +212,12 @@ namespace AasxPluginMtpViewer
 
                     // UA Server?
                     foreach (var src in srcLst.Value.FindAllSemanticIdAs<Aas.SubmodelElementCollection>(
-                        this.defsMtp.CD_SourceOpcUaServer?.GetReference(), MatchMode.Relaxed))
+                        this._defsMtp.CD_SourceOpcUaServer?.GetReference(), MatchMode.Relaxed))
                         if (src?.Value != null)
                         {
                             // UA server
                             var ep = src.Value.FindFirstSemanticIdAs<Aas.Property>(
-                                this.defsMtp.CD_Endpoint.GetReference(), MatchMode.Relaxed)?.Value;
+                                this._defsMtp.CD_Endpoint.GetReference(), MatchMode.Relaxed)?.Value;
 
                             // add
                             if (preLoadInfo?.EndpointMapping != null)
@@ -208,30 +228,30 @@ namespace AasxPluginMtpViewer
                 }
 
                 // Identifier renaming?
-                foreach (var ren in theSubmodel.SubmodelElements
+                foreach (var ren in _submodel.SubmodelElements
                     .FindAllSemanticIdAs<Aas.SubmodelElementCollection>(
-                    this.defsMtp.CD_IdentifierRenaming?.GetReference(), MatchMode.Relaxed))
+                    this._defsMtp.CD_IdentifierRenaming?.GetReference(), MatchMode.Relaxed))
                     if (ren?.Value != null)
                     {
                         var oldtxt = ren.Value.FindFirstSemanticIdAs<Aas.Property>(
-                            this.defsMtp.CD_RenamingOldText?.GetReference(), MatchMode.Relaxed)?.Value;
+                            this._defsMtp.CD_RenamingOldText?.GetReference(), MatchMode.Relaxed)?.Value;
                         var newtxt = ren.Value.FindFirstSemanticIdAs<Aas.Property>(
-                            this.defsMtp.CD_RenamingNewText?.GetReference(), MatchMode.Relaxed)?.Value;
+                            this._defsMtp.CD_RenamingNewText?.GetReference(), MatchMode.Relaxed)?.Value;
                         if (oldtxt.HasContent() && newtxt.HasContent() &&
                             preLoadInfo?.IdentifierRenaming != null)
                             preLoadInfo.IdentifierRenaming.Add(new MtpDataSourceStringReplacement(oldtxt, newtxt));
                     }
 
                 // Namespace renaming?
-                foreach (var ren in theSubmodel.SubmodelElements
+                foreach (var ren in _submodel.SubmodelElements
                     .FindAllSemanticIdAs<Aas.SubmodelElementCollection>(
-                    this.defsMtp.CD_NamespaceRenaming?.GetReference(), MatchMode.Relaxed))
+                    this._defsMtp.CD_NamespaceRenaming?.GetReference(), MatchMode.Relaxed))
                     if (ren?.Value != null)
                     {
                         var oldtxt = ren?.Value.FindFirstSemanticIdAs<Aas.Property>(
-                            this.defsMtp.CD_RenamingOldText?.GetReference(), MatchMode.Relaxed)?.Value;
+                            this._defsMtp.CD_RenamingOldText?.GetReference(), MatchMode.Relaxed)?.Value;
                         var newtxt = ren?.Value.FindFirstSemanticIdAs<Aas.Property>(
-                            this.defsMtp.CD_RenamingNewText?.GetReference(), MatchMode.Relaxed)?.Value;
+                            this._defsMtp.CD_RenamingNewText?.GetReference(), MatchMode.Relaxed)?.Value;
                         if (oldtxt.HasContent() && newtxt.HasContent() &&
                             preLoadInfo?.NamespaceRenaming != null)
                             preLoadInfo.NamespaceRenaming.Add(new MtpDataSourceStringReplacement(oldtxt, newtxt));
@@ -239,46 +259,46 @@ namespace AasxPluginMtpViewer
 
                 // according spec from Sten Gruener, the derivedFrom relationship shall be exploited.
                 // How to get from subModel to AAS?
-                var instanceAas = env.FindAasWithSubmodelId(this.theSubmodel.Id);
+                var instanceAas = env.FindAasWithSubmodelId(_submodel.Id);
                 var typeAas = env.FindReferableByReference(instanceAas?.DerivedFrom) as Aas.AssetAdministrationShell;
                 if (instanceAas?.DerivedFrom != null && typeAas != null)
                     foreach (var msm in env.FindAllSubmodelGroupedByAAS((aas, sm) =>
                     {
-                        return aas == typeAas && true == sm?.SemanticId?.Matches(this.defsMtp.SEM_MtpSubmodel);
+                        return aas == typeAas && true == sm?.SemanticId?.Matches(this._defsMtp.SEM_MtpSubmodel);
                     }))
                     {
-                        mtpTypeSm = msm;
+                        _mtpTypeSm = msm;
                         break;
                     }
 
                 // another possibility: direct reference
-                var dirLink = this.theSubmodel.SubmodelElements
+                var dirLink = _submodel.SubmodelElements
                     .FindFirstSemanticIdAs<Aas.ReferenceElement>(
-                        this.defsMtp.CD_MtpTypeSubmodel?.GetReference(), MatchMode.Relaxed);
+                        this._defsMtp.CD_MtpTypeSubmodel?.GetReference(), MatchMode.Relaxed);
                 var dirLinkSm = env.FindReferableByReference(dirLink?.Value) as Aas.Submodel;
-                if (mtpTypeSm == null)
-                    mtpTypeSm = dirLinkSm;
+                if (_mtpTypeSm == null)
+                    _mtpTypeSm = dirLinkSm;
 
             }
 
             // other (not intended) case: user points to type submodel directly
-            if (mtpTypeSm == null
-                && this.theSubmodel.SemanticId.Matches(this.defsMtp.SEM_MtpSubmodel))
-                mtpTypeSm = this.theSubmodel;
+            if (_mtpTypeSm == null
+                && _submodel.SemanticId.Matches(this._defsMtp.SEM_MtpSubmodel))
+                _mtpTypeSm = _submodel;
 
             // ok, is there a type submodel?
-            if (mtpTypeSm == null)
+            if (_mtpTypeSm == null)
                 return false;
 
             // find file, remember Submodel element for it, find filename
             // (ConceptDescription)(no-local)[IRI]http://www.admin-shell.io/mtp/v1/MTPSUCLib/ModuleTypePackage
-            this.activeMtpFileElem = mtpTypeSm.SubmodelElements?
-                .FindFirstSemanticIdAs<Aas.File>(this.defsMtp.CD_MtpFile.GetReference(),
+            this._activeMtpFileElem = _mtpTypeSm.SubmodelElements?
+                .FindFirstSemanticIdAs<Aas.File>(this._defsMtp.CD_MtpFile.GetReference(),
                     MatchMode.Relaxed);
-            var inputFn = this.activeMtpFileElem?.Value;
+            var inputFn = this._activeMtpFileElem?.Value;
             if (inputFn == null)
                 return false;
-            this.activeMtpFileFn = inputFn;
+            this._activeMtpFileFn = inputFn;
 
             return true;
         }
@@ -298,17 +318,17 @@ namespace AasxPluginMtpViewer
             if (!".aml .zip .mtp".Contains(System.IO.Path.GetExtension(fn.Trim().ToLower())))
                 return;
 
-            this.client = new WpfMtpControl.MtpVisuOpcUaClient();
-            this.client.ItemChanged += Client_ItemChanged;
-            this.activeSubscriber = new MtpDataSourceSubscriber();
-            this.hintsForConfigRecs = new MtpSymbolMapRecordList();
+            this.UaClient = new WpfMtpControl.MtpVisuOpcUaClient();
+            this.UaClient.ItemChanged += Client_ItemChanged;
+            this._activeSubscriber = new MtpDataSourceSubscriber();
+            this._hintsForConfigRecs = new MtpSymbolMapRecordList();
 
-            this.activeMtpData = new WpfMtpControl.MtpData();
-            this.activeMtpData.LoadAmlOrMtp(activeVisualObjectLib,
-                this.client, this.thePreLoadInfo, this.activeSubscriber, fn);
+            this._activeMtpData = new WpfMtpControl.MtpData();
+            this._activeMtpData.LoadAmlOrMtp(_activeVisualObjectLib,
+                this.UaClient, this._preLoadInfo, this._activeSubscriber, fn);
 
-            if (this.activeMtpData.PictureCollection.Count > 0)
-                mtpVisu.SetPicture(this.activeMtpData.PictureCollection.Values.ElementAt(0));
+            if (this._activeMtpData.PictureCollection.Count > 0)
+                mtpVisu.SetPicture(this._activeMtpData.PictureCollection.Values.ElementAt(0));
             mtpVisu.RedrawMtp();
         }
 
@@ -316,20 +336,20 @@ namespace AasxPluginMtpViewer
             MtpVisuOpcUaClient.DetailItem itemRef, MtpVisuOpcUaClient.ItemChangeType changeType)
         {
             if (dataSource == null || itemRef == null || itemRef.MtpSourceItemId == null
-                || this.activeSubscriber == null)
+                || this._activeSubscriber == null)
                 return;
 
             if (changeType == MtpVisuOpcUaClient.ItemChangeType.Value)
-                this.activeSubscriber.Invoke(itemRef.MtpSourceItemId, MtpDataSourceSubscriber.ChangeType.Value,
+                this._activeSubscriber.Invoke(itemRef.MtpSourceItemId, MtpDataSourceSubscriber.ChangeType.Value,
                     itemRef.Value);
         }
 
         private void MtpVisu_MtpObjectDoubleClick(MtpData.MtpBaseObject source)
         {
             // access
-            var sme = this.theSubmodel?.SubmodelElements;
-            var first = this.activeMtpFileElem.GetReference();
-            if (source == null || this.activeMtpFileElem == null || sme == null || first == null)
+            var sme = _submodel?.SubmodelElements;
+            var first = this._activeMtpFileElem.GetReference();
+            if (source == null || this._activeMtpFileElem == null || sme == null || first == null)
                 return;
 
             // for the active file, find a Reference for it
@@ -344,16 +364,16 @@ namespace AasxPluginMtpViewer
                 //
 
                 var firstFtn = first.Add(new Aas.Key(Aas.KeyTypes.GlobalReference, searchId));
-                this.theLog?.Info($"DblClick MTP .. search reference: {firstFtn.ToStringExtended(1)}");
+                _log?.Info($"DblClick MTP .. search reference: {firstFtn.ToStringExtended(1)}");
 
                 foreach (var fileToNav in sme.FindAllSemanticIdAs<Aas.RelationshipElement>(
-                this.defsInterop?.CD_FileToNavigateElement?.GetReference(), MatchMode.Relaxed))
+                this._defsInterop?.CD_FileToNavigateElement?.GetReference(), MatchMode.Relaxed))
                     if (fileToNav.First?.Matches(firstFtn, MatchMode.Relaxed) == true)
                     {
                         // try activate
                         var ev = new AasxIntegrationBase.AasxPluginResultEventNavigateToReference();
                         ev.targetReference = fileToNav.Second.Copy();
-                        this.theEventStack?.PushEvent(ev);
+                        _eventStack?.PushEvent(ev);
                         return;
                     }
 
@@ -362,17 +382,17 @@ namespace AasxPluginMtpViewer
                 //
 
                 var firstFte = first.Add(new Aas.Key(Aas.KeyTypes.GlobalReference, searchId));
-                this.theLog?.Info($"DblClick MTP .. search reference: {firstFte.ToStringExtended(1)}");
+                _log?.Info($"DblClick MTP .. search reference: {firstFte.ToStringExtended(1)}");
 
                 foreach (var fileToEnt in sme.FindAllSemanticIdAs<Aas.RelationshipElement>(
-                this.defsInterop?.CD_FileToEntity?.GetReference(), MatchMode.Relaxed))
+                this._defsInterop?.CD_FileToEntity?.GetReference(), MatchMode.Relaxed))
                     if (fileToEnt.First?.Matches(firstFte, MatchMode.Relaxed) == true)
                     {
                         // debug
-                        this.theLog?.Info($"try find Entity {"" + fileToEnt.Second} ..");
+                        _log?.Info($"try find Entity {"" + fileToEnt.Second} ..");
 
                         // find Entity, check if self-contained
-                        var foundRef = this.thePackage?.AasEnv?.FindReferableByReference(fileToEnt.Second);
+                        var foundRef = _package?.AasEnv?.FindReferableByReference(fileToEnt.Second);
                         if (foundRef is Aas.Entity foundEnt
                             && foundEnt.EntityType == Aas.EntityType.SelfManagedEntity
                             && foundEnt.GlobalAssetId != null)
@@ -382,7 +402,7 @@ namespace AasxPluginMtpViewer
                             ev.targetReference = new Aas.Reference(Aas.ReferenceTypes.ExternalReference,
                                 new Aas.IKey[] { new Aas.Key(Aas.KeyTypes.GlobalReference, foundEnt.GlobalAssetId) }
                                 .ToList());
-                            this.theEventStack?.PushEvent(ev);
+                            _eventStack?.PushEvent(ev);
                             return;
                         }
                     }
@@ -401,7 +421,7 @@ namespace AasxPluginMtpViewer
             {
                 case 2:
                     this.ScrollViewerDataSources.Visibility = Visibility.Visible;
-                    DataGridDataSources.ItemsSource = this.client.Items;
+                    DataGridDataSources.ItemsSource = this.UaClient.Items;
                     this.RichTextReport.Visibility = Visibility.Collapsed;
                     break;
 
@@ -465,14 +485,14 @@ namespace AasxPluginMtpViewer
             // Report on available library symbols
             //
 
-            if (this.theSymbolLib != null)
+            if (this._theSymbolLib != null)
             {
 
                 AddToRichTextBox(rtb, "Library symbols", bold: true, fontSize: 18);
 
                 AddToRichTextBox(rtb, "The following lists shows available symbol full names.");
 
-                foreach (var x in this.theSymbolLib.Values)
+                foreach (var x in this._theSymbolLib.Values)
                 {
                     AddToRichTextBox(rtb, "" + x.FullName, monoSpaced: true);
                 }
@@ -484,7 +504,7 @@ namespace AasxPluginMtpViewer
             // Hints for configurations
             //
 
-            if (this.hintsForConfigRecs != null)
+            if (this._hintsForConfigRecs != null)
             {
                 AddToRichTextBox(rtb, "Preformatted configuration records", bold: true, fontSize: 18);
                 AddToRichTextBox(rtb,
@@ -495,7 +515,7 @@ namespace AasxPluginMtpViewer
                     "For EClassVersions, 'null' disables version checking. " +
                     "Either EClassClasses or EClassIRDIs shall be different to 'null'.");
 
-                foreach (var x in this.hintsForConfigRecs)
+                foreach (var x in this._hintsForConfigRecs)
                 {
                     var txt = JsonConvert.SerializeObject(x, Formatting.None);
                     AddToRichTextBox(rtb, "" + txt, monoSpaced: true);

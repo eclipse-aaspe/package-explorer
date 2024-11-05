@@ -1347,7 +1347,7 @@ namespace AasxPackageLogic
         }
     }
 
-    public class VisualElementConceptDescription : VisualElementGeneric
+    public class VisualElementConceptDescription : VisualElementGeneric, ITaintableIdentifiable
     {
         public Aas.IEnvironment theEnv = null;
         public Aas.IConceptDescription theCD = null;
@@ -1404,6 +1404,13 @@ namespace AasxPackageLogic
         public override object GetMainDataObject()
         {
             return theCD;
+        }
+
+        public DateTime? GetTaintedTime()
+        {
+            if (theCD is ITaintedData itd && itd.TaintedData?.Tainted != null)
+                return itd.TaintedData.Tainted;
+            return null;
         }
 
         public override void RefreshFromMainData()

@@ -388,16 +388,30 @@ namespace AasxPluginImageMap
                 MatchMode.Relaxed);
             if (fe?.Value != null)
             {
+                // build path
                 var idShortPath = "" + fe.CollectIdShortByParent(
                         separatorChar: '.', excludeIdentifiable: true);
-                var task = Task.Run(() => _package.GetLocalStreamFromPackageAsync(
-                    uriString: fe.Value,
-                    aasId: "" + aas?.Id,
-                    smId: "" + _submodel.Id,
-                    idShortPath: idShortPath));
+
+                // wrap async
+                var task = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            return await _package.GetLocalStreamFromPackageAsync(
+                                uriString: fe.Value,
+                                aasId: "" + aas?.Id,
+                                smId: "" + _submodel.Id,
+                                idShortPath: idShortPath);
+                        } catch (Exception ex)
+                        {
+                            LogInternally.That.SilentlyIgnoredError(ex);
+                        }
+                        return null;
+                    });
                 task.Wait();
                 var stream = task.Result;
 
+                // convert to image
                 bi = AnyUiGdiHelper.LoadBitmapInfoFromStream(stream);
             }
 

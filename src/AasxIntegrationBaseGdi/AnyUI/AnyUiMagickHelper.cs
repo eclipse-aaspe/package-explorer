@@ -165,8 +165,9 @@ namespace AasxIntegrationBaseGdi
 
         // TODO (MIHO, 2023-02-23): make the whole thing async!!
 
-        public static AnyUiBitmapInfo MakePreviewFromPackageOrUrl(
+        public static async Task<AnyUiBitmapInfo> MakePreviewFromPackageOrUrlAsync(
             AdminShellPackageEnvBase package, string path,
+            string aasId, string smId, string idShortPath,
             double dpi = 75)
         {
             if (path == null)
@@ -178,7 +179,7 @@ namespace AasxIntegrationBaseGdi
             {
                 System.IO.Stream thumbStream = null;
                 if (true /*= package?.IsLocalFile(path)*/)
-                    thumbStream = package.GetLocalStreamFromPackage(path);
+                    thumbStream = await package.GetLocalStreamFromPackageAsync(path, aasId, smId, idShortPath);
                 else
                 {
                     // try download

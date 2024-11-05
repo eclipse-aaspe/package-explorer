@@ -22,6 +22,7 @@ using Extensions;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using NPOI.HPSF;
+using NPOI.HSSF.Record;
 using Org.BouncyCastle.Asn1.X509;
 using System;
 using System.Collections;
@@ -42,6 +43,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Workstation.ServiceModel.Ua;
 using static AasxPackageLogic.DispEditHelperBasics;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 using Aas = AasCore.Aas3_0;
 using ExhaustiveMatch = ExhaustiveMatching.ExhaustiveMatch;
 
@@ -1726,6 +1728,33 @@ namespace AasxPackageExplorer
             }
         }
 
+        private async Task UiSearchRepoAndExtendEnvironment(
+            AdminShellPackageEnvBase packEnv,
+            Aas.IReference workRef)
+        {
+            // check if env is dynamic fetch
+            if (packEnv is not AdminShellPackageDynamicFetchEnv dynPack)
+                return;
+
+            //// try to find the last repo/ registry data
+            //DisplayElements.FindAllVisualElementTopToIdentifiable()
+            //    .Where((ve) => ve is VisualElementEnvironmentItem veei 
+            //            && veei.theItemType == VisualElementEnvironmentItem.ItemType.Package
+            //            && veei.the)
+
+            // try get fetch record
+            var context = (dynPack.GetContext() as PackageContainerHttpRepoSubsetFetchContext);
+            var record = context?.Record as ConnectExtendedRecord;
+            if (record == null)
+                return;
+
+            // make sure there is a base
+            if (record.BaseAddress?.HasContent() != true)
+                return;
+
+            Task.Yield();
+        }
+
         private async Task UiHandleNavigateTo(
             Aas.IReference targetReference,
             bool alsoDereferenceObjects = true)
@@ -1749,6 +1778,7 @@ namespace AasxPackageExplorer
                 this.DisplayElements.ExpandAllItems();
 
                 // incrementally make it unprecise
+                bool firstTime = true;
                 while (work.Keys.Count > 0)
                 {
                     // try to find a business object in the package
@@ -1773,6 +1803,14 @@ namespace AasxPackageExplorer
 
                         var boInfo = await LoadFromFileRepository(fi, work);
                         bo = boInfo?.BusinessObject;
+                    }
+
+                    // TODO .. try search in connected repositories!!!
+                    // Note: only now, after checking the "cheaper" alternatives
+                    if (firstTime)
+                    {
+                        await UiSearchRepoAndExtendEnvironment(PackageCentral.Main, work);
+                        firstTime = false;
                     }
 
                     // still yes?
@@ -1839,6 +1877,8 @@ namespace AasxPackageExplorer
                 if (evt is AasxIntegrationBase.AasxPluginResultEventNavigateToReference evtNavTo
                     && evtNavTo.targetReference != null && evtNavTo.targetReference.Keys.Count > 0)
                 {
+                    Log.Singleton.Info("Plugin requested to naviagte to: " + evtNavTo.targetReference.ToStringExtended(1));
+
                     await UiHandleNavigateTo(evtNavTo.targetReference);
                 }
 

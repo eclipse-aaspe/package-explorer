@@ -46,6 +46,7 @@ namespace AasxPackageLogic.PackageCentral
         protected PackCntRuntimeOptions _runtimeOptions = null;
 
         protected Uri _defaultRepoBaseUri = null;
+        public Uri GetBaseUri() => _defaultRepoBaseUri;
 
         protected AdminShellPackageDynamicFetchContextBase _context = null;
         public AdminShellPackageDynamicFetchContextBase GetContext() => _context;
