@@ -410,7 +410,8 @@ namespace AdminShellNS
                     }
                 case AasSubmodelElements.BasicEventElement:
                     {
-                        return new BasicEventElement(crDefRef(), 
+                        var observed = new Reference(ReferenceTypes.ModelReference, new List<IKey>() { new Key(KeyTypes.Referable, "") });
+                        return new BasicEventElement(observed, 
                             Direction.Input, StateOfEvent.Off).UpdateFrom(sourceSme);
                     }
                 case AasSubmodelElements.Entity:

@@ -79,6 +79,16 @@ namespace Extensions
             return res;
         }
 
+        //This method has ben added to make Event.Observed as model reference
+        public static Reference CreateFromKey(ReferenceTypes referenceType, KeyTypes type,
+            string value)
+        {
+            var res = new Reference(referenceType,
+                        new List<IKey> { new Key(type, value) });
+            res.Type = res.GuessType();
+            return res;
+        }
+
         /// <summary>
         /// Formaly a static constructor.
         /// Creates a Reference from a list of keys, guessing Reference.Type.

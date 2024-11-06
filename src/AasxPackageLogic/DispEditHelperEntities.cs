@@ -4721,7 +4721,7 @@ namespace AasxPackageLogic
                         stack, repo, bev.Observed, "observed:", "Create data element!",
                         v =>
                         {
-                            bev.Observed = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                            bev.Observed = new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>());
                             this.AddDiaryEntry(bev, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
@@ -4736,8 +4736,8 @@ namespace AasxPackageLogic
                             "not empty."));
 
                     // keys
-                    this.AddKeyListKeys(stack, "observed", 
-                        bev.Observed.Keys, () => bev.Observed = Options.Curr.GetDefaultEmptyReference(),
+                    this.AddKeyListKeys(stack, "observed",
+                        bev.Observed.Keys, () => bev.Observed = Options.Curr.GetDefaultEmptyModelReference(),
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.Main, 
                         addExistingEntities: "All",

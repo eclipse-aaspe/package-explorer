@@ -1072,6 +1072,15 @@ namespace AasxPackageLogic
                 Options.Curr.DefaultEmptyReferenceKey);
         }
 
+        //This method has ben added to make Event.Observed as model reference
+        public Aas.IReference GetDefaultEmptyModelReference()
+        {
+            return ExtendReference.CreateFromKey(
+                ReferenceTypes.ModelReference,
+                KeyTypes.Referable,
+                Options.Curr.DefaultEmptyReferenceKey);
+        }
+
         public AdminShellUtil.CreateSubmodelElementDefaultHelper GetCreateDefaultHelper()
         {
             return new AdminShellUtil.CreateSubmodelElementDefaultHelper()
