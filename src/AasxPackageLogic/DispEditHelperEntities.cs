@@ -1978,7 +1978,56 @@ namespace AasxPackageLogic
             this.DisplayOrEditEntityIdentifiable(
                 stack, env, aas,
                 Options.Curr.TemplateIdAas,
-                null);
+                injectToId: new DispEditHelperModules.DispEditInjectAction(
+                    new[] { "Rename" },
+                    (i) =>
+                    {
+                        if (i == 0 && env != null)
+                        {
+                            var uc = new AnyUiDialogueDataTextBox(
+                                "New ID:",
+                                symbol: AnyUiMessageBoxImage.Question,
+                                maxWidth: 1400,
+                                text: aas.Id);
+                            if (this.context.StartFlyoverModal(uc))
+                            {
+                                var res = false;
+
+                                try
+                                {
+                                    // rename
+                                    var lrf = env.RenameIdentifiable<Aas.AssetAdministrationShell>(
+                                        aas.Id, uc.Text);
+
+                                    // use this information to emit events
+                                    if (lrf != null)
+                                    {
+                                        res = true;
+                                        foreach (var rf in lrf)
+                                        {
+                                            var rfi = rf.FindParentFirstIdentifiable();
+                                            if (rfi != null)
+                                                this.AddDiaryEntry(rfi, new DiaryEntryStructChange());
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
+                                }
+
+                                if (!res)
+                                    this.context.MessageBoxFlyoutShow(
+                                        "The renaming of the AAS or some referring elements has not " +
+                                            "performed successfully! Please review your inputs and the AAS " +
+                                            "structure for any inconsistencies.",
+                                            "Warning",
+                                            AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Warning);
+                                return new AnyUiLambdaActionRedrawAllElements(aas);
+                            }
+                        }
+                        return new AnyUiLambdaActionNone();
+                    }));
 
             // hasDataSpecification are MULTIPLE references. That is: multiple x multiple keys!
             this.DisplayOrEditEntityHasDataSpecificationReferences(stack, aas.EmbeddedDataSpecifications,
