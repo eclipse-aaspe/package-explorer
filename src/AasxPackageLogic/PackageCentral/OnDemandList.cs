@@ -31,15 +31,17 @@ namespace AasxPackageLogic.PackageCentral
     /// <summary>
     /// Base class for the side information describing the (status of the) data in
     /// the collection. Intended to be derived and stuffed with information.
+    /// Note: <c>Id</c> is required for the <c>AddIfNew</c> operation.
     /// </summary>
     public class OnDemandSideInfoBase
     {
+        public string Id = "";
     }
 
     /// <summary>
     /// Pair of side information and actual data element.
     /// </summary>
-    public class OnDemandListItem<T> 
+    public class OnDemandListItem<T> where T : Aas.IIdentifiable
     {
         public OnDemandSideInfoBase SideInfo;
         public T Data;
@@ -48,7 +50,9 @@ namespace AasxPackageLogic.PackageCentral
     /// <summary>
     /// Test
     /// </summary>
-    public class OnDemandList<T,V> : IList<T> where V : OnDemandSideInfoBase
+    public class OnDemandList<T,V> : IList<T> 
+        where V : OnDemandSideInfoBase 
+        where T : Aas.IIdentifiable
     {
         protected List<OnDemandListItem<T>> _items = new List<OnDemandListItem<T>>();
 
@@ -71,6 +75,16 @@ namespace AasxPackageLogic.PackageCentral
         public void Add(T item, V sideInfo)
         {
             _items.Add(new OnDemandListItem<T>() { SideInfo = sideInfo, Data = item });
+        }
+
+        public bool AddIfNew(T item, V sideInfo)
+        {
+            var ndx = FindId(item?.Id);
+            if (ndx >= 0)
+                return false;
+            
+            _items.Add(new OnDemandListItem<T>() { SideInfo = sideInfo, Data = item });
+            return true;
         }
 
         void ICollection<T>.Clear()
@@ -108,6 +122,15 @@ namespace AasxPackageLogic.PackageCentral
         {
             for (int i = 0; i < _items.Count; i++)
                 if ((object)item == (object)_items[i].Data)
+                    return i;
+            return -1;
+        }
+
+        public int FindId(string id)
+        {
+            for (int i = 0; i < _items.Count; i++)
+                if ((_items[i].Data?.Id?.HasContent() == true && _items[i].Data.Id == id)
+                    || (_items[i].SideInfo?.Id?.HasContent() == true && _items[i].SideInfo.Id == id))
                     return i;
             return -1;
         }

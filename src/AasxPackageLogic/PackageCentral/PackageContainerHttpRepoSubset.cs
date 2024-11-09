@@ -37,6 +37,7 @@ using Newtonsoft.Json.Linq;
 using System.ComponentModel;
 using Lucene.Net.Util.Automaton;
 using RestSharp;
+using static Lucene.Net.Search.FieldCache;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -218,7 +219,7 @@ namespace AasxPackageLogic.PackageCentral
             return m.Success;
         }
 
-        public static bool IsValidUriForRegistryAasByAssetId(string location)
+        public static bool IsValidUriForRepoRegistryAasByAssetId(string location)
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/lookup/shells/{0,1}\?(.*)assetId=([-A-Za-z0-9_]{1,99})",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
@@ -239,7 +240,7 @@ namespace AasxPackageLogic.PackageCentral
                 || IsValidUriForRepoQuery(location)
                 || IsValidUriForRegistryAllAAS(location)
                 || IsValidUriForRegistrySingleAAS(location)
-                || IsValidUriForRegistryAasByAssetId(location);
+                || IsValidUriForRepoRegistryAasByAssetId(location);
         }
 
         public static Uri GetBaseUri(string location)
@@ -577,13 +578,14 @@ namespace AasxPackageLogic.PackageCentral
             return objType.GetProperty(name) != null;
         }
        
-        private async Task<bool> FromRegistryGetAasAndSubmodels(            
+        private static async Task<bool> FromRegistryGetAasAndSubmodels(            
             OnDemandListIdentifiable<IAssetAdministrationShell> prepAas, 
             OnDemandListIdentifiable<ISubmodel> prepSM,
-            ConnectExtendedRecord record, 
+            ConnectExtendedRecord record,
             PackCntRuntimeOptions runtimeOptions,
             bool allowFakeResponses,            
-            dynamic aasDescriptor)
+            dynamic aasDescriptor,
+            List<Aas.IIdentifiable> trackNewIdentifiables = null)
         {
             // access
             if (record == null)
@@ -673,7 +675,8 @@ namespace AasxPackageLogic.PackageCentral
                         (new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, smrr.Id) }).ToList()));
 
                 // add this AAS
-                prepAas?.Add(aas, aasSi);
+                if (prepAas?.AddIfNew(aas, aasSi) == true)
+                    trackNewIdentifiables?.Add(aas);
 
                 // check if to add the Submodels
                 if (!record.AutoLoadOnDemand)
@@ -696,12 +699,13 @@ namespace AasxPackageLogic.PackageCentral
 
                                 // add as pure side info
                                 si.IsStub = true;
-                                prepSM.Add(null, si);
+                                prepSM?.AddIfNew(null, si);
                             }
 
                             // no, add with data
                             si.IsStub = false;
-                            prepSM?.Add(sm, si);
+                            if (prepSM?.AddIfNew(sm, si) == true)
+                                trackNewIdentifiables?.Add(sm);
                         });
                 }
                 else
@@ -720,7 +724,7 @@ namespace AasxPackageLogic.PackageCentral
 
                         // need to do
                         si.IsStub = true;
-                        prepSM.Add(null, si);
+                        prepSM?.AddIfNew(null, si);
                     }
                 }
 
@@ -738,72 +742,82 @@ namespace AasxPackageLogic.PackageCentral
             PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
         {
+            var newEnv = await LoadFromSourceInternalAsync(
+                fullItemLocation,
+                Env,
+                containerOptions: containerOptions, runtimeOptions: runtimeOptions);
+
+            if (newEnv != null)
+                Env = newEnv;
+        }
+
+        public static async Task<AdminShellPackageEnvBase> LoadFromSourceInternalAsync(
+            string fullItemLocation,
+            AdminShellPackageEnvBase targetEnv = null,
+            bool loadNew = true,
+            List<Aas.IIdentifiable> trackNewIdentifiables = null,
+            PackageContainerOptionsBase containerOptions = null,
+            PackCntRuntimeOptions runtimeOptions = null)
+        {
             var allowFakeResponses = runtimeOptions?.AllowFakeResponses ?? false;
 
             PackageContainerListBase containerList = null;
 
             var baseUri = GetBaseUri(fullItemLocation);
 
-            // for the time being, make sure, we have the correct list implementations
-            var prepAas = new OnDemandListIdentifiable<Aas.IAssetAdministrationShell>();
-            var prepSM = new OnDemandListIdentifiable<Aas.ISubmodel>();
-            var prepCD = new OnDemandListIdentifiable<Aas.IConceptDescription>();
+            // use existing ?
+            var env = (targetEnv as AdminShellPackageEnvBase)?.AasEnv;
+            var dynPack = targetEnv as AdminShellPackageDynamicFetchEnv;
 
-            // integrate in a fresh environment
-            // TODO: new kind of environment
-            var env = (Aas.IEnvironment) new AasOnDemandEnvironment();
+            var prepAas = env?.AssetAdministrationShells as OnDemandListIdentifiable<Aas.IAssetAdministrationShell>
+                          ?? new OnDemandListIdentifiable<IAssetAdministrationShell>();
+            var prepSM = env?.Submodels as OnDemandListIdentifiable<Aas.ISubmodel>
+                         ?? new OnDemandListIdentifiable<ISubmodel>();
+            var prepCD = env?.ConceptDescriptions as OnDemandListIdentifiable<Aas.IConceptDescription>
+                         ?? new OnDemandListIdentifiable<IConceptDescription>();
 
-            // already set structure to use some convenience functions
-            env.AssetAdministrationShells = prepAas;
-            env.Submodels = prepSM;
-            env.ConceptDescriptions = prepCD;
+            if (!loadNew && (env == null || dynPack == null))
+                return null;
 
-            // also the package "around"
-            var dynPack = new AdminShellPackageDynamicFetchEnv(runtimeOptions, baseUri);
+            // new
+            if (loadNew)
+            {
+                // for the time being, make sure, we have the correct list implementations
+                prepAas = new OnDemandListIdentifiable<Aas.IAssetAdministrationShell>();
+                prepSM = new OnDemandListIdentifiable<Aas.ISubmodel>();
+                prepCD = new OnDemandListIdentifiable<Aas.IConceptDescription>();
 
-            // get the record data
+                // integrate in a fresh environment
+                // TODO: new kind of environment
+                env = (Aas.IEnvironment) new AasOnDemandEnvironment();
+
+                // already set structure to use some convenience functions
+                env.AssetAdministrationShells = prepAas;
+                env.Submodels = prepSM;
+                env.ConceptDescriptions = prepCD;
+
+                // also the package "around"
+                dynPack = new AdminShellPackageDynamicFetchEnv(runtimeOptions, baseUri);
+            }
+
+            // get the record data (as supplemental infos to the fullItemLocation)
             var record = (containerOptions as PackageContainerHttpRepoSubsetOptions)?.Record;
 
-            // invalidate cursor data
+            // invalidate cursor data (as a new request is about to be started)
             string cursor = null;
 
             // TODO: very long function, needs to be refactored
-
-            //
-            // REGISTRY
-            //
-
             var operationFound = false;
 
-            if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Registry)
+            //
+            // in REPO & REGISTRY
+            //
+
+            if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository
+                || record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Registry)
             {
-                // All AAS descriptors?
-                if (IsValidUriForRegistryAllAAS(fullItemLocation))
-                {
-                    // ok
-                    operationFound = true;
-
-                    // prepare receiving the descriptors
-                    var resObj = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
-                        new Uri(fullItemLocation), runtimeOptions, allowFakeResponses);
-
-                    // have directly a list of descriptors?!
-                    if (resObj?.result == null)
-                    {
-                        runtimeOptions?.Log?.Error("Registry did not return any AAS descriptors! Aborting.");
-                        return;
-                    }
-
-                    foreach (var res in resObj.result)
-                    {
-                        // refer to dedicated function
-                        await FromRegistryGetAasAndSubmodels(
-                            prepAas, prepSM, record, runtimeOptions, allowFakeResponses, res);
-                    }
-                }
-
                 // Asset Link
-                if (IsValidUriForRegistryAasByAssetId(fullItemLocation))
+                if (IsValidUriForRepoRegistryAasByAssetId(fullItemLocation))
                 {
                     // ok
                     operationFound = true;
@@ -816,7 +830,7 @@ namespace AasxPackageLogic.PackageCentral
                     if (resObj == null)
                     {
                         runtimeOptions?.Log?.Error("Registry did not return any AAS descriptors! Aborting.");
-                        return;
+                        return null;
                     }
 
                     // Have  a list of ids. Decompose into single id.
@@ -826,29 +840,92 @@ namespace AasxPackageLogic.PackageCentral
                     {
                         noRes = false;
 
-                        // in res, have only an id. Get the descriptor
+                        // in res, have only an id. Get the descriptor / the AAS itself
                         var id = "" + res;
-                        var singleDesc = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
-                                BuildUriForRegistrySingleAAS(baseUri, id, encryptIds: true),
-                                runtimeOptions, allowFakeResponses);
-                        if (singleDesc == null || !HasProperty(singleDesc, "endpoints"))
-                            continue;
 
-                        // refer to dedicated function
-                        await FromRegistryGetAasAndSubmodels(
-                            prepAas, prepSM, record, runtimeOptions, allowFakeResponses, singleDesc);
+                        if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Registry)
+                        {
+                            var singleDesc = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
+                                    BuildUriForRegistrySingleAAS(baseUri, id, encryptIds: true),
+                                    runtimeOptions, allowFakeResponses);
+                            if (singleDesc == null || !HasProperty(singleDesc, "endpoints"))
+                                continue;
+
+                            // refer to dedicated function
+                            await FromRegistryGetAasAndSubmodels(
+                                prepAas, prepSM, record, runtimeOptions, allowFakeResponses, singleDesc,
+                                trackNewIdentifiables);
+                        }
+
+                        if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+                        {
+                            // get the AAS (new download approach)
+                            var aas = await PackageHttpDownloadUtil.DownloadIdentifiableToOK<Aas.IAssetAdministrationShell>(
+                                BuildUriForRepoSingleAAS(baseUri, id, encryptIds: true), 
+                                runtimeOptions, allowFakeResponses);
+
+                            // foudn?
+                            if (aas != null)
+                            {
+                                // add
+                                if (prepAas.AddIfNew(aas, new AasIdentifiableSideInfo()
+                                {
+                                    IsStub = false,
+                                    StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                    Id = aas.Id,
+                                    IdShort = aas.IdShort,
+                                    Endpoint = new Uri(fullItemLocation)
+                                }))
+                                {
+                                    trackNewIdentifiables?.Add(aas);
+                                }
+                            }
+                        }
                     }
 
                     // check again (count)
                     if (noRes)
                     {
                         runtimeOptions?.Log?.Error("Registry did not return any AAS descriptors! Aborting.");
-                        return;
+                        return null;
+                    }
+                }
+            }
+
+            //
+            // REGISTRY
+            //
+
+            if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Registry)
+            {
+                // All AAS descriptors?
+                if (!operationFound && IsValidUriForRegistryAllAAS(fullItemLocation))
+                {
+                    // ok
+                    operationFound = true;
+
+                    // prepare receiving the descriptors
+                    var resObj = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
+                        new Uri(fullItemLocation), runtimeOptions, allowFakeResponses);
+
+                    // have directly a list of descriptors?!
+                    if (resObj?.result == null)
+                    {
+                        runtimeOptions?.Log?.Error("Registry did not return any AAS descriptors! Aborting.");
+                        return null;
+                    }
+
+                    foreach (var res in resObj.result)
+                    {
+                        // refer to dedicated function
+                        await FromRegistryGetAasAndSubmodels(
+                            prepAas, prepSM, record, runtimeOptions, allowFakeResponses, res,
+                            trackNewIdentifiables);
                     }
                 }
 
                 // start with single AAS?
-                if (IsValidUriForRegistrySingleAAS(fullItemLocation))
+                if (!operationFound && IsValidUriForRegistrySingleAAS(fullItemLocation))
                 {
                     // ok
                     operationFound = true;
@@ -887,16 +964,17 @@ namespace AasxPackageLogic.PackageCentral
                     if (aasDesc?.id == null)
                     {
                         runtimeOptions?.Log?.Error("Registry did not return a valid AAS descriptor! Aborting.");
-                        return;
+                        return null;
                     }
 
                     // refer to dedicated function
                     var res = await FromRegistryGetAasAndSubmodels(
-                                prepAas, prepSM, record, runtimeOptions, allowFakeResponses, aasDesc);
+                                prepAas, prepSM, record, runtimeOptions, allowFakeResponses, aasDesc,
+                                trackNewIdentifiables);
                     if (!res)
                     {
                         runtimeOptions?.Log?.Error("Error retrieving AAS from registry! Aborting.");
-                        return;
+                        return null;
                     }
                 }
             }
@@ -913,7 +991,7 @@ namespace AasxPackageLogic.PackageCentral
                 // start with a list of AAS or Submodels (very similar)
                 var isAllAAS = IsValidUriForRepoAllAAS(fullItemLocation);
                 var isAllSM = IsValidUriForRepoAllSubmodel(fullItemLocation);
-                if (isAllAAS || isAllSM)
+                if (!operationFound && (isAllAAS || isAllSM))
                 {
                     // ok
                     operationFound = true;
@@ -975,14 +1053,17 @@ namespace AasxPackageLogic.PackageCentral
                                             firstNonSkipped = false;
 
                                             // add
+                                            var added = false;
                                             if (isAllAAS)
-                                                prepAas.Add(
+                                                added = prepAas.AddIfNew(
                                                     idf as Aas.IAssetAdministrationShell,
                                                     si);
                                             if (isAllSM)
-                                                prepSM.Add(
+                                                added = prepSM.AddIfNew(
                                                     idf as Aas.ISubmodel,
                                                     si);
+                                            if (added)
+                                                trackNewIdentifiables?.Add(idf);
                                         }
                                         catch (Exception ex)
                                         {
@@ -1005,7 +1086,7 @@ namespace AasxPackageLogic.PackageCentral
                 }
 
                 // start with single AAS?
-                if (IsValidUriForRepoSingleAAS(fullItemLocation))
+                if (!operationFound && IsValidUriForRepoSingleAAS(fullItemLocation))
                 {
                     // ok
                     operationFound = true;
@@ -1024,13 +1105,17 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var aas = Jsonization.Deserialize.AssetAdministrationShellFrom(node);
-                                prepAas.Add(aas, new AasIdentifiableSideInfo() { 
+                                if (prepAas.AddIfNew(aas, new AasIdentifiableSideInfo()
+                                {
                                     IsStub = false,
                                     StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                     Id = aas.Id,
                                     IdShort = aas.IdShort,
                                     Endpoint = new Uri(fullItemLocation)
-                                });
+                                }))
+                                {
+                                    trackNewIdentifiables?.Add(aas);
+                                }
                             }
                             catch (Exception ex)
                             {
@@ -1040,7 +1125,7 @@ namespace AasxPackageLogic.PackageCentral
                 }
 
                 // start with Submodel?
-                if (IsValidUriForRepoSingleSubmodel(fullItemLocation))
+                if (!operationFound && IsValidUriForRepoSingleSubmodel(fullItemLocation))
                 {
                     // ok
                     operationFound = true;
@@ -1059,14 +1144,17 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var sm = Jsonization.Deserialize.SubmodelFrom(node);
-                                prepSM.Add(sm, new AasIdentifiableSideInfo()
+                                if (prepSM.AddIfNew(sm, new AasIdentifiableSideInfo()
                                 {
                                     IsStub = false,
                                     StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                     Id = sm.Id,
                                     IdShort = sm.IdShort,
                                     Endpoint = new Uri(fullItemLocation)
-                                });
+                                }))
+                                {
+                                    trackNewIdentifiables?.Add(sm);
+                                }
                             }
                             catch (Exception ex)
                             {
@@ -1076,7 +1164,7 @@ namespace AasxPackageLogic.PackageCentral
                 }
 
                 // start with CD?
-                if (IsValidUriForRepoSingleCD(fullItemLocation))
+                if (!operationFound && IsValidUriForRepoSingleCD(fullItemLocation))
                 {
                     // ok
                     operationFound = true;
@@ -1095,14 +1183,17 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var cd = Jsonization.Deserialize.ConceptDescriptionFrom(node);
-                                prepCD.Add(cd, new AasIdentifiableSideInfo()
+                                if (prepCD.AddIfNew(cd, new AasIdentifiableSideInfo()
                                 {
                                     IsStub = false,
                                     StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                     Id = cd.Id,
                                     IdShort = cd.IdShort,
                                     Endpoint = new Uri(fullItemLocation)
-                                });
+                                }))
+                                {
+                                    trackNewIdentifiables?.Add(cd);
+                                }
                             }
                             catch (Exception ex)
                             {
@@ -1112,7 +1203,7 @@ namespace AasxPackageLogic.PackageCentral
                 }
 
                 // start with a query?
-                if (IsValidUriForRepoQuery(fullItemLocation))
+                if (!operationFound && IsValidUriForRepoQuery(fullItemLocation))
                 {
                     // ok
                     operationFound = true;
@@ -1136,7 +1227,7 @@ namespace AasxPackageLogic.PackageCentral
                     if (!query.HasContent())
                     {
                         runtimeOptions?.Log?.Error("Could not determine valid query script. Aborting!");
-                        return;
+                        return null;
                     }
 
                     // but, the query needs to be reformatted as JSON
@@ -1189,7 +1280,7 @@ namespace AasxPackageLogic.PackageCentral
                     {
                         Log.Singleton.Error("Could not fetch new dynamic elements by graphql. Aborting!");
                         Log.Singleton.Error("  POST request was: {0}", jsonQuery);
-                        return;
+                        return null;
                     }
 
                     // only makes sense, if query returns something
@@ -1197,7 +1288,7 @@ namespace AasxPackageLogic.PackageCentral
                     {
                         Log.Singleton.Info(StoredPrint.Color.Blue, "Query resulted in zero elements, " +
                             "which could be fetched. Aborting!");
-                        return;
+                        return null;
                     }
 
                     // skip items?
@@ -1244,14 +1335,17 @@ namespace AasxPackageLogic.PackageCentral
                                         var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                         var sm = Jsonization.Deserialize.SubmodelFrom(node);
                                         if (fi.Type == FetchItemType.SmUrl || fi.Type == FetchItemType.SmId)
-                                            prepSM.Add(sm, new AasIdentifiableSideInfo()
+                                            if (prepSM.AddIfNew(sm, new AasIdentifiableSideInfo()
                                             {
                                                 IsStub = false,
                                                 StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                                 Id = sm.Id,
                                                 IdShort = sm.IdShort,
                                                 Endpoint = new Uri(fullItemLocation)
-                                            });
+                                            }))
+                                            {
+                                                trackNewIdentifiables?.Add(sm);
+                                            }                                        
                                     }
                                     catch (Exception ex)
                                     {
@@ -1272,7 +1366,7 @@ namespace AasxPackageLogic.PackageCentral
                 }
 
                 // start auto-load missing Submodels?
-                if (record?.AutoLoadSubmodels ?? false)
+                if (operationFound && (record?.AutoLoadSubmodels ?? false))
                 {
                     var lrs = env.FindAllSubmodelReferences(onlyNotExisting: true).ToList();
 
@@ -1285,7 +1379,7 @@ namespace AasxPackageLogic.PackageCentral
                                 // side info level 1
                                 lock (prepSM)
                                 {
-                                    prepSM.Add(null, new AasIdentifiableSideInfo()
+                                    prepSM.AddIfNew(null, new AasIdentifiableSideInfo()
                                     {
                                         IsStub = true,
                                         StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
@@ -1315,14 +1409,17 @@ namespace AasxPackageLogic.PackageCentral
                                             var sm = Jsonization.Deserialize.SubmodelFrom(node);
                                             lock (prepSM)
                                             {
-                                                prepSM.Add(sm, new AasIdentifiableSideInfo()
+                                                if (prepSM.AddIfNew(sm, new AasIdentifiableSideInfo()
                                                 {
                                                     IsStub = false,
                                                     StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                                     Id = sm.Id,
                                                     IdShort = sm.IdShort,
                                                     Endpoint = sourceUri
-                                                });
+                                                }))
+                                                {
+                                                    trackNewIdentifiables?.Add(sm);
+                                                }
                                             }
                                         }
                                         catch (Exception ex)
@@ -1335,7 +1432,7 @@ namespace AasxPackageLogic.PackageCentral
                 }
 
                 // start auto-load missing thumbnails?
-                if (record?.AutoLoadThumbnails ?? false)
+                if (operationFound && (record?.AutoLoadThumbnails ?? false))
                     await Parallel.ForEachAsync(env.AllAssetAdministrationShells(),
                         new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
                         async (aas, token) =>
@@ -1373,8 +1470,13 @@ namespace AasxPackageLogic.PackageCentral
                 runtimeOptions?.Log?.Error("Did not found any matching operation in location to " +
                     "execute on Registry or Repository! Location was: {0}",
                     fullItemLocation);
-                return;
+                return null;
             }
+
+            // bring back to env
+            env.AssetAdministrationShells = prepAas;
+            env.Submodels = prepSM;
+            env.ConceptDescriptions = prepCD;
 
             // remove, what is not need
             if (env.AssetAdministrationShellCount() < 1)
@@ -1385,13 +1487,15 @@ namespace AasxPackageLogic.PackageCentral
                 env.ConceptDescriptions = null;
 
             // commit
-            Env = dynPack;
-            Env.SetEnvironment(env);
-            EnvDynPack?.SetContext(new PackageContainerHttpRepoSubsetFetchContext()
+            targetEnv = dynPack;
+            targetEnv.SetEnvironment(env);
+            (targetEnv as AdminShellPackageDynamicFetchEnv)?.SetContext(new PackageContainerHttpRepoSubsetFetchContext()
             {
                 Record = record,
                 Cursor = cursor
             });
+
+            return targetEnv;
         }
        
         public override async Task<bool> SaveLocalCopyAsync(
@@ -1532,15 +1636,26 @@ namespace AasxPackageLogic.PackageCentral
             [JsonIgnore]
             public int PageOffset;
 
-            public void SetQueryChoices(int choice)
+            public enum QueryChoice { 
+                None, 
+                AllAas, 
+                SingleAas, 
+                AasByAssetLink,
+                AllSM,
+                SingleSM,
+                SingleCD,
+                Query
+            }
+
+            public void SetQueryChoices(QueryChoice choice)
             {
-                GetAllAas = (choice == 1);
-                GetSingleAas = (choice == 2);
-                GetAasByAssetLink = (choice == 3);
-                GetAllSubmodel = (choice == 4);
-                GetSingleSubmodel = (choice == 5);
-                GetSingleCD = (choice == 6);
-                ExecuteQuery = (choice == 7);
+                GetAllAas = (choice == QueryChoice.AllAas);
+                GetSingleAas = (choice == QueryChoice.SingleAas);
+                GetAasByAssetLink = (choice == QueryChoice.AasByAssetLink);
+                GetAllSubmodel = (choice == QueryChoice.AllSM);
+                GetSingleSubmodel = (choice == QueryChoice.SingleSM);
+                GetSingleCD = (choice == QueryChoice.SingleCD);
+                ExecuteQuery = (choice == QueryChoice.Query);
             }
 
             public string GetBaseTypStr()
@@ -1566,6 +1681,7 @@ namespace AasxPackageLogic.PackageCentral
                 {
                     if (GetAllAas) res = "GetAllAssetAdministrationShells";
                     if (GetSingleAas) res = "GetAssetAdministrationShellById";
+                    if (GetAasByAssetLink) res = "GetAllAssetAdministrationShellIdsByAssetLink";
                     if (GetAllSubmodel) res = "GetAllSubmodels";
                     if (GetSingleSubmodel) res = "GetSubmodelById";
                     if (GetSingleCD) res = "GetConceptDescriptionById";
@@ -1616,14 +1732,21 @@ namespace AasxPackageLogic.PackageCentral
                 {
                     // if a skip has been requested, these AAS need to be loaded, as well
                     var uri = BuildUriForRepoAllAAS(baseUri, record.PageLimit + record.PageSkip, cursor);
-                    return uri.ToString();
+                    return uri?.ToString();
                 }
 
                 // Single AAS?
                 if (record.GetSingleAas)
                 {
                     var uri = BuildUriForRepoSingleAAS(baseUri, record.AasId, encryptIds: record.EncryptIds);
-                    return uri.ToString();
+                    return uri?.ToString();
+                }
+
+                // Single AAS by AssetLink?
+                if (record.GetAasByAssetLink)
+                {
+                    var uri = BuildUriForRegistryAasByAssetLink(baseUri, record.AssetId, encryptIds: record.EncryptIds);
+                    return uri?.ToString();
                 }
 
                 // All Submodels?
@@ -1631,28 +1754,28 @@ namespace AasxPackageLogic.PackageCentral
                 {
                     // if a skip has been requested, these AAS need to be loaded, as well
                     var uri = BuildUriForRepoAllSubmodel(baseUri, record.PageLimit + record.PageSkip, cursor);
-                    return uri.ToString();
+                    return uri?.ToString();
                 }
 
                 // Single Submodel?
                 if (record.GetSingleSubmodel)
                 {
                     var uri = BuildUriForRepoSingleSubmodel(baseUri, record.SmId, encryptIds: record.EncryptIds);
-                    return uri.ToString();
+                    return uri?.ToString();
                 }
 
                 // Single CD?
                 if (record.GetSingleCD)
                 {
                     var uri = BuildUriForRepoSingleCD(baseUri, record.CdId, encryptIds: record.EncryptIds);
-                    return uri.ToString();
+                    return uri?.ToString();
                 }
 
                 // Query?
                 if (record.ExecuteQuery)
                 {
                     var uri = BuildUriForRepoQuery(baseUri, record.QueryScript);
-                    return uri.ToString();
+                    return uri?.ToString();
                 }
 
             }
@@ -1668,21 +1791,21 @@ namespace AasxPackageLogic.PackageCentral
                 {
                     // if a skip has been requested, these AAS need to be loaded, as well
                     var uri = BuildUriForRegistryAllAAS(baseUri, record.PageLimit + record.PageSkip, cursor);
-                    return uri.ToString();
+                    return uri?.ToString();
                 }
 
                 // Single AAS?
                 if (record.GetSingleAas)
                 {
                     var uri = BuildUriForRegistrySingleAAS(baseUri, record.AasId, encryptIds: record.EncryptIds);
-                    return uri.ToString();
+                    return uri?.ToString();
                 }
 
-                // Single AAS?
+                // Single AAS by AssetLink?
                 if (record.GetAasByAssetLink)
                 {
                     var uri = BuildUriForRegistryAasByAssetLink(baseUri, record.AssetId, encryptIds: record.EncryptIds);
-                    return uri.ToString();
+                    return uri?.ToString();
                 }
             }
 
@@ -1745,9 +1868,6 @@ namespace AasxPackageLogic.PackageCentral
 
             if (ticket?.ScriptMode == true)
                 return true;
-
-            // reserve some states for the inner viewing routine
-            bool wrap = false;
 
             // ok, go on ..
             var uc = new AnyUiDialogueDataModalPanel(caption);
@@ -1825,7 +1945,7 @@ namespace AasxPackageLogic.PackageCentral
                                 colSpan: 2),
                             (o) => {
                                 if ((bool) o)
-                                    record.SetQueryChoices(1);
+                                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllAas);
                                 else
                                     record.GetAllAas = false;
                                 return new AnyUiLambdaActionModalPanelReRender(uc);
@@ -1842,7 +1962,7 @@ namespace AasxPackageLogic.PackageCentral
                                 colSpan: 2),
                             (o) => {
                                 if ((bool)o)
-                                    record.SetQueryChoices(2);
+                                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleAas);
                                 else
                                     record.GetSingleAas = false;
                                 return new AnyUiLambdaActionModalPanelReRender(uc);
@@ -1873,7 +1993,7 @@ namespace AasxPackageLogic.PackageCentral
                                 colSpan: 2),
                             (o) => {
                                 if ((bool)o)
-                                    record.SetQueryChoices(3);
+                                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AasByAssetLink);
                                 else
                                     record.GetAasByAssetLink = false;
                                 return new AnyUiLambdaActionModalPanelReRender(uc);
@@ -1904,7 +2024,7 @@ namespace AasxPackageLogic.PackageCentral
                                 colSpan: 2),
                             (o) => {
                                 if ((bool)o)
-                                    record.SetQueryChoices(4);
+                                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllSM);
                                 else
                                     record.GetAllSubmodel = false;
                                 return new AnyUiLambdaActionModalPanelReRender(uc);
@@ -1921,7 +2041,7 @@ namespace AasxPackageLogic.PackageCentral
                                 colSpan: 2),
                             (o) => {
                                 if ((bool)o)
-                                    record.SetQueryChoices(5);
+                                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleSM);
                                 else
                                     record.GetSingleSubmodel = false;
                                 return new AnyUiLambdaActionModalPanelReRender(uc);
@@ -1952,7 +2072,7 @@ namespace AasxPackageLogic.PackageCentral
                                 colSpan: 2),
                             (o) => {
                                 if ((bool)o)
-                                    record.SetQueryChoices(6);
+                                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleCD);
                                 else
                                     record.GetSingleCD = false;
                                 return new AnyUiLambdaActionModalPanelReRender(uc);
@@ -1983,7 +2103,7 @@ namespace AasxPackageLogic.PackageCentral
                                 colSpan: 2),
                             (o) => {
                                 if ((bool)o)
-                                    record.SetQueryChoices(7);
+                                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.Query);
                                 else
                                     record.ExecuteQuery = false;
                                 return new AnyUiLambdaActionModalPanelReRender(uc);

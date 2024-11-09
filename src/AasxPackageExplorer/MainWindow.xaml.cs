@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Packaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -1728,13 +1729,19 @@ namespace AasxPackageExplorer
             }
         }
 
-        private async Task UiSearchRepoAndExtendEnvironment(
+        private async Task<Aas.IIdentifiable> UiSearchRepoAndExtendEnvironment(
             AdminShellPackageEnvBase packEnv,
             Aas.IReference workRef)
         {
+            Task.Yield();
+
+            // access
+            if (packEnv == null || workRef?.IsValid() != true)
+                return null;
+
             // check if env is dynamic fetch
             if (packEnv is not AdminShellPackageDynamicFetchEnv dynPack)
-                return;
+                return null;
 
             //// try to find the last repo/ registry data
             //DisplayElements.FindAllVisualElementTopToIdentifiable()
@@ -1742,17 +1749,66 @@ namespace AasxPackageExplorer
             //            && veei.theItemType == VisualElementEnvironmentItem.ItemType.Package
             //            && veei.the)
 
-            // try get fetch record
+            // try get a copy of the fetch record
             var context = (dynPack.GetContext() as PackageContainerHttpRepoSubsetFetchContext);
-            var record = context?.Record as ConnectExtendedRecord;
+            var record = (context?.Record as ConnectExtendedRecord)?.Copy();
             if (record == null)
-                return;
+                return null;
 
             // make sure there is a base
             if (record.BaseAddress?.HasContent() != true)
-                return;
+                return null;
 
-            Task.Yield();
+            // what to search?
+            string fullItemLocation = null;
+
+            // search for AAS?
+            if (workRef.Count() >= 1 && workRef.Keys[0].Type == KeyTypes.AssetAdministrationShell)
+            {
+                // want to search for an AAS
+                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleAas);
+                record.AasId = workRef.Keys[0].Value;
+                fullItemLocation = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+            }
+
+            // search for Asset?
+            if (workRef.Count() >= 1 && workRef.Keys[0].Type == KeyTypes.GlobalReference)
+            {
+                // want to search for an Asset?
+                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AasByAssetLink);
+                record.AssetId = workRef.Keys[0].Value;
+                fullItemLocation = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+            }
+
+            // search any?
+            if (fullItemLocation != null) { 
+                // try to load
+                // TODO: take over those options from existing container
+                var containerOptions = new PackageContainerHttpRepoSubset.
+                    PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
+                    record);
+
+                var newIdfs = new List<Aas.IIdentifiable>();
+                var loadRes = await PackageContainerHttpRepoSubset.LoadFromSourceInternalAsync(
+                    fullItemLocation: fullItemLocation,
+                    targetEnv: packEnv,
+                    loadNew: false,
+                    trackNewIdentifiables: newIdfs,
+                    containerOptions: containerOptions,
+                    runtimeOptions: PackageCentral.CentralRuntimeOptions);
+
+                if (loadRes == null || newIdfs.Count < 1)
+                    return null;
+
+                // rebuild display elements
+                DisplayElements.RebuildAasxElements(
+                    PackageCentral, PackageCentral.Selector.Main, MainMenu?.IsChecked("EditMenu") == true,
+                    lazyLoadingFirst: true);
+
+                return newIdfs.FirstOrDefault();
+            }
+
+            return null;
         }
 
         private async Task UiHandleNavigateTo(
@@ -1807,9 +1863,9 @@ namespace AasxPackageExplorer
 
                     // TODO .. try search in connected repositories!!!
                     // Note: only now, after checking the "cheaper" alternatives
-                    if (firstTime)
+                    if (firstTime && bo == null)
                     {
-                        await UiSearchRepoAndExtendEnvironment(PackageCentral.Main, work);
+                        bo = await UiSearchRepoAndExtendEnvironment(PackageCentral.Main, work);
                         firstTime = false;
                     }
 

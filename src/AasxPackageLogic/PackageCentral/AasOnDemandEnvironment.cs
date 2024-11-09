@@ -40,7 +40,6 @@ namespace AasxPackageLogic.PackageCentral
         public bool IsStub = false;
         public AasIdentifiableSideInfoLevel StubLevel = AasIdentifiableSideInfoLevel.None;
 
-        public string Id = "";
         public string IdShort = "";
         public Uri Endpoint;
 
