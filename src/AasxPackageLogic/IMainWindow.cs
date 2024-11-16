@@ -15,9 +15,11 @@ using AasxIntegrationBase;
 using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
+using Aas = AasCore.Aas3_0;
 using AnyUi;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AasxPackageExplorer
 {
@@ -134,6 +136,10 @@ namespace AasxPackageExplorer
             bool indexItems = false,
             bool preserveEditMode = false,
             bool? nextEditMode = null);
+
+        public Task<Aas.IIdentifiable> UiSearchRepoAndExtendEnvironmentAsync(
+            AdminShellPackageEnvBase packEnv,
+            Aas.IReference workRef);
 
         /// <summary>
         /// Check for menu switch and flush events, if required.

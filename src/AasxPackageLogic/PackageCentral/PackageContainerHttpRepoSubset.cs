@@ -71,6 +71,7 @@ namespace AasxPackageLogic.PackageCentral
             set { SetNewLocation(value); OnPropertyChanged("InfoLocation"); }
         }
 
+        [JsonIgnore]
         public AdminShellPackageDynamicFetchEnv EnvDynPack { get => Env as AdminShellPackageDynamicFetchEnv; }
 
         //
@@ -585,7 +586,8 @@ namespace AasxPackageLogic.PackageCentral
             PackCntRuntimeOptions runtimeOptions,
             bool allowFakeResponses,            
             dynamic aasDescriptor,
-            List<Aas.IIdentifiable> trackNewIdentifiables = null)
+            List<Aas.IIdentifiable> trackNewIdentifiables = null,
+            List<Aas.IIdentifiable> trackLoadedIdentifiables = null)
         {
             // access
             if (record == null)
@@ -675,6 +677,7 @@ namespace AasxPackageLogic.PackageCentral
                         (new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, smrr.Id) }).ToList()));
 
                 // add this AAS
+                trackLoadedIdentifiables?.Add(aas);
                 if (prepAas?.AddIfNew(aas, aasSi) == true)
                     trackNewIdentifiables?.Add(aas);
 
@@ -704,6 +707,7 @@ namespace AasxPackageLogic.PackageCentral
 
                             // no, add with data
                             si.IsStub = false;
+                            trackLoadedIdentifiables?.Add(sm);
                             if (prepSM?.AddIfNew(sm, si) == true)
                                 trackNewIdentifiables?.Add(sm);
                         });
@@ -756,6 +760,7 @@ namespace AasxPackageLogic.PackageCentral
             AdminShellPackageEnvBase targetEnv = null,
             bool loadNew = true,
             List<Aas.IIdentifiable> trackNewIdentifiables = null,
+            List<Aas.IIdentifiable> trackLoadedIdentifiables = null,
             PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
         {
@@ -854,7 +859,7 @@ namespace AasxPackageLogic.PackageCentral
                             // refer to dedicated function
                             await FromRegistryGetAasAndSubmodels(
                                 prepAas, prepSM, record, runtimeOptions, allowFakeResponses, singleDesc,
-                                trackNewIdentifiables);
+                                trackNewIdentifiables, trackLoadedIdentifiables);
                         }
 
                         if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
@@ -864,10 +869,11 @@ namespace AasxPackageLogic.PackageCentral
                                 BuildUriForRepoSingleAAS(baseUri, id, encryptIds: true), 
                                 runtimeOptions, allowFakeResponses);
 
-                            // foudn?
+                            // found?
                             if (aas != null)
                             {
                                 // add
+                                trackLoadedIdentifiables?.Add(aas);
                                 if (prepAas.AddIfNew(aas, new AasIdentifiableSideInfo()
                                 {
                                     IsStub = false,
@@ -920,7 +926,7 @@ namespace AasxPackageLogic.PackageCentral
                         // refer to dedicated function
                         await FromRegistryGetAasAndSubmodels(
                             prepAas, prepSM, record, runtimeOptions, allowFakeResponses, res,
-                            trackNewIdentifiables);
+                            trackNewIdentifiables, trackLoadedIdentifiables);
                     }
                 }
 
@@ -970,7 +976,7 @@ namespace AasxPackageLogic.PackageCentral
                     // refer to dedicated function
                     var res = await FromRegistryGetAasAndSubmodels(
                                 prepAas, prepSM, record, runtimeOptions, allowFakeResponses, aasDesc,
-                                trackNewIdentifiables);
+                                trackNewIdentifiables, trackLoadedIdentifiables);
                     if (!res)
                     {
                         runtimeOptions?.Log?.Error("Error retrieving AAS from registry! Aborting.");
@@ -1062,6 +1068,7 @@ namespace AasxPackageLogic.PackageCentral
                                                 added = prepSM.AddIfNew(
                                                     idf as Aas.ISubmodel,
                                                     si);
+                                            trackLoadedIdentifiables?.Add(idf);
                                             if (added)
                                                 trackNewIdentifiables?.Add(idf);
                                         }
@@ -1105,6 +1112,7 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var aas = Jsonization.Deserialize.AssetAdministrationShellFrom(node);
+                                trackLoadedIdentifiables?.Add(aas);
                                 if (prepAas.AddIfNew(aas, new AasIdentifiableSideInfo()
                                 {
                                     IsStub = false,
@@ -1144,6 +1152,7 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var sm = Jsonization.Deserialize.SubmodelFrom(node);
+                                trackLoadedIdentifiables?.Add(sm);
                                 if (prepSM.AddIfNew(sm, new AasIdentifiableSideInfo()
                                 {
                                     IsStub = false,
@@ -1183,6 +1192,7 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var cd = Jsonization.Deserialize.ConceptDescriptionFrom(node);
+                                trackLoadedIdentifiables?.Add(cd);
                                 if (prepCD.AddIfNew(cd, new AasIdentifiableSideInfo()
                                 {
                                     IsStub = false,
@@ -1335,6 +1345,8 @@ namespace AasxPackageLogic.PackageCentral
                                         var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                         var sm = Jsonization.Deserialize.SubmodelFrom(node);
                                         if (fi.Type == FetchItemType.SmUrl || fi.Type == FetchItemType.SmId)
+                                        {
+                                            trackLoadedIdentifiables?.Add(sm);
                                             if (prepSM.AddIfNew(sm, new AasIdentifiableSideInfo()
                                             {
                                                 IsStub = false,
@@ -1345,7 +1357,8 @@ namespace AasxPackageLogic.PackageCentral
                                             }))
                                             {
                                                 trackNewIdentifiables?.Add(sm);
-                                            }                                        
+                                            }
+                                        }
                                     }
                                     catch (Exception ex)
                                     {
@@ -1409,6 +1422,7 @@ namespace AasxPackageLogic.PackageCentral
                                             var sm = Jsonization.Deserialize.SubmodelFrom(node);
                                             lock (prepSM)
                                             {
+                                                trackLoadedIdentifiables?.Add(sm);
                                                 if (prepSM.AddIfNew(sm, new AasIdentifiableSideInfo()
                                                 {
                                                     IsStub = false,
@@ -1473,22 +1487,47 @@ namespace AasxPackageLogic.PackageCentral
                 return null;
             }
 
-            // bring back to env
-            env.AssetAdministrationShells = prepAas;
-            env.Submodels = prepSM;
-            env.ConceptDescriptions = prepCD;
+            // how to commit?
+            if (loadNew)
+            {
+                // commit new situation
+                // bring back to env
+                env.AssetAdministrationShells = prepAas;
+                env.Submodels = prepSM;
+                env.ConceptDescriptions = prepCD;
 
-            // remove, what is not need
-            if (env.AssetAdministrationShellCount() < 1)
-                env.AssetAdministrationShells = null;
-            if (env.SubmodelCount() < 1)
-                env.Submodels = null;
-            if (env.ConceptDescriptionCount() < 1)
-                env.ConceptDescriptions = null;
+                // remove, what is not need
+                if (env.AssetAdministrationShellCount() < 1)
+                    env.AssetAdministrationShells = null;
+                if (env.SubmodelCount() < 1)
+                    env.Submodels = null;
+                if (env.ConceptDescriptionCount() < 1)
+                    env.ConceptDescriptions = null;
 
-            // commit
-            targetEnv = dynPack;
-            targetEnv.SetEnvironment(env);
+                // commit
+                targetEnv = dynPack;
+                targetEnv.SetEnvironment(env);
+            }
+            else
+            {
+                // for the "not new" option, treat the existing situation very carefully
+                if (prepAas.Count() < 1)
+                    prepAas = null;
+                if (prepSM.Count() < 1)
+                    prepSM = null;
+                if (prepCD.Count() < 1)
+                    prepCD = null;
+
+                // adopt back
+                if (env.AssetAdministrationShells == null && prepAas != null)
+                    env.AssetAdministrationShells = prepAas;
+                if (env.Submodels == null && prepSM != null)
+                    env.Submodels = prepSM;
+                if (env.ConceptDescriptions == null && prepCD != null)
+                    env.ConceptDescriptions = prepCD;
+            }
+
+            // for the records
             (targetEnv as AdminShellPackageDynamicFetchEnv)?.SetContext(new PackageContainerHttpRepoSubsetFetchContext()
             {
                 Record = record,
@@ -1698,9 +1737,12 @@ namespace AasxPackageLogic.PackageCentral
                 PackageContainerOptionsBase baseOpt,
                 ConnectExtendedRecord record)
             {
-                LoadResident = baseOpt.LoadResident;
-                StayConnected = baseOpt.StayConnected;
-                UpdatePeriod = baseOpt.UpdatePeriod;
+                if (baseOpt != null)
+                {
+                    LoadResident = baseOpt.LoadResident;
+                    StayConnected = baseOpt.StayConnected;
+                    UpdatePeriod = baseOpt.UpdatePeriod;
+                }
 
                 if (baseOpt is PackageContainerHttpRepoSubsetOptions fullOpt)
                     Record = fullOpt.Record?.Copy();
@@ -1817,11 +1859,22 @@ namespace AasxPackageLogic.PackageCentral
             return null;
         }
 
+        public enum ConnectExtendedScope { 
+            All = 0xffff, 
+            BaseInfo = 0x0001,
+            IdfTypes = 0x0002,
+            Query = 0x004,
+            GetOptions = 0x0008,
+            StayConnected = 0x0010,
+            Pagination = 0x0020
+        }
+
         public static async Task<bool> PerformConnectExtendedDialogue(
             AasxMenuActionTicket ticket,
             AnyUiContextBase displayContext,
             string caption,
-            ConnectExtendedRecord record)
+            ConnectExtendedRecord record,
+            ConnectExtendedScope scope = ConnectExtendedScope.All)
         {
             // access
             if (displayContext == null || caption?.HasContent() != true || record == null)
@@ -1890,358 +1943,381 @@ namespace AasxPackageLogic.PackageCentral
                     // dynamic rows
                     int row = 0;
 
-                    // Base address + Type
-                    helper.AddSmallLabelTo(g, row, 0, content: "Base address:",
-                            verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
-
-                    var g2 = helper.AddSmallGridTo(g, row, 1, 1, 2, new[] { "#", "*" });
-
-                    AnyUiUIElement.SetIntFromControl(
-                            helper.Set(
-                                helper.AddSmallComboBoxTo(g2, 0, 0,
-                                    items: ConnectExtendedRecord.BaseTypeEnumNames,
-                                    selectedIndex: (int)record.BaseType,
-                                    margin: new AnyUiThickness(0, 0, 5, 0),
-                                    padding: new AnyUiThickness(0, 0, 0, 0)),
-                                minWidth: 200, maxWidth: 200),
-                                (i) => { record.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
-
-                    if (displayContext is AnyUiContextPlusDialogs cpd
-                            && cpd.HasCapability(AnyUiContextCapability.WPF))
+                    if ((scope & ConnectExtendedScope.BaseInfo) > 0)
                     {
-                        AnyUiUIElement.SetStringFromControl(
-                            helper.Set(
-                                helper.AddSmallComboBoxTo(g2, 0, 1,
-                                    isEditable: true,
-                                    items: Options.Curr.BaseAddresses?.ToArray(),
-                                    text: "" + record.BaseAddress,
-                                    margin: new AnyUiThickness(0, 0, 0, 0),
-                                    padding: new AnyUiThickness(0, 0, 0, 0),
-                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
-                                (s) => { record.BaseAddress = s; });
+                        // Base address + Type
+                        helper.AddSmallLabelTo(g, row, 0, content: "Base address:",
+                                verticalAlignment: AnyUiVerticalAlignment.Center,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                        var g2 = helper.AddSmallGridTo(g, row, 1, 1, 2, new[] { "#", "*" });
+
+                        AnyUiUIElement.SetIntFromControl(
+                                helper.Set(
+                                    helper.AddSmallComboBoxTo(g2, 0, 0,
+                                        items: ConnectExtendedRecord.BaseTypeEnumNames,
+                                        selectedIndex: (int)record.BaseType,
+                                        margin: new AnyUiThickness(0, 0, 5, 0),
+                                        padding: new AnyUiThickness(0, 0, 0, 0)),
+                                    minWidth: 200, maxWidth: 200),
+                                    (i) => { record.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
+
+                        if (displayContext is AnyUiContextPlusDialogs cpd
+                                && cpd.HasCapability(AnyUiContextCapability.WPF))
+                        {
+                            AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallComboBoxTo(g2, 0, 1,
+                                        isEditable: true,
+                                        items: Options.Curr.BaseAddresses?.ToArray(),
+                                        text: "" + record.BaseAddress,
+                                        margin: new AnyUiThickness(0, 0, 0, 0),
+                                        padding: new AnyUiThickness(0, 0, 0, 0),
+                                        horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
+                                    (s) => { record.BaseAddress = s; });
+                        }
+                        else
+                        {
+                            AnyUiUIElement.SetStringFromControl(
+                                    helper.Set(
+                                        helper.AddSmallTextBoxTo(g2, 0, 1,
+                                            text: $"{record.BaseAddress}",
+                                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                                            verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                        horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                                    (s) => { record.BaseAddress = s; });
+                        }
+
+                        row++;
                     }
-                    else
+
+                    if ((scope & ConnectExtendedScope.IdfTypes) > 0)
                     {
+                        // All AASes
+                        AnyUiUIElement.RegisterControl(
+                                helper.Set(
+                                    helper.AddSmallCheckBoxTo(g, row, 0,
+                                        content: "Get all AAS",
+                                        isChecked: record.GetAllAas,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    colSpan: 2),
+                                (o) =>
+                                {
+                                    if ((bool)o)
+                                        record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllAas);
+                                    else
+                                        record.GetAllAas = false;
+                                    return new AnyUiLambdaActionModalPanelReRender(uc);
+                                });
+                        row++;
+
+                        // Single AAS
+                        AnyUiUIElement.RegisterControl(
+                                helper.Set(
+                                    helper.AddSmallCheckBoxTo(g, row, 0,
+                                        content: "Get single AAS",
+                                        isChecked: record.GetSingleAas,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    colSpan: 2),
+                                (o) =>
+                                {
+                                    if ((bool)o)
+                                        record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleAas);
+                                    else
+                                        record.GetSingleAas = false;
+                                    return new AnyUiLambdaActionModalPanelReRender(uc);
+                                });
+
+                        helper.AddSmallLabelTo(g, row + 1, 0, content: "AAS.Id:",
+                                verticalAlignment: AnyUiVerticalAlignment.Center,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
                         AnyUiUIElement.SetStringFromControl(
                                 helper.Set(
-                                    helper.AddSmallTextBoxTo(g2, 0, 1,
-                                        text: $"{record.BaseAddress}",
+                                    helper.AddSmallTextBoxTo(g, row + 1, 1,
+                                        text: $"{record.AasId}",
                                         verticalAlignment: AnyUiVerticalAlignment.Center,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Center),
                                     horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
-                                (s) => { record.BaseAddress = s; });
+                                (s) => { record.AasId = s; });
+
+                        row += 2;
+
+                        // AAS(es) by asset link
+                        AnyUiUIElement.RegisterControl(
+                                helper.Set(
+                                    helper.AddSmallCheckBoxTo(g, row, 0,
+                                        content: "AAS by AssetId",
+                                        isChecked: record.GetAasByAssetLink,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    colSpan: 2),
+                                (o) =>
+                                {
+                                    if ((bool)o)
+                                        record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AasByAssetLink);
+                                    else
+                                        record.GetAasByAssetLink = false;
+                                    return new AnyUiLambdaActionModalPanelReRender(uc);
+                                });
+
+                        helper.AddSmallLabelTo(g, row + 1, 0, content: "AssetId:",
+                                verticalAlignment: AnyUiVerticalAlignment.Center,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                        AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallTextBoxTo(g, row + 1, 1,
+                                        text: $"{record.AssetId}",
+                                        verticalAlignment: AnyUiVerticalAlignment.Center,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                                (s) => { record.AssetId = s; });
+
+                        row += 2;
+
+                        // All Submodels
+                        AnyUiUIElement.RegisterControl(
+                                helper.Set(
+                                    helper.AddSmallCheckBoxTo(g, row, 0,
+                                        content: "Get all Submodels",
+                                        isChecked: record.GetAllSubmodel,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    colSpan: 2),
+                                (o) =>
+                                {
+                                    if ((bool)o)
+                                        record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllSM);
+                                    else
+                                        record.GetAllSubmodel = false;
+                                    return new AnyUiLambdaActionModalPanelReRender(uc);
+                                });
+                        row++;
+
+                        // Single Submodel
+                        AnyUiUIElement.RegisterControl(
+                                helper.Set(
+                                    helper.AddSmallCheckBoxTo(g, row, 0,
+                                        content: "Get single Submodel",
+                                        isChecked: record.GetSingleSubmodel,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    colSpan: 2),
+                                (o) =>
+                                {
+                                    if ((bool)o)
+                                        record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleSM);
+                                    else
+                                        record.GetSingleSubmodel = false;
+                                    return new AnyUiLambdaActionModalPanelReRender(uc);
+                                });
+
+                        helper.AddSmallLabelTo(g, row + 1, 0, content: "Submodel.Id:",
+                                verticalAlignment: AnyUiVerticalAlignment.Center,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                        AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallTextBoxTo(g, row + 1, 1,
+                                        text: $"{record.SmId}",
+                                        verticalAlignment: AnyUiVerticalAlignment.Center,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                                (s) => { record.SmId = s; });
+
+                        row += 2;
+
+                        // Single CD
+                        AnyUiUIElement.RegisterControl(
+                                helper.Set(
+                                    helper.AddSmallCheckBoxTo(g, row, 0,
+                                        content: "Get single ConceptDescription (CD)",
+                                        isChecked: record.GetSingleCD,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    colSpan: 2),
+                                (o) =>
+                                {
+                                    if ((bool)o)
+                                        record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleCD);
+                                    else
+                                        record.GetSingleCD = false;
+                                    return new AnyUiLambdaActionModalPanelReRender(uc);
+                                });
+
+                        helper.AddSmallLabelTo(g, row + 1, 0, content: "CD.Id:",
+                                verticalAlignment: AnyUiVerticalAlignment.Center,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                        AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallTextBoxTo(g, row + 1, 1,
+                                        text: $"{record.CdId}",
+                                        verticalAlignment: AnyUiVerticalAlignment.Center,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                                (s) => { record.CdId = s; });
+
+                        row += 2;
                     }
 
-                    row++;
+                    if ((scope & ConnectExtendedScope.Query) > 0)
+                    {
+                        // Query
+                        AnyUiUIElement.RegisterControl(
+                                helper.Set(
+                                    helper.AddSmallCheckBoxTo(g, row, 0,
+                                        content: "Get by query definition",
+                                        isChecked: record.ExecuteQuery,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    colSpan: 2),
+                                (o) =>
+                                {
+                                    if ((bool)o)
+                                        record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.Query);
+                                    else
+                                        record.ExecuteQuery = false;
+                                    return new AnyUiLambdaActionModalPanelReRender(uc);
+                                });
 
-                    // All AASes
-                    AnyUiUIElement.RegisterControl(
-                            helper.Set(
-                                helper.AddSmallCheckBoxTo(g, row, 0,
-                                    content: "Get all AAS",
-                                    isChecked: record.GetAllAas,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                colSpan: 2),
-                            (o) => {
-                                if ((bool) o)
-                                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllAas);
-                                else
-                                    record.GetAllAas = false;
-                                return new AnyUiLambdaActionModalPanelReRender(uc);
-                            });
-                    row++;
+                        helper.AddSmallLabelTo(g, row + 1, 0, content: "Query:",
+                                verticalAlignment: AnyUiVerticalAlignment.Top,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Top);
 
-                    // Single AAS
-                    AnyUiUIElement.RegisterControl(
-                            helper.Set(
-                                helper.AddSmallCheckBoxTo(g, row, 0,
-                                    content: "Get single AAS",
-                                    isChecked: record.GetSingleAas,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                colSpan: 2),
-                            (o) => {
-                                if ((bool)o)
-                                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleAas);
-                                else
-                                    record.GetSingleAas = false;
-                                return new AnyUiLambdaActionModalPanelReRender(uc);
-                            });
+                        AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallTextBoxTo(g, row + 1, 1,
+                                        text: $"{record.QueryScript}",
+                                        verticalAlignment: AnyUiVerticalAlignment.Stretch,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Top,
+                                        textWrap: AnyUiTextWrapping.Wrap,
+                                        fontSize: 0.7,
+                                        multiLine: true),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
+                                    minHeight: 120),
+                                (s) => { record.QueryScript = s; });
 
-                    helper.AddSmallLabelTo(g, row + 1, 0, content: "AAS.Id:",
-                            verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+                        row += 2;
+                    }
 
-                    AnyUiUIElement.SetStringFromControl(
-                            helper.Set(
-                                helper.AddSmallTextBoxTo(g, row + 1, 1,
-                                    text: $"{record.AasId}",
-                                    verticalAlignment: AnyUiVerticalAlignment.Center,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
-                            (s) => { record.AasId = s; });
+                    if ((scope & ConnectExtendedScope.GetOptions) > 0)
+                    {
+                        // Auto load Submodels
+                        helper.AddSmallLabelTo(g, row, 0, content: "For above:",
+                                verticalAlignment: AnyUiVerticalAlignment.Center,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center);
 
-                    row += 2;
+                        AnyUiUIElement.SetBoolFromControl(
+                                helper.Set(
+                                    helper.AddSmallCheckBoxTo(g, row, 1,
+                                        content: "Auto-load Submodels",
+                                        isChecked: record.AutoLoadSubmodels,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                (b) => { record.AutoLoadSubmodels = b; });
 
-                    // AAS(es) by asset link
-                    AnyUiUIElement.RegisterControl(
-                            helper.Set(
-                                helper.AddSmallCheckBoxTo(g, row, 0,
-                                    content: "AAS by AssetId",
-                                    isChecked: record.GetAasByAssetLink,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                colSpan: 2),
-                            (o) => {
-                                if ((bool)o)
-                                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AasByAssetLink);
-                                else
-                                    record.GetAasByAssetLink = false;
-                                return new AnyUiLambdaActionModalPanelReRender(uc);
-                            });
+                        row++;
 
-                    helper.AddSmallLabelTo(g, row + 1, 0, content: "AssetId:",
-                            verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+                        // Auto load Submodels
 
-                    AnyUiUIElement.SetStringFromControl(
-                            helper.Set(
-                                helper.AddSmallTextBoxTo(g, row + 1, 1,
-                                    text: $"{record.AssetId}",
-                                    verticalAlignment: AnyUiVerticalAlignment.Center,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
-                            (s) => { record.AssetId = s; });
+                        AnyUiUIElement.SetBoolFromControl(
+                                helper.Set(
+                                    helper.AddSmallCheckBoxTo(g, row, 1,
+                                        content: "Auto-load ConceptDescriptions",
+                                        isChecked: record.AutoLoadCds,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                (b) => { record.AutoLoadCds = b; });
 
-                    row += 2;
+                        row++;
 
-                    // All Submodels
-                    AnyUiUIElement.RegisterControl(
-                            helper.Set(
-                                helper.AddSmallCheckBoxTo(g, row, 0,
-                                    content: "Get all Submodels",
-                                    isChecked: record.GetAllSubmodel,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                colSpan: 2),
-                            (o) => {
-                                if ((bool)o)
-                                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllSM);
-                                else
-                                    record.GetAllSubmodel = false;
-                                return new AnyUiLambdaActionModalPanelReRender(uc);
-                            });
-                    row++;
+                        // Auto load Thumbnails
 
-                    // Single Submodel
-                    AnyUiUIElement.RegisterControl(
-                            helper.Set(
-                                helper.AddSmallCheckBoxTo(g, row, 0,
-                                    content: "Get single Submodel",
-                                    isChecked: record.GetSingleSubmodel,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                colSpan: 2),
-                            (o) => {
-                                if ((bool)o)
-                                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleSM);
-                                else
-                                    record.GetSingleSubmodel = false;
-                                return new AnyUiLambdaActionModalPanelReRender(uc);
-                            });
+                        AnyUiUIElement.SetBoolFromControl(
+                                helper.Set(
+                                    helper.AddSmallCheckBoxTo(g, row, 1,
+                                        content: "Auto-load thumbnail for every AAS",
+                                        isChecked: record.AutoLoadThumbnails,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                (b) => { record.AutoLoadThumbnails = b; });
 
-                    helper.AddSmallLabelTo(g, row + 1, 0, content: "Submodel.Id:",
-                            verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+                        row++;
 
-                    AnyUiUIElement.SetStringFromControl(
-                            helper.Set(
-                                helper.AddSmallTextBoxTo(g, row + 1, 1,
-                                    text: $"{record.SmId}",
-                                    verticalAlignment: AnyUiVerticalAlignment.Center,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
-                            (s) => { record.SmId = s; });
+                        // Auto load on demand
 
-                    row += 2;
+                        AnyUiUIElement.SetBoolFromControl(
+                                helper.Set(
+                                    helper.AddSmallCheckBoxTo(g, row, 1,
+                                        content: "Mark auto-loaded elements for on-demand loading",
+                                        isChecked: record.AutoLoadOnDemand,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                (b) => { record.AutoLoadOnDemand = b; });
 
-                    // Single CD
-                    AnyUiUIElement.RegisterControl(
-                            helper.Set(
-                                helper.AddSmallCheckBoxTo(g, row, 0,
-                                    content: "Get single ConceptDescription (CD)",
-                                    isChecked: record.GetSingleCD,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                colSpan: 2),
-                            (o) => {
-                                if ((bool)o)
-                                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleCD);
-                                else
-                                    record.GetSingleCD = false;
-                                return new AnyUiLambdaActionModalPanelReRender(uc);
-                            });
+                        row++;
 
-                    helper.AddSmallLabelTo(g, row + 1, 0, content: "CD.Id:",
-                            verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+                        // Encrypt IDs
 
-                    AnyUiUIElement.SetStringFromControl(
-                            helper.Set(
-                                helper.AddSmallTextBoxTo(g, row + 1, 1,
-                                    text: $"{record.CdId}",
-                                    verticalAlignment: AnyUiVerticalAlignment.Center,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
-                            (s) => { record.CdId = s; });
+                        AnyUiUIElement.SetBoolFromControl(
+                                helper.Set(
+                                    helper.AddSmallCheckBoxTo(g, row, 1,
+                                        content: "Encrypt Ids (needs to be checked, unless encrypted Ids are provided)",
+                                        isChecked: record.EncryptIds,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                (b) => { record.EncryptIds = b; });
 
-                    row += 2;
+                        row++;
+                    }
 
-                    // Query
-                    AnyUiUIElement.RegisterControl(
-                            helper.Set(
-                                helper.AddSmallCheckBoxTo(g, row, 0,
-                                    content: "Get by query definition",
-                                    isChecked: record.ExecuteQuery,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                colSpan: 2),
-                            (o) => {
-                                if ((bool)o)
-                                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.Query);
-                                else
-                                    record.ExecuteQuery = false;
-                                return new AnyUiLambdaActionModalPanelReRender(uc);
-                            });
+                    if ((scope & ConnectExtendedScope.StayConnected) > 0)
+                    {
+                        // Stay connected
+                        AnyUiUIElement.SetBoolFromControl(
+                                    helper.Set(
+                                        helper.AddSmallCheckBoxTo(g, row, 1,
+                                            content: "Stay connected (will receive events)",
+                                            isChecked: record.StayConnected,
+                                            verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                    (b) => { record.StayConnected = b; });
 
-                    helper.AddSmallLabelTo(g, row + 1, 0, content: "Query:",
-                            verticalAlignment: AnyUiVerticalAlignment.Top,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Top);
+                        row++;
+                    }
 
-                    AnyUiUIElement.SetStringFromControl(
-                            helper.Set(
-                                helper.AddSmallTextBoxTo(g, row + 1, 1,
-                                    text: $"{record.QueryScript}",
-                                    verticalAlignment: AnyUiVerticalAlignment.Stretch,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Top,
-                                    textWrap: AnyUiTextWrapping.Wrap,
-                                    fontSize: 0.7,
-                                    multiLine: true),
-                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
-                                minHeight: 120),
-                            (s) => { record.QueryScript = s; });
+                    if ((scope & ConnectExtendedScope.Pagination) > 0)
+                    { 
+                        // Pagination
+                        helper.AddSmallLabelTo(g, row, 0, content: "Pagination:",
+                                verticalAlignment: AnyUiVerticalAlignment.Center,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center);
 
-                    row += 2;
+                        var g3 = helper.AddSmallGridTo(g, row, 1, 1, 4, new[] { "#", "*", "#", "*" });
 
-                    // Auto load Submodels
+                        helper.AddSmallLabelTo(g3, 0, 0, content: "Limit results:",
+                                verticalAlignment: AnyUiVerticalAlignment.Center,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center);
 
-                    helper.AddSmallLabelTo(g, row, 0, content: "For above:",
-                            verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+                        AnyUiUIElement.SetIntFromControl(
+                                helper.Set(
+                                    helper.AddSmallTextBoxTo(g3, 0, 1,
+                                        margin: new AnyUiThickness(10, 0, 0, 0),
+                                        text: $"{record.PageLimit:D}",
+                                        verticalAlignment: AnyUiVerticalAlignment.Center,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                        minWidth: 80, maxWidth: 80,
+                                        horizontalAlignment: AnyUiHorizontalAlignment.Left),
+                                        (i) => { record.PageLimit = i; });
 
-                    AnyUiUIElement.SetBoolFromControl(
-                            helper.Set(
-                                helper.AddSmallCheckBoxTo(g, row, 1,
-                                    content: "Auto-load Submodels",
-                                    isChecked: record.AutoLoadSubmodels,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
-                            (b) => { record.AutoLoadSubmodels = b; });
+                        helper.AddSmallLabelTo(g3, 0, 2, content: "Skip results:",
+                                verticalAlignment: AnyUiVerticalAlignment.Center,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center);
 
-                    row++;
+                        AnyUiUIElement.SetIntFromControl(
+                                helper.Set(
+                                    helper.AddSmallTextBoxTo(g3, 0, 3,
+                                        margin: new AnyUiThickness(10, 0, 0, 0),
+                                        text: $"{record.PageSkip:D}",
+                                        verticalAlignment: AnyUiVerticalAlignment.Center,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                        minWidth: 80, maxWidth: 80,
+                                        horizontalAlignment: AnyUiHorizontalAlignment.Left),
+                                        (i) => { record.PageSkip = i; });
 
-                    // Auto load Submodels
-
-                    AnyUiUIElement.SetBoolFromControl(
-                            helper.Set(
-                                helper.AddSmallCheckBoxTo(g, row, 1,
-                                    content: "Auto-load ConceptDescriptions",
-                                    isChecked: record.AutoLoadCds,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
-                            (b) => { record.AutoLoadCds = b; });
-
-                    row++;
-
-                    // Auto load Thumbnails
-
-                    AnyUiUIElement.SetBoolFromControl(
-                            helper.Set(
-                                helper.AddSmallCheckBoxTo(g, row, 1,
-                                    content: "Auto-load thumbnail for every AAS",
-                                    isChecked: record.AutoLoadThumbnails,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
-                            (b) => { record.AutoLoadThumbnails = b; });
-
-                    row++;
-
-                    // Auto load on demand
-
-                    AnyUiUIElement.SetBoolFromControl(
-                            helper.Set(
-                                helper.AddSmallCheckBoxTo(g, row, 1,
-                                    content: "Mark auto-loaded elements for on-demand loading",
-                                    isChecked: record.AutoLoadOnDemand,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
-                            (b) => { record.AutoLoadOnDemand = b; });
-
-                    row++;
-
-                    // Encrypt IDs
-
-                    AnyUiUIElement.SetBoolFromControl(
-                            helper.Set(
-                                helper.AddSmallCheckBoxTo(g, row, 1,
-                                    content: "Encrypt Ids (needs to be checked, unless encrypted Ids are provided)",
-                                    isChecked: record.EncryptIds,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
-                            (b) => { record.EncryptIds = b; });
-
-                    row++;                    
-
-                    // Stay connected
-
-                    AnyUiUIElement.SetBoolFromControl(
-                            helper.Set(
-                                helper.AddSmallCheckBoxTo(g, row, 1,
-                                    content: "Stay connected (will receive events)",
-                                    isChecked: record.StayConnected,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
-                            (b) => { record.StayConnected = b; });
-
-                    row++;
-
-                    // Pagination
-                    helper.AddSmallLabelTo(g, row, 0, content: "Pagination:",
-                            verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
-
-                    var g3 = helper.AddSmallGridTo(g, row, 1, 1, 4, new[] { "#", "*", "#", "*" });
-
-                    helper.AddSmallLabelTo(g3, 0, 0, content: "Limit results:",
-                            verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
-
-                    AnyUiUIElement.SetIntFromControl(
-                            helper.Set(
-                                helper.AddSmallTextBoxTo(g3, 0, 1,
-                                    margin: new AnyUiThickness(10, 0, 0, 0),
-                                    text: $"{record.PageLimit:D}",
-                                    verticalAlignment: AnyUiVerticalAlignment.Center,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                    minWidth: 80, maxWidth: 80,
-                                    horizontalAlignment: AnyUiHorizontalAlignment.Left),
-                                    (i) => { record.PageLimit = i; });
-
-                    helper.AddSmallLabelTo(g3, 0, 2, content: "Skip results:",
-                            verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
-
-                    AnyUiUIElement.SetIntFromControl(
-                            helper.Set(
-                                helper.AddSmallTextBoxTo(g3, 0, 3,
-                                    margin: new AnyUiThickness(10, 0, 0, 0),
-                                    text: $"{record.PageSkip:D}",
-                                    verticalAlignment: AnyUiVerticalAlignment.Center,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                    minWidth: 80, maxWidth: 80,
-                                    horizontalAlignment: AnyUiHorizontalAlignment.Left),
-                                    (i) => { record.PageSkip = i; });
-
-                    row++;
+                        row++;
+                    }
 
                     // give back
                     return g;
@@ -2794,7 +2870,7 @@ namespace AasxPackageLogic.PackageCentral
                                     continue;
 
                                 // try read the bytes (should have try/catch in it)
-                                var ba = await packEnv.GetByteArrayFromExternalInternalUri(filEl.FileSme.Value);
+                                var ba = await packEnv.GetBytesFromPackageOrExternalAsync(filEl.FileSme.Value);
                                 if (ba == null || ba.Length < 1)
                                 {
                                     Log.Singleton.Error("Centralize file: cannot read file: {0}", filEl.FileSme.Value);

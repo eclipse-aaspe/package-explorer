@@ -1510,6 +1510,16 @@ namespace AdminShellNS
             return DefaultLngIso639;
         }
 
+        //
+        // Bytes
+        //
+
+        public static string GetStringFromBytes(byte[] byteArray)
+        {
+            if (byteArray == null)
+                return null;
+            return System.Text.Encoding.UTF8.GetString(byteArray);
+        }
         
     }
 }

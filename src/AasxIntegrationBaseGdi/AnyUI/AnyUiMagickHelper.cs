@@ -121,35 +121,12 @@ namespace AasxIntegrationBaseGdi
 
             try
             {
-                var thumbStream = package.GetLocalStreamFromPackage(path);
-                if (thumbStream == null)
+                var inputBytes = package.GetBytesFromPackageOrExternal(path);
+                if (inputBytes == null)
                     return null;
 
                 // load image
-                var bi = new MagickImage(thumbStream);
-                var binfo = CreateAnyUiBitmapInfo(bi);
-                thumbStream.Close();
-
-                // give this back
-                return binfo;
-            }
-            catch (Exception ex)
-            {
-                AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
-            }
-
-            return null;
-        }
-
-        public static AnyUiBitmapInfo LoadBitmapInfoFromStream(Stream stream)
-        {
-            if (stream == null)
-                return null;
-
-            try
-            {
-                // load image
-                var bi = new MagickImage(stream);
+                var bi = new MagickImage(inputBytes);
                 var binfo = CreateAnyUiBitmapInfo(bi);
 
                 // give this back
@@ -162,6 +139,29 @@ namespace AasxIntegrationBaseGdi
 
             return null;
         }
+
+        // DEPRECATED
+        //public static AnyUiBitmapInfo LoadBitmapInfoFromStream(Stream stream)
+        //{
+        //    if (stream == null)
+        //        return null;
+
+        //    try
+        //    {
+        //        // load image
+        //        var bi = new MagickImage(stream);
+        //        var binfo = CreateAnyUiBitmapInfo(bi);
+
+        //        // give this back
+        //        return binfo;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
+        //    }
+
+        //    return null;
+        //}
 
         // TODO (MIHO, 2023-02-23): make the whole thing async!!
 
@@ -177,9 +177,9 @@ namespace AasxIntegrationBaseGdi
 
             try
             {
-                System.IO.Stream thumbStream = null;
+                byte[] thumbBytes = null;
                 if (true /*= package?.IsLocalFile(path)*/)
-                    thumbStream = await package.GetLocalStreamFromPackageAsync(path, aasId, smId, idShortPath);
+                    thumbBytes = await package.GetBytesFromPackageOrExternalAsync(path, aasId, smId, idShortPath);
                 else
                 {
                     // try download
@@ -209,7 +209,7 @@ namespace AasxIntegrationBaseGdi
 #endif
                 }
 
-                if (thumbStream == null)
+                if (thumbBytes == null)
                     return null;
 
                 using (var images = new MagickImageCollection())
@@ -220,15 +220,13 @@ namespace AasxIntegrationBaseGdi
                     settings.FrameCount = 1; // Number of pages
 
                     // Read only the first page of the pdf file
-                    images.Read(thumbStream, settings);
+                    images.Read(thumbBytes, settings);
 
                     if (images.Count > 0 && images[0] is MagickImage img)
                     {
                         res = CreateAnyUiBitmapInfo(img);
                     }
                 }
-
-                thumbStream.Close();
             }
             catch (Exception ex)
             {
@@ -319,13 +317,13 @@ namespace AasxIntegrationBaseGdi
                 // now try loading
                 if (job is DelayedFileContentForFileElement jobfc)
                 {
-                    var stream = await jobfc.Package?.GetLocalStreamFromPackageAsync(
+                    var inputBytes = await jobfc.Package?.GetBytesFromPackageOrExternalAsync(
                         uriString: jobfc.FileUri,
                         aasId: "" + jobfc.AasId,
                         smId: "" + jobfc.SmId,
                         idShortPath: jobfc.IdShortPath);
 
-                    var bi = AnyUiGdiHelper.LoadBitmapInfoFromStream(stream);
+                    var bi = AnyUiGdiHelper.LoadBitmapInfoFromBytes(inputBytes);
 
                     if (bi != null)
                     {

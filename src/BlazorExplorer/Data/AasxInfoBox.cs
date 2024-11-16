@@ -67,66 +67,20 @@ namespace BlazorUI.Data
             // image data?
             try
             {
-                if (env != null)
+                try
                 {
-                    System.IO.Stream s = null;
-                    try
-                    {
-                        s = env.GetLocalThumbnailStream();
-                    }
-                    catch
-                    {
-                        s = null;
-                    }
-                    if (s != null)
-                    {
-                        using (var m = new System.IO.MemoryStream())
-                        {
-                            s.CopyTo(m);
-                            HtmlImageData = System.Convert.ToBase64String(m.ToArray());
-                        }
-
-                        // it is indespensible to properly close the thumbnail stream!
-                        // practice proofed not to use using ..
-                        s.Close();
-                    }
+                    var ba = env.GetThumbnailBytesFromAasOrPackage(aas?.Id);
+                    HtmlImageData = System.Convert.ToBase64String(ba);
+                }
+                catch (Exception ex)
+                {
+                    LogInternally.That.CompletelyIgnoredError(ex);
                 }
             }
             catch (Exception ex)
             {
                 AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
             }
-            // dead-csharp off
-            // TODO (??, 0000-00-00): missng for WPF refactoring
-            // asset thumbnail
-            //        try
-            //        {
-            //            // identify which stream to use..
-            //            if (_packageCentral.MainAvailable)
-            //                try
-            //                {
-            //                    using (var thumbStream = _packageCentral.Main.GetLocalThumbnailStream())
-            //                    {
-            //                        // load image
-            //                        if (thumbStream != null)
-            //                        {
-            //                            var bi = new BitmapImage();
-            //                            bi.BeginInit();
-
-            //                            // See https://stackoverflow.com/a/5346766/1600678
-            //                            bi.CacheOption = BitmapCacheOption.OnLoad;
-
-            //                            bi.StreamSource = thumbStream;
-            //                            bi.EndInit();
-            //                            this.AssetPic.Source = bi;
-            //                        }
-            //                    }
-            //                }
-            //                catch (Exception ex)
-            //                {
-            //                    AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
-            //                }
-            // dead-csharp on
         }
     }
 }

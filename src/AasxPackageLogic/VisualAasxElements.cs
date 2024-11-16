@@ -37,6 +37,7 @@ namespace AasxPackageLogic
     public interface IManageVisualAasxElements
     {
         VisualElementGeneric GetSelectedItem();
+        ListOfVisualElementBasic GetSelectedItems();
     }
 
     public interface ITaintableIdentifiable

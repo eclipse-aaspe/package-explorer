@@ -7,8 +7,10 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
-using AasxIntegrationBase;
 using AdminShellNS;
+using Extensions;
+using Aas = AasCore.Aas3_0;
+using AasxIntegrationBase;
 using AnyUi;
 using Newtonsoft.Json;
 using System;
@@ -421,27 +423,49 @@ namespace AasxPackageLogic.PackageCentral
         /// re-calculates the particulare lists of ids. If the tag and/ or description is empty, 
         /// it will also build a generated tag or descriptions
         /// </summary>
-        public void CalculateIdsTagAndDesc(bool force = false)
+        public void CalculateIdsTagAndDesc(
+            Aas.IAssetAdministrationShell specificAas = null,
+            bool force = false)
         {
             // Ids
 
             CleanIds();
 
-            Env?.AasEnv?.AssetAdministrationShells?.ForEach((x) =>
+            if (specificAas != null)
             {
-                if (true == x?.Id.HasContent())
-                    _aasIds.Add(x.Id);
-            });
+                _aasIds.Add(specificAas.Id);
 
-            Env?.AasEnv?.Submodels?.ForEach((x) =>
+                if (specificAas?.AssetInformation?.GlobalAssetId?.HasContent() == true)
+                    _assetIds.Add(specificAas.AssetInformation.GlobalAssetId);
+
+                foreach (var x in specificAas.FindAllSubmodelReferences())
+                    if (x.Reference?.IsValid() == true && x.Reference.Keys[0].Type == KeyTypes.Submodel)
+                        _submodelIds.Add(x.Reference.Keys[0].Value);
+            }
+            else
             {
-                if (true == x?.Id.HasContent())
-                    _submodelIds.Add(x.Id);
-            });
+                // take the whole environment
+                Env?.AasEnv?.AssetAdministrationShells?.ForEach((x) =>
+                {
+                    if (true == x?.Id.HasContent())
+                        _aasIds.Add(x.Id);
 
-            // get some descriptiive data
+                    if (x?.AssetInformation?.GlobalAssetId?.HasContent() == true)
+                        _assetIds.Add(x.AssetInformation.GlobalAssetId);
+                });
+
+                Env?.AasEnv?.Submodels?.ForEach((x) =>
+                {
+                    if (true == x?.Id.HasContent())
+                        _submodelIds.Add(x.Id);
+                });
+            }
+
+            // get some descriptive data
             var threeFn = Path.GetFileNameWithoutExtension(Location);
             var aas0 = Env?.AasEnv?.AssetAdministrationShells?.FirstOrDefault();
+            if (specificAas != null)
+                aas0 = specificAas;
 
             // Tag
             if (!Tag.HasContent() || force)

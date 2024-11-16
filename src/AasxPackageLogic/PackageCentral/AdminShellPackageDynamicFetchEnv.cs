@@ -360,40 +360,27 @@ namespace AasxPackageLogic.PackageCentral
             }
         }
 
-        public byte[] GetThumbnail(string aasId)
+        public override byte[] GetThumbnailBytesFromAasOrPackage(string aasId)
         {
-            if (aasId?.HasContent() != true || !_thumbStreamPerAasId.ContainsKey(aasId))
-                return null;
-            return _thumbStreamPerAasId[aasId];
+            // can serve ourself?
+            if (aasId?.HasContent() == true && _thumbStreamPerAasId.ContainsKey(aasId))
+                return _thumbStreamPerAasId[aasId];
+
+            // refer to base
+            return base.GetThumbnailBytesFromAasOrPackage(aasId);
         }
 
-        public override Stream GetThumbnailStreamFromAasOrPackage(string aasId)
-        {
-            // check for content
-            var content = GetThumbnail(aasId);
-            if (content == null)
-                return null;
-
-            // return stream
-            var ms = new MemoryStream();
-            ms.Write(content, 0, content.Length);
-            ms.Seek(0, SeekOrigin.Begin);
-            return ms;
-        }
-
-        public override async Task<Stream> GetLocalStreamFromPackageAsync(
+        public override async Task<byte[]> GetBytesFromPackageOrExternalAsync(
             string uriString,
             string aasId = null,
             string smId = null,
-            string idShortPath = null,
-            FileMode mode = FileMode.Open, 
-            FileAccess access = FileAccess.Read)
+            string idShortPath = null)
         {
             // IMPORTANT! First try to use the base implementation to get an stream to
             // HTTP or ABSOLUTE file
-            var absStream = base.GetLocalStreamFromPackage(uriString, mode: mode, access: access);
-            if (absStream != null)
-                return absStream;
+            var absBytes = await base.GetBytesFromPackageOrExternalAsync(uriString);
+            if (absBytes != null)
+                return absBytes;
 
             // ok, try to load from the server
             if (aasId?.HasContent() != true || idShortPath?.HasContent() != true
@@ -410,7 +397,7 @@ namespace AasxPackageLogic.PackageCentral
 
             try
             {
-                Stream res = null;
+                byte[] res = null;
 
                 await PackageHttpDownloadUtil.HttpGetToMemoryStream(
                     null,
@@ -423,7 +410,7 @@ namespace AasxPackageLogic.PackageCentral
                             return;
 
                         // store (this is stupid!)
-                        res = new MemoryStream(ms.ToByteArray());
+                        res = ms.ToArray();
                     });            
 
                 return res;

@@ -11,6 +11,7 @@ using Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Packaging;
@@ -291,13 +292,22 @@ namespace AdminShellNS
 
         protected static WebProxy proxy = null;
 
-        public virtual Stream GetLocalStreamFromPackage(
+        /// <summary>
+        /// Checks for a file within the package or external, e.g. on a file space.
+        /// In derived classes, could use the AAS/ SM / IdShortPath attributes to
+        /// refer to files in registry/ repository.
+        /// </summary>
+        /// <param name="uriString">Local (within package) or external file. Should have a scheme. 
+        /// Local file start with a leading slash.</param>
+        /// <param name="aasId">For registry/ repository access.</param>
+        /// <param name="smId">For registry/ repository access.</param>
+        /// <param name="idShortPath">For registry/ repository access.</param>
+        /// <returns>Bytes or <c>null</c></returns>
+        public virtual byte[] GetBytesFromPackageOrExternal(
             string uriString, 
             string aasId = null,
             string smId = null,
-            string idShortPath = null,
-            FileMode mode = FileMode.Open, 
-            FileAccess access = FileAccess.Read)
+            string idShortPath = null)
         {
             //
             // this part of the functionality works on HTTP and absolute files and is
@@ -379,19 +389,21 @@ namespace AdminShellNS
                 }
 
                 response.EnsureSuccessStatusCode();
-                var s = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
 
-                if (s.Length < 500) // indirect load?
+                var resBytes = response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
+
+                // TODO (MIHO, 2024-11-09): looks like a hack from Andreas to
+                // detect indirection
+                if (resBytes.Length < 500) // indirect load?
                 {
-                    StreamReader reader = new StreamReader(s);
-                    string json = reader.ReadToEnd();
+                    string json = System.Text.Encoding.UTF8.GetString(resBytes);
                     var parsed = JObject.Parse(json);
                     try
                     {
                         string url = parsed.SelectToken("url").Value<string>();
                         response = hc.GetAsync(url).GetAwaiter().GetResult();
                         response.EnsureSuccessStatusCode();
-                        s = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
+                        resBytes = response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
                     }
                     catch (Exception ex)
                     {
@@ -399,7 +411,7 @@ namespace AdminShellNS
                     }
                 }
 
-                return s;
+                return resBytes;
             }
 
             // now, has to be file
@@ -411,8 +423,8 @@ namespace AdminShellNS
             {
                 try
                 {
-                    var stream = System.IO.File.Open(sap.Path, mode, access);
-                    return stream;
+                    var resBytes = System.IO.File.ReadAllBytes(sap.Path);
+                    return resBytes;
                 }
                 catch (Exception ex)
                 {
@@ -424,16 +436,74 @@ namespace AdminShellNS
             return null;
         }
 
-        public virtual async Task<Stream> GetLocalStreamFromPackageAsync(
+        /// <summary>
+        /// Checks for a file within the package or external, e.g. on a file space.
+        /// In derived classes, could use the AAS/ SM / IdShortPath attributes to
+        /// refer to files in registry/ repository.
+        /// </summary>
+        /// <param name="uriString">Local (within package) or external file. Should have a scheme. 
+        /// Local file start with a leading slash.</param>
+        /// <param name="aasId">For registry/ repository access.</param>
+        /// <param name="smId">For registry/ repository access.</param>
+        /// <param name="idShortPath">For registry/ repository access.</param>
+        /// <returns>Bytes or <c>null</c></returns>
+        public virtual async Task<byte[]> GetBytesFromPackageOrExternalAsync(
             string uriString,
             string aasId = null,
             string smId = null,
-            string idShortPath = null,
-            FileMode mode = FileMode.Open,
-            FileAccess access = FileAccess.Read)
+            string idShortPath = null)
         {
             await Task.Yield();
-            return GetLocalStreamFromPackage(uriString, aasId, smId, idShortPath, mode, access);
+            return GetBytesFromPackageOrExternal(uriString, aasId, smId, idShortPath);
+        }
+
+        /// <summary>
+        /// Writes to a file within the package or to external registry/ repository.
+        /// Does not write to external files e.g. on a filespace!
+        /// In derived classes, could use the AAS/ SM / IdShortPath attributes to
+        /// refer to files in registry/ repository.
+        /// </summary>
+        /// <param name="uriString">Local (within package) or external file. Should have a scheme. 
+        /// Local file start with a leading slash.</param>
+        /// <param name="data">Data given by the bytes</param>
+        /// <param name="aasId">For registry/ repository access.</param>
+        /// <param name="smId">For registry/ repository access.</param>
+        /// <param name="idShortPath">For registry/ repository access.</param>
+        /// <returns><c>True</c>, if the file was successfully stored.</returns>
+        public virtual bool PutBytesToPackageOrExternal(
+            string uriString,
+            byte[] data,
+            string aasId = null,
+            string smId = null,
+            string idShortPath = null)
+        {
+            // here, nothing to do, as external file storage is not allowed.
+            return false;
+        }
+
+        /// <summary>
+        /// Writes to a file within the package or to external registry/ repository.
+        /// Does not write to external files e.g. on a filespace!
+        /// In derived classes, could use the AAS/ SM / IdShortPath attributes to
+        /// refer to files in registry/ repository.
+        /// </summary>
+        /// <param name="uriString">Local (within package) or external file. Should have a scheme. 
+        /// Local file start with a leading slash.</param>
+        /// <param name="data">Data given by the bytes</param>
+        /// <param name="aasId">For registry/ repository access.</param>
+        /// <param name="smId">For registry/ repository access.</param>
+        /// <param name="idShortPath">For registry/ repository access.</param>
+        /// <returns><c>True</c>, if the file was successfully stored.</returns>
+        public virtual async Task<bool> PutBytesToPackageOrExternalAsync(
+            string uriString,
+            byte[] data,
+            string aasId = null,
+            string smId = null,
+            string idShortPath = null)
+        {
+            // here, nothing to do, as external file storage is not allowed.
+            await Task.Yield();
+            return PutBytesToPackageOrExternal(uriString, data, aasId, smId, idShortPath);
         }
 
         public virtual void PrepareSupplementaryFileParameters(ref string targetDir, ref string targetFn)
@@ -447,50 +517,52 @@ namespace AdminShellNS
             return null;
         }
 
-        public virtual byte[] GetByteArrayFromUriOrLocalPackage(string uriString)
-        {
-            return null;
-        }
-
-        /// <remarks>
-        /// Ensures:
-        /// <ul><li><c>result == null || result.CanRead</c></li></ul>
-        /// </remarks>
-        public Stream GetLocalThumbnailStream()
-        {
-            Uri dummy = null;
-            var result = GetLocalThumbnailStream(ref dummy);
-
-            // Post-condition
-            if (!(result == null || result.CanRead))
-            {
-                throw new InvalidOperationException("Unexpected unreadable result stream");
-            }
-
-            return result;
-        }
-
-        /// <remarks>
-        /// Ensures:
-        /// <ul><li><c>result == null || result.CanRead</c></li></ul>
-        /// </remarks>
-        public virtual Stream GetLocalThumbnailStream(ref Uri thumbUri)
-        {
-            return null;
-        }
-
-        public virtual Stream GetStreamFromUriOrLocalPackage(string uriString,
-            FileMode mode = FileMode.Open,
-            FileAccess access = FileAccess.Read)
+        /// <summary>
+        /// Gets the thumbnail data of the local package (and only the local package!)
+        /// </summary>
+        public virtual byte[] GetLocalThumbnailBytes(ref Uri thumbUri)
         {
             return null;
         }
 
         /// <summary>
-        /// This is intended to be the "new" one
+        /// Gets the thumbnail data of the local package or (1st prio) the AAS with the
+        /// given id.
+        /// Note: does not access remote content from registry/ repository!
         /// </summary>
-        public virtual Stream GetThumbnailStreamFromAasOrPackage(string aasId)
+        public virtual byte[] GetThumbnailBytesFromAasOrPackage(string aasId)
         {
+            // find aas?
+            var aas = AasEnv?.FindAasById(aasId);
+            if (aas?.AssetInformation?.DefaultThumbnail?.Path?.HasContent() == true)
+            {
+                try
+                {
+                    // Note: could also use http://...
+                    var bytes = GetBytesFromPackageOrExternal(uriString: aas.AssetInformation.DefaultThumbnail.Path);
+                    if (bytes != null)
+                        return bytes;
+                }
+                catch (Exception ex)
+                {
+                    LogInternally.That.CompletelyIgnoredError(ex);
+                }
+            }
+
+            // or local package?
+            try
+            {
+                Uri dummy = null;
+                var bytes = GetLocalThumbnailBytes(ref dummy);
+                if (bytes != null)
+                    return bytes;
+            }
+            catch (Exception ex)
+            {
+                LogInternally.That.CompletelyIgnoredError(ex);
+            }
+
+            // no
             return null;
         }
 
@@ -516,33 +588,27 @@ namespace AdminShellNS
                 return null;
 
             // get input stream
-            using (var input = GetLocalStreamFromPackage(packageUri))
+            var inputBytes = GetBytesFromPackageOrExternal(packageUri);
+            if (inputBytes == null)
+                return null;
+
+            // generate tempfile name
+            string tempext = System.IO.Path.GetExtension(packageUri);
+            string temppath = System.IO.Path.GetTempFileName().Replace(".tmp", tempext);
+
+            // maybe modify tempfile name?
+            if (keepFilename)
             {
-                // any
-                if (input == null)
-                    return null;
+                var masterFn = System.IO.Path.GetFileNameWithoutExtension(packageUri);
+                var tmpDir = System.IO.Path.GetDirectoryName(temppath);
+                var tmpFnExt = System.IO.Path.GetFileName(temppath);
 
-                // generate tempfile name
-                string tempext = System.IO.Path.GetExtension(packageUri);
-                string temppath = System.IO.Path.GetTempFileName().Replace(".tmp", tempext);
-
-                // maybe modify tempfile name?
-                if (keepFilename)
-                {
-                    var masterFn = System.IO.Path.GetFileNameWithoutExtension(packageUri);
-                    var tmpDir = System.IO.Path.GetDirectoryName(temppath);
-                    var tmpFnExt = System.IO.Path.GetFileName(temppath);
-
-                    temppath = System.IO.Path.Combine(tmpDir, "" + masterFn + "_" + tmpFnExt);
-                }
-
-                // copy to temp file
-                using (var temp = System.IO.File.OpenWrite(temppath))
-                {
-                    input.CopyTo(temp);
-                    return temppath;
-                }
+                temppath = System.IO.Path.Combine(tmpDir, "" + masterFn + "_" + tmpFnExt);
             }
+
+            // copy to temp file
+            System.IO.File.WriteAllBytes(temppath, inputBytes);
+            return temppath;
         }
 
         /// <summary>
@@ -563,33 +629,27 @@ namespace AdminShellNS
                 return null;
 
             // get input stream
-            using (var input = await GetLocalStreamFromPackageAsync(packageUri, aasId, smId, idShortPath))
+            var inputBytes = await GetBytesFromPackageOrExternalAsync(packageUri, aasId, smId, idShortPath);
+            if (inputBytes == null)
+                return null;
+
+            // generate tempfile name
+            string tempext = System.IO.Path.GetExtension(packageUri);
+            string temppath = System.IO.Path.GetTempFileName().Replace(".tmp", tempext);
+
+            // maybe modify tempfile name?
+            if (keepFilename)
             {
-                // ok?
-                if (input == null)
-                    return null;
+                var masterFn = System.IO.Path.GetFileNameWithoutExtension(packageUri);
+                var tmpDir = System.IO.Path.GetDirectoryName(temppath);
+                var tmpFnExt = System.IO.Path.GetFileName(temppath);
 
-                // generate tempfile name
-                string tempext = System.IO.Path.GetExtension(packageUri);
-                string temppath = System.IO.Path.GetTempFileName().Replace(".tmp", tempext);
-
-                // maybe modify tempfile name?
-                if (keepFilename)
-                {
-                    var masterFn = System.IO.Path.GetFileNameWithoutExtension(packageUri);
-                    var tmpDir = System.IO.Path.GetDirectoryName(temppath);
-                    var tmpFnExt = System.IO.Path.GetFileName(temppath);
-
-                    temppath = System.IO.Path.Combine(tmpDir, "" + masterFn + "_" + tmpFnExt);
-                }
-
-                // copy to temp file
-                using (var temp = System.IO.File.OpenWrite(temppath))
-                {
-                    input.CopyTo(temp);
-                    return temppath;
-                }
+                temppath = System.IO.Path.Combine(tmpDir, "" + masterFn + "_" + tmpFnExt);
             }
+
+            // copy to temp file
+            await System.IO.File.WriteAllBytesAsync(temppath, inputBytes);
+            return temppath;
         }
 
         public virtual bool SaveAs(
@@ -641,55 +701,6 @@ namespace AdminShellNS
         //
         // Binary file read + write
         //
-
-        public async Task<byte[]> GetByteArrayFromExternalInternalUri(string uri)
-        {
-            // split uri and access
-            var sap = AdminShellUtil.GetSchemeAndPath(uri);
-            if (sap == null)
-                return null;
-
-            // directly a HTTP resource?
-            if (sap.Scheme.StartsWith("http"))
-            {
-                try
-                {
-                    using (var client = new HttpClient())
-                    {
-                        var ba = await client.GetByteArrayAsync(uri);
-                        return ba;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogInternally.That.SilentlyIgnoredError(ex);
-                    return null;
-                }
-            }
-
-            // no other schemes now
-            if (sap.Scheme != "file")
-                return null;
-
-            // check if package local file
-            if (IsLocalFile(sap.Path))
-            {
-                return GetByteArrayFromUriOrLocalPackage(sap.Path);
-            }
-
-            // OK, assume a file accessible to this computer
-            try
-            {
-                var ba = await System.IO.File.ReadAllBytesAsync(sap.Path);
-            }
-            catch (Exception ex)
-            {
-                LogInternally.That.SilentlyIgnoredError(ex);
-            }
-
-            // nope
-            return null;
-        }
 
         public async Task<bool> PutByteArrayToExternalUri(string uri, byte[] ba)
         {

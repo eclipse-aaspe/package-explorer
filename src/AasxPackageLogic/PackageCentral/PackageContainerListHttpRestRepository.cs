@@ -35,12 +35,11 @@ namespace AasxPackageLogic.PackageCentral
         private PackageConnectorHttpRest _connector;
 
         /// <summary>
-        /// REST endpoint of the AAS repository, that is, without <c>/server/listaas</c>
+        /// REST endpoint of the AAS repository, that is, without <c>/shells</c> etc. but
+        /// with e.g. <c>/api/v3.0/</c>
         /// </summary>
         [JsonIgnore]
         public Uri Endpoint;
-
-        public bool IsAspNetConnection { get; set; }
 
         //
         // Constructor
@@ -52,9 +51,8 @@ namespace AasxPackageLogic.PackageCentral
             Endpoint = new Uri(location);
 
             // directly set endpoint
-            _connector = new PackageConnectorHttpRest(null, Endpoint);
-
-
+            // Note: later
+            // _connector = new PackageConnectorHttpRest(null, Endpoint);
         }
 
         //
@@ -73,6 +71,10 @@ namespace AasxPackageLogic.PackageCentral
         {
             if (true != _connector?.IsValid())
                 return false;
+
+            await Task.Yield();
+
+#if old_implementation
             // try get a list of items from the connector
             var items = await _connector.GenerateRepositoryFromEndpointAsync();
             // just re-set
@@ -83,6 +85,7 @@ namespace AasxPackageLogic.PackageCentral
                     FileMap.Add(fi);
                     fi.ContainerList = this;
                 }
+#endif
 
             // ok
             return true;

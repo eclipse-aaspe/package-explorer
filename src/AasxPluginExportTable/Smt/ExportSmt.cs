@@ -105,7 +105,7 @@ namespace AasxPluginExportTable.Smt
             string dataExt = ".bin";
             if (sme is Aas.IFile smeFile)
             {
-                data = _package?.GetByteArrayFromUriOrLocalPackage(smeFile.Value);
+                data = _package?.GetBytesFromPackageOrExternal(smeFile.Value);
                 dataExt = Path.GetExtension(smeFile.Value);
             }
 

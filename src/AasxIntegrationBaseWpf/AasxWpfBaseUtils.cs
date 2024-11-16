@@ -144,22 +144,22 @@ namespace AasxIntegrationBase
 
             try
             {
-                var thumbStream = package.GetLocalStreamFromPackage(path);
-                if (thumbStream == null)
+                var imgBytes = package.GetBytesFromPackageOrExternal(path);
+                if (imgBytes == null)
                     return null;
 
                 // load image
-                var bi = new BitmapImage();
-                bi.BeginInit();
-                bi.CacheOption = BitmapCacheOption.OnLoad;
-                bi.StreamSource = thumbStream;
-                bi.EndInit();
-
-                thumbStream.Close();
-
-                // note: no closing of bi required, as BitmapImage (OnLoad!) will close it!
-                // give this back
-                return bi;
+                using (var ms = new System.IO.MemoryStream(imgBytes))
+                {
+                    var bi = new BitmapImage();
+                    bi.BeginInit();
+                    bi.CacheOption = BitmapCacheOption.OnLoad;
+                    bi.StreamSource = ms;
+                    bi.EndInit();
+                    // note: no closing of bi required, as BitmapImage (OnLoad!) will close it!
+                    // give this back
+                    return bi;
+                }
             }
             catch (Exception ex)
             {

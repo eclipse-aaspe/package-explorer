@@ -175,7 +175,7 @@ namespace AasxPackageLogic.PackageCentral
             // need special settings (to handle different typs of child classes of PackageContainer)
             var settings = AasxPluginOptionSerialization.GetDefaultJsonSettings(
                 new[] { typeof(PackageContainerListBase), typeof(PackageContainerLocalFile),
-                    typeof(PackageContainerNetworkHttpFile) });
+                    typeof(PackageContainerNetworkHttpFile), typeof(PackageContainerHttpRepoSubset) });
             return settings;
         }
 

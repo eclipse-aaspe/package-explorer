@@ -1153,7 +1153,7 @@ namespace AasxPackageLogic
             if (newSme is Aas.IBlob newBlob && oldSme is Aas.IFile oldFile)
             {
                 // get file contents from a file
-                var ba = packEnv?.GetByteArrayFromUriOrLocalPackage(oldFile.Value);
+                var ba = await packEnv?.GetBytesFromPackageOrExternalAsync(oldFile.Value);
                 if (ba == null || ba.Length < 1)
                     return false;
 

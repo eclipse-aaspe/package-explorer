@@ -1055,64 +1055,37 @@ namespace AdminShellNS
             }
         }
 
-        public override Stream GetStreamFromUriOrLocalPackage(string uriString,
-            FileMode mode = FileMode.Open,
-            FileAccess access = FileAccess.Read)
-        {
-            // local
-            if (IsLocalFile(uriString))
-                return GetLocalStreamFromPackage(uriString, mode: mode, access: access);
-
-            // no ..
-            return System.IO.File.Open(uriString, mode, access);
-        }
-
-        public override byte[] GetByteArrayFromUriOrLocalPackage(string uriString)
-        {
-            try
-            {
-                using (var input = GetStreamFromUriOrLocalPackage(uriString))
-                {
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        input.CopyTo(ms);
-                        return ms.ToArray();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
-                return null;
-            }
-        }
-
         public override bool IsLocalFile(string uriString)
         {
-            // access
-            if (_openPackage == null)
+            // look at the uri
+            var sap = AdminShellUtil.GetSchemeAndPath(uriString);
+            if (sap == null)
                 return false;
-            if (uriString == null || uriString == "" || !uriString.StartsWith("/"))
+            if (sap.Scheme != "file")
                 return false;
 
-            // check
+            // look at package / file path
+            if (_openPackage == null)
+                return false;
+            if (sap.Path == null || !sap.Path.StartsWith("/"))
+                return false;
+
+            // check further
             var isLocal = _openPackage.PartExists(new Uri(uriString, UriKind.RelativeOrAbsolute));
             return isLocal;
         }
 
-        public override Stream GetLocalStreamFromPackage(
+        public override byte[] GetBytesFromPackageOrExternal(
             string uriString,
             string aasId = null,
             string smId = null,
-            string idShortPath = null,
-            FileMode mode = FileMode.Open, 
-            FileAccess access = FileAccess.Read)
+            string idShortPath = null)
         {
             // IMPORTANT! First try to use the base implementation to get an stream to
             // HTTP or ABSOLUTE file
-            var absStream = base.GetLocalStreamFromPackage(uriString, mode: mode, access: access);
-            if (absStream != null)
-                return absStream;
+            var absBytes = base.GetBytesFromPackageOrExternal(uriString);
+            if (absBytes != null)
+                return absBytes;
 
             // now, split uri string (again) for ourselves
             var sap = AdminShellUtil.GetSchemeAndPath(uriString);
@@ -1133,7 +1106,99 @@ namespace AdminShellNS
             if (part == null)
                 throw (new Exception(
                     string.Format($"Cannot access part {uriString} in {_fn}. Aborting!")));
-            return part.GetStream(mode, access);
+
+            // read bytes
+            using (var stream = part.GetStream(FileMode.Open, FileAccess.Read))
+            using (MemoryStream ms = new MemoryStream())
+            {
+                stream.CopyTo(ms);
+                return ms.ToArray();
+            }
+        }
+
+        public override async Task<byte[]> GetBytesFromPackageOrExternalAsync(
+            string uriString,
+            string aasId = null,
+            string smId = null,
+            string idShortPath = null)
+        {
+            // IMPORTANT! First try to use the base implementation to get an stream to
+            // HTTP or ABSOLUTE file
+            var absBytes = await base.GetBytesFromPackageOrExternalAsync(uriString);
+            if (absBytes != null)
+                return absBytes;
+
+            // now, split uri string (again) for ourselves
+            var sap = AdminShellUtil.GetSchemeAndPath(uriString);
+            if (sap == null)
+                return null;
+
+            // now, it has to be an package file
+            if (_openPackage == null)
+                throw (new Exception(string.Format($"AASX Package {_fn} not opened. Aborting!")));
+
+            // exist
+            var puri = new Uri(sap.Path, UriKind.RelativeOrAbsolute);
+            if (!_openPackage.PartExists(puri))
+                throw (new Exception(string.Format($"AASX Package has no part {sap.Path}. Aborting!")));
+
+            // get part
+            var part = _openPackage.GetPart(puri);
+            if (part == null)
+                throw (new Exception(
+                    string.Format($"Cannot access part {sap.Path} in {_fn}. Aborting!")));
+
+            // read bytes
+            using (var stream = part.GetStream(FileMode.Open, FileAccess.Read))
+            using (MemoryStream ms = new MemoryStream())
+            {
+                await stream.CopyToAsync(ms);
+                return ms.ToArray();
+            }
+        }
+
+        public override bool PutBytesToPackageOrExternal(
+            string uriString,
+            byte[] data,
+            string aasId = null,
+            string smId = null,
+            string idShortPath = null)
+        {
+            // split uri string
+            var sap = AdminShellUtil.GetSchemeAndPath(uriString);
+            if (sap == null)
+                return false;
+
+            // if not a file, refer to base
+            // also, if package is not open or is no local file
+            if (sap.Scheme != "file"
+                || _openPackage == null
+                || !IsLocalFile(uriString))
+            {
+                return base.PutBytesToPackageOrExternal(uriString, data, aasId, smId, idShortPath);
+            }
+
+            // now, we're supposed to handle it!
+
+            // exist
+            var puri = new Uri(sap.Path, UriKind.RelativeOrAbsolute);
+            if (!_openPackage.PartExists(puri))
+                throw (new Exception(string.Format($"AASX Package has no part {sap.Path}. Aborting!")));
+
+            // get part
+            var part = _openPackage.GetPart(puri);
+            if (part == null)
+                throw (new Exception(
+                    string.Format($"Cannot access part {sap.Path} in {_fn}. Aborting!")));
+
+            // read bytes
+            using (var stream = part.GetStream(FileMode.Create, FileAccess.Write))
+            using (MemoryStream ms = new MemoryStream(data))
+            {
+                ms.CopyTo(stream);
+            }
+
+            return true;
         }
 
         public async Task ReplaceSupplementaryFileInPackageAsync(string sourceUri, string targetFile, string targetContentType, Stream fileContent)
@@ -1152,7 +1217,7 @@ namespace AdminShellNS
             fileContent.Position = 0;
             using (Stream dest = packagePart.GetStream())
             {
-                fileContent.CopyTo(dest);
+                await fileContent.CopyToAsync(dest);
             }
         }
 
@@ -1186,11 +1251,7 @@ namespace AdminShellNS
             return res;
         }
 
-        /// <remarks>
-        /// Ensures:
-        /// <ul><li><c>result == null || result.CanRead</c></li></ul>
-        /// </remarks>
-        public override Stream GetLocalThumbnailStream(ref Uri thumbUri)
+        public override byte[] GetLocalThumbnailBytes(ref Uri thumbUri)
         {
             // access
             if (_openPackage == null)
@@ -1212,51 +1273,14 @@ namespace AdminShellNS
             if (thumbPart == null)
                 throw (new Exception("Unable to find AASX thumbnail. Aborting!"));
 
-            var result = thumbPart.GetStream(FileMode.Open);
-
-            // Post-condition
-            if (!(result == null || result.CanRead))
+            // read bytes
+            using (var stream = thumbPart.GetStream(FileMode.Open, FileAccess.Read))
+            using (MemoryStream ms = new MemoryStream())
             {
-                throw new InvalidOperationException("Unexpected unreadable result stream");
+                stream.CopyTo(ms);
+                return ms.ToArray();
             }
-
-            return result;
-        }
-
-        public override Stream GetThumbnailStreamFromAasOrPackage(string aasId)
-        {
-            // find aas?
-            var aas = AasEnv?.FindAasById(aasId);
-            if (aas?.AssetInformation?.DefaultThumbnail?.Path?.HasContent() == true)
-            {
-                try
-                {
-                    // Note: could also use http://...
-                    var s1 = GetLocalStreamFromPackage(uriString: aas.AssetInformation.DefaultThumbnail.Path);
-                    if (s1 != null)
-                        return s1;
-                } catch (Exception ex)
-                {
-                    LogInternally.That.CompletelyIgnoredError(ex);
-                }
-            }
-
-            // or local package?
-            try
-            {
-                Uri dummy = null;
-                var s2 = GetLocalThumbnailStream(ref dummy);
-                if (s2 != null)
-                    return s2;
-            }
-            catch (Exception ex)
-            {
-                LogInternally.That.CompletelyIgnoredError(ex);
-            }
-
-            // no
-            return null;
-        }
+        }        
 
         public override ListOfAasSupplementaryFile GetListOfSupplementaryFiles()
         {

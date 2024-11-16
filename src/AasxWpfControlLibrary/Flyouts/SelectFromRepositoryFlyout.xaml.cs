@@ -26,6 +26,7 @@ using AasxIntegrationBase;
 using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
 using AasxWpfControlLibrary.PackageCentral;
+using AdminShellNS;
 using AnyUi;
 using Newtonsoft.Json;
 
@@ -134,11 +135,23 @@ namespace AasxPackageExplorer
         private void ButtonOk_Click(object sender, RoutedEventArgs e)
         {
             // search
-            var ri = DiaData?.SearchId(TextBoxAssetId.Text);
+            var assid = TextBoxAssetId.Text;
+            var ri = DiaData?.SearchId(assid);
             if (ri != null)
             {
                 DiaData.Result = true;
                 DiaData.ResultItem = ri;
+                DiaData.ResultId = assid;
+                ControlClosed?.Invoke();
+                return;
+            }
+
+            // use the asset id only
+            if (assid.HasContent())
+            {
+                DiaData.Result = true;
+                DiaData.ResultItem = null;
+                DiaData.ResultId = assid;
                 ControlClosed?.Invoke();
                 return;
             }

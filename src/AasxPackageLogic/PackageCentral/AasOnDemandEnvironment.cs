@@ -58,7 +58,8 @@ namespace AasxPackageLogic.PackageCentral
     /// This class provides some service functions to manage on demand list of Identifiables.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class OnDemandListIdentifiable<T> : OnDemandList<T, AasIdentifiableSideInfo> where T : Aas.IIdentifiable
+    public class OnDemandListIdentifiable<T> : OnDemandList<T, AasIdentifiableSideInfo>, IClass 
+        where T : Aas.IIdentifiable
     {
         public int FindSideInfoIndexFromId(string id)
         {
@@ -95,6 +96,44 @@ namespace AasxPackageLogic.PackageCentral
                     return smsi.GetSideInfo(ndx);
             }
             return null;
+        }
+
+        //
+        // make this class suitable for IClass as well
+        //
+
+        IEnumerable<IClass> IClass.DescendOnce()
+        {
+            foreach (var it in this)
+                yield return it;
+        }
+
+        IEnumerable<IClass> IClass.Descend()
+        {
+            foreach (var it in this)
+            {
+                yield return it;
+                foreach (var i2 in it.Descend())
+                    yield return i2;
+            }
+        }
+
+        void IClass.Accept(Visitation.IVisitor visitor)
+        {
+        }
+
+        void IClass.Accept<TContext>(Visitation.IVisitorWithContext<TContext> visitor, TContext context)
+        {
+        }
+
+        T1 IClass.Transform<T1>(Visitation.ITransformer<T1> transformer)
+        {
+            return default(T1);
+        }
+
+        T1 IClass.Transform<TContext, T1>(Visitation.ITransformerWithContext<TContext, T1> transformer, TContext context)
+        {
+            return default(T1);
         }
     }
 

@@ -743,23 +743,23 @@ namespace AasxPackageExplorer
                         if (PackageCentral.MainAvailable)
                             try
                             {
-                                var thumbStream = PackageCentral.Main.GetThumbnailStreamFromAasOrPackage(tvlaas.theAas.Id);
-                                if (thumbStream != null)
-                                { 
-                                    // load image
-                                    var bi = new BitmapImage();
-                                    bi.BeginInit();
+                                var bytes = PackageCentral.Main.GetThumbnailBytesFromAasOrPackage(tvlaas.theAas.Id);
+                                if (bytes != null)
+                                    using (var ms = new MemoryStream(bytes))
+                                    { 
+                                        // load image
+                                        var bi = new BitmapImage();
+                                        bi.BeginInit();
 
-                                    // See https://stackoverflow.com/a/5346766/1600678
-                                    bi.CacheOption = BitmapCacheOption.OnLoad;
+                                        // See https://stackoverflow.com/a/5346766/1600678
+                                        bi.CacheOption = BitmapCacheOption.OnLoad;
 
-                                    bi.StreamSource = thumbStream;
-                                    bi.EndInit();
+                                        bi.StreamSource = ms;
+                                        bi.EndInit();
 
-                                    this.AssetPic.Source = bi;
-                                    picFound = true;
-                                    thumbStream.Close();
-                                }
+                                        this.AssetPic.Source = bi;
+                                        picFound = true;
+                                    }
                             }
                             catch (Exception ex)
                             {
@@ -1729,11 +1729,11 @@ namespace AasxPackageExplorer
             }
         }
 
-        private async Task<Aas.IIdentifiable> UiSearchRepoAndExtendEnvironment(
+        public async Task<Aas.IIdentifiable> UiSearchRepoAndExtendEnvironmentAsync(
             AdminShellPackageEnvBase packEnv,
             Aas.IReference workRef)
         {
-            Task.Yield();
+            await Task.Yield();
 
             // access
             if (packEnv == null || workRef?.IsValid() != true)
@@ -1789,11 +1789,13 @@ namespace AasxPackageExplorer
                     record);
 
                 var newIdfs = new List<Aas.IIdentifiable>();
+                var loadedIdfs = new List<Aas.IIdentifiable>();
                 var loadRes = await PackageContainerHttpRepoSubset.LoadFromSourceInternalAsync(
                     fullItemLocation: fullItemLocation,
                     targetEnv: packEnv,
                     loadNew: false,
                     trackNewIdentifiables: newIdfs,
+                    trackLoadedIdentifiables: loadedIdfs,
                     containerOptions: containerOptions,
                     runtimeOptions: PackageCentral.CentralRuntimeOptions);
 
@@ -1842,7 +1844,15 @@ namespace AasxPackageExplorer
                     if (PackageCentral.MainAvailable && PackageCentral.Main.AasEnv != null)
                         bo = PackageCentral.Main.AasEnv.FindReferableByReference(work);
 
-                    // if not, may be in aux package
+                    // Prio 2: check for connected repositories
+                    // (An actual "up-to-date" hit in repo in more valuable than a stored container on file space)
+                    if (firstTime && bo == null)
+                    {
+                        bo = await UiSearchRepoAndExtendEnvironmentAsync(PackageCentral.Main, work);
+                        firstTime = false;
+                    }
+
+                    // if not, may be in aux package (not sure, if this works)
                     if (bo == null && PackageCentral.Aux != null && PackageCentral.Aux.AasEnv != null)
                         bo = PackageCentral.Aux.AasEnv.FindReferableByReference(work);
 
@@ -1861,15 +1871,7 @@ namespace AasxPackageExplorer
                         bo = boInfo?.BusinessObject;
                     }
 
-                    // TODO .. try search in connected repositories!!!
-                    // Note: only now, after checking the "cheaper" alternatives
-                    if (firstTime && bo == null)
-                    {
-                        bo = await UiSearchRepoAndExtendEnvironment(PackageCentral.Main, work);
-                        firstTime = false;
-                    }
-
-                    // still yes?
+                    // anything found?
                     if (bo != null)
                     {
                         // try to look up in visual elements
@@ -2827,18 +2829,32 @@ namespace AasxPackageExplorer
                     }
                 }
 
+                // no? Try to find the business object
+                var bo = hi?.VisualElement?.GetMainDataObject();
+                if (bo != null)
+                {
+                    if (DisplayElements.TrySelectMainDataObject(bo, wishExpanded: true, alsoDereferenceObjects: true))
+                    {
+                        // fake selection
+                        RedrawElementView();
+                        DisplayElements.Refresh();
+                        TakeOverContentEnable(false);
+
+                        // done
+                        return;
+                    }
+                }
+
                 // no? .. is there a way to another file?
                 if (PackageCentral.Repositories != null && hi?.ReferableAasId != null
                     && hi.ReferableReference != null)
                 {
-                    ;
-
                     // try lookup file in file repository
                     var fi = PackageCentral.Repositories.FindByAasId(hi.ReferableAasId.Trim());
                     if (fi == null)
                     {
-                        Log.Singleton.Error(
-                            $"Cannot lookup aas id {hi.ReferableAasId} in file repository.");
+                        Log.Singleton.Info(
+                            $"History: Cannot lookup aas id {hi.ReferableAasId} in file repository.");
                         return;
                     }
 
@@ -2846,7 +2862,7 @@ namespace AasxPackageExplorer
                     var sri = ListOfVisualElement.StripSupplementaryReferenceInformation(hi.ReferableReference);
 
                     // load it (safe)
-                    object bo = null;
+                    bo = null;
                     try
                     {
                         var boInfo = await LoadFromFileRepository(fi, sri.CleanReference);
@@ -3179,6 +3195,56 @@ namespace AasxPackageExplorer
         {
             if (sender == ShowContent && _showContentElement != null && PackageCentral.MainAvailable)
             {
+                //
+                // Text edit of BLOB?
+                //
+
+                if (this._showContentElement is Aas.IBlob blb
+                    && MainMenu?.IsChecked("EditMenu") == true
+                    && AdminShellUtil.CheckForTextContentType(blb.ContentType))
+                {
+                    Log.Singleton.Info("Trying edit multiline content from {0} ..", blb.IdShort);
+                    try
+                    {
+                        var uc = new AnyUiDialogueDataTextEditor(
+                                                    caption: $"Edit Blob '{"" + blb.IdShort}'",
+                                                    mimeType: blb.ContentType,
+                                                    text: Encoding.Default.GetString(blb.Value ?? new byte[0]));
+                        if (this.DisplayContext.StartFlyoverModal(uc))
+                        {
+                            blb.Value = Encoding.Default.GetBytes(uc.Text);
+                            RedrawElementView();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Singleton.Error(
+                            ex, $"When editing content from {blb.IdShort}, an error occurred");
+                        return;
+                    }
+                    Log.Singleton.Info("Content from {0} edited.", blb.IdShort);
+                    return;
+                }
+
+                if (this._showContentElement is Aas.IFile file
+                    && MainMenu?.IsChecked("EditMenu") == true
+                    && AdminShellUtil.CheckForTextContentType(file.ContentType))
+                {
+                    Log.Singleton.Info("Trying edit multiline content from {0} ..", file.IdShort);
+
+                    DispEditHelperModules.DisplayOrEditEntityFileResource_EditTextFile(
+                        DisplayContext, PackageCentral.Main,
+                        file.ContentType,
+                        file.Value);
+
+                    Log.Singleton.Info("Content from {0} edited.", file.IdShort);
+                    return;
+                }
+
+                //
+                // Display?
+                //
+
                 Tuple<object, string> contentFound = null;
                 if (_showContentElement is Aas.IFile scFile)
                     contentFound = new Tuple<object, string>(scFile.Value, scFile.ContentType);
@@ -3231,32 +3297,6 @@ namespace AasxPackageExplorer
                         return;
                     }
                     Log.Singleton.Info("Content {0} displayed.", contentFound.Item1);
-                }
-
-                if (this._showContentElement is Aas.IBlob blb
-                    && MainMenu?.IsChecked("EditMenu") == true
-                    && AdminShellUtil.CheckForTextContentType(blb.ContentType))
-                {
-                    Log.Singleton.Info("Trying edit multiline content from {0} ..", blb.IdShort);
-                    try
-                    {
-                        var uc = new AnyUiDialogueDataTextEditor(
-                                                    caption: $"Edit Blob '{"" + blb.IdShort}'",
-                                                    mimeType: blb.ContentType,
-                                                    text: Encoding.Default.GetString(blb.Value ?? new byte[0]));
-                        if (this.DisplayContext.StartFlyoverModal(uc))
-                        {
-                            blb.Value = Encoding.Default.GetBytes(uc.Text);
-                            RedrawElementView();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Singleton.Error(
-                            ex, $"When editing content from {blb.IdShort}, an error occurred");
-                        return;
-                    }
-                    Log.Singleton.Info("Content from {0} edited.", blb.IdShort);
                 }
             }
         }

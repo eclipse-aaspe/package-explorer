@@ -1561,14 +1561,6 @@ namespace AasxPackageLogic
             {
                 ticket.StartExec();
 
-                // access
-                if (PackageCentral.Repositories == null || PackageCentral.Repositories.Count < 1)
-                {
-                    LogErrorToTicket(ticket,
-                        "AASX File Repository: No repository currently available! Please open.");
-                    return;
-                }
-
                 // make a lambda
                 Action<PackageContainerRepoItem> lambda = (ri) =>
                 {
@@ -1601,7 +1593,8 @@ namespace AasxPackageLogic
                 };
 
                 // get the list of items
-                var repoItems = PackageCentral.Repositories.EnumerateItems().ToList();
+                var repoItems = PackageCentral.Repositories?.EnumerateItems().ToList()
+                                ?? new List<PackageContainerRepoItem>();
 
                 // scripted?
                 if (ticket["Index"] is int)
@@ -1650,7 +1643,20 @@ namespace AasxPackageLogic
                     uc.Items = repoItems;
                     if (DisplayContext.StartFlyoverModal(uc))
                     {
-                        lambda(uc.ResultItem);
+                        // try the main window for remote repos
+                        if (uc.ResultId != null)
+                        {
+                            var rf = new Aas.Reference(ReferenceTypes.ExternalReference,
+                                    (new Aas.IKey[] { new Aas.Key(KeyTypes.GlobalReference, uc.ResultId) }).ToList());
+
+                            var rres = await MainWindow?.UiSearchRepoAndExtendEnvironmentAsync(PackageCentral.Main, rf);
+                            if (rres != null)
+                                return;
+                        }
+
+                        // got an file repo item?
+                        if (uc.ResultItem != null)
+                            lambda(uc.ResultItem);
                     }
                 }
             }
