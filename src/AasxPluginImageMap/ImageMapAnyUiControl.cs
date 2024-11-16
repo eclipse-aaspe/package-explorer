@@ -397,7 +397,7 @@ namespace AasxPluginImageMap
                     {
                         try
                         {
-                            return await _package.GetLocalStreamFromPackageAsync(
+                            return await _package.GetBytesFromPackageOrExternalAsync(
                                 uriString: fe.Value,
                                 aasId: "" + aas?.Id,
                                 smId: "" + _submodel.Id,
@@ -409,10 +409,10 @@ namespace AasxPluginImageMap
                         return null;
                     });
                 task.Wait();
-                var stream = task.Result;
+                var imgBytes = task.Result;
 
                 // convert to image
-                bi = AnyUiGdiHelper.LoadBitmapInfoFromStream(stream);
+                bi = AnyUiGdiHelper.LoadBitmapInfoFromBytes(imgBytes);
             }
 
             // BLOB

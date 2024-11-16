@@ -37,6 +37,7 @@ using AasxPackageLogic.PackageCentral;
 using System.Threading.Tasks;
 using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 using System.Security.Cryptography;
+using System.Collections;
 
 namespace AasxPackageLogic
 {
@@ -2396,7 +2397,6 @@ namespace AasxPackageLogic
         // File / Resource attributes
         // 
 
-#if __not_required_obsolete_by_PUT_attachment_operation
         public class CentralizeFilesRecord
         {
             public string CentralStoreUri = "";
@@ -2561,7 +2561,7 @@ namespace AasxPackageLogic
                 return false;
 
             // try accessing it
-            var ba = await packEnv.GetByteArrayFromExternalInternalUri(filePath);
+            var ba = await packEnv.GetBytesFromPackageOrExternalAsync(filePath);
             if (ba == null || ba.Length < 1)
             {
                 Log.Singleton.Error("Centralize file: cannot read file: {0}", filePath);
@@ -2623,7 +2623,74 @@ namespace AasxPackageLogic
 
             return true;
         }
-#endif
+
+        public static bool DisplayOrEditEntityFileResource_EditTextFile(
+            AnyUiContextBase context,
+            AdminShellPackageEnvBase env,
+            string valueContent,
+            string valuePath)
+        {
+            // access
+            if (env == null || context == null)
+                return false;
+
+            // try
+            try
+            {
+                // try find ..
+                var psfs = env.GetListOfSupplementaryFiles();
+                var psf = psfs?.FindByUri(valuePath);
+                if (psf == null)
+                {
+                    Log.Singleton.Error(
+                        $"Not able to locate supplementary file {valuePath} for edit. " +
+                        $"Aborting!");
+                    return false;
+                }
+
+                // try read ..
+                Log.Singleton.Info($"Reading text-file {valuePath} ..");
+                var contents = AdminShellUtil.GetStringFromBytes(
+                        env.GetBytesFromPackageOrExternal(valuePath));
+
+                // test
+                if (contents == null)
+                {
+                    Log.Singleton.Error(
+                        $"Not able to read contents from  supplmentary file {valuePath} " +
+                        $"for edit. Aborting!");
+                    return false;
+                }
+
+                // edit
+                var uc = new AnyUiDialogueDataTextEditor(
+                            caption: $"Edit text-file '{valuePath}'",
+                            mimeType: valueContent,
+                            text: contents);
+                if (!context.StartFlyoverModal(uc))
+                    return false;
+
+                // save
+                byte[] bytes = Encoding.ASCII.GetBytes(uc.Text);
+                try
+                {
+                    // TODO: add IdShortPath !!
+                    env.PutBytesToPackageOrExternal(
+                        valuePath, bytes);
+                }
+                catch (Exception ex)
+                {
+                    Log.Singleton.Error(ex, "when storing contents to text-file: " + valuePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(
+                    ex, $"Edit text-file {valuePath} in package.");
+            }
+
+            return true;
+        }
 
         public void DisplayOrEditEntityFileResource(AnyUiStackPanel stack,
             AdminShellPackageEnvBase packEnv,
@@ -2734,10 +2801,8 @@ namespace AasxPackageLogic
                             "Creates a text file and adds it to the AAS environment.")
                         .AddAction("edit-text", "Edit text file",
                             "Edits the associated text file and updates it to the AAS environment.")
-#if __not_required_obsolete_by_PUT_attachment_operation
                         .AddAction("centralize-file", "Centralize file",
                             "Rename file, copy it to central file storage and potentially delete supplemental file.")
-#endif
                         ,
                     ticketActionAsync: async (buttonNdx, ticket) =>
 
@@ -2756,7 +2821,7 @@ namespace AasxPackageLogic
                                     if (psf == null)
                                     {
                                         Log.Singleton.Error(
-                                            $"Not able to locate supplmentary file {valuePath} for removal! " +
+                                            $"Not able to locate supplementary file {valuePath} for removal! " +
                                             $"Aborting!");
                                     }
                                     else
@@ -2858,73 +2923,15 @@ namespace AasxPackageLogic
 
                         if (buttonNdx == 2)
                         {
-                            try
-                            {
-                                // try find ..
-                                var psfs = packages.Main.GetListOfSupplementaryFiles();
-                                var psf = psfs?.FindByUri(valuePath);
-                                if (psf == null)
-                                {
-                                    Log.Singleton.Error(
-                                        $"Not able to locate supplmentary file {valuePath} for edit. " +
-                                        $"Aborting!");
-                                    return new AnyUiLambdaActionNone();
-                                }
-
-                                // try read ..
-                                Log.Singleton.Info($"Reading text-file {valuePath} ..");
-                                string contents;
-                                using (var stream = packages.Main.GetStreamFromUriOrLocalPackage(valuePath))
-                                {
-                                    using (var sr = new StreamReader(stream))
-                                    {
-                                        // read contents
-                                        contents = sr.ReadToEnd();
-                                    }
-                                }
-
-                                // test
-                                if (contents == null)
-                                {
-                                    Log.Singleton.Error(
-                                        $"Not able to read contents from  supplmentary file {valuePath} " +
-                                        $"for edit. Aborting!");
-                                    return new AnyUiLambdaActionNone();
-                                }
-
-                                // edit
-                                var uc = new AnyUiDialogueDataTextEditor(
-                                            caption: $"Edit text-file '{valuePath}'",
-                                            mimeType: valueContent,
-                                            text: contents);
-                                if (!this.context.StartFlyoverModal(uc))
-                                    return new AnyUiLambdaActionNone();
-
-                                // save
-                                using (var stream = packages.Main.GetStreamFromUriOrLocalPackage(
-                                    valuePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
-                                {
-                                    using (var sw = new StreamWriter(stream))
-                                    {
-                                        // write contents
-                                        sw.Write(uc.Text);
-                                    }
-                                }
-
-                                // value event
-                                this.AddDiaryEntry(containingObject, new DiaryEntryUpdateValue());
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Singleton.Error(
-                                    ex, $"Edit text-file {valuePath} in package.");
-                            }
-
-                            // reshow
-                            return new AnyUiLambdaActionRedrawEntity();
+                            if (DisplayOrEditEntityFileResource_EditTextFile(
+                                context, packages.Main,
+                                valueContent: valueContent,
+                                valuePath: valuePath))
+                                return new AnyUiLambdaActionRedrawEntity();
+                            else
+                                return new AnyUiLambdaActionNone();
                         }
 
-#if __not_required_obsolete_by_PUT_attachment_operation
                         if (buttonNdx == 3 && valuePath.HasContent())
                         {
                             var changed = false;
@@ -2951,7 +2958,6 @@ namespace AasxPackageLogic
                             if (changed)
                                 return new AnyUiLambdaActionRedrawAllElements(nextFocus: relatedReferable);
                         }
-#endif
 
                         return new AnyUiLambdaActionNone();
                     });

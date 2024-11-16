@@ -419,6 +419,22 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         //
+        // Determine full item locations from file repositories, but also connected repositories
+        //
+
+        //public enum FindIdKind { Asset, Aas }
+
+        //public string FindFullItemLocationForId(
+        //    FindIdKind kind,
+        //    string id,
+        //    Action<PackageContainerListBase> lambdaFoundContainer)
+        //{
+        //    // access
+        //    if (id?.HasContent() != true)
+        //        return null;
+        //}
+
+        //
         // Event management
         //
 

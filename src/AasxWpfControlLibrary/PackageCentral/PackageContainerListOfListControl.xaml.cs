@@ -14,6 +14,7 @@ using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
 using AasxPackageLogic.PackageCentral.AasxFileServerInterface;
 using AdminShellNS;
+using Aas = AasCore.Aas3_0;
 using AnyUi;
 using System;
 using System.IO;
@@ -22,6 +23,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using static QRCoder.PayloadGenerator;
 
 namespace AasxWpfControlLibrary.PackageCentral
 {
@@ -273,16 +275,14 @@ namespace AasxWpfControlLibrary.PackageCentral
 
                 if (cmd == "filerepoaddcurrent")
                 {
-                    // check
-                    var veAas = _manageVisuElems?.GetSelectedItem() as VisualElementAdminShell;
+                    // check, if to get all infos
+                    var veAass = _manageVisuElems?.GetSelectedItems()?.ToList();
+                    var veEnv = veAass.FirstOrDefault()?.FindFirstParent((ve) =>
+                                    (ve is VisualElementEnvironmentItem vev
+                                     && vev.theItemType == VisualElementEnvironmentItem.ItemType.Package), includeThis: false)
+                                        as VisualElementEnvironmentItem;
 
-                    var veEnv = veAas?.FindFirstParent((ve) =>
-                    (ve is VisualElementEnvironmentItem vev
-                    && vev.theItemType == VisualElementEnvironmentItem.ItemType.Package), includeThis: false)
-                        as VisualElementEnvironmentItem;
-
-                    if (veAas == null || veAas.theAas == null || veAas.theEnv == null || veAas.thePackage == null
-                        || veEnv == null || !veEnv.thePackageSourceFn.HasContent())
+                    if (veAass == null || veAass.Count() < 1 || veEnv == null || !veEnv.thePackageSourceFn.HasContent())
                     {
                         await _flyout?.GetDisplayContext()?.MessageBoxFlyoutShowAsync(
                             "No valid AAS selected. The application needs to be in edit mode. " +
@@ -291,16 +291,39 @@ namespace AasxWpfControlLibrary.PackageCentral
                         return;
                     }
 
-                    // generate appropriate container
-                    var cnt = PackageContainerFactory.GuessAndCreateFor(
-                        null, veEnv.thePackageSourceFn, veEnv.thePackageSourceFn,
-                        overrideLoadResident: false,
-                        containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr));
-                    if (cnt is PackageContainerRepoItem ri)
+                    // now, for each
+                    foreach (var ve in veAass)
                     {
-                        ri.Env = veAas.thePackage;
-                        ri.CalculateIdsTagAndDesc();
-                        fr.Add(ri);
+                        // more specific access
+                        if (ve is not VisualElementAdminShell veAas
+                            || veAas.theAas == null || veAas.theEnv == null || veAas.thePackage == null
+                            || veAas.theAas.Id?.HasContent() != true)
+                            continue;
+
+                        // check for the location of the environment or more specifically
+                        var location = veEnv.thePackageSourceFn;
+                        if (veAas.theEnv?.AssetAdministrationShells is OnDemandListIdentifiable<Aas.IAssetAdministrationShell> odli)
+                        {
+                            var ndx = odli.FindSideInfoIndexFromId(veAas.theAas.Id);
+                            if (ndx >= 0)
+                            {
+                                var si = odli.GetSideInfo(ndx);
+                                if (si.StubLevel >= AasIdentifiableSideInfoLevel.IdWithEndpoint)
+                                    location = si.Endpoint.ToString();
+                            }
+                        }
+
+                        // generate appropriate container
+                        var cnt = PackageContainerFactory.GuessAndCreateFor(
+                            null, location, location,
+                            overrideLoadResident: false,
+                            containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr));
+                        if (cnt is PackageContainerRepoItem ri)
+                        {
+                            ri.Env = veAas.thePackage;
+                            ri.CalculateIdsTagAndDesc(specificAas: veAas.theAas);
+                            fr.Add(ri);
+                        }
                     }
                 }
 

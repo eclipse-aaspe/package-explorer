@@ -278,6 +278,7 @@ namespace AasxPackageLogic
 
         public IList<PackageContainerRepoItem> Items = null;
         public PackageContainerRepoItem ResultItem = null;
+        public string ResultId = null;
 
         public AnyUiDialogueDataSelectFromRepository(
             string caption = "",

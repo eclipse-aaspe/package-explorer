@@ -508,6 +508,17 @@ namespace BlazorUI.Data
             return null;
         }
 
+        public async Task<Aas.IIdentifiable> UiSearchRepoAndExtendEnvironmentAsync(
+            AdminShellPackageEnvBase packEnv,
+            Aas.IReference workRef)
+        {
+            await Task.Yield();
+
+            // TODO: take over from WPF app
+
+            return null;
+        }
+
         public async Task UiHandleNavigateTo(
             Aas.IReference targetReference,
             bool alsoDereferenceObjects = true)
