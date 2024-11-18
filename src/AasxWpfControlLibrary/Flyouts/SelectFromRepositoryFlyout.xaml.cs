@@ -136,6 +136,9 @@ namespace AasxPackageExplorer
         {
             // search
             var assid = TextBoxAssetId.Text;
+
+            // The following is replaced by FindByAssetId.. in repository search
+#if __old
             var ri = DiaData?.SearchId(assid);
             if (ri != null)
             {
@@ -145,6 +148,7 @@ namespace AasxPackageExplorer
                 ControlClosed?.Invoke();
                 return;
             }
+#endif
 
             // use the asset id only
             if (assid.HasContent())

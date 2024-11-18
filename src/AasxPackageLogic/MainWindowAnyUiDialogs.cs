@@ -1973,7 +1973,7 @@ namespace AasxPackageLogic
             catch (Exception ex)
             {
                 Log.Singleton.Error(
-                    ex, $"When loading aasx file repository {Options.Curr.AasxRepositoryFn}");
+                    ex, $"When loading aasx file repository {Options.Curr.AasxRepositoryFns}");
             }
 
             return null;
@@ -2007,7 +2007,7 @@ namespace AasxPackageLogic
 			catch (Exception ex)
 			{
 				Log.Singleton.Error(
-					ex, $"When loading aasx file repository {Options.Curr.AasxRepositoryFn}");
+					ex, $"When loading aasx file repository {Options.Curr.AasxRepositoryFns}");
 			}
 
 			return null;

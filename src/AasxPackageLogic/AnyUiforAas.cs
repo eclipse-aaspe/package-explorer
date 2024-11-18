@@ -287,6 +287,7 @@ namespace AasxPackageLogic
         {
         }
 
+#if __old
         public PackageContainerRepoItem SearchId(string aid)
         {
             // condition
@@ -309,6 +310,7 @@ namespace AasxPackageLogic
 
             return null;
         }
+#endif
     }
 
     public class AnyUiDialogueDataSelectQualifierPreset : AnyUiDialogueDataBase
