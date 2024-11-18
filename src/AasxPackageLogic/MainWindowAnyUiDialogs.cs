@@ -609,6 +609,41 @@ namespace AasxPackageLogic
                 }
             }
 
+            if (cmd == "createrepofromapi")
+            {
+                ticket.StartExec();
+
+                // edit infos
+                // TODO: adopt from?
+                var record = (null) ?? new PackageContainerHttpRepoSubset.ConnectExtendedRecord();
+
+                var uiRes = await PackageContainerHttpRepoSubset.PerformConnectExtendedDialogue(
+                    ticket, DisplayContext,
+                    "Specify Registry or Repository base",
+                    record,
+                    scope: ConnectExtendedScope.BaseInfo);
+
+                if (!uiRes)
+                    return;
+
+                if (record?.BaseAddress.HasContent() != true)
+                {
+                    LogErrorToTicket(ticket, "No base address for repository given!");
+                    return;
+                }
+
+                // ok
+                if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+                {
+                    var fr = new PackageContainerListHttpRestRepository(
+                            record.BaseAddress, this.PackageCentral.CentralRuntimeOptions);
+                    fr.Header = "New remote Repository";
+                    MainWindow.UiShowRepositories(visible: true);
+                    PackageCentral.Repositories.AddAtTop(fr);
+                }
+            }
+
+
             if (cmd == "comparesmt")
             {
                 // start
@@ -779,7 +814,8 @@ namespace AasxPackageLogic
                 // ok
                 if (endpoint.Contains("old"))
                 {
-                    var fr = new PackageContainerListHttpRestRepository(endpoint);
+                    var fr = new PackageContainerListHttpRestRepository(endpoint,
+                        PackageCentral.CentralRuntimeOptions);
                     await fr.SyncronizeFromServerAsync();
                     MainWindow.UiShowRepositories(visible: true);
                     PackageCentral.Repositories.AddAtTop(fr);

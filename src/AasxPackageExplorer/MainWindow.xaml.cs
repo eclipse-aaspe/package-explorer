@@ -21,9 +21,6 @@ using AnyUi;
 using Extensions;
 using Microsoft.Win32;
 using Newtonsoft.Json;
-using NPOI.HPSF;
-using NPOI.HSSF.Record;
-using Org.BouncyCastle.Asn1.X509;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -1002,7 +999,37 @@ namespace AasxPackageExplorer
             // what happens on a repo file click
             RepoListControl.FileDoubleClick += async (senderList, repo, fi) =>
             {
-                // access
+                //
+                // special case: registry / repo
+                //
+
+                if (repo is PackageContainerListHttpRestRepository restRepo)
+                {
+                    var fetchContext = new PackageContainerHttpRepoSubsetFetchContext()
+                    {
+                        Record = new ConnectExtendedRecord()
+                        {
+                            BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+                            BaseAddress = restRepo.Endpoint?.ToString()
+                        }
+                    };
+
+                    // refer to (static) function
+                    var res = await DispEditHelperEntities.ExecuteUiForFetchOfElements(
+                        PackageCentral, DisplayContext, 
+                        ticket : null, 
+                        mainWindow: this, 
+                        fetchContext: fetchContext,
+                        preserveEditMode: true,
+                        doEditNewRecord: true,
+                        doCheckTainted: true,
+                        doFetchGoNext: false,
+                        doFetchExec: true);
+                }
+
+                //
+                // "normal" file item
+                //
                 if (repo == null || fi == null)
                     return;
 

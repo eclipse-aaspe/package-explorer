@@ -316,6 +316,16 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         //
+        // GENERAL
+        //
+
+        public static Uri BuildUriForDescription(Uri baseUri)
+        {
+            // try combine
+            return CombineUri(baseUri, $"description");
+        }
+
+        //
         // REPO
         //
 
@@ -548,6 +558,56 @@ namespace AasxPackageLogic.PackageCentral
             return CombineUri(baseUri, $"lookup/shells?assetId={assenc}");
         }
 
+        //
+        // translate PROFILES
+        //
+
+        public class ProfileDescription
+        {
+            public string Id;
+            public string Name;
+            public string Abbreviation;
+
+            public ProfileDescription() { }
+
+            public ProfileDescription(string id, string name, string abbreviation)
+            {
+                Id = id;
+                Name = name;
+                Abbreviation = abbreviation;
+            }
+        }
+
+        public static ProfileDescription[] ProfileDescriptions =
+        {
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/AssetAdministrationShellServiceSpecification/SSP-001", "AAS Full Profile ", "All/Full"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/AssetAdministrationShellServiceSpecification/SSP-002", "AAS Read Profile", "All/Read"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/SubmodelServiceSpecification/SSP-001", "Submodel Full Profile", "SM/Full"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/SubmodelServiceSpecification/SSP-002", "Submodel Read Profile", "SM/Read"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/SubmodelServiceSpecification/SSP-003", "Submodel Value Profile", "SM/Value"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/AasxFileServerServiceSpecification/SSP-001", "AASX File Server Full Profile", "AASX/Full"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/AssetAdministrationShellRegistryServiceSpecification/SSP-001 ", "Asset Administration Shell Registry Full Profile", "AAS-REG/Full"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/AssetAdministrationShellRegistryServiceSpecification/SSP-002", "AAS Registry Read Profile", "AAS-REG/Read"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/SubmodelRegistryServiceSpecification/SSP-001 ", "Submodel Registry Full Profile", "SM-REG/Full"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/SubmodelRegistryServiceSpecification/SSP-002 ", "Submodel Registry Read Profile", "SM-REG/Read"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/DiscoveryServiceSpecification/SSP-001", "Discovery Service Full Profile", "DISC/Full"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/AssetAdministrationShellRepositoryServiceSpecification/SSP-001", "AAS Repository Full Profile", "AAS-REPO/Full"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/AssetAdministrationShellRepositoryServiceSpecification/SSP-002", "AAS Repository Read Profile", "AAS-REPO/Read"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/SubmodelServiceSpecification/SSP-001", "Submodel Repository Full Profile", "SM-REPO/Full"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/SubmodelServiceSpecification/SSP-001", "Submodel Repository Read Profile", "SM-REPO/Read"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/SubmodelServiceSpecification/SSP-003", "Submodel Repository Template Profile", "SMT-REPO/Full"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/SubmodelServiceSpecification/SSP-004", "Submodel Repository Template Read Profile", "SMT-REPO/Read"),
+            new ProfileDescription("https://admin-shell.io/aas/API/3/0/ConceptDescriptionRepositoryServiceSpecification/SSP-001", "Concept Description Repository Full Profile", "CD-REPO/Full")
+        };
+
+        public static ProfileDescription FindProfileDescription(string input)
+        {
+            ProfileDescription pdFound = null;
+            foreach (var pd in ProfileDescriptions)
+                if (pd.Id.Equals(input))
+                    return pd;
+            return null;
+        }
 
         //
         // ALL

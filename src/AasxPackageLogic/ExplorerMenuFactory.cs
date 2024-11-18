@@ -49,8 +49,8 @@ namespace AasxPackageExplorer
                 childs: (new AasxMenu())
                 .AddWpfBlazor(name: "New", header: "_New …", inputGesture: "Ctrl+N",
                     help: "Create new AASX package.")
-                .AddWpfBlazor(name: "Open", header: "_Open …", inputGesture: "Ctrl+O",
-                    help: "Open existing AASX package.",
+                .AddWpfBlazor(name: "Open", header: "_Open (local) …", inputGesture: "Ctrl+O",
+                    help: "Open (local) existing AASX package.",
                     args: new AasxMenuListOfArgDefs()
                         .Add("File", "Source filename including a path and extension."))
                 .AddWpfBlazor(name: "FileRepoQuery", header: "Query open repositories/ registries …", inputGesture: "F12",
@@ -123,6 +123,9 @@ namespace AasxPackageExplorer
                         args: new AasxMenuListOfArgDefs()
                             .AddFromReflection(new PackageContainerHttpRepoSubset.ConnectExtendedRecord()))
                     .AddWpfBlazor(name: "ApiUploadAssistant", header: "Upload assistant …")
+                    .AddWpf(name: "CreateRepoFromApi", header: "Create (local) file repository from API base …",
+                        args: new AasxMenuListOfArgDefs()
+                            .AddFromReflection(new PackageContainerHttpRepoSubset.ConnectExtendedRecord()))
                 )
                 .AddSeparator()
                 .AddMenu(header: "AASX File Repository …", childs: (new AasxMenu())

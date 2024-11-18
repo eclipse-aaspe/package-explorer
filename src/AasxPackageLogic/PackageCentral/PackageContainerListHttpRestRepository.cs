@@ -34,6 +34,10 @@ namespace AasxPackageLogic.PackageCentral
 
         private PackageConnectorHttpRest _connector;
 
+        public string ServerStatus { get; private set; } = "Status unknown!";
+
+        public readonly PackCntRuntimeOptions CentralRuntimeOptions;
+
         /// <summary>
         /// REST endpoint of the AAS repository, that is, without <c>/shells</c> etc. but
         /// with e.g. <c>/api/v3.0/</c>
@@ -45,8 +49,15 @@ namespace AasxPackageLogic.PackageCentral
         // Constructor
         //
 
-        public PackageContainerListHttpRestRepository(string location)
+        public PackageContainerListHttpRestRepository(string location, PackCntRuntimeOptions centralRuntimeOptions)
         {
+            // infos
+            this.Header = "AAS API Repository";
+            this.IsStaticList = false;
+
+            // remember
+            CentralRuntimeOptions = centralRuntimeOptions;
+
             // always have a location
             Endpoint = new Uri(location);
 
@@ -89,6 +100,54 @@ namespace AasxPackageLogic.PackageCentral
 
             // ok
             return true;
+        }
+
+        override public async Task<bool> PrepareStatus()
+        {
+            // for exception handling, mark as potential flaw!
+            ServerStatus = "Error retrieving /description !";
+
+            try
+            {
+                var resObj = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
+                        PackageContainerHttpRepoSubset.BuildUriForDescription(Endpoint),
+                        runtimeOptions: null);
+
+                if (resObj == null || !PackageContainerHttpRepoSubset.HasProperty(resObj, "profiles"))
+                    return false;
+
+                // carefully access
+                var abbrevs = new List<string>();
+                foreach (var pr in resObj.profiles)
+                {
+                    // carefully access
+                    string profile = ("" + pr).Trim();
+                    if (profile?.HasContent() != true)
+                        continue;
+
+                    // find abbrevs
+                    var pd = PackageContainerHttpRepoSubset.FindProfileDescription(profile);
+                    if (pd != null)
+                        abbrevs.Add(pd.Abbreviation);
+                }
+
+                if (abbrevs.Count > 0)
+                    ServerStatus = "Profiles: " + string.Join(", ", abbrevs);
+                else
+                    ServerStatus = "No profiles described!";
+            }
+            catch (Exception ex)
+            {
+                LogInternally.That.SilentlyIgnoredError(ex);
+            }
+
+            return false;
+        }
+
+        override public string GetMultiLineStatusInfo()
+        {
+            return "REPOSITORY at base " + Endpoint + "\n" +
+                "" + ServerStatus;
         }
 
         /// <summary>
