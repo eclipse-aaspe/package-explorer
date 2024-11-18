@@ -217,6 +217,11 @@ namespace AasxWpfControlLibrary.PackageCentral
                     }
                 }
 
+                if (cmd == "filerepoenabletoquery")
+                {
+                    fr.ToBeQueried = !fr.ToBeQueried;
+                }
+
                 if (cmd == "filerepoloadallresident")
                     if (fr is PackageContainerListLocalBase frlb
                         && !(fr is PackageContainerListLastRecentlyUsed))
@@ -463,12 +468,15 @@ namespace AasxWpfControlLibrary.PackageCentral
                     .AddAction("FileRepoSaveAs", "Save as ..", icon: "\U0001f4be")
                     .AddSeparator();
 
+                menu.AddAction("FileRepoEnableToQuery", 
+                        "Enable to be queried ..", icon: "\u26cb", isChecked: fr.ToBeQueried);
+
                 if (!(fr is PackageContainerListLastRecentlyUsed))
                 {
 					menu.AddAction(
                     	"FileRepoLoadAllResident", "Load all resident files ..", icon: "\U0001f503");
 
-					if (fr is PackageContainerListLocal)
+                    if (fr is PackageContainerListLocal)
                     {
                         menu.AddAction(
                             "FileRepoMakeRelative", "Make AASX filenames relative ..", icon: "\u2699");

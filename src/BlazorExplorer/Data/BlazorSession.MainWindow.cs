@@ -510,7 +510,9 @@ namespace BlazorUI.Data
 
         public async Task<Aas.IIdentifiable> UiSearchRepoAndExtendEnvironmentAsync(
             AdminShellPackageEnvBase packEnv,
-            Aas.IReference workRef)
+            Aas.IReference workRef = null,
+            string fullItemLocation = null,
+            bool tryDisplay = false)
         {
             await Task.Yield();
 
@@ -559,9 +561,9 @@ namespace BlazorUI.Data
                         // find?
                         PackageContainerRepoItem fi = null;
                         if (work.Keys[0].Type == Aas.KeyTypes.GlobalReference) //TODO (jtikekar, 0000-00-00): KeyTypes.AssetInformation
-                            fi = PackageCentral.Repositories.FindByAssetId(work.Keys[0].Value.Trim());
+                            fi = await PackageCentral.Repositories.FindByAssetId(work.Keys[0].Value.Trim());
                         if (work.Keys[0].Type == Aas.KeyTypes.AssetAdministrationShell)
-                            fi = PackageCentral.Repositories.FindByAasId(work.Keys[0].Value.Trim());
+                            fi = await PackageCentral.Repositories.FindByAasId(work.Keys[0].Value.Trim());
 
                         var boInfo = await LoadFromFileRepository(fi, work);
                         bo = boInfo?.BusinessObject;

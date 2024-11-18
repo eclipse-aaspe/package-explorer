@@ -1610,7 +1610,7 @@ namespace AasxPackageLogic
                 else
                 if (ticket["AAS"] is string aasid)
                 {
-                    var ri = PackageCentral.Repositories.FindByAasId(aasid);
+                    var ri = await PackageCentral.Repositories.FindByAasId(aasid);
                     if (ri == null)
                     {
                         LogErrorToTicket(ticket, "Repo Query: AAS-Id not found");
@@ -1621,7 +1621,7 @@ namespace AasxPackageLogic
                 else
                 if (ticket["Asset"] is string aid)
                 {
-                    var ri = PackageCentral.Repositories.FindByAssetId(aid);
+                    var ri = await PackageCentral.Repositories.FindByAssetId(aid);
                     if (ri == null)
                     {
                         LogErrorToTicket(ticket, "Repo Query: Asset-Id not found");
@@ -1649,9 +1649,39 @@ namespace AasxPackageLogic
                             var rf = new Aas.Reference(ReferenceTypes.ExternalReference,
                                     (new Aas.IKey[] { new Aas.Key(KeyTypes.GlobalReference, uc.ResultId) }).ToList());
 
-                            var rres = await MainWindow?.UiSearchRepoAndExtendEnvironmentAsync(PackageCentral.Main, rf);
+                            var rres = await MainWindow?.UiSearchRepoAndExtendEnvironmentAsync(
+                                PackageCentral.Main, rf, trySelect: true);
                             if (rres != null)
                                 return;
+                        }
+
+                        // try the remote registries
+                        if (uc.ResultId != null)
+                        {
+                            var ri = await PackageCentral.Repositories.FindByAssetId(uc.ResultId);
+                            if (ri?.Location?.HasContent() == true)
+                            {
+                                // check if load fresh or aggregate
+                                if (PackageCentral.Main is AdminShellPackageDynamicFetchEnv)
+                                {
+                                    // load aggregate
+                                    Log.Singleton.Info("Aggregating location {0} ..", ri.Location);
+                                    var res = await MainWindow?.UiSearchRepoAndExtendEnvironmentAsync(
+                                        PackageCentral.Main, 
+                                        fullItemLocation: ri.Location,
+                                        trySelect: true);
+                                    if (res != null)
+                                        return;
+                                }
+                                else
+                                {
+                                    // load
+                                    Log.Singleton.Info("Switching to location {0} ..", ri.Location);
+                                    MainWindow?.UiLoadPackageWithNew(
+                                        PackageCentral.MainItem, null, ri.Location, onlyAuxiliary: false);
+                                    return;
+                                }
+                            }
                         }
 
                         // got an file repo item?

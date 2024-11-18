@@ -160,6 +160,12 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/shells(|/|/?\?(.*))$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm for looking for single assetIds
+            if (m.Success && location.Contains("assetId"))
+                return false;
+
+            // ok?
             return m.Success;
         }
 
@@ -887,7 +893,7 @@ namespace AasxPackageLogic.PackageCentral
                     // ok
                     operationFound = true;
 
-                    // prepare receiving the descriptors
+                    // prepare receiving the descriptors/ ids
                     var resObj = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
                         new Uri(fullItemLocation), runtimeOptions, allowFakeResponses);
 
@@ -1057,6 +1063,7 @@ namespace AasxPackageLogic.PackageCentral
                 // start with a list of AAS or Submodels (very similar)
                 var isAllAAS = IsValidUriForRepoAllAAS(fullItemLocation);
                 var isAllSM = IsValidUriForRepoAllSubmodel(fullItemLocation);
+                var receivedAllAAS = 0;
                 if (!operationFound && (isAllAAS || isAllSM))
                 {
                     // ok
@@ -1128,6 +1135,7 @@ namespace AasxPackageLogic.PackageCentral
                                                 added = prepSM.AddIfNew(
                                                     idf as Aas.ISubmodel,
                                                     si);
+                                            receivedAllAAS++;
                                             trackLoadedIdentifiables?.Add(idf);
                                             if (added)
                                                 trackNewIdentifiables?.Add(idf);
@@ -1150,6 +1158,65 @@ namespace AasxPackageLogic.PackageCentral
                                 runtimeOptions?.Log?.Error(ex, "Parsing list of all AAS");
                             }
                         });
+
+                }
+
+                // "heal" the GetAllAAS operation from above?
+                // Means, modify query to lookup
+                if (isAllAAS && (receivedAllAAS < 1)
+                    && fullItemLocation.Contains("/shells"))
+                {
+                    // modify query string to provide a list of aas
+                    var filNew = fullItemLocation.Replace("/shells", "/lookup/shells");
+
+                    // prepare receiving the descriptors/ ids
+                    var resObj = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
+                        new Uri(filNew), runtimeOptions, allowFakeResponses);
+
+                    if (resObj == null)
+                    {
+                        runtimeOptions?.Log?.Error("Registry did not return any AAS descriptors! Aborting.");
+                        return null;
+                    }
+
+                    // Have  a list of ids. Decompose into single id.
+                    // Note: Parallel makes no sense, ideally only 1 result (is per AssetId)!!
+                    // TODO: not parallel!
+                    var noRes = true;
+                    foreach (var res in resObj)
+                    {
+                        noRes = false;
+
+                        // in res, have only an id. Get the AAS itself
+                        var aas = await PackageHttpDownloadUtil.DownloadIdentifiableToOK<Aas.IAssetAdministrationShell>(
+                            BuildUriForRepoSingleAAS(baseUri, "" + res, encryptIds: true),
+                            runtimeOptions, allowFakeResponses);
+
+                        // found?
+                        if (aas != null)
+                        {
+                            // add
+                            trackLoadedIdentifiables?.Add(aas);
+                            if (prepAas.AddIfNew(aas, new AasIdentifiableSideInfo()
+                            {
+                                IsStub = false,
+                                StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                Id = aas.Id,
+                                IdShort = aas.IdShort,
+                                Endpoint = new Uri(fullItemLocation)
+                            }))
+                            {
+                                trackNewIdentifiables?.Add(aas);
+                            }
+                        }
+                    }
+
+                    // check again (count)
+                    if (noRes)
+                    {
+                        runtimeOptions?.Log?.Error("Registry did not return any AAS descriptors! Aborting.");
+                        return null;
+                    }
                 }
 
                 // start with single AAS?
