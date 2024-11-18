@@ -273,10 +273,10 @@
                     </Grid.RowDefinitions>
 
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="5"/>
+                        <ColumnDefinition Width="8"/>
                         <ColumnDefinition Width="60"/>
                         <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 

@@ -170,5 +170,40 @@ namespace AasxPackageLogic.PackageCentral
             throw new NotImplementedException("AasxFileRepoHttpRestRepository.GetFullItemLocation()");
         }
 
+        public override async Task<PackageContainerRepoItem> FindByAssetId(string aid)
+        {
+            if (!ToBeQueried)
+                return null;
+
+            try
+            {
+                // try to do this natively
+                var fil = PackageContainerHttpRepoSubset.BuildUriForRegistryAasByAssetLink(Endpoint, aid);
+
+                // prepare receiving the descriptors/ ids
+                var idsObj = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
+                    fil, runtimeOptions: null);
+
+                // Note: GetAllAssetAdministrationShellIdsByAssetLink only returns a list of ids
+                if (idsObj == null)
+                    return null;
+
+                // Have a list of ids. Decompose into single id.
+                // Note: Parallel makes no sense, ideally only 1 result (is per AssetId)!!
+                foreach (var id in idsObj) {
+                    var ri = new PackageContainerRepoItem()
+                    {
+                        Location = PackageContainerHttpRepoSubset.BuildUriForRepoSingleAAS(Endpoint, "" + id)?.ToString()
+                    };
+                    return ri;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogInternally.That.SilentlyIgnoredError(ex);
+            }
+            return null;
+        }
+
     }
 }

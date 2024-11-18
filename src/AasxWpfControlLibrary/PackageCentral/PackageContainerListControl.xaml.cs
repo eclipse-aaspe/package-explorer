@@ -171,7 +171,6 @@ namespace AasxWpfControlLibrary.PackageCentral
             }
         }
 
-
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
             if (sender == this.ButtonQuery)

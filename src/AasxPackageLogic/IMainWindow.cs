@@ -139,7 +139,9 @@ namespace AasxPackageExplorer
 
         public Task<Aas.IIdentifiable> UiSearchRepoAndExtendEnvironmentAsync(
             AdminShellPackageEnvBase packEnv,
-            Aas.IReference workRef);
+            Aas.IReference workRef = null,
+            string fullItemLocation = null,
+            bool trySelect = false);
 
         /// <summary>
         /// Check for menu switch and flush events, if required.

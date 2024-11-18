@@ -1758,23 +1758,19 @@ namespace AasxPackageExplorer
 
         public async Task<Aas.IIdentifiable> UiSearchRepoAndExtendEnvironmentAsync(
             AdminShellPackageEnvBase packEnv,
-            Aas.IReference workRef)
+            Aas.IReference workRef = null,
+            string fullItemLocation = null,
+            bool tryDisplay = false)
         {
             await Task.Yield();
 
             // access
-            if (packEnv == null || workRef?.IsValid() != true)
+            if (packEnv == null || (workRef?.IsValid() != true && fullItemLocation?.HasContent() != true))
                 return null;
 
             // check if env is dynamic fetch
             if (packEnv is not AdminShellPackageDynamicFetchEnv dynPack)
                 return null;
-
-            //// try to find the last repo/ registry data
-            //DisplayElements.FindAllVisualElementTopToIdentifiable()
-            //    .Where((ve) => ve is VisualElementEnvironmentItem veei 
-            //            && veei.theItemType == VisualElementEnvironmentItem.ItemType.Package
-            //            && veei.the)
 
             // try get a copy of the fetch record
             var context = (dynPack.GetContext() as PackageContainerHttpRepoSubsetFetchContext);
@@ -1786,58 +1782,77 @@ namespace AasxPackageExplorer
             if (record.BaseAddress?.HasContent() != true)
                 return null;
 
-            // what to search?
-            string fullItemLocation = null;
-
             // search for AAS?
-            if (workRef.Count() >= 1 && workRef.Keys[0].Type == KeyTypes.AssetAdministrationShell)
+            if (workRef?.IsValid() == true)
             {
-                // want to search for an AAS
-                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleAas);
-                record.AasId = workRef.Keys[0].Value;
-                fullItemLocation = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                if (workRef.Count() >= 1 && workRef.Keys[0].Type == KeyTypes.AssetAdministrationShell)
+                {
+                    // want to search for an AAS
+                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleAas);
+                    record.AasId = workRef.Keys[0].Value;
+                    fullItemLocation = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                }
+
+                // search for Asset?
+                if (workRef.Count() >= 1 && workRef.Keys[0].Type == KeyTypes.GlobalReference)
+                {
+                    // want to search for an Asset?
+                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AasByAssetLink);
+                    record.AssetId = workRef.Keys[0].Value;
+                    fullItemLocation = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                }
             }
 
-            // search for Asset?
-            if (workRef.Count() >= 1 && workRef.Keys[0].Type == KeyTypes.GlobalReference)
+            // any info
+            if (fullItemLocation?.HasContent() != true)
+                return null;
+
+            // try to load
+            // TODO: take over those options from existing container
+            var containerOptions = new PackageContainerHttpRepoSubset.
+                PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
+                record);
+
+            var newIdfs = new List<Aas.IIdentifiable>();
+            var loadedIdfs = new List<Aas.IIdentifiable>();
+            var loadRes = await PackageContainerHttpRepoSubset.LoadFromSourceInternalAsync(
+                fullItemLocation: fullItemLocation,
+                targetEnv: packEnv,
+                loadNew: false,
+                trackNewIdentifiables: newIdfs,
+                trackLoadedIdentifiables: loadedIdfs,
+                containerOptions: containerOptions,
+                runtimeOptions: PackageCentral.CentralRuntimeOptions);
+
+            if (loadRes == null || newIdfs.Count < 1)
+                return null;
+
+            // rebuild display elements
+            DisplayElements.RebuildAasxElements(
+                PackageCentral, PackageCentral.Selector.Main, MainMenu?.IsChecked("EditMenu") == true,
+                lazyLoadingFirst: true);
+
+            var newIdf = newIdfs.FirstOrDefault();
+
+            // display
+            if (tryDisplay)
             {
-                // want to search for an Asset?
-                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AasByAssetLink);
-                record.AssetId = workRef.Keys[0].Value;
-                fullItemLocation = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                var veFound = this.DisplayElements.SearchVisualElementOnMainDataObject(newIdf, alsoDereferenceObjects: true);
+                if (veFound != null)
+                {
+                    // show ve
+                    DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true);
+                    // remember in history
+                    Logic?.LocationHistory?.Push(veFound);
+                    // fake selection
+                    RedrawElementView();
+                    DisplayElements.Refresh();
+                    TakeOverContentEnable(false);
+                }
             }
 
-            // search any?
-            if (fullItemLocation != null) { 
-                // try to load
-                // TODO: take over those options from existing container
-                var containerOptions = new PackageContainerHttpRepoSubset.
-                    PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
-                    record);
-
-                var newIdfs = new List<Aas.IIdentifiable>();
-                var loadedIdfs = new List<Aas.IIdentifiable>();
-                var loadRes = await PackageContainerHttpRepoSubset.LoadFromSourceInternalAsync(
-                    fullItemLocation: fullItemLocation,
-                    targetEnv: packEnv,
-                    loadNew: false,
-                    trackNewIdentifiables: newIdfs,
-                    trackLoadedIdentifiables: loadedIdfs,
-                    containerOptions: containerOptions,
-                    runtimeOptions: PackageCentral.CentralRuntimeOptions);
-
-                if (loadRes == null || newIdfs.Count < 1)
-                    return null;
-
-                // rebuild display elements
-                DisplayElements.RebuildAasxElements(
-                    PackageCentral, PackageCentral.Selector.Main, MainMenu?.IsChecked("EditMenu") == true,
-                    lazyLoadingFirst: true);
-
-                return newIdfs.FirstOrDefault();
-            }
-
-            return null;
+            // the end
+            return newIdf;
         }
 
         private async Task UiHandleNavigateTo(
@@ -1890,9 +1905,9 @@ namespace AasxPackageExplorer
                         PackageContainerRepoItem fi = null;
                         if (work.Keys[0].Type == Aas.KeyTypes.GlobalReference)
                             //TODO (jtikekar, 0000-00-00): KeyTypes.AssetInformation
-                            fi = PackageCentral.Repositories.FindByAssetId(work.Keys[0].Value.Trim());
+                            fi = await PackageCentral.Repositories.FindByAssetId(work.Keys[0].Value.Trim());
                         if (work.Keys[0].Type == Aas.KeyTypes.AssetAdministrationShell)
-                            fi = PackageCentral.Repositories.FindByAasId(work.Keys[0].Value.Trim());
+                            fi = await PackageCentral.Repositories.FindByAasId(work.Keys[0].Value.Trim());
 
                         var boInfo = await LoadFromFileRepository(fi, work);
                         bo = boInfo?.BusinessObject;
@@ -2877,7 +2892,7 @@ namespace AasxPackageExplorer
                     && hi.ReferableReference != null)
                 {
                     // try lookup file in file repository
-                    var fi = PackageCentral.Repositories.FindByAasId(hi.ReferableAasId.Trim());
+                    var fi = await PackageCentral.Repositories.FindByAasId(hi.ReferableAasId.Trim());
                     if (fi == null)
                     {
                         Log.Singleton.Info(

@@ -55,6 +55,11 @@ namespace AasxPackageLogic.PackageCentral
             new ObservableCollection<PackageContainerRepoItem>();
 
         /// <summary>
+        /// If true, will respond on querying.
+        /// </summary>
+        public bool ToBeQueried = true;
+
+        /// <summary>
         /// Length of the fading effect of animations in [sec]
         /// </summary>
         [JsonIgnore]
@@ -64,6 +69,7 @@ namespace AasxPackageLogic.PackageCentral
         /// <c>True</c> if it represents a finalized list of items.
         /// <c>False</c> e.g. for a Repository or Regeistry, where the count of items varies.
         /// </summary>
+        [JsonIgnore]
         public bool IsStaticList = true;
 
         /// <summary>
@@ -120,8 +126,11 @@ namespace AasxPackageLogic.PackageCentral
         // IFindRepo interface
         //
 
-        public PackageContainerRepoItem FindByAssetId(string aid)
+        public virtual async Task<PackageContainerRepoItem> FindByAssetId(string aid)
         {
+            await Task.Yield();
+            if (!ToBeQueried)
+                return null;
             return this.FileMap?.FirstOrDefault((fi) =>
             {
                 foreach (var id in fi.EnumerateAssetIds())
@@ -131,8 +140,11 @@ namespace AasxPackageLogic.PackageCentral
             });
         }
 
-        public PackageContainerRepoItem FindByAasId(string aid)
+        public virtual async Task<PackageContainerRepoItem> FindByAasId(string aid)
         {
+            await Task.Yield();
+            if (!ToBeQueried)
+                return null;
             return this.FileMap?.FirstOrDefault((fi) =>
             {
                 foreach (var id in fi.EnumerateAasIds())
