@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Aas = AasCore.Aas3_0;
 
 namespace AasxPackageLogic.PackageCentral
@@ -31,6 +32,8 @@ namespace AasxPackageLogic.PackageCentral
     /// AASX Package file is to be loaded and hosted and functinality, HOW this can be done.
     /// This class is intended to be a base class, so classes for local repos, AAS repos, AAS registries are
     /// deriving from it.
+    /// In Nov 2024, the idea is incrementally adjusted to accomodate Registries and Repositories.
+    /// The process here is not perfect ..
     /// </summary>
     public class PackageContainerListBase : IPackageContainerFind
     {
@@ -56,6 +59,31 @@ namespace AasxPackageLogic.PackageCentral
         /// </summary>
         [JsonIgnore]
         public double DefaultAnimationTime = 2.0d;
+
+        /// <summary>
+        /// <c>True</c> if it represents a finalized list of items.
+        /// <c>False</c> e.g. for a Repository or Regeistry, where the count of items varies.
+        /// </summary>
+        public bool IsStaticList = true;
+
+        /// <summary>
+        /// Acquire some status data, may take a while
+        /// </summary>
+        /// <returns></returns>
+        virtual public async Task<bool> PrepareStatus()
+        {
+            await Task.Yield();
+            return false;
+        }
+
+        /// <summary>
+        /// Render a multi line status; maybe with async acquired stats.
+        /// </summary>
+        /// <returns></returns>
+        virtual public string GetMultiLineStatusInfo()
+        {
+            return "";
+        }
 
         //
         // Basic memeber management

@@ -61,6 +61,8 @@ namespace AasxWpfControlLibrary.PackageCentral
             InitializeComponent();
         }
 
+        private int _ticksTillReLoadStatus = 0;
+
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             // might attach to data context
@@ -73,10 +75,11 @@ namespace AasxWpfControlLibrary.PackageCentral
 
             // redraw
             RedrawStatus();
+            _ticksTillReLoadStatus = 20;
 
             // Timer for animations
             System.Windows.Threading.DispatcherTimer MainTimer = new System.Windows.Threading.DispatcherTimer();
-            MainTimer.Tick += MainTimer_Tick;
+            MainTimer.Tick += async (s,e) => await MainTimer_Tick(s,e);
             MainTimer.Interval = new TimeSpan(0, 0, 0, 0, 100);
             MainTimer.Start();
         }
@@ -111,12 +114,38 @@ namespace AasxWpfControlLibrary.PackageCentral
             if (!header.HasContent())
                 header = "Unnamed repository";
             TextBoxRepoHeader.Text = "" + header;
+
+            // set one or many
+            if (theFileRepository?.IsStaticList == true)
+            {
+                // "normal" list behavior
+                TabControlOneOrMany.SelectedItem = TabItemRepoList;
+            }                
+            else
+            {
+                // only a static display
+                TabControlOneOrMany.SelectedItem = TabItemManyRepo;
+                TextBlockManyInfo.Text = "" + theFileRepository?.GetMultiLineStatusInfo();
+            }                
         }
 
-        private void MainTimer_Tick(object sender, EventArgs e)
+        private async Task MainTimer_Tick(object sender, EventArgs e)
         {
+            await Task.Yield();
+
             if (this.theFileRepository != null)
                 this.theFileRepository.DecreaseVisualTimeBy(0.1);
+
+            // async reload status, once?
+            if (_ticksTillReLoadStatus > 0)
+            {
+                _ticksTillReLoadStatus--;
+                if (_ticksTillReLoadStatus < 1)
+                {
+                    await theFileRepository?.PrepareStatus();
+                    RedrawStatus();
+                }
+            }
         }
 
         private void UserControl_MouseLeave(object sender, MouseEventArgs e)
@@ -127,10 +156,21 @@ namespace AasxWpfControlLibrary.PackageCentral
         private void RepoList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (sender == this.RepoList && e.LeftButton == MouseButtonState.Pressed)
+            {
                 // hoping, that correct item is selected
-                this.FileDoubleClick?.Invoke(this, theFileRepository,
+                this.FileDoubleClick?.Invoke(this, theFileRepository, 
                     this.RepoList.SelectedItem as PackageContainerRepoItem);
+            }
         }
+
+        private void ImageManyIcons_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender == ImageManyIcons && e.ClickCount == 2)
+            {
+                this.FileDoubleClick?.Invoke(this, theFileRepository, null);
+            }
+        }
+
 
         private async void Button_Click(object sender, RoutedEventArgs e)
         {

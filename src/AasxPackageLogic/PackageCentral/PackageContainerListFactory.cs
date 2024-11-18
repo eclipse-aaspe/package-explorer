@@ -38,7 +38,7 @@ namespace AasxPackageLogic.PackageCentral
             var ll = location.Trim().ToLower();
             if (ll.StartsWith("http://") || ll.StartsWith("https"))
             {
-                var repo = new PackageContainerListHttpRestRepository(location);
+                var repo = new PackageContainerListHttpRestRepository(location, null);
                 return repo;
             }
 
