@@ -396,10 +396,10 @@ namespace AasxPackageLogic
             Cmd = "-dataspecpreset", Arg = "<path>")]
         public string DataSpecPresetFile = null;
 
-        [OptionDescription(Description = "Path to a JSON, defining a set of AasxPackage-Files, which serve as " +
-            "repository",
+        [OptionDescription(Description = "List of pathes to a JSON, defining a set of AasxPackage-Files, " +
+            "which serve as repository.",
             Cmd = "-aasxrepo", Arg = "<path>")]
-        public string AasxRepositoryFn = null;
+        public List<string> AasxRepositoryFns = null;
 
         [OptionDescription(Description = "Home address of the content browser on startup, on change of AASX",
             Cmd = "-contenthome", Arg = "<URL>")]
@@ -896,7 +896,8 @@ namespace AasxPackageLogic
                 }
                 if (arg == "-aasxrepo" && morearg > 0)
                 {
-                    optionsInformation.AasxRepositoryFn = args[index + 1];
+                    optionsInformation.AasxRepositoryFns = new List<string>();
+                    optionsInformation.AasxRepositoryFns.Add(args[index + 1]);
                     index++;
                     continue;
                 }

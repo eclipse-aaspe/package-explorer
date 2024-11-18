@@ -210,7 +210,7 @@ namespace AasxPackageLogic.PackageCentral
             return null;
         }
 
-        protected JsonSerializerSettings GetSerializerSettings()
+        protected static JsonSerializerSettings GetSerializerSettings()
         {
             // need special settings (to handle different typs of child classes of PackageContainer)
             var settings = AasxPluginOptionSerialization.GetDefaultJsonSettings(
@@ -224,7 +224,7 @@ namespace AasxPackageLogic.PackageCentral
             using (var s = new StreamWriter(fn))
             {
                 var settings = GetSerializerSettings();
-                settings.TypeNameHandling = TypeNameHandling.Auto;
+                settings.TypeNameHandling = TypeNameHandling.Objects;
                 var json = JsonConvert.SerializeObject(this, Formatting.Indented, settings);
                 s.WriteLine(json);
             }
@@ -350,20 +350,28 @@ namespace AasxPackageLogic.PackageCentral
             return tr;
         }
 
-        public bool LoadFromLocalFile(string fn)
+        public static T LoadFromLocalFile<T>(string fn) where T : PackageContainerListBase
         {
-            // from file
-            if (!System.IO.File.Exists(fn))
-                return false;
+            try
+            {
+                // from file
+                if (!System.IO.File.Exists(fn))
+                    return null;
 
-            // need special settings (to handle different typs of child classes of PackageContainer)
-            var settings = GetSerializerSettings();
+                // need special settings (to handle different typs of child classes of PackageContainer)
+                var settings = GetSerializerSettings();
 
-            var init = System.IO.File.ReadAllText(fn);
-            JsonConvert.PopulateObject(init, this, settings);
+                var init = System.IO.File.ReadAllText(fn);
+                var res = JsonConvert.DeserializeObject<T>(init, settings);
 
-            // return
-            return true;
+                // return
+                return res;
+            }
+            catch (Exception ex)
+            {
+                LogInternally.That.SilentlyIgnoredError(ex);
+            }
+            return null;
         }
 
         //

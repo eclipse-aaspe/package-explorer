@@ -34,15 +34,16 @@ namespace AasxPackageLogic.PackageCentral
 
         private PackageConnectorHttpRest _connector;
 
+        [JsonIgnore]
         public string ServerStatus { get; private set; } = "Status unknown!";
 
+        [JsonIgnore]
         public readonly PackCntRuntimeOptions CentralRuntimeOptions;
 
         /// <summary>
         /// REST endpoint of the AAS repository, that is, without <c>/shells</c> etc. but
         /// with e.g. <c>/api/v3.0/</c>
         /// </summary>
-        [JsonIgnore]
         public Uri Endpoint;
 
         //
@@ -59,7 +60,7 @@ namespace AasxPackageLogic.PackageCentral
             CentralRuntimeOptions = centralRuntimeOptions;
 
             // always have a location
-            Endpoint = new Uri(location);
+            Endpoint = (location == null) ? null : new Uri(location);
 
             // directly set endpoint
             // Note: later

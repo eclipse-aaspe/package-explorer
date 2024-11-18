@@ -262,13 +262,19 @@ namespace BlazorUI.Data
             }
 
             // Repository pointed by the Options
-            if (Options.Curr.AasxRepositoryFn.HasContent())
+            if (Options.Curr.AasxRepositoryFns != null && Options.Curr.AasxRepositoryFns.Count > 0)
             {
-                var fr2 = Logic.UiLoadFileRepository(Options.Curr.AasxRepositoryFn);
-                if (fr2 != null)
+                foreach (var arf in Options.Curr.AasxRepositoryFns)
                 {
-                    PackageCentral.Repositories ??= new PackageContainerListOfList();
-                    PackageCentral.Repositories.AddAtTop(fr2);
+                    if (arf?.HasContent() != true)
+                        continue;
+
+                    var fr2 = Logic.UiLoadFileRepository(arf);
+                    if (fr2 != null)
+                    {
+                        PackageCentral.Repositories ??= new PackageContainerListOfList();
+                        PackageCentral.Repositories.AddAtTop(fr2);
+                    }
                 }
             }
 

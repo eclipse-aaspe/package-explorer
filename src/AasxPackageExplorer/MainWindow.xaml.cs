@@ -986,13 +986,19 @@ namespace AasxPackageExplorer
             }
 
             // Repository pointed by the Options
-            if (Options.Curr.AasxRepositoryFn.HasContent())
+            if (Options.Curr.AasxRepositoryFns != null && Options.Curr.AasxRepositoryFns.Count > 0)
             {
-                var fr2 = await Logic.UiLoadFileRepositoryAsync(Options.Curr.AasxRepositoryFn, tryLoadResident: true);
-                if (fr2 != null)
+                foreach (var arf in Options.Curr.AasxRepositoryFns)
                 {
-                    this.UiShowRepositories(visible: true);
-                    PackageCentral.Repositories.AddAtTop(fr2);
+                    if (arf?.HasContent() != true)
+                        continue;
+
+                    var fr2 = await Logic.UiLoadFileRepositoryAsync(arf, tryLoadResident: true);
+                    if (fr2 != null)
+                    {
+                        this.UiShowRepositories(visible: true);
+                        PackageCentral.Repositories.AddAtTop(fr2);
+                    }
                 }
             }
 
