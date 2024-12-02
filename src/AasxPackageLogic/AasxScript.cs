@@ -9,6 +9,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AasxIntegrationBase;
 using AasxPackageLogic;
+using AdminShellNS;
 using Scripting.SSharp;
 using Scripting.SSharp.Runtime;
 using System;
@@ -32,7 +33,9 @@ namespace AasxPackageExplorer
     {
         Task<int> Tool(object[] args);
         Aas.IReferable Select(object[] args);
+        Aas.IReferable[] SelectAll(object[] args);
         Task<bool> Location(object[] args);
+        void TakeScreenshot(string filename = "noname");
     }
 
     public class AasxScript
@@ -184,6 +187,49 @@ namespace AasxPackageExplorer
                 return false;
             }
         }
+
+        public class Script_GetLastLogLine : ScriptInvokableBase
+        {
+            public Script_GetLastLogLine(AasxScript script) : base(script)
+            {
+                script?.AddHelpInfo("GetLastLogLine",
+                    "Returns log line.",
+                    args: new AasxMenuListOfArgDefs()
+                        .Add("<offset>", "If e.g. 1 returns line before last llog line")
+                        .Add("returns:", "Log line with attributes as string."));
+            }
+
+            public override object Invoke(IScriptContext context, object[] args)
+            {
+                int ofs = 0;
+                if (args != null && args.Length == 1 && args[0] is int i)
+                    ofs = i;
+                return "" + Log.Singleton.GetLastLongTermPrint(ofs);
+            }
+        }
+
+        public class Script_TakeScreenShot : ScriptInvokableBase
+        {
+            public Script_TakeScreenShot(AasxScript script) : base(script)
+            {
+                script?.AddHelpInfo("TakeScreenShot",
+                    "Takes a screenshot of the main window.",
+                    args: new AasxMenuListOfArgDefs()
+                        .Add("<file>", "Filename to save screenshot to."));
+            }
+
+            public override object Invoke(IScriptContext context, object[] args)
+            {
+                string fn = "noname";
+                if (args != null && args.Length == 1 && args[0] is string afn)
+                    fn = afn;
+                _script.Remote?.TakeScreenshot(fn);
+
+                // done
+                return 0;
+            }
+        }
+
         public class Script_Tool : ScriptInvokableBase
         {
             public Script_Tool(AasxScript script) : base(script)
@@ -291,6 +337,63 @@ namespace AasxPackageExplorer
                 {
                     // Blazor?? case
                     x = _script.Remote?.Select(args);
+                }
+
+                // done
+                return x;
+            }
+        }
+
+        public class Script_SelectAll : ScriptInvokableBase
+        {
+            public Script_SelectAll(AasxScript script) : base(script)
+            {
+                script?.AddHelpInfo("SelectAll",
+                    "Returns all Referables of a certain kind fron the active environment.",
+                    args: new AasxMenuListOfArgDefs()
+                        .Add("<ref. type>", "String indicating Referable type, such as AAS, SM, CD. ")
+                        .Add("returns:", "Enumeration of Referables of certain kind."));
+            }
+
+            public override object Invoke(IScriptContext context, object[] args)
+            {
+                // access
+                if (_script == null)
+                    return -1;
+
+                if (args == null || args.Length < 1 || !(args[0] is string))
+                {
+                    _script.ScriptLog?.Error("Script: SelectAll: Referable type missing");
+                    return -1;
+                }
+
+                // debug
+                if (_script._logLevel >= 2)
+                    Console.WriteLine($"Execute SelectAll " + string.Join(",", args));
+
+                // which application
+                if (Application.Current == null)
+                {
+                    Log.Singleton.Error("For script execution, Application.Current for Blazor is not available.");
+                }
+
+                // invoke action
+                // https://stackoverflow.com/questions/39438441/
+                Aas.IReferable[] x = null;
+                if (Application.Current != null)
+                {
+                    // WPF case
+                    x = Application.Current?.Dispatcher.Invoke(() =>
+                    {
+                        return _script.Remote?.SelectAll(args);
+                    });
+                    if (x != null)
+                        Log.Singleton.Silent("" + x.Count());
+                }
+                else
+                {
+                    // Blazor?? case
+                    x = _script.Remote?.SelectAll(args);
                 }
 
                 // done
@@ -480,7 +583,10 @@ namespace AasxPackageExplorer
                     s.Context.Scope.SetItem("Sleep", new Script_Sleep(this));
                     s.Context.Scope.SetItem("FileReadAll", new Script_FileReadAll(this));
                     s.Context.Scope.SetItem("FileExists", new Script_FileExists(this));
+                    s.Context.Scope.SetItem("GetLastLogLine", new Script_GetLastLogLine(this));
+                    s.Context.Scope.SetItem("TakeScreenShot", new Script_TakeScreenShot(this));
                     s.Context.Scope.SetItem("Select", new Script_Select(this));
+                    s.Context.Scope.SetItem("SelectAll", new Script_SelectAll(this));
                     s.Context.Scope.SetItem("Location", new Script_Location(this));
                     s.Context.Scope.SetItem("System", new Script_System(this));
                     if (_logLevel >= 2)

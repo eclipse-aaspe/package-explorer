@@ -57,22 +57,25 @@ namespace AasxIntegrationBase.AasForms
     public static class FormInstanceHelper
     {
         /// <summary>
-        /// Check if <c>smw.IdShort</c>c> contains something like "{0:00}" and iterate index to make it unique
+        /// Check if <c>smw.IdShort</c>c> contains something like "{00}" and iterate index to make it unique
         /// </summary>
         public static void MakeIdShortUnique(
             List<Aas.ISubmodelElement> collection, Aas.ISubmodelElement sme)
         {
             // access
-            if (collection == null || sme == null)
+            if (sme == null)
+                return;
+            collection = collection ?? new List<ISubmodelElement>();
+
+            // check for a dynamic template
+            var dyntpl = ExtendISubmodelElement.AdoptIdShortDynamicTemplate(sme.IdShort);
+            if (dyntpl == null)
                 return;
 
             // check, if to make idShort unique?
-            if (sme.IdShort.Contains("{0"))
-            {
-                var newIdShort = collection.IterateIdShortTemplateToBeUnique(sme.IdShort, 999);
-                if (newIdShort != null)
-                    sme.IdShort = newIdShort;
-            }
+            var newIdShort = collection.IterateIdShortTemplateToBeUnique(dyntpl, 999);
+            if (newIdShort != null)
+                sme.IdShort = newIdShort;
         }
 
         /// <summary>
@@ -328,7 +331,7 @@ namespace AasxIntegrationBase.AasForms
                 // ok, perform the actual add or update procedure
                 var lst = pair.instances.AddOrUpdateSameElementsToCollection(elements, packageEnv, addFilesToPackage);
 
-                // for newly added elements, shaping of idSHort might be required
+                // for newly added elements, shaping of idShort might be required
                 if (lst != null)
                     foreach (var sme in lst)
                     {
@@ -929,7 +932,7 @@ namespace AasxIntegrationBase.AasForms
                             uitk.AddSmallComboBoxTo(g, row, 2, margin: new AnyUiThickness(1.0),
                                 horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
                                 text: "" + ls.Language,
-                                items: AasxLanguageHelper.GetLangCodes().ToArray()),
+                                items: AasxLanguageHelper.Languages.GetAllLanguages().ToArray()),
                             (o) =>
                             {
                                 if (o is string os)
@@ -1195,10 +1198,13 @@ namespace AasxIntegrationBase.AasForms
                 if (doAdd)
                 {
                     // add to elements (this is the real transaction)
-                    collectionNewElements.Add(sme.Copy());
+                    // Note MIHO/24-05-09: change behavior, do not 
+                    // double copy, but add reference tracing information
+                    var sme2 = sme.Copy();
+                    collectionNewElements.Add(sme2);
 
                     // add to the tracing information for new elements
-                    res.Add(sme.Copy());
+                    res.Add(sme2);
                 }
             }
 
@@ -1692,7 +1698,7 @@ namespace AasxIntegrationBase.AasForms
                     uitk.AddSmallComboBoxTo(g, row, 1, margin: new AnyUiThickness(1.0),
                         horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
                         text: "" + ls.Language,
-                        items: AasxLanguageHelper.GetLangCodes().ToArray()),
+                        items: AasxLanguageHelper.Languages.GetAllLanguages().ToArray()),
                     (o) =>
                     {
                         if (o is string os)

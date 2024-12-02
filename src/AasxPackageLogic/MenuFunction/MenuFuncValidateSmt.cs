@@ -56,7 +56,7 @@ namespace AasxPackageExplorer
         /// <summary>
         /// Used AAS ENV for performing the validation.
         /// </summary>
-        public Aas.Environment Env = null;
+        public Aas.IEnvironment Env = null;
 
         //
         // some statistics
@@ -295,21 +295,21 @@ namespace AasxPackageExplorer
             }
 
             // AAS?
-            if (Env.AssetAdministrationShells.Count < 1)
+            if (Env.AssetAdministrationShellCount() < 1)
             {
                 Recs.AddStatement("AX02", "Fail", true, "No AAS found in the SMT AASX package.");
                 Recs.AddComment("No AAS available. Further validation stopped.");
                 return;
             }
 
-            if (Env.AssetAdministrationShells.Count > 1)
+            if (Env.AssetAdministrationShellCount() > 1)
             {
                 Recs.AddStatement("AX02", "Fail", true, "More than one AAS found in the SMT AASX package.");
             }
 
             // over all AAS
             int aasIdx = 0;
-            foreach (var aas in Env.AssetAdministrationShells)
+            foreach (var aas in Env.AllAssetAdministrationShells())
             {
                 // start
                 Recs.AddComment($"Approaching AAS[{aasIdx++}] and idShort={aas.IdShort}");
@@ -319,7 +319,7 @@ namespace AasxPackageExplorer
                     Recs.AddStatement("AX03", "Fail", true, "AAS does not have a valid idShort.");
 
                 // any Submodels
-                if (aas.Submodels == null || aas.Submodels.Count < 1)
+                if (aas.SubmodelCount() < 1)
                 {
                     Recs.AddStatement("AX04", "Fail", true, "AAS does not have a valid Submodel.");
                     continue;
@@ -327,7 +327,7 @@ namespace AasxPackageExplorer
 
                 // go over all Submodels
                 int smIdx = 0;
-                foreach (var smr in aas.Submodels)
+                foreach (var smr in aas.AllSubmodels())
                 {
                     // access SM
                     var sm = Env.FindSubmodel(smr);
@@ -432,10 +432,9 @@ namespace AasxPackageExplorer
             Recs.AddComment($"{NumCdMissed} ConceptDescriptions which were missed in SMTs of this AAS");
 
             var unUsedCds = 0;
-            if (Env.ConceptDescriptions != null)
-                foreach (var cd in Env.ConceptDescriptions)
-                    if (!DictCdFound.ContainsKey(cd))
-                        unUsedCds++;
+            foreach (var cd in Env.AllConceptDescriptions())
+                if (!DictCdFound.ContainsKey(cd))
+                    unUsedCds++;
 
             Recs.AddComment($"{unUsedCds} ConceptDescriptions in AAS-ENV but not used in the SMTs of this AAS");
 
@@ -444,16 +443,15 @@ namespace AasxPackageExplorer
                     "which were not referred to by SMT elements.");
 
             var cdsWithoutDataSpec = 0;
-            if (Env.ConceptDescriptions != null)
-                foreach (var cd in Env.ConceptDescriptions)
-                    if (cd.EmbeddedDataSpecifications == null
-                        || cd.EmbeddedDataSpecifications.Count < 1
-                        || cd.EmbeddedDataSpecifications[0].DataSpecificationContent == null)
-                    {
-                        cdsWithoutDataSpec++;
-                        Recs.AddElemDetail("AX15", "Fail", true, "ConceptDescriptions found, which do not have " +
-                            "DataSpecification content.", cd.GetReference());
-                    }
+            foreach (var cd in Env.AllConceptDescriptions())
+                if (cd.EmbeddedDataSpecifications == null
+                    || cd.EmbeddedDataSpecifications.Count < 1
+                    || cd.EmbeddedDataSpecifications[0].DataSpecificationContent == null)
+                {
+                    cdsWithoutDataSpec++;
+                    Recs.AddElemDetail("AX15", "Fail", true, "ConceptDescriptions found, which do not have " +
+                        "DataSpecification content.", cd.GetReference());
+                }
 
             Recs.AddComment($"{cdsWithoutDataSpec} ConceptDescriptions without DataSpecificationContent found.");
 

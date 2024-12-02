@@ -12,6 +12,7 @@ using AasxIntegrationBase.AdminShellEvents;
 using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using AdminShellNS.DiaryData;
+using AdminShellNS.Extensions;
 using AnyUi;
 using Extensions;
 using Newtonsoft.Json;
@@ -21,6 +22,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using static System.Net.WebRequestMethods;
 using Aas = AasCore.Aas3_0;
 
 namespace AasxPackageLogic
@@ -130,8 +132,6 @@ namespace AasxPackageLogic
         // Members
         //
 
-        private string[] defaultLanguages = new[] { "en", "de", "fr", "es", "it", "zh", "kr", "jp" };
-
         public PackageCentral.PackageCentral packages = null;
         public IPushApplicationEvent appEventsProvider = null;
 
@@ -139,9 +139,10 @@ namespace AasxPackageLogic
 
         public enum FirstColumnWidth { Standard, Small, Large }
 
+        public const int valueFieldsMinWidth = 50;
+
         public bool editMode = false;
         public bool hintMode = false;
-
 
         public ModifyRepo repo = null;
 
@@ -301,7 +302,10 @@ namespace AasxPackageLogic
             string[] auxButtonToolTips = null,
             AnyUiLambdaActionBase takeOverLambdaAction = null,
             bool limitToOneRowForNoEdit = false,
-            int comboBoxMinWidth = -1)
+            int comboBoxMinWidth = -1,
+			int firstColumnWidth = -1, // -1 = Standard
+			int maxLines = -1,
+			bool keyVertCenter = false)
         {
             AddKeyValue(
                 view, key, value, nullValue, repo, setValue, comboBoxItems, comboBoxIsEditable,
@@ -309,7 +313,10 @@ namespace AasxPackageLogic
                 auxButtonTitles, auxButtonToolTips, takeOverLambdaAction,
                 (value == null) ? 0 : value.GetHashCode(), containingObject: containingObject,
                 limitToOneRowForNoEdit: limitToOneRowForNoEdit,
-                comboBoxMinWidth: comboBoxMinWidth);
+                comboBoxMinWidth: comboBoxMinWidth,
+				firstColumnWidth: firstColumnWidth,
+                maxLines: maxLines,
+                keyVertCenter: keyVertCenter);
         }
 
         /// <summary>
@@ -345,7 +352,10 @@ namespace AasxPackageLogic
             Nullable<int> valueHash = null,
             object containingObject = null,
             bool limitToOneRowForNoEdit = false,
-            int comboBoxMinWidth = -1)
+            int comboBoxMinWidth = -1,
+            int firstColumnWidth = -1, // -1 = Standard
+            int maxLines = -1,
+            bool keyVertCenter = false)
         {
             // draw anyway?
             if (repo != null && value == null)
@@ -381,11 +391,16 @@ namespace AasxPackageLogic
             g.Margin = new AnyUiThickness(0, 1, 0, 1);
             var gc1 = new AnyUiColumnDefinition();
             gc1.Width = AnyUiGridLength.Auto;
-            gc1.MinWidth = this.GetWidth(FirstColumnWidth.Standard);
+            if (firstColumnWidth >= 0)
+                gc1.MinWidth = firstColumnWidth;
+            if (firstColumnWidth == -1)
+                gc1.MinWidth = this.GetWidth(FirstColumnWidth.Standard);
             g.ColumnDefinitions.Add(gc1);
             var gc2 = new AnyUiColumnDefinition();
             gc2.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Star);
             g.ColumnDefinitions.Add(gc2);
+            // 2024-05-09: add a minimum width to these kinds of fields
+            gc2.MinWidth = valueFieldsMinWidth;
 
             if (auxButton)
                 for (int i = 0; i < intButtonTitles.Count; i++)
@@ -396,7 +411,13 @@ namespace AasxPackageLogic
                 }
 
             // Label for key
-            AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "" + key + ":");
+            var klb = AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "" + key + ":");
+            if (keyVertCenter)
+            {
+                klb.VerticalAlignment = AnyUiVerticalAlignment.Center;
+                klb.VerticalContentAlignment = AnyUiVerticalAlignment.Center;
+                klb.Margin = new AnyUiThickness(0, -1, 0, 0);
+            }
 
             // Label / TextBox for value
             if (repo == null)
@@ -440,6 +461,10 @@ namespace AasxPackageLogic
             {
                 // use plain text box
                 var tb = AddSmallTextBoxTo(g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2), text: "" + value);
+                // multiple lines
+                if (maxLines > 0)
+                    tb.MaxLines = maxLines;
+                // events
                 AnyUiUIElement.RegisterControl(tb,
                     setValue, takeOverLambda: takeOverLambdaAction);
 
@@ -474,8 +499,6 @@ namespace AasxPackageLogic
             // in total
             view.Children.Add(g);
         }
-
-
 
         public void AddKeyDropTarget(
             AnyUiStackPanel view, string key, string value, string nullValue = null,
@@ -600,8 +623,12 @@ namespace AasxPackageLogic
             view.Children.Add(g);
         }
 
-        public void AddCheckBox(AnyUiStackPanel panel, string key, bool initialValue, string additionalInfo = "",
-                Action<bool> valueChanged = null)
+        public void AddSmallCheckBox(
+            AnyUiStackPanel panel, string key, 
+            bool value,             
+			Func<bool, AnyUiLambdaActionBase> setValue = null,
+			string additionalInfo = "",
+			string[] boolTexts = null)
         {
             // make grid
             var g = this.AddSmallGrid(1, 2, new[] { "" + this.GetWidth(FirstColumnWidth.Standard) + ":", "*" },
@@ -611,20 +638,25 @@ namespace AasxPackageLogic
             this.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: key);
 
             // Column 1 = Check box or info
-            if (repo == null || valueChanged == null)
+            if (repo == null || setValue == null)
             {
-                this.AddSmallLabelTo(g, 0, 1, padding: new AnyUiThickness(2, 0, 0, 0),
-                        content: initialValue ? "True" : "False");
+				// label
+				var strVal = (value) ? "True" : "False";
+				if (boolTexts != null && boolTexts.Length >= 2)
+					strVal = (value) ? boolTexts[1] : boolTexts[0];
+
+				this.AddSmallLabelTo(g, 0, 1, padding: new AnyUiThickness(2, 0, 0, 0),
+                        content: strVal);
             }
             else
             {
                 AnyUiUIElement.RegisterControl(this.AddSmallCheckBoxTo(g, 0, 1, margin: new AnyUiThickness(2, 2, 2, 2),
                     content: additionalInfo, verticalContentAlignment: AnyUiVerticalAlignment.Center,
-                    isChecked: initialValue),
+                    isChecked: value),
                         (o) =>
                         {
-                            if (o is bool)
-                                valueChanged((bool)o);
+                            if (o is bool && setValue != null)
+                                return setValue((bool)o);
                             return new AnyUiLambdaActionNone();
                         });
             }
@@ -633,7 +665,7 @@ namespace AasxPackageLogic
             panel.Children.Add(g);
         }
 
-        public void AddActionPanel(
+		public void AddActionPanel(
             AnyUiPanel view, string key, string[] actionStr = null, ModifyRepo repo = null,
             Func<int, AnyUiLambdaActionBase> action = null,
             string[] actionTags = null,
@@ -641,14 +673,15 @@ namespace AasxPackageLogic
             AasxMenu superMenu = null,
             AasxMenu ticketMenu = null,
             Func<int, AasxMenuActionTicket, AnyUiLambdaActionBase> ticketAction = null,
-            FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard)
+			Func<int, AasxMenuActionTicket, Task<AnyUiLambdaActionBase>> ticketActionAsync = null,
+			FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard)
         {
             // generate actionStr from ticketMenu
             if (actionStr == null && ticketMenu != null)
                 actionStr = ticketMenu.Select((tmi) => (tmi is AasxMenuItem mi) ? mi.Header : "").ToArray();
 
             // access 
-            if ((action == null && ticketAction == null) || actionStr == null)
+            if ((action == null && ticketAction == null && ticketActionAsync == null) || actionStr == null)
                 return;
             if (repo == null && addWoEdit == null)
                 return;
@@ -662,12 +695,28 @@ namespace AasxPackageLogic
                 {
                     var tmi = ticketMenu[i];
                     var currentI = i;
-                    tmi.Action = (name, item, ticket) =>
+
+                    // may be sync?
+                    if (ticketAction != null)
                     {
-                        if (ticket != null)
-                            ticket.UiLambdaAction = ticketAction(currentI, ticket);
-                    };
-                    superMenu.Add(tmi);
+                        tmi.Action = (name, item, ticket) =>
+                        {
+                            if (ticket != null)
+                                ticket.UiLambdaAction = ticketAction(currentI, ticket);
+                        };
+                    }
+
+                    // may be async
+                    if (ticketActionAsync != null)
+                    {
+                        tmi.ActionAsync = async (name, item, ticket) =>
+                        {
+                            if (ticket != null)
+                                ticket.UiLambdaAction = await ticketActionAsync(currentI, ticket);
+                        };
+                    }
+
+					superMenu.Add(tmi);
                 }
             }
 
@@ -720,14 +769,29 @@ namespace AasxPackageLogic
                 wp.Children.Add(b);
 
                 // register callback
-                AnyUiUIElement.RegisterControl(b,
-                    (o) =>
-                    {
-                        // button # as argument!
-                        return (ticketAction != null)
-                            ? ticketAction(currentI, null)
-                            : action?.Invoke(currentI);
-                    });
+                if (ticketActionAsync == null)
+					AnyUiUIElement.RegisterControl(b,
+						setValue: (o) =>
+						{
+							// button # as argument!
+							if (ticketAction != null)
+								return ticketAction.Invoke(currentI, null);
+							else
+								return action?.Invoke(currentI);
+						});
+                else
+				    AnyUiUIElement.RegisterControl(b,
+                        setValueAsync: async (o) =>
+                        {
+						    // button # as argument!
+						    if (ticketAction != null)
+							    return ticketAction.Invoke(currentI, null);
+						    else
+						    if (ticketActionAsync != null)
+							    return await ticketActionAsync.Invoke(currentI, null);
+						    else
+							    return action?.Invoke(currentI);
+					    });
 
                 if (actionTags != null && i < actionTags.Length)
                     AnyUiUIElement.NameControl(b, actionTags[i]);
@@ -754,7 +818,8 @@ namespace AasxPackageLogic
         public void AddKeyListLangStr<T>(
             AnyUiStackPanel view, string key, List<T> langStr, ModifyRepo repo = null,
             Aas.IReferable relatedReferable = null,
-            Action<Aas.IReferable> emitCustomEvent = null) where T : IAbstractLangString
+            Action setNullList = null,
+			Func<Aas.IReferable, AnyUiLambdaActionBase> emitCustomEvent = null) where T : IAbstractLangString
         {
             // sometimes needless to show
             if (repo == null && (langStr == null || langStr.Count < 1))
@@ -766,9 +831,12 @@ namespace AasxPackageLogic
             if (repo != null)
                 rowOfs = 1;
 
-            // default
-            if (emitCustomEvent == null)
-                emitCustomEvent = (rf) => { this.AddDiaryEntry(rf, new DiaryEntryStructChange()); };
+			// default
+			if (emitCustomEvent == null)
+				emitCustomEvent = (rf) => { 
+                    this.AddDiaryEntry(rf, new DiaryEntryStructChange());
+                    return new AnyUiLambdaActionNone();
+                };
 
             // Grid
             var g = new AnyUiGrid();
@@ -790,10 +858,13 @@ namespace AasxPackageLogic
             gc.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Star);
             g.ColumnDefinitions.Add(gc);
 
-            // 3 buttons behind it
-            gc = new AnyUiColumnDefinition();
-            gc.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Auto);
-            g.ColumnDefinitions.Add(gc);
+            // 3++ buttons behind it
+            for (int i = 0; i < 2; i++)
+            {
+                gc = new AnyUiColumnDefinition();
+                gc.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Auto);
+                g.ColumnDefinitions.Add(gc);
+            }
 
             // rows
             for (int r = 0; r < rows + rowOfs; r++)
@@ -812,22 +883,26 @@ namespace AasxPackageLogic
             if (repo != null)
             {
                 AnyUiUIElement.RegisterControl(
-                    AddSmallButtonTo(
-                        g, 0, 3,
-                        margin: new AnyUiThickness(2, 2, 2, 2),
-                        padding: new AnyUiThickness(5, 0, 5, 0),
-                        content: "Add blank"),
+                    Set(
+                        AddSmallButtonTo(
+                            g, 0, 3,
+                            margin: new AnyUiThickness(2, 2, 2, 2),
+                            padding: new AnyUiThickness(5, 0, 5, 0),
+                            content: "Add blank"),
+                        verticalAlignment: AnyUiVerticalAlignment.Top,
+                        verticalContentAlignment: AnyUiVerticalAlignment.Center,
+                        colSpan: 3),
                     (o) =>
                     {
-                        langStr.Add<T>("", "");
-                        emitCustomEvent?.Invoke(relatedReferable);
+                        langStr.Add<T>(language: AdminShellUtil.GetDefaultLngIso639(), text: "");
 
-                        return new AnyUiLambdaActionRedrawEntity();
+						emitCustomEvent?.Invoke(relatedReferable);
+						return new AnyUiLambdaActionRedrawEntity();
                     });
             }
 
             // contents?
-            if (langStr != null)
+            if (!langStr.IsNullOrEmpty())
                 for (int i = 0; i < langStr.Count; i++)
                     if (repo == null)
                     {
@@ -851,25 +926,31 @@ namespace AasxPackageLogic
                         var currentI = 0 + i;
 
                         // lang
-                        var tbLang = AddSmallComboBoxTo(
-                            g, 0 + i + rowOfs, 1,
-                            margin: NormalOrCapa(
-                                new AnyUiThickness(4, 2, 2, 2),
-                                AnyUiContextCapability.Blazor, new AnyUiThickness(4, 2, 2, 0)),
-                            padding: NormalOrCapa(
-                                new AnyUiThickness(0, -1, 0, -1),
-                                AnyUiContextCapability.Blazor, new AnyUiThickness(0, 4, 0, 4)),
-                            text: "" + langStr[currentI].Language,
-                            minWidth: 60,
-                            items: defaultLanguages,
-                            isEditable: true);
+                        var tbLang = Set(
+                                AddSmallComboBoxTo(
+                                    g, 0 + i + rowOfs, 1,
+                                    margin: NormalOrCapa(
+                                        new AnyUiThickness(4, 2, 2, 2),
+                                        AnyUiContextCapability.Blazor, new AnyUiThickness(4, 2, 2, 0)),
+                                    padding: NormalOrCapa(
+                                        new AnyUiThickness(0, 0, 0, 0),
+                                        AnyUiContextCapability.Blazor, new AnyUiThickness(0, 4, 0, 4)),
+                                    text: "" + langStr[currentI].Language,
+                                    minWidth: 60,
+                                    items: AasxLanguageHelper.Languages.GetAllLanguages(nullForAny: true).ToArray(),
+                                    isEditable: true),
+                                verticalAlignment: AnyUiVerticalAlignment.Top,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center
+                            );
                         AnyUiUIElement.RegisterControl(
                             tbLang,
                             (o) =>
                             {
                                 langStr[currentI].Language = o as string;
-                                emitCustomEvent?.Invoke(relatedReferable);
-                                return new AnyUiLambdaActionNone();
+								var evt = emitCustomEvent?.Invoke(relatedReferable);
+								if (evt != null && !(evt is AnyUiLambdaActionNone))
+									return evt;
+								return new AnyUiLambdaActionNone();
                             });
                         // check here, if to hightlight
                         if (tbLang != null && this.highlightField != null &&
@@ -893,31 +974,87 @@ namespace AasxPackageLogic
                             (o) =>
                             {
                                 langStr[currentI].Text = o as string;
-                                emitCustomEvent?.Invoke(relatedReferable);
-                                return new AnyUiLambdaActionNone();
+								var evt = emitCustomEvent?.Invoke(relatedReferable);
+								if (evt != null && !(evt is AnyUiLambdaActionNone))
+									return evt;
+								return new AnyUiLambdaActionNone();
                             });
                         // check here, if to hightlight
                         if (tbStr != null && this.highlightField != null &&
                                 this.highlightField.fieldHash == langStr[currentI].Text.GetHashCode() &&
-                                //(this.highlightField.containingObject == langStr[currentI]))
+                                (this.highlightField.containingObject == (object) langStr[currentI]))
                                 //TODO (jtikekar, 0000-00-00): need to test
-                                CompareUtils.Compare<IAbstractLangString>((IAbstractLangString)this.highlightField.containingObject, langStr[currentI]))
+                                // CompareUtils.Compare<IAbstractLangString>((IAbstractLangString)this.highlightField.containingObject, langStr[currentI]))
                             this.HighligtStateElement(tbStr, true);
 
-                        // button [-]
+                        // button [≡]
                         AnyUiUIElement.RegisterControl(
                             AddSmallButtonTo(
                                 g, 0 + i + rowOfs, 3,
                                 margin: new AnyUiThickness(2, 2, 2, 2),
                                 padding: new AnyUiThickness(5, 0, 5, 0),
-                                verticalAlignment: AnyUiVerticalAlignment.Center,
-                                content: "-"),
+                                verticalAlignment: AnyUiVerticalAlignment.Top,
+                                content: "\u2261"), 
                             (o) =>
                             {
-                                langStr.RemoveAt(currentI);
-                                emitCustomEvent?.Invoke(relatedReferable);
-                                return new AnyUiLambdaActionRedrawEntity();
+                                var uc = new AnyUiDialogueDataTextEditor(
+                                    caption: $"Edit Text @ {langStr[currentI].Language} ...",
+                                    mimeType: "text/markdown",
+                                    text: langStr[currentI].Text);
+
+                                if (this.context.StartFlyoverModal(uc))
+                                {
+                                    langStr[currentI].Text = uc.Text;
+                                    emitCustomEvent?.Invoke(relatedReferable);
+                                    return new AnyUiLambdaActionRedrawEntity();
+                                }
+								return new AnyUiLambdaActionNone();
                             });
+
+                        // button [⋮]
+                        Set(
+                            AddSmallContextMenuItemTo(
+                                    g, 0 + i + rowOfs, 4,
+                                    "\u22ee",
+                                    repo, new[] {
+                                        "\u2702", "Delete",
+                                        "\u25b2", "Move Up",
+                                        "\u25bc", "Move Down",
+                                    },
+                                    margin: new AnyUiThickness(2, 2, 2, 2),
+                                    padding: new AnyUiThickness(5, 0, 5, 0),
+                                    menuItemLambda: (o) =>
+                                    {
+                                        var action = false;
+
+                                        if (o is int ti)
+                                            switch (ti)
+                                            {
+                                                case 0:
+                                                    langStr.RemoveAt(currentI);
+                                                    if (langStr.Count < 1)
+                                                        setNullList?.Invoke();
+                                                    action = true;
+                                                    break;
+                                                case 1:
+                                                    MoveElementInListUpwards<T>(langStr, langStr[currentI]);
+                                                    action = true;
+                                                    break;
+                                                case 2:
+                                                    MoveElementInListDownwards<T>(langStr, langStr[currentI]);
+                                                    action = true;
+                                                    break;
+                                            }
+
+                                        emitCustomEvent?.Invoke(relatedReferable);
+
+                                        if (action)
+                                            return new AnyUiLambdaActionRedrawEntity();
+                                        return new AnyUiLambdaActionNone();
+                                    }),
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center,
+                            verticalAlignment: AnyUiVerticalAlignment.Top
+                        );
                     }
 
             // in total
@@ -1017,7 +1154,11 @@ namespace AasxPackageLogic
 
             // ask
             var en = SelectAdequateEnum(
-                $"Refactor {oldSme.GetSelfDescription().AasElementName} '{"" + oldSme.IdShort}' to new element type ..");
+                $"Refactor {oldSme.GetSelfDescription().AasElementName} '{"" + oldSme.IdShort}' to new element type ..",
+                excludeValues: new[] {
+                    Aas.AasSubmodelElements.DataElement,
+                    Aas.AasSubmodelElements.EventElement,
+                });
             if (en == Aas.AasSubmodelElements.SubmodelElement)
                 return null;
 
@@ -1031,7 +1172,8 @@ namespace AasxPackageLogic
                 {
                     {
                         // which?
-                        var refactorSme = AdminShellUtil.CreateSubmodelElementFromEnum(en, oldSme);
+                        var refactorSme = AdminShellUtil.CreateSubmodelElementFromEnum(en, oldSme, 
+                            defaultHelper: Options.Curr.GetCreateDefaultHelper());
                         return refactorSme;
                     }
                 }
@@ -1043,6 +1185,9 @@ namespace AasxPackageLogic
 
             return null;
         }
+
+// TODO (MIHO, 2024-06-02): remove, if not anymore required? Seems so!
+#if __SEEMS_OBSOLETE
 
         // see below
         public void AddKeyListOfIdentifier(
@@ -1530,6 +1675,8 @@ namespace AasxPackageLogic
             view.Children.Add(g);
         }
 
+#endif
+
         public AnyUiButton AddSmallContextMenuItemTo(
             AnyUiGrid g, int row, int col,
             string content,
@@ -1562,10 +1709,12 @@ namespace AasxPackageLogic
         public void AddKeyListKeys(
             AnyUiStackPanel view, string key,
             List<Aas.IKey> keys,
+            Action setKeysNull = null,
             ModifyRepo repo = null,
             PackageCentral.PackageCentral packages = null,
             PackageCentral.PackageCentral.Selector selector = PackageCentral.PackageCentral.Selector.Main,
             string addExistingEntities = null,
+            Func<Aas.IReference, Aas.IReference> modifyAddExistingKey = null,
             bool addEclassIrdi = false,
             bool addFromKnown = false,
             string[] addPresetNames = null, List<Aas.IKey>[] addPresetKeyLists = null,
@@ -1579,7 +1728,8 @@ namespace AasxPackageLogic
             bool topContextMenu = false,
             Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
-            string[] auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null)
+            string[] auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null,
+            int maxNumOfKey = int.MaxValue)
         {
             // sometimes needless to show
             if (repo == null && (keys == null || keys.Count < 1))
@@ -1704,7 +1854,7 @@ namespace AasxPackageLogic
                                 && pe.Ref is Aas.IIdentifiable id
                                 && id.Id != null)
                                 // DECISION: references to concepts are always GlobalReferences
-                                keys.Add(new Aas.Key(Aas.KeyTypes.GlobalReference, id.Id));
+                                keys.AddCheckBlank(new Aas.Key(Aas.KeyTypes.GlobalReference, id.Id));
 
                             emitCustomEvent?.Invoke(relatedReferable);
 
@@ -1734,13 +1884,22 @@ namespace AasxPackageLogic
                         {
                             var k2 = SmartSelectAasEntityKeys(packages, selector, addExistingEntities);
 
+                            if (modifyAddExistingKey != null)
+                            {
+                                var outRefs = ExtendReference.CreateNew(k2);
+                                var inRefs = modifyAddExistingKey.Invoke(outRefs);
+                                if (inRefs != null)
+                                    k2 = inRefs.Keys;
+                            }                                                      
+
                             // some special cases
                             if (!Options.Curr.ModelRefCd && k2 != null && k2.Count == 1
                                 && k2[0].Type == Aas.KeyTypes.ConceptDescription)
                                 k2[0].Type = Aas.KeyTypes.GlobalReference;
 
                             if (k2 != null)
-                                keys.AddRange(k2);
+                                foreach (var k2k in k2)
+                                    keys.AddCheckBlank(k2k);
 
                             emitCustomEvent?.Invoke(relatedReferable);
 
@@ -1846,7 +2005,8 @@ namespace AasxPackageLogic
                 if (topContextMenu)
                 {
                     List<string> contextHeaders = new();
-                    contextHeaders.AddRange(new[] { "\u2702", "Delete all" });
+                    contextHeaders.AddRange(new[] { "\u2205", "Set all keys \u2192 1 blank" });
+                    contextHeaders.AddRange(new[] { "\u2702", "Delete keys completely" });
 
                     if (addEclassIrdi)
                         contextHeaders.AddRange(new[] { "\U0001f517", "Add ECLASS" });
@@ -1882,10 +2042,21 @@ namespace AasxPackageLogic
                                 if (contextHeaders[2 * oi + 1].Contains("clipboard"))
                                     return lambdaClipboard(o);
 
-                                if (contextHeaders[2 * oi + 1].Contains("Delete"))
+                                if (contextHeaders[2 * oi + 1].Contains("Set all")
+                                    || (contextHeaders[2 * oi + 1].Contains("Delete")))
                                 {
                                     // re-init
-                                    keys.Clear();
+                                    if (contextHeaders[2 * oi + 1].Contains("Set all"))
+                                    {
+                                        keys.Clear();
+                                        keys.Add(Options.Curr.GetDefaultEmptyReference()?.Keys?.FirstOrDefault());
+                                    }
+
+                                    if (contextHeaders[2 * oi + 1].Contains("Delete"))
+                                    {
+                                        keys = null;
+                                        setKeysNull?.Invoke();
+                                    }
 
                                     // change to the outside
                                     emitCustomEvent?.Invoke(relatedReferable);
@@ -2030,6 +2201,11 @@ namespace AasxPackageLogic
                                         {
                                             case 0:
                                                 keys.RemoveAt(currentI);
+                                                if (keys.Count < 1)
+                                                {
+                                                    keys = null;
+                                                    setKeysNull?.Invoke();
+                                                }
                                                 action = true;
                                                 break;
                                             case 1:
@@ -2084,6 +2260,25 @@ namespace AasxPackageLogic
         {
             if (repo != null && data == null)
                 AddAction(view, key, actionStr, repo, action, firstColumnWidth: firstColumnWidth);
+            return (data != null);
+        }
+
+        public bool SafeguardAccess(
+            AnyUiStackPanel view, ModifyRepo repo, object data, string key,
+            AasxMenu superMenu = null,
+            AasxMenu ticketMenu = null,
+            Func<int, AasxMenuActionTicket, AnyUiLambdaActionBase> ticketAction = null,
+            Func<int, AasxMenuActionTicket, Task<AnyUiLambdaActionBase>> ticketActionAsync = null,
+            FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard)
+        {
+            if (repo != null && data == null)
+                AddActionPanel(
+                    view, key, 
+                    repo: repo, 
+                    superMenu: superMenu,
+                    ticketMenu: ticketMenu, 
+                    ticketAction: ticketAction,
+                    firstColumnWidth: firstColumnWidth);
             return (data != null);
         }
 
@@ -2264,11 +2459,14 @@ namespace AasxPackageLogic
         //
 
         public void EntityListUpDownDeleteHelper<T>(
-            AnyUiPanel stack, ModifyRepo repo, List<T> list, T entity,
+            AnyUiPanel stack, ModifyRepo repo,
+            List<T> list, Action<List<T>> setOutputList,
+            T entity,
             object alternativeFocus, string label = "Entities:",
             object nextFocus = null, PackCntChangeEventData sendUpdateEvent = null, bool preventMove = false,
             Aas.IReferable explicitParent = null,
-            AasxMenu superMenu = null)
+            AasxMenu superMenu = null,
+            Action<string, AasxMenuActionTicket> postActionHook = null)
         {
             if (nextFocus == null)
                 nextFocus = entity;
@@ -2280,11 +2478,7 @@ namespace AasxPackageLogic
             if (entity is Aas.IReferable rf)
                 entityRf = rf;
 
-            AddActionPanel(
-                stack, label,
-                repo: repo,
-                superMenu: superMenu,
-                ticketMenu: new AasxMenu()
+            var theMenu = new AasxMenu()
                     .AddAction("aas-elem-move-up", "Move up",
                         "Moves the currently selected element up in containing collection.",
                         inputGesture: "Shift+Ctrl+Up")
@@ -2299,7 +2493,13 @@ namespace AasxPackageLogic
                         inputGesture: "Shift+Ctrl+End")
                     .AddAction("aas-elem-delete", "Delete",
                         "Deletes the currently selected element.",
-                        inputGesture: "Ctrl+Shift+Delete"),
+                        inputGesture: "Ctrl+Shift+Delete");
+
+            AddActionPanel(
+                stack, label,
+                repo: repo,
+                superMenu: superMenu,
+                ticketMenu: theMenu,
                 ticketAction: (buttonNdx, ticket) =>
                 {
                     if (buttonNdx >= 0 && buttonNdx <= 3)
@@ -2320,6 +2520,8 @@ namespace AasxPackageLogic
                         if (buttonNdx == 3) newndx = MoveElementToBottomOfList<T>(list, entity);
                         if (newndx >= 0)
                         {
+                            postActionHook?.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
+
                             if (entityRf != null)
                                 this.AddDiaryEntry(entityRf,
                                     new DiaryEntryStructChange(StructuralChangeReason.Modify, createAtIndex: newndx),
@@ -2349,6 +2551,11 @@ namespace AasxPackageLogic
                         {
                             var ret = DeleteElementInList<T>(list, entity, alternativeFocus);
 
+                            if (list.Count < 1)
+                                setOutputList?.Invoke(null);
+
+                            postActionHook?.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
+
                             this.AddDiaryEntry(entityRf,
                                 new DiaryEntryStructChange(StructuralChangeReason.Delete),
                                 explicitParent: explicitParent);
@@ -2371,7 +2578,7 @@ namespace AasxPackageLogic
         //
 
         public void IdentifyTargetsForEclassImportOfCDs(
-            Aas.Environment env, List<Aas.ISubmodelElement> elems,
+            Aas.IEnvironment env, List<Aas.ISubmodelElement> elems,
             ref List<Aas.ISubmodelElement> targets)
         {
             if (env == null || targets == null || elems == null)
@@ -2399,7 +2606,7 @@ namespace AasxPackageLogic
             }
         }
 
-        public bool ImportEclassCDsForTargets(Aas.Environment env, object startMainDataElement,
+        public bool ImportEclassCDsForTargets(Aas.IEnvironment env, object startMainDataElement,
                 List<Aas.ISubmodelElement> targets)
         {
             // need dialogue and data
@@ -2460,7 +2667,7 @@ namespace AasxPackageLogic
                     if (null == env.FindConceptDescriptionByReference(
                             new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>() { new Aas.Key(Aas.KeyTypes.ConceptDescription, newcd.Id) })))
                     {
-                        env.ConceptDescriptions.Add(newcd);
+                        env.Add(newcd);
 
                         this.AddDiaryEntry(newcd, new DiaryEntryStructChange(StructuralChangeReason.Create));
                     }
@@ -2490,7 +2697,7 @@ namespace AasxPackageLogic
         /// the source SMEs shall be adopted.</param>
         /// <returns>Tuple (#no valid id, #already present, #added) </returns>
         public Tuple<int, int, int> ImportCDsFromSmSme(
-            Aas.Environment env,
+            Aas.IEnvironment env,
             Aas.IReferable root,
             bool recurseChilds = false,
             bool repairSemIds = false,
@@ -2528,7 +2735,7 @@ namespace AasxPackageLogic
                         if (rf is Aas.ISubmodelElement rfsme && rfsme.SemanticId != null
                             && rfsme.SemanticId.Keys.Count() >= 1)
                         {
-                            rfsme.SemanticId.Keys[0].Type = Aas.KeyTypes.ConceptDescription;
+                            rfsme.SemanticId.Keys[0].Type = Aas.KeyTypes.GlobalReference;
                         }
                     }
 
@@ -2565,7 +2772,7 @@ namespace AasxPackageLogic
                         }
 
                         // store in AAS enviroment
-                        env.ConceptDescriptions.Add(cd);
+                        env.Add(cd);
 
                         // count and emit event
                         added++;
@@ -2607,8 +2814,7 @@ namespace AasxPackageLogic
                 return;
 
             // check, if something to do. Execute all predicates
-            List<string> textsToShow = new List<string>();
-            HintCheck.Severity highestSev = HintCheck.Severity.Notice;
+            var textsToShow = new List<Tuple<string, HintCheck.Severity>>();
             foreach (var hc in hints)
                 if (hc.CheckPred != null && hc.TextToShow != null)
                 {
@@ -2616,18 +2822,16 @@ namespace AasxPackageLogic
                     {
                         if (hc.CheckPred())
                         {
-                            textsToShow.Add(hc.TextToShow);
-                            if (hc.SeverityLevel == HintCheck.Severity.High)
-                                highestSev = HintCheck.Severity.High;
+                            textsToShow.Add(new Tuple<string, HintCheck.Severity>(hc.TextToShow, hc.SeverityLevel));
                             if (hc.BreakIfTrue)
                                 break;
                         }
                     }
                     catch (Exception ex)
                     {
-                        textsToShow.Add(
-                            $"Error while checking hints: {ex.Message} at {AdminShellUtil.ShortLocation(ex)}");
-                        highestSev = HintCheck.Severity.High;
+                        textsToShow.Add(new Tuple<string, HintCheck.Severity>(
+                            $"Error while checking hints: {ex.Message} at {AdminShellUtil.ShortLocation(ex)}", 
+                            HintCheck.Severity.High));
                     }
                 }
 
@@ -2636,21 +2840,24 @@ namespace AasxPackageLogic
                 return;
 
             // show!
-            var bubble = new AnyUiHintBubble();
-            bubble.FontSize = 0.8f;
-            bubble.Margin = new AnyUiThickness(2, 4, 2, 0);
-            bubble.Text = string.Join("\r\n", textsToShow);
-            if (highestSev == HintCheck.Severity.High)
+            foreach (var tts in textsToShow)
             {
-                bubble.Background = levelColors?.HintSeverityHigh.Bg;
-                bubble.Foreground = levelColors?.HintSeverityHigh.Fg;
+                var bubble = new AnyUiHintBubble();
+                bubble.FontSize = 0.8f;
+                bubble.Margin = new AnyUiThickness(2, 4, 2, 0);
+                bubble.Text = tts.Item1;
+                if (tts.Item2 == HintCheck.Severity.High)
+                {
+                    bubble.Background = levelColors?.HintSeverityHigh.Bg;
+                    bubble.Foreground = levelColors?.HintSeverityHigh.Fg;
+                }
+                if (tts.Item2 == HintCheck.Severity.Notice)
+                {
+                    bubble.Background = levelColors?.HintSeverityNotice.Bg;
+                    bubble.Foreground = levelColors?.HintSeverityNotice.Fg;
+                }
+                view.Children.Add(bubble);
             }
-            if (highestSev == HintCheck.Severity.Notice)
-            {
-                bubble.Background = levelColors?.HintSeverityNotice.Bg;
-                bubble.Foreground = levelColors?.HintSeverityNotice.Fg;
-            }
-            view.Children.Add(bubble);
         }
 
         public void AddHintBubble(AnyUiStackPanel view, bool hintMode, HintCheck hint)
@@ -2827,8 +3034,12 @@ namespace AasxPackageLogic
                 var dataStr = "";
                 try
                 {
-                    dataStr = Jsonization.Serialize.ToJsonObject(rf)
-                        .ToJsonString(new System.Text.Json.JsonSerializerOptions());
+                    // transforming a (null) IClass crashes Transformer
+                    if (rf == null)
+                        dataStr = "null";
+                    else
+                        dataStr = Jsonization.Serialize.ToJsonObject(rf)
+                            .ToJsonString(new System.Text.Json.JsonSerializerOptions());
                 }
                 catch (Exception ex)
                 {

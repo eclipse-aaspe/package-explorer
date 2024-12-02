@@ -49,10 +49,10 @@ function Main
         "AasxPluginDigitalNameplate",
         "AasxPluginMtpViewer",
         "AasxPluginPlotting",
+		    "AasxPluginProductChangeNotifications",
         "AasxPluginSmdExporter",
         "AasxPluginTechnicalData",
         "AasxPluginUaNetClient",
-        "AasxPluginUaNetServer",
         "AasxPluginWebBrowser",
         "BlazorExplorer"
         )

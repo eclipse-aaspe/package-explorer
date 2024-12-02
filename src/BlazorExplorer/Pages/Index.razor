@@ -80,11 +80,26 @@
                             DialogueData="evs.DialogueData" />
                     }
 
+                    @if (evs.DialogueData is AnyUiDialogueDataChangeElementAttributes ddcea)
+                    {
+                        var outerDd = ChangeElementAttributesFlyoutAnyUiFlyout.CreateModelDialogue(ddcea);
+
+                        <AnyUiFlyoutModalPanel 
+                            EventSession="evs"
+                            DialogueData="outerDd" />
+                    }
+
                     @if (evs.DialogueData is AnyUiDialogueDataSelectFromList)
                     {
                         <AnyUiFlyoutSelectFromList 
                             EventSession="evs"
                             DialogueData="evs.DialogueData" />
+                    }
+
+                    @if (evs.DialogueData is AnyUiDialogueDataSelectFromDataGrid)
+                    {
+                        <AnyUiFlyoutSelectFromDataGrid EventSession="evs"
+                                                       DialogueData="evs.DialogueData" />
                     }
 
                     @if (evs.DialogueData is AnyUiDialogueDataOpenFile)
@@ -1324,7 +1339,7 @@
             Session?.MainTimerTick();
             // MainTimer_HandleLogMessages();
             MainTimer_HandleApplicationEvents();
-            MainTimer_HandleElementAnimation();
+            MainTimer_HandleElementAnimation();          
         }, null, TimeSpan.FromMilliseconds(2000), TimeSpan.FromMilliseconds(100));
         BlazorSession.totalIndexTimer++;
     }

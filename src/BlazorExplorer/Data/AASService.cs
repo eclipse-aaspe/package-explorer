@@ -192,7 +192,7 @@ namespace BlazorUI.Data
                 if (bi.env != null)
                 {
                     // NEW (2022-05-17): iterate correctly over AAS, used Submodels
-                    foreach (var aas in bi.env.AasEnv.AssetAdministrationShells)
+                    foreach (var aas in bi.env.AasEnv.AllAssetAdministrationShells())
                     {
                         // access
                         if (aas?.Submodels == null)
@@ -209,7 +209,7 @@ namespace BlazorUI.Data
                         List<Item> childs = new List<Item>();
 
                         // find Submodels
-                        foreach (var smref in aas.Submodels)
+                        foreach (var smref in aas.AllSubmodels())
                         {
                             // access
                             var sm = bi.env.AasEnv.FindSubmodel(smref);
@@ -394,9 +394,5 @@ namespace BlazorUI.Data
                 c.parent = smeRootItem;
         }
 
-        public List<Aas.ISubmodel> GetSubmodels(BlazorSession bi)
-        {
-            return bi.env.AasEnv.Submodels;
-        }
     }
 }

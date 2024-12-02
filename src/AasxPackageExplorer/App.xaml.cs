@@ -17,6 +17,7 @@ using AasxIntegrationBase;
 using AasxPackageLogic;
 using AdminShellNS;
 using AnyUi;
+using VDS.RDF.Parsing.Handlers;
 
 
 namespace AasxPackageExplorer
@@ -109,7 +110,7 @@ namespace AasxPackageExplorer
             Options.ReplaceCurr(InferOptions(exePath, e.Args));
 
             // commit some options to other global locations
-            AdminShellUtil.DefaultLngIso639 = AasxLanguageHelper.GetFirstLangCode(Options.Curr.DefaultLang) ?? "en?";
+            AdminShellUtil.DefaultLngIso639 = AasxLanguageHelper.GetFirstLangCode(Options.Curr.DefaultLangs) ?? "en?";
 
             // search for plugins?
             if (Options.Curr.PluginDir != null)
@@ -171,6 +172,10 @@ namespace AasxPackageExplorer
                             Options.Curr.GetColor((OptionsInformation.ColorNames)(3 + i)));
                 }
             }
+
+            // languages
+            if (Options.Curr.OfferedLangs?.HasContent() == true)
+                AasxIntegrationBase.AasxLanguageHelper.Languages.InitByCustomString(Options.Curr.OfferedLangs);
 
             // preferences
             Pref pref = Pref.Read();

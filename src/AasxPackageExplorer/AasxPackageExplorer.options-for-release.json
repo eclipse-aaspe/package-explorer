@@ -12,7 +12,6 @@
   "EclassDir": ".\\eclass\\",
   "LogoFile": "PI40_and_IDTA.png",
   "QualifiersFile": "qualifier-presets.json",
-  "AasxRepositoryFn": "..\\..\\..\\..\\..\\Sample_AAS\\aasxrepo-new.json",
   "ContentHome": "https://github.com/admin-shell/io/blob/master/README.md",
   "UseFlyovers": true,
   "SplashTime": 5000,

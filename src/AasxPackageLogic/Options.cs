@@ -9,6 +9,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AdminShellNS;
 using AnyUi;
+using Extensions;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text;
 using System.Web;
+using Aas = AasCore.Aas3_0;
 
 // ReSharper disable UnassignedField.Global
 
@@ -412,6 +414,16 @@ namespace AasxPackageLogic
             Cmd = "-splash", Arg = "<milli-secs>")]
         public int SplashTime = -1;
 
+        [OptionDescription(Description = "Fraction of main window with dedicated to left column of screen " +
+            "when resizing window.",
+            Cmd = "-percentage-left-col", Arg = "Percent 0-100.0")]
+        public double PercentageLeftColumn = 20.0;
+
+        [OptionDescription(Description = "Fraction of main window with dedicated to right column of screen " +
+            "(content section) when resizing window.",
+            Cmd = "-percentage-right-col", Arg = "Percent 0-100.0")]
+        public double PercentageRightColumn = 40.0;
+
         [OptionDescription(Description = "If true, use always internal browser",
             Cmd = "-intbrowse")]
         public bool InternalBrowser = false;
@@ -464,10 +476,30 @@ namespace AasxPackageLogic
         public bool AllowLocalFiles = true;
 
         [OptionDescription(Description =
-            "Designates the default language code in ISO639-1. This will be used for new language strings " +
-            "of uncertain language",
-            Cmd = "-default-lang")]
-        public string DefaultLang = "en?";
+            "Designates the default language codes in ISO639-1. This will be used for new language strings " +
+            "of uncertain information. Each language separated by comma. First language code is the default one.",
+            Cmd = "-default-langs")]
+        public string DefaultLangs = "en";
+
+        [OptionDescription(Description =
+            "List of language/ country codes offered by the UI. Comma-separated tags of two-digit ISO 639-2 and ISO 3166-1 codes, " +
+            "also known (but not equal) to RFC 5464 locales. ",
+            Cmd = "-offered-langs")]
+        public string OfferedLangs = "en";
+
+        [OptionDescription(Description =
+            "Designates the default value of the first text value of a newly created multi language list. " +
+            "If left blank, the application will create warnings because violating the AAS specification and " +
+            "some AASX export might not work properly.",
+            Cmd = "-default-empty-lang-text")]
+        public string DefaultEmptyLangText = "";
+
+        [OptionDescription(Description =
+            "Designates the default value of the first key of a newly created AAS Reference. If left blank, " +
+            "the application will create warnings because violating the AAS specification and some AASX export " +
+            "might not work properly.",
+            Cmd = "-default-empty-ref-key")]
+        public string DefaultEmptyReferenceKey = "";
 
         [OptionDescription(Description =
             "Path to file to capture all log messages. Will be (re-) created at application startup.",
@@ -509,7 +541,12 @@ namespace AasxPackageLogic
             Cmd = "-plugin-prefer")]
         public string PluginPrefer = null;
 
-        [OptionDescription(Description =
+		[OptionDescription(Description =
+			"Sorting order of ConceptDescriptions (ListIndex, IdShort, Id, Submodel, SME, Structured)",
+			Cmd = "-cd-sort-order")]
+		public string CdSortOrder = null;
+
+		[OptionDescription(Description =
             "For such operations as query repository, do load a new AASX file without " +
             "prompting the user.",
             Cmd = "-load-without-prompt")]
@@ -543,7 +580,11 @@ namespace AasxPackageLogic
             "the editor. ")]
         public bool CompressEvents = false;
 
-        [OptionDescription(Description = "Default value for the StayConnected options of PackageContainer. " +
+		[OptionDescription(Description = "When activated, the UI will detect presence of SMT attributes and " +
+            "will perform value checks on AAS elements. This might be slow!")]
+		public bool CheckSmtElements = false;
+
+		[OptionDescription(Description = "Default value for the StayConnected options of PackageContainer. " +
             "That is, a loaded container will automatically try receive events, e.g. for value update.",
             Cmd = "-stay-connected")]
         public bool DefaultStayConnected = false;
@@ -1016,5 +1057,36 @@ namespace AasxPackageLogic
             }
         }
 
+        //
+        // some more helpers accessing the options attributes
+        //
+
+        /// <summary>
+        /// Interprets the options and returns proper value.
+        /// In the future: allow different key types?
+        /// </summary>
+        public Aas.IReference GetDefaultEmptyReference()
+        {
+            return ExtendReference.CreateFromKey(
+                KeyTypes.GlobalReference,
+                Options.Curr.DefaultEmptyReferenceKey);
+        }
+
+        //This method has ben added to make Event.Observed as model reference
+        public Aas.IReference GetDefaultEmptyModelReference()
+        {
+            return ExtendReference.CreateFromKey(
+                ReferenceTypes.ModelReference,
+                KeyTypes.Referable,
+                Options.Curr.DefaultEmptyReferenceKey);
+        }
+
+        public AdminShellUtil.CreateSubmodelElementDefaultHelper GetCreateDefaultHelper()
+        {
+            return new AdminShellUtil.CreateSubmodelElementDefaultHelper()
+            {
+                CreateDefaultReference = GetDefaultEmptyReference,
+            };
+        }
     }
 }

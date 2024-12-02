@@ -60,15 +60,15 @@ namespace AasxPackageExplorer
         /// <summary>
         /// Old, original, first subject to be compared
         /// </summary>
-        public Aas.Environment FirstEnv = null;
+        public Aas.IEnvironment FirstEnv = null;
 
         /// <summary>
         /// New, modified, second subject to be compared
         /// </summary>
-        public Aas.Environment SecondEnv = null;
+        public Aas.IEnvironment SecondEnv = null;
 
         public string IndexName(int i) => (i == 0) ? "First" : "Second";
-        public Aas.Environment IndexEnv(int i) => (i == 0) ? FirstEnv : SecondEnv;
+        public Aas.IEnvironment IndexEnv(int i) => (i == 0) ? FirstEnv : SecondEnv;
 
         /// <summary>
         /// First SMT
@@ -413,7 +413,7 @@ namespace AasxPackageExplorer
         //
 
         public void PerformCompare(
-            Aas.Environment firstEnv, Aas.Environment secondEnv,
+            Aas.IEnvironment firstEnv, Aas.IEnvironment secondEnv,
             string firstFn, string secondFn)
         {
             // access
@@ -445,8 +445,10 @@ namespace AasxPackageExplorer
                         "Aborting!");
                 }
             }
-            First = FirstEnv.FindSubmodel(FirstEnv.AssetAdministrationShells[0].Submodels[0]);
-            Second = SecondEnv.FindSubmodel(SecondEnv.AssetAdministrationShells[0].Submodels[0]);
+            First = FirstEnv.FindSubmodel(
+                FirstEnv.AllAssetAdministrationShells().FirstOrDefault()?.AllSubmodels().FirstOrDefault());
+            Second = SecondEnv.FindSubmodel(
+                SecondEnv.AllAssetAdministrationShells().FirstOrDefault()?.AllSubmodels().FirstOrDefault());
             if (First == null || Second == null)
             {
                 Log.Singleton.Error($"Compare SMT: either First or Second SMT cannot be found properly. " +

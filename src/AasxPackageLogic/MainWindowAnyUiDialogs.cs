@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography.Pkcs;
 using System.Text;
 using System.Threading.Tasks;
 using Aas = AasCore.Aas3_0;
@@ -185,6 +186,8 @@ namespace AasxPackageLogic
                         PackageCentral.MainItem.Container.SignificantElements
                             = new IndexOfSignificantAasElements(PackageCentral.MainItem.Container.Env.AasEnv);
 
+                    DisplayContext.EmitOutsideAction(new AnyUiLambdaActionReIndexIdentifiables());
+
                     // may be was saved to flush events
                     MainWindow.CheckIfToFlushEvents();
 
@@ -238,55 +241,6 @@ namespace AasxPackageLogic
                 // do
                 try
                 {
-                    // dead-csharp off
-                    //// establish target filename
-                    //if (ucsf.Location == AnyUiDialogueDataSaveFile.LocationKind.User)
-                    //{
-                    //    targetFn = PackageContainerUserFile.BuildUserFilePath(ucsf.TargetFileName);
-                    //    targetFnForLRU = null;
-                    //}
-
-                    //if (ucsf.Location == AnyUiDialogueDataSaveFile.LocationKind.Download)
-                    //{
-                    //    // produce a .tmp file
-                    //    targetFn = System.IO.Path.GetTempFileName();
-                    //    targetFnForLRU = null;
-
-                    //    // rename better
-                    //    var _filterItems = AnyUiDialogueDataOpenFile.DecomposeFilter(ucsf.Filter);
-                    //    targetFn = AnyUiDialogueDataOpenFile.ApplyFilterItem(
-                    //        fi: _filterItems[ucsf.FilterIndex],
-                    //        fn: targetFn,
-                    //        userFn: ucsf.TargetFileName,
-                    //        final: 3);
-                    //}
-
-                    //// if not local, do a bit of voodoo ..
-                    //if (!isLocalFile && !isUserFile && PackageCentral.MainItem.Container != null)
-                    //{
-                    //    // establish local
-                    //    if (!await PackageCentral.MainItem.Container.SaveLocalCopyAsync(
-                    //        targetFn,
-                    //        runtimeOptions: PackageCentral.CentralRuntimeOptions))
-                    //    {
-                    //        // Abort
-                    //        LogErrorToTicket(ticket,
-                    //            "Not able to copy current AASX file to local file. Aborting!");
-                    //        return;
-                    //    }
-
-                    //    // re-load
-                    //    MainWindow.UiLoadPackageWithNew(
-                    //        PackageCentral.MainItem, null, targetFn, onlyAuxiliary: false,
-                    //        storeFnToLRU: targetFnForLRU);
-                    //    return;
-                    //}
-
-                    //
-                    // ELSE .. already local
-                    //
-                    // dead-csharp on
-
                     // preferred format
                     var prefFmt = AdminShellPackageEnv.SerializationFormat.None;
                     if (ucsf.FilterIndex == 1)
@@ -994,7 +948,65 @@ namespace AasxPackageLogic
                 }
             }
 
-            if (cmd == "submodeltdexport")
+			if (cmd == "sammaspectimport")
+			{
+				// filename
+				if (!(await DisplayContextPlus.MenuSelectOpenFilenameToTicketAsync(
+					ticket, "File",
+					"Select SAMM aspect model file to be imported",
+					null,
+					"SAMM/Turtle (*.ttl)|*.ttl",
+					"SAMM aspect model file import: No valid filename.")))
+					return;
+
+				// do it
+				try
+				{
+					// delegate futher
+					await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
+
+					// redisplay
+					MainWindow.RedrawAllAasxElements();
+					MainWindow.RedrawElementView();
+				}
+				catch (Exception ex)
+				{
+					LogErrorToTicket(ticket, ex,
+						"When importing SAMM aspect model to ConceptDescriptions, an error occurred");
+				}
+			}
+
+			if (cmd == "sammaspectexport")
+			{
+				// filename
+				if (!(await DisplayContextPlus.MenuSelectSaveFilenameToTicketAsync(
+					ticket, "File",
+					"SAMM aspect model export",
+					"Aspect_" + (ticket.MainDataObject as Aas.IConceptDescription)?.IdShort + ".ttl",
+					"SAMM/Turtle (*.ttl)|*.ttl",
+					"SAMM aspect model file export: No valid filename.",
+					reworkSpecialFn: true,
+					argLocation: "Location")))
+					return;
+
+				// do it
+				try
+				{
+					// delegate futher
+					await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
+
+					// redisplay
+					MainWindow.RedrawAllAasxElements();
+					MainWindow.RedrawElementView();
+				}
+				catch (Exception ex)
+				{
+					LogErrorToTicket(ticket, ex,
+						"When export SAMM aspect model from ConceptDescription, an error occurred");
+				}
+			}
+
+			if (cmd == "submodeltdexport")
             {
                 // filename
                 if (!(await DisplayContextPlus.MenuSelectSaveFilenameToTicketAsync(
@@ -1052,7 +1064,32 @@ namespace AasxPackageLogic
                 }
             }
 
-            if (cmd == "importaml")
+			if (cmd == "importaasx")
+			{
+				// start
+				ticket?.StartExec();
+
+				// filename
+				if (!(await DisplayContextPlus.MenuSelectOpenFilenameToTicketAsync(
+					ticket, "File",
+					"Select AML file to be imported",
+					null,
+					"AutomationML files (*.aml)|*.aml|All files (*.*)|*.*",
+					"Import AML: No valid filename.")))
+					return;
+
+				try
+				{
+					await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
+					MainWindow.RestartUIafterNewPackage();
+				}
+				catch (Exception ex)
+				{
+					LogErrorToTicket(ticket, ex, "When importing AML, an error occurred");
+				}
+			}
+
+			if (cmd == "importaml")
             {
                 // start
                 ticket?.StartExec();
@@ -1451,7 +1488,47 @@ namespace AasxPackageLogic
                     MainWindow.RedrawAllElementsAndFocus();
             }
 
-            if (cmd == "convertelement")
+            if (cmd == "submodelinstancefromsmtconcepts")
+            {
+                // simply pass on
+                try
+                {
+                    // delegate futher
+                    await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
+                }
+                catch (Exception ex)
+                {
+                    LogErrorToTicket(ticket, ex,
+                        $"When executing command {cmd}, an error occurred");
+                }
+
+                // redisplay
+                if (ticket.Success)
+                    MainWindow.RedrawAllElementsAndFocus(nextFocus: ticket?.SetNextFocus);
+            }
+
+            if (cmd == "submodelinstancefromsammaspect"
+                || cmd == "smtextensionfromqualifiers"
+                || cmd == "smtorganizesfromsubmodel")
+			{
+				// simply pass on
+				try
+				{
+					// delegate futher
+					await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
+				}
+				catch (Exception ex)
+				{
+					LogErrorToTicket(ticket, ex,
+						$"When executing command {cmd}, an error occurred");
+				}
+
+				// redisplay
+				if (ticket.Success)
+					MainWindow.RedrawAllElementsAndFocus(nextFocus: ticket?.SetNextFocus);
+			}
+
+			if (cmd == "convertelement")
             {
                 // check
                 var rf = ticket.DereferencedMainDataObject as Aas.IReferable;
@@ -1729,15 +1806,19 @@ namespace AasxPackageLogic
         // some functions in close relation to UI menu functions
         //
 
+        // TODO (MIHO, 2023-11-19): join the two functions
+
         public PackageContainerListBase UiLoadFileRepository(string fn)
         {
             try
             {
+                // load the list
                 Log.Singleton.Info(
                     $"Loading aasx file repository {fn} ..");
 
                 var fr = PackageContainerListFactory.GuessAndCreateNew(fn);
 
+                // finalize
                 if (fr != null)
                     return fr;
                 else
@@ -1753,11 +1834,45 @@ namespace AasxPackageLogic
             return null;
         }
 
-        /// <summary>
-        /// Using the currently loaded AASX, will check if a CD_AasxLoadedNavigateTo elements can be
-        /// found to be activated
-        /// </summary>
-        public bool UiCheckIfActivateLoadedNavTo()
+		public async Task<PackageContainerListBase> UiLoadFileRepositoryAsync(string fn, bool tryLoadResident)
+		{
+			try
+			{
+				// load the list
+				Log.Singleton.Info(
+					$"Loading aasx file repository {fn} ..");
+
+				var fr = PackageContainerListFactory.GuessAndCreateNew(fn);
+
+				// try load resident?
+				if (fr != null && tryLoadResident)
+					foreach (var fi in fr.EnumerateItems())
+					{
+                        if (fi.ContainerOptions?.LoadResident == true)
+						    await fi.LoadResidentIfPossible(fr.GetFullItemLocation(fi.Location));
+					}
+
+				// finalize
+				if (fr != null)
+					return fr;
+				else
+					Log.Singleton.Info(
+						$"File not found when loading aasx file repository {fn}");
+			}
+			catch (Exception ex)
+			{
+				Log.Singleton.Error(
+					ex, $"When loading aasx file repository {Options.Curr.AasxRepositoryFn}");
+			}
+
+			return null;
+		}
+
+		/// <summary>
+		/// Using the currently loaded AASX, will check if a CD_AasxLoadedNavigateTo elements can be
+		/// found to be activated
+		/// </summary>
+		public bool UiCheckIfActivateLoadedNavTo()
         {
             // access
             if (PackageCentral.Main?.AasEnv == null || MainWindow.GetDisplayElements() == null)

@@ -81,7 +81,8 @@ namespace Extensions
             if (conceptDescription.Id != null)
                 caption = (caption + " " + conceptDescription.Id).Trim();
 
-            var info = "" + conceptDescription.GetDefaultShortName();
+            // NEW (2024-07-03): use preferred name instead of default name
+            var info = "" + conceptDescription.GetDefaultPreferredName();
 
             return Tuple.Create(caption, info);
         }
@@ -111,29 +112,6 @@ namespace Extensions
             yield break;
         }
 
-        #endregion
-        #region ListOfConceptDescription
-        public static IConceptDescription AddConceptDescriptionOrReturnExisting(this List<IConceptDescription> conceptDescriptions, ConceptDescription newConceptDescription)
-        {
-            if (newConceptDescription == null)
-            {
-                return null;
-            }
-            if (conceptDescriptions != null)
-            {
-                var existingCd = conceptDescriptions.Where(c => c.Id == newConceptDescription.Id).FirstOrDefault();
-                if (existingCd != null)
-                {
-                    return existingCd;
-                }
-                else
-                {
-                    conceptDescriptions.Add(newConceptDescription);
-                }
-            }
-
-            return newConceptDescription;
-        }
         #endregion
 
         public static void Validate(
@@ -316,5 +294,45 @@ namespace Extensions
                 cd.IsCaseOf = new List<IReference>();
             cd.IsCaseOf.Add(ico);
         }
-    }
+
+		/// <summary>
+		/// Returns false, if there is another element with same idShort in the list
+		/// </summary>
+		public static bool CheckIdShortIsUnique(this List<IConceptDescription> cds, string idShort)
+		{
+			idShort = idShort?.Trim();
+			if (idShort == null || idShort.Length < 1)
+				return false;
+
+			var res = true;
+			foreach (var smw in cds)
+				if (smw != null && smw.IdShort != null && smw.IdShort == idShort)
+				{
+					res = false;
+					break;
+				}
+
+			return res;
+		}
+
+        /// <summary>
+        /// Creates ids with numerical index according to template string, until a unique idShort is found
+        /// </summary>
+		public static string IterateIdShortTemplateToBeUnique(this List<IConceptDescription> cds, string idShortTemplate, int maxNum)
+		{
+			if (idShortTemplate == null || maxNum < 1 || !idShortTemplate.Contains("{0"))
+				return null;
+
+			int i = 1;
+			while (i < maxNum)
+			{
+				var ids = string.Format(idShortTemplate, i);
+				if (cds.CheckIdShortIsUnique(ids))
+					return ids;
+				i++;
+			}
+
+			return null;
+		}
+	}
 }

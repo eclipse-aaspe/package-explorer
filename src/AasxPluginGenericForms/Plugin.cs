@@ -324,7 +324,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                     // make result
                     var res = new AasxPluginResultGenerateSubmodel();
                     res.sm = sm;
-                    res.cds = foundRec.ConceptDescriptions;
+                    res.cds = foundRec.RequiredCD;
                     return res;
                 }
 

@@ -21,8 +21,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="ScottPlot" Version="4.1.60" />
-    <PackageReference Include="ScottPlot.WPF" Version="4.1.60" />
+    <PackageReference Include="ScottPlot" Version="4.1.68" />
+    <PackageReference Include="ScottPlot.WPF" Version="4.1.68" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="WpfPlotViewControlCumulative.xaml.cs">

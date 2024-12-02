@@ -31,6 +31,7 @@ using AasxPluginExportTable.Uml;
 using AasxPluginExportTable.Table;
 using System.Runtime.Intrinsics.X86;
 using AnyUi;
+using System.IO.Packaging;
 
 namespace AasxPluginExportTable.Smt
 {
@@ -50,6 +51,10 @@ namespace AasxPluginExportTable.Smt
         protected StringBuilder _adoc = new StringBuilder();
         protected bool _singleFile = true;
 
+        protected string _locationPages = "";
+        protected string _locationImages = "";
+        protected string _locationDiagrams = "";
+
         protected void ProcessTextBlob(string header, Aas.IBlob blob)
         {
             // any content
@@ -67,6 +72,30 @@ namespace AasxPluginExportTable.Smt
             if (header?.HasContent() == true)
                 _adoc.AppendLine("");
             _adoc.AppendLine(header + text);
+        }
+
+        protected static string EscapeAdText(string input)
+        {
+            if (input == null)
+                return null;
+            input = input.Replace(@"""", @"\""");
+            return input;
+        }
+
+        protected string EvalLinkArguments(ExportSmtArguments args, Aas.ISubmodelElement sme)
+        {
+            var astr = "";
+
+            if (args?.width != null)
+                astr += $",width=\"{AdminShellUtil.FromDouble(args.width ?? 0.0, "{0:0.0}")}%\"";
+
+            var titStr = sme?.Description?.GetDefaultString();
+            if (titStr?.HasContent() == true)
+                astr += $",title=\"{EscapeAdText(titStr)}\"";
+
+            astr = astr.Trim(',');
+
+            return astr;
         }
 
         protected void ProcessImageLink(Aas.ISubmodelElement sme)
@@ -147,18 +176,19 @@ namespace AasxPluginExportTable.Smt
                 fn = args.fileName;
 
             // save absolute
-            var absFn = Path.Combine(_tempDir, fn);
+            var absFn = Path.Combine(_locationImages, fn);
             File.WriteAllBytes(absFn, data);
             _log?.Info("Image data with {0} bytes writen to {1}.", data.Length, absFn);
 
+            // create link arguments
+            var imgId = AdminShellUtil.FilterFriendlyName(sme.IdShort);
+            var astr = EvalLinkArguments(args, sme);
+
             // create link text
-            var astr = "";
-            if (args?.width != null)
-                astr = $"width=\"{AdminShellUtil.FromDouble(args.width ?? 0.0, "{0:0.0}")}%\"";
             if (doLink)
             {
                 _adoc.AppendLine("");
-                _adoc.AppendLine($"image::{fn}[{astr}]");
+                _adoc.AppendLine($"image::{fn}[id=\"{imgId}\", {astr}]");
                 _adoc.AppendLine("");
             }
         }
@@ -188,7 +218,8 @@ namespace AasxPluginExportTable.Smt
             if (refel.IdShort.HasContent())
                 pumlName = AdminShellUtil.FilterFriendlyName(refel.IdShort);
             var pumlFn = pumlName + ".puml";
-            var absPumlFn = Path.Combine(_tempDir, pumlFn);
+            var absPumlFn = Path.Combine(_locationDiagrams, pumlFn);
+            var extraAntoraPath = _optionsSmt.AntoraStyle ? "partial$diagrams/" : "";
 
             // make options
             var umlOptions = new ExportUmlRecord();
@@ -197,17 +228,20 @@ namespace AasxPluginExportTable.Smt
 
             // make writer
             var writer = new PlantUmlWriter();
-            writer.StartDoc(umlOptions);
+            writer.StartDoc(umlOptions, _package.AasEnv);
             writer.ProcessTopElement(target, processDepth);
             writer.ProcessPost();
             _log?.Info("ExportSMT: writing PlantUML to {0} ..", absPumlFn);
             writer.SaveDoc(absPumlFn);
 
+            // create link arguments
+            var astr = EvalLinkArguments(args, refel);
+
             // include file into AsciiDoc
             _adoc.AppendLine("");
-            _adoc.AppendLine($"[plantuml, {pumlName}, svg]");
+            _adoc.AppendLine($"[plantuml, {pumlName}, svg, id=\"{pumlName}\", {astr}]");
             _adoc.AppendLine("----");
-            _adoc.AppendLine("include::" + pumlFn + "[]");
+            _adoc.AppendLine("include::" + extraAntoraPath + pumlFn + "[]");
             _adoc.AppendLine("----");
             _adoc.AppendLine("");
         }
@@ -268,7 +302,9 @@ namespace AasxPluginExportTable.Smt
 
             AnyUiDialogueTable.Export(
                 _optionsAll, optionsTable, absTableFn,
-                target, _package?.AasEnv, ticket, _log, maxDepth: processDepth);
+                target, _package?.AasEnv, ticket, _log, maxDepth: processDepth,
+                idOfElem: refel.IdShort,
+                titleOfTable: EscapeAdText(refel.Description?.GetDefaultString()));
 
             // include file into AsciiDoc
             if (_optionsSmt.IncludeTables)
@@ -319,6 +355,53 @@ namespace AasxPluginExportTable.Smt
             _tempDir = AdminShellUtil.GetTemporaryDirectory();
             log?.Info("ExportSmt: using temp directory {0} ..", _tempDir);
 
+            _locationPages = _tempDir;
+            _locationImages = _tempDir;
+            _locationDiagrams = _tempDir;
+
+            // sub-folders?
+            if (optionsSmt.AntoraStyle)
+            {
+                try
+                {
+                    // create a lot of directories
+                    var docRoot = Path.Combine(_tempDir, "documentation");
+                    Directory.CreateDirectory(docRoot);
+
+                    var modules = Path.Combine(docRoot, "modules");
+                    Directory.CreateDirectory(modules);
+
+                    var root = Path.Combine(modules, "ROOT");
+                    Directory.CreateDirectory(root);
+
+                    _locationPages = Path.Combine(root, "pages");
+                    Directory.CreateDirectory(_locationPages);
+                    
+                    _locationImages = Path.Combine(root, "images");
+                    Directory.CreateDirectory(_locationImages);
+                    
+                    _locationDiagrams = Path.Combine(Path.Combine(root, "partials"), "diagrams");
+                    Directory.CreateDirectory(Path.Combine(_tempDir, "partials"));
+                    Directory.CreateDirectory(_locationDiagrams);
+
+                    _log?.Info(StoredPrint.Color.Black,
+                        "Created dedicated sub-folders for documentation, modules, root, pages, images, partials/diagrams.");
+
+                    // create some boiler plate 
+                    var antoraYamlTxt = AdminShellUtil.CleanHereStringWithNewlines(
+                        @"name: IDTA-00000
+                        title: 'TODO'
+                        version: 'v1.0'
+                        start_page: ROOT:index.adoc");
+
+                    System.IO.File.WriteAllText(Path.Combine(docRoot, "antora.yml"), antoraYamlTxt);
+                }
+                catch (Exception ex)
+                {
+                    _log?.Error(ex, "Creating sub-folders within " + _tempDir);
+                }
+            }
+
             // predefined semantic ids
             var defs = AasxPredefinedConcepts.AsciiDoc.Static;
             var mm = MatchMode.Relaxed;
@@ -344,6 +427,8 @@ namespace AasxPluginExportTable.Smt
                         ProcessTextBlob("=== ", blob);
                     if (semId.Matches(defs.CD_Heading3.GetCdReference(), mm))
                         ProcessTextBlob("==== ", blob);
+                    if (semId.Matches(defs.CD_Heading4.GetCdReference(), mm))
+                        ProcessTextBlob("===== ", blob);
                 }
 
                 if (sme is Aas.IFile || sme is Aas.IBlob)
@@ -368,11 +453,11 @@ namespace AasxPluginExportTable.Smt
             var adocText = _adoc.ToString();
 
             // build adoc file
-            var title = (_srcSm.IdShort?.HasContent() == true)
+            var title = (!optionsSmt.AntoraStyle && (_srcSm.IdShort?.HasContent() == true))
                     ? AdminShellUtil.FilterFriendlyName(_srcSm.IdShort)
-                    : "output";
+                    : "index";
             var adocFn = title + ".adoc";
-            var absAdocFn = Path.Combine(_tempDir, adocFn);
+            var absAdocFn = Path.Combine(_locationPages, adocFn);
 
             // write it
             File.WriteAllText(absAdocFn, adocText);
@@ -399,6 +484,18 @@ namespace AasxPluginExportTable.Smt
                 displayContext?.MenuExecuteSystemCommand("Exporting PDF", _tempDir, cmd, args);
             }
 
+            if (_optionsSmt.ViewResult)
+            {
+                var cmd = _optionsAll.SmtExportViewCmd;
+                var args = _optionsAll.SmtExportViewArgs
+                    .Replace("%WD%", "" + _tempDir)
+                    .Replace("%ADOC%", "" + adocFn)
+                    .Replace("%HTML%", "" + adocFn.Replace(".adoc", ".html"))
+                    .Replace("%PDF%", "" + adocFn.Replace(".adoc", ".pdf"));
+
+                displayContext?.MenuExecuteSystemCommand("Viewing results", _tempDir, cmd, args);
+            }
+
             // now, how to handle files?
             if (_singleFile)
             {
@@ -409,6 +506,7 @@ namespace AasxPluginExportTable.Smt
             else
             {
                 // create zip package
+#if __old_
                 var first = true;
                 foreach (var infn in Directory.EnumerateFiles(_tempDir, "*"))
                 {
@@ -417,6 +515,14 @@ namespace AasxPluginExportTable.Smt
                         fileMode: first ? FileMode.Create : FileMode.OpenOrCreate);
                     first = false;
                 }
+#else
+                using (Package zip = System.IO.Packaging.Package.Open(fn, FileMode.Create))
+                {
+                    AdminShellUtil.RecursiveAddDirToZip(
+                        zip,
+                        _tempDir);
+                }
+#endif
                 log?.Info("ExportSmt: packed all files to {0}", fn);
             }
 

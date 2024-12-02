@@ -336,8 +336,19 @@ namespace AdminShellNS
             return null;
         }
 
-        public static ISubmodelElement CreateSubmodelElementFromEnum(AasSubmodelElements smeEnum, ISubmodelElement sourceSme = null)
+        public class CreateSubmodelElementDefaultHelper
         {
+            public Func<IReference> CreateDefaultReference = null;
+        }
+
+        public static ISubmodelElement CreateSubmodelElementFromEnum(
+            AasSubmodelElements smeEnum, ISubmodelElement sourceSme = null,
+            CreateSubmodelElementDefaultHelper defaultHelper = null)
+        {
+            Func<IReference> crDefRef = () => { return (defaultHelper?.CreateDefaultReference?.Invoke()) ??
+                new Reference(ReferenceTypes.ExternalReference, new List<IKey>(
+                    new[] { new Key(KeyTypes.GlobalReference, "") })); };
+
             switch (smeEnum)
             {
                 case AasSubmodelElements.Property:
@@ -364,21 +375,21 @@ namespace AdminShellNS
                     {
                         // TODO (??, 0000-00-00): AAS core crashes without this
                         return new ReferenceElement(
-                            value: new Reference(ReferenceTypes.ExternalReference, new List<IKey>())
+                            value: crDefRef()
                             ).UpdateFrom(sourceSme);
                     }
                 case AasSubmodelElements.RelationshipElement:
                     {
                         return new RelationshipElement(
-                            new Reference(ReferenceTypes.ExternalReference, new List<IKey>()),
-                            new Reference(ReferenceTypes.ExternalReference, new List<IKey>()))
+                            crDefRef(),
+                            crDefRef())
                             .UpdateFrom(sourceSme);
                     }
                 case AasSubmodelElements.AnnotatedRelationshipElement:
                     {
                         return new AnnotatedRelationshipElement(
-                            new Reference(ReferenceTypes.ExternalReference, new List<IKey>()),
-                            new Reference(ReferenceTypes.ExternalReference, new List<IKey>()))
+                            crDefRef(),
+                            crDefRef())
                             .UpdateFrom(sourceSme);
                     }
                 case AasSubmodelElements.Capability:
@@ -399,7 +410,9 @@ namespace AdminShellNS
                     }
                 case AasSubmodelElements.BasicEventElement:
                     {
-                        return new BasicEventElement(null, Direction.Input, StateOfEvent.Off).UpdateFrom(sourceSme);
+                        var observed = new Reference(ReferenceTypes.ModelReference, new List<IKey>() { new Key(KeyTypes.Referable, "") });
+                        return new BasicEventElement(observed, 
+                            Direction.Input, StateOfEvent.Off).UpdateFrom(sourceSme);
                     }
                 case AasSubmodelElements.Entity:
                     {
@@ -413,6 +426,7 @@ namespace AdminShellNS
         }
 
         #endregion
+        
         public static string EvalToNonNullString(string fmt, object o, string elseString = "")
         {
             if (o == null)
@@ -425,6 +439,27 @@ namespace AdminShellNS
             if (o == null || o == "")
                 return elseString;
             return string.Format(fmt, o);
+        }
+
+        /// <summary>
+        /// Some syntactic sugar to easily take the first string which has content.
+        /// </summary>
+        public static string TakeFirstContent(params string[] choices)
+        {
+            foreach (var c in choices)
+                if (c != null && c.Trim().Length > 0)
+                    return c;
+            return "";
+        }
+
+        /// <summary>
+        /// Takes the character at index 0 and converts it to upper case.
+        /// </summary>
+        public static string CapitalizeFirstLetter(string str)
+        {
+            if (str.HasContent() && char.IsLower(str[0]))
+                str = char.ToUpperInvariant(str[0]) + str.Substring(1);
+            return str;
         }
 
         /// <summary>
@@ -458,11 +493,37 @@ namespace AdminShellNS
         /// <code doctest="true">Assert.AreEqual("someName", AdminShellUtil.FilterFriendlyName("someName"));</code>
         /// <code doctest="true">Assert.AreEqual("some__name", AdminShellUtil.FilterFriendlyName("some!;name"));</code>
         /// </example>
-        public static string FilterFriendlyName(string src)
+        public static string FilterFriendlyName(string src, 
+            bool pascalCase = false,
+            bool fixMoreBlanks = false)
         {
             if (src == null)
                 return null;
-            return Regex.Replace(src, @"[^a-zA-Z0-9\-_]", "_");
+
+            if (pascalCase && src.Length > 0)
+                src = char.ToUpper(src[0]) + src.Substring(1);
+
+            src = Regex.Replace(src, @"[^a-zA-Z0-9\-_]", "_");
+
+            if (fixMoreBlanks)
+            {
+                src = src.Trim('_');
+                // stupid
+                for (int i=0; i<9; i++)
+                    src = src.Replace("__", "_");
+            }
+
+            return src;
+        }
+
+        public static string GiveRandomIdShort(IReferable rf)
+        {
+            var sd = rf?.GetSelfDescription();
+            if (sd?.ElementAbbreviation?.HasContent() != true)
+                return "";
+
+            var r = new Random();
+            return sd.ElementAbbreviation + r.Next(0, 999999).ToString("D6");
         }
 
         /// <example>
@@ -785,16 +846,46 @@ namespace AdminShellNS
         // Reflection
         //
 
+        /// <summary>
+        /// Returns type or the underlying type, if is a Nullable of if it is a 
+        /// generic type, e.g. a List<>
+        /// </summary>
+        public static Type GetTypeOrUnderlyingType(Type type, bool resolveGeneric = false)
+        {
+            var nut = Nullable.GetUnderlyingType(type);
+            if (nut != null)
+            {
+                type = nut;
+            }
+            else
+            if (resolveGeneric && type.IsGenericType && type.GetGenericArguments().Count() > 0)
+            {
+                type = type.GetGenericArguments()[0];
+            }
+            return type;
+        }
+
+        /// <summary>
+        /// Tries parsing the <c>value</c>, supposedly a string, to a field value
+        /// for reflection of type specific data.
+        /// Works for most scalars, dateTime, string.
+        /// </summary>
         public static void SetFieldLazyValue(FieldInfo f, object obj, object value)
         {
             // access
             if (f == null || obj == null)
                 return;
 
-            switch (Type.GetTypeCode(f.FieldType))
+            // 2024-01-04: make function more suitable for <DateTime?>
+            switch (Type.GetTypeCode(GetTypeOrUnderlyingType(f.FieldType)))
             {
                 case TypeCode.String:
                     f.SetValue(obj, "" + value);
+                    break;
+
+                case TypeCode.DateTime:
+                    if (DateTime.TryParse("" + value, out var dt))
+                        f.SetValue(obj, dt);
                     break;
 
                 case TypeCode.Byte:
@@ -838,12 +929,24 @@ namespace AdminShellNS
                     break;
 
                 case TypeCode.Single:
+                    if (value is double vd)
+                        f.SetValue(obj, vd);
+                    else
+                    if (value is float vf)
+                        f.SetValue(obj, vf);
+                    else
                     if (Single.TryParse("" + value, NumberStyles.Float,
                         CultureInfo.InvariantCulture, out var sgl))
                         f.SetValue(obj, sgl);
                     break;
 
                 case TypeCode.Double:
+                    if (value is double vd2)
+                        f.SetValue(obj, vd2);
+                    else
+                    if (value is float vf2)
+                        f.SetValue(obj, vf2);
+                    else
                     if (Double.TryParse("" + value, NumberStyles.Float,
                         CultureInfo.InvariantCulture, out var dbl))
                         f.SetValue(obj, dbl);
@@ -857,6 +960,121 @@ namespace AdminShellNS
                     f.SetValue(obj, !isFalse);
                     break;
             }
+        }
+
+        /// <summary>
+        /// Rather specialised: adding a type-specific value to a list
+        /// of type-specific values. 
+        /// Works for most scalars, dateTime, string.
+        /// </summary>
+        public static void AddToListLazyValue(object obj, object value)
+        {
+            // access
+            if (obj == null)
+                return;
+
+            switch (obj)
+            {
+                case List<string> lstr:
+                    lstr.Add("" + value);
+                    break;
+
+                case List<DateTime> ldt:
+                    if (DateTime.TryParse("" + value, out var dt))
+                        ldt.Add(dt);
+                    break;
+
+                case List<byte> lbyte:
+                    if (Byte.TryParse("" + value, out var ui8))
+                        lbyte.Add(ui8);
+                    break;
+
+                case List<sbyte> lsbyte:
+                    if (SByte.TryParse("" + value, out var i8))
+                        lsbyte.Add(i8);
+                    break;
+
+                case List<Int16> li16:
+                    if (Int16.TryParse("" + value, out var i16))
+                        li16.Add(i16);
+                    break;
+
+                case List<Int32> li32:
+                    if (Int32.TryParse("" + value, out var i32))
+                        li32.Add(i32);
+                    break;
+
+                case List<Int64> li64:
+                    if (Int64.TryParse("" + value, out var i64))
+                        li64.Add(i64);
+                    break;
+
+                case List<UInt16> lui16:
+                    if (UInt16.TryParse("" + value, out var ui16))
+                        lui16.Add(ui16);
+                    break;
+
+                case List<UInt32> lui32:
+                    if (UInt32.TryParse("" + value, out var ui32))
+                        lui32.Add(ui32);
+                    break;
+
+                case List<UInt64> lui64:
+                    if (UInt64.TryParse("" + value, out var ui64))
+                        lui64.Add(ui64);
+                    break;
+
+                case List<float> lfloat:
+                    if (value is double vd)
+                        lfloat.Add((float) vd);
+                    else
+                    if (value is float vf)
+                        lfloat.Add(vf);
+                    else
+                    if (Single.TryParse("" + value, NumberStyles.Float,
+                        CultureInfo.InvariantCulture, out var sgl))
+                        lfloat.Add(sgl);
+                    break;
+
+                case List<double> ldouble:
+                    if (value is double vd2)
+                        ldouble.Add(vd2);
+                    else
+                    if (value is float vf2)
+                        ldouble.Add(vf2);
+                    else
+                    if (Double.TryParse("" + value, NumberStyles.Float,
+                        CultureInfo.InvariantCulture, out var dbl))
+                        ldouble.Add(dbl);
+                    break;
+
+                case List<bool> lbool:
+                    var isFalse = value == null
+                        || (value is int vi && vi == 0)
+                        || (value is string vs && (vs == "" || vs == "false"))
+                        || (value is bool vb && !vb);
+                    lbool.Add(!isFalse);
+                    break;
+            }
+        }
+
+        public static string ToStringInvariant(object o)
+        {
+            // trivial
+            if (o == null)
+                return "";
+
+            // special cases
+            if (o is double od)
+                return od.ToString(CultureInfo.InvariantCulture);
+            if (o is float of)
+                return of.ToString(CultureInfo.InvariantCulture);
+            if (o is DateTime odt)
+                return odt.ToUniversalTime()
+                          .ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
+
+            // use automatic conversion
+            return "" + o;
         }
 
         //
@@ -873,11 +1091,12 @@ namespace AdminShellNS
 
         // see: https://stackoverflow.com/questions/6386113/using-system-io-packaging-to-generate-a-zip-file
         public static void AddFileToZip(
-            string zipFilename, string fileToAdd,
+            string zipFilename, 
+            string fileToAdd,
             CompressionOption compression = CompressionOption.Normal,
             FileMode fileMode = FileMode.OpenOrCreate)
         {
-            using (Package zip = System.IO.Packaging.Package.Open(zipFilename, FileMode.OpenOrCreate))
+            using (Package zip = System.IO.Packaging.Package.Open(zipFilename, fileMode))
             {
                 string destFilename = ".\\" + Path.GetFileName(fileToAdd);
                 Uri uri = PackUriHelper.CreatePartUri(new Uri(destFilename, UriKind.Relative));
@@ -887,6 +1106,42 @@ namespace AdminShellNS
                 }
                 PackagePart part = zip.CreatePart(uri, "", compression);
                 using (FileStream fileStream = new FileStream(fileToAdd, FileMode.Open, FileAccess.Read))
+                {
+                    using (Stream dest = part.GetStream())
+                    {
+                        fileStream.CopyTo(dest);
+                    }
+                }
+            }
+        }
+
+        public static void RecursiveAddDirToZip(
+            Package zip,
+            string localPath,
+            string zipPath = "",
+            CompressionOption compression = CompressionOption.Normal)
+        {
+            // enumerate only on this level
+            foreach (var infn in Directory.EnumerateDirectories(localPath, "*"))
+            {
+                // recurse
+                RecursiveAddDirToZip(
+                    zip,
+                    localPath: infn,
+                    zipPath: Path.Combine(zipPath, Path.GetFileName(infn)),
+                    compression: compression);
+            }
+
+            foreach (var infn in Directory.EnumerateFiles(localPath, "*"))
+            {
+                string destFilename = ".\\" + Path.Combine(zipPath, Path.GetFileName(infn));
+                Uri uri = PackUriHelper.CreatePartUri(new Uri(destFilename, UriKind.Relative));
+                if (zip.PartExists(uri))
+                {
+                    zip.DeletePart(uri);
+                }
+                PackagePart part = zip.CreatePart(uri, "", compression);
+                using (FileStream fileStream = new FileStream(infn, FileMode.Open, FileAccess.Read))
                 {
                     using (Stream dest = part.GetStream())
                     {
@@ -937,6 +1192,34 @@ namespace AdminShellNS
         {
             var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
             return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+        }
+
+        /// <summary>
+        /// Tries to add scheme etc. to form a valid URI.
+        /// <c>uri</c> with starting '/' are left untouched.
+        /// If not can to convert to <c>Uri()</c>, will return <c>false</c>.
+        /// </summary>
+        public static bool TryReFormatAsValidUri(ref string uri)
+        {
+            // basic checks
+            if (uri?.HasContent() != true)
+                return false;
+            uri = uri.Trim();
+            if (uri.StartsWith('/'))
+                return true;
+
+            // if no scheme, default is https://
+            if (!uri.Contains("://"))
+                uri = "https://" + uri;
+
+            // do the litmus test
+            if (Uri.TryCreate(uri, UriKind.Absolute, out var myUri))
+            {
+                // use that uri
+                uri = myUri.ToString();
+                return true;
+            }
+            return false;
         }
 
         public static bool CheckIfAsciiOnly(byte[] data, int bytesToCheck = int.MaxValue)
@@ -1119,7 +1402,7 @@ namespace AdminShellNS
         // (used by some function on this basic level)
         //
 
-        public static string DefaultLngIso639 = "en?";
+        public static string DefaultLngIso639 = "en";
 
         public static string GetDefaultLngIso639()
         {

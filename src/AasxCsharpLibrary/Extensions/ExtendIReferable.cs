@@ -48,6 +48,38 @@ namespace Extensions
                 lambda(state, null, referable);
         }
 
+        public static int Replace(
+            this IReferable referable, ISubmodelElement oldElem, ISubmodelElement newElem)
+        {
+            if (referable is Submodel submodel)
+            {
+                return submodel.Replace(oldElem, newElem);
+            }
+            else if (referable is AnnotatedRelationshipElement annotatedRelationshipElement
+                && oldElem is IDataElement oldDE && newElem is IDataElement newDE)
+            {
+                return annotatedRelationshipElement.Replace(oldDE, newDE);
+            }
+            else if (referable is SubmodelElementCollection submodelElementCollection)
+            {
+                return submodelElementCollection.Replace(oldElem, newElem);
+            }
+            else if (referable is SubmodelElementList submodelElementList)
+            {
+                return submodelElementList.Replace(oldElem, newElem);
+            }
+            else if (referable is Entity entity)
+            {
+                return entity.Replace(oldElem, newElem);
+            }
+            else if (referable is Operation operation)
+            {
+                return operation.Replace(oldElem, newElem);
+            }
+
+            return -1;
+        }
+
         public static void Remove(this IReferable referable, ISubmodelElement submodelElement)
         {
             if (referable is Submodel submodel)
@@ -70,9 +102,14 @@ namespace Extensions
             {
                 entity.Remove(submodelElement);
             }
+            else if (referable is Operation operation)
+            {
+                operation.Remove(submodelElement);
+            }
         }
 
-        public static void Add(this IReferable referable, ISubmodelElement submodelElement)
+        public static void Add(this IReferable referable, ISubmodelElement submodelElement,
+            OperationVariableDirection direction = OperationVariableDirection.In)
         {
             if (referable is Submodel submodel)
             {
@@ -93,6 +130,10 @@ namespace Extensions
             else if (referable is Entity entity)
             {
                 entity.Add(submodelElement);
+            }
+            else if (referable is Operation operation)
+            {
+                operation.Add(submodelElement, direction);
             }
         }
 
@@ -202,6 +243,18 @@ namespace Extensions
                     {
                         referable.Description = null;
                     }));
+        }
+
+        /// <summary>
+        /// Tells, if the IReferable can sub-structure more elements
+        /// </summary>
+        public static bool IsStructured(this IReferable rf)
+        {
+            return (rf is ISubmodel
+                || rf is ISubmodelElementCollection
+                || rf is ISubmodelElementList
+                || rf is IOperation
+                || rf is IEntity);
         }
 
         /// <summary>
@@ -375,85 +428,19 @@ namespace Extensions
             foreach (var desc in rf.DescendOnce())
                 if (desc is ISubmodelElement sme)
                     yield return sme;
-
-#if __old
-            if (referable is Submodel submodel && submodel.SubmodelElements != null)
-            {
-                if (submodel.SubmodelElements != null)
-                {
-                    foreach (var submodelElement in submodel.SubmodelElements)
-                    {
-                        yield return submodelElement;
-                    }
-                }
-            }
-            else if (referable is SubmodelElementCollection submodelElementCollection)
-            {
-                if (submodelElementCollection.Value != null)
-                {
-                    foreach (var submodelElement in submodelElementCollection.Value)
-                    {
-                        yield return submodelElement;
-                    }
-                }
-            }
-            else if (referable is SubmodelElementList submodelElementList)
-            {
-                if (submodelElementList.Value != null)
-                {
-                    foreach (var submodelElement in submodelElementList.Value)
-                    {
-                        yield return submodelElement;
-                    }
-                }
-            }
-            else if (referable is AnnotatedRelationshipElement annotatedRelationshipElement)
-            {
-                if (annotatedRelationshipElement.Annotations != null)
-                {
-                    foreach (var submodelElement in annotatedRelationshipElement.Annotations)
-                    {
-                        yield return submodelElement;
-                    }
-                }
-            }
-            else if (referable is Entity entity)
-            {
-                if (entity.Statements != null)
-                {
-                    foreach (var submodelElement in entity.Statements)
-                    {
-                        yield return submodelElement;
-                    }
-                }
-            }
-            else if (referable is Operation operation)
-            {
-                if (operation.InputVariables != null)
-                    foreach (var inputVariable in operation.InputVariables)
-                    {
-                        yield return inputVariable.Value;
-                    }
-
-                if (operation.OutputVariables != null)
-                    foreach (var outputVariable in operation.OutputVariables)
-                    {
-                        yield return outputVariable.Value;
-                    }
-
-                if (operation.InoutputVariables != null)
-                    foreach (var inOutVariable in operation.InoutputVariables)
-                    {
-                        yield return inOutVariable.Value;
-                    }
-            }
-            else
-            {
-                yield break;
-            }
-#endif
         }
 
+        public static IEnumerable<ISubmodelElement> EnumerateChildrenFor(this IReferable rf,
+            bool SMC = false,
+            bool SML = false)
+        {
+            if (rf is ISubmodelElementCollection && SMC
+                || rf is ISubmodelElementList && SML)
+            {
+                foreach (var x in rf.EnumerateChildren())
+                    yield return x;
+            }
+        }
 
         public static void SetAllParentsAndTimestamps(this IReferable referable, IReferable parent, DateTime timeStamp, DateTime timeStampCreate)
         {
@@ -618,6 +605,27 @@ namespace Extensions
                 rf.Add(ext);
                 iq.Qualifiers.Remove(q);
             }
+        }
+
+        public static void FixReferences(IReferable rf, IEnumerable<ISubmodel> smToCheck)
+        {
+            if (rf == null || smToCheck == null)
+                return;
+            foreach (var x in rf.DescendOnce())
+                if (x is IReference xrf
+                    && xrf.Count() > 0
+                    && xrf.Keys.First()?.Type == KeyTypes.Submodel
+                    && xrf.Keys.First().Value?.HasContent() == true)
+                {
+                    foreach (var smtc in smToCheck)
+                        if (smtc.IdShort?.HasContent() == true
+                            && smtc.Id?.HasContent() == true
+                            && xrf.Keys.First().Value.Trim() == smtc.IdShort.Trim())
+                        {
+                            // found place to fix
+                            xrf.Keys.First().Value = smtc.Id;
+                        }
+                }
         }
 
     }

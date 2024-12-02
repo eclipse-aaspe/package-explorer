@@ -212,6 +212,11 @@ namespace AnyUi
                 Convert.ToByte(level0 * c0.B + level1 * c1.B)
             );
         }
+
+        public Single Blackness()
+        {
+            return ScA * (1.0f - 0.3333f * (ScR + ScG + ScB));
+        }
     }
 
     public class AnyUiColors
@@ -245,6 +250,11 @@ namespace AnyUi
             solidColorBrush = new AnyUiColor(c);
         }
 
+        public AnyUiBrush(string st)
+        {
+            solidColorBrush = AnyUiColor.FromString(st);   
+        }
+
         public string HtmlRgb()
         {
             return "rgb(" +
@@ -260,7 +270,7 @@ namespace AnyUi
                 solidColorBrush.G + ", " +
                 solidColorBrush.B + ", " +
                 string.Format(CultureInfo.InvariantCulture, "{0:0.00}", 1.0 * solidColorBrush.A / 255.0) + ")";
-        }
+        }        
     }
 
     public class AnyUiBrushes
@@ -408,6 +418,7 @@ namespace AnyUi
 
         public AnyUiRect FindBoundingBox()
         {
+#if __old_implementation_not_sure_if_works
             var res = new AnyUiRect()
             {
                 X = double.MaxValue,
@@ -426,8 +437,39 @@ namespace AnyUi
                 if (p.Y > res.Y + res.Height)
                     res.Height = p.Y - res.Y;
             }
-
+            
             return res;
+#else
+            // above way seems not to work properly, therefore
+            // substitute with brute force one
+
+            if (this.Count < 1)
+                return new AnyUiRect(0, 0, 0, 0);
+            
+            double minX = double.MaxValue;
+            double maxX = double.MinValue;
+            double minY = double.MaxValue;
+            double maxY = double.MinValue;
+
+            foreach (var p in this)
+            {
+                if (p.X < minX)
+                    minX = p.X;
+                if (p.X > maxX)
+                    maxX = p.X;
+                if (p.Y < minY)
+                    minY = p.Y;
+                if (p.Y > maxY)
+                    maxY = p.Y;
+            }
+
+            return new AnyUiRect()
+            {
+                X = minX, Y = minY,
+                Width = Math.Max(0, maxX - minX),
+                Height = Math.Max(0, maxY - minY)
+            };
+#endif
         }
     }
 
@@ -509,10 +551,28 @@ namespace AnyUi
         }
     }
 
-    /// <summary>
-    /// Requests the main application to display a content file or external link
-    /// </summary>
-    public class AnyUiLambdaActionDisplayContentFile : AnyUiLambdaActionBase
+	/// <summary>
+	/// ReRender the main enitity panel
+	/// </summary>
+	public class AnyUiLambdaActionEntityPanelReRender : AnyUiLambdaActionBase
+	{
+        public AnyUiRenderMode Mode = AnyUiRenderMode.StatusToUi;
+        public bool UseInnerGrid = false;
+        public Dictionary<AnyUiUIElement, bool> UpdateElemsOnly = null;
+
+		public AnyUiLambdaActionEntityPanelReRender(AnyUiRenderMode mode, bool useInnerGrid = false,
+			Dictionary<AnyUiUIElement, bool> updateElemsOnly = null)
+		{
+            Mode = mode;
+            UseInnerGrid = useInnerGrid;
+            UpdateElemsOnly = updateElemsOnly;
+		}
+	}
+
+	/// <summary>
+	/// Requests the main application to display a content file or external link
+	/// </summary>
+	public class AnyUiLambdaActionDisplayContentFile : AnyUiLambdaActionBase
     {
         public AnyUiLambdaActionDisplayContentFile() { }
         public AnyUiLambdaActionDisplayContentFile(
@@ -545,11 +605,16 @@ namespace AnyUi
         public bool RedrawCurrentEntity = false;
     }
 
-    /// <summary>
-    /// This class is the base class for event handlers, which can attached to special
-    /// events of Any UI controls
-    /// </summary>
-    public class AnyUiSpecialActionBase
+	/// <summary>
+	/// Request to re-index all Identifiables.
+	/// </summary>
+	public class AnyUiLambdaActionReIndexIdentifiables : AnyUiLambdaActionBase { }
+
+	/// <summary>
+	/// This class is the base class for event handlers, which can attached to special
+	/// events of Any UI controls
+	/// </summary>
+	public class AnyUiSpecialActionBase
     {
     }
 

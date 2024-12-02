@@ -25,7 +25,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using VDS.RDF.Parsing;
+using VDS.RDF;
 using Aas = AasCore.Aas3_0;
+using static AasxPackageLogic.DispEditHelperBasics;
+using System.Drawing;
+using System.IO.Packaging;
 
 // ReSharper disable MethodHasAsyncOverload
 
@@ -135,7 +140,15 @@ namespace AasxPackageLogic
                     ticket.SubmodelElement = vesme.theWrapper;
                 }
             }
-        }
+
+			if (firstItem is VisualElementConceptDescription vecd)
+			{
+				ticket.Package = PackageCentral?.Main;
+				ticket.Env = vecd.theEnv;
+				if (selectedItem != null)
+					ticket.ConceptDescription = vecd.theCD;
+			}
+		}
 
 #pragma warning disable CS1998
         // ReSharper disable CSharpWarnings::CS1998
@@ -304,23 +317,23 @@ namespace AasxPackageLogic
                 }
 
                 // do
-                Tool_OpcUaClientRead(ticket.Submodel);
+                await Tool_OpcUaClientRead(ticket.Submodel);
             }
 
             if (cmd == "submodelread")
             {
                 // arguments
-                if (ticket.Submodel == null || ticket.Env == null ||
-                    !(ticket["File"] is string fn) || fn.HasContent() != true)
+                if (ticket.Env == null 
+                    || !(ticket["File"] is string fn) || fn.HasContent() != true)
                 {
                     LogErrorToTicket(ticket,
-                        "Submodel Read: No valid Submodel, Env, source file selected");
+                        "Submodel Read: No valid Env, source file selected");
                     return;
                 }
 
                 try
                 {
-                    Tool_ReadSubmodel(ticket.Submodel, ticket.Env, fn, ticket);
+                    Tool_ReadSubmodel(ticket.Env, ticket.AAS, ticket.Submodel, fn, ticket);
                 }
                 catch (Exception ex)
                 {
@@ -515,7 +528,67 @@ namespace AasxPackageLogic
                 }
             }
 
-            if (cmd == "submodeltdexport")
+			if (cmd == "sammaspectimport")
+			{
+				// arguments
+				if (ticket.Env == null ||
+					!(ticket["File"] is string fn) || fn.HasContent() != true)
+				{
+					LogErrorToTicket(ticket,
+						"SAMM aspect model file export: No valid AAS environment available.");					
+					return;
+				}
+
+				// do it
+				try
+				{
+                    Log.Singleton.Info($"Import SAMM aspect meta model from {fn} ..");
+					var sammImEx = new SammImportExport();
+					sammImEx.ImportSammModelToConceptDescriptions(ticket.Env, fn);
+                    if (sammImEx.AnyInfoMessages)
+                        Log.Singleton.Info(StoredPrint.Color.Blue,
+                            "When importing SAMM aspect meta model, some important messages occured. " +
+                            "See log for details.");
+				}
+				catch (Exception ex)
+				{
+					LogErrorToTicket(ticket, ex,
+						"When importing SAMM aspect model file, an error occurred");
+				}
+			}
+
+			if (cmd == "sammaspectexport")
+			{
+				// arguments
+				if (ticket.Env == null 
+                    || ticket.ConceptDescription == null
+                    ||!(ticket["File"] is string fn) || fn.HasContent() != true)
+				{
+					LogErrorToTicket(ticket,
+						"SAMM aspect model file import: No valid AAS environment or " +
+						"no ConceptDescription selected available.");
+					return;
+				}
+
+				// do it
+				try
+				{
+					Log.Singleton.Info($"Export SAMM aspect meta model from {fn} ..");
+					var sammImEx = new SammImportExport();
+					sammImEx.ExportSammModelFromConceptDescription(ticket.Env, ticket.ConceptDescription, fn);
+					if (sammImEx.AnyInfoMessages)
+						Log.Singleton.Info(StoredPrint.Color.Blue,
+							"When exporting SAMM aspect meta model, some important messages occured. " +
+							"See log for details.");
+				}
+				catch (Exception ex)
+				{
+					LogErrorToTicket(ticket, ex,
+						"When exporting SAMM aspect model file, an error occurred");
+				}
+			}
+
+			if (cmd == "submodeltdexport")
             {
                 // arguments
                 if (ticket.Submodel == null ||
@@ -826,8 +899,8 @@ namespace AasxPackageLogic
                 }
 
                 // try to invoke plugin to get submodel
-                Aas.Submodel smres = null;
-                List<Aas.ConceptDescription> cdres = null;
+                Aas.ISubmodel smres = null;
+                List<Aas.IConceptDescription> cdres = null;
                 try
                 {
                     var res = record.Item1.InvokeAction("generate-submodel", record.Item2) as AasxPluginResultBase;
@@ -867,8 +940,8 @@ namespace AasxPackageLogic
 
                     // add Submodel
                     var smref = smres.GetReference().Copy();
-                    ticket.AAS.AddSubmodelReference(smref);
-                    ticket.Env.Submodels.Add(smres);
+                    ticket.AAS.Add(smref);
+                    ticket.Env.Add(smres);
 
                     // add ConceptDescriptions?
                     if (cdres != null && cdres.Count > 0)
@@ -883,7 +956,7 @@ namespace AasxPackageLogic
                                 continue;
                             // ok, add
                             var newCd = cd.Copy();
-                            ticket.Env.ConceptDescriptions.Add(newCd);
+                            ticket.Env.Add(newCd);
                             nr++;
                         }
                         Log.Singleton.Info(
@@ -995,6 +1068,7 @@ namespace AasxPackageLogic
                     }
 
                     // ok, add
+                    ticket.Env.ConceptDescriptions ??= new List<IConceptDescription>();
                     ticket.Env.ConceptDescriptions.Add(cdres);
                     createdCds++;
                 }
@@ -1067,7 +1141,7 @@ namespace AasxPackageLogic
                     // add Submodel
                     var smref = smres.GetReference().Copy();
                     ticket.AAS.AddSubmodelReference(smref);
-                    ticket.Env.Submodels.Add(smres);
+                    ticket.Env.Add(smres);
 
                     // add ConceptDescriptions?
                     if (cdres != null && cdres.Count > 0)
@@ -1082,7 +1156,7 @@ namespace AasxPackageLogic
                                 continue;
                             // ok, add
                             var newCd = cd.Copy();
-                            ticket.Env.ConceptDescriptions.Add(newCd);
+                            ticket.Env.Add(newCd);
                             nr++;
                         }
                         Log.Singleton.Info(
@@ -1198,7 +1272,246 @@ namespace AasxPackageLogic
                 ticket.Success = true;
             }
 
-            if (cmd == "convertelement")
+            if (cmd == "smtextensionfromqualifiers")
+            {
+                // arguments
+                if (ticket.Env == null
+                    || ticket.Submodel == null)
+                {
+                    LogErrorToTicket(ticket,
+                        "Create SMT extensions from qualifiers: No valid AAS environment or " +
+                        "no Submodel selected.");
+                    return;
+                }
+
+                // ask
+                if (ticket?.ScriptMode != true
+                    && AnyUiMessageBoxResult.Yes != DisplayContext.MessageBoxFlyoutShow(
+                        "This operation will move data in particular Qualifiers to Extensions of " +
+                        "the Submodel and all of its SubmodelElements. Do you want to proceed?",
+                        "Convert SMT qualifiers to SMT extension",
+                        AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                    return;
+
+                // use utility
+                try
+                {
+                    // do
+                    int anyChanges = 0;
+                    var submodel = ticket.Submodel;
+                    Action<Aas.IReferable> lambdaConvert = (o) => {
+                        if (AasSmtQualifiers.ConvertSmtQualifiersToExtension(o))
+                            anyChanges++;
+                    };
+
+                    lambdaConvert(submodel);
+                    submodel.RecurseOnSubmodelElements(null, (o, parents, sme) =>
+                    {
+                        // do
+                        lambdaConvert(sme);
+                        // recurse
+                        return true;
+                    });
+
+                    // report
+                    Log.Singleton.Info($"Convert SMT qualifiers to SMT extension: {anyChanges} changes done.");
+
+                    // emit event for Submodel and children
+                    // this.AddDiaryEntry(submodel, new DiaryEntryStructChange(), allChildrenAffected: true);
+
+                    ticket.SetNextFocus = ticket.SubmodelRef;
+                }
+                catch (Exception ex)
+                {
+                    Log.Singleton.Error(
+                        ex, $"When creating SMT extensions from qualifiers.");
+                }
+
+                ticket.Success = true;
+            }
+
+            if (cmd == "smtorganizesfromsubmodel")
+            {
+                // arguments
+                if (ticket.Env == null
+                    || ticket.Submodel == null)
+                {
+                    LogErrorToTicket(ticket,
+                        "Take over Submodel's element relationships to CDs SMT organizes: " +
+                        "No valid AAS environment or no Submodel selected.");
+                    return;
+                }
+
+                // ask 1
+                if (ticket?.ScriptMode != true
+                    && AnyUiMessageBoxResult.Yes != DisplayContext.MessageBoxFlyoutShow(
+                        "This operation analyzes the element relatioships in the Submodel " +
+                        "and will take over these as organize references into SMT attribute " +
+                        "records of associated ConceptDescriptions. Do you want to proceed?",
+                        "Take over SM element relationships to CDs",
+                        AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                    return;
+
+                // ask 2
+                var eachElemDetails = true;
+                if (ticket?.ScriptMode != true)
+                    eachElemDetails = AnyUiMessageBoxResult.Yes == DisplayContext.MessageBoxFlyoutShow(
+                        "Create detailed SMT attributes for each relevant ConceptDescription, " +
+                        "include SubmodelElement type list?",
+                        "Take over SM element relationships to CDs",
+                        AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning);
+
+                // use utility
+                try
+                {
+                    // do
+                    int anyChanges = 0;
+                    Action<Aas.IReferable> lambdaConvert = (o) => {
+                        if (SmtAttributeRecord.TakeoverSmOrganizeToCds(ticket.Env, o,
+                                eachElemDetails: eachElemDetails))
+                            anyChanges++;
+                    };
+
+                    lambdaConvert(ticket.Submodel);
+                    ticket.Submodel.RecurseOnSubmodelElements(null, (o, parents, sme) =>
+                    {
+                        // do
+                        lambdaConvert(sme);
+                        // recurse
+                        return true;
+                    });
+
+                    // report
+                    Log.Singleton.Info($"Take over SM element relationships to CDs: {anyChanges} changes done.");
+
+                    // emit event for Submodel and children
+                    // this.AddDiaryEntry(submodel, new DiaryEntryStructChange(), allChildrenAffected: true);
+
+                    ticket.SetNextFocus = ticket.SubmodelRef;
+                }
+                catch (Exception ex)
+                {
+                    Log.Singleton.Error(
+                        ex, $"When creating SMT extensions from qualifiers.");
+                }
+
+                ticket.Success = true;
+            }
+
+            if (cmd == "submodelinstancefromsmtconcepts")
+            {
+                // arguments
+                if (ticket.Env == null)
+                {
+                    LogErrorToTicket(ticket,
+                        "Create new Submodel from accessible ConceptDescriptions: " +
+                        "No valid AAS environment.");
+                    return;
+                }
+
+                // start dialogue
+                var uc = new AnyUiDialogueDataSelectFromDataGrid(
+                            "Select SMT/ SAMM concepts to act as root ..",
+                            maxWidth: 1100);
+
+                uc.ColumnDefs = AnyUiListOfGridLength.Parse(new[] { "1*", "3*", "1*", "8*" });
+                uc.ColumnHeaders = new[] { "Kind", "IdShort", "Version", "Id" };
+                uc.Rows = new List<AnyUiDialogueDataGridRow>();
+
+                uc.AlternativeSelectButtons = new[] { "Create root", "Create root and all childs" };
+
+                // re-index
+                PackageCentral.ReIndexIdentifiables();
+
+                // populate rows
+                foreach (var cd in PackageCentral.FindAllReferables<Aas.IConceptDescription>())
+                {
+                    // SMT root?
+                    foreach (var smtRec in DispEditHelperExtensions
+                        .CheckReferableForExtensionRecords<SmtAttributeRecord>(cd))
+                        if (SmtAttributeRecord.ConceptSuitableForSubmodelCreate(smtRec))
+                            uc.Rows.Add(new AnyUiDialogueDataGridRow() { 
+                                Cells = new List<string>() { 
+                                    "SMT", "" + cd.IdShort, "" + cd.Administration?.ToStringExtended(1),
+                                    "" + cd.Id },
+                                Tag = cd
+                            });
+
+                    // SAMM root?
+                    foreach (var me in DispEditHelperSammModules.CheckReferableForSammElements(cd))
+                        if (SammTransformation.ConceptSuitableForSubmodelCreate(me))
+                            uc.Rows.Add(new AnyUiDialogueDataGridRow()
+                            {
+                                Cells = new List<string>() { 
+                                    "SAMM", "" + cd.IdShort, "" + cd.Administration?.ToStringExtended(1),
+                                    "" + cd.Id },
+                                Tag = cd
+                            });
+                }
+
+                // perfom dialogue
+                if (!(await DisplayContext.StartFlyoverModalAsync(uc))
+                    || !uc.Result || uc.ResultItem == null)
+                    return;
+
+                var rootCd = uc.ResultItem.Tag as Aas.IConceptDescription;
+                if (rootCd == null)
+                    return;
+
+                var createChilds = uc.ButtonIndex > 0;
+
+                // use utility
+                try
+                {
+                    var sm = DispEditHelperMiniModules.DispEditHelperCreateSubmodelFromSmtSamm(
+                        PackageCentral, ticket.Env, rootCd, createChilds);
+
+                    if (sm == null)
+                        Log.Singleton.Error("Error creating new Submodel from accessible ConceptDescriptions.");
+                    else
+                    {
+                        Log.Singleton.Info($"Submodel {sm.Item1.IdShort} created");
+                        ticket.SetNextFocus = sm.Item2;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Singleton.Error(
+                        ex, $"When creating new Submodel from accessible ConceptDescriptions.");
+                }
+
+                ticket.Success = true;
+            }
+
+            if (cmd == "submodelinstancefromsammaspect")
+			{
+				// arguments
+				if (ticket.Env == null
+					|| ticket.ConceptDescription == null)
+				{
+					LogErrorToTicket(ticket,
+						"Create Submodel instance form SAMM aspect model: No valid AAS environment or " +
+						"no ConceptDescription selected.");
+					return;
+				}
+
+				// use utility
+				try
+				{
+                    var trans = new SammTransformation();
+                    trans.CreateSubmodelInstanceFromAspectCD(ticket.Env, ticket.ConceptDescription);
+				}
+				catch (Exception ex)
+				{
+					Log.Singleton.Error(
+						ex, $"When creating Submodel instance from SAMM Aspect model.");
+				}
+
+				Log.Singleton.Info($"Done.");
+				ticket.Success = true;
+			}
+
+			if (cmd == "convertelement")
             {
                 // arguments
                 var rf = ticket.DereferencedMainDataObject as Aas.IReferable;
@@ -1359,10 +1672,16 @@ namespace AasxPackageLogic
                     if (res is AasxPluginResultCallMenuItem aprcmi
                         && aprcmi.RenderWpfContent != null)
                     {
+                        // TODO (MIHO, 2024-05-11): code damaged due to refactor?
                         Log.Singleton.Info("Try displaying external entity control from plugin command..");
                         // dead-csharp off
                         // MainWindow?.DisplayExternalEntity(aprcmi.RenderWpfContent);
                         // dead-csharp on
+                    }
+                    else
+                    if (res is AasxPluginResultEventRedrawAllElements aprrae)
+                    {
+                        MainWindow.CommandExecution_RedrawAll();
                     }
                 }
                 catch (Exception ex)

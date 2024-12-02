@@ -10,9 +10,12 @@ This source code may use other Open Source software components (see LICENSE.txt)
 using AdminShellNS;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 using Aas = AasCore.Aas3_0;
 
 namespace AnyUi
@@ -398,7 +401,18 @@ namespace AnyUi
 
         public string Pattern = "*";
 
-        public AnyUiDialogueDataChangeElementAttributes(
+		public static string[] HelpLines = new[]
+		{
+            "* = all remaining characters of (original) attribute value (OV)",
+			"? = next single character of OV",
+            "^,§ = next single character of OV in upper case / lower case",
+            "^>,§> = all remaining characters of OV in upper case / lower case",
+			"~ = skip single character of OV",
+			"< = reverse sequence of remaining characters of OV",
+            "<any other> = use in new attribute value"
+		};
+
+		public AnyUiDialogueDataChangeElementAttributes(
             string caption = "",
             double? maxWidth = null)
             : base(caption, maxWidth)
@@ -470,7 +484,22 @@ namespace AnyUi
         }
     }
 
-    public class AnyUiDialogueDataSelectFromList : AnyUiDialogueDataBase
+	public class AnyUiDialogueDataGridRow
+	{
+		public List<string> Cells { get; set; } = new List<string>();
+		public object Tag = null;
+
+		public AnyUiDialogueDataGridRow() { }
+
+		public AnyUiDialogueDataGridRow(object tag, params string[] cells)
+		{
+			this.Tag = tag;
+            if (cells != null)
+                this.Cells = cells.ToList();
+		}
+	}
+
+	public class AnyUiDialogueDataSelectFromList : AnyUiDialogueDataBase
     {
         // in
         public List<AnyUiDialogueListItem> ListOfItems = null;
@@ -488,7 +517,31 @@ namespace AnyUi
         }
     }
 
-    public class AnyUiDialogueDataProgress : AnyUiDialogueDataBase
+	public class AnyUiDialogueDataSelectFromDataGrid : AnyUiDialogueDataBase
+	{
+        // config
+        public AnyUiListOfGridLength ColumnDefs = null;
+        public string[] ColumnHeaders = null;
+        public string[] AlternativeSelectButtons = null;
+
+		// in
+		public List<AnyUiDialogueDataGridRow> Rows = null;
+		              
+		// out
+		public int ResultIndex = -1;
+        public int ButtonIndex = -1;
+        public AnyUiDialogueDataGridRow ResultItem = null;
+		public IList<AnyUiDialogueDataGridRow> ResultItems = null;
+
+		public AnyUiDialogueDataSelectFromDataGrid(
+			string caption = "",
+			double? maxWidth = null)
+			: base(caption, maxWidth)
+		{
+		}
+	}
+
+	public class AnyUiDialogueDataProgress : AnyUiDialogueDataBase
     {
         public event Action<double, string> DataChanged;
 

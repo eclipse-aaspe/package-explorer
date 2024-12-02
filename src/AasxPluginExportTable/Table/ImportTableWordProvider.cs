@@ -45,9 +45,7 @@ namespace AasxPluginExportTable.Table
             if (col < 0 || col >= cells.Count())
                 return null;
 
-            var cell = _table
-                        .Elements<TableRow>()?.ElementAt(row)?
-                        .Elements<TableCell>()?.ElementAt(col);
+            var cell = cells.Elements<TableCell>()?.ElementAtOrDefault(col);
 
             if (cell == null)
                 return null;

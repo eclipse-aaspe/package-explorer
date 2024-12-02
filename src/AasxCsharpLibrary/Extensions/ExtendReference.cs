@@ -7,6 +7,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 using AdminShellNS.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -23,7 +24,19 @@ namespace Extensions
 
         public static bool IsValid(this IReference reference)
         {
-            return reference.Keys != null && !reference.Keys.IsEmpty();
+            if (reference?.Keys == null || reference.Keys.Count < 1)
+                return false;
+            foreach (var k in reference.Keys)
+                if (k.Value == null || k.Value.Trim().Length < 1)
+                    return false;
+            return true;
+        }
+
+        public static bool IsOneBlank(this IReference reference)
+        {
+            return reference != null 
+                && reference.Type == ReferenceTypes.ExternalReference
+                && reference.Keys?.IsOneBlank() == true;
         }
 
         public static bool IsValid(this List<IReference> references)
@@ -66,6 +79,16 @@ namespace Extensions
             return res;
         }
 
+        //This method has ben added to make Event.Observed as model reference
+        public static Reference CreateFromKey(ReferenceTypes referenceType, KeyTypes type,
+            string value)
+        {
+            var res = new Reference(referenceType,
+                        new List<IKey> { new Key(type, value) });
+            res.Type = res.GuessType();
+            return res;
+        }
+
         /// <summary>
         /// Formaly a static constructor.
         /// Creates a Reference from a list of keys, guessing Reference.Type.
@@ -80,6 +103,12 @@ namespace Extensions
             res.Keys.AddRange(lk.Copy());
             res.Type = res.GuessType();
             return res;
+        }
+
+        public static Reference CreateFromString(string id, KeyTypes keyType = KeyTypes.GlobalReference)
+        {
+            var k = new Key(keyType, id);
+            return new Reference(ReferenceTypes.ExternalReference, new List<IKey>(new IKey[] { k }));
         }
 
         // TODO (Jui, 2023-01-05): Check why the generic Copy<T> does not apply here?!
@@ -126,7 +155,7 @@ namespace Extensions
             }
 
             return false;
-        }
+        }        
 
         #endregion
 
@@ -180,6 +209,47 @@ namespace Extensions
             return match;
         }
 
+        /// <summary>
+        /// Checks, if there is a partial match from <c>reference</c> to <c>findReference</c>
+        /// (starting from key[0]) and replaces those sequence
+        /// </summary>
+        /// <returns><c>True</c>, if a replacement was done</returns>
+        public static bool ReplacePartialHead(
+            this IReference reference, 
+            IReference findReference, 
+            IReference replaceReference,
+            MatchMode matchMode = MatchMode.Strict)
+        {
+            // access
+            if (reference.Keys == null || reference.Keys.Count == 0
+                || findReference?.Keys == null || findReference.Keys.Count == 0
+                || replaceReference?.Keys == null)
+            {
+                return false;
+            }
+
+            // match?
+            bool match = true;
+            var matchLen = Math.Min(reference.Keys.Count, findReference.Keys.Count);
+            for (int i = 0; i < matchLen; i++)
+            {
+                match = match && reference.Keys[i].Matches(findReference.Keys[i], matchMode);
+            }
+            if (!match)
+                return false;
+
+            // execute replacement
+            for (int i = 0; i < matchLen; i++)
+                reference.Keys.RemoveAt(0);
+            for (int i = Math.Min(matchLen - 1, replaceReference.Count() - 1); i >= 0; i--)
+                reference.Keys.Insert(0, replaceReference.Keys[i].Copy());
+
+            return true;
+        }
+
+        /// <summary>
+        /// Useful, if the searched reference will have only one key (e.g. ECLASS properties)
+        /// </summary>
         public static bool MatchesExactlyOneKey(this IReference reference, IKey key, MatchMode matchMode = MatchMode.Strict)
         {
             if (key == null || reference.Keys == null || reference.Keys.Count != 1)
@@ -234,7 +304,7 @@ namespace Extensions
 
         public static Key GetAsExactlyOneKey(this IReference reference)
         {
-            if (reference.Keys == null || reference.Keys.Count != 1)
+            if (reference?.Keys == null || reference.Keys.Count != 1)
             {
                 return null;
             }
@@ -249,9 +319,7 @@ namespace Extensions
         public static string ToStringExtended(this IReference reference, int format = 1, string delimiter = ",")
         {
             if (reference.Keys == null)
-            {
-                throw new NullValueException("Keys");
-            }
+                return "";
 
             return reference.Keys.ToStringExtended(format, delimiter);
         }

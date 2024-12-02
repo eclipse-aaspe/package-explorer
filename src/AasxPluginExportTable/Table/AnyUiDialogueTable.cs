@@ -43,7 +43,7 @@ namespace AasxPluginExportTable.Table
             // check preconditions
             if (ticket.Env == null || ticket.Submodel == null || ticket.SubmodelElement != null)
             {
-                log?.Error("Import time series: A Submodel has to be selected!");
+                log?.Error("Import table: A Submodel has to be selected!");
                 return;
             }
 
@@ -558,7 +558,7 @@ namespace AasxPluginExportTable.Table
         }
 
         private static void ExportTable_EnumerateSubmodel(
-            List<ExportTableAasEntitiesList> list, Aas.Environment env,
+            List<ExportTableAasEntitiesList> list, Aas.IEnvironment env,
             bool broadSearch, bool actInHierarchy, int depth,
             Aas.IReferable coll,
             int maxDepth)
@@ -621,10 +621,13 @@ namespace AasxPluginExportTable.Table
             ExportTableOptions options,
             AasxPluginExportTable.ImportExportTableRecord record,
             string fn,
-            Aas.IReferable rf, Aas.Environment env,
+            Aas.IReferable rf, 
+            Aas.IEnvironment env,
             AasxMenuActionTicket ticket = null,
             LogInstance log = null,
-            int maxDepth = int.MaxValue)
+            int maxDepth = int.MaxValue,
+            string idOfElem = null,
+            string titleOfTable = null)
         {
             // prepare list of items to be exported
             var list = new List<ExportTableAasEntitiesList>();
@@ -645,6 +648,10 @@ namespace AasxPluginExportTable.Table
                 try
                 {
                     var proc = new ExportTableProcessor(record);
+
+                    proc.IdOfExport = idOfElem;
+                    proc.TitleOfExport = titleOfTable;
+
                     if (record.Format == (int)ImportExportTableRecord.FormatEnum.TSF)
                         success = proc.ExportTabSeparated(fn, list);
                     if (record.Format == (int)ImportExportTableRecord.FormatEnum.LaTex)
@@ -679,7 +686,7 @@ namespace AasxPluginExportTable.Table
             ExportTableOptions options,
             AasxPluginExportTable.ImportExportTableRecord record,
             string fn,
-            Aas.ISubmodel sm, Aas.Environment env,
+            Aas.ISubmodel sm, Aas.IEnvironment env,
             AasxMenuActionTicket ticket = null,
             LogInstance log = null)
         {

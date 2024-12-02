@@ -91,6 +91,14 @@ namespace BlazorUI.Data
             await DisplayContext.StartFlyoverModalAsync(uc);
         }
 
+        /// <summary>
+        /// Take a screenshot and save to file
+        /// </summary>
+        public void SaveScreenshot(string filename = "noname")
+        {
+            // no such capability
+        }
+
         public void CommandExecution_RedrawAll()
         {
             // redraw everything

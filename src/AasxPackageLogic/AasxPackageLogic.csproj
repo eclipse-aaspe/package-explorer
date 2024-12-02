@@ -31,17 +31,19 @@
   </ItemGroup>
   
   <ItemGroup>
+    <PackageReference Include="dotNetRdf" Version="3.1.1" />
     <PackageReference Include="IdentityModel" Version="6.0.0" />
     <PackageReference Include="jose-jwt" Version="4.0.1" />
     <PackageReference Include="Microsoft.VisualBasic" Version="10.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SSharp.Net" Version="1.0.1" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.24.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.1.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AasxAmlImExport\AasxAmlImExport.csproj" />
     <ProjectReference Include="..\AasxBammRdfImExport\AasxBammRdfImExport.csproj" />
+    <ProjectReference Include="..\AasxCore.Samm2_2_0\AasxCore.Samm2_2_0.csproj" />
     <ProjectReference Include="..\AasxFileServerRestLibrary\AasxFileServerRestLibrary.csproj" />
     <ProjectReference Include="..\AasxIntegrationBaseWpf\AasxIntegrationBaseWpf.csproj" />
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />

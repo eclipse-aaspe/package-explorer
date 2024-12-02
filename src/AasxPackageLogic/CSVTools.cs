@@ -17,7 +17,7 @@ namespace AasxPackageLogic
     public static class CSVTools
     {
         public static void ImportCSVtoSubModel(
-            string inputFn, Aas.Environment env, Aas.ISubmodel sm /* , AdminShell.SubmodelRef smref*/)
+            string inputFn, Aas.IEnvironment env, Aas.ISubmodel sm /* , AdminShell.SubmodelRef smref*/)
         {
             Aas.SubmodelElementCollection[] propGroup = new Aas.SubmodelElementCollection[10];
             int i_propGroup = 0;

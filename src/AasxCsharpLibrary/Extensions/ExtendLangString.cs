@@ -6,32 +6,43 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 
 This source code may use other Open Source software components (see LICENSE.txt).
 */
+using AasxCompatibilityModels;
+using AdminShellNS;
 using System.Collections.Generic;
 
 namespace Extensions
 {
     //TODO (jtikekar, 0000-00-00): remove
+    //MIHO, 2024-06-01: migrate LANG_DEFAULT to AdminShellUtil.GetDefaultLngIso639()
     public static class ExtendLangString
     {
-        // constants
-        public static string LANG_DEFAULT = "en";
-
         // new version
         public static string GetDefaultStringGen<T>(List<T> langStrings, string defaultLang = null)
             where T : IAbstractLangString
         {
             // start
             if (defaultLang == null)
-                defaultLang = "en";
+                defaultLang = AdminShellUtil.GetDefaultLngIso639();
             defaultLang = defaultLang.Trim().ToLower();
             string res = null;
 
             // search
             foreach (var ls in langStrings)
-                if (ls.Language.Trim().ToLower() == defaultLang)
-                    res = ls.Text;
+            {
+                if (ls != null)
+                {
+                    if (ls.Language.Trim().ToLower() == defaultLang)
+                        res = ls.Text; 
+                }
+            }
+
             if (res == null && langStrings.Count > 0)
-                res = langStrings[0].Text;
+            {
+                if (langStrings[0] != null)
+                {
+                    res = langStrings[0].Text;
+                }
+            }   
 
             // found?
             return res;
