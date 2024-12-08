@@ -300,5 +300,28 @@
         "http://admin-shell.io/sandbox/CompositeComponent/SoftwareEngineering/IsExecutedInRelationship/1/0"
       ]
     }
+  ],
+  "Presets": [
+    {
+      "Name": "HKA Digi Twin",
+      "Format": 0,
+      "RowStart": 7,
+      "ColHierarchy": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "ColBulkCount": 7,
+      "ColIdShort": 8,
+      "ColDispName": 8,
+      "ColRefDesignation": 9,
+      "ColManufacturer": 14,
+      "ColPartName": 15,
+      "ColPartOrderCode": 16,
+      "ColPartUrl": 17,
+      "NumOfWorksheets": 1,
+      "RelInEntity" :  true
+    }
   ]
 }

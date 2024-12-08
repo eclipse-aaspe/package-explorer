@@ -21,6 +21,7 @@ using JetBrains.Annotations;
 using AasxPluginBomStructure;
 using AnyUi;
 using System.Windows.Controls;
+using AasxPluginBomStructure.Table;
 
 namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
 {
@@ -156,6 +157,24 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                     }
                 });
 
+                // import BOM items
+                res.Add(new AasxPluginResultSingleMenuItem()
+                {
+                    AttachPoint = "Import",
+                    MenuItem = new AasxMenuItem()
+                    {
+                        Name = "ImportBomItems",
+                        Header = "Import BOM items from Table …",
+                        HelpText = "Imports BOM items from a given table into selected Submodel.",
+                        ArgDefs = new AasxMenuListOfArgDefs()
+                                .Add("File", "Filename and path of file to imported.")
+                                .Add("Preset", "Name of preset to load.")
+                                .Add("Format", "Format to be either " +
+                                        "'Excel'.")
+                                .Add("Record", "Record data", hidden: true)
+                    }
+                });
+
                 // return
                 return new AasxPluginResultProvideMenuItems()
                 {
@@ -245,6 +264,14 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                             var res = new AasxPluginResultCallMenuItem();
                             res.RenderWpfContent = resobj;
                             return res;
+                        }
+
+                        if (cmd == "importbomitems")
+                        {
+                            var res = await AnyUiDialogueImportExportBom.ImportExportBomDialogBased(
+                                _log, ticket, displayContext, _options, doImport: true);
+                            return res ? new AasxPluginResultEventRedrawAllElements()
+                                       : new AasxPluginResultBase();
                         }
 
                     }

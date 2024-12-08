@@ -578,7 +578,7 @@ namespace AasxPluginBomStructure
             return edge;
         }
 
-        public Microsoft.Msagl.Drawing.Node GenerateEntityNode(Aas.Entity ent,
+        public Microsoft.Msagl.Drawing.Node GenerateEntityNode(Aas.IEntity ent,
             bool allowSkip = true)
         {
             // can get an link style?
@@ -762,7 +762,7 @@ namespace AasxPluginBomStructure
                     }
                 }
 
-                if (sme is Aas.Entity ent)
+                if (sme is Aas.IEntity ent)
                 {
                     // add Nodes?
                     if (pass == 2)

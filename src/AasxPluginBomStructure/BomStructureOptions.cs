@@ -17,7 +17,7 @@ using AdminShellNS;
 using Extensions;
 using Newtonsoft.Json;
 using AasxIntegrationBase;
-
+using AasxPluginBomStructure.Table;
 
 namespace AasxPluginBomStructure
 {
@@ -178,6 +178,8 @@ namespace AasxPluginBomStructure
     public class BomStructureOptions : AasxPluginLookupOptionsBase
     {
         public BomStructureOptionsRecordList Records = new BomStructureOptionsRecordList();
+
+        public List<ImportExportBomRecord> Presets = new List<ImportExportBomRecord>();
 
         /// <summary>
         /// Create a set of minimal options

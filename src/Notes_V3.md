@@ -12,10 +12,8 @@ These projects need to be UNLOADED (for Visual Studio), to get a compiling solut
 * AasxSchemaExport.Tests
 * AasxRestConsoleServer
 * AasxToolkit.Tests
-* AasxUaNetConsoleServer
 * AasxPackageExplorer.GuiTests
 * AasxPackageExplorer.Tests
-* BlazorUI
 
 ## Observations
 
