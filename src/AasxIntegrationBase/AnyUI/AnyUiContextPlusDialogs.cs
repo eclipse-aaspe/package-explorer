@@ -300,7 +300,9 @@ namespace AnyUi
         /// </summary>
         public bool AutoGenerateUiFieldsFor(
             object data, AnyUiSmallWidgetToolkit helper,
-            AnyUiGrid grid, int startRow = 0)
+            AnyUiGrid grid, 
+            int startRow = 0,
+            int colSpan = 1)
         {
             // access
             if (data == null || helper == null || grid == null)
@@ -342,7 +344,11 @@ namespace AnyUi
                     {
                         hAlign = AnyUiHorizontalAlignment.Left;
                         helpGap = 10;
-                        gridToAdd = helper.AddSmallGridTo(grid, row, 1, 1, 3, new[] { "0:", "#", "*" });
+                        gridToAdd = helper.Set(
+                            helper.AddSmallGridTo(
+                                grid, row, 1, 1, 3, 
+                                new[] { "0:", "#", "*" }),
+                            colSpan: colSpan);
                     }
 
                     // string

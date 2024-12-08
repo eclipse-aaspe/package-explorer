@@ -117,7 +117,9 @@ namespace AasxPluginBomStructure.Table
 
             Aas.IEntity rootEnt = null;
 
-            for (int ri=_job.RowStart - 1; ri<table.MaxRows; ++ri)
+            var addedEnts = new List<Aas.IEntity>();
+
+            for (int ri = _job.RowStart - 1; ri < table.MaxRows; ++ri)
             {
                 // get idShort
                 var idShort = AdminShellUtil.FilterFriendlyName(
@@ -133,10 +135,10 @@ namespace AasxPluginBomStructure.Table
                     displayName = table.Cell(ri, _job.ColDispName - 1);
 
                 // start with a entity
-                var ent = new Aas.Entity(Aas.EntityType.CoManagedEntity, 
+                var ent = new Aas.Entity(Aas.EntityType.CoManagedEntity,
                             idShort: idShort,
                             semanticId: AasxPredefinedConcepts.HierarchStructV11.Static.CD_Node?.GetCdReference(),
-                            displayName: (displayName == null) ? null 
+                            displayName: (displayName == null) ? null
                                          : new List<Aas.ILangStringNameType>(new[] { new Aas.LangStringNameType("en", displayName) }));
 
                 // lambda to add some properties
@@ -147,8 +149,8 @@ namespace AasxPluginBomStructure.Table
                     var prop = new Aas.Property(
                         valueType: valueType,
                         idShort: idShort,
-                        semanticId: (semId == null) ? null 
-                                    : new Aas.Reference(Aas.ReferenceTypes.ExternalReference, 
+                        semanticId: (semId == null) ? null
+                                    : new Aas.Reference(Aas.ReferenceTypes.ExternalReference,
                                         new List<Aas.IKey>(new[] { semId })),
                         value: value);
                     ent.Add(prop);
@@ -218,7 +220,7 @@ namespace AasxPluginBomStructure.Table
                         }
 
                 // remove double zeros
-                while (hier.Count >= 2 && hier[^1] == "0" &&  hier[^2] == "0")
+                while (hier.Count >= 2 && hier[^1] == "0" && hier[^2] == "0")
                     hier.RemoveAt(hier.Count - 1);
 
                 // debug
@@ -238,7 +240,7 @@ namespace AasxPluginBomStructure.Table
                 else if (hier.Count > 1)
                 {
                     // add deeper
-                    
+
                     // construct search key (all except last)
                     var keyL1 = string.Join("/", hier.SkipLast(1));
 
@@ -291,7 +293,7 @@ namespace AasxPluginBomStructure.Table
                         first: new Aas.Reference(Aas.ReferenceTypes.ModelReference, klFirst),
                         second: new Aas.Reference(Aas.ReferenceTypes.ModelReference, klSecond));
 
-                    if (_job.RelInEntity)
+                    if (_job.RelBelowEntity)
                     {
                         parent.Add(relHasPart);
                     }
@@ -304,9 +306,29 @@ namespace AasxPluginBomStructure.Table
                         par.Add(relHasPart);
                     }
                 }
+
+                // remember 
+                addedEnts.Add(ent);
             }
 
             _log?.Info($"End of available table rows {table.MaxRows} reached. Stopping.");
+
+            // sort
+            if (_job.SortEntities)
+            {
+                foreach (var ent in addedEnts)
+                    if (ent?.Statements != null)
+                        ent.Statements.Sort( (e1, e2) => {
+                            var kt1 = e1?.GetSelfDescription()?.KeyType;
+                            var kt2 = e2?.GetSelfDescription()?.KeyType;
+                            if (kt1 == null || kt2 == null)
+                                return 0;
+                            if (kt1.Value < kt2.Value)
+                                return -1;
+                            return +1;
+                        });
+                _log?.Info($"Entities sorted for SME type");
+            }
         }
     }
 }

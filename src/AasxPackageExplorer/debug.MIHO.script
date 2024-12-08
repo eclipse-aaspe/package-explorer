@@ -10,7 +10,7 @@
 // Tool("exportsmtasciidoc", "File", "C:\\HOMI\\Develop\\Aasx\\repo\\new.zip", "AntoraStyle", "true");
 Tool("editkey");
 Select("Submodel", "First");
-Tool("importbomitems", "Preset", "HKA Digi Twin", "RelInEntity", true, "File", "C:\MIHO\Develop\Aasx\repo\bom-list-import\Stückliste CAD FuE-Projekt HandhabungsDemo 20241207_COPY.xlsx");
+Tool("importbomitems", "Preset", "HKA Digi Twin", "RelBelowEntity", true, "SortEntities", true, "File", "C:\MIHO\Develop\Aasx\repo\bom-list-import\Stückliste CAD FuE-Projekt HandhabungsDemo 20241207_COPY.xlsx");
 // Tool("importbomitems", "Preset", "HKA Digi Twin", "File", "C:\Users\Micha\Desktop\Stückliste CAD FuE-Projekt HandhabungsDemo 20241031.xlsx");
 // Select("Submodel", "Next");
 // Tool("exportsmtasciidoc", "File", "C:\Users\homi0002\Desktop\tmp\new.zip", "ExportHtml", "true", "ExportPdf", "false", "AntoraStyle", "false", "ViewResult", "true");

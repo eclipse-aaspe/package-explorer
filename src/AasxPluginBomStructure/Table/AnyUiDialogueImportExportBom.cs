@@ -261,6 +261,8 @@ namespace AasxPluginBomStructure.Table
 
                     currRow++;
 
+#if __old__generic_is_better
+
                     // lambda for adding column fields
                     Action<string, string, int, Action<int>> lambdaAddColumnField = (title, comment, val, setVal) =>
                     {
@@ -326,11 +328,19 @@ namespace AasxPluginBomStructure.Table
                             helper.Set(
                                 helper.AddSmallCheckBoxTo(g, currRow, 1,
                                     content: "Relation below Entity",
-                                    isChecked: record.RelInEntity,
+                                    isChecked: record.RelBelowEntity,
                                     verticalContentAlignment: AnyUiVerticalAlignment.Center)),
-                                (b) => { record.RelInEntity = b; });
+                                (b) => { record.RelBelowEntity = b; });
 
                     currRow++;
+
+#else
+                    // further rows : automatic generation
+                    displayContext.AutoGenerateUiFieldsFor(
+                        record, helper, g, 
+                        startRow: currRow,
+                        colSpan: 2);
+#endif
 
                     // give back
                     return panel;

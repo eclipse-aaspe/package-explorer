@@ -54,68 +54,97 @@ namespace AasxPluginBomStructure.Table
         /// </summary>
         public List<int> ColHierarchy = null;
 
-        [AasxMenuArgument(help: "1-based column for potential bulk count information.")]
+        [AasxMenuArgument(help: "1-based column, optional, -1 will disable")]
+        [AnyUiEditField(uiHeader: "Column bulk count",
+            uiShowHelp: true, uiGroupHelp: true, minWidth: 150, maxWidth: 150)]
         /// <summary>
         /// If positive, 1-based column for potential bulk count information of the 
         /// BOM item.
         /// </summary>
         public int ColBulkCount = -1;
 
-        [AasxMenuArgument(help: "1-based column for IdShort of the BOM item.")]
+        [AasxMenuArgument(help: "1-based column, mandatory, will be filtered")]
+        [AnyUiEditField(uiHeader: "Column IdShort",
+            uiShowHelp: true, uiGroupHelp: true, minWidth: 150, maxWidth: 150)]
         /// <summary>
         /// If positive, 1-based column for IdShort of the BOM item.
         /// Note: all invalid characters will be filtered out.
         /// </summary>
         public int ColIdShort = 1;
 
-        [AasxMenuArgument(help: "1-based column for DisplayName (EN) of the BOM item.")]
+        [AasxMenuArgument(help: "1-based column, optional, -1 will disable")]
+        [AnyUiEditField(uiHeader: "Column DisplayName",
+            uiShowHelp: true, uiGroupHelp: true, minWidth: 150, maxWidth: 150)]
         /// <summary>
         /// If positive, 1-based column for DisplayName (EN) of the BOM item.
         /// </summary>
         public int ColDispName = -1;
 
-        [AasxMenuArgument(help: "1-based column for reference designation of the BOM item.")]
+        [AasxMenuArgument(help: "1-based column, optional, -1 will disable")]
+        [AnyUiEditField(uiHeader: "Column ref.desig.",
+            uiShowHelp: true, uiGroupHelp: true, minWidth: 150, maxWidth: 150)]
         /// <summary>
         /// positive, 1-based column for reference designation of the BOM item.
         /// </summary>
         public int ColRefDesignation = -1;
 
-        [AasxMenuArgument(help: "1-based column for name of manufacturer of the BOM item.")]
+        [AasxMenuArgument(help: "1-based column, optional, -1 will disable")]
+        [AnyUiEditField(uiHeader: "Column manufacturer",
+            uiShowHelp: true, uiGroupHelp: true, minWidth: 150, maxWidth: 150)]
         /// <summary>
         /// positive, 1-based column for name of manufacturer of the BOM item.
         /// </summary>
         public int ColManufacturer = -1;
 
-        [AasxMenuArgument(help: "1-based column for name of manufactured part name of the BOM item.")]
+        [AasxMenuArgument(help: "1-based column, optional, -1 will disable")]
+        [AnyUiEditField(uiHeader: "Column part name",
+            uiShowHelp: true, uiGroupHelp: true, minWidth: 150, maxWidth: 150)]
         /// <summary>
         /// positive, 1-based column for name of manufactured part name of the BOM item.
         /// </summary>
         public int ColPartName = -1;
 
-        [AasxMenuArgument(help: "1-based column for name of manufactured part order code of the BOM item.")]
+        [AasxMenuArgument(help: "1-based column, optional, -1 will disable")]
+        [AnyUiEditField(uiHeader: "Column part code",
+            uiShowHelp: true, uiGroupHelp: true, minWidth: 150, maxWidth: 150)]
         /// <summary>
         /// positive, 1-based column for name of manufactured part order code of the BOM item.
         /// </summary>
         public int ColPartOrderCode = -1;
 
-        [AasxMenuArgument(help: "1-based column for name of manufactured part URL of the BOM item.")]
+        [AasxMenuArgument(help: "1-based column, optional, -1 will disable")]
+        [AnyUiEditField(uiHeader: "Column part URL",
+            uiShowHelp: true, uiGroupHelp: true, minWidth: 150, maxWidth: 150)]
         /// <summary>
         /// positive, 1-based column for name of manufactured part URL of the BOM item.
         /// </summary>
         public int ColPartUrl = -1;
 
-        [AasxMenuArgument(help: "Number of work sheets in table to process, before stopping.")]
+        [AasxMenuArgument(help: "optional, -1 means all worksheets")]
+        [AnyUiEditField(uiHeader: "# worksheets",
+            uiShowHelp: true, uiGroupHelp: true, minWidth: 150, maxWidth: 150)]
         /// <summary>
         /// If >= 1, number of work sheets in table to process, before stopping
         /// </summary>
         public int NumOfWorksheets = -1;
 
-        [AasxMenuArgument(help: "Place the relation below entity.")]
+        [AasxMenuArgument(help: "place the relation below entity")]
+        [AnyUiEditField(uiHeader: "Rel. below Entity",
+            uiShowHelp: true, uiGroupHelp: true, minWidth: 150, maxWidth: 150)]
         /// <summary>
         /// If <c>true</c>, will place the relation below entity, if <c>false</c>,
         /// will place on the same level as entity.
         /// </summary>
-        public bool RelInEntity = true;
+        public bool RelBelowEntity = true;
+
+        [AasxMenuArgument(help: "sort entities for SME types")]
+        [AnyUiEditField(uiHeader: "Sort entities",
+            uiShowHelp: true, uiGroupHelp: true, minWidth: 150, maxWidth: 150)]
+        /// <summary>
+        /// If <c>true</c>, will sort entities' childs for SME type.
+        /// Note: This will separate Entity elements from Relationship elements for clarity.
+        /// </summary>
+        public bool SortEntities = false;
 
         public bool IsValid()
         {
