@@ -172,6 +172,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                                 .Add("Format", "Format to be either " +
                                         "'Excel'.")
                                 .Add("Record", "Record data", hidden: true)
+                                .AddFromReflection(new ImportExportBomRecord())
                     }
                 });
 
