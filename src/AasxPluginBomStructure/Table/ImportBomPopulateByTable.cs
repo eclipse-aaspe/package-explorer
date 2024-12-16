@@ -189,21 +189,24 @@ namespace AasxPluginBomStructure.Table
                 if (_job.ColPartName >= 1)
                     lambdaAddIfProp(
                         "PartDesignation",
-                        null,
+                        AasxPredefinedConcepts.DefinitionsExperimental.BomExtensions.Static
+                            .CD_PartDesignation?.GetSingleKey(),
                         Aas.DataTypeDefXsd.AnyUri,
                         table.Cell(ri, _job.ColPartName - 1));
 
                 if (_job.ColPartOrderCode >= 1)
                     lambdaAddIfProp(
                         "PartOrderCode",
-                        null,
+                        AasxPredefinedConcepts.DefinitionsExperimental.BomExtensions.Static
+                            .CD_PartOrderCode?.GetSingleKey(),
                         Aas.DataTypeDefXsd.AnyUri,
                         table.Cell(ri, _job.ColPartOrderCode - 1));
 
                 if (_job.ColPartUrl >= 1)
                     lambdaAddIfProp(
                         "PartUrl",
-                        null,
+                        AasxPredefinedConcepts.DefinitionsExperimental.BomExtensions.Static
+                            .CD_PartUrl?.GetSingleKey(),
                         Aas.DataTypeDefXsd.AnyUri,
                         table.Cell(ri, _job.ColPartUrl - 1));
 

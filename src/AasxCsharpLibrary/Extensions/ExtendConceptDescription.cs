@@ -170,7 +170,8 @@ namespace Extensions
 
         public static Key GetSingleKey(this IConceptDescription conceptDescription)
         {
-            return new Key(KeyTypes.ConceptDescription, conceptDescription.Id);
+            // MIHO: 2024-12-16: CD -> GlobalReference
+            return new Key(KeyTypes.GlobalReference, conceptDescription.Id);
         }
 
         public static ConceptDescription ConvertFromV10(

@@ -33,6 +33,11 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
 
         private AasxPluginBomStructure.GenericBomControl _bomControl = new AasxPluginBomStructure.GenericBomControl();
 
+        public class Session : PluginSessionBase
+        {
+            public object Control;
+        }
+
         public new void InitPlugin(string[] args)
         {
             // start ..
@@ -127,19 +132,22 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
             if (action == "fill-panel-visual-extension" && this._bomControl != null)
             {
                 // arguments
-                if (args == null || args.Length < 3)
+                if (args == null || args.Length < 4)
                     return null;
 
-                // call
+                // create session and call
+                var session = _sessions.CreateNewSession<Session>(args[3]);
                 this._bomControl.SetEventStack(this._eventStack);
-                var resobj = this._bomControl.FillWithWpfControls(
+                session.Control = this._bomControl.FillWithWpfControls(
                     _options, 
                     _log,
+                    _eventStack,
+                    session,
                     args[0], args[1], args[2]);
 
                 // give object back
                 var res = new AasxPluginResultBaseObject();
-                res.obj = resobj;
+                res.obj = session.Control;
                 return res;
             }
 

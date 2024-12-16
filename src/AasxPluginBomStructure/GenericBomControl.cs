@@ -25,6 +25,8 @@ using System.Windows;
 using Microsoft.Msagl.Core.Geometry.Curves;
 using Microsoft.Msagl.Layout.Layered;
 using Microsoft.Msagl.Miscellaneous;
+using System.Windows.Documents;
+using System.Printing;
 
 
 namespace AasxPluginBomStructure
@@ -41,6 +43,8 @@ namespace AasxPluginBomStructure
         private AdminShellPackageEnv _package;
         private LogInstance _log;
         private Aas.Submodel _submodel;
+        private PluginEventStack _eventStack = null;
+        private PluginSessionBase _session = null;
         private bool _createOnPackage = false;
 
         private Microsoft.Msagl.Drawing.Graph theGraph = null;
@@ -245,11 +249,15 @@ namespace AasxPluginBomStructure
         public object FillWithWpfControls(
             BomStructureOptions bomOptions,
             LogInstance log,
+            PluginEventStack eventStack,
+            PluginSessionBase session,
             object opackage, object osm, object masterDockPanel)
         {
             // access
             _package = opackage as AdminShellPackageEnv;
             _log = log;
+            _eventStack = eventStack;
+            _session = session;
             _submodel = osm as Aas.Submodel;
             _createOnPackage = false;
             _bomOptions = bomOptions;
@@ -330,24 +338,23 @@ namespace AasxPluginBomStructure
             viewer.Graph = graph;
 
             // test
+                dp.ContextMenu = new ContextMenu();
             if (UseContextMenu)
             {
-                dp.ContextMenu = new ContextMenu();
                 dp.ContextMenu.Items.Add(new MenuItem() { Header = "Jump to selected ..", Tag = "JUMP" });
                 dp.ContextMenu.Items.Add(new Separator());
                 dp.ContextMenu.Items.Add(new MenuItem() { Header = "Edit Node / Edge ..", Tag = "EDIT" });
                 dp.ContextMenu.Items.Add(new MenuItem() { Header = "Create Node (to selected) ..", Tag = "CREATE" });
                 dp.ContextMenu.Items.Add(new MenuItem() { Header = "Delete (selected) Node(s) ..", Tag = "DELETE" });
+                dp.ContextMenu.Items.Add(new Separator());
+            }
 
-#if _not_now
-            dp.ContextMenu.Items.Add(new Separator());
+            // SVG
             dp.ContextMenu.Items.Add(new MenuItem() { Header = "Export as SVG ..", Tag = "EXP-SVG" });
-#endif
 
-                foreach (var x in dp.ContextMenu.Items)
+            foreach (var x in dp.ContextMenu.Items)
                     if (x is MenuItem mi)
                         mi.Click += ContextMenu_Click;
-            }
 
             // make it re-callable
             theGraph = graph;
@@ -626,115 +633,34 @@ namespace AasxPluginBomStructure
         
         protected void ContextMenu_Click(object sender, RoutedEventArgs e)
         {
-            if (!UseContextMenu)
-                return;
-
             if (sender is MenuItem mi 
                 && mi.Tag is string miTag
                 && miTag?.HasContent() == true)
             {
-                if (miTag == "JUMP")
+                if (UseContextMenu)
                 {
-                    if (_objectUnderCursor is Microsoft.Msagl.Drawing.IViewerNode)
-                        NavigateTo(_objectUnderCursor?.DrawingObject);
-                }
-
-                if (miTag == "EDIT")
-                {
-                    StartDialoguePanelEditFor(_objectUnderCursor);
-                }
-
-                if (miTag == "CREATE")
-                {
-                    // create job
-                    var stat = new DialogueStatus() { Type = DialogueType.Create };
-
-                    stat.ParentNode = GetSelectedViewerNodes().FirstOrDefault();
-
-                    if (stat.ParentNode == null
-                        && _objectUnderCursor is Microsoft.Msagl.Drawing.IViewerNode n2)
-                        stat.ParentNode = n2;
-
-                    stat.ParentReferable = stat.ParentNode?.Node?.UserData as Aas.IReferable;
-
-                    // figure out if first node
-                    stat.IsEntryNode = null == _submodel?.SubmodelElements?.FindFirstSemanticIdAs<Aas.IEntity>(
-                        AasxPredefinedConcepts.HierarchStructV10.Static.CD_EntryNode?.GetSingleKey(),
-                        matchMode: MatchMode.Relaxed);
-
-                    // figure out reverse direction
-                    stat.ReverseDir = _submodel?.SubmodelElements?.FindFirstSemanticIdAs<Aas.IProperty>(
-                        AasxPredefinedConcepts.HierarchStructV10.Static.CD_ArcheType?.GetSingleKey(),
-                        matchMode: MatchMode.Relaxed)?
-                            .Value?.ToUpper().Trim() == "ONEUP";
-
-                    // set the action
-                    stat.Action = (st, action) =>
+                    if (miTag == "JUMP")
                     {
-                        // correct?
-                        if (action != "OK" || _bomCreator == null || theViewer == null)
-                            return;
+                        if (_objectUnderCursor is Microsoft.Msagl.Drawing.IViewerNode)
+                            NavigateTo(_objectUnderCursor?.DrawingObject);
+                    }
 
-                        // check number of nodes BEFORE operation
-                        int noOfNodes = theViewer?.Graph?.NodeCount ?? 0;
-
-                        // create entity
-                        var ents = CreateNodeAndRelationInBom(
-                            nodeIdShort: st.TextBoxIdShort.Text,
-                            nodeSuppSemId: st.ComboBoxNodeSupplSemId.Text,
-                            nodeSemId: st.ComboBoxNodeSemId.Text,
-                            parent: st.ParentReferable,
-                            relSemId: st.ComboBoxRelSemId.Text,
-                            relSuppSemId: st.ComboBoxRelSupplSemId.Text);
-                                               
-                        if (ents == null || ents.Item1 == null)
-                            return;
-
-#if shitty_no_works
-                        // create a node
-                        var node = _bomCreator.GenerateEntityNode(ents.Item1, allowSkip: false);
-                        theViewer.CreateIViewerNode(node, _rightClickCoordinates, null);
-
-                        // even a link
-                        if (ents.Item2 != null && st.ParentNode?.Node != null)
-                        {
-                            var edge = _bomCreator.CreateRelationLink(
-                                theViewer.Graph,
-                                st.ParentNode.Node,
-                                node,
-                                ents.Item2);
-
-                            theViewer.CreateEdgeWithGivenGeometry(edge);
-                        }
-#else
-
-                        // refresh (if it was empty before, reset viewport)
-                        SetNeedsFinalize(true);
-
-                        if (noOfNodes < 1)
-                        {
-                            theViewer?.SetInitialTransform();
-                            _savedTransform = null;
-                        }
-                        RedrawGraph();
-
-#endif
-                    };
-
-                    // in any case, create a node
-                    ShowDialoguePanel(stat);
-
-                    // best approach to set the focus!
-                    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    if (miTag == "EDIT")
                     {
-                        _dialogueStatus.TextBoxIdShort.Focus();
-                    }), System.Windows.Threading.DispatcherPriority.Render);
-                }
+                        StartDialoguePanelEditFor(_objectUnderCursor);
+                    }
 
-                if (miTag == "DELETE")
-                {
-                    // independent function
-                    StartDialoguePanelDelete();
+                    if (miTag == "CREATE")
+                    {
+                        StartDialoguePanelCreateFor(_objectUnderCursor);
+
+
+                    }
+
+                    if (miTag == "DELETE")
+                    {
+                        // independent function
+                        StartDialoguePanelDelete();
 
 #if shitty_no_works
 
@@ -810,10 +736,10 @@ namespace AasxPluginBomStructure
                         RedrawGraph();
                     }
 #endif
+                    }
                 }
 
-            // https://github.com/microsoft/automatic-graph-layout/issues/372
-#if __not_now
+                // https://github.com/microsoft/automatic-graph-layout/issues/372
 
                 if (miTag == "EXP-SVG" && theViewer.Graph != null)
                 {
@@ -828,14 +754,14 @@ namespace AasxPluginBomStructure
                         return;
 
                     // theViewer.Graph.CreateGeometryGraph();
-                    LayoutHelpers.CalculateLayout(theViewer.Graph.GeometryGraph, new SugiyamaLayoutSettings(), null);
+                    //LayoutHelpers.CalculateLayout(theViewer.Graph.GeometryGraph, new SugiyamaLayoutSettings(), null);
 
-                    foreach (var n in theViewer.Graph.Nodes)
-                        if (n.Label != null)
-                        {
-                            n.Label.Width = 100;
-                            n.Label.Height = 20;
-                        }
+                    //foreach (var n in theViewer.Graph.Nodes)
+                    //    if (n.Label != null)
+                    //    {
+                    //        n.Label.Width = 100;
+                    //        n.Label.Height = 20;
+                    //    }
 
                     // take care on resources
                     try
@@ -855,7 +781,6 @@ namespace AasxPluginBomStructure
                     // toggle redisplay -> graph is renewed for display
                     RedrawGraph();
                 }
-#endif
 
             }
         }
@@ -1030,42 +955,7 @@ namespace AasxPluginBomStructure
             // this is called when the pointer is moved; no click is required
         }
 
-        private void Viewer_MouseUp(object sender, Microsoft.Msagl.Drawing.MsaglMouseEventArgs e)
-        {
-        }
-
-        private void Viewer_MouseMove(object sender, Microsoft.Msagl.Drawing.MsaglMouseEventArgs e)
-        {
-        }
-
-        protected void NavigateTo(Microsoft.Msagl.Drawing.DrawingObject obj)
-        {
-            if (obj != null && obj.UserData != null)
-            {
-                var us = obj.UserData;
-                if (us is Aas.IReferable)
-                {
-                    // make event
-                    var refs = new List<Aas.IKey>();
-                    (us as Aas.IReferable).CollectReferencesByParent(refs);
-
-                    // ok?
-                    if (refs.Count > 0)
-                    {
-                        var evt = new AasxPluginResultEventNavigateToReference();
-                        evt.targetReference = ExtendReference.CreateNew(refs);
-                        this.eventStack.PushEvent(evt);
-                    }
-                }
-
-                if (us is Aas.Reference)
-                {
-                    var evt = new AasxPluginResultEventNavigateToReference();
-                    evt.targetReference = (us as Aas.Reference);
-                    this.eventStack.PushEvent(evt);
-                }
-            }
-        }
+        protected bool _leftButtonIsPressed = false;
 
         private void Viewer_MouseDown(object sender, Microsoft.Msagl.Drawing.MsaglMouseEventArgs e)
         {
@@ -1098,6 +988,9 @@ namespace AasxPluginBomStructure
                 }
             }
 
+            _leftButtonIsPressed = e.LeftButtonIsPressed;
+
+#if __off
             // 1-click LEFT opens/ closes info panel
             if (!UseContextMenu)
             {
@@ -1137,6 +1030,80 @@ namespace AasxPluginBomStructure
                             StartDialoguePanelEditFor(_objectUnderCursor);
                         }
                     }
+                }
+            }
+#endif
+        }
+
+        private void Viewer_MouseUp(object sender, Microsoft.Msagl.Drawing.MsaglMouseEventArgs e)
+        {
+            // 1-click LEFT opens/ closes info panel
+            if (!UseContextMenu)
+            {
+                if (e != null && e.Clicks == 1 && _leftButtonIsPressed
+                    && theViewer != null)
+                {
+                    _objectUnderCursor = theViewer.ObjectUnderMouseCursor;
+                    var noStat = _dialogueStatus == null || _dialogueStatus.Type == DialogueType.None;
+
+                    // if no object under cursor, show no panel
+                    // (assume that any selected obect will be de-selected by the viewer)
+                    if (_objectUnderCursor == null && !noStat)
+                    {
+                        // force close
+                        HideDialooguePanel();
+                        return;
+                    }
+
+                    // multiple selected? .. check if already some OTHER nodes are selected?
+                    var multi = GetSelectedViewerNodes().ToList();
+
+                    if (multi.Count > 1)
+                    {
+                        // open multi select panel
+                        var copy = new List<Microsoft.Msagl.Drawing.IViewerNode>(multi);
+                        if (!copy.Contains(_objectUnderCursor))
+                            copy.Add(_objectUnderCursor);
+                        StartDialoguePanelMultiSelectFor(copy);
+                    }
+                    else
+                    {
+                        // try to auto-open edit panel
+                        StartDialoguePanelEditFor(_objectUnderCursor);
+                    }
+                }
+            }
+        }
+
+        private void Viewer_MouseMove(object sender, Microsoft.Msagl.Drawing.MsaglMouseEventArgs e)
+        {
+        }
+
+        protected void NavigateTo(Microsoft.Msagl.Drawing.DrawingObject obj)
+        {
+            if (obj != null && obj.UserData != null)
+            {
+                var us = obj.UserData;
+                if (us is Aas.IReferable)
+                {
+                    // make event
+                    var refs = new List<Aas.IKey>();
+                    (us as Aas.IReferable).CollectReferencesByParent(refs);
+
+                    // ok?
+                    if (refs.Count > 0)
+                    {
+                        var evt = new AasxPluginResultEventNavigateToReference();
+                        evt.targetReference = ExtendReference.CreateNew(refs);
+                        this.eventStack.PushEvent(evt);
+                    }
+                }
+
+                if (us is Aas.Reference)
+                {
+                    var evt = new AasxPluginResultEventNavigateToReference();
+                    evt.targetReference = (us as Aas.Reference);
+                    this.eventStack.PushEvent(evt);
                 }
             }
         }
@@ -1208,14 +1175,14 @@ namespace AasxPluginBomStructure
             _dialogueStatus = null;
         }
 
-        protected void AddToGrid(
+        protected T AddToGrid<T>(
             Grid grid,
             int row, int col,
             int rowSpan = 0, int colSpan = 0,
-            FrameworkElement fe = null)
+            T fe = null) where T : FrameworkElement
         {
             if (grid == null || fe == null)
-                return;
+                return null;
 
             Grid.SetRow(fe, row);
             Grid.SetColumn(fe, col);
@@ -1224,6 +1191,8 @@ namespace AasxPluginBomStructure
             if (colSpan > 0)
                 Grid.SetColumnSpan(fe, colSpan);
             grid.Children.Add(fe);
+
+            return fe;
         }
 
         protected enum DialogueType { None = 0, EditNode, EditEdge, Create, Delete, MultiSelect }
@@ -1277,6 +1246,7 @@ namespace AasxPluginBomStructure
                 var editEdge = stat.Type == DialogueType.EditEdge;
 
                 // 4 rows (IdShort, Node.semId, Node.suppSemId, Rel.semId, Rel.suppSemId, expand, buttons)
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
                 grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
                 grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
                 grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
@@ -1425,6 +1395,108 @@ namespace AasxPluginBomStructure
                     AddToGrid(grid, 4, 1, colSpan: 3, fe: stat.ComboBoxRelSupplSemId);
                 }
 
+                // Info
+                if (editNode)
+                {
+                    var rtb = new RichTextBox()
+                    {
+                        IsReadOnly = true,
+                        IsReadOnlyCaretVisible = false,
+                        IsDocumentEnabled = true,
+                        MinHeight = 18, MaxHeight = 60
+                    };
+
+                    // line height
+                    Paragraph p = rtb.Document.Blocks.FirstBlock as Paragraph;
+                    p.LineHeight = 1;
+
+                    // collect list of string infos
+                    var strInfo = new List<string>();
+
+                    // append bulk count?
+                    var pbc = (stat.AasElem as Aas.IEntity)?.Statements?.FindFirstSemanticIdAs<Aas.IProperty>(
+                        AasxPredefinedConcepts.HierarchStructV11.Static.CD_BulkCount, 
+                        MatchMode.Relaxed)?.ValueAsText();
+                    if (int.TryParse(pbc, out var i) && i > 1)
+                        strInfo.Add($"bulk count = {i}");
+
+                    // append manufacturer?
+                    var manu = (stat.AasElem as Aas.IEntity)?.Statements?.FindFirstSemanticIdAs<Aas.IProperty>(
+                        AasxPredefinedConcepts.DigitalNameplateV20.Static.CD_ManufacturerName, 
+                        MatchMode.Relaxed)?.ValueAsText();
+                    if (manu?.HasContent() == true)
+                        strInfo.Add($"manufacturer = \"{manu}\"");
+
+                    // append part designation?
+                    var partDesig = (stat.AasElem as Aas.IEntity)?.Statements?.FindFirstSemanticIdAs<Aas.IProperty>(
+                        AasxPredefinedConcepts.DefinitionsExperimental.BomExtensions.Static.CD_PartDesignation,
+                        MatchMode.Relaxed)?.ValueAsText();
+                    if (partDesig?.HasContent() == true)
+                        strInfo.Add($"part designation = \"{partDesig}\"");
+
+                    // append part order code?
+                    var partOC = (stat.AasElem as Aas.IEntity)?.Statements?.FindFirstSemanticIdAs<Aas.IProperty>(
+                        AasxPredefinedConcepts.DefinitionsExperimental.BomExtensions.Static.CD_PartOrderCode,
+                        MatchMode.Relaxed)?.ValueAsText();
+                    if (partOC?.HasContent() == true)
+                        strInfo.Add($"part order code = \"{partOC}\"");
+
+                    // turn list of string into text ranges
+                    var anyInfo = false;
+                    if (strInfo.Count > 0)
+                    {
+                        anyInfo = true;
+                        TextRange tr = new TextRange(rtb.Document.ContentEnd, rtb.Document.ContentEnd);
+                        tr.Text = "" + string.Join(", ", strInfo);
+                    }
+
+                    // make another append for the URL?
+                    var anyUrl = false;
+                    var partURL = (stat.AasElem as Aas.IEntity)?.Statements?.FindFirstSemanticIdAs<Aas.IProperty>(
+                        AasxPredefinedConcepts.DefinitionsExperimental.BomExtensions.Static.CD_PartUrl,
+                        MatchMode.Relaxed)?.ValueAsText();
+                    if (partURL?.HasContent() == true)
+                    {
+                        anyUrl = true;
+
+                        if (anyInfo)
+                        {
+                            TextRange tr = new TextRange(rtb.Document.ContentEnd, rtb.Document.ContentEnd);
+                            tr.Text = ", URL = ";
+                        }
+
+                        var link = new Hyperlink(rtb.Document.ContentEnd, rtb.Document.ContentEnd);
+                        link.IsEnabled = true;
+
+                        try
+                        {
+                            link.Inlines.Add(partURL);
+                            link.NavigateUri = new Uri(partURL);
+
+                            link.Click += (s, e) =>
+                            {
+                                // give over to event stack
+                                _eventStack?.PushEvent(new AasxPluginResultEventDisplayContentFile()
+                                {
+                                    Session = _session,
+                                    fn = partURL,
+                                    mimeType = System.Net.Mime.MediaTypeNames.Text.Html
+                                });
+                            };
+                        }
+                        catch (Exception ex)
+                        {
+                            AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
+                        }
+                    }
+
+                    if (anyInfo || anyUrl)
+                    {
+                        AddToGrid(grid, 5, 0, fe: new Label() { Content = "Info (proprietary):" });
+                        AddToGrid(grid, 5, 1, colSpan: 3, fe: rtb);
+                    }
+                }
+
                 // Buttons
                 var buttonGrid = new Grid();
                 AddToGrid(grid, grid.RowDefinitions.Count - 1, 1, colSpan: 3, fe: buttonGrid);
@@ -1461,9 +1533,9 @@ namespace AasxPluginBomStructure
 
                     // Create
                     var btnCreate = new Button() { Content = "Create child", Padding = new Thickness(2), Margin = new Thickness(2) };
-                    btnDel.Click += (s, e) =>
+                    btnCreate.Click += (s, e) =>
                     {
-
+                        StartDialoguePanelCreateFor(null);
                     };
                     AddToGrid(buttonGrid, 0, 2, fe: btnCreate);
                 }
@@ -1677,6 +1749,93 @@ namespace AasxPluginBomStructure
             }
         }
 
+        protected void StartDialoguePanelCreateFor(object objectUnderCursor)
+        {
+            // create job
+            var stat = new DialogueStatus() { Type = DialogueType.Create };
+
+            stat.ParentNode = GetSelectedViewerNodes().FirstOrDefault();
+
+            if (stat.ParentNode == null
+                && _objectUnderCursor is Microsoft.Msagl.Drawing.IViewerNode n2)
+                stat.ParentNode = n2;
+
+            stat.ParentReferable = stat.ParentNode?.Node?.UserData as Aas.IReferable;
+
+            // figure out if first node
+            stat.IsEntryNode = null == _submodel?.SubmodelElements?.FindFirstSemanticIdAs<Aas.IEntity>(
+                AasxPredefinedConcepts.HierarchStructV10.Static.CD_EntryNode?.GetSingleKey(),
+                matchMode: MatchMode.Relaxed);
+
+            // figure out reverse direction
+            stat.ReverseDir = _submodel?.SubmodelElements?.FindFirstSemanticIdAs<Aas.IProperty>(
+                AasxPredefinedConcepts.HierarchStructV10.Static.CD_ArcheType?.GetSingleKey(),
+                matchMode: MatchMode.Relaxed)?
+                    .Value?.ToUpper().Trim() == "ONEUP";
+
+            // set the action
+            stat.Action = (st, action) =>
+            {
+                // correct?
+                if (action != "OK" || _bomCreator == null || theViewer == null)
+                    return;
+
+                // check number of nodes BEFORE operation
+                int noOfNodes = theViewer?.Graph?.NodeCount ?? 0;
+
+                // create entity
+                var ents = CreateNodeAndRelationInBom(
+                    nodeIdShort: st.TextBoxIdShort.Text,
+                    nodeSuppSemId: st.ComboBoxNodeSupplSemId.Text,
+                    nodeSemId: st.ComboBoxNodeSemId.Text,
+                    parent: st.ParentReferable,
+                    relSemId: st.ComboBoxRelSemId.Text,
+                    relSuppSemId: st.ComboBoxRelSupplSemId.Text);
+
+                if (ents == null || ents.Item1 == null)
+                    return;
+
+#if shitty_no_works
+                        // create a node
+                        var node = _bomCreator.GenerateEntityNode(ents.Item1, allowSkip: false);
+                        theViewer.CreateIViewerNode(node, _rightClickCoordinates, null);
+
+                        // even a link
+                        if (ents.Item2 != null && st.ParentNode?.Node != null)
+                        {
+                            var edge = _bomCreator.CreateRelationLink(
+                                theViewer.Graph,
+                                st.ParentNode.Node,
+                                node,
+                                ents.Item2);
+
+                            theViewer.CreateEdgeWithGivenGeometry(edge);
+                        }
+#else
+
+                // refresh (if it was empty before, reset viewport)
+                SetNeedsFinalize(true);
+
+                if (noOfNodes < 1)
+                {
+                    theViewer?.SetInitialTransform();
+                    _savedTransform = null;
+                }
+                RedrawGraph();
+
+#endif
+            };
+
+            // in any case, create a node
+            ShowDialoguePanel(stat);
+
+            // best approach to set the focus!
+            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                _dialogueStatus.TextBoxIdShort.Focus();
+            }), System.Windows.Threading.DispatcherPriority.Render);
+        }
+
         protected void StartDialoguePanelMultiSelectFor(List<Microsoft.Msagl.Drawing.IViewerNode> nodes)
         {
             if (nodes != null && nodes.Count > 0)
@@ -1699,7 +1858,6 @@ namespace AasxPluginBomStructure
                 ShowDialoguePanel(stat);
             }
         }
-
 
         protected void StartDialoguePanelDelete()
         {

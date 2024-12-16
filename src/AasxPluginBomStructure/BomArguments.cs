@@ -206,7 +206,7 @@ namespace AasxPluginBomStructure
             foreach (var x in AdminShellUtil.GetEnumValues<Microsoft.Msagl.Drawing.ArrowStyle>())
                 if (x.ToString().Equals(st, StringComparison.InvariantCultureIgnoreCase))
                     return x;
-            return Microsoft.Msagl.Drawing.ArrowStyle.NonSpecified;
+            return Microsoft.Msagl.Drawing.ArrowStyle.Default;
         }
 
         public static Microsoft.Msagl.Drawing.Shape MsaglShapeFrom(NodeShape style)

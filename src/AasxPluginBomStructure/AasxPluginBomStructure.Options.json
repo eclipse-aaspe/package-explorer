@@ -168,7 +168,7 @@
           "LineWidth": 2.0,
           "Radius": 2.0,
           "FontSize": 8.0,
-          "Dashed": true,
+          "Dashed": false,
           "FontBold": false,
           "Dotted": false
         },
@@ -184,7 +184,7 @@
           "LineWidth": 1.0,
           "Radius": 2.0,
           "FontSize": 8.0,
-          "Dashed": true,
+          "Dashed": false,
           "FontBold": false,
           "Dotted": false
         },

@@ -111,5 +111,46 @@ namespace AasxPredefinedConcepts
                 AddEntriesByReflection(this.GetType(), useAttributes: false, useFieldNames: true);
             }
         }
+
+        /// <summary>
+        /// This class holds definitions for some extended BOM properties
+        /// </summary>
+        public class BomExtensions : AasxDefinitionBase
+        {
+            public static BomExtensions Static = new BomExtensions();
+
+            public Aas.ConceptDescription
+                CD_PartDesignation,
+                CD_PartOrderCode,
+                CD_PartUrl;
+
+            public BomExtensions()
+            {
+                // info
+                this.DomainInfo = "Extension of Hierarchical Structures enabling BOM (experimental)";
+
+                // IReferable
+                CD_PartDesignation = CreateSparseConceptDescription("en", "IRI",
+                    "PartDesignation",
+                    "http://admin-shell.io/sandbox/idta/HierarchicalStructures/PartDesignation/1/0",
+                    @"For a comanaged entity, which is a supplied part or product, designation of the part 
+                      given by the manufacturer.");
+
+                CD_PartOrderCode = CreateSparseConceptDescription("en", "IRI",
+                    "PartOrderCode",
+                    "http://admin-shell.io/sandbox/idta/HierarchicalStructures/PartOrderCode/1/0",
+                    @"For a comanaged entity, which is a supplied part or product, order code of the part 
+                      given by the manufacturer.");
+
+                CD_PartUrl = CreateSparseConceptDescription("en", "IRI",
+                    "PartUrl",
+                    "http://admin-shell.io/sandbox/idta/HierarchicalStructures/General/PartUrl/1/0",
+                    @"For a comanaged entity, which is a supplied part or product, URL of a product  
+                      homepage given by the manufacturer.");
+
+                // reflect
+                AddEntriesByReflection(this.GetType(), useAttributes: false, useFieldNames: true);
+            }
+        }
     }
 }

@@ -581,6 +581,10 @@ namespace AasxPluginBomStructure
         public Microsoft.Msagl.Drawing.Node GenerateEntityNode(Aas.IEntity ent,
             bool allowSkip = true)
         {
+            // access
+            if (ent == null)
+                return null;
+
             // can get an link style?
             var ns = _bomRecords?.FindFirstNodeStyle(ent.SemanticId, ent.SupplementalSemanticIds);
             if (ns?.Skip == true && allowSkip)
@@ -591,6 +595,16 @@ namespace AasxPluginBomStructure
             node1.UserData = ent;
             node1.LabelText = "" + ent.ToIdShortString();
             node1.Label.FontSize = 12;
+
+            // try access bulk count
+            var pbc = ent.Statements?.FindFirstSemanticIdAs<Aas.IProperty>(
+                        AasxPredefinedConcepts.HierarchStructV11.Static.CD_BulkCount, 
+                        MatchMode.Relaxed)?.ValueAsText();
+            if (int.TryParse(pbc, out var i) && i > 1)
+            {
+                // node1.LabelText += $" \u25d6{i}\u25d7";
+                node1.LabelText += $" \u00d7 {i}";
+            }
 
             // what type?
             if (ent.EntityType == Aas.EntityType.SelfManagedEntity)

@@ -470,7 +470,8 @@ namespace AasxPackageExplorer
                                     if (vepe.thePlugin != null)
                                         result = vepe.thePlugin.InvokeAction(
                                             "fill-panel-visual-extension",
-                                            vepe.thePackage, vepe.theReferable, theMasterPanel);
+                                            vepe.thePackage, vepe.theReferable, theMasterPanel,
+                                            AnyUiDisplayContextWpf.SessionSingletonWpf);
 
                                     // remember
                                     LoadedPluginNode = entity;

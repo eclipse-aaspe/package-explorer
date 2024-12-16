@@ -1416,7 +1416,7 @@ namespace AasxPackageExplorer
             if (lab is AnyUiLambdaActionNavigateTo tempNavTo)
             {
                 // do some more adoptions
-                // MIHO: I think this "adopitons" were made for resident AAS environments directly
+                // MIHO: I think this "adoptions" were made for resident AAS environments directly
                 // staying in the RAM of the PackageCentral
                 // This is not the usual case of activation of "file repository"
                 var rf = tempNavTo.targetReference.Copy();
