@@ -132,7 +132,10 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
 
                 // call
                 this._bomControl.SetEventStack(this._eventStack);
-                var resobj = this._bomControl.FillWithWpfControls(_options, args[0], args[1], args[2]);
+                var resobj = this._bomControl.FillWithWpfControls(
+                    _options, 
+                    _log,
+                    args[0], args[1], args[2]);
 
                 // give object back
                 var res = new AasxPluginResultBaseObject();

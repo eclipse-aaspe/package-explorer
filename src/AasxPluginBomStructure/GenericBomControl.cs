@@ -36,7 +36,10 @@ namespace AasxPluginBomStructure
     /// </summary>
     public class GenericBomControl
     {
+        protected static bool UseContextMenu = false;
+
         private AdminShellPackageEnv _package;
+        private LogInstance _log;
         private Aas.Submodel _submodel;
         private bool _createOnPackage = false;
 
@@ -241,10 +244,12 @@ namespace AasxPluginBomStructure
         /// </summary>
         public object FillWithWpfControls(
             BomStructureOptions bomOptions,
+            LogInstance log,
             object opackage, object osm, object masterDockPanel)
         {
             // access
             _package = opackage as AdminShellPackageEnv;
+            _log = log;
             _submodel = osm as Aas.Submodel;
             _createOnPackage = false;
             _bomOptions = bomOptions;
@@ -325,21 +330,24 @@ namespace AasxPluginBomStructure
             viewer.Graph = graph;
 
             // test
-            dp.ContextMenu = new ContextMenu();
-            dp.ContextMenu.Items.Add(new MenuItem() { Header = "Jump to selected ..", Tag = "JUMP" });
-            dp.ContextMenu.Items.Add(new Separator());
-            dp.ContextMenu.Items.Add(new MenuItem() { Header = "Edit Node / Edge ..", Tag = "EDIT" });
-            dp.ContextMenu.Items.Add(new MenuItem() { Header = "Create Node (to selected) ..", Tag = "CREATE" });
-            dp.ContextMenu.Items.Add(new MenuItem() { Header = "Delete (selected) Node(s) ..", Tag = "DELETE" });
+            if (UseContextMenu)
+            {
+                dp.ContextMenu = new ContextMenu();
+                dp.ContextMenu.Items.Add(new MenuItem() { Header = "Jump to selected ..", Tag = "JUMP" });
+                dp.ContextMenu.Items.Add(new Separator());
+                dp.ContextMenu.Items.Add(new MenuItem() { Header = "Edit Node / Edge ..", Tag = "EDIT" });
+                dp.ContextMenu.Items.Add(new MenuItem() { Header = "Create Node (to selected) ..", Tag = "CREATE" });
+                dp.ContextMenu.Items.Add(new MenuItem() { Header = "Delete (selected) Node(s) ..", Tag = "DELETE" });
 
 #if _not_now
             dp.ContextMenu.Items.Add(new Separator());
             dp.ContextMenu.Items.Add(new MenuItem() { Header = "Export as SVG ..", Tag = "EXP-SVG" });
 #endif
 
-            foreach (var x in dp.ContextMenu.Items)
-                if (x is MenuItem mi)
-                    mi.Click += ContextMenu_Click;
+                foreach (var x in dp.ContextMenu.Items)
+                    if (x is MenuItem mi)
+                        mi.Click += ContextMenu_Click;
+            }
 
             // make it re-callable
             theGraph = graph;
@@ -615,9 +623,12 @@ namespace AasxPluginBomStructure
             Microsoft.Msagl.Core.Layout.Node geomNode = ((Microsoft.Msagl.Drawing.Node)node.DrawingObject).GeometryNode;
             return geomNode;
         }
-
+        
         protected void ContextMenu_Click(object sender, RoutedEventArgs e)
         {
+            if (!UseContextMenu)
+                return;
+
             if (sender is MenuItem mi 
                 && mi.Tag is string miTag
                 && miTag?.HasContent() == true)
@@ -630,65 +641,7 @@ namespace AasxPluginBomStructure
 
                 if (miTag == "EDIT")
                 {
-                    if (_objectUnderCursor is Microsoft.Msagl.Drawing.IViewerNode node
-                     && node.Node?.UserData is Aas.ISubmodelElement nodeSme)
-                    {
-                        // create job
-                        var stat = new DialogueStatus() { Type = DialogueType.EditNode, AasElem = nodeSme };
-
-                        // set the action
-                        stat.Action = (st, action) =>
-                        {
-                            // correct?
-                            if (action != "OK" || !(st.AasElem is Aas.ISubmodelElement nodeSme))
-                                return;
-
-                            // modify
-                            AdjustNodeInBom(
-                                nodeSme,
-                                nodeIdShort: st.TextBoxIdShort.Text,
-                                nodeSemId: st.ComboBoxNodeSemId.Text,
-                                nodeSuppSemId: st.ComboBoxNodeSupplSemId.Text);
-
-                            // refresh
-                            SetNeedsFinalize(true);
-                            RedrawGraph();
-                        };
-
-                        // in any case, create a node
-                        StartShowDialogue(stat);
-                    }
-
-                    if (_objectUnderCursor is Microsoft.Msagl.Drawing.IViewerEdge edge
-                     && edge.Edge?.UserData is Aas.ISubmodelElement edgeSme)
-                    {
-                        // create job
-                        var stat = new DialogueStatus() { 
-                            Type = DialogueType.EditEdge, AasElem = edgeSme 
-                        };
-
-                        // set the action
-                        stat.Action = (st, action) =>
-                        {
-                            // correct?
-                            if (action != "OK" || !(st.AasElem is Aas.ISubmodelElement esme))
-                                return;
-
-                            // modify
-                            AdjustEdgeInBom(
-                                esme,
-                                edgeIdShort: st.TextBoxIdShort.Text,
-                                edgeSemId: st.ComboBoxRelSemId.Text,
-                                edgeSuppSemId: st.ComboBoxRelSupplSemId.Text);
-
-                            // refresh
-                            SetNeedsFinalize(true);
-                            RedrawGraph();
-                        };
-
-                        // in any case, create a node
-                        StartShowDialogue(stat);
-                    }
+                    StartDialoguePanelEditFor(_objectUnderCursor);
                 }
 
                 if (miTag == "CREATE")
@@ -769,7 +722,7 @@ namespace AasxPluginBomStructure
                     };
 
                     // in any case, create a node
-                    StartShowDialogue(stat);
+                    ShowDialoguePanel(stat);
 
                     // best approach to set the focus!
                     Application.Current.Dispatcher.BeginInvoke(new Action(() =>
@@ -780,71 +733,8 @@ namespace AasxPluginBomStructure
 
                 if (miTag == "DELETE")
                 {
-                    // create job
-                    var stat = new DialogueStatus() { Type = DialogueType.Delete };
-
-                    var test = (_objectUnderCursor as Microsoft.Msagl.Drawing.IViewerNode)?
-                                    .Node?.UserData as Aas.IReferable;
-                    if (test != null)
-                        stat.Nodes.Add(test);
-                    stat.Nodes.AddRange(GetSelectedViewerReferables());
-
-                    // set the action
-                    stat.Action = (st, action) =>
-                    {
-                        // all above nodes
-                        foreach (var node in st.Nodes)
-                        {
-                            // only SME
-                            if (!(node is Aas.ISubmodelElement nodeSmeToDel))
-                                continue;
-
-                            // find containing Referable and KeyList to it
-                            // (the key list must not only contain the Submodel!)
-                            var contToDelIn = _submodel?.FindContainingReferable(nodeSmeToDel);
-                            var kl = _submodel?.BuildKeysToTop(nodeSmeToDel);
-                            if (nodeSmeToDel == null || contToDelIn == null || kl.Count < 2)
-                                continue;
-
-                            // build reference to it
-                            var refToNode = new Aas.Reference(Aas.ReferenceTypes.ModelReference, kl);
-
-                            // now search recursively for:
-                            // the node, all RefElems and RelElems referring to it
-                            var toDel = new List<Tuple<Aas.IReferable, Aas.ISubmodelElement>>();
-                            _submodel?.RecurseOnSubmodelElements(null, (o, parents, sme) => {
-
-                                // figure out the last parent = container of SME
-                                Aas.IReferable cont = (parents.Count < 1) ? _submodel : parents.LastOrDefault();
-
-                                // note: trust, that corresponding Remove() will check first for presence ..
-                                if ((sme == nodeSmeToDel)
-                                    || (sme is Aas.ReferenceElement refEl
-                                        && refEl.Value?.Matches(refToNode) == true)
-                                    || (sme is Aas.RelationshipElement relEl
-                                        && (relEl.First?.Matches(refToNode) == true
-                                            || relEl.Second?.Matches(refToNode) == true)))
-                                {
-                                    toDel.Add(new Tuple<Aas.IReferable, Aas.ISubmodelElement>(cont, sme));
-                                }
-
-                                // always search further
-                                return true;
-                            });
-
-                            // now del
-                            foreach (var td in toDel)
-                                td.Item1?.Remove(td.Item2);
-
-                        }
-                        
-                        // refresh
-                        SetNeedsFinalize(true);
-                        RedrawGraph();
-                    };
-
-                    // in any case, create a node
-                    StartShowDialogue(stat);
+                    // independent function
+                    StartDialoguePanelDelete();
 
 #if shitty_no_works
 
@@ -1137,6 +1027,7 @@ namespace AasxPluginBomStructure
         private void Viewer_ObjectUnderMouseCursorChanged(
             object sender, Microsoft.Msagl.Drawing.ObjectUnderMouseCursorChangedEventArgs e)
         {
+            // this is called when the pointer is moved; no click is required
         }
 
         private void Viewer_MouseUp(object sender, Microsoft.Msagl.Drawing.MsaglMouseEventArgs e)
@@ -1178,6 +1069,7 @@ namespace AasxPluginBomStructure
 
         private void Viewer_MouseDown(object sender, Microsoft.Msagl.Drawing.MsaglMouseEventArgs e)
         {
+            // double click
             if (e != null && e.Clicks > 1 && e.LeftButtonIsPressed && theViewer != null && this.eventStack != null)
             {
                 // double-click detected, can access the viewer?
@@ -1192,14 +1084,60 @@ namespace AasxPluginBomStructure
                 }
             }
 
-            if (e != null && e.Clicks == 1 && e.RightButtonIsPressed 
-                && _insideDockPanel.ContextMenu != null
-                && theViewer != null)
+            // 1-click RIGHT opens context menu
+            if (UseContextMenu)
             {
-                _objectUnderCursor = theViewer.ObjectUnderMouseCursor;
-                _rightClickCoordinates = theViewer.ScreenToSource(e);
-              
-                _insideDockPanel.ContextMenu.IsOpen = true;
+                if (e != null && e.Clicks == 1 && e.RightButtonIsPressed
+                    && _insideDockPanel.ContextMenu != null
+                    && theViewer != null)
+                {
+                    _objectUnderCursor = theViewer.ObjectUnderMouseCursor;
+                    _rightClickCoordinates = theViewer.ScreenToSource(e);
+
+                    _insideDockPanel.ContextMenu.IsOpen = true;
+                }
+            }
+
+            // 1-click LEFT opens/ closes info panel
+            if (!UseContextMenu)
+            {
+                if (e != null && e.Clicks == 1 && e.LeftButtonIsPressed
+                    && theViewer != null)
+                {
+                    _objectUnderCursor = theViewer.ObjectUnderMouseCursor;
+                    var noStat = _dialogueStatus == null || _dialogueStatus.Type == DialogueType.None;
+
+                    // if no object under cursor, show no panel
+                    // (assume that any selected obect will be de-selected by the viewer)
+                    if (_objectUnderCursor == null && !noStat)
+                    {
+                        // force close
+                        HideDialooguePanel();
+                        return;
+                    }
+
+                    // multiple selected? .. check if already some OTHER nodes are selected?
+                    var multi = GetSelectedViewerNodes().ToList();
+
+                    if (multi.Count > 0 && multi[0] != _objectUnderCursor)
+                    {
+                        // open multi select panel
+                        var copy = new List<Microsoft.Msagl.Drawing.IViewerNode>(multi);
+                        if (!copy.Contains(_objectUnderCursor))
+                            copy.Add(_objectUnderCursor);
+                        StartDialoguePanelMultiSelectFor(copy);
+                    }
+                    else
+                    {
+                        // try to auto-open edit panel
+                        // no status
+                        if (noStat)
+                        {
+                            // open freshly
+                            StartDialoguePanelEditFor(_objectUnderCursor);
+                        }
+                    }
+                }
             }
         }
 
@@ -1258,13 +1196,13 @@ namespace AasxPluginBomStructure
         // Dialog pages
         //
 
-        protected void StartShowDialogue(DialogueStatus stat)
+        protected void ShowDialoguePanel(DialogueStatus stat)
         {
             _tabItemEdit.Content = CreateDialoguePanel(stat);
             _tabControlBottom.SelectedItem = _tabItemEdit;
         }
 
-        protected void HideDialoguePage()
+        protected void HideDialooguePanel()
         {
             _tabControlBottom.SelectedItem = _tabControlBottom.Items[0];
             _dialogueStatus = null;
@@ -1288,7 +1226,7 @@ namespace AasxPluginBomStructure
             grid.Children.Add(fe);
         }
 
-        protected enum DialogueType { None = 0, EditNode, EditEdge, Create, Delete }
+        protected enum DialogueType { None = 0, EditNode, EditEdge, Create, Delete, MultiSelect }
 
         protected class DialogueStatus
         {
@@ -1487,16 +1425,62 @@ namespace AasxPluginBomStructure
                     AddToGrid(grid, 4, 1, colSpan: 3, fe: stat.ComboBoxRelSupplSemId);
                 }
 
-                // Add button
-                var btnCancel = new Button() { Content = "Cancel", Padding = new Thickness(2), Margin = new Thickness(2) };
-                btnCancel.Click += (s, e) => {
-                    _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
-                    HideDialoguePage();
-                };
-                AddToGrid(grid, grid.RowDefinitions.Count - 1, 1, fe: btnCancel);
+                // Buttons
+                var buttonGrid = new Grid();
+                AddToGrid(grid, grid.RowDefinitions.Count - 1, 1, colSpan: 3, fe: buttonGrid);
+
+                // 4 rows (IdShort, Node.semId, Node.suppSemId, Rel.semId, Rel.suppSemId, expand, buttons)
+                buttonGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
+
+                // 5 cols (all star)
+                for (int i=0; i<5; i++)
+                    buttonGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(
+                        ((i>=3) ? 1.5 : 1.0), GridUnitType.Star) 
+                    });
+
+                // when editing something existing: jump, delete, create
+                if (stat.Type == DialogueType.EditNode || stat.Type == DialogueType.EditEdge)
+                {
+                    // Jump
+                    var btnJump = new Button() { Content = "Jump", Padding = new Thickness(2), Margin = new Thickness(2) };
+                    btnJump.Click += (s, e) =>
+                    {
+                        if (_objectUnderCursor is Microsoft.Msagl.Drawing.IViewerNode)
+                            NavigateTo(_objectUnderCursor?.DrawingObject);
+                    };
+                    AddToGrid(buttonGrid, 0, 0, fe: btnJump);
+
+                    // Delete
+                    var btnDel = new Button() { Content = "Delete", Padding = new Thickness(2), Margin = new Thickness(2) };
+                    btnDel.Click += (s, e) =>
+                    {
+                        // replace panel with "OK to proceed"
+                        StartDialoguePanelDelete();
+                    };
+                    AddToGrid(buttonGrid, 0, 1, fe: btnDel);
+
+                    // Create
+                    var btnCreate = new Button() { Content = "Create child", Padding = new Thickness(2), Margin = new Thickness(2) };
+                    btnDel.Click += (s, e) =>
+                    {
+
+                    };
+                    AddToGrid(buttonGrid, 0, 2, fe: btnCreate);
+                }
+
+                // Always: button Cancel
+                if (true)
+                {
+                    var btnCancel = new Button() { Content = "Cancel", Padding = new Thickness(2), Margin = new Thickness(2) };
+                    btnCancel.Click += (s, e) =>
+                    {
+                        _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
+                        HideDialooguePanel();
+                    };
+                    AddToGrid(buttonGrid, 0, 3, fe: btnCancel);
+                }
 
                 // Add action
-
                 Action lambdaAdd = () => {
                     // access
                     if (stat != null)
@@ -1507,7 +1491,7 @@ namespace AasxPluginBomStructure
 
                     // done
                     _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
-                    HideDialoguePage();
+                    HideDialooguePanel();
                 };
 
                 stat.TextBoxIdShort.KeyDown += (s2, e2) =>
@@ -1518,7 +1502,57 @@ namespace AasxPluginBomStructure
 
                 var btnAdd = new Button() {  Content = "OK", Padding = new Thickness(2), Margin = new Thickness(2) };
                 btnAdd.Click += (s, e) => { lambdaAdd.Invoke(); } ;
-                AddToGrid(grid, grid.RowDefinitions.Count - 1, 3, fe: btnAdd);                
+                AddToGrid(buttonGrid, 0, 4, fe: btnAdd);                
+
+                // return outer grid
+                return grid;
+            }
+
+            if (stat.Type == DialogueType.MultiSelect)
+            {
+                // confirmation (delete)
+                var grid = new Grid();
+
+                // 5 rows (spacer, text, small gap, buttons, space)
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Star) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(10.0, GridUnitType.Pixel) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Star) });
+
+                // 5 cols (small, expand, small, expand, small)
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(30.0, GridUnitType.Pixel) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1.0, GridUnitType.Star) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(30.0, GridUnitType.Pixel) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1.0, GridUnitType.Star) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(30.0, GridUnitType.Pixel) });
+
+                // text
+                AddToGrid(grid, 1, 1, colSpan: 3, fe: new TextBox()
+                {
+                    Text = "Multiple elements selected",
+                    FontSize = 14.0,
+                    TextWrapping = TextWrapping.Wrap,
+                    BorderThickness = new Thickness(0),
+                    HorizontalContentAlignment = HorizontalAlignment.Center,
+                    IsReadOnly = true
+                });
+
+                // Button: Delete
+                var btnDel = new Button() { Content = "Delete selected", Padding = new Thickness(2), Margin = new Thickness(2) };
+                btnDel.Click += (s, e) => {
+                    // access (the other panel will handle hiding)
+                    stat.Action?.Invoke(stat, "DELETE-ALL");
+                };
+                AddToGrid(grid, 3, 1, fe: btnDel);
+
+                // Button: Cancel
+                var btnCancel = new Button() { Content = "Cancel", Padding = new Thickness(2), Margin = new Thickness(2) };
+                btnCancel.Click += (s, e) => {
+                    _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
+                    HideDialooguePanel();
+                };
+                AddToGrid(grid, 3, 3, fe: btnCancel);
 
                 return grid;
             }
@@ -1551,25 +1585,25 @@ namespace AasxPluginBomStructure
                     IsReadOnly = true
                 });
 
-                // Add button
+                // Button: Cancel
                 var btnCancel = new Button() { Content = "Cancel", Padding = new Thickness(2), Margin = new Thickness(2) };
                 btnCancel.Click += (s, e) => {
                     _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
-                    HideDialoguePage();
+                    HideDialooguePanel();
                 };
                 AddToGrid(grid, 3, 1, fe: btnCancel);
 
-                // Add button
-                var btnAdd = new Button() { Content = "OK", Padding = new Thickness(2), Margin = new Thickness(2) };
-                btnAdd.Click += (s, e) => {
+                // Button: Delete
+                var btnDel = new Button() { Content = "Delete", Padding = new Thickness(2), Margin = new Thickness(2) };
+                btnDel.Click += (s, e) => {
                     // access
                     stat.Action?.Invoke(stat, "OK");
 
                     // done
                     _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
-                    HideDialoguePage();
+                    HideDialooguePanel();
                 };
-                AddToGrid(grid, 3, 3, fe: btnAdd);
+                AddToGrid(grid, 3, 3, fe: btnDel);
 
                 return grid;
             }
@@ -1578,5 +1612,162 @@ namespace AasxPluginBomStructure
             return new Grid();
         }
 
+        protected void StartDialoguePanelEditFor(object objectUnderCursor)
+        {
+            if (objectUnderCursor is Microsoft.Msagl.Drawing.IViewerNode node
+                     && node.Node?.UserData is Aas.ISubmodelElement nodeSme)
+            {
+                // create job
+                var stat = new DialogueStatus() { Type = DialogueType.EditNode, AasElem = nodeSme };
+
+                // set the action
+                stat.Action = (st, action) =>
+                {
+                    // correct?
+                    if (action != "OK" || !(st.AasElem is Aas.ISubmodelElement nodeSme))
+                        return;
+
+                    // modify
+                    AdjustNodeInBom(
+                        nodeSme,
+                        nodeIdShort: st.TextBoxIdShort.Text,
+                        nodeSemId: st.ComboBoxNodeSemId.Text,
+                        nodeSuppSemId: st.ComboBoxNodeSupplSemId.Text);
+
+                    // refresh
+                    SetNeedsFinalize(true);
+                    RedrawGraph();
+                };
+
+                // in any case, create a node
+                ShowDialoguePanel(stat);
+            }
+
+            if (objectUnderCursor is Microsoft.Msagl.Drawing.IViewerEdge edge
+             && edge.Edge?.UserData is Aas.ISubmodelElement edgeSme)
+            {
+                // create job
+                var stat = new DialogueStatus()
+                {
+                    Type = DialogueType.EditEdge,
+                    AasElem = edgeSme
+                };
+
+                // set the action
+                stat.Action = (st, action) =>
+                {
+                    // correct?
+                    if (action != "OK" || !(st.AasElem is Aas.ISubmodelElement esme))
+                        return;
+
+                    // modify
+                    AdjustEdgeInBom(
+                        esme,
+                        edgeIdShort: st.TextBoxIdShort.Text,
+                        edgeSemId: st.ComboBoxRelSemId.Text,
+                        edgeSuppSemId: st.ComboBoxRelSupplSemId.Text);
+
+                    // refresh
+                    SetNeedsFinalize(true);
+                    RedrawGraph();
+                };
+
+                // in any case, create a node
+                ShowDialoguePanel(stat);
+            }
+        }
+
+        protected void StartDialoguePanelMultiSelectFor(List<Microsoft.Msagl.Drawing.IViewerNode> nodes)
+        {
+            if (nodes != null && nodes.Count > 0)
+            {
+                // create job
+                var stat = new DialogueStatus() { Type = DialogueType.MultiSelect };
+
+                // set the action
+                stat.Action = (st, action) =>
+                {
+                    // correct?
+                    if (action == "DELETE-ALL")
+                    {
+                        StartDialoguePanelDelete();
+                        return;
+                    }
+                };
+
+                // in any case, create a node
+                ShowDialoguePanel(stat);
+            }
+        }
+
+
+        protected void StartDialoguePanelDelete()
+        {
+            // create job
+            var stat = new DialogueStatus() { Type = DialogueType.Delete };
+
+            var test = (_objectUnderCursor as Microsoft.Msagl.Drawing.IViewerNode)?
+                            .Node?.UserData as Aas.IReferable;
+            if (test != null)
+                stat.Nodes.Add(test);
+            stat.Nodes.AddRange(GetSelectedViewerReferables());
+
+            // set the action
+            stat.Action = (st, action) =>
+            {
+                // all above nodes
+                foreach (var node in st.Nodes)
+                {
+                    // only SME
+                    if (!(node is Aas.ISubmodelElement nodeSmeToDel))
+                        continue;
+
+                    // find containing Referable and KeyList to it
+                    // (the key list must not only contain the Submodel!)
+                    var contToDelIn = _submodel?.FindContainingReferable(nodeSmeToDel);
+                    var kl = _submodel?.BuildKeysToTop(nodeSmeToDel);
+                    if (nodeSmeToDel == null || contToDelIn == null || kl.Count < 2)
+                        continue;
+
+                    // build reference to it
+                    var refToNode = new Aas.Reference(Aas.ReferenceTypes.ModelReference, kl);
+
+                    // now search recursively for:
+                    // the node, all RefElems and RelElems referring to it
+                    var toDel = new List<Tuple<Aas.IReferable, Aas.ISubmodelElement>>();
+                    _submodel?.RecurseOnSubmodelElements(null, (o, parents, sme) => {
+
+                        // figure out the last parent = container of SME
+                        Aas.IReferable cont = (parents.Count < 1) ? _submodel : parents.LastOrDefault();
+
+                        // note: trust, that corresponding Remove() will check first for presence ..
+                        if ((sme == nodeSmeToDel)
+                            || (sme is Aas.ReferenceElement refEl
+                                && refEl.Value?.Matches(refToNode) == true)
+                            || (sme is Aas.RelationshipElement relEl
+                                && (relEl.First?.Matches(refToNode) == true
+                                    || relEl.Second?.Matches(refToNode) == true)))
+                        {
+                            toDel.Add(new Tuple<Aas.IReferable, Aas.ISubmodelElement>(cont, sme));
+                        }
+
+                        // always search further
+                        return true;
+                    });
+
+                    // now del
+                    foreach (var td in toDel)
+                        td.Item1?.Remove(td.Item2);
+
+                }
+
+                // refresh
+                SetNeedsFinalize(true);
+                RedrawGraph();
+            };
+
+            // in any case, create a node
+            ShowDialoguePanel(stat);
+        }
     }
 }
