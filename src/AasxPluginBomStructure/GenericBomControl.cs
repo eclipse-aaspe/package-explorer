@@ -9,6 +9,8 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 // #define TESTMODE
 
+#pragma warning disable 1416
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,6 +29,7 @@ using Microsoft.Msagl.Layout.Layered;
 using Microsoft.Msagl.Miscellaneous;
 using System.Windows.Documents;
 using System.Printing;
+using Microsoft.Msagl.Layout.MDS;
 
 
 namespace AasxPluginBomStructure
@@ -47,9 +50,9 @@ namespace AasxPluginBomStructure
         private PluginSessionBase _session = null;
         private bool _createOnPackage = false;
 
-        private Microsoft.Msagl.Drawing.Graph theGraph = null;
-        private Microsoft.Msagl.WpfGraphControl.GraphViewer theViewer = null;
-        private Aas.IReferable theReferable = null;
+        private Microsoft.Msagl.Drawing.Graph _graph = null;
+        private Microsoft.Msagl.WpfGraphControl.GraphViewer _viewer = null;
+        private Aas.IReferable _referable = null;
         private DockPanel _insideDockPanel = null;
 
         private PluginEventStack eventStack = null;
@@ -106,11 +109,12 @@ namespace AasxPluginBomStructure
             foreach (var psn in this.PresetSettingNames)
                 cbli.Items.Add(psn);
             cbli.SelectedIndex = _creatorOptions.LayoutIndex;
+            cbli.SelectedItem = cbli.Items[cbli.SelectedIndex];
             cbli.SelectionChanged += (s3, e3) =>
             {
                 _creatorOptions.LayoutIndex = cbli.SelectedIndex;
                 RememberSettings();
-                RedrawGraph();
+                RedrawGraph(resetTransform: true);
             };
             wpTop.Children.Add(cbli);
 
@@ -203,33 +207,6 @@ namespace AasxPluginBomStructure
                 this.eventStack.PushEvent(evt);
             };
             wpTop.Children.Add(_buttonFinalize);
-
-#if __old__
-
-            // "select" button
-
-            var btnSelect = new Button()
-            {
-                Content = "Selection \U0001f846 tree",
-                Margin = new Thickness(0, 0, 0, 5),
-                Padding = new Thickness(4, 0, 4, 0)
-            };
-            btnSelect.Click += (s3, e3) =>
-            {
-                // check for marked entities
-                var markedRf = GetSelectedViewerReferables().ToList();
-                if (markedRf.Count < 1)
-                    return;
-
-                // send event to main application
-                var evt = new AasxPluginResultEventVisualSelectEntities()
-                {
-                    Referables = markedRf
-                };
-                this.eventStack.PushEvent(evt);
-            };
-            wpTop.Children.Add(btnSelect);
-#endif
 
             // return
 
@@ -357,9 +334,9 @@ namespace AasxPluginBomStructure
                         mi.Click += ContextMenu_Click;
 
             // make it re-callable
-            theGraph = graph;
-            theViewer = viewer;
-            theReferable = _submodel;
+            _graph = graph;
+            _viewer = viewer;
+            _referable = _submodel;
             _insideDockPanel = dp;
 
             // return viewer for advanced manipulation
@@ -370,12 +347,12 @@ namespace AasxPluginBomStructure
 
         private void Viewer_ViewChangeEvent(object sender, EventArgs e)
         {
-            _savedTransform = theViewer.Transform;
+            _savedTransform = _viewer.Transform;
         }
 
         protected bool IsViewerNode(Microsoft.Msagl.Drawing.IViewerNode vn)
         {
-            foreach (var x in theViewer.Entities)
+            foreach (var x in _viewer.Entities)
                 if (x is Microsoft.Msagl.Drawing.IViewerNode xvn && xvn == vn)
                     return true;
             return false;
@@ -383,9 +360,9 @@ namespace AasxPluginBomStructure
 
         protected Microsoft.Msagl.Drawing.IViewerNode FindViewerNode(Microsoft.Msagl.Drawing.Node node)
         {
-            if (theViewer == null || node == null)
+            if (_viewer == null || node == null)
                 return null;
-            foreach (var x in theViewer.Entities)
+            foreach (var x in _viewer.Entities)
                 if (x is Microsoft.Msagl.Drawing.IViewerNode vn
                     && vn.Node == node)
                     return vn;
@@ -394,10 +371,10 @@ namespace AasxPluginBomStructure
 
         protected IEnumerable<Microsoft.Msagl.Drawing.IViewerNode> GetSelectedViewerNodes()
         {
-            if (theViewer == null)
+            if (_viewer == null)
                 yield break;
 
-            foreach (var x in theViewer.Entities)
+            foreach (var x in _viewer.Entities)
                 if (x is Microsoft.Msagl.Drawing.IViewerNode vn)
                     if (vn.MarkedForDragging)
                         yield return vn;
@@ -405,10 +382,10 @@ namespace AasxPluginBomStructure
 
         protected IEnumerable<Aas.IReferable> GetSelectedViewerReferables()
         {
-            if (theViewer == null)
+            if (_viewer == null)
                 yield break;
 
-            foreach (var x in theViewer.Entities)
+            foreach (var x in _viewer.Entities)
                 if (x is Microsoft.Msagl.Drawing.IViewerNode vn)
                     if (vn.MarkedForDragging && vn.Node?.UserData is Aas.IReferable rf)
                         yield return rf;
@@ -556,75 +533,6 @@ namespace AasxPluginBomStructure
                 edgeSme.SupplementalSemanticIds = null;
         }
 
-#if cdscsd
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="source"></param>
-        ///// <param name="target"></param>
-        ///// <param name="registerForUndo"></param>
-        ///// <returns></returns>
-        public Drawing.Edge AddEdge(
-            Microsoft.Msagl.Drawing.Graph Graph,
-            Microsoft.Msagl.Drawing.Node source, Microsoft.Msagl.Drawing.Node target, bool registerForUndo)
-        {
-            Debug.Assert( Graph.FindNode(source.Id) == source);
-            Debug.Assert(Graph.FindNode(target.Id) == target);
-
-            Microsoft.Msagl.Drawing.Edge drawingEdge = Graph.AddEdge(source.Id, target.Id);
-            drawingEdge.Label = new Microsoft.Msagl.Drawing.Label();
-            var geometryEdge = drawingEdge.GeometryEdge = new Microsoft.Msagl.Core.Layout.Edge();
-            geometryEdge.GeometryParent = Graph.GeometryGraph;
-
-            var a = source.GeometryNode.Center;
-            var b = target.GeometryNode.Center;
-            if (source == target)
-            {
-                Microsoft.Msagl.Core.Geometry.Geometry.CornerSite start = new CornerSite(a);
-                CornerSite end = new CornerSite(b);
-                var mid1 = source.GeometryNode.Center;
-                mid1.X += (source.GeometryNode.BoundingBox.Width / 3 * 2);
-                var mid2 = mid1;
-                mid1.Y -= source.GeometryNode.BoundingBox.Height / 2;
-                mid2.Y += source.GeometryNode.BoundingBox.Height / 2;
-                CornerSite mid1s = new CornerSite(mid1);
-                CornerSite mid2s = new CornerSite(mid2);
-                start.Next = mid1s;
-                mid1s.Previous = start;
-                mid1s.Next = mid2s;
-                mid2s.Previous = mid1s;
-                mid2s.Next = end;
-                end.Previous = mid2s;
-                geometryEdge.UnderlyingPolyline = new SmoothedPolyline(start);
-                geometryEdge.Curve = geometryEdge.UnderlyingPolyline.CreateCurve();
-            }
-            else
-            {
-                CornerSite start = new CornerSite(a);
-                CornerSite end = new CornerSite(b);
-                CornerSite mids = new CornerSite(a * 0.5 + b * 0.5);
-                start.Next = mids;
-                mids.Previous = start;
-                mids.Next = end;
-                end.Previous = mids;
-                geometryEdge.UnderlyingPolyline = new SmoothedPolyline(start);
-                geometryEdge.Curve = geometryEdge.UnderlyingPolyline.CreateCurve();
-            }
-
-            geometryEdge.Source = drawingEdge.SourceNode.GeometryNode;
-            geometryEdge.Target = drawingEdge.TargetNode.GeometryNode;
-            geometryEdge.EdgeGeometry.TargetArrowhead = new Arrowhead() { Length = drawingEdge.Attr.ArrowheadLength };
-            Arrowheads.TrimSplineAndCalculateArrowheads(geometryEdge, geometryEdge.Curve, true, true);
-
-
-            IViewerEdge ve;
-            AddEdge(ve = CreateEdgeWithGivenGeometry(drawingEdge), registerForUndo);
-            layoutEditor.AttachLayoutChangeEvent(ve);
-            return drawingEdge;
-
-        }
-#endif
-
         static Microsoft.Msagl.Core.Layout.Node GeometryNode(Microsoft.Msagl.Drawing.IViewerNode node)
         {
             Microsoft.Msagl.Core.Layout.Node geomNode = ((Microsoft.Msagl.Drawing.Node)node.DrawingObject).GeometryNode;
@@ -653,95 +561,18 @@ namespace AasxPluginBomStructure
                     if (miTag == "CREATE")
                     {
                         StartDialoguePanelCreateFor(_objectUnderCursor);
-
-
                     }
 
                     if (miTag == "DELETE")
                     {
                         // independent function
                         StartDialoguePanelDelete();
-
-#if shitty_no_works
-
-                    if (_objectUnderCursor is Microsoft.Msagl.Drawing.IViewerNode node)
-                    {
-                        var addNodesToDel = new List<Microsoft.Msagl.Drawing.IViewerNode>();
-
-                        // try to detect additional edges to asset boxes here?
-                        if (node?.Node != null)
-                            foreach (var x in theViewer.Entities)
-                                if (x is Microsoft.Msagl.Drawing.IViewerEdge ve)
-                                {
-                                    if (ve.Edge.SourceNode == node.Node)
-                                        if (ve.Edge?.TargetNode?.UserData is GenericBomCreator.UserDataAsset)
-                                            addNodesToDel.Add(FindViewerNode(ve.Edge.TargetNode));
-                                    if (ve.Edge.TargetNode == node.Node)
-                                        if (ve.Edge?.SourceNode?.UserData is GenericBomCreator.UserDataAsset)
-                                            addNodesToDel.Add(FindViewerNode(ve.Edge.SourceNode));
-                                }
-
-                        // now delete
-                        if (node != null)
-                            theViewer.RemoveNode(node, true);
-
-                        // delete additional nodes
-                        foreach (var antd in addNodesToDel)
-                            if (IsViewerNode(antd))
-                                theViewer.RemoveNode(antd, true);
-
-                        // delete node and relations in BOM
-
-                    // which SME does this node relate to
-                    var nodeSmeToDel = node?.Node?.UserData as Aas.ISubmodelElement;
-
-                        // find containing Referable and KeyList to it
-                        // (the key list must not only contain the Submodel!)
-                        var contToDelIn = _submodel?.FindContainingReferable(nodeSmeToDel);
-                        var kl = _submodel?.BuildKeysToTop(nodeSmeToDel);
-                        if (nodeSmeToDel == null || contToDelIn == null || kl.Count < 2)
-                            return;
-
-                        // build reference to it
-                        var refToNode = new Aas.Reference(Aas.ReferenceTypes.ModelReference, kl);
-
-                        // now search recursively for:
-                        // the node, all RefElems and RelElems referring to it
-                        var toDel = new List<Tuple<Aas.IReferable, Aas.ISubmodelElement>>();
-                        _submodel?.RecurseOnSubmodelElements(null, (o, parents, sme) => {
-
-                            // figure out the last parent = container of SME
-                            Aas.IReferable cont = (parents.Count < 1) ? _submodel : parents.LastOrDefault();
-
-                            // note: trust, that corresponding Remove() will check first for presence ..
-                            if (   (sme == nodeSmeToDel)
-                                || (sme is Aas.ReferenceElement refEl
-                                    && refEl.Value?.Matches(refToNode) == true)
-                                || (sme is Aas.RelationshipElement relEl
-                                    && (relEl.First?.Matches(refToNode) == true
-                                        || relEl.Second?.Matches(refToNode) == true)))
-                            {
-                                toDel.Add(new Tuple<Aas.IReferable, Aas.ISubmodelElement>(cont, sme));
-                            }
-
-                            // always search further
-                            return true;
-                        });
-
-                        // now del
-                        foreach (var td in toDel)
-                            td.Item1?.Remove(td.Item2);
-
-                        // refresh
-                        RedrawGraph();
-                    }
-#endif
                     }
                 }
 
                 // https://github.com/microsoft/automatic-graph-layout/issues/372
 
-                if (miTag == "EXP-SVG" && theViewer.Graph != null)
+                if (miTag == "EXP-SVG" && _viewer.Graph != null)
                 {
                     // ask for file name
                     var dlg = new Microsoft.Win32.SaveFileDialog()
@@ -753,29 +584,32 @@ namespace AasxPluginBomStructure
                     if (dlg.ShowDialog() != true)
                         return;
 
-                    // theViewer.Graph.CreateGeometryGraph();
-                    //LayoutHelpers.CalculateLayout(theViewer.Graph.GeometryGraph, new SugiyamaLayoutSettings(), null);
+#if __old_version_of_MSAGL
+                    theViewer.Graph.CreateGeometryGraph();
+                    LayoutHelpers.CalculateLayout(theViewer.Graph.GeometryGraph, new SugiyamaLayoutSettings(), null);
 
-                    //foreach (var n in theViewer.Graph.Nodes)
-                    //    if (n.Label != null)
-                    //    {
-                    //        n.Label.Width = 100;
-                    //        n.Label.Height = 20;
-                    //    }
+                    foreach (var n in theViewer.Graph.Nodes)
+                        if (n.Label != null)
+                        {
+                            n.Label.Width = 100;
+                            n.Label.Height = 20;
+                        }
+#endif
 
                     // take care on resources
                     try
                     {
-                        // SvgGraphWriter.Write(theViewer.Graph, dlg.FileName, null, null, 4);
                         using (var stream = File.Create(dlg.FileName))
                         {
-                            var svgWriter = new Microsoft.Msagl.Drawing.SvgGraphWriter(stream, theViewer.Graph);
+                            var svgWriter = new Microsoft.Msagl.Drawing.SvgGraphWriter(stream, _viewer.Graph);
                             svgWriter.Write();
                         }
+
+                        _log.Info(StoredPrint.Color.Blue, "BOM plugin exported SVG: {0}", dlg.FileName);
                     }
                     catch (Exception ex)
                     {
-                        AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
+                        _log?.Error(ex, "when creating SVG");
                     }
 
                     // toggle redisplay -> graph is renewed for display
@@ -848,9 +682,9 @@ namespace AasxPluginBomStructure
             viewer.Graph = graph;
 
             // make it re-callable
-            theGraph = graph;
-            theViewer = viewer;
-            theReferable = _submodel;
+            _graph = graph;
+            _viewer = viewer;
+            _referable = _submodel;
 
             // return viewer for advanced manipulation
             // dead-csharp off
@@ -955,17 +789,18 @@ namespace AasxPluginBomStructure
             // this is called when the pointer is moved; no click is required
         }
 
+        // mouse states from mouse down to mouse up
         protected bool _leftButtonIsPressed = false;
 
         private void Viewer_MouseDown(object sender, Microsoft.Msagl.Drawing.MsaglMouseEventArgs e)
         {
             // double click
-            if (e != null && e.Clicks > 1 && e.LeftButtonIsPressed && theViewer != null && this.eventStack != null)
+            if (e != null && e.Clicks > 1 && e.LeftButtonIsPressed && _viewer != null && this.eventStack != null)
             {
                 // double-click detected, can access the viewer?
                 try
                 {
-                    var x = theViewer.ObjectUnderMouseCursor;
+                    var x = _viewer.ObjectUnderMouseCursor;
                     NavigateTo(x?.DrawingObject);
                 }
                 catch (Exception ex)
@@ -979,60 +814,17 @@ namespace AasxPluginBomStructure
             {
                 if (e != null && e.Clicks == 1 && e.RightButtonIsPressed
                     && _insideDockPanel.ContextMenu != null
-                    && theViewer != null)
+                    && _viewer != null)
                 {
-                    _objectUnderCursor = theViewer.ObjectUnderMouseCursor;
-                    _rightClickCoordinates = theViewer.ScreenToSource(e);
+                    _objectUnderCursor = _viewer.ObjectUnderMouseCursor;
+                    _rightClickCoordinates = _viewer.ScreenToSource(e);
 
                     _insideDockPanel.ContextMenu.IsOpen = true;
                 }
             }
 
+            // remember state for mouse up
             _leftButtonIsPressed = e.LeftButtonIsPressed;
-
-#if __off
-            // 1-click LEFT opens/ closes info panel
-            if (!UseContextMenu)
-            {
-                if (e != null && e.Clicks == 1 && e.LeftButtonIsPressed
-                    && theViewer != null)
-                {
-                    _objectUnderCursor = theViewer.ObjectUnderMouseCursor;
-                    var noStat = _dialogueStatus == null || _dialogueStatus.Type == DialogueType.None;
-
-                    // if no object under cursor, show no panel
-                    // (assume that any selected obect will be de-selected by the viewer)
-                    if (_objectUnderCursor == null && !noStat)
-                    {
-                        // force close
-                        HideDialooguePanel();
-                        return;
-                    }
-
-                    // multiple selected? .. check if already some OTHER nodes are selected?
-                    var multi = GetSelectedViewerNodes().ToList();
-
-                    if (multi.Count > 0 && multi[0] != _objectUnderCursor)
-                    {
-                        // open multi select panel
-                        var copy = new List<Microsoft.Msagl.Drawing.IViewerNode>(multi);
-                        if (!copy.Contains(_objectUnderCursor))
-                            copy.Add(_objectUnderCursor);
-                        StartDialoguePanelMultiSelectFor(copy);
-                    }
-                    else
-                    {
-                        // try to auto-open edit panel
-                        // no status
-                        if (noStat)
-                        {
-                            // open freshly
-                            StartDialoguePanelEditFor(_objectUnderCursor);
-                        }
-                    }
-                }
-            }
-#endif
         }
 
         private void Viewer_MouseUp(object sender, Microsoft.Msagl.Drawing.MsaglMouseEventArgs e)
@@ -1041,9 +833,9 @@ namespace AasxPluginBomStructure
             if (!UseContextMenu)
             {
                 if (e != null && e.Clicks == 1 && _leftButtonIsPressed
-                    && theViewer != null)
+                    && _viewer != null)
                 {
-                    _objectUnderCursor = theViewer.ObjectUnderMouseCursor;
+                    _objectUnderCursor = _viewer.ObjectUnderMouseCursor;
                     var noStat = _dialogueStatus == null || _dialogueStatus.Type == DialogueType.None;
 
                     // if no object under cursor, show no panel
@@ -1112,46 +904,85 @@ namespace AasxPluginBomStructure
         {
             "1 | Tree style layout",
             "2 | Round layout (variable)",
+            "3 | MDS/round layout",
+            "4 | MDS+fast/rectilinear layout"
         };
 
         private Microsoft.Msagl.Core.Layout.LayoutAlgorithmSettings GivePresetSettings(
             GenericBomCreatorOptions opt, int nodeCount)
         {
-            if (opt == null || opt.LayoutIndex == 0)
+            var li = (opt == null || opt.LayoutIndex < 1 || opt.LayoutIndex >= 1 + PresetSettingNames.Length) 
+                     ? 1 : opt.LayoutIndex + 1;
+
+            switch (li)
             {
-                // Tree
-                var settings = new Microsoft.Msagl.Layout.Layered.SugiyamaLayoutSettings();
-                return settings;
-            }
-            else
-            {
-                // Round
-                var settings = new Microsoft.Msagl.Layout.Incremental.FastIncrementalLayoutSettings();
-                settings.RepulsiveForceConstant = 8.0 / (1.0 + nodeCount) * (5.0 + opt.LayoutSpacing);
-                return settings;
+                default:
+                case 1:
+                    {
+                        // Tree
+                        var settings = new Microsoft.Msagl.Layout.Layered.SugiyamaLayoutSettings();
+                        return settings;
+                    }
+
+                case 2:
+                    {
+                        // Round
+                        var settings = new Microsoft.Msagl.Layout.Incremental.FastIncrementalLayoutSettings();
+                        settings.RepulsiveForceConstant = 8.0 / (1.0 + Math.Log(nodeCount)) * (5.0 + opt.LayoutSpacing);
+                        return settings;
+                    }
+
+                case 3:
+                    {
+                        // MDS
+                        var settings = new Microsoft.Msagl.Layout.MDS.MdsLayoutSettings();
+                        settings.EdgeRoutingSettings = new Microsoft.Msagl.Core.Routing.EdgeRoutingSettings();
+                        settings.EdgeRoutingSettings.EdgeRoutingMode = 
+                            Microsoft.Msagl.Core.Routing.EdgeRoutingMode.Spline;
+                        return settings;
+                    }
+
+                case 4:
+                    {
+                        // MDS + Fast Incremental
+                        var settings = new Microsoft.Msagl.Layout.Incremental.FastIncrementalLayoutSettings();
+                        settings.EdgeRoutingSettings = new Microsoft.Msagl.Core.Routing.EdgeRoutingSettings();
+                        settings.EdgeRoutingSettings.EdgeRoutingMode =
+                            Microsoft.Msagl.Core.Routing.EdgeRoutingMode.Rectilinear;
+                        settings.EdgeRoutingSettings.CornerRadius = 90;
+                        settings.NodeSeparation = 50; // minimum
+                        settings.AvoidOverlaps = true;
+                        return settings;
+                    }
             }
         }
 
         protected void RememberSettings()
         {
             // try to remember preferred setting
-            if (this.theReferable != null && preferredPreset != null && _creatorOptions != null)
-                this.preferredPreset[this.theReferable] = _creatorOptions.Copy();
+            if (_referable != null && preferredPreset != null && _creatorOptions != null)
+                this.preferredPreset[_referable] = _creatorOptions.Copy();
         }
 
-        protected void RedrawGraph()
+        protected void RedrawGraph(bool resetTransform = false)
         {
+            // complete reset of viewport?
+            if (resetTransform)
+            {
+                _savedTransform = null;
+            }
+
             try
             {
                 // re-draw (brutally)
-                theGraph = CreateGraph(_package, _submodel, _creatorOptions, createOnPackage: _createOnPackage);
+                _graph = CreateGraph(_package, _submodel, _creatorOptions, createOnPackage: _createOnPackage);
 
-                theViewer.Graph = null;
-                theViewer.Graph = theGraph;
+                _viewer.Graph = null;
+                _viewer.Graph = _graph;
 
                 // may take over last view
                 if (_savedTransform != null)
-                    theViewer.Transform = _savedTransform;
+                    _viewer.Transform = _savedTransform;
             }
             catch (Exception ex)
             {
@@ -1777,11 +1608,11 @@ namespace AasxPluginBomStructure
             stat.Action = (st, action) =>
             {
                 // correct?
-                if (action != "OK" || _bomCreator == null || theViewer == null)
+                if (action != "OK" || _bomCreator == null || _viewer == null)
                     return;
 
                 // check number of nodes BEFORE operation
-                int noOfNodes = theViewer?.Graph?.NodeCount ?? 0;
+                int noOfNodes = _viewer?.Graph?.NodeCount ?? 0;
 
                 // create entity
                 var ents = CreateNodeAndRelationInBom(
@@ -1818,7 +1649,7 @@ namespace AasxPluginBomStructure
 
                 if (noOfNodes < 1)
                 {
-                    theViewer?.SetInitialTransform();
+                    _viewer?.SetInitialTransform();
                     _savedTransform = null;
                 }
                 RedrawGraph();
