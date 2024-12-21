@@ -72,7 +72,8 @@
         }
       ],
       "Layout": 1,
-      "Compact": true,
+      "CompactNodes": false,
+      "CompactEdges": true,
       "LinkStyles": [
         {
           "Match": {

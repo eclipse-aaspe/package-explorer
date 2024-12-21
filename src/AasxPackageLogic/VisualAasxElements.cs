@@ -1127,7 +1127,7 @@ namespace AasxPackageLogic
                         {
                             qv = qv.Replace('\r', ' ');
 							qv = qv.Replace('\n', ' ');
-							qv = "=" + AdminShellUtil.ShortenWithEllipses(qv, 30);
+							qv = "=" + AdminShellUtil.ShortenWithEllipsesEnd(qv, 30);
                         }
                         this.Info += " @{" + qt + qv + "}";
                     }

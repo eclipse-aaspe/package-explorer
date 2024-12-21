@@ -467,12 +467,30 @@ namespace AdminShellNS
         /// string is shortened and returned with an ellipsis(…) at the end.
         /// </summary>
         /// <returns>Shortened string</returns>
-        public static string ShortenWithEllipses(string str, int maxLen)
+        public static string ShortenWithEllipsesEnd(string str, int maxLen)
         {
             if (str == null)
                 return null;
             if (maxLen >= 0 && str.Length > maxLen)
                 str = str.Substring(0, maxLen) + "\u2026";
+            return str;
+        }
+
+        /// <summary>
+        /// If len of <paramref name="str"/> exceeds <paramref name="maxLen"/> then
+        /// string is shortened and returned with an ellipsis(…) in the middle.
+        /// </summary>
+        /// <returns>Shortened string</returns>
+        public static string ShortenWithEllipsesMiddle(string str, int maxLen)
+        {
+            if (str == null)
+                return null;
+            if (maxLen >= 0 && str.Length > maxLen)
+            {
+                str = str.Substring(0, maxLen / 2) 
+                      + "\u2026"
+                      + str.Substring(str.Length - 1 - maxLen / 2);
+            }
             return str;
         }
 
@@ -484,7 +502,7 @@ namespace AdminShellNS
         public static string ToSingleLineShortened(string str, int maxLen, string textNewLine = " ")
         {
             str = str.ReplaceLineEndings(textNewLine);
-            return ShortenWithEllipses(str, maxLen);
+            return ShortenWithEllipsesEnd(str, maxLen);
         }
 
         /// <summary>Creates a filter-friendly name from the source.</summary>

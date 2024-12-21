@@ -250,8 +250,8 @@ namespace AasxPackageExplorer
                 var vl2 = "" + prop2.Value;
                 if (vl1 != vl2)
                     rl.AddDifference("E09", "DIFF", true, "value",
-                        AdminShellUtil.ShortenWithEllipses(vl1, 60),
-                        AdminShellUtil.ShortenWithEllipses(vl2, 60));
+                        AdminShellUtil.ShortenWithEllipsesEnd(vl1, 60),
+                        AdminShellUtil.ShortenWithEllipsesEnd(vl2, 60));
             }
 
             if (firstRf is Aas.IMultiLanguageProperty mlp1 && secondRf is Aas.IMultiLanguageProperty mlp2)

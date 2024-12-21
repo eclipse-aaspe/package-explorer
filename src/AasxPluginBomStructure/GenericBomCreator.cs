@@ -25,7 +25,8 @@ namespace AasxPluginBomStructure
 {
     public class GenericBomCreatorOptions
     {
-        public bool CompactLabels = true;
+        public bool CompactNodes = false;
+        public bool CompactEdges = true;
         public bool ShowAssetIds = true;
         public int LayoutIndex = 0;
         public double LayoutSpacing = 10;
@@ -437,6 +438,23 @@ namespace AasxPluginBomStructure
                 e.LabelText = ls.Title;
         }
 
+        protected string prepareNodeLabelTxt(string input)
+        {
+            if (_options.CompactNodes)
+            {
+                input = AdminShellUtil.ShortenWithEllipsesMiddle(input, 29);
+                var sb = new StringBuilder();
+                for (int i = 0; i < input.Length; i++)
+                {
+                    sb.Append(input[i]);
+                    if ((i + 1) % 15 == 0)
+                        sb.Append('\n');
+                }
+                return sb.ToString().Trim();
+            }
+            return input;
+        }
+
         public void CreateAasAndSubmodelNodes(
             Microsoft.Msagl.Drawing.Graph graph,
             Aas.ISubmodel sm)
@@ -510,7 +528,7 @@ namespace AasxPluginBomStructure
             // this gives nodes!
             var node = new Microsoft.Msagl.Drawing.Node(GenerateNodeID());
             node.UserData = rf;
-            node.LabelText = "" + nodeText;
+            node.LabelText = prepareNodeLabelTxt("" + nodeText);
             node.Attr.Shape = shape;
             node.Attr.FillColor = fillColor;
             node.Attr.Color = borderColor;
@@ -593,7 +611,7 @@ namespace AasxPluginBomStructure
             // this gives nodes!
             var node1 = new Microsoft.Msagl.Drawing.Node(GenerateNodeID());
             node1.UserData = ent;
-            node1.LabelText = "" + ent.ToIdShortString();
+            node1.LabelText = prepareNodeLabelTxt("" + ent.ToIdShortString());
             node1.Label.FontSize = 12;
 
             // try access bulk count
@@ -635,7 +653,7 @@ namespace AasxPluginBomStructure
             {
                 // build label text
                 var labelText = relElem.ToIdShortString();
-                if (_options?.CompactLabels != true)
+                if (_options?.CompactEdges != true)
                 {
                     if (relElem.SemanticId != null && relElem.SemanticId.Count() == 1)
                         labelText += " : " + relElem.SemanticId.Keys[0].Value;
@@ -656,7 +674,7 @@ namespace AasxPluginBomStructure
                         labelText += " = " + cd.ToIdShortString();
 
                         // option
-                        if (_options?.CompactLabels == true
+                        if (_options?.CompactEdges == true
                             && cd.IdShort.HasContent())
                             labelText = cd.IdShort;
 
@@ -752,14 +770,14 @@ namespace AasxPluginBomStructure
                     if (pass == 2 && referableByRelation.ContainsKey(sme))
                     {
                         var node = CreateNode(graph, sme,
-                            "" + sme.ToIdShortString(),
-                            Microsoft.Msagl.Drawing.Shape.Box,
-                            EntityStyleDataElement.FillColor,
-                            EntityStyleDataElement.BorderColor,
-                            EntityStyleDataElement.FontColor,
-                            0, 0, fontSize: 8,
-                            ns1: _bomRecords?.FindFirstNodeStyle(sme.SemanticId, sme.SupplementalSemanticIds),
-                            ns2: BomArguments.Parse(sme.HasExtensionOfName("BOM.Args")?.Value));
+                                "" + sme.ToIdShortString(),
+                                Microsoft.Msagl.Drawing.Shape.Box,
+                                EntityStyleDataElement.FillColor,
+                                EntityStyleDataElement.BorderColor,
+                                EntityStyleDataElement.FontColor,
+                                0, 0, fontSize: 8,
+                                ns1: _bomRecords?.FindFirstNodeStyle(sme.SemanticId, sme.SupplementalSemanticIds),
+                                ns2: BomArguments.Parse(sme.HasExtensionOfName("BOM.Args")?.Value));
                     }
 
                     // draw a link from the parent (Entity or SMC) to this node

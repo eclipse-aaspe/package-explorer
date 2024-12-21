@@ -450,7 +450,7 @@ namespace AasxPluginExportTable.Table
                 return "";
             cellText = cellText.Replace("\r", "<CR>");
             cellText = cellText.Replace("\n", "<NL>");
-            cellText = AdminShellUtil.ShortenWithEllipses(cellText, 30);
+            cellText = AdminShellUtil.ShortenWithEllipsesEnd(cellText, 30);
             return cellText;
         }
 

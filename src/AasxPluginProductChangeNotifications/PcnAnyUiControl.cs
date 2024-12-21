@@ -205,7 +205,7 @@ namespace AasxPluginProductChangeNotifications
                 foreground: AnyUiBrushes.DarkBlue,
                 fontSize: 1.5f,
                 setBold: true,
-                content: $"PCN #{_pcnIndex:D3} {AdminShellUtil.ShortenWithEllipses(recTit, 20)}");
+                content: $"PCN #{_pcnIndex:D3} {AdminShellUtil.ShortenWithEllipsesEnd(recTit, 20)}");
 
             AnyUiUIElement.RegisterControl(
                     uitk.AddSmallButtonTo(bluebar, 0, 1,

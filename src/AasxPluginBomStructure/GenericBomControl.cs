@@ -30,6 +30,8 @@ using Microsoft.Msagl.Miscellaneous;
 using System.Windows.Documents;
 using System.Printing;
 using Microsoft.Msagl.Layout.MDS;
+using Microsoft.Msagl.Core.Routing;
+using Microsoft.Msagl.Layout.Incremental;
 
 
 namespace AasxPluginBomStructure
@@ -55,8 +57,6 @@ namespace AasxPluginBomStructure
         private Aas.IReferable _referable = null;
         private DockPanel _insideDockPanel = null;
 
-        private PluginEventStack eventStack = null;
-
         private BomStructureOptionsRecordList _bomRecords = new BomStructureOptionsRecordList();
 
         private GenericBomCreatorOptions _creatorOptions = new GenericBomCreatorOptions();
@@ -81,7 +81,7 @@ namespace AasxPluginBomStructure
 
         public void SetEventStack(PluginEventStack es)
         {
-            this.eventStack = es;
+            _eventStack = es;
         }
 
         protected WrapPanel CreateTopPanel()
@@ -146,24 +146,43 @@ namespace AasxPluginBomStructure
             };
             wpTop.Children.Add(sli);
 
-            // Compact labels
+            // Compact nodes
 
-            var cbcomp = new CheckBox()
+            var cbCompNodes = new CheckBox()
             {
-                Content = "Compact labels",
+                Content = "Compact nodes",
                 Margin = new Thickness(10, 2, 10, 2),
                 VerticalContentAlignment = VerticalAlignment.Center,
-                IsChecked = _creatorOptions.CompactLabels,
+                IsChecked = _creatorOptions.CompactNodes,
             };
-            RoutedEventHandler cbcomb_changed = (s2, e2) =>
+            RoutedEventHandler cbcombN_changed = (s2, e2) =>
             {
-                _creatorOptions.CompactLabels = cbcomp.IsChecked == true;
+                _creatorOptions.CompactNodes = cbCompNodes.IsChecked == true;
                 RememberSettings();
                 RedrawGraph();
             };
-            cbcomp.Checked += cbcomb_changed;
-            cbcomp.Unchecked += cbcomb_changed;
-            wpTop.Children.Add(cbcomp);
+            cbCompNodes.Checked += cbcombN_changed;
+            cbCompNodes.Unchecked += cbcombN_changed;
+            wpTop.Children.Add(cbCompNodes);
+
+            // Compact edges
+
+            var cbCompEdges = new CheckBox()
+            {
+                Content = "Compact edges",
+                Margin = new Thickness(10, 2, 10, 2),
+                VerticalContentAlignment = VerticalAlignment.Center,
+                IsChecked = _creatorOptions.CompactEdges,
+            };
+            RoutedEventHandler cbcombE_changed = (s2, e2) =>
+            {
+                _creatorOptions.CompactEdges = cbCompEdges.IsChecked == true;
+                RememberSettings();
+                RedrawGraph();
+            };
+            cbCompEdges.Checked += cbcombE_changed;
+            cbCompEdges.Unchecked += cbcombE_changed;
+            wpTop.Children.Add(cbCompEdges);
 
             // show asset ids
 
@@ -173,7 +192,7 @@ namespace AasxPluginBomStructure
                 Margin = new Thickness(10, 2, 10, 2),
                 VerticalContentAlignment = VerticalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
-                IsChecked = _creatorOptions.CompactLabels,
+                IsChecked = _creatorOptions.ShowAssetIds,
             };
             RoutedEventHandler cbaid_changed = (s2, e2) =>
             {
@@ -204,7 +223,7 @@ namespace AasxPluginBomStructure
                 var evt = new AasxPluginResultEventRedrawAllElements()
                 {
                 };
-                this.eventStack.PushEvent(evt);
+                _eventStack.PushEvent(evt);
             };
             wpTop.Children.Add(_buttonFinalize);
 
@@ -218,6 +237,9 @@ namespace AasxPluginBomStructure
             _needsFinalize = state;
             if (_buttonFinalize != null)
                 _buttonFinalize.IsEnabled = state;
+
+            if (state)
+                _log?.Info(StoredPrint.Color.Blue, "At end of change session, activate \"Finalize\" tu update tree.");
         }
 
         /// <summary>
@@ -256,7 +278,7 @@ namespace AasxPluginBomStructure
                 if (br.Layout >= 1 && br.Layout <= PresetSettingNames.Length)
                     _creatorOptions.LayoutIndex = br.Layout - 1;
                 if (br.Compact.HasValue)
-                    _creatorOptions.CompactLabels = br.Compact.Value;
+                    _creatorOptions.CompactEdges = br.Compact.Value;
             }
 
             // already user defined?
@@ -795,7 +817,7 @@ namespace AasxPluginBomStructure
         private void Viewer_MouseDown(object sender, Microsoft.Msagl.Drawing.MsaglMouseEventArgs e)
         {
             // double click
-            if (e != null && e.Clicks > 1 && e.LeftButtonIsPressed && _viewer != null && this.eventStack != null)
+            if (e != null && e.Clicks > 1 && e.LeftButtonIsPressed && _viewer != null && _eventStack != null)
             {
                 // double-click detected, can access the viewer?
                 try
@@ -838,12 +860,30 @@ namespace AasxPluginBomStructure
                     _objectUnderCursor = _viewer.ObjectUnderMouseCursor;
                     var noStat = _dialogueStatus == null || _dialogueStatus.Type == DialogueType.None;
 
+                    // special rule: if no object under cursor (because there is no) and
+                    // the Submodel has any entities, offer to create some
+                    if (_objectUnderCursor == null)
+                    {
+                        var anyEntry = _submodel?.SubmodelElements?.FindFirstSemanticIdAs<Aas.IEntity>(
+                            AasxPredefinedConcepts.HierarchStructV11.Static.CD_EntryNode?.GetSingleKey(),
+                            matchMode: MatchMode.Relaxed);
+                        
+                        var anyNode = _submodel?.SubmodelElements?.FindFirstSemanticIdAs<Aas.IEntity>(
+                            AasxPredefinedConcepts.HierarchStructV11.Static.CD_Node?.GetSingleKey(),
+                            matchMode: MatchMode.Relaxed);
+
+                        if (anyEntry == null && anyNode == null)
+                        {
+                            StartDialoguePanelNoNodesFor();
+                        }
+                    }
+
                     // if no object under cursor, show no panel
                     // (assume that any selected obect will be de-selected by the viewer)
                     if (_objectUnderCursor == null && !noStat)
                     {
                         // force close
-                        HideDialooguePanel();
+                        HideDialoguePanel();
                         return;
                     }
 
@@ -887,7 +927,7 @@ namespace AasxPluginBomStructure
                     {
                         var evt = new AasxPluginResultEventNavigateToReference();
                         evt.targetReference = ExtendReference.CreateNew(refs);
-                        this.eventStack.PushEvent(evt);
+                        _eventStack.PushEvent(evt);
                     }
                 }
 
@@ -895,7 +935,7 @@ namespace AasxPluginBomStructure
                 {
                     var evt = new AasxPluginResultEventNavigateToReference();
                     evt.targetReference = (us as Aas.Reference);
-                    this.eventStack.PushEvent(evt);
+                    _eventStack.PushEvent(evt);
                 }
             }
         }
@@ -945,13 +985,14 @@ namespace AasxPluginBomStructure
                 case 4:
                     {
                         // MDS + Fast Incremental
-                        var settings = new Microsoft.Msagl.Layout.Incremental.FastIncrementalLayoutSettings();
-                        settings.EdgeRoutingSettings = new Microsoft.Msagl.Core.Routing.EdgeRoutingSettings();
-                        settings.EdgeRoutingSettings.EdgeRoutingMode =
-                            Microsoft.Msagl.Core.Routing.EdgeRoutingMode.Rectilinear;
-                        settings.EdgeRoutingSettings.CornerRadius = 90;
-                        settings.NodeSeparation = 50; // minimum
-                        settings.AvoidOverlaps = true;
+                        var settings = new Microsoft.Msagl.Layout.MDS.MdsLayoutSettings()
+                        {
+                            EdgeRoutingSettings = {
+                                EdgeRoutingMode = EdgeRoutingMode.Rectilinear,
+                                CornerRadius = 10
+                            },
+                            NodeSeparation = 50, // Minimum space between nodes                            
+                        };
                         return settings;
                     }
             }
@@ -1000,7 +1041,7 @@ namespace AasxPluginBomStructure
             _tabControlBottom.SelectedItem = _tabItemEdit;
         }
 
-        protected void HideDialooguePanel()
+        protected void HideDialoguePanel()
         {
             _tabControlBottom.SelectedItem = _tabControlBottom.Items[0];
             _dialogueStatus = null;
@@ -1026,7 +1067,7 @@ namespace AasxPluginBomStructure
             return fe;
         }
 
-        protected enum DialogueType { None = 0, EditNode, EditEdge, Create, Delete, MultiSelect }
+        protected enum DialogueType { None = 0, EditNode, EditEdge, Create, Delete, MultiSelect, NoNodes }
 
         protected class DialogueStatus
         {
@@ -1071,7 +1112,7 @@ namespace AasxPluginBomStructure
             {
                 // add node
                 var grid = new Grid();
-                var prefHS = AasxPredefinedConcepts.HierarchStructV10.Static;
+                var prefHS = AasxPredefinedConcepts.HierarchStructV11.Static;
                 var create = stat.Type == DialogueType.Create;
                 var editNode = stat.Type == DialogueType.EditNode;
                 var editEdge = stat.Type == DialogueType.EditEdge;
@@ -1378,7 +1419,7 @@ namespace AasxPluginBomStructure
                     btnCancel.Click += (s, e) =>
                     {
                         _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
-                        HideDialooguePanel();
+                        HideDialoguePanel();
                     };
                     AddToGrid(buttonGrid, 0, 3, fe: btnCancel);
                 }
@@ -1394,7 +1435,7 @@ namespace AasxPluginBomStructure
 
                     // done
                     _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
-                    HideDialooguePanel();
+                    HideDialoguePanel();
                 };
 
                 stat.TextBoxIdShort.KeyDown += (s2, e2) =>
@@ -1453,7 +1494,7 @@ namespace AasxPluginBomStructure
                 var btnCancel = new Button() { Content = "Cancel", Padding = new Thickness(2), Margin = new Thickness(2) };
                 btnCancel.Click += (s, e) => {
                     _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
-                    HideDialooguePanel();
+                    HideDialoguePanel();
                 };
                 AddToGrid(grid, 3, 3, fe: btnCancel);
 
@@ -1492,7 +1533,7 @@ namespace AasxPluginBomStructure
                 var btnCancel = new Button() { Content = "Cancel", Padding = new Thickness(2), Margin = new Thickness(2) };
                 btnCancel.Click += (s, e) => {
                     _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
-                    HideDialooguePanel();
+                    HideDialoguePanel();
                 };
                 AddToGrid(grid, 3, 1, fe: btnCancel);
 
@@ -1504,9 +1545,58 @@ namespace AasxPluginBomStructure
 
                     // done
                     _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
-                    HideDialooguePanel();
+                    HideDialoguePanel();
                 };
                 AddToGrid(grid, 3, 3, fe: btnDel);
+
+                return grid;
+            }
+
+            if (stat.Type == DialogueType.NoNodes)
+            {
+                // confirmation (delete)
+                var grid = new Grid();
+
+                // 5 rows (spacer, text, small gap, buttons, space)
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Star) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(10.0, GridUnitType.Pixel) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Auto) });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1.0, GridUnitType.Star) });
+
+                // 5 cols (small, expand, small, expand, small)
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(30.0, GridUnitType.Pixel) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1.0, GridUnitType.Star) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(30.0, GridUnitType.Pixel) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1.0, GridUnitType.Star) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(30.0, GridUnitType.Pixel) });
+
+                // text
+                AddToGrid(grid, 1, 1, colSpan: 3, fe: new TextBox()
+                {
+                    Text = "No nodes for hierarchical structures found!!",
+                    FontSize = 14.0,
+                    TextWrapping = TextWrapping.Wrap,
+                    BorderThickness = new Thickness(0),
+                    HorizontalContentAlignment = HorizontalAlignment.Center,
+                    IsReadOnly = true
+                });
+
+                // Button: Create
+                var btnCreate = new Button() { Content = "Create", Padding = new Thickness(2), Margin = new Thickness(2) };
+                btnCreate.Click += (s, e) => {
+                    // access (the other panel will handle hiding)
+                    stat.Action?.Invoke(stat, "CREATE");
+                };
+                AddToGrid(grid, 3, 1, fe: btnCreate);
+
+                // Button: Cancel
+                var btnCancel = new Button() { Content = "Cancel", Padding = new Thickness(2), Margin = new Thickness(2) };
+                btnCancel.Click += (s, e) => {
+                    _tabItemEdit.Content = CreateDialoguePanel(new DialogueStatus() { Type = DialogueType.None });
+                    HideDialoguePanel();
+                };
+                AddToGrid(grid, 3, 3, fe: btnCancel);
 
                 return grid;
             }
@@ -1595,12 +1685,12 @@ namespace AasxPluginBomStructure
 
             // figure out if first node
             stat.IsEntryNode = null == _submodel?.SubmodelElements?.FindFirstSemanticIdAs<Aas.IEntity>(
-                AasxPredefinedConcepts.HierarchStructV10.Static.CD_EntryNode?.GetSingleKey(),
+                AasxPredefinedConcepts.HierarchStructV11.Static.CD_EntryNode?.GetSingleKey(),
                 matchMode: MatchMode.Relaxed);
 
             // figure out reverse direction
             stat.ReverseDir = _submodel?.SubmodelElements?.FindFirstSemanticIdAs<Aas.IProperty>(
-                AasxPredefinedConcepts.HierarchStructV10.Static.CD_ArcheType?.GetSingleKey(),
+                AasxPredefinedConcepts.HierarchStructV11.Static.CD_ArcheType?.GetSingleKey(),
                 matchMode: MatchMode.Relaxed)?
                     .Value?.ToUpper().Trim() == "ONEUP";
 
@@ -1753,6 +1843,26 @@ namespace AasxPluginBomStructure
                 // refresh
                 SetNeedsFinalize(true);
                 RedrawGraph();
+            };
+
+            // in any case, create a node
+            ShowDialoguePanel(stat);
+        }
+
+        protected void StartDialoguePanelNoNodesFor()
+        {
+            // create job
+            var stat = new DialogueStatus() { Type = DialogueType.NoNodes };
+
+            // set the action
+            stat.Action = (st, action) =>
+            {
+                // correct?
+                if (action == "CREATE")
+                {
+                    StartDialoguePanelCreateFor(null);
+                    return;
+                }
             };
 
             // in any case, create a node

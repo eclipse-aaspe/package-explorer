@@ -732,7 +732,7 @@ namespace AasxPackageLogic
 
                 int storedI = i;
                 AddGroup(
-                    substack, $"Element {1 + i}: {AdminShellUtil.ShortenWithEllipses(pairs[storedI].Name, 30)}",
+                    substack, $"Element {1 + i}: {AdminShellUtil.ShortenWithEllipsesEnd(pairs[storedI].Name, 30)}",
                     levelColors.SubSubSection.Bg, levelColors.SubSubSection.Fg, requestContextMenu: repo != null,
                     contextMenuText: "\u22ee",
                     menuHeaders: new[] {
@@ -981,7 +981,7 @@ namespace AasxPackageLogic
 
                 int storedI = i;
                 AddGroup(
-                    substack, $"Extension {1 + i}: {AdminShellUtil.ShortenWithEllipses(extension.Name, 30)}",
+                    substack, $"Extension {1 + i}: {AdminShellUtil.ShortenWithEllipsesEnd(extension.Name, 30)}",
                     levelColors.SubSubSection.Bg, levelColors.SubSubSection.Fg, requestContextMenu: repo != null,
                     contextMenuText: "\u22ee",
                     menuHeaders: new[] {
@@ -1602,7 +1602,7 @@ namespace AasxPackageLogic
                 var substack = AddSubStackPanel(stack, "", minWidthFirstCol: GetWidth(FirstColumnWidth.Small));
 
                 int storedI = i;
-                var txt = AdminShellUtil.ShortenWithEllipses(valuePairs[i].Value, 30);
+                var txt = AdminShellUtil.ShortenWithEllipsesEnd(valuePairs[i].Value, 30);
                 AddGroup(
                     substack, $"Pair {1 + i}: {txt}",
                     levelColors.SubSubSection.Bg, levelColors.SubSubSection.Fg, requestContextMenu: repo != null,
