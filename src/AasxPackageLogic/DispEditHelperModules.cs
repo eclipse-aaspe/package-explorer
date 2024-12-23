@@ -1818,6 +1818,10 @@ namespace AasxPackageLogic
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
             {
+                // TODO (MIHO, 2024-12-09): check if to allow further Iec data types such as "File":
+                // comboBoxItems: (AdminShellUtil.GetEnumValues<Aas.DataTypeIec61360>()
+                //      .Select((dt) => dt.ToString())).ToArray(),
+
                 AddKeyValueExRef(
                     stack, "dataType", dsiec, Aas.Stringification.ToString(dsiec.DataType), null, repo,
                     v =>

@@ -50,10 +50,11 @@
     // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\Syn2tecMachine_P2518_AAS__V3_DL2.aasx",
     // "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\Syn2tecMachine_P2518_AAS__V3_DL2.aasx",
     // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\test-data\\MTP\\test-data-SMT_MTP.aasx",
+    "AasxToLoad": "C:\\Users\\Micha\\Desktop\\Demo\\AASX\\8001203_SPAU-P10R-T-R18M-L-PNLK-PNVBA-M8D_060ff64f-9fd2-422d-81ce-b17e49f007c5_work.aasx",
     // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\00_FestoDemoBox-Module-2-Kopie.aasx",
     // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\tmp\\8001203_SPAU-P10R-T-R18M-L-PNLK-PNVBA-M8D_060ff64f-9fd2-422d-81ce-b17e49f007c5_work_spiel.aasx",
     // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\1449600_NEBM-SM12G8-E-1.5-Q5-LE6_511946fb-00c1-4aa8-9877-9ba23d86146e.aasx",
-    "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\1449600_NEBM-SM12G8-E-1.5-Q5-LE6_511946fb-00c1-4aa8-9877-9ba23d86146e.aasx",
+    // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\1449600_NEBM-SM12G8-E-1.5-Q5-LE6_511946fb-00c1-4aa8-9877-9ba23d86146e.aasx",
     // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\a33.aasx",
     // "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\SMT_and_SAMM_Showcase_v02.aasx",
     // "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\SMT_and_SAMM_Showcase_v01.aasx",
@@ -72,7 +73,9 @@
     // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\SMT_ProductChangeNotification_Draft_play_02.aasx",
     "AasxRepositoryFns": [
         "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\Festo-DemoCase-repo-V3-local.json",
-        "C:\\HOMI\\Develop\\Aasx\\repo\\local-5001.json"
+        "C:\\HOMI\\Develop\\Aasx\\repo\\local-5001.json",
+        "C:\\HOMI\\Develop\\Aasx\\repo\\eis-voyager.json",
+        "C:\\HOMI\\Develop\\Aasx\\repo\\smt-repo.json"
     ],
     // "AasxRepositoryFn": "C:\\HOMI\\Develop\\Aasx\\repo\\local-5001.json",
     // "AasxRepositoryFn": "C:\\Users\\homi0002\\Desktop\\test3\\new-aasx-repo.json" ,
@@ -135,6 +138,7 @@
     "VerboseConnect": true,
     "WorkDir": ".\\work",
     "CdSortOrder": "Structured",
+    "SubmodelCheckOnlyId": true,
     "ObserveEvents": true,
     "CompressEvents": true,
     "CheckSmtElements": false,

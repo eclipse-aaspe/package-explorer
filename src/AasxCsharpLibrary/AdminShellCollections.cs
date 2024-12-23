@@ -39,6 +39,16 @@ namespace AdminShellNS
                 dict.Add(key, new List<V> { value });
         }
 
+        public void AddIfValueIsNew(K key, V value)
+        {
+            if (dict.TryGetValue(key, out var list))
+            {
+                if (!list.Contains(value))
+                    list.Add(value);
+            }
+            else
+                dict.Add(key, new List<V> { value });
+        }
         public void Remove(K key)
         {
             if (dict.ContainsKey(key))

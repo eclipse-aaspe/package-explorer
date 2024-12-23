@@ -404,6 +404,7 @@ namespace AasxPackageExplorer
                 if (info == null)
                     info = loadLocalFilename;
                 Log.Singleton.Info("Loading new AASX from: {0} as auxiliary {1} ..", info, onlyAuxiliary);
+
                 if (!packItem.Load(PackageCentral, loadLocalFilename, loadLocalFilename,
                     overrideLoadResident: true,
                     PackageContainerOptionsBase.CreateDefault(Options.Curr)))
@@ -965,6 +966,7 @@ namespace AasxPackageExplorer
             RepoListControl.PackageCentral = PackageCentral;
             RepoListControl.FlyoutProvider = this;
             RepoListControl.ManageVisuElems = DisplayElements;
+            RepoListControl.ExecuteMainCommand = this;
             this.UiShowRepositories(visible: false);
 
             // event viewer
@@ -1011,26 +1013,63 @@ namespace AasxPackageExplorer
 
                 if (repo is PackageContainerListHttpRestRepository restRepo)
                 {
-                    var fetchContext = new PackageContainerHttpRepoSubsetFetchContext()
+                    // find a specific location
+                    if (PackageContainerHttpRepoSubset.IsValidUriAnyMatch(fi?.Location))
                     {
-                        Record = new ConnectExtendedRecord()
+                        // try load that specific location
+                        // check if load fresh or aggregate
+                        if (PackageCentral.Main is AdminShellPackageDynamicFetchEnv)
                         {
-                            BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
-                            BaseAddress = restRepo.Endpoint?.ToString()
-                        }
-                    };
+                            // load aggregate
+                            Log.Singleton.Info("Aggregating location {0} ..", fi.Location);
+                            var res = await UiSearchRepoAndExtendEnvironmentAsync(
+                                PackageCentral.Main,
+                                fullItemLocation: fi.Location,
+                                trySelect: true);
+                            
+                            // error?
+                            if (res == null)
+                                Log.Singleton.Error("Not able to access location {0}", fi.Location);
 
-                    // refer to (static) function
-                    var res = await DispEditHelperEntities.ExecuteUiForFetchOfElements(
-                        PackageCentral, DisplayContext, 
-                        ticket : null, 
-                        mainWindow: this, 
-                        fetchContext: fetchContext,
-                        preserveEditMode: true,
-                        doEditNewRecord: true,
-                        doCheckTainted: true,
-                        doFetchGoNext: false,
-                        doFetchExec: true);
+                            // in any case, stop here
+                            return;
+                        }
+                        else
+                        {
+                            // load
+                            Log.Singleton.Info("Switching to location {0} ..", fi.Location);
+                            UiLoadPackageWithNew(PackageCentral.MainItem, null, 
+                                fi.Location, onlyAuxiliary: false, preserveEditMode: true);
+
+                            // in any case, stop here
+                            return;
+                        }
+                    }
+
+                    // if not a specific location is available, display general dialogue
+                    if (true)
+                    {
+                        var fetchContext = new PackageContainerHttpRepoSubsetFetchContext()
+                        {
+                            Record = new ConnectExtendedRecord()
+                            {
+                                BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+                                BaseAddress = restRepo.Endpoint?.ToString()
+                            }
+                        };
+
+                        // refer to (static) function
+                        var res = await DispEditHelperEntities.ExecuteUiForFetchOfElements(
+                            PackageCentral, DisplayContext,
+                            ticket: null,
+                            mainWindow: this,
+                            fetchContext: fetchContext,
+                            preserveEditMode: true,
+                            doEditNewRecord: true,
+                            doCheckTainted: true,
+                            doFetchGoNext: false,
+                            doFetchExec: true);
+                    }
                 }
 
                 //
@@ -1766,7 +1805,7 @@ namespace AasxPackageExplorer
             AdminShellPackageEnvBase packEnv,
             Aas.IReference workRef = null,
             string fullItemLocation = null,
-            bool tryDisplay = false)
+            bool trySelect = false)
         {
             await Task.Yield();
 
@@ -1841,7 +1880,7 @@ namespace AasxPackageExplorer
             var newIdf = newIdfs.FirstOrDefault();
 
             // display
-            if (tryDisplay)
+            if (trySelect)
             {
                 var veFound = this.DisplayElements.SearchVisualElementOnMainDataObject(newIdf, alsoDereferenceObjects: true);
                 if (veFound != null)

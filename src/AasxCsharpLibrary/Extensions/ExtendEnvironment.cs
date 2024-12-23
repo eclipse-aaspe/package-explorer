@@ -1074,6 +1074,21 @@ namespace Extensions
         /// <summary>
         /// Warning: very inefficient!
         /// </summary>
+        public static IEnumerable<LocatedReference> FindAllReferencedSemanticIds(
+            this AasCore.Aas3_0.IEnvironment env)
+        {
+            // unique set of references
+            var refs = new List<LocatedReference>();
+            
+            foreach (var aas in env.AllAssetAdministrationShells())
+                refs.AddRange(env.FindAllSemanticIdsForAas(aas));
+
+            return refs;
+        }
+
+        /// <summary>
+        /// Warning: very inefficient!
+        /// </summary>
         public static IEnumerable<IIdentifiable> FindAllReferencedIdentifiablesForAas(
             this AasCore.Aas3_0.IEnvironment environment,
             IAssetAdministrationShell aas)

@@ -39,6 +39,7 @@ namespace AasxWpfControlLibrary.PackageCentral
         private AasxPackageLogic.PackageCentral.PackageCentral _packageCentral;
         private IFlyoutProvider _flyout;
         private IManageVisualAasxElements _manageVisuElems;
+        private IExecuteMainCommand _executeMainCommand;
         private PackageContainerListOfList _repoList;
 
         /// <summary>
@@ -56,6 +57,11 @@ namespace AasxWpfControlLibrary.PackageCentral
         /// Handler, which can provide the currently selected visual elements in the AASX tree.
         /// </summary>
         public IManageVisualAasxElements ManageVisuElems { set { _manageVisuElems = value; } }
+
+        /// <summary>
+        /// Handler, which can provide the ability to execute main menu commands.
+        /// </summary>
+        public IExecuteMainCommand ExecuteMainCommand { set { _executeMainCommand = value; } }
 
         /// <summary>
         /// AasxRepoList which is being managed by this control. Is expected to sit in the PackageCentral.
@@ -191,12 +197,30 @@ namespace AasxWpfControlLibrary.PackageCentral
                     // dialogue
                     var uc = new AnyUiDialogueDataSelectFromRepository("Select from: " + fr.Header);
                     uc.Items = fr.EnumerateItems().ToList();
-                    if (await _flyout?.GetDisplayContext()?.StartFlyoverModalAsync(uc)
-                        && uc.ResultItem != null)
+                    if (await _flyout?.GetDisplayContext()?.StartFlyoverModalAsync(uc))
                     {
-                        var fi = uc.ResultItem;
+                        // got an asset id only?
+                        if (uc.ResultId != null)
+                        {
+                            var ri = await fr.FindByAssetId(uc.ResultId);
+                            if (ri?.Location?.HasContent() == true)
+                                try
+                                {
+                                    // load
+                                    Log.Singleton.Info("Switching to repository location {0} ..", ri.Location);
+                                    FileDoubleClick?.Invoke(senderList, fr, ri);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Singleton.Error(
+                                        ex, $"When loading item on repository location {ri.Location}.");
+                                }
+                        }
+
+                        // use an item directly
+                        var fi = uc?.ResultItem;
                         var fn = fi?.Location;
-                        if (fn != null)
+                        if (fn?.HasContent() == true)
                         {
                             // start animation
                             fr.StartAnimation(fi,
@@ -426,6 +450,13 @@ namespace AasxWpfControlLibrary.PackageCentral
                     }
                 }
 
+                if (cmd == "filerepouploadtoapi" && fr is PackageContainerListHttpRestRepository frRepo)
+                {
+                    await _executeMainCommand?.ExecuteMainMenuCommand(
+                        "ApiUploadAssistant",
+                        "BaseType", "Repository",
+                        "BaseAddress", "" + frRepo.Endpoint?.ToString());
+                }
             }
         }
 
@@ -473,8 +504,11 @@ namespace AasxWpfControlLibrary.PackageCentral
 
                 if (!(fr is PackageContainerListLastRecentlyUsed))
                 {
-					menu.AddAction(
-                    	"FileRepoLoadAllResident", "Load all resident files ..", icon: "\U0001f503");
+                    if (!(fr is PackageContainerListHttpRestBase))
+                    {
+                        menu.AddAction(
+                            "FileRepoLoadAllResident", "Load all resident files ..", icon: "\U0001f503");
+                    }
 
                     if (fr is PackageContainerListLocal)
                     {
@@ -482,11 +516,21 @@ namespace AasxWpfControlLibrary.PackageCentral
                             "FileRepoMakeRelative", "Make AASX filenames relative ..", icon: "\u2699");
 					}
 
-					menu.AddAction("FileRepoAddCurrent", "Add current AAS", icon: "\u2699")
-                        .AddAction("FileRepoAddToServer", "Add AASX File to File Repository", icon: "\u2699")
-                        .AddAction("FileRepoMultiAdd", "Add multiple AASX files ..", icon: "\u2699")
-                        .AddAction("FileRepoAddFromServer", "Add from REST server ..", icon: "\u2699")
-                        .AddAction("FileRepoPrint", "Print 2D code sheet ..", icon: "\u2699");
+                    if (fr is PackageContainerListLocalBase)
+                    {
+                        menu.AddAction("FileRepoAddCurrent", "Add current AAS", icon: "\u2699")
+                            .AddAction("FileRepoAddToServer", "Add AASX File to File Repository", icon: "\u2699")
+                            .AddAction("FileRepoMultiAdd", "Add multiple AASX files ..", icon: "\u2699")
+                            .AddAction("FileRepoAddFromServer", "Add from REST server ..", icon: "\u2699")
+                            .AddAction("FileRepoPrint", "Print 2D code sheet ..", icon: "\u2699");
+                    }
+
+                    if (fr is PackageContainerListHttpRestRepository
+                        || fr is PackageContainerListHttpRestRegistry)
+                    {
+                        menu.AddAction(
+                            "FileRepoUploadToApi", "Upload to API ..", icon: "\U0001f879");
+                    }
                 }
 
                 var cm2 = DynamicContextMenu.CreateNew(

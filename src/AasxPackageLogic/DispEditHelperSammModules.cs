@@ -1714,7 +1714,7 @@ namespace AasxPackageLogic
 			DispEditHelperSammModules.SammExtensionHelperUpdateJson(newSammExt, si.SammType, si.SammInst);
 
 			// save CD
-			env?.ConceptDescriptions?.Add(newCD);
+			env?.Add(newCD);
 		}		
 
 		public void ImportSammModelToConceptDescriptions(
