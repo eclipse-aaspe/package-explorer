@@ -10,6 +10,7 @@
 // Tool("exportsmtasciidoc", "File", "C:\\HOMI\\Develop\\Aasx\\repo\\new.zip", "AntoraStyle", "true");
 Tool("editkey");
 // Tool("createrepofromapi", "BaseAddress", "http://localhost:5001/api/v3.0/", "BaseType", "Repository");
+Tool("connectextended", "BaseAddress", "http://smt-repo.admin-shell-io.com/api/v3.0", "BaseType", "Repository", "AasId", "https://admin-shell.io/idta/aas/DigitalNameplate/3/0", "AutoLoadOnDemand", "false", "AutoLoadCds", "true");
 // Tool("connectextended", "BaseAddress", "http://localhost:5001/api/v3.0/", "BaseType", "Repository", "GetSingleAas", "false", "GetAllAas", "true", "PageLimit", "99", "AutoLoadOnDemand", "false");
 // Tool("connectextended", "BaseAddress", "http://localhost:5001/api/v3.0/", "BaseType", "Repository", "GetSingleAas", "true", "AasId", "http://smart.festo.com/id/demo-box/aas/instance/99920202206560529000071817", "AutoLoadOnDemand", "false");
 // Tool("connectextended", "BaseAddress", "https://eis-data.aas-voyager.com/", "BaseType", "Repository", "GetSingleAas", "true", "PageLimit", "2", "AutoLoadOnDemand", "false", "AasId", "https://new.abb.com/products/de/2CSF204101R1400/aas");

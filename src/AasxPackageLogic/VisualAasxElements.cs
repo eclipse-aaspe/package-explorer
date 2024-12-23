@@ -1847,7 +1847,7 @@ namespace AasxPackageLogic
                     // remember, that this value pair CD hangs "below" an Submodel
                     if (submodelForCDs != null)
                     {
-                        _cdToSm.Add(vrpCD, submodelForCDs);
+                        _cdToSm.AddIfValueIsNew(vrpCD, submodelForCDs);
                     }
                 }
             }
@@ -1889,8 +1889,8 @@ namespace AasxPackageLogic
                 // bookkeeping
                 if (tism.CachedCD != null)
                 {
-                    _cdReferred.Add(tism.CachedCD, tism);
-                    _cdToSm.Add(tism.CachedCD, sm);
+                    _cdReferred.AddIfValueIsNew(tism.CachedCD, tism);
+                    _cdToSm.AddIfValueIsNew(tism.CachedCD, sm);
                 }
 
                 // nested cd?
@@ -2421,6 +2421,37 @@ namespace AasxPackageLogic
 					}
 			}
 
+            // MIHO, 2024-12-22: new way to pre-fill _cdToSm
+            if (true)
+            {
+                _cdToSm.Clear();
+
+                Action<Aas.ISubmodel, Aas.IReference> lambdaIndex = (sm, semId) =>
+                {
+                    if (semId?.IsValid() != true)
+                        return;
+                    var cdid = semId.GetAsExactlyOneKey()?.Value;
+                    if (cdid == null)
+                        return;
+                    if (!_idToReferable.ContainsKey(cdid))
+                        return;
+                    var cd = _idToReferable[cdid]?.FirstOrDefault() as Aas.IConceptDescription;
+                    if (cd == null)
+                        return;
+                    _cdToSm.AddIfValueIsNew(cd, sm);
+                };
+
+                foreach (var sm in env.AllSubmodels())
+                {
+                    lambdaIndex(sm, sm?.SemanticId);
+                    sm?.RecurseOnSubmodelElements(null, (o, parents, sme) =>
+                    {
+                        lambdaIndex(sm, sme?.SemanticId);
+                        return true;
+                    });
+                }
+            }
+
             // many operations
             try
             {
@@ -2649,7 +2680,7 @@ namespace AasxPackageLogic
                     {
                         // single files
                         var files = package.GetListOfSupplementaryFiles();
-                        foreach (var fi in files)
+                        foreach (var fi in files.ForEachSafe())
                             tiFiles.Members.Add(new VisualElementSupplementalFile(tiFiles, cache, package, fi));
                     }
                 }

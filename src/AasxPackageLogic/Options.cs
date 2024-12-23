@@ -565,7 +565,13 @@ namespace AasxPackageLogic
 			Cmd = "-cd-sort-order")]
 		public string CdSortOrder = null;
 
-		[OptionDescription(Description =
+        [OptionDescription(Description =
+            "Only check the value (id) field of keys of semanticId for Submodels. That is, both" +
+            "GlobalReference and Submodel types match.",
+            Cmd = "-sm-only-id")]
+        public bool SubmodelCheckOnlyId = false;
+
+        [OptionDescription(Description =
             "For such operations as query repository, do load a new AASX file without " +
             "prompting the user.",
             Cmd = "-load-without-prompt")]

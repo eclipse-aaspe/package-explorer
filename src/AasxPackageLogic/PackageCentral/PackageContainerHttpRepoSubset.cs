@@ -239,6 +239,9 @@ namespace AasxPackageLogic.PackageCentral
 
         public static bool IsValidUriAnyMatch(string location)
         {
+            if (location?.HasContent() != true)
+                return false;
+
             return IsValidUriForRepoAllAAS(location)
                 || IsValidUriForRepoSingleAAS(location)
                 || IsValidUriForRepoAllSubmodel(location)
@@ -1599,6 +1602,76 @@ namespace AasxPackageLogic.PackageCentral
                                 });
                         });
 
+                // start auto-load missing Submodels?
+                if (operationFound && (record?.AutoLoadCds ?? false))
+                {
+                    var lrs = env.FindAllReferencedSemanticIds().ToList();
+
+                    await Parallel.ForEachAsync(lrs,
+                        new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
+                        async (lr, token) =>
+                        {
+                            var cdid = lr.Reference?.GetAsExactlyOneKey()?.Value;
+                            if (cdid?.HasContent() != true)
+                                return;
+
+                            if (record?.AutoLoadOnDemand ?? true)
+                            {
+                                // side info level 1
+                                lock (prepSM)
+                                {
+                                    prepSM.AddIfNew(null, new AasIdentifiableSideInfo()
+                                    {
+                                        IsStub = true,
+                                        StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                        Id = lr.Reference.Keys[0].Value,
+                                        IdShort = "",
+                                        Endpoint = BuildUriForRepoSingleCD(baseUri, cdid)
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                // no side info => full element
+                                var sourceUri = BuildUriForRepoSingleCD(baseUri, cdid);
+                                await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                                    null,
+                                    sourceUri: sourceUri,
+                                    allowFakeResponses: allowFakeResponses,
+                                    runtimeOptions: runtimeOptions,
+                                    lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
+                                    {
+                                        if (code != HttpStatusCode.OK)
+                                            return;
+
+                                        try
+                                        {
+                                            var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
+                                            var cd = Jsonization.Deserialize.ConceptDescriptionFrom(node);
+                                            lock (prepCD)
+                                            {
+                                                trackLoadedIdentifiables?.Add(cd);
+                                                if (prepCD.AddIfNew(cd, new AasIdentifiableSideInfo()
+                                                {
+                                                    IsStub = false,
+                                                    StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                                    Id = cd.Id,
+                                                    IdShort = cd.IdShort,
+                                                    Endpoint = sourceUri
+                                                }))
+                                                {
+                                                    trackNewIdentifiables?.Add(cd);
+                                                }
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            runtimeOptions?.Log?.Error(ex, "Parsing auto-loaded ConceptDescriptions");
+                                        }
+                                    });
+                            }
+                        });
+                }
             }
 
             //
@@ -1767,7 +1840,7 @@ namespace AasxPackageLogic.PackageCentral
                 "identified by semanticIds as well. " +
                 "Note: For this retrieveal, AutoLoadOnDemand may apply. " +
                 "Note: This might significantly increase the number of retrievals.")]
-            public bool AutoLoadCds = true;
+            public bool AutoLoadCds = false;
 
             [AasxMenuArgument(help: "When a AAS is retrieved, try to retrieve the associated thumbnail as well.")]
             public bool AutoLoadThumbnails = true;
@@ -2530,11 +2603,15 @@ namespace AasxPackageLogic.PackageCentral
 
         public class UploadAssistantJobRecord
         {
+            [AasxMenuArgument(help: "Specifies the part of the URI of the Repository/ Registry, which is " +
+                "common to all operations.")]
+            public string BaseAddress = "";
             // public string BaseAddress = "https://cloudrepo.aas-voyager.com/";
-            public string BaseAddress = "https://eis-data.aas-voyager.com/";
+            // public string BaseAddress = "https://eis-data.aas-voyager.com/";
             // public string BaseAddress = "http://smt-repo.admin-shell-io.com/api/v3.0";
             // public string BaseAddress = "https://techday2-registry.admin-shell-io.com/";
 
+            [AasxMenuArgument(help: "Either: Repository or Registry")]
             public ConnectExtendedRecord.BaseTypeEnum BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository;
             // public ConnectExtendedRecord.BaseTypeEnum BaseType = ConnectExtendedRecord.BaseTypeEnum.Registry;
 
@@ -2604,6 +2681,8 @@ namespace AasxPackageLogic.PackageCentral
             //
             
             var recordJob = new UploadAssistantJobRecord();
+            ticket?.ArgValue?.PopulateObjectFromArgs(recordJob);
+
             var ucJob = new AnyUiDialogueDataModalPanel(caption);
             ucJob.ActivateRenderPanel(recordJob,
                 disableScrollArea: false,

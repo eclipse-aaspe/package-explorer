@@ -23,6 +23,20 @@ using AAS = AasCore.Aas3_0;
 
 namespace AasxIntegrationBase
 {
+
+    /// <summary>
+    /// With a lot of reluctance, this forms a global variable to be exchanged among all plugins.
+    /// Note: as not all plugins do have default options, this is the only way to make plugin
+    /// behaviour configurable by main application.
+    /// </summary>
+    public static class AasxPluginsGlobal
+    {
+        /// <summary>
+        /// Only check the <c>value (id)</c> field of keys of semanticId for Submodels.
+        /// </summary>
+        public static bool SubmodelCheckOnlyId = false;
+    }
+
     /// <summary>
     /// Base class for an options record. This is a piece of options information, which is
     /// associated with an id of a Submodel template.
@@ -249,13 +263,12 @@ namespace AasxIntegrationBase
         }
 #endif
 
-
         private string GenerateIndexKey(Aas.IKey key)
         {
             if (key == null)
                 return null;
             var k = new Aas.Key(key.Type, key.Value);
-            var ndx = k?.ToStringExtended();
+            var ndx = k?.ToStringExtended(format: AasxPluginsGlobal.SubmodelCheckOnlyId ? 2 : 0);
             return ndx;
         }
 

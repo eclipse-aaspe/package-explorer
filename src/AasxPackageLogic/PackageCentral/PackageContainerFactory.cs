@@ -219,6 +219,11 @@ namespace AasxPackageLogic.PackageCentral
                 var extCntOpt = new PackageContainerHttpRepoSubsetOptions(containerOptions, 
                     new ConnectExtendedRecord());
 
+                // in this situation (guess and load a "complete" ressource), make sure,
+                // that Submodels are loaded with it ..
+                extCntOpt.Record.AutoLoadSubmodels = true;
+                extCntOpt.Record.AutoLoadOnDemand = false;
+
                 // prepare runtime options
                 var cnt = await PackageContainerHttpRepoSubset.CreateAndLoadAsync(
                             packageCentral, location, fullItemLocation,

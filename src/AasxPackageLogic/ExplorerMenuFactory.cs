@@ -122,7 +122,9 @@ namespace AasxPackageExplorer
                     .AddWpfBlazor(name: "ConnectExtended", header: "Connect (extended) …",
                         args: new AasxMenuListOfArgDefs()
                             .AddFromReflection(new PackageContainerHttpRepoSubset.ConnectExtendedRecord()))
-                    .AddWpfBlazor(name: "ApiUploadAssistant", header: "Upload assistant …")
+                    .AddWpfBlazor(name: "ApiUploadAssistant", header: "Upload assistant …",
+                        args: new AasxMenuListOfArgDefs()
+                            .AddFromReflection(new PackageContainerHttpRepoSubset.UploadAssistantJobRecord()))
                     .AddWpf(name: "CreateRepoFromApi", header: "Create (local) file repository from API base …",
                         args: new AasxMenuListOfArgDefs()
                             .AddFromReflection(new PackageContainerHttpRepoSubset.ConnectExtendedRecord()))

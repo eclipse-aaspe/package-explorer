@@ -88,7 +88,6 @@ namespace AasxPackageExplorer
             var loadedPlugins = Plugins.TryActivatePlugins(pluginDllInfos);
 
             Plugins.TrySetOptionsForPlugins(pluginDllInfos, loadedPlugins);
-
             return loadedPlugins;
         }
 
