@@ -297,7 +297,7 @@ namespace AasxPackageLogic.PackageCentral
                         long lastBytesRead = 0;
                         int bytesRead;
 
-                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Starting,
+                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.StartDownload,
                                 contentLength, totalBytesRead);
 
                         while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length,
@@ -312,14 +312,14 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 if (runtimeOptions?.ExtendedConnectionDebug == true)
                                     runtimeOptions.Log?.Info($".. downloading to memory stream");
-                                runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Ongoing,
+                                runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.PerformDownload,
                                     contentLength, totalBytesRead);
                                 lastBytesRead = totalBytesRead;
                             }
                         }
 
                         // assume bytes read to be total bytes
-                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Final,
+                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.EndDownload,
                             totalBytesRead, totalBytesRead);
 
                         // log                
@@ -466,7 +466,7 @@ namespace AasxPackageLogic.PackageCentral
                         long lastBytesRead = 0;
                         int bytesRead;
 
-                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Starting,
+                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.StartDownload,
                                 contentLength, totalBytesRead);
 
                         while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length,
@@ -481,14 +481,14 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 if (runtimeOptions?.ExtendedConnectionDebug == true)
                                     runtimeOptions.Log?.Info($".. downloading to memory stream");
-                                runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Ongoing,
+                                runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.PerformDownload,
                                     contentLength, totalBytesRead);
                                 lastBytesRead = totalBytesRead;
                             }
                         }
 
                         // assume bytes read to be total bytes
-                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Final,
+                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.EndDownload,
                             totalBytesRead, totalBytesRead);
 
                         // log                

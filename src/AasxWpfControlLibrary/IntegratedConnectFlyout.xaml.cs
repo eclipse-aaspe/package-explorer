@@ -391,20 +391,20 @@ namespace AasxPackageExplorer
             var ro = new PackCntRuntimeOptions()
             {
                 Log = _logger,
-                ProgressChanged = (state, tfs, tbd) =>
+                ProgressChanged = (state, tfs, tbd, msg) =>
                 {
-                    if (state == PackCntRuntimeOptions.Progress.Ongoing)
+                    if (state == PackCntRuntimeOptions.Progress.PerformDownload)
                     {
                         // determine
                         if (tfs == null)
                             tfs = 5 * 1024 * 1024;
-                        var frac = Math.Min(100.0, 100.0 * tbd / tfs.Value);
-                        var bshr = AdminShellUtil.ByteSizeHumanReadable(tbd);
+                        var frac = Math.Min(100.0, 100.0 * tbd.Value / tfs.Value);
+                        var bshr = AdminShellUtil.ByteSizeHumanReadable(tbd.Value);
 
                         SetProgressBar(frac, $"{bshr} transferred");
                     }
 
-                    if (state == PackCntRuntimeOptions.Progress.Final)
+                    if (state == PackCntRuntimeOptions.Progress.EndDownload)
                         SetProgressBar(0.0, "");
                 },
                 AskForSelectFromList = (caption, items, propRes) =>

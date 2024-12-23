@@ -16,7 +16,6 @@ using System.Globalization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
 using AasxIntegrationBase;
 using AasxPackageExplorer;
 using AasxPackageLogic;
@@ -26,8 +25,6 @@ using AdminShellNS;
 using Extensions;
 using AnyUi;
 using BlazorExplorer;
-using BlazorExplorer.Shared;
-using Microsoft.JSInterop;
 using AasCore.Aas3_0;
 
 namespace BlazorUI.Data
@@ -111,7 +108,7 @@ namespace BlazorUI.Data
             var ro = new PackCntRuntimeOptions()
             {
                 Log = Log.Singleton,
-                ProgressChanged = (state, tfs, tbd) =>
+                ProgressChanged = (state, tfs, tbd, msg) =>
                 {
                     ;
                 },

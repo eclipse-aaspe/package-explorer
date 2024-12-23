@@ -27,8 +27,31 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                
+                <!-- use central ressources shared by all projects -->                
                 <ResourceDictionary Source="pack://application:,,,/AasxIntegrationBaseWpf;component/Themes/Generic.xaml"/>
+                
+                <!-- define some own ressources -->
                 <ResourceDictionary>
+
+                    <Style x:Key="TranspBackground" TargetType="{x:Type Button}">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type Button}">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="0">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="Transparent"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -71,7 +94,9 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Menu x:Name="MenuMain" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0" VerticalAlignment="Center" FontSize="14" Background="Transparent">
+                <Menu Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0" 
+                      x:Name="MenuMain" 
+                      VerticalAlignment="Center" FontSize="14" Background="Transparent">
                 </Menu>
 
                 <Grid Grid.Column="2">
@@ -215,7 +240,7 @@
                         </Viewbox>
                     </Border>
 
-                    <Border Grid.Row="2" Grid.Column="0"
+                    <Border Grid.Row="2" Grid.Column="0" x:Name="BorderContainerList"
                             BorderThickness="1.0" BorderBrush="{DynamicResource DarkestAccentColor}" CornerRadius="6" 
                             Margin="2,0,0,0" Padding="2">
                         <repo:PackageContainerListOfListControl x:Name="RepoListControl" >
@@ -226,14 +251,14 @@
 
 
                 <!-- MIHO1 -->
-                <Border Grid.Row="0" Grid.Column="2" 
+                <Border Grid.Row="0" Grid.Column="2" x:Name="BorderDisplayElements"
                         BorderThickness="1.0" BorderBrush="{DynamicResource DarkestAccentColor}" CornerRadius="6" 
                         Margin="0,2,0,0" Padding="2">
                     <local:DiplayVisualAasxElements x:Name="DisplayElements" SelectedItemChanged="DisplayElements_SelectedItemChanged" MouseDoubleClick="DisplayElements_MouseDoubleClick">
                     </local:DiplayVisualAasxElements>
                 </Border>
 
-                <Border Grid.Row="0" Grid.Column="4" 
+                <Border Grid.Row="0" Grid.Column="4" x:Name="BorderEditElements"
                         BorderThickness="1.0" BorderBrush="{DynamicResource DarkestAccentColor}" CornerRadius="6" 
                         Margin="0,2,2,0" Padding="2">
                     <TabControl x:Name="ElementTabControl" MinWidth="320" BorderBrush="White">
@@ -365,17 +390,40 @@
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <ProgressBar x:Name="ProgressBarInfo" 
+                    
+                    <!-- left column: overall progress -->
+                    <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 
+                             x:Name="TextBlockProgressOverall"
+                             BorderBrush="LightGray" Padding="2, 2, 2, 2" Margin="0,3,0,2"
+                             Text="inactive" Foreground="LightGray"
+                             Background="White"
+                             MinWidth="120"/>
+
+                    <Button Grid.Row="0" Grid.Column="1" x:Name="ButtonProgressOverallClear"
+                            Style="{DynamicResource TranspBackground}"
+                            FontSize="16" Foreground="LightGray"
+                            BorderThickness="0" Background="Transparent"
+                            Click="ButtonProgressOverallClear_Click"
+                            Content="&#x2bbe;">
+                    </Button>
+
+                    <!-- right column: progress bar for single download -->
+                    <ProgressBar Grid.Row="0" Grid.Column="2" x:Name="ProgressBarDownload" 
                              BorderBrush="LightGray"
                              Background="Transparent" Foreground="{DynamicResource DarkAccentColor}" 
                              MinWidth="120" Margin="2,3,6,2"/>
-                    <Label Grid.Row="0" Grid.Column="0" x:Name="LabelProgressBarInfo"
+                    <Label Grid.Row="0" Grid.Column="2" x:Name="LabelProgressBarDownload"
                             Content="0 bytes" Foreground="LightGray"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                 </Grid>
 
-                <Label x:Name="Message" VerticalContentAlignment="Center"></Label>
+                <Label x:Name="Message"
+                       Margin="2,3,2,2" Padding="0, 0, 0, 2"
+                       Content="Ready"
+                       VerticalContentAlignment="Center"/>
             </DockPanel>
 
         </Grid>

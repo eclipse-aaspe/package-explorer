@@ -264,7 +264,7 @@ namespace AasxPackageLogic.PackageCentral
                         long lastBytesRead = 0;
                         int bytesRead;
 
-                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Starting,
+                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.StartDownload,
                                 contentLength, totalBytesRead);
 
                         while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length,
@@ -278,14 +278,14 @@ namespace AasxPackageLogic.PackageCentral
                             if (totalBytesRead > lastBytesRead + deltaSize)
                             {
                                 runtimeOptions?.Log?.Info($".. downloading to temp-file {TempFn}");
-                                runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Ongoing,
+                                runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.PerformDownload,
                                     contentLength, totalBytesRead);
                                 lastBytesRead = totalBytesRead;
                             }
                         }
 
                         // assume bytes read to be total bytes
-                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Final,
+                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.EndDownload,
                             totalBytesRead, totalBytesRead);
 
                         // log                

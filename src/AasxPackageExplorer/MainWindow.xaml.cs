@@ -21,6 +21,7 @@ using AnyUi;
 using Extensions;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using NPOI.POIFS.Properties;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -312,18 +313,34 @@ namespace AasxPackageExplorer
             var ro = new PackCntRuntimeOptions()
             {
                 Log = Log.Singleton,
-                ProgressChanged = (state, tfs, tbd) =>
+                ProgressChanged = (state, tfs, tbd, msg) =>
                 {
-                    if (state == PackCntRuntimeOptions.Progress.Starting
-                        || state == PackCntRuntimeOptions.Progress.Ongoing)
-                        SetProgressBar(
-                            Math.Min(100.0, 100.0 * tbd / (tfs.HasValue ? tfs.Value : 5 * 1024 * 1024)),
-                            AdminShellUtil.ByteSizeHumanReadable(tbd));
+                    if (state == PackCntRuntimeOptions.Progress.StartOverall)
+                    {
+                        SetProgressOverall(true, msg);
+                    }
 
-                    if (state == PackCntRuntimeOptions.Progress.Final)
+                    if (state == PackCntRuntimeOptions.Progress.OverallMessage)
+                    {
+                        SetProgressOverall(true, msg);
+                    }
+
+                    if (state == PackCntRuntimeOptions.Progress.EndOverall)
+                    {
+                        SetProgressOverall(false, msg);
+                    }
+
+                    if ((state == PackCntRuntimeOptions.Progress.StartDownload
+                        || state == PackCntRuntimeOptions.Progress.PerformDownload)
+                        && tfs.HasValue && tbd.HasValue)
+                        SetProgressDownload(
+                            Math.Min(100.0, 100.0 * tbd.Value / (tfs.HasValue ? tfs.Value : 5 * 1024 * 1024)),
+                            AdminShellUtil.ByteSizeHumanReadable(tbd.Value));
+
+                    if (state == PackCntRuntimeOptions.Progress.EndDownload)
                     {
                         // clear
-                        SetProgressBar();
+                        SetProgressDownload();
 
                         // close message boxes
                         if (currentFlyoutControl is IntegratedConnectFlyout)
@@ -957,7 +974,7 @@ namespace AasxPackageExplorer
             // attach result search
             ToolFindReplace.Flyout = this;
             ToolFindReplace.ResultSelected += ToolFindReplace_ResultSelected;
-            ToolFindReplace.SetProgressBar += SetProgressBar;
+            ToolFindReplace.SetProgressBar += SetProgressDownload;
 
             // Package Central starting ..
             PackageCentral.CentralRuntimeOptions = UiBuildRuntimeOptionsForMainAppLoad();
@@ -1860,7 +1877,8 @@ namespace AasxPackageExplorer
 
             var newIdfs = new List<Aas.IIdentifiable>();
             var loadedIdfs = new List<Aas.IIdentifiable>();
-            var loadRes = await PackageContainerHttpRepoSubset.LoadFromSourceInternalAsync(
+
+            var loadRes = await PackageContainerHttpRepoSubset.LoadFromSourceToTargetAsync(
                 fullItemLocation: fullItemLocation,
                 targetEnv: packEnv,
                 loadNew: false,
@@ -2875,22 +2893,48 @@ namespace AasxPackageExplorer
 			_mainTimer_PendingReIndexElements = true;
 	    }
 
-		private void SetProgressBar()
+        private void SetProgressOverallIsEnabled(bool active)
         {
-            SetProgressBar(0.0, "");
+            BorderDisplayElements.IsEnabled = active;
+            BorderEditElements.IsEnabled = active;
+            BorderContainerList.IsEnabled = active;
+            MenuMain.IsEnabled = active;
         }
 
-        private void SetProgressBar(double? percent, string message = null)
+        private void SetProgressOverall(bool active, string message)
+        {
+            ProgressBarDownload.Dispatcher.BeginInvoke(
+                System.Windows.Threading.DispatcherPriority.Background,
+                new Action(() => {
+                    TextBlockProgressOverall.Background = (active) ? Brushes.DarkGreen : Brushes.White;
+                    TextBlockProgressOverall.Text = "" + message;
+                    ButtonProgressOverallClear.Visibility = (active) ? Visibility.Visible : Visibility.Collapsed;
+                    // an active == true will set all controls to isEnabled == false!! and vice versa
+                    SetProgressOverallIsEnabled(!active);
+                } ));
+        }
+
+        private void ButtonProgressOverallClear_Click(object sender, RoutedEventArgs e)
+        {
+            SetProgressOverall(false, "");
+        }
+
+        private void SetProgressDownload()
+        {
+            SetProgressDownload(0.0, "");
+        }
+
+        private void SetProgressDownload(double? percent, string message = null)
         {
             if (percent.HasValue)
-                ProgressBarInfo.Dispatcher.BeginInvoke(
+                ProgressBarDownload.Dispatcher.BeginInvoke(
                             System.Windows.Threading.DispatcherPriority.Background,
-                            new Action(() => ProgressBarInfo.Value = percent.Value));
+                            new Action(() => ProgressBarDownload.Value = percent.Value));
 
             if (message != null)
-                LabelProgressBarInfo.Dispatcher.BeginInvoke(
+                LabelProgressBarDownload.Dispatcher.BeginInvoke(
                     System.Windows.Threading.DispatcherPriority.Background,
-                    new Action(() => LabelProgressBarInfo.Content = message));
+                    new Action(() => LabelProgressBarDownload.Content = message));
         }
 
         private async Task ButtonHistory_ObjectRequested(object sender, VisualElementHistoryItem hi)
@@ -3011,7 +3055,7 @@ namespace AasxPackageExplorer
             Message.Background = Brushes.White;
             Message.Foreground = Brushes.Black;
             Message.FontWeight = FontWeights.Normal;
-            SetProgressBar();
+            SetProgressDownload();
         }
 
         /// <summary>
@@ -3081,7 +3125,7 @@ namespace AasxPackageExplorer
                 filename += ".png";
 
             // needs to be the main thread
-            ProgressBarInfo.Dispatcher.BeginInvoke(
+            ProgressBarDownload.Dispatcher.BeginInvoke(
                 System.Windows.Threading.DispatcherPriority.Background,
                 new Action(() =>
                 {
@@ -4278,5 +4322,6 @@ namespace AasxPackageExplorer
             }
         }
 
+        
     }
 }
