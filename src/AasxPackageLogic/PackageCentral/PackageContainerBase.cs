@@ -43,9 +43,14 @@ namespace AasxPackageLogic.PackageCentral
     /// </summary>
     public class PackCntRuntimeOptions
     {
-        public enum Progress { Idle, Starting, Ongoing, Final }
+        public enum Progress { 
+            Idle, 
+            StartOverall, EndOverall,
+            StartDownload, PerformDownload, EndDownload,
+            OverallMessage }
 
-        public delegate void ProgressChangedHandler(Progress state, long? totalFileSize, long totalBytesDownloaded);
+        public delegate void ProgressChangedHandler(
+            Progress state, long? totalFileSize = null, long? totalBytesDownloaded = null, string message = "");
 
         public delegate void AskForSelectFromListHandler(
             string caption, List<AnyUiDialogueListItem> list,

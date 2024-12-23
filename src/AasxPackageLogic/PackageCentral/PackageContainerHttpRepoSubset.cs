@@ -616,7 +616,7 @@ namespace AasxPackageLogic.PackageCentral
                 if (pd.Id.Equals(input))
                     return pd;
             return null;
-        }
+        }        
 
         //
         // ALL
@@ -656,7 +656,8 @@ namespace AasxPackageLogic.PackageCentral
             bool allowFakeResponses,            
             dynamic aasDescriptor,
             List<Aas.IIdentifiable> trackNewIdentifiables = null,
-            List<Aas.IIdentifiable> trackLoadedIdentifiables = null)
+            List<Aas.IIdentifiable> trackLoadedIdentifiables = null,
+            Action<int, int> lambdaReportProgress = null)
         {
             // access
             if (record == null)
@@ -717,6 +718,9 @@ namespace AasxPackageLogic.PackageCentral
                         aasSi.Endpoint.ToString());
                     continue;
                 }
+
+                lambdaReportProgress?.Invoke(1, 0);
+
                 // possible culprit: Submodels are listed twice (or more) in an AAS
                 // try filter (actually: false alarm, but leave in)
                 var uniqSms = aas.Submodels?.Distinct(
@@ -746,6 +750,7 @@ namespace AasxPackageLogic.PackageCentral
                         (new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, smrr.Id) }).ToList()));
 
                 // add this AAS
+                
                 trackLoadedIdentifiables?.Add(aas);
                 if (prepAas?.AddIfNew(aas, aasSi) == true)
                     trackNewIdentifiables?.Add(aas);
@@ -779,6 +784,7 @@ namespace AasxPackageLogic.PackageCentral
                             trackLoadedIdentifiables?.Add(sm);
                             if (prepSM?.AddIfNew(sm, si) == true)
                                 trackNewIdentifiables?.Add(sm);
+                            lambdaReportProgress?.Invoke(0, 1);
                         });
                 }
                 else
@@ -815,6 +821,8 @@ namespace AasxPackageLogic.PackageCentral
             PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
         {
+            runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.StartOverall, message: "Start repo load");
+
             var newEnv = await LoadFromSourceInternalAsync(
                 fullItemLocation,
                 Env,
@@ -822,9 +830,11 @@ namespace AasxPackageLogic.PackageCentral
 
             if (newEnv != null)
                 Env = newEnv;
+
+            runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.EndOverall, message: "Done repo load");
         }
 
-        public static async Task<AdminShellPackageEnvBase> LoadFromSourceInternalAsync(
+        public static async Task<AdminShellPackageEnvBase> LoadFromSourceToTargetAsync(
             string fullItemLocation,
             AdminShellPackageEnvBase targetEnv = null,
             bool loadNew = true,
@@ -833,10 +843,54 @@ namespace AasxPackageLogic.PackageCentral
             PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
         {
+            runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.StartOverall, message: "Start repo load");
+
+            var res = await LoadFromSourceInternalAsync(
+                fullItemLocation: fullItemLocation,
+                targetEnv: targetEnv,
+                loadNew: loadNew,
+                trackNewIdentifiables: trackNewIdentifiables,
+                trackLoadedIdentifiables: trackLoadedIdentifiables,
+                containerOptions: containerOptions, runtimeOptions: runtimeOptions);
+
+            runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.EndOverall, message: "Done repo load");
+
+            return res;
+        }
+
+        protected static async Task<AdminShellPackageEnvBase> LoadFromSourceInternalAsync(
+            string fullItemLocation,
+            AdminShellPackageEnvBase targetEnv = null,
+            bool loadNew = true,
+            List<Aas.IIdentifiable> trackNewIdentifiables = null,
+            List<Aas.IIdentifiable> trackLoadedIdentifiables = null,
+            PackageContainerOptionsBase containerOptions = null,
+            PackCntRuntimeOptions runtimeOptions = null)
+        {
+            // lambda for overall progress
+            int numAAS = 0;
+            int numSM = 0;
+            int numCD = 0;
+            int numDiv = 0;
+            
+            Action<int, int, int, int> lambdaReportAll = (nAas, nSm, nCd, nDiv) =>
+            {
+                runtimeOptions?.ProgressChanged(PackCntRuntimeOptions.Progress.OverallMessage,
+                    message: $"{nAas} / {nSm} / {nCd} / {nDiv}");
+            };
+
+            Action<int, int> lambdaReportAasSm = (iAAS, iSM) =>
+            {
+                numAAS += iAAS;
+                numSM += iSM;
+                lambdaReportAll(numAAS, numSM, numCD, numDiv);
+            };
+
+            runtimeOptions?.Log?.Info("Note: overall progress format is #AAS / #Submodel / #CD / #else");
+
+            // start
             var allowFakeResponses = runtimeOptions?.AllowFakeResponses ?? false;
-
             PackageContainerListBase containerList = null;
-
             var baseUri = GetBaseUri(fullItemLocation);
 
             // use existing ?
@@ -900,6 +954,8 @@ namespace AasxPackageLogic.PackageCentral
                     var resObj = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
                         new Uri(fullItemLocation), runtimeOptions, allowFakeResponses);
 
+                    lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
+
                     // Note: GetAllAssetAdministrationShellIdsByAssetLink only returns a list of ids
                     if (resObj == null)
                     {
@@ -925,10 +981,13 @@ namespace AasxPackageLogic.PackageCentral
                             if (singleDesc == null || !HasProperty(singleDesc, "endpoints"))
                                 continue;
 
+                            lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
+
                             // refer to dedicated function
                             await FromRegistryGetAasAndSubmodels(
                                 prepAas, prepSM, record, runtimeOptions, allowFakeResponses, singleDesc,
-                                trackNewIdentifiables, trackLoadedIdentifiables);
+                                trackNewIdentifiables, trackLoadedIdentifiables,
+                                lambdaReportProgress: lambdaReportAasSm);
                         }
 
                         if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
@@ -942,6 +1001,7 @@ namespace AasxPackageLogic.PackageCentral
                             if (aas != null)
                             {
                                 // add
+                                lambdaReportAll(++numAAS, numSM, numCD, numDiv);
                                 trackLoadedIdentifiables?.Add(aas);
                                 if (prepAas.AddIfNew(aas, new AasIdentifiableSideInfo()
                                 {
@@ -990,12 +1050,15 @@ namespace AasxPackageLogic.PackageCentral
                         return null;
                     }
 
+                    lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
+
                     foreach (var res in resObj.result)
                     {
                         // refer to dedicated function
                         await FromRegistryGetAasAndSubmodels(
                             prepAas, prepSM, record, runtimeOptions, allowFakeResponses, res,
-                            trackNewIdentifiables, trackLoadedIdentifiables);
+                            trackNewIdentifiables, trackLoadedIdentifiables,
+                            lambdaReportProgress: lambdaReportAasSm);
                     }
                 }
 
@@ -1041,11 +1104,13 @@ namespace AasxPackageLogic.PackageCentral
                         runtimeOptions?.Log?.Error("Registry did not return a valid AAS descriptor! Aborting.");
                         return null;
                     }
+                    lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
 
                     // refer to dedicated function
                     var res = await FromRegistryGetAasAndSubmodels(
                                 prepAas, prepSM, record, runtimeOptions, allowFakeResponses, aasDesc,
-                                trackNewIdentifiables, trackLoadedIdentifiables);
+                                trackNewIdentifiables, trackLoadedIdentifiables,
+                                lambdaReportProgress: lambdaReportAasSm);
                     if (!res)
                     {
                         runtimeOptions?.Log?.Error("Error retrieving AAS from registry! Aborting.");
@@ -1081,6 +1146,8 @@ namespace AasxPackageLogic.PackageCentral
                         {
                             if (code != HttpStatusCode.OK)
                                 return;
+
+                            lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
 
                             try
                             {
@@ -1182,6 +1249,8 @@ namespace AasxPackageLogic.PackageCentral
                         return null;
                     }
 
+                    lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
+
                     // Have  a list of ids. Decompose into single id.
                     // Note: Parallel makes no sense, ideally only 1 result (is per AssetId)!!
                     // TODO: not parallel!
@@ -1199,6 +1268,7 @@ namespace AasxPackageLogic.PackageCentral
                         if (aas != null)
                         {
                             // add
+                            lambdaReportAll(++numAAS, numSM, numCD, numDiv);
                             trackLoadedIdentifiables?.Add(aas);
                             if (prepAas.AddIfNew(aas, new AasIdentifiableSideInfo()
                             {
@@ -1242,6 +1312,7 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var aas = Jsonization.Deserialize.AssetAdministrationShellFrom(node);
+                                lambdaReportAll(++numAAS, numSM, numCD, numDiv);
                                 trackLoadedIdentifiables?.Add(aas);
                                 if (prepAas.AddIfNew(aas, new AasIdentifiableSideInfo()
                                 {
@@ -1282,6 +1353,7 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var sm = Jsonization.Deserialize.SubmodelFrom(node);
+                                lambdaReportAll(numAAS, ++numSM, numCD, numDiv);
                                 trackLoadedIdentifiables?.Add(sm);
                                 if (prepSM.AddIfNew(sm, new AasIdentifiableSideInfo()
                                 {
@@ -1322,6 +1394,7 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var cd = Jsonization.Deserialize.ConceptDescriptionFrom(node);
+                                lambdaReportAll(numAAS, numSM, ++numCD, numDiv);
                                 trackLoadedIdentifiables?.Add(cd);
                                 if (prepCD.AddIfNew(cd, new AasIdentifiableSideInfo()
                                 {
@@ -1393,6 +1466,8 @@ namespace AasxPackageLogic.PackageCentral
                         {
                             try
                             {
+                                lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
+
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 if (node["data"]?["searchSMs"] is JsonArray smdata
                                     && smdata.Count >= 1)
@@ -1474,6 +1549,7 @@ namespace AasxPackageLogic.PackageCentral
                                     {
                                         var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                         var sm = Jsonization.Deserialize.SubmodelFrom(node);
+                                        lambdaReportAll(numAAS, ++numSM, numCD, numDiv);
                                         if (fi.Type == FetchItemType.SmUrl || fi.Type == FetchItemType.SmId)
                                         {
                                             trackLoadedIdentifiables?.Add(sm);
@@ -1552,6 +1628,7 @@ namespace AasxPackageLogic.PackageCentral
                                             var sm = Jsonization.Deserialize.SubmodelFrom(node);
                                             lock (prepSM)
                                             {
+                                                lambdaReportAll(numAAS, ++numSM, numCD, numDiv);
                                                 trackLoadedIdentifiables?.Add(sm);
                                                 if (prepSM.AddIfNew(sm, new AasIdentifiableSideInfo()
                                                 {
@@ -1593,6 +1670,7 @@ namespace AasxPackageLogic.PackageCentral
 
                                     try
                                     {
+                                        lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
                                         dynPack.AddThumbnail(aas.Id, ms.ToArray());
                                     }
                                     catch (Exception ex)
@@ -1602,7 +1680,7 @@ namespace AasxPackageLogic.PackageCentral
                                 });
                         });
 
-                // start auto-load missing Submodels?
+                // start auto-load missing CDs?
                 if (operationFound && (record?.AutoLoadCds ?? false))
                 {
                     var lrs = env.FindAllReferencedSemanticIds().ToList();
@@ -1618,9 +1696,9 @@ namespace AasxPackageLogic.PackageCentral
                             if (record?.AutoLoadOnDemand ?? true)
                             {
                                 // side info level 1
-                                lock (prepSM)
+                                lock (prepCD)
                                 {
-                                    prepSM.AddIfNew(null, new AasIdentifiableSideInfo()
+                                    prepCD.AddIfNew(null, new AasIdentifiableSideInfo()
                                     {
                                         IsStub = true,
                                         StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
@@ -1650,6 +1728,7 @@ namespace AasxPackageLogic.PackageCentral
                                             var cd = Jsonization.Deserialize.ConceptDescriptionFrom(node);
                                             lock (prepCD)
                                             {
+                                                lambdaReportAll(numAAS, numSM, ++numCD, numDiv);
                                                 trackLoadedIdentifiables?.Add(cd);
                                                 if (prepCD.AddIfNew(cd, new AasIdentifiableSideInfo()
                                                 {
