@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Aas = AasCore.Aas3_0;
 
@@ -80,6 +81,13 @@ namespace AasxPackageLogic.PackageCentral
         /// Log more 
         /// </summary>
         public bool ExtendedConnectionDebug = false;
+
+        /// <summary>
+        /// Set by the main application in order to be able to cancel an operation
+        /// Note: Normally, only CancellationTokenSource().Token shall be passed, however this
+        /// is used as source of truth.
+        /// </summary>
+        public CancellationTokenSource CancellationTokenSource = null;
     }
 
     /// <summary>
@@ -370,12 +378,13 @@ namespace AasxPackageLogic.PackageCentral
         {
         }
 
-        public virtual async Task LoadFromSourceAsync(
+        public virtual async Task<bool> LoadFromSourceAsync(
             string fullItemLocation,
             PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
         {
             await Task.Yield();
+            return true;
         }
 
         public virtual async Task<bool> SaveLocalCopyAsync(

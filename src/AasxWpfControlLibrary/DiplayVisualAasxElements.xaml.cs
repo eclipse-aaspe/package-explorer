@@ -365,10 +365,26 @@ namespace AasxPackageExplorer
                     yield return ve;
         }
 
+        /// <summary>
+        /// Identifies visual elements, which are *directly* superordinate to Identifiable.
+        /// Note: Could contain duplicates.
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<VisualElementGeneric> FindAllVisualElementTopToIdentifiable()
         {
             if (displayedTreeViewLines != null)
                 foreach (var ve in displayedTreeViewLines.FindAllVisualElementTopToIdentifiable())
+                    yield return ve;
+        }
+
+        /// <summary>
+        /// Identifies top visual elements, which are above all content elements
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<VisualElementGeneric> FindAllVisualElementTop()
+        {
+            if (displayedTreeViewLines != null)
+                foreach (var ve in displayedTreeViewLines.FindAllVisualElementTop())
                     yield return ve;
         }
 

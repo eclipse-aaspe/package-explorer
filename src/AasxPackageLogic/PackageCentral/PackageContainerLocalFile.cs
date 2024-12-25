@@ -82,7 +82,8 @@ namespace AasxPackageLogic.PackageCentral
                 packageCentral, location, containerOptions);
 
             if (overrideLoadResident || true == res.ContainerOptions?.LoadResident)
-                await res.LoadFromSourceAsync(fullItemLocation, containerOptions, runtimeOptions);
+                if (!await res.LoadFromSourceAsync(fullItemLocation, containerOptions, runtimeOptions))
+                    return null;
 
             return res;
         }
@@ -108,7 +109,7 @@ namespace AasxPackageLogic.PackageCentral
             return s;
         }
 
-        public override async Task LoadFromSourceAsync(
+        public override async Task<bool> LoadFromSourceAsync(
             string fullItemLocation,
             PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
@@ -154,6 +155,8 @@ namespace AasxPackageLogic.PackageCentral
             }
 
             await Task.Yield();
+
+            return true;
         }
 
         public override async Task SaveToSourceAsync(

@@ -2817,6 +2817,29 @@ namespace AasxPackageLogic
                     yield return e;
         }
 
+        public IEnumerable<VisualElementGeneric> FindAllVisualElementTopInternal(VisualElementGeneric ve)
+        {
+            // check if Top category
+            if (ve is VisualElementEnvironmentItem)
+            {
+                yield return ve;
+
+                // recurse, as well
+                foreach (var child in ve.Members)
+                    foreach (var x in FindAllVisualElementTopInternal(child))
+                        yield return x;
+            }
+
+            // if not top, simply die
+        }
+
+        public IEnumerable<VisualElementGeneric> FindAllVisualElementTop()
+        {
+            foreach (var tvl in this)
+                foreach (var e in FindAllVisualElementTopInternal(tvl))
+                    yield return e;
+        }
+
         public IEnumerable<T> FindAllVisualElementOf<T>(Predicate<T> p)
             where T : VisualElementGeneric
         {
