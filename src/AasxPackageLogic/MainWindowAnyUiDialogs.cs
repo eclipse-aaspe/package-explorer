@@ -220,6 +220,7 @@ namespace AasxPackageLogic
 
                 // shall be a local/ user file?!
                 var proposeFn = PackageCentral.MainItem.Filename;
+                var forceLocal = false;
                 var isLocalFile = PackageCentral.MainItem.Container is PackageContainerLocalFile;
                 var isUserFile = PackageCentral.MainItem.Container is PackageContainerUserFile;
                 if (!isLocalFile && !isUserFile)
@@ -233,6 +234,7 @@ namespace AasxPackageLogic
 
                     // point to local directory
                     proposeFn = System.IO.Path.GetFileName(proposeFn);
+                    forceLocal = true;
                 }
 
                 // filename
@@ -248,6 +250,9 @@ namespace AasxPackageLogic
                 if (ucsf?.Result != true)
                     return;
 
+                // make sure target filename has an extension
+                var targetFn = ucsf.TargetFileName;
+
                 // do
                 try
                 {
@@ -260,8 +265,20 @@ namespace AasxPackageLogic
 
                     // save 
                     DisplayContextPlus.RememberForInitialDirectory(ucsf.TargetFileName);
-                    await PackageCentral.MainItem.SaveAsAsync(ucsf.TargetFileName, prefFmt: prefFmt,
-                        doNotRememberLocation: ucsf.Location != AnyUiDialogueDataSaveFile.LocationKind.Local);
+
+                    if (!forceLocal)
+                    {
+                        // leave it where it is
+                        await PackageCentral.MainItem.SaveAsAsync(targetFn, prefFmt: prefFmt,
+                            doNotRememberLocation: ucsf.Location != AnyUiDialogueDataSaveFile.LocationKind.Local);
+                    }
+                    else
+                    {
+                        // make a temporary new file base environment
+                        var fbEnv = new AdminShellPackageFileBasedEnv(PackageCentral.Main?.AasEnv);
+                        fbEnv.SaveAs(targetFn, writeFreshly: true, prefFmt: prefFmt, saveOnlyCopy: true);
+                        fbEnv.Close();
+                    }
 
                     // backup (only for AASX)
                     if (ucsf.FilterIndex == 0)

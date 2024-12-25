@@ -257,7 +257,7 @@ namespace AdminShellNS
 
         public AdminShellPackageEnvBase() { }
 
-        public AdminShellPackageEnvBase(AasCore.Aas3_0.Environment env)
+        public AdminShellPackageEnvBase(AasCore.Aas3_0.IEnvironment env)
         {
             if (env != null)
                 _aasEnv = env;

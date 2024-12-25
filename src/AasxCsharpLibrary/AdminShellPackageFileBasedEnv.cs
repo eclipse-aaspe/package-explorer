@@ -64,7 +64,7 @@ namespace AdminShellNS
 
         public AdminShellPackageFileBasedEnv() : base() { }
 
-        public AdminShellPackageFileBasedEnv(AasCore.Aas3_0.Environment env) : base(env) { }
+        public AdminShellPackageFileBasedEnv(AasCore.Aas3_0.IEnvironment env) : base(env) { }
 
         public AdminShellPackageFileBasedEnv(string fn, bool indirectLoadSave = false) : base()
         {
