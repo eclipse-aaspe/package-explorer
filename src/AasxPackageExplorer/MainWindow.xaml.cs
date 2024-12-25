@@ -320,7 +320,8 @@ namespace AasxPackageExplorer
                         SetProgressOverall(true, msg);
                     }
 
-                    if (state == PackCntRuntimeOptions.Progress.OverallMessage)
+                    if (state == PackCntRuntimeOptions.Progress.OverallMessage
+                        && _progressOverallActive)
                     {
                         SetProgressOverall(true, msg);
                     }
@@ -405,7 +406,8 @@ namespace AasxPackageExplorer
             string storeFnToLRU = null,
             bool indexItems = false,
             bool preserveEditMode = false,
-            bool? nextEditMode = null)
+            bool? nextEditMode = null,
+            bool autoFocusFirstRelevant = false)
         {
             // access
             if (packItem == null)
@@ -459,6 +461,44 @@ namespace AasxPackageExplorer
             try
             {
                 RestartUIafterNewPackage(onlyAuxiliary, nextEditMode);
+
+                if (autoFocusFirstRelevant && PackageCentral.Main?.AasEnv is Aas.IEnvironment menv)
+                {
+                    VisualElementEnvironmentItem.ItemType? eit = null;
+                    var nextLevelExpand = false;
+
+                    if (menv.AssetAdministrationShellCount() < 1 && menv.SubmodelCount() >= 1)
+                    {
+                        // focus on All Submodels
+                        eit = VisualElementEnvironmentItem.ItemType.AllSubmodels;
+                    }
+                    else
+                    if (menv.AssetAdministrationShellCount() < 1 && menv.SubmodelCount() < 1
+                        && menv.ConceptDescriptionCount() >= 1)
+                    {
+                        // focus on All CD
+                        eit = VisualElementEnvironmentItem.ItemType.AllConceptDescriptions;
+                        nextLevelExpand = true;
+                    }
+
+                    // now?
+                    if (eit.HasValue)
+                    { 
+                        DisplayElements.ExpandAllItems();
+                        var ve = DisplayElements.FindAllVisualElementTop()
+                            .Where((ve) => ve is VisualElementEnvironmentItem veei && veei.theItemType == eit.Value)
+                            .FirstOrDefault();
+
+                        // one level deeper expanded
+                        if (nextLevelExpand && ve?.Members != null)
+                            foreach (var child in ve.Members)
+                                if (child != null)
+                                    child.IsExpanded = true;
+
+                        // show this
+                        DisplayElements.TrySelectVisualElement(ve, wishExpanded: true);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -501,25 +541,6 @@ namespace AasxPackageExplorer
                 return;
             }
 
-            /* TODO (MIHO, 2021-12-27): consider extending for better testing or
-             * script running */
-#if __leave_in_for_accelerated_tet
-            if (false)
-            {
-                var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(4) };
-                timer.Tick += (sender, args) =>
-                {
-                    timer.Stop();
-                    var pluginName = "AasxPluginExportTable";
-                    var actionName = "export-uml";
-                    var pi = Plugins.FindPluginInstance(pluginName);
-                    pi?.InvokeAction(actionName, this, _packageCentral?.Main?.AasEnv,
-                        _packageCentral?.Main?.AasEnv?.Submodels[0], "test.uml");
-
-                };
-                timer.Start();
-            }
-#endif
 
             // done
             Log.Singleton.Info("AASX {0} loaded.", info);
@@ -1076,16 +1097,27 @@ namespace AasxPackageExplorer
                         };
 
                         // refer to (static) function
-                        var res = await DispEditHelperEntities.ExecuteUiForFetchOfElements(
-                            PackageCentral, DisplayContext,
-                            ticket: null,
-                            mainWindow: this,
-                            fetchContext: fetchContext,
-                            preserveEditMode: true,
-                            doEditNewRecord: true,
-                            doCheckTainted: true,
-                            doFetchGoNext: false,
-                            doFetchExec: true);
+                        try
+                        {
+                            var res = await DispEditHelperEntities.ExecuteUiForFetchOfElements(
+                                PackageCentral, DisplayContext,
+                                ticket: null,
+                                mainWindow: this,
+                                fetchContext: fetchContext,
+                                preserveEditMode: true,
+                                doEditNewRecord: true,
+                                doCheckTainted: true,
+                                doFetchGoNext: false,
+                                doFetchExec: true);
+                        } 
+                        catch (OperationCanceledException)
+                        {
+                            Log.Singleton.Info("User cancellation: Repository/ Registry fetch.");
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Singleton.Error(ex, "when performing Repository/ Registry fetch");
+                        }
                     }
                 }
 
@@ -2901,8 +2933,12 @@ namespace AasxPackageExplorer
             MenuMain.IsEnabled = active;
         }
 
+        protected bool _progressOverallActive = false;
+
         private void SetProgressOverall(bool active, string message)
         {
+            _progressOverallActive = active;
+
             ProgressBarDownload.Dispatcher.BeginInvoke(
                 System.Windows.Threading.DispatcherPriority.Background,
                 new Action(() => {
@@ -2917,6 +2953,8 @@ namespace AasxPackageExplorer
         private void ButtonProgressOverallClear_Click(object sender, RoutedEventArgs e)
         {
             SetProgressOverall(false, "");
+            if (PackageCentral.CentralRuntimeOptions?.CancellationTokenSource != null)
+                PackageCentral.CentralRuntimeOptions.CancellationTokenSource.Cancel();
         }
 
         private void SetProgressDownload()
@@ -3197,13 +3235,16 @@ namespace AasxPackageExplorer
                     return;
                 }
 
-                // at the end?
-                if (siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext
-                    && fetchContext.Cursor?.HasContent() != true)
+                // at the start or end?
+                var goPrev = siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev;
+                var goNext = siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext;
+                var goNextFake = false;
+                if (goNext && fetchContext.Cursor?.HasContent() != true)
                 {
-                    Log.Singleton.Error("No further fetch operation available " +
-                            "(at the end of the selected subset of elements?).");
-                    return;
+                    Log.Singleton.Info(StoredPrint.Color.Blue, "No cursor for fetch operation available " +
+                            "(at the end of the selected subset of elements or no server support).");
+                    goNext = false;
+                    goNextFake = true;
                 }
 
                 // refer to (static) function
@@ -3212,8 +3253,9 @@ namespace AasxPackageExplorer
                     preserveEditMode: true,
                     doEditNewRecord: false,
                     doCheckTainted: true,
-                    doFetchGoPrev: siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev,
-                    doFetchGoNext: siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext,
+                    doFetchGoPrev: goPrev,
+                    doFetchGoNext: goNext,
+                    doFakeGoNext: goNextFake,
                     doFetchExec: true);
 
                 // success will trigger redraw independently, therefore always do nothing

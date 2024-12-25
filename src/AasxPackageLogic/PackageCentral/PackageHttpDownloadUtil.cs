@@ -762,7 +762,10 @@ namespace AasxPackageLogic.PackageCentral
             else
             {
                 await Parallel.ForEachAsync(entities,
-                    new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
+                    new ParallelOptions() { 
+                        MaxDegreeOfParallelism = Options.Curr.MaxParallelOps,
+                        CancellationToken = runtimeOptions?.CancellationTokenSource?.Token ?? CancellationToken.None
+                    },
                     async (ent, token) =>
                     {
                         var thisEnt = ent;
@@ -901,7 +904,10 @@ namespace AasxPackageLogic.PackageCentral
             else
             {
                 await Parallel.ForEachAsync(entities,
-                    new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
+                    new ParallelOptions() { 
+                        MaxDegreeOfParallelism = Options.Curr.MaxParallelOps , 
+                        CancellationToken = runtimeOptions?.CancellationTokenSource?.Token ?? CancellationToken.None 
+                    },
                     async (ent, token) =>
                     {
                         // delete

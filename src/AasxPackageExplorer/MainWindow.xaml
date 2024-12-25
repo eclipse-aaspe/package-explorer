@@ -398,8 +398,10 @@
                     <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 
                              x:Name="TextBlockProgressOverall"
                              BorderBrush="LightGray" Padding="2, 2, 2, 2" Margin="0,3,0,2"
-                             Text="inactive" Foreground="LightGray"
+                             Text="" Foreground="LightGray"
                              Background="White"
+                             IsReadOnly="true"
+                             IsReadOnlyCaretVisible="False"
                              MinWidth="120"/>
 
                     <Button Grid.Row="0" Grid.Column="1" x:Name="ButtonProgressOverallClear"
@@ -407,6 +409,7 @@
                             FontSize="16" Foreground="LightGray"
                             BorderThickness="0" Background="Transparent"
                             Click="ButtonProgressOverallClear_Click"
+                            Visibility="Collapsed"
                             Content="&#x2bbe;">
                     </Button>
 
@@ -416,12 +419,12 @@
                              Background="Transparent" Foreground="{DynamicResource DarkAccentColor}" 
                              MinWidth="120" Margin="2,3,6,2"/>
                     <Label Grid.Row="0" Grid.Column="2" x:Name="LabelProgressBarDownload"
-                            Content="0 bytes" Foreground="LightGray"
+                            Content="" Foreground="LightGray"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                 </Grid>
 
                 <Label x:Name="Message"
-                       Margin="2,3,2,2" Padding="0, 0, 0, 2"
+                       Margin="2,3,2,2" Padding="0, 2, 0, 0"
                        Content="Ready"
                        VerticalContentAlignment="Center"/>
             </DockPanel>

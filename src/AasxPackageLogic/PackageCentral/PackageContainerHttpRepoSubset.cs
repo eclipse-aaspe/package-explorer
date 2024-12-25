@@ -128,7 +128,8 @@ namespace AasxPackageLogic.PackageCentral
             res.ContainerList = containerList;
 
             if (overrideLoadResident || true == res.ContainerOptions?.LoadResident)
-                await res.LoadFromSourceAsync(fullItemLocation, containerOptions, runtimeOptions);
+                if (!await res.LoadFromSourceAsync(fullItemLocation, containerOptions, runtimeOptions))
+                    return null;
 
             return res;
         }
@@ -194,9 +195,16 @@ namespace AasxPackageLogic.PackageCentral
             return false;
         }
 
+        public static bool IsValidUriForRepoAllCD(string location)
+        {
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/concept-descriptions(|/|/?\?(.*))$",
+                RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+            return m.Success;
+        }
+
         public static bool IsValidUriForRepoSingleCD(string location)
         {
-            var m = Regex.Match(location, @"^(http(|s))://(.*?)/conceptdescriptions/(.{1,99})$",
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/concept-descriptions/(.{1,99})$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
@@ -246,6 +254,7 @@ namespace AasxPackageLogic.PackageCentral
                 || IsValidUriForRepoSingleAAS(location)
                 || IsValidUriForRepoAllSubmodel(location)
                 || IsValidUriForRepoSingleSubmodel(location)
+                || IsValidUriForRepoAllCD(location)
                 || IsValidUriForRepoSingleCD(location)
                 || IsValidUriForRepoQuery(location)
                 || IsValidUriForRegistryAllAAS(location)
@@ -261,7 +270,7 @@ namespace AasxPackageLogic.PackageCentral
 
             // try an explicit search for known parts of ressources
             // (preserves scheme, host and leading pathes)
-            var m = Regex.Match(location, @"^(.*?)(/shells|/submodel|/conceptdescription|/lookup)");
+            var m = Regex.Match(location, @"^(.*?)(/shells|/submodel|/concept-description|/lookup)");
             if (m.Success)
                 return new Uri(m.Groups[1].ToString() + "/");
 
@@ -483,6 +492,22 @@ namespace AasxPackageLogic.PackageCentral
             // pass on
             return BuildUriForRepoSingleSubmodel(baseUri, submodelRef.Keys[0].Value,
                 encryptIds: encryptIds, usePost: usePost);
+        }
+
+        public static Uri BuildUriForRepoAllCD(Uri baseUri, int pageLimit = 100, string cursor = null)
+        {
+            // for more info: see BuildUriForRepoAllAAS
+            // access
+            if (baseUri == null)
+                return null;
+
+            var uri = new UriBuilder(CombineUri(baseUri, $"concept-descriptions"));
+            if (pageLimit > 0)
+                uri.Query = $"Limit={pageLimit:D}";
+            if (cursor != null)
+                uri.Query += $"&Cursor={cursor}";
+
+            return uri.Uri;
         }
 
         public static Uri BuildUriForRepoSingleCD(
@@ -816,7 +841,7 @@ namespace AasxPackageLogic.PackageCentral
             return true;
         }
 
-        public override async Task LoadFromSourceAsync(
+        public override async Task<bool> LoadFromSourceAsync(
             string fullItemLocation,
             PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
@@ -828,10 +853,17 @@ namespace AasxPackageLogic.PackageCentral
                 Env,
                 containerOptions: containerOptions, runtimeOptions: runtimeOptions);
 
-            if (newEnv != null)
-                Env = newEnv;
+            if (newEnv == null)
+            {
+                runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.EndOverall, message: "Stopped repo load");
+                return false;
+            }
 
+            // okay
+            Env = newEnv;
             runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.EndOverall, message: "Done repo load");
+
+            return true;
         }
 
         public static async Task<AdminShellPackageEnvBase> LoadFromSourceToTargetAsync(
@@ -959,7 +991,7 @@ namespace AasxPackageLogic.PackageCentral
                     // Note: GetAllAssetAdministrationShellIdsByAssetLink only returns a list of ids
                     if (resObj == null)
                     {
-                        runtimeOptions?.Log?.Error("Registry did not return any AAS descriptors! Aborting.");
+                        runtimeOptions?.Log?.Error("Repository/ Registry did not return any AAS descriptors! Aborting.");
                         return null;
                     }
 
@@ -1021,7 +1053,7 @@ namespace AasxPackageLogic.PackageCentral
                     // check again (count)
                     if (noRes)
                     {
-                        runtimeOptions?.Log?.Error("Registry did not return any AAS descriptors! Aborting.");
+                        runtimeOptions?.Log?.Error("Repository/ Registry did not return any AAS descriptors! Aborting.");
                         return null;
                     }
                 }
@@ -1128,11 +1160,12 @@ namespace AasxPackageLogic.PackageCentral
                 // for all repo access, use the same client
                 var client = PackageHttpDownloadUtil.CreateHttpClient(baseUri, runtimeOptions, containerList);
 
-                // start with a list of AAS or Submodels (very similar)
+                // start with a list of AAS or Submodels (very similar, therefore unified)
                 var isAllAAS = IsValidUriForRepoAllAAS(fullItemLocation);
                 var isAllSM = IsValidUriForRepoAllSubmodel(fullItemLocation);
+                var isAllCD = IsValidUriForRepoAllCD(fullItemLocation);
                 var receivedAllAAS = 0;
-                if (!operationFound && (isAllAAS || isAllSM))
+                if (!operationFound && (isAllAAS || isAllSM || isAllCD))
                 {
                     // ok
                     operationFound = true;
@@ -1156,6 +1189,7 @@ namespace AasxPackageLogic.PackageCentral
                                     && resChilds.Count > 0)
                                 {
                                     int childsToSkip = Math.Max(0, record.PageSkip);
+                                    int childsRead = 0;
                                     bool firstNonSkipped = true;
 
                                     foreach (var n2 in resChilds)
@@ -1167,7 +1201,7 @@ namespace AasxPackageLogic.PackageCentral
                                             {
                                                 childsToSkip--;
                                                 continue;
-                                            }
+                                            }                                            
 
                                             // get identifiable
                                             Aas.IIdentifiable idf = null;
@@ -1175,6 +1209,8 @@ namespace AasxPackageLogic.PackageCentral
                                                 idf = Jsonization.Deserialize.AssetAdministrationShellFrom(n2);
                                             if (isAllSM)
                                                 idf = Jsonization.Deserialize.SubmodelFrom(n2);
+                                            if (isAllCD)
+                                                idf = Jsonization.Deserialize.ConceptDescriptionFrom(n2);
                                             if (idf == null)
                                                 continue;
 
@@ -1198,21 +1234,42 @@ namespace AasxPackageLogic.PackageCentral
                                             // add
                                             var added = false;
                                             if (isAllAAS)
+                                            {
+                                                lambdaReportAll(++numAAS, numSM, numCD, numDiv);
                                                 added = prepAas.AddIfNew(
                                                     idf as Aas.IAssetAdministrationShell,
                                                     si);
+                                            }
                                             if (isAllSM)
+                                            {
+                                                lambdaReportAll(numAAS, ++numSM, numCD, numDiv);
                                                 added = prepSM.AddIfNew(
                                                     idf as Aas.ISubmodel,
                                                     si);
+                                            }
+                                            if (isAllCD)
+                                            {
+                                                lambdaReportAll(numAAS, numSM, ++numCD, numDiv);
+                                                added = prepCD.AddIfNew(
+                                                    idf as Aas.IConceptDescription,
+                                                    si);
+                                            }
                                             receivedAllAAS++;
                                             trackLoadedIdentifiables?.Add(idf);
                                             if (added)
                                                 trackNewIdentifiables?.Add(idf);
+
+                                            // maintain page limit (may be server does not care..)
+                                            childsRead++;
+                                            if (record.PageLimit > 0 && childsRead >= record.PageLimit)
+                                            {
+                                                si.ShowCursorBelow = true;
+                                                break;
+                                            }
                                         }
                                         catch (Exception ex)
                                         {
-                                            runtimeOptions?.Log?.Error(ex, "Parsing single AAS/ Submodel of list of all AAS/ Submodel");
+                                            runtimeOptions?.Log?.Error(ex, "Parsing single AAS/ Submodel/ CD of list of all AAS/ Submodel/ CD");
                                         }
                                 }
 
@@ -1225,7 +1282,7 @@ namespace AasxPackageLogic.PackageCentral
                             }
                             catch (Exception ex)
                             {
-                                runtimeOptions?.Log?.Error(ex, "Parsing list of all AAS");
+                                runtimeOptions?.Log?.Error(ex, "Parsing list of all AAS / SM / CD");
                             }
                         });
 
@@ -1245,7 +1302,7 @@ namespace AasxPackageLogic.PackageCentral
 
                     if (resObj == null)
                     {
-                        runtimeOptions?.Log?.Error("Registry did not return any AAS descriptors! Aborting.");
+                        runtimeOptions?.Log?.Error("Repository/ Registry did not return any AAS descriptors! Aborting.");
                         return null;
                     }
 
@@ -1287,7 +1344,7 @@ namespace AasxPackageLogic.PackageCentral
                     // check again (count)
                     if (noRes)
                     {
-                        runtimeOptions?.Log?.Error("Registry did not return any AAS descriptors! Aborting.");
+                        runtimeOptions?.Log?.Error("Repository/ Registry did not return any AAS descriptors! Aborting.");
                         return null;
                     }
                 }
@@ -1590,7 +1647,10 @@ namespace AasxPackageLogic.PackageCentral
                     var lrs = env.FindAllSubmodelReferences(onlyNotExisting: true).ToList();
 
                     await Parallel.ForEachAsync(lrs,
-                        new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
+                        new ParallelOptions() { 
+                            MaxDegreeOfParallelism = record?.ParallelReads ?? Options.Curr.MaxParallelOps,
+                            CancellationToken = runtimeOptions?.CancellationTokenSource?.Token ?? CancellationToken.None
+                        },
                         async (lr, token) =>
                         {
                             if (record?.AutoLoadOnDemand ?? true)
@@ -1655,7 +1715,10 @@ namespace AasxPackageLogic.PackageCentral
                 // start auto-load missing thumbnails?
                 if (operationFound && (record?.AutoLoadThumbnails ?? false))
                     await Parallel.ForEachAsync(env.AllAssetAdministrationShells(),
-                        new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
+                        new ParallelOptions() {
+                            MaxDegreeOfParallelism = record?.ParallelReads ?? Options.Curr.MaxParallelOps,
+                            CancellationToken = runtimeOptions?.CancellationTokenSource?.Token ?? CancellationToken.None
+                        },
                         async (aas, token) =>
                         {
                             await PackageHttpDownloadUtil.HttpGetToMemoryStream(
@@ -1686,13 +1749,21 @@ namespace AasxPackageLogic.PackageCentral
                     var lrs = env.FindAllReferencedSemanticIds().ToList();
 
                     await Parallel.ForEachAsync(lrs,
-                        new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
+                        new ParallelOptions() {
+                            MaxDegreeOfParallelism = record?.ParallelReads ?? Options.Curr.MaxParallelOps,
+                            CancellationToken = runtimeOptions?.CancellationTokenSource?.Token ?? CancellationToken.None
+                        },
                         async (lr, token) =>
                         {
+                            // cancelled?
+                            token.ThrowIfCancellationRequested();
+
+                            // valid?
                             var cdid = lr.Reference?.GetAsExactlyOneKey()?.Value;
                             if (cdid?.HasContent() != true)
                                 return;
 
+                            // only side info or full?
                             if (record?.AutoLoadOnDemand ?? true)
                             {
                                 // side info level 1
@@ -1760,11 +1831,14 @@ namespace AasxPackageLogic.PackageCentral
             // any operation found?
             if (!operationFound)
             {
-                runtimeOptions?.Log?.Error("Did not found any matching operation in location to " +
+                runtimeOptions?.Log?.Error("Did not find any matching operation in location to " +
                     "execute on Registry or Repository! Location was: {0}",
                     fullItemLocation);
                 return null;
             }
+
+            // before committing: shall this commit?
+            runtimeOptions?.CancellationTokenSource?.Token.ThrowIfCancellationRequested();
 
             // how to commit?
             if (loadNew)
@@ -1868,10 +1942,10 @@ namespace AasxPackageLogic.PackageCentral
 
             [AasxMenuArgument(help: "Retrieve all AAS from Repository or Registry. " +
                 "Note: Use of PageLimit is recommended.")]
-            public bool GetAllAas;
+            public bool GetAllAas = true;
 
             [AasxMenuArgument(help: "Get a single AAS, which is specified by AasId.")]
-            public bool GetSingleAas = true;
+            public bool GetSingleAas;
 
             [AasxMenuArgument(help: "Specicies the Id of the AAS to be retrieved.")]
             // public string AasId = "https://new.abb.com/products/de/2CSF204101R1400/aas";
@@ -1895,6 +1969,10 @@ namespace AasxPackageLogic.PackageCentral
             [AasxMenuArgument(help: "Specicies the Id of the Submodel to be retrieved.")]
             // public string SmId = "aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMjAxNV82MDIwXzMwMTJfMDU4NQ==";
             public string SmId = "";
+
+            [AasxMenuArgument(help: "Retrieve all ConceptDescriptions from Repository or Registry. " +
+                "Note: Use of PageLimit is recommended.")]
+            public bool GetAllCD;
 
             [AasxMenuArgument(help: "Get a single ConceptDescription, which is specified by CdId.")]
             public bool GetSingleCD;
@@ -1931,6 +2009,9 @@ namespace AasxPackageLogic.PackageCentral
             [AasxMenuArgument(help: "Encrypt given Ids.")]
             public bool EncryptIds = true;
 
+            [AasxMenuArgument(help: "Number of paralle read-operations at the same time. 1 is linear.")]
+            public int ParallelReads = Options.Curr.MaxParallelOps;
+
             [AasxMenuArgument(help: "Stay connected with Repository/ Registry and eventually subscribe to " +
                 "AAS events.")]
             public bool StayConnected;
@@ -1961,6 +2042,7 @@ namespace AasxPackageLogic.PackageCentral
                 AasByAssetLink,
                 AllSM,
                 SingleSM,
+                AllCD,
                 SingleCD,
                 Query
             }
@@ -1972,6 +2054,7 @@ namespace AasxPackageLogic.PackageCentral
                 GetAasByAssetLink = (choice == QueryChoice.AasByAssetLink);
                 GetAllSubmodel = (choice == QueryChoice.AllSM);
                 GetSingleSubmodel = (choice == QueryChoice.SingleSM);
+                GetAllCD = (choice == QueryChoice.AllCD);
                 GetSingleCD = (choice == QueryChoice.SingleCD);
                 ExecuteQuery = (choice == QueryChoice.Query);
             }
@@ -2002,6 +2085,7 @@ namespace AasxPackageLogic.PackageCentral
                     if (GetAasByAssetLink) res = "GetAllAssetAdministrationShellIdsByAssetLink";
                     if (GetAllSubmodel) res = "GetAllSubmodels";
                     if (GetSingleSubmodel) res = "GetSubmodelById";
+                    if (GetAllCD) res = "GetAllConceptDescriptions";
                     if (GetSingleCD) res = "GetConceptDescriptionById";
                     if (ExecuteQuery) res = "ExecuteQuery";
                 }
@@ -2085,6 +2169,13 @@ namespace AasxPackageLogic.PackageCentral
                     return uri?.ToString();
                 }
 
+                // All Submodels?
+                if (record.GetAllCD)
+                {
+                    var uri = BuildUriForRepoAllCD(baseUri, record.PageLimit + record.PageSkip, cursor);
+                    return uri?.ToString();
+                }
+
                 // Single CD?
                 if (record.GetSingleCD)
                 {
@@ -2145,7 +2236,7 @@ namespace AasxPackageLogic.PackageCentral
             Query = 0x004,
             GetOptions = 0x0008,
             StayConnected = 0x0010,
-            Pagination = 0x0020
+            Pagination = 0x0020,
         }
 
         public static async Task<bool> PerformConnectExtendedDialogue(
@@ -2404,6 +2495,24 @@ namespace AasxPackageLogic.PackageCentral
 
                         row += 2;
 
+                        // All CD
+                        AnyUiUIElement.RegisterControl(
+                                helper.Set(
+                                    helper.AddSmallCheckBoxTo(g, row, 0,
+                                        content: "Get all CDs",
+                                        isChecked: record.GetAllCD,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    colSpan: 2),
+                                (o) =>
+                                {
+                                    if ((bool)o)
+                                        record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllCD);
+                                    else
+                                        record.GetAllCD = false;
+                                    return new AnyUiLambdaActionModalPanelReRender(uc);
+                                });
+                        row++;
+
                         // Single CD
                         AnyUiUIElement.RegisterControl(
                                 helper.Set(
@@ -2538,6 +2647,35 @@ namespace AasxPackageLogic.PackageCentral
                                         isChecked: record.EncryptIds,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Center)),
                                 (b) => { record.EncryptIds = b; });
+
+                        row++;
+                    }
+
+                    // Parallel execution
+                    if ((scope & ConnectExtendedScope.GetOptions) > 0)
+                    {
+                        // Pagination
+                        helper.AddSmallLabelTo(g, row, 0, content: "Parallel fetch:",
+                                verticalAlignment: AnyUiVerticalAlignment.Center,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                        var g3 = helper.AddSmallGridTo(g, row, 1, 1, 2, new[] { "#", "*" });
+
+                        AnyUiUIElement.SetIntFromControl(
+                                helper.Set(
+                                    helper.AddSmallTextBoxTo(g3, 0, 0,
+                                        margin: new AnyUiThickness(0, 0, 0, 0),
+                                        text: $"{record.ParallelReads:D}",
+                                        verticalAlignment: AnyUiVerticalAlignment.Center,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                        minWidth: 80, maxWidth: 80,
+                                        horizontalAlignment: AnyUiHorizontalAlignment.Left),
+                                        (i) => { record.ParallelReads = i; });
+
+                        helper.AddSmallLabelTo(g3, 0, 1, content: "(concurrent reads, 1 = sequential)",
+                            margin: new AnyUiThickness(10, 0, 0, 0),
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
 
                         row++;
                     }

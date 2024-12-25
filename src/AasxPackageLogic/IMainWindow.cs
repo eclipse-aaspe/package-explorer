@@ -135,7 +135,8 @@ namespace AasxPackageExplorer
             string storeFnToLRU = null,
             bool indexItems = false,
             bool preserveEditMode = false,
-            bool? nextEditMode = null);
+            bool? nextEditMode = null,
+            bool autoFocusFirstRelevant = false);
 
         public Task<Aas.IIdentifiable> UiSearchRepoAndExtendEnvironmentAsync(
             AdminShellPackageEnvBase packEnv,

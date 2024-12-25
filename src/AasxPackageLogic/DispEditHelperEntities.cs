@@ -1489,6 +1489,7 @@ namespace AasxPackageLogic
             bool doEditNewRecord = false,
             bool doFetchGoPrev = false,
             bool doFetchGoNext = false,
+            bool doFakeGoNext = false,
             bool doFetchExec = false)
         {
             await Task.Yield();
@@ -1545,6 +1546,15 @@ namespace AasxPackageLogic
                 fetchContext.Record.PageSkip = 0;
             }
 
+            if (doFakeGoNext)
+            {
+                // provide no cursor, therefore fetch from very beginning, skip elements
+                fetchContext.Cursor = null;
+                fetchContext.Record.PageSkip = Math.Max(0, fetchContext.Record.PageOffset + fetchContext.Record.PageLimit);
+                fetchContext.Record.PageOffset += fetchContext.Record.PageLimit;
+                fetchContext.Record.PageOffset = Math.Max(0, fetchContext.Record.PageOffset);
+            }
+
             if (doFetchExec)
             {
                 // build location
@@ -1568,6 +1578,8 @@ namespace AasxPackageLogic
                 Log.Singleton.Info($"For refining extended connect, loading " +
                     $"from {location} into container");
 
+                packages.CentralRuntimeOptions.CancellationTokenSource = new System.Threading.CancellationTokenSource();
+
                 var container = await PackageContainerFactory.GuessAndCreateForAsync(
                     packages,
                     location,
@@ -1578,7 +1590,7 @@ namespace AasxPackageLogic
 
                 if (container == null)
                 {
-                    Log.Singleton.Error($"Failed to load from {location}");
+                    Log.Singleton.Error($"Failed to load from {location}.");
                     return false;
                 }
 
@@ -1586,7 +1598,8 @@ namespace AasxPackageLogic
                 mainWindow.UiLoadPackageWithNew(packages.MainItem,
                     takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
                     storeFnToLRU: location,
-                    preserveEditMode: preserveEditMode);
+                    preserveEditMode: preserveEditMode,
+                    autoFocusFirstRelevant: true);
 
                 Log.Singleton.Info($"Successfully loaded {location}");
 

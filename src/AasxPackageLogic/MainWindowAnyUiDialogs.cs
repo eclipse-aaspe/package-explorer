@@ -19,6 +19,7 @@ using AnyUi;
 using Extensions;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography.Pkcs;
@@ -218,20 +219,27 @@ namespace AasxPackageLogic
                 }
 
                 // shall be a local/ user file?!
+                var proposeFn = PackageCentral.MainItem.Filename;
                 var isLocalFile = PackageCentral.MainItem.Container is PackageContainerLocalFile;
                 var isUserFile = PackageCentral.MainItem.Container is PackageContainerUserFile;
                 if (!isLocalFile && !isUserFile)
+                {
+                    // warn
                     if (!ticket.ScriptMode
                         && AnyUiMessageBoxResult.Yes != await DisplayContext.MessageBoxFlyoutShowAsync(
                         "Current AASX file is not a local or user file. Proceed and convert to such file?",
                         "Save", AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Hand))
                         return;
 
+                    // point to local directory
+                    proposeFn = System.IO.Path.GetFileName(proposeFn);
+                }
+
                 // filename
                 var ucsf = await DisplayContextPlus.MenuSelectSaveFilenameAsync(
                     ticket, "File",
                     "Save AASX package",
-                    PackageCentral.MainItem.Filename,
+                    proposeFn,
                     "AASX package files (*.aasx)|*.aasx|AASX package files w/ JSON (*.aasx)|*.aasx|" +
                         (!isLocalFile ? "" : "AAS XML file (*.xml)|*.xml|AAS JSON file (*.json)|*.json|") +
                         "All files (*.*)|*.*",
@@ -523,6 +531,10 @@ namespace AasxPackageLogic
                         doCheckTainted: true,
                         doFetchGoNext: false,
                         doFetchExec: true);
+                }
+                catch (OperationCanceledException)
+                {
+                    Log.Singleton.Info("User cancellation: extended connect");
                 }
                 catch (Exception ex)
                 {
