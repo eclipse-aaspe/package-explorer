@@ -13,6 +13,7 @@ using AdminShellNS;
 using AdminShellNS.DiaryData;
 using AnyUi;
 using Extensions;
+using JetBrains.Annotations;
 using Namotion.Reflection;
 using System;
 using System.Collections.Generic;
@@ -1264,6 +1265,31 @@ namespace AasxPackageLogic
                     }
                 }
             }
+        }
+
+        public Tuple<Aas.IAssetAdministrationShell, Aas.ISubmodel, string> FindAasSubmodelIdShortPath()
+        {
+            // find a SubmodelRef?
+            var veSmr = FindAllParents((ve) => ve is VisualElementSubmodelRef).FirstOrDefault() as VisualElementSubmodelRef;
+            if (veSmr != null)
+            {
+                return new Tuple<IAssetAdministrationShell, ISubmodel, string>(
+                    veSmr.theAas,
+                    veSmr.theSubmodel,
+                    theWrapper?.CollectIdShortByParent(separatorChar: '.', excludeIdentifiable: true));
+            }
+
+            // find just a Submodel
+            var veSm = FindAllParents((ve) => ve is VisualElementSubmodel).FirstOrDefault() as VisualElementSubmodel;
+            if (veSm != null)
+            {
+                return new Tuple<IAssetAdministrationShell, ISubmodel, string>(
+                    null,
+                    veSm.theSubmodel,
+                    theWrapper?.CollectIdShortByParent(separatorChar: '.', excludeIdentifiable: true));
+            }
+
+            return null;
         }
 
     }

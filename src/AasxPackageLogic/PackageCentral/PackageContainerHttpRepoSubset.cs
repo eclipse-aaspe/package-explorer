@@ -38,6 +38,9 @@ using System.ComponentModel;
 using Lucene.Net.Util.Automaton;
 using RestSharp;
 using static Lucene.Net.Search.FieldCache;
+using System.Reflection.Metadata;
+using AngleSharp.Io;
+using System.Globalization;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -2832,10 +2835,18 @@ namespace AasxPackageLogic.PackageCentral
             public ConnectExtendedRecord.BaseTypeEnum BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository;
             // public ConnectExtendedRecord.BaseTypeEnum BaseType = ConnectExtendedRecord.BaseTypeEnum.Registry;
 
+            [AasxMenuArgument(help: "Includes Submodels of the particular AAS into the upload.")]
             public bool IncludeSubmodels = false;
+
+            [AasxMenuArgument(help: "Includes ConceptDescriptions referrred by semanticIds of the Submodels and " +
+                "SubmodelElements into the upload.")]
             public bool IncludeCDs = false;
+
+            [AasxMenuArgument(help: "Includes supplementary files of FileElements of the Submodels into the upload.")]
             public bool IncludeSupplFiles = false;
 
+            [AasxMenuArgument(help: "If Identifiables exist on particular Repository/ Registry, still flag to " +
+                "upload them anyway, overwriting the existing contents.")]
             public bool OverwriteIfExist = false;
         }
 
@@ -3028,8 +3039,19 @@ namespace AasxPackageLogic.PackageCentral
                     return g;
                 });
 
-            if (!(await displayContext.StartFlyoverModalAsync(ucJob)))
+            if (ticket?.ScriptMode != true)
+            {
+                // if not in script mode, perform dialogue
+                if (!(await displayContext.StartFlyoverModalAsync(ucJob)))
+                    return false;
+            }
+
+            // some obvious checks
+            if (recordJob.BaseAddress?.HasContent() != true)
+            {
+                Log.Singleton.Error("No BaseAddress given. Aborting!");
                 return false;
+            }
 
             // sort Identifiables to look nice
             var sorted = idfs.ToList();
@@ -3079,6 +3101,7 @@ namespace AasxPackageLogic.PackageCentral
             HttpClient client = null;
             if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
             {
+                // Note: it seems to be also possible to create an HttpClient with "" as BaseAddress and pass Host via URL!!
                 baseUri = new Uri(recordJob.BaseAddress);
                 client = PackageHttpDownloadUtil.CreateHttpClient(baseUri, runtimeOptions, containerList);
             }
@@ -3184,8 +3207,12 @@ namespace AasxPackageLogic.PackageCentral
             ucSelect.Rows = rows.ToList();
             ucSelect.EmptySelectOk = true;
 
-            if (!(await displayContext.StartFlyoverModalAsync(ucSelect)))
-                return false;
+            if (ticket?.ScriptMode != true)
+            {
+                // if not in script mode, perform dialogue
+                if (!(await displayContext.StartFlyoverModalAsync(ucSelect)))
+                    return false;
+            }
 
             // translate result items
             var rowsToUpload = ucSelect.ResultItems;
@@ -3278,7 +3305,7 @@ namespace AasxPackageLogic.PackageCentral
                                 lambdaReportIdShortPathError: (idsp) =>
                                 {
                                     Log.Singleton.Error("When uploading Submodel {0}, idShort path for File " +
-                                            "elements contains invalid characters and prevents uploading file " +
+                                            "element contains invalid characters and prevents uploading file " +
                                             "attchment: {1}", submodel.IdShort, idsp);
                                     lock (rowsToUpload)
                                     {
@@ -3292,8 +3319,17 @@ namespace AasxPackageLogic.PackageCentral
                                 if (filEl?.FileSme?.Value?.HasContent() != true)
                                     continue;
 
-                                // try read the bytes (should have try/catch in it)
-                                var ba = await packEnv.GetBytesFromPackageOrExternalAsync(filEl.FileSme.Value);
+                                // try read the bytes (has NO try/catch in it)
+                                byte[] ba = null;
+                                try
+                                {
+                                    ba = await packEnv.GetBytesFromPackageOrExternalAsync(filEl.FileSme.Value);
+                                } 
+                                catch (Exception ex)
+                                {
+                                    LogInternally.That.SilentlyIgnoredError(ex);
+                                    ba = null;
+                                }
                                 if (ba == null || ba.Length < 1)
                                 {
                                     Log.Singleton.Error("Centralize file: cannot read file: {0}", filEl.FileSme.Value);
@@ -3316,20 +3352,105 @@ namespace AasxPackageLogic.PackageCentral
                                     using (var ms = new MemoryStream(ba))
                                     {
                                         // write
+#if _not_now
+                                        using (var hc = new HttpClient())
+                                        {
+                                            // hc.BaseAddress = new Uri("http://localhost:5001");
+                                            // hc.BaseAddress = new Uri("https://echo.free.beeceptor.com");
+                                            hc.DefaultRequestHeaders.Clear();
+                                            // hc.DefaultRequestHeaders.Add("Accept", "application/octet-stream");
+                                            hc.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("multipart/form-data"));
+                                            var url = "https://echo.free.beeceptor.com";
+                                            // var url = "http://localhost:5001/api/v3.0/shells/d3d3LmV4YW1wbGUuY29tL2lkcy9hYXMvODI4MV8yMTUyXzIxNDJfODE2Ng/submodels/d3d3LmV4YW1wbGUuY29tL2lkcy9zbS83NDg1XzAxMjFfMjA0Ml82NzAw/submodel-elements/Fixed_content.idta_smt_badge/attachment";
+                                            // var url = "/";
+                                            // var content = new ByteArrayContent(new byte[] { 1, 2, 3, 4, 5 });
+                                            // content.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+                                            // var content = new StringContent("{1.2345}", Encoding.UTF8, "application/json");
+
+                                            using (var content = new MultipartFormDataContent())
+                                            {
+                                                content.Headers.ContentType.MediaType = "multipart/form-data";
+                                                var stream = new MemoryStream(Encoding.UTF8.GetBytes("{ \"a\": 3 }"));
+                                                stream.Flush();
+                                                stream.Seek(0, SeekOrigin.Begin);
+                                                var fc = new StreamContent(stream); 
+                                                fc.Headers.Add("Content-Disposition", "form-data; name=\"file\"");
+                                                fc.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+                                                content.Add(fc, "file", "upload.png");
+
+                                                // content.Add(fc, "\"textdatei\"", "upload.txt");
+
+                                                var resp = await hc.PutAsync(url, content);
+                                                if (true || resp.IsSuccessStatusCode)
+                                                {
+                                                    // TODO: give back?
+                                                    var c2 = await resp.Content.ReadAsStringAsync();
+                                                    ;
+                                                }
+                                            }
+                                        } 
+#endif
+
+#if __by_chatgpt
+                                        using (var hc = new HttpClient())
+                                        {
+                                            // Base address if needed
+                                            // hc.BaseAddress = new Uri("http://localhost:5001");
+                                            // hc.BaseAddress = new Uri("https://echo.free.beeceptor.com");
+
+                                            hc.DefaultRequestHeaders.Clear();
+                                            hc.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("multipart/form-data"));
+
+                                            // var url = "https://echo.free.beeceptor.com"; // Replace with your actual URL
+                                            var url = "http://localhost:5001/api/v3.0/shells/d3d3LmV4YW1wbGUuY29tL2lkcy9hYXMvODI4MV8yMTUyXzIxNDJfODE2Ng/submodels/d3d3LmV4YW1wbGUuY29tL2lkcy9zbS83NDg1XzAxMjFfMjA0Ml82NzAw/submodel-elements/Fixed_content.idta_smt_badge/attachment"; // Replace with your actual URL
+
+                                            using (var content = new MultipartFormDataContent())
+                                            {
+                                                // Creating a stream with file data
+                                                var filePath = @"C:\Users\Micha\Desktop\t3\new2\idta_smt_badge.png"; // Replace with your file path
+                                                var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+
+                                                var fileContent = new StreamContent(fileStream);
+                                                fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+
+                                                // Adding the file as form-data
+                                                content.Add(fileContent, "file", "upload.png");
+
+                                                // You can add other form data if needed
+                                                // var jsonContent = new StringContent("{ \"a\": 3 }", Encoding.UTF8, "application/json");
+                                                // content.Add(jsonContent, "data");
+
+                                                var resp = await hc.PutAsync(url, content);
+                                                var responseBody = await resp.Content.ReadAsStringAsync();
+                                            }
+                                        }
+#endif
+
+                                        // the multi-part content needs very specific information to work
+                                        var mpFn = Path.GetFileName(filEl.FileSme.Value);
+                                        var mpCt = filEl.FileSme.ContentType?.Trim();
+                                        if (mpCt?.HasContent() != true)
+                                            mpCt = "application/octet-stream";
+
+                                        // do the PUT with multi-part content
                                         var res3 = await PackageHttpDownloadUtil.HttpPutPostFromMemoryStream(
-                                            client,
+                                            null, // do NOT re-use client, as headers are re-defined!
                                             ms,
                                             destUri: attLoc,
                                             runtimeOptions: runtimeOptions,
                                             containerList: containerList,
-                                            usePost: usePost);
+                                            usePost: usePost,
+                                            useMultiPart: true,
+                                            mpParamName: "file",
+                                            mpFileName: mpFn,
+                                            mpContentType: mpCt);
 
                                         lock (rowsToUpload)
                                         {
                                             if (res3.Item1 != HttpStatusCode.OK && res3.Item1 != HttpStatusCode.NoContent)
                                             {
-                                                Log.Singleton.Error("Error uploading attachment of {0} bytes to: {1}",
-                                                    ba.Length, attLoc.ToString());
+                                                Log.Singleton.Error("Error uploading attachment of {0} bytes to: {1}. HTTP code {2} with content: {3}",
+                                                    ba.Length, attLoc.ToString(), res3.Item1, res3.Item2);
                                                 numAttNOK++;
                                             }
                                             else

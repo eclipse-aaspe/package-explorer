@@ -540,7 +540,7 @@ namespace AdminShellNS
             if (pascalCase && src.Length > 0)
                 src = char.ToUpper(src[0]) + src.Substring(1);
 
-            var regex = regexForFilter ?? @"[^a-zA-Z0-9\-_]";
+            var regex = regexForFilter ?? @"[^a-zA-Z0-9_]";
             src = Regex.Replace(src, regex, "_");
 
             if (fixMoreBlanks)
