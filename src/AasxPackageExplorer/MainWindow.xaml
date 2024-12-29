@@ -424,7 +424,7 @@
                 </Grid>
 
                 <Label x:Name="Message"
-                       Margin="2,3,2,2" Padding="0, 2, 0, 0"
+                       Margin="2,3,2,2" Padding="2, 2, 0, 0"
                        Content="Ready"
                        VerticalContentAlignment="Center"/>
             </DockPanel>

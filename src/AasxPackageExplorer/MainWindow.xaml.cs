@@ -86,7 +86,7 @@ namespace AasxPackageExplorer
 		
 		public AasxMenuWpf MainMenu = new AasxMenuWpf();
 
-        private Aas.ISubmodelElement _showContentElement = null;
+        private VisualElementGeneric _showContentElement = null;
         private VisualElementGeneric currentEntityForUpdate = null;
         private IFlyoutControl currentFlyoutControl = null;
 
@@ -714,18 +714,11 @@ namespace AasxPackageExplorer
             // some entities require special handling
             if (entities?.ExactlyOne == true && entities.First() is VisualElementSubmodelElement sme)
             { 
-                if (sme?.theWrapper is Aas.IFile file)
+                if (sme?.theWrapper is Aas.IFile || sme?.theWrapper is Aas.IBlob)
                 {
                     ShowContent.IsEnabled = true;
-                    _showContentElement = file;
                     DragSource.Foreground = Brushes.Black;
-                }
-
-                if (sme?.theWrapper is Aas.IBlob blb)
-                {
-                    ShowContent.IsEnabled = true;
-                    this._showContentElement = blb;
-                    DragSource.Foreground = Brushes.Black;
+                    _showContentElement = entities.First();
                 }
             }
 
@@ -3103,7 +3096,15 @@ namespace AasxPackageExplorer
         {
             // show only if not present
             if (_messageReportWindow != null)
+            {
+                // this is ridiculous, but this seems to make the trick
+                // https://stackoverflow.com/questions/257587/bring-a-window-to-the-front-in-wpf
+                _messageReportWindow.Activate();
+                _messageReportWindow.Topmost = true;  // important
+                _messageReportWindow.Topmost = false; // important
+                _messageReportWindow.Focus();         // important
                 return;
+            }
 
             // Collect all the stored log prints
             IEnumerable<StoredPrint> Prints()
@@ -3364,15 +3365,18 @@ namespace AasxPackageExplorer
             }
         }
 
-        private void ShowContent_Click(object sender, RoutedEventArgs e)
+        private async void ShowContent_Click(object sender, RoutedEventArgs e)
         {
-            if (sender == ShowContent && _showContentElement != null && PackageCentral.MainAvailable)
+            await Task.Yield();
+
+            if (sender == ShowContent && _showContentElement != null && PackageCentral.MainAvailable
+                && _showContentElement is VisualElementSubmodelElement veSme)
             {
                 //
                 // Text edit of BLOB?
                 //
 
-                if (this._showContentElement is Aas.IBlob blb
+                if (veSme?.theWrapper is Aas.IBlob blb
                     && MainMenu?.IsChecked("EditMenu") == true
                     && AdminShellUtil.CheckForTextContentType(blb.ContentType))
                 {
@@ -3399,7 +3403,7 @@ namespace AasxPackageExplorer
                     return;
                 }
 
-                if (this._showContentElement is Aas.IFile file
+                if (veSme?.theWrapper is Aas.IFile file
                     && MainMenu?.IsChecked("EditMenu") == true
                     && AdminShellUtil.CheckForTextContentType(file.ContentType))
                 {
@@ -3419,9 +3423,9 @@ namespace AasxPackageExplorer
                 //
 
                 Tuple<object, string> contentFound = null;
-                if (_showContentElement is Aas.IFile scFile)
+                if (veSme?.theWrapper is Aas.IFile scFile)
                     contentFound = new Tuple<object, string>(scFile.Value, scFile.ContentType);
-                if (_showContentElement is Aas.IBlob scBlob && MainMenu?.IsChecked("EditMenu") == false)
+                if (veSme?.theWrapper is Aas.IBlob scBlob && MainMenu?.IsChecked("EditMenu") == false)
                     contentFound = new Tuple<object, string>(scBlob.Value, scBlob.ContentType);
 
                 if (contentFound != null)
@@ -3435,8 +3439,13 @@ namespace AasxPackageExplorer
                             if (!contentUri.ToLower().Trim().StartsWith("http://")
                                 && !contentUri.ToLower().Trim().StartsWith("https://"))
                             {
-                                // make it as file
-                                contentUri = PackageCentral.Main.MakePackageFileAvailableAsTempFile(contentUri);
+                                // make it a file?
+                                // more info for Registry/ Repo available?
+                                var x = veSme.FindAasSubmodelIdShortPath();
+                                contentUri = await PackageCentral.Main.MakePackageFileAvailableAsTempFileAsync(contentUri,
+                                    aasId: x?.Item1?.Id,
+                                    smId: x?.Item2?.Id,
+                                    idShortPath: x?.Item3);
                             }
 
                             BrowserDisplayLocalFile(contentUri, contentFound.Item2);

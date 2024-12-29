@@ -32,6 +32,8 @@ using AasCore.Aas3_0;
 using System.ServiceModel;
 using Namotion.Reflection;
 using System.Text.Json.Nodes;
+using System.Reflection.Metadata;
+using System.IO.Pipes;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -532,13 +534,28 @@ namespace AasxPackageLogic.PackageCentral
             return null;
         }
 
+        /// <summary>
+        /// Does es PUT/POST
+        /// </summary>
+        /// <param name="reUseClient"></param>
+        /// <param name="ms"></param>
+        /// <param name="destUri"></param>
+        /// <param name="usePost"></param>
+        /// <param name="runtimeOptions"></param>
+        /// <param name="containerList"></param>
+        /// <param name="mpParamName">If set with a name, name of the parameter in the multi part body to be transferred as a file</param>
+        /// <returns></returns>
         public static async Task<Tuple<HttpStatusCode, string>> HttpPutPostFromMemoryStream(
             HttpClient reUseClient,
             MemoryStream ms,
             Uri destUri,
             bool usePost = false,
             PackCntRuntimeOptions runtimeOptions = null,
-            PackageContainerListBase containerList = null)
+            PackageContainerListBase containerList = null,
+            bool useMultiPart = false,
+            string mpParamName = null,
+            string mpFileName = null,
+            string mpContentType = null)            
         {
             // access
             if (ms == null || destUri == null)
@@ -550,21 +567,39 @@ namespace AasxPackageLogic.PackageCentral
 
             // Log
             if (runtimeOptions?.ExtendedConnectionDebug == true)
-                runtimeOptions.Log?.Info($"HttpClient PUT/POSTZ() with base-address {client.BaseAddress} " +
+                runtimeOptions.Log?.Info($"HttpClient PUT/POST() with base-address {client.BaseAddress} " +
                     $"and request {requestPath} .. ");
 
-            // make data
-            var data = new ProgressableStreamContent(ms.ToArray(), runtimeOptions);
+            // make overall content
+            HttpContent overallContent = null;
+            if (useMultiPart && mpParamName?.HasContent() == true && mpFileName?.HasContent() == true && mpContentType?.HasContent() == true)
+            {
+                // Note: may re-define reUseClient's headers!!
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("multipart/form-data"));
+
+                overallContent = new MultipartFormDataContent();
+
+                var fileContent = new StreamContent(ms);
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(mpContentType);
+
+                // Adding the file as form-data
+                (overallContent as MultipartFormDataContent).Add(fileContent, mpParamName, mpFileName);
+            }
+            else
+            {
+                // var data = new ProgressableStreamContent(ms.ToArray(), runtimeOptions);
+                overallContent = new ByteArrayContent(ms.ToArray());
+                // var data = new StringContent("1.2345", Encoding.UTF8, "application/json");
+            }
 
             // get response?
             using (var response = (!usePost) 
-                ? await client.PutAsync(requestPath, data)
-                : await client.PostAsync(requestPath, data))
+                ? await client.PutAsync(requestPath, overallContent)
+                : await client.PostAsync(requestPath, overallContent))
             {
-                var content = "";
-                if (response.IsSuccessStatusCode)
-                    // TODO: give back?
-                    content = await response.Content.ReadAsStringAsync();
+                // always get back content to allow debug
+                var content = await response.Content.ReadAsStringAsync();
 
                 // ok!
                 return new Tuple<HttpStatusCode, string>(response.StatusCode, content);

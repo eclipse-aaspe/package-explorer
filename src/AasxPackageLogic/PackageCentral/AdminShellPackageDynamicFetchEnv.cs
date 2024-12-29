@@ -383,7 +383,7 @@ namespace AasxPackageLogic.PackageCentral
                 return absBytes;
 
             // ok, try to load from the server
-            if (aasId?.HasContent() != true || idShortPath?.HasContent() != true
+            if (aasId?.HasContent() != true || smId?.HasContent() != true || idShortPath?.HasContent() != true
                 || _defaultRepoBaseUri == null)
                 return null;
 
