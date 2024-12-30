@@ -30,6 +30,7 @@ using AasxPackageExplorer;
 using System.Threading.Tasks;
 using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 using VDS.Common.Filters;
+using static Lucene.Net.Search.FieldCache;
 
 namespace AasxPackageLogic
 {
@@ -4861,6 +4862,47 @@ namespace AasxPackageLogic
                             }
                             return new AnyUiLambdaActionNone();
                         });
+
+                    // Offer BASE64 to binary
+                    if (AdminShellUtil.CheckIfAsciiOnly(blb.Value))
+                    {
+                        this.AddActionPanel(
+                            stack, "Action",
+                            repo: repo, superMenu: superMenu,
+                            ticketMenu: new AasxMenu()
+                                .AddAction("base64-to-binary", "BASE64 \u2192 binary",
+                                    "Take value as BASE64 and convert to binary."),
+                            ticketActionAsync: async (buttonNdx, ticket) =>
+                            {
+                                if (buttonNdx == 0)
+                                {
+                                    // ask
+                                    if (AnyUiMessageBoxResult.Yes != await
+                                            this.context.MessageBoxFlyoutShowAsync(
+                                            "Convert? This operation cannot be reverted!",
+                                            "BASE64 \u2192 binary",
+                                            AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                        return new AnyUiLambdaActionNone();
+
+                                    // do
+                                    try
+                                    {
+                                        var strRep = Encoding.Default.GetString(blb.Value);
+                                        var byteRep = System.Convert.FromBase64String(strRep);
+                                        blb.Value = byteRep;
+                                    } 
+                                    catch (Exception ex)
+                                    {
+                                        Log.Singleton.Error(ex, "when converting BASE64 to binary.");
+                                    }
+
+                                    // show
+                                    return new AnyUiLambdaActionRedrawEntity();
+                                }
+
+                                return new AnyUiLambdaActionNone();
+                            });
+                    }
                 }
                 else
                 {
@@ -4903,6 +4945,46 @@ namespace AasxPackageLogic
                                 }
                                 return new AnyUiLambdaActionNone();
                             });
+
+                    // Offer binary to BASE64 
+                    if (true)
+                    {
+                        this.AddActionPanel(
+                            stack, "Action",
+                            repo: repo, superMenu: superMenu,
+                            ticketMenu: new AasxMenu()
+                                .AddAction("binary-to-base64", "Binary \u2192 BASE64",
+                                    "Take value as binary bytes and convert to BASE64."),
+                            ticketActionAsync: async (buttonNdx, ticket) =>
+                            {
+                                if (buttonNdx == 0)
+                                {
+                                    // ask
+                                    if (AnyUiMessageBoxResult.Yes != await
+                                            this.context.MessageBoxFlyoutShowAsync(
+                                            "Convert? This operation cannot be reverted!",
+                                            "Binary \u2192 BASE64",
+                                            AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                        return new AnyUiLambdaActionNone();
+
+                                    // do
+                                    try
+                                    { 
+                                        var strRep = System.Convert.ToBase64String(blb.Value);
+                                        blb.Value = Encoding.Default.GetBytes(strRep);
+                                    } 
+                                    catch (Exception ex)
+                                    {
+                                        Log.Singleton.Error(ex, "when converting binary to BASE64.");
+                                    }
+
+                                    // show
+                                    return new AnyUiLambdaActionRedrawEntity();
+                                }
+
+                                return new AnyUiLambdaActionNone();
+                            });
+                    }
                 }
 
                 // ContentType

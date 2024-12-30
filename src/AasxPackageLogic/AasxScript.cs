@@ -64,17 +64,17 @@ namespace AasxPackageExplorer
         {
             public static void Show(string caption)
             {
-                Console.WriteLine(caption);
+                Log.Singleton.Info(caption);
             }
 
             public static void Tool(string cmd, params string[] args)
             {
-                Console.WriteLine($"Execute {cmd} " + string.Join(",", args));
+                Log.Singleton.Info($"Execute {cmd} " + string.Join(",", args));
             }
 
             public static void Flex(int a = 0, int b = 0, int c = 0)
             {
-                Console.WriteLine($"Flex a {a} b {b} c{c}");
+                Log.Singleton.Info($"Flex a {a} b {b} c{c}");
             }
         }
 
@@ -242,6 +242,10 @@ namespace AasxPackageExplorer
                         .Add("<value>", "Arbitrary type and value for that argument."));
             }
 
+            protected static string _lockVar;
+
+            protected static int _mutex = 0;
+
             public override async Task<object> Invoke(IScriptContext context, object[] args)
             {
                 // access
@@ -256,28 +260,64 @@ namespace AasxPackageExplorer
 
                 // debug
                 if (_script._logLevel >= 2)
-                    Console.WriteLine($"Execute Tool " + string.Join(",", args));
+                    Log.Singleton.Info($"Execute Tool " + string.Join(",", args));
+
+                // for the outer script loop, wait for any invocation the Task to be completed!
+                while (_mutex > 0)
+                {
+                    Log.Singleton.Info(StoredPrint.Color.Blue, $"waiting for _mutex = {_mutex}");
+                    await Task.Delay(1000);
+                }
+                lock (_lockVar)
+                {
+                    _mutex = 1 + (new Random()).Next(98);
+                }
+                Log.Singleton.Info(StoredPrint.Color.Blue, $"started new _mutex = {_mutex}");
 
                 // invoke action
                 // https://stackoverflow.com/questions/39438441/
                 Task<int> x = null;
+                int y = 0;
                 if (Application.Current != null)
                 {
                     // WPF case
-                    x = Application.Current.Dispatcher.Invoke(async () =>
+                    y = await Application.Current.Dispatcher.Invoke(async () =>
                     {
                         if (_script?.Remote == null)
                             return -1;
-                        return await _script?.Remote?.Tool(args);
+
+                        // hard wait until mutex is released ..
+                        while (_mutex > 0)
+                        {
+                            Log.Singleton.Info(StoredPrint.Color.Blue, $"waiting for _mutex = {_mutex}");
+                            await Task.Delay(1000);
+                        }
+                        
+
+                        var res = await _script?.Remote?.Tool(args);
+
+                        Log.Singleton.Info(StoredPrint.Color.Blue, $"resetting _mutex = {_mutex} to 0!");
+                        lock (_lockVar)
+                        {
+                            _mutex = 0;
+                        }
+
+                        Log.Singleton.Info(StoredPrint.Color.Blue, $"CALL of TOOl {res} DONE");
+                        return res;
                     });
                     if (x != null)
-                        Log.Singleton.Silent("" + x);
+                        Log.Singleton.Silent("" + x + " " + y);
+                    Log.Singleton.Info(StoredPrint.Color.Blue, $"INVOKE of TOOl {y} DONE");                    
                 }
                 else
                 {
                     // Blazor case
                     await _script?.Remote?.Tool(args);
                 }
+
+                // debug
+                if (_script._logLevel >= 2)
+                    Log.Singleton.Info($"Finalized execute Tool " + string.Join(",", args));
 
                 // done
                 return 0;
@@ -312,7 +352,7 @@ namespace AasxPackageExplorer
 
                 // debug
                 if (_script._logLevel >= 2)
-                    Console.WriteLine($"Execute Select " + string.Join(",", args));
+                    Log.Singleton.Info($"Execute Select " + string.Join(",", args));
 
                 // which application
                 if (Application.Current == null)
@@ -369,7 +409,7 @@ namespace AasxPackageExplorer
 
                 // debug
                 if (_script._logLevel >= 2)
-                    Console.WriteLine($"Execute SelectAll " + string.Join(",", args));
+                    Log.Singleton.Info($"Execute SelectAll " + string.Join(",", args));
 
                 // which application
                 if (Application.Current == null)
@@ -435,7 +475,7 @@ namespace AasxPackageExplorer
 
                 // debug
                 if (_script._logLevel >= 2)
-                    Console.WriteLine($"Execute Location " + string.Join(",", args));
+                    Log.Singleton.Info($"Execute Location " + string.Join(",", args));
 
                 // invoke action
                 // https://stackoverflow.com/questions/39438441/
@@ -490,7 +530,7 @@ namespace AasxPackageExplorer
 
                 // debug
                 if (_script._logLevel >= 2)
-                    Console.WriteLine($"Execute System " + string.Join(" ", args));
+                    Log.Singleton.Info($"Execute System " + string.Join(" ", args));
 
                 // Start the child process.
                 Process p = new Process();

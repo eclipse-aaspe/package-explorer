@@ -946,6 +946,10 @@ namespace AasxPackageExplorer
             MainMenu = new AasxMenuWpf();
             MainMenu.LoadAndRender(logicalMainMenu, MenuMain, this.CommandBindings, this.InputBindings);
 
+            // editor modes?
+            MainMenu?.SetChecked("EditMenu", Options.Curr.EditMode);
+            MainMenu?.SetChecked("HintsMenu", !Options.Curr.NoHints);
+
             // display elements has a cache
             DisplayElements.ActivateElementStateCache();
             VisualElementEnvironmentItem.SetCdSortOrderByString(Options.Curr.CdSortOrder);
@@ -1302,7 +1306,8 @@ namespace AasxPackageExplorer
                         Log.Singleton.Error($"Failed to auto-load AASX from {location}");
                     else
                         UiLoadPackageWithNew(PackageCentral.MainItem,
-                            takeOverContainer: container, onlyAuxiliary: false, indexItems: true);
+                            takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
+                            nextEditMode: Options.Curr.EditMode);
 
                     Log.Singleton.Info($"Successfully auto-loaded AASX {location}");
                 }
@@ -3974,7 +3979,8 @@ namespace AasxPackageExplorer
                     try
                     {
                         UiLoadPackageWithNew(
-                            PackageCentral.MainItem, null, loadLocalFilename: fn, onlyAuxiliary: false);
+                            PackageCentral.MainItem, null, loadLocalFilename: fn, onlyAuxiliary: false,
+                            nextEditMode: Options.Curr.EditMode);
                     }
                     catch (Exception ex)
                     {

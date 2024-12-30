@@ -227,6 +227,10 @@ namespace BlazorUI.Data
             MainMenu = new AasxMenuBlazor();
             MainMenu.LoadAndRender(logicalMainMenu, null, null);
 
+            // editor modes?
+            MainMenu?.SetChecked("EditMenu", Options.Curr.EditMode);
+            MainMenu?.SetChecked("HintsMenu", !Options.Curr.NoHints);
+
             // show Logo?
             if (Options.Curr.LogoFile != null)
                 try

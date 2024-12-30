@@ -263,7 +263,8 @@ namespace AdminShellNS
                     "image/png",
                     System.Net.Mime.MediaTypeNames.Image.Gif,
                     "application/iges",
-                    "application/step"
+                    "application/step",
+                    "application/octet-stream"
                 };
         }
 
@@ -1332,6 +1333,22 @@ namespace AdminShellNS
                 if (data[i] >= 128)
                     ascii = false;
             return ascii;
+        }
+
+        public static bool CheckIfBase64Only(byte[] data, int bytesToCheck = int.MaxValue)
+        {
+            if (data == null)
+                return true;
+
+            var b64 = true;
+            for (int i = 0; i < Math.Min(data.Length, bytesToCheck); i++)
+            {
+                var c = data[i];
+                // 'manually' check for allowed char intervals of BASE64
+                if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '+' || c == '/' || c == '='))
+                    b64 = false;
+            }
+            return b64;
         }
 
         // see: https://stackoverflow.com/questions/5209506/how-can-i-know-what-image-format-i-get-from-a-stream

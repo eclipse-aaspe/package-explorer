@@ -311,25 +311,33 @@ namespace AasxPackageLogic
             Cmd = "-aux-to-load", Arg = "<path>")]
         public string AuxToLoad = null;
 
-        [OptionDescription(Description = "if not -1, the left of window",
+        [OptionDescription(Description = "If not -1, the left of window",
             Cmd = "-left", Arg = "<pixel>")]
         public int WindowLeft = -1;
 
-        [OptionDescription(Description = "if not -1, the top of window",
+        [OptionDescription(Description = "If not -1, the top of window",
             Cmd = "-top", Arg = "<pixel>")]
         public int WindowTop = -1;
 
-        [OptionDescription(Description = "if not -1, the width of window",
+        [OptionDescription(Description = "If not -1, the width of window",
             Cmd = "-width", Arg = "<pixel>")]
         public int WindowWidth = -1;
 
-        [OptionDescription(Description = "if not -1, the height of window",
+        [OptionDescription(Description = "If not -1, the height of window",
             Cmd = "-height", Arg = "<pixel>")]
         public int WindowHeight = -1;
 
-        [OptionDescription(Description = "if set, then maximize window on application startup",
+        [OptionDescription(Description = "If set, then maximize window on application startup",
             Cmd = "-maximized")]
         public bool WindowMaximized = false;
+
+        [OptionDescription(Description = "If set, start in editor mode instead of browse mode.",
+            Cmd = "-edit-mode")]
+        public bool EditMode = false;
+
+        [OptionDescription(Description = "If set, do not start in hinting mode.",
+            Cmd = "-no-hints")]
+        public bool NoHints = false;
 
         [OptionDescription(Description = "Template string for the id of an AAS. " +
             "Could contain up to 16 placeholders of: " +
