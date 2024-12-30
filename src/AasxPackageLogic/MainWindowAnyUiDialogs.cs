@@ -142,7 +142,7 @@ namespace AasxPackageLogic
                     case "open":
                         MainWindow.UiLoadPackageWithNew(
                             PackageCentral.MainItem, null, fn, onlyAuxiliary: false,
-                            storeFnToLRU: fn);
+                            storeFnToLRU: fn, nextEditMode: Options.Curr.EditMode);
                         break;
                     case "openaux":
                         MainWindow.UiLoadPackageWithNew(
@@ -1914,15 +1914,28 @@ namespace AasxPackageLogic
 
         private async Task CommandBinding_FixAndFinalizeAsync(AasxMenuActionTicket ticket)
         {
+            // check user
+            if (!ticket.ScriptMode
+                && AnyUiMessageBoxResult.Yes != await DisplayContext.MessageBoxFlyoutShowAsync(
+                "Perform automatic fixes and save? Save will overwrite original file?!", "Fix AASX",
+                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                return;
+
             try
             {
                 var env = PackageCentral.Main?.AasEnv;
                 if (env != null)
                 {
-                    var visitor = new EmptyListVisitor();
+                    Log.Singleton.Info("Starting fixing current AASX: {0}", PackageCentral.MainItem.Filename);
+
+                    Log.Singleton.Info("Starting the pre fixes ..");
+                    AasxFixes.PerformPreFixes(env);
+
+                    Log.Singleton.Info("Starting the list visitor for the fixes ..");
+                    var visitor = new AasxFixListVisitor();
                     var newEnv = (Aas.Environment)visitor.Transform(env);
                     PackageCentral.Main.SetEnvironment(newEnv);
-                    Log.Singleton.Info("Fixed issues of AASX: {0}", PackageCentral.MainItem.Filename);             
+                    Log.Singleton.Info("Fixed issues of AASX.");             
                 }
 
                 //Save
@@ -1970,8 +1983,7 @@ namespace AasxPackageLogic
             }
             catch (Exception ex)
             {
-                Log.Singleton.Error(ex.Message);
-                Log.Singleton.Error(ex.StackTrace);
+                Log.Singleton.Error(ex, "when fixing AASX");
             }
 
         }

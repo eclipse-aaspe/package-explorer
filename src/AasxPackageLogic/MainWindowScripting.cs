@@ -452,6 +452,9 @@ namespace AasxPackageLogic
                 return -1;
             }
 
+            var rndi = new Random().Next(100);
+            Log.Singleton.Info(StoredPrint.Color.Blue, $"TOOL {rndi} START");
+
             // name of tool, find it
             var foundMenu = MainWindow?.GetMainMenu();
             var mi = foundMenu.FindName(toolName);
@@ -517,7 +520,9 @@ namespace AasxPackageLogic
                 MainWindow.AddWishForToplevelAction(ticket.UiLambdaAction);
             }
 
-            return 0;
+            Log.Singleton.Info(StoredPrint.Color.Blue, $"TOOL {rndi} DONE");
+
+            return rndi;
         }
 
         async Task<bool> IAasxScriptRemoteInterface.Location(object[] args)

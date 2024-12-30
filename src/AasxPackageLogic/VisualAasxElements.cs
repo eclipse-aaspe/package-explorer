@@ -666,7 +666,7 @@ namespace AasxPackageLogic
                 else
                 {
                     TagString = "Env";
-                    TagWeight = FontWeights.Normal;
+                    TagWeight = FontWeights.Bold;
                     if (thePackageSourceFn != null)
                         this.Info += "" + thePackageSourceFn;
                     else
