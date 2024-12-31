@@ -444,16 +444,15 @@ namespace AasxPackageLogic
             return new IReferable[0];
         }
 
-        public async Task<int> Tool(object[] args)
+        public async Task<int> Tool(
+            object[] args,
+            Action<object> lambdaDone)
         {
             if (args == null || args.Length < 1 || !(args[0] is string toolName))
             {
                 Log.Singleton.Error("Script: Invoke Tool: Toolname missing");
                 return -1;
             }
-
-            var rndi = new Random().Next(100);
-            Log.Singleton.Info(StoredPrint.Color.Blue, $"TOOL {rndi} START");
 
             // name of tool, find it
             var foundMenu = MainWindow?.GetMainMenu();
@@ -511,7 +510,7 @@ namespace AasxPackageLogic
             }
 
             // invoke action
-            await foundMenu.ActivateAction(mi, ticket);
+            await foundMenu.ActivateAction(mi, ticket, lambdaDone: lambdaDone);
 
             // perform UI updates if required
             if (ticket.UiLambdaAction != null && !(ticket.UiLambdaAction is AnyUiLambdaActionNone))
@@ -520,9 +519,7 @@ namespace AasxPackageLogic
                 MainWindow.AddWishForToplevelAction(ticket.UiLambdaAction);
             }
 
-            Log.Singleton.Info(StoredPrint.Color.Blue, $"TOOL {rndi} DONE");
-
-            return rndi;
+            return 0;
         }
 
         async Task<bool> IAasxScriptRemoteInterface.Location(object[] args)

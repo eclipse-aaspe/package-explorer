@@ -622,7 +622,7 @@ namespace AasxIntegrationBase
         // Operate
         //
 
-        public async Task ActivateAction(AasxMenuItemBase mi, AasxMenuActionTicket ticket)
+        public async Task ActivateAction(AasxMenuItemBase mi, AasxMenuActionTicket ticket, Action<object> lambdaDone = null)
         {
             var name = mi?.Name?.Trim()?.ToLower();
 
@@ -634,6 +634,8 @@ namespace AasxIntegrationBase
                 await this.DefaultActionAsync(name, mi, ticket);
             else if (this.DefaultAction != null)
                 this.DefaultAction(name, mi, ticket);
+
+            lambdaDone?.Invoke(this);
         }
 
         //
