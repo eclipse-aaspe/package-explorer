@@ -48,25 +48,25 @@
 // WriteLine(GetLastLogLine());
 // TakeScreenShot("Test123");
 
-Tool("Open", "File", "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\00_FestoDemoBox-Module-2.aasx");
-Select("AAS", "First");
-Tool("apiuploadassistant", "BaseAddress", "http://localhost:5001/api/v3.0/", "IncludeSubmodels", true, "IncludeCDs", true, "IncludeSupplFiles", true, "OverwriteIfExist", true);
-Sleep(6000);
+//Tool("Open", "File", "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\00_FestoDemoBox-Module-2.aasx");
+//Select("AAS", "First");
+//Tool("apiuploadassistant", "BaseAddress", "http://localhost:5001/api/v3.0/", "IncludeSubmodels", true, "IncludeCDs", true, "IncludeSupplFiles", true, "OverwriteIfExist", true);
+//Sleep(1000);
 
-Tool("Open", "File", "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\12_article-dpdm-32-instance_1.aasx");
-Select("AAS", "First");
-Tool("apiuploadassistant", "BaseAddress", "http://localhost:5001/api/v3.0/", "IncludeSubmodels", true, "IncludeCDs", true, "IncludeSupplFiles", true, "OverwriteIfExist", true);
-Sleep(6000);
+//Tool("Open", "File", "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\12_article-dpdm-32-instance_1.aasx");
+//Select("AAS", "First");
+//Tool("apiuploadassistant", "BaseAddress", "http://localhost:5001/api/v3.0/", "IncludeSubmodels", true, "IncludeCDs", true, "IncludeSupplFiles", true, "OverwriteIfExist", true);
+//Sleep(1000);
 
-Tool("Open", "File", "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\13_article-dpdm-32-instance_2.aasx");
-Select("AAS", "First");
-Tool("apiuploadassistant", "BaseAddress", "http://localhost:5001/api/v3.0/", "IncludeSubmodels", true, "IncludeCDs", true, "IncludeSupplFiles", true, "OverwriteIfExist", true);
-Sleep(6000);
+//Tool("Open", "File", "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\13_article-dpdm-32-instance_2.aasx");
+//Select("AAS", "First");
+//Tool("apiuploadassistant", "BaseAddress", "http://localhost:5001/api/v3.0/", "IncludeSubmodels", true, "IncludeCDs", true, "IncludeSupplFiles", true, "OverwriteIfExist", true);
+//Sleep(1000);
 
 //Tool("Open", "File", "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\16_article-ovel-10.aasx");
 //Select("AAS", "First");
 //Tool("apiuploadassistant", "BaseAddress", "http://localhost:5001/api/v3.0/", "IncludeSubmodels", true, "IncludeCDs", true, "IncludeSupplFiles", true, "OverwriteIfExist", true);
-//Sleep(6000);
+//Sleep(1000);
 
 //Tool("Open", "File", "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\17_article-spau.aasx");
 //Select("AAS", "First");
@@ -108,3 +108,26 @@ Sleep(6000);
 //Tool("apiuploadassistant", "BaseAddress", "http://localhost:5001/api/v3.0/", "IncludeSubmodels", true, "IncludeCDs", true, "IncludeSupplFiles", true, "OverwriteIfExist", true);
 //Sleep(1000);
 
+
+var fns = [
+    "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\00_FestoDemoBox-Module-2.aasx",
+    "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\12_article-dpdm-32-instance_1.aasx",
+    "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\13_article-dpdm-32-instance_2.aasx",
+    "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\16_article-ovel-10.aasx",
+    "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\17_article-spau.aasx",
+    "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\18_article-vuvg-l14_1.aasx",
+    "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\18_article-vuvg-l14_2.aasx",
+    "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\20_Festo_579071_SMT-8M-A-PS-24V-E-0.3-M12_proximity_switch.aasx",
+    "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\21_article-elgs-45-200.aasx",
+    "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\22_article-CPX-E-CEC-M1-PN.aasx",
+    "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\30_Festo_SPAU_VR3.aasx",
+    "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\31_HMI22_Festo_CMMT.aasx"
+];
+
+foreach (fn in fns)
+{
+    Tool("Open", "File", fn);
+    Select("AAS", "First");
+    Tool("apiuploadassistant", "BaseAddress", "http://localhost:5001/api/v3.0/", "IncludeSubmodels", true, "IncludeCDs", true, "IncludeSupplFiles", true, "OverwriteIfExist", true);
+    Sleep(1000);
+}
