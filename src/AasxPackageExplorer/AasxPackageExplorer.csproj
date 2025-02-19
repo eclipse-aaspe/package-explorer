@@ -87,7 +87,7 @@
     <None Update="local-identifier-presets.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="IDTA_and_PI40_t.png">
+    <None Update="Logo_IDTA_Custom.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="options-debug.json">

@@ -45,7 +45,7 @@
     <Content Remove="Pages\FetchData.cshtml" />
     <Content Remove="Pages\Index.cshtml" />
     <Content Remove="wwwroot\image\IDTA_AAS-Logo_312x281_RGB.png" />
-    <Content Remove="wwwroot\image\PI40_and_IDTA.png" />
+    <Content Remove="wwwroot\image\Logo_IDTA_Custom.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -71,6 +71,9 @@
     <None Include="StylePile.cs">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>StylePile.txt</LastGenOutput>
+    </None>
+    <None Include="wwwroot\image\Logo_IDTA_Custom.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="wwwroot\image\PI40_and_IDTA.png" />
   </ItemGroup>
