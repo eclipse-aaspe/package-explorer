@@ -14,4 +14,10 @@
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="LICENSE.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
