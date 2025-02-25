@@ -21,10 +21,10 @@ jobs:
         run: powershell .\CheckLicenses.ps1
         if: always()
 
-      - name: Install .NET core 6.0
+      - name: Install .NET core 8.0
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0.x'
         if: always()
 
       - name: Install tools for style
