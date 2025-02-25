@@ -2418,8 +2418,9 @@ namespace AasxCompatibilityModels
                             bs = BitConverter.GetBytes((float)o);
                         else if (o is char)
                             bs = BitConverter.GetBytes((char)o);
-                        else if (o is byte)
-                            bs = BitConverter.GetBytes((byte)o);
+                        //TODO (jtikekar, 2025-02-25): due to dotnet 8
+                        //else if (o is byte)
+                        //    bs = BitConverter.GetBytes((byte)o);
                         else if (o is int)
                             bs = BitConverter.GetBytes((int)o);
                         else if (o is long)
