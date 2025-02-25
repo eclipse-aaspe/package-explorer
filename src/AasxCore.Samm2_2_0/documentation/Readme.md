@@ -291,7 +291,9 @@ Importing of existing aspect models is supported.
 
 **Step 1: Call use "File/Import .../Import SAMM aspect into ConceptDescriptions ..."**
 
-Note: you should start with a new environment via "File/New ..." and switch to edit mode with"Workspace/Edit".
+Note: you should start with a new environment via "File/New ..." and switch to edit mode with"Workspace/Edit". 
+You need to create a concept description first and then start importing the SAMM aspect model. 
+After you should delete the concept description created for this purpose because it is not needed.
 
 ![Import Aspect Model](src/aasx-package-explorer_import-SAMM-into-CD.png "Import aspect model to concept descriptions")
 
