@@ -423,7 +423,8 @@ namespace AdminShellNS
                     }
                 case AasSubmodelElements.BasicEventElement:
                     {
-                        return new BasicEventElement(crDefRef(), 
+                        var observed = new Reference(ReferenceTypes.ModelReference, new List<IKey>() { new Key(KeyTypes.Referable, "") });
+                        return new BasicEventElement(observed, 
                             Direction.Input, StateOfEvent.Off).UpdateFrom(sourceSme);
                     }
                 case AasSubmodelElements.Entity:
@@ -1103,11 +1104,12 @@ namespace AdminShellNS
 
         // see: https://stackoverflow.com/questions/6386113/using-system-io-packaging-to-generate-a-zip-file
         public static void AddFileToZip(
-            string zipFilename, string fileToAdd,
+            string zipFilename, 
+            string fileToAdd,
             CompressionOption compression = CompressionOption.Normal,
             FileMode fileMode = FileMode.OpenOrCreate)
         {
-            using (Package zip = System.IO.Packaging.Package.Open(zipFilename, FileMode.OpenOrCreate))
+            using (Package zip = System.IO.Packaging.Package.Open(zipFilename, fileMode))
             {
                 string destFilename = ".\\" + Path.GetFileName(fileToAdd);
                 Uri uri = PackUriHelper.CreatePartUri(new Uri(destFilename, UriKind.Relative));
@@ -1117,6 +1119,42 @@ namespace AdminShellNS
                 }
                 PackagePart part = zip.CreatePart(uri, "", compression);
                 using (FileStream fileStream = new FileStream(fileToAdd, FileMode.Open, FileAccess.Read))
+                {
+                    using (Stream dest = part.GetStream())
+                    {
+                        fileStream.CopyTo(dest);
+                    }
+                }
+            }
+        }
+
+        public static void RecursiveAddDirToZip(
+            Package zip,
+            string localPath,
+            string zipPath = "",
+            CompressionOption compression = CompressionOption.Normal)
+        {
+            // enumerate only on this level
+            foreach (var infn in Directory.EnumerateDirectories(localPath, "*"))
+            {
+                // recurse
+                RecursiveAddDirToZip(
+                    zip,
+                    localPath: infn,
+                    zipPath: Path.Combine(zipPath, Path.GetFileName(infn)),
+                    compression: compression);
+            }
+
+            foreach (var infn in Directory.EnumerateFiles(localPath, "*"))
+            {
+                string destFilename = ".\\" + Path.Combine(zipPath, Path.GetFileName(infn));
+                Uri uri = PackUriHelper.CreatePartUri(new Uri(destFilename, UriKind.Relative));
+                if (zip.PartExists(uri))
+                {
+                    zip.DeletePart(uri);
+                }
+                PackagePart part = zip.CreatePart(uri, "", compression);
+                using (FileStream fileStream = new FileStream(infn, FileMode.Open, FileAccess.Read))
                 {
                     using (Stream dest = part.GetStream())
                     {

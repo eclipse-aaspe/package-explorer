@@ -945,7 +945,7 @@ namespace AasxIntegrationBase.AasForms
                             uitk.AddSmallComboBoxTo(g, row, 2, margin: new AnyUiThickness(1.0),
                                 horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
                                 text: "" + ls.Language,
-                                items: AasxLanguageHelper.GetLangCodes().ToArray()),
+                                items: AasxLanguageHelper.Languages.GetAllLanguages().ToArray()),
                             (o) =>
                             {
                                 if (o is string os)
@@ -1711,7 +1711,7 @@ namespace AasxIntegrationBase.AasForms
                     uitk.AddSmallComboBoxTo(g, row, 1, margin: new AnyUiThickness(1.0),
                         horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
                         text: "" + ls.Language,
-                        items: AasxLanguageHelper.GetLangCodes().ToArray()),
+                        items: AasxLanguageHelper.Languages.GetAllLanguages().ToArray()),
                     (o) =>
                     {
                         if (o is string os)

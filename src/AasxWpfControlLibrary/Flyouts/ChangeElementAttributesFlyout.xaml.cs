@@ -72,7 +72,7 @@ namespace AasxPackageExplorer
 
             // attribute lang combo
             this.ComboBoxAttrLang.Items.Clear();
-            foreach (var lng in AasxLanguageHelper.GetLangCodes())
+            foreach (var lng in AasxLanguageHelper.Languages.GetAllLanguages())
                 ComboBoxAttrLang.Items.Add("" + lng);
             ComboBoxAttrLang.Text = "en";
 

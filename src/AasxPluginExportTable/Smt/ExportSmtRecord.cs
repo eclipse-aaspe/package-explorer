@@ -47,10 +47,19 @@ namespace AasxPluginExportTable.Smt
         [AasxMenuArgument(help: "If true, will include table data in main AsciiDoc file.")]
         public bool IncludeTables = true;
 
-        [AasxMenuArgument(help: "If true, will execute external program to produce HTML from AsciiDic.")]
+        [AasxMenuArgument(help: "If true, will do dedicated sub-folders for images and diagrams.")]
+        public bool AntoraStyle = false;
+
+        [AasxMenuArgument(help: "If true, will execute external program to produce HTML from AsciiDoc " +
+            "using options 'SmtExportHtmlCmd' and 'SmtExportHtmlArgs' with placeholders %WD%, %ADOC%.")]
         public bool ExportHtml = false;
 
-        [AasxMenuArgument(help: "If true, will execute external program to produce PDF from AsciiDic.")]
+        [AasxMenuArgument(help: "If true, will execute external program to produce PDF from AsciiDoc " +
+            "using options 'SmtExportPdfCmd' and 'SmtExportPdfArgs' with placeholders %WD%, %ADOC%.")]
         public bool ExportPdf = false;
+
+        [AasxMenuArgument(help: "If true, will execute external program while in temporary directory " +
+            "using options 'SmtExportViewCmd' and 'SmtExportViewArgs' with placeholders %WD%, %ADOC%, %HTML%, %PDF%.")]
+        public bool ViewResult = false;
     }
 }

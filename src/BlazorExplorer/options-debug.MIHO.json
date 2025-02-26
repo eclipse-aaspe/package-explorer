@@ -39,8 +39,7 @@
   "TemplateIdSubmodelTemplate": "www.example.com/ids/sm/DDDD_DDDD_DDDD_DDDD",
   "TemplateIdConceptDescription": "www.example.com/ids/cd/DDDD_DDDD_DDDD_DDDD",
   "EclassDir": ".\\eclass\\",
-  /* "LogoFile": "SpecPI40_t.png", */
-  "LogoFile": "PI40_and_IDTA.png",
+  "LogoFile": "Logo_IDTA_Custom.png",
   "QualifiersFile": "qualifier-presets.json",
   "ExtensionsPresetFile": "extension-presets.json",
   "IdentifierKeyValuePairsFile": "local-identifier-presets.json",

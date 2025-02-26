@@ -11,8 +11,7 @@
   "TemplateIdConceptDescription": "www.example.com/ids/cd/DDDD_DDDD_DDDD_DDDD",
   "EclassDir": ".\\eclass\\",
   "DefaultLang": "en,de",
-  /* "LogoFile": "SpecPI40_t.png", */
-  "LogoFile": "PI40_and_IDTA.png",
+  "LogoFile": "Logo_IDTA_Custom.png",
   "QualifiersFile": "qualifier-presets.json",
   "ExtensionsPresetFile": "extension-presets.json",
   "IdentifierKeyValuePairsFile": "local-identifier-presets.json",
@@ -59,8 +58,8 @@
   ],
   "PluginPrefer": "ANYUI",
   "PluginDll": [
-    
-    {      
+
+    {
       "Path": "..\\..\\..\\..\\..\\..\\AasxPluginUaNetServer\\bin\\Debug\\net6.0-windows\\AasxPluginUaNetServer.dll",
       "Args": [
         "-single-nodeids",

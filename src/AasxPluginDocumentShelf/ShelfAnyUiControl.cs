@@ -65,7 +65,7 @@ namespace AasxPluginDocumentShelf
         private DocumentEntity.SubmodelVersion _selectedVersion = DocumentEntity.SubmodelVersion.Default;
 
         protected DefinitionsVDI2770.Vdi2770DocClass _selectedDocClass = DefinitionsVDI2770.Vdi2770DocClass.All;
-        protected AasxLanguageHelper.LangEnum _selectedLang = AasxLanguageHelper.LangEnum.Any;
+        protected AasxLanguageTuple _selectedLang = AasxLanguageTuple.GetAny();
 
         private List<DocumentEntity> _renderedEntities = new List<DocumentEntity>();
 
@@ -359,10 +359,7 @@ namespace AasxPluginDocumentShelf
                     "" + DefinitionsVDI2770.GetDocClass(dc) + " - " + DefinitionsVDI2770.GetDocClassName(dc));
 
             // languages
-            var langs = new List<object>();
-            foreach (var dc in (AasxLanguageHelper.LangEnum[])Enum.GetValues(
-                                    typeof(AasxLanguageHelper.LangEnum)))
-                langs.Add("Lang - " + AasxLanguageHelper.LangEnumToISO639String[(int)dc]);
+            var langs = AasxLanguageHelper.Languages.GetAllLanguages().ToList();
 
             // controls
             var controls = uitk.AddSmallWrapPanelTo(outer, 1, 0,
@@ -390,13 +387,14 @@ namespace AasxPluginDocumentShelf
             {
                 Margin = new AnyUiThickness(6, 4, 4, 4),
                 MinWidth = 120,
-                Items = langs,
-                SelectedIndex = (int)_selectedLang
+                Items = langs.Select((s) => "Lang - " + s).Cast<object>().ToList(),
+                SelectedIndex = _selectedLang == null ? 0 : (langs.IndexOf(_selectedLang.LangCode))
             }), (o) =>
             {
                 // ReSharper disable PossibleInvalidOperationException
                 if (cbLangs != null)
-                    _selectedLang = (AasxLanguageHelper.LangEnum)cbLangs.SelectedIndex;
+                    _selectedLang = AasxLanguageHelper.Languages.FindByLang(
+                        langs.ElementAt(cbLangs.SelectedIndex.Value)).FirstOrDefault();
                 // ReSharper enable PossibleInvalidOperationException
                 PushUpdateEvent();
                 return new AnyUiLambdaActionNone();

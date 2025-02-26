@@ -1255,6 +1255,8 @@ namespace AasxPackageExplorer
                 var json = JsonConvert.SerializeObject(lev, settings);
                 ;
             }
+
+            // AasxIntegrationBaseWpf.CountryFlagWpf.LoadImage();
         }
 
         private void ToolFindReplace_ResultSelected(AasxSearchUtil.SearchResultItem resultItem)

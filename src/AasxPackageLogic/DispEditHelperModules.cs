@@ -1942,7 +1942,7 @@ namespace AasxPackageLogic
                 new[] {
                     new HintCheck(
                         () => { return dsiec.Value == null; },
-                        "If the concepts stands for a single value of a value list, please provide " +
+                        "If the concept stands for a single value of a value list, please provide " +
                         "the value. Not required for enumerations or properties.",
                         severityLevel: HintCheck.Severity.Notice,
                         breakIfTrue: true),

@@ -31,6 +31,7 @@ using Extensions;
 using AnyUi;
 using System.Threading.Tasks;
 using System.Reflection;
+using System.Linq;
 
 namespace AasxPluginDocumentShelf
 {
@@ -189,7 +190,7 @@ namespace AasxPluginDocumentShelf
             AdminShellPackageEnv thePackage,
             Aas.Submodel subModel, AasxPluginDocumentShelf.DocumentShelfOptions options,
             string defaultLang,
-            int selectedDocClass, AasxLanguageHelper.LangEnum selectedLanguage)
+            int selectedDocClass, AasxLanguageTuple selectedLanguage)
         {
             // set a new list
             var its = new ListOfDocumentEntity();
@@ -251,7 +252,7 @@ namespace AasxPluginDocumentShelf
 
                         // collect country codes
                         var countryCodesStr = new List<string>();
-                        var countryCodesEnum = new List<AasxLanguageHelper.LangEnum>();
+                        var countryCodesEnum = new List<AasxLanguageTuple>();
                         foreach (var cclp in
                             smcVer.Value.FindAllSemanticIdAs<Aas.Property>(_semConfigV10.SemIdLanguage,
                             MatchMode.Relaxed))
@@ -262,11 +263,11 @@ namespace AasxPluginDocumentShelf
                                 continue;
 
                             // convert to country codes and add
-                            var le = AasxLanguageHelper.FindLangEnumFromLangCode(candidate);
-                            if (le != AasxLanguageHelper.LangEnum.Any)
+                            var le = AasxLanguageHelper.Languages.FindByLang(candidate).FirstOrDefault();
+                            if (le != null)
                             {
                                 countryCodesEnum.Add(le);
-                                countryCodesStr.Add(AasxLanguageHelper.GetCountryCodeFromEnum(le));
+                                countryCodesStr.Add(le.CountryCode);
                             }
                         }
 
@@ -279,11 +280,13 @@ namespace AasxPluginDocumentShelf
                                         (DefinitionsVDI2770.Vdi2770DocClass)selectedDocClass));
 
                         var okLanguage =
-                            selectedLanguage == AasxLanguageHelper.LangEnum.Any ||
-                            // make only exception, if no language not all (not only the preferred
-                            // of LanguageSelectionToISO639String) are in the property
-                            countryCodesStr.Count < 1 ||
-                            countryCodesEnum.Contains(selectedLanguage);
+                            selectedLanguage == null
+                            || (selectedLanguage.IsAny() == true
+                                // make only exception, if no language not all (not only the preferred
+                                // of LanguageSelectionToISO639String) are in the property
+                                || countryCodesStr.Count < 1
+                                || countryCodesEnum.Count((cc) => cc.LangCode?.ToLower().Trim()
+                                    == selectedLanguage.LangCode?.ToLower().Trim()) > 0);
 
                         if (!okDocClass || !okLanguage)
                             continue;
@@ -361,7 +364,7 @@ namespace AasxPluginDocumentShelf
             AdminShellPackageEnv thePackage,
             Aas.Submodel subModel, AasxPredefinedConcepts.VDI2770v11 defs11,
             string defaultLang,
-            int selectedDocClass, AasxLanguageHelper.LangEnum selectedLanguage)
+            int selectedDocClass, AasxLanguageTuple selectedLanguage)
         {
             // set a new list
             var its = new ListOfDocumentEntity();
@@ -426,7 +429,7 @@ namespace AasxPluginDocumentShelf
                         // try find language
                         // collect country codes
                         var countryCodesStr = new List<string>();
-                        var countryCodesEnum = new List<AasxLanguageHelper.LangEnum>();
+                        var countryCodesEnum = new List<AasxLanguageTuple>();
                         foreach (var cclp in
                             smcVer.Value.FindAllSemanticIdAs<Aas.Property>(defs11.CD_Language?.GetReference(),
                             MatchMode.Relaxed))
@@ -437,21 +440,22 @@ namespace AasxPluginDocumentShelf
                                 continue;
 
                             // convert to country codes and add
-                            var le = AasxLanguageHelper.FindLangEnumFromLangCode(candidate);
-                            if (le != AasxLanguageHelper.LangEnum.Any)
+                            var le = AasxLanguageHelper.Languages.FindByLang(candidate).FirstOrDefault();
+                            if (le != null)
                             {
                                 countryCodesEnum.Add(le);
-                                countryCodesStr.Add(AasxLanguageHelper.GetCountryCodeFromEnum(le));
+                                countryCodesStr.Add(le.CountryCode);
                             }
                         }
 
                         var okLanguage =
-                            (selectedLanguage == AasxLanguageHelper.LangEnum.Any ||
-                            countryCodesEnum == null ||
-                            // make only exception, if no language not all (not only the preferred
-                            // of LanguageSelectionToISO639String) are in the property
-                            countryCodesStr.Count < 1 ||
-                            countryCodesEnum.Contains(selectedLanguage));
+                            selectedLanguage == null
+                            || (selectedLanguage.IsAny() == true
+                                // make only exception, if no language not all (not only the preferred
+                                // of LanguageSelectionToISO639String) are in the property
+                                || countryCodesStr.Count < 1
+                                || countryCodesEnum.Count((cc) => cc.LangCode?.ToLower().Trim()
+                                    == selectedLanguage.LangCode?.ToLower().Trim()) > 0);
 
                         // try find a 2770 classification
                         var okDocClass = false;
@@ -565,7 +569,7 @@ namespace AasxPluginDocumentShelf
             AdminShellPackageEnv thePackage,
             Aas.Submodel subModel, AasxPredefinedConcepts.IdtaHandoverDocumentationV12 defs12,
             string defaultLang,
-            int selectedDocClass, AasxLanguageHelper.LangEnum selectedLanguage)
+            int selectedDocClass, AasxLanguageTuple selectedLanguage)
         {
             // set a new list
             var its = new ListOfDocumentEntity();
@@ -630,7 +634,7 @@ namespace AasxPluginDocumentShelf
                         // try find language
                         // collect country codes
                         var countryCodesStr = new List<string>();
-                        var countryCodesEnum = new List<AasxLanguageHelper.LangEnum>();
+                        var countryCodesEnum = new List<AasxLanguageTuple>();
                         foreach (var cclp in
                             smcVer.Value.FindAllSemanticIdAs<Aas.Property>(defs12.CD_Language?.GetReference(),
                             MatchMode.Relaxed))
@@ -641,21 +645,22 @@ namespace AasxPluginDocumentShelf
                                 continue;
 
                             // convert to country codes and add
-                            var le = AasxLanguageHelper.FindLangEnumFromLangCode(candidate);
-                            if (le != AasxLanguageHelper.LangEnum.Any)
+                            var le = AasxLanguageHelper.Languages.FindByLang(candidate).FirstOrDefault();
+                            if (le != null)
                             {
                                 countryCodesEnum.Add(le);
-                                countryCodesStr.Add(AasxLanguageHelper.GetCountryCodeFromEnum(le));
+                                countryCodesStr.Add(le.CountryCode);
                             }
                         }
 
                         var okLanguage =
-                            (selectedLanguage == AasxLanguageHelper.LangEnum.Any ||
-                            countryCodesEnum == null ||
-                            // make only exception, if no language not all (not only the preferred
-                            // of LanguageSelectionToISO639String) are in the property
-                            countryCodesStr.Count < 1 ||
-                            countryCodesEnum.Contains(selectedLanguage));
+                            selectedLanguage == null
+                            || (selectedLanguage.IsAny() == true
+                                // make only exception, if no language not all (not only the preferred
+                                // of LanguageSelectionToISO639String) are in the property
+                                || countryCodesStr.Count < 1
+                                || countryCodesEnum.Count((cc) => cc.LangCode?.ToLower().Trim()
+                                    == selectedLanguage.LangCode?.ToLower().Trim()) > 0);
 
                         // try find a 2770 classification
                         var okDocClass = false;

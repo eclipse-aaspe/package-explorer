@@ -489,10 +489,16 @@ namespace AasxPackageLogic
         public bool AllowLocalFiles = true;
 
         [OptionDescription(Description =
-            "Designates the default language code in ISO639-1. This will be used for new language strings " +
-            "of uncertain language",
-            Cmd = "-default-lang")]
-        public string DefaultLang = "en";
+            "Designates the default language codes in ISO639-1. This will be used for new language strings " +
+            "of uncertain information. Each language separated by comma. First language code is the default one.",
+            Cmd = "-default-langs")]
+        public string DefaultLangs = "en";
+
+        [OptionDescription(Description =
+            "List of language/ country codes offered by the UI. Comma-separated tags of two-digit ISO 639-2 and ISO 3166-1 codes, " +
+            "also known (but not equal) to RFC 5464 locales. ",
+            Cmd = "-offered-langs")]
+        public string OfferedLangs = "en";
 
         [OptionDescription(Description =
             "Designates the default value of the first text value of a newly created multi language list. " +
@@ -1076,6 +1082,15 @@ namespace AasxPackageLogic
         {
             return ExtendReference.CreateFromKey(
                 KeyTypes.GlobalReference,
+                Options.Curr.DefaultEmptyReferenceKey);
+        }
+
+        //This method has ben added to make Event.Observed as model reference
+        public Aas.IReference GetDefaultEmptyModelReference()
+        {
+            return ExtendReference.CreateFromKey(
+                ReferenceTypes.ModelReference,
+                KeyTypes.Referable,
                 Options.Curr.DefaultEmptyReferenceKey);
         }
 

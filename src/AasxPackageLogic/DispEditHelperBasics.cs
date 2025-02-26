@@ -145,8 +145,6 @@ namespace AasxPackageLogic
         // Members
         //
 
-        private string[] defaultLanguages = new[] { "en", "de", "fr", "es", "it", "zh", "kr", "jp" };
-
         public PackageCentral.PackageCentral packages = null;
         public IPushApplicationEvent appEventsProvider = null;
 
@@ -952,7 +950,7 @@ namespace AasxPackageLogic
                                         AnyUiContextCapability.Blazor, new AnyUiThickness(0, 4, 0, 4)),
                                     text: "" + langStr[currentI].Language,
                                     minWidth: 60,
-                                    items: defaultLanguages,
+                                    items: AasxLanguageHelper.Languages.GetAllLanguages(nullForAny: true).ToArray(),
                                     isEditable: true),
                                 verticalAlignment: AnyUiVerticalAlignment.Top,
                                 verticalContentAlignment: AnyUiVerticalAlignment.Center

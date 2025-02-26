@@ -41,6 +41,8 @@ namespace AasxPluginExportTable
         public string SmtExportHtmlArgs = "";
         public string SmtExportPdfCmd = "";
         public string SmtExportPdfArgs = "";
+        public string SmtExportViewCmd = "";
+        public string SmtExportViewArgs = "";
 
         public ExportUmlRecord UmlExport = null;
 

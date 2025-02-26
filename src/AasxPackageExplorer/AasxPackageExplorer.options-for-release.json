@@ -10,7 +10,7 @@
   "TemplateIdSubmodelTemplate": "https://example.com/ids/sm/DDDD_DDDD_DDDD_DDDD",
   "TemplateIdConceptDescription": "https://example.com/ids/cd/DDDD_DDDD_DDDD_DDDD",
   "EclassDir": ".\\eclass\\",
-  "LogoFile": "PI40_and_IDTA.png",
+  "LogoFile": "Logo_IDTA_Custom.png",
   "QualifiersFile": "qualifier-presets.json",
   "ContentHome": "https://github.com/admin-shell/io/blob/master/README.md",
   "UseFlyovers": true,

@@ -7,10 +7,16 @@
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Resources\country_flags.png" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
     <ProjectReference Include="..\AnyUi\AnyUi.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\country_flags.png">
+      <Pack>True</Pack>
+    </Resource>
     <Resource Include="Resources\msg_error.png" />
     <Resource Include="Resources\msg_hand.png" />
     <Resource Include="Resources\msg_info.png" />

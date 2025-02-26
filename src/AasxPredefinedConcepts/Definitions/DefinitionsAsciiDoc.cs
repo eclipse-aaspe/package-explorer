@@ -41,6 +41,7 @@ namespace AasxPredefinedConcepts
             CD_Heading1,
             CD_Heading2,
             CD_Heading3,
+            CD_Heading4,
             CD_ImageFile,
             CD_GenerateUml,
             CD_GenerateTables;
@@ -79,6 +80,11 @@ namespace AasxPredefinedConcepts
                 "Heading3",
                 "http://admin-shell.io/aasx-package-explorer/functions/asciidoc/heading3/1/0",
                 @"Heading with level 3 in AsciiDoc. That is: sub sub section.");
+
+            CD_Heading4 = CreateSparseConceptDescription("en", "IRI",
+                "Heading4",
+                "http://admin-shell.io/aasx-package-explorer/functions/asciidoc/heading4/1/0",
+                @"Heading with level 4 in AsciiDoc. That is: sub sub sub section.");
 
             CD_ImageFile = CreateSparseConceptDescription("en", "IRI",
                 "ImageFile",
