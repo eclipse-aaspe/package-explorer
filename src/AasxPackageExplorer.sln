@@ -154,7 +154,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AasxPluginProductChangeNoti
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AasxPluginSmdExporter", "AasxPluginSmdExporter\AasxPluginSmdExporter.csproj", "{621D9B9C-1723-48CB-AE2D-3C17390B7F4B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AasxOpcUa2Client", "AasxOpcUa2Client\AasxOpcUa2Client.csproj", "{6B8BDF03-9C9B-492B-8904-9756B498B9B7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AasxOpcUa2Client", "AasxOpcUa2Client\AasxOpcUa2Client.csproj", "{6B8BDF03-9C9B-492B-8904-9756B498B9B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
