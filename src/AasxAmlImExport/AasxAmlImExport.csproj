@@ -6,7 +6,7 @@
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 	<ItemGroup>
-		<Using Include="AasCore.Aas3_0"/>
+		<Using Include="AasCore.Aas3_0" />
 	</ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
@@ -17,5 +17,9 @@
   <ItemGroup>
     <PackageReference Include="Aml.Engine" Version="2.0.9" />
     <PackageReference Include="dotNetRDF" Version="2.7.5" />
+    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+    <PackageReference Include="System.IO.Packaging" Version="7.0.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Text.Json" Version="9.0.2" />
   </ItemGroup>
 </Project>

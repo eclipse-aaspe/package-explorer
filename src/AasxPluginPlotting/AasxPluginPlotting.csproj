@@ -23,6 +23,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="ScottPlot" Version="4.1.68" />
     <PackageReference Include="ScottPlot.WPF" Version="4.1.68" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
+    <PackageReference Include="System.Formats.Asn1" Version="9.0.2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="WpfPlotViewControlCumulative.xaml.cs">

@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.IO.Packaging" Version="7.0.0" />
     <PackageReference Include="Workstation.UaClient" Version="3.2.3" />
   </ItemGroup>
 
