@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <LangVersion>8</LangVersion>
@@ -13,6 +13,8 @@
     <PackageReference Include="FlaUI.UIA3" Version="4.0.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
+    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+    <PackageReference Include="System.IO.Packaging" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TestResources\AasxPackageExplorer.GuiTests\**">

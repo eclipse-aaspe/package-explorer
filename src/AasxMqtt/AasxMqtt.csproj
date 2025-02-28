@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <OutputType>Library</OutputType>
     <RootNamespace>AasxMqttServer</RootNamespace>
     <AssemblyName>AasxMqttServer</AssemblyName>
@@ -13,5 +13,6 @@
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
     <PackageReference Include="MQTTnet" Version="3.0.5" />
+    <PackageReference Include="System.IO.Packaging" Version="7.0.0" />
   </ItemGroup>
 </Project>
