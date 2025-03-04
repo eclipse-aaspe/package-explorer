@@ -42,10 +42,11 @@ function PackageRelease($outputDir)
         "AasxPluginImageMap",
         "AasxPluginMtpViewer",
         "AasxPluginPlotting",
-	      "AasxPluginProductChangeNotifications",
+	    "AasxPluginProductChangeNotifications",
         "AasxPluginSmdExporter",
-        "AasxPluginTechnicalData"
-        "AasxPluginUaNetClient"
+        "AasxPluginTechnicalData",
+        "AasxPluginUaNetClient",
+        "AasxPluginAssetInterfaceDesc"
     )
 
     $blazorPlugins = $(
@@ -63,7 +64,8 @@ function PackageRelease($outputDir)
         "AasxPluginSmdExporter",
         "AasxPluginTechnicalData",
         "AasxPluginUaNetClient",
-        "AasxPluginWebBrowser"
+        "AasxPluginWebBrowser",
+        "AasxPluginAssetInterfaceDesc"
     )
 
     $allPlugins = $smallPlugins.Clone()
