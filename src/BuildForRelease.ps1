@@ -49,12 +49,13 @@ function Main
         "AasxPluginDigitalNameplate",
         "AasxPluginMtpViewer",
         "AasxPluginPlotting",
-		    "AasxPluginProductChangeNotifications",
+		"AasxPluginProductChangeNotifications",
         "AasxPluginSmdExporter",
         "AasxPluginTechnicalData",
         "AasxPluginUaNetClient",
         "AasxPluginWebBrowser",
-        "BlazorExplorer"
+        "BlazorExplorer",
+        "AasxPluginAssetInterfaceDesc"
         )
 
         foreach ($project in $projects)
