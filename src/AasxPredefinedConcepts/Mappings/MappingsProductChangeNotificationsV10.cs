@@ -7,7 +7,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
-using AasCore.Aas3_0;
+using AasCore.Aas3_1;
 using AasxIntegrationBase;
 using AasxPredefinedConcepts.AssetInterfacesDescription;
 using AdminShellNS;
@@ -15,7 +15,7 @@ using Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 // These classes were serialized by "export predefined concepts"
 // and shall allow to automatically de-serialize AAS elements structures

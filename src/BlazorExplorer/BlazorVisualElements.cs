@@ -25,7 +25,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 using AasxIntegrationBase;

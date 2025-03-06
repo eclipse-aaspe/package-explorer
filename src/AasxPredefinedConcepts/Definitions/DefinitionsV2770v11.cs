@@ -8,7 +8,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 */
 
 using System.Reflection;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 // ReSharper disable UnassignedField.Global
 // (working by reflection)

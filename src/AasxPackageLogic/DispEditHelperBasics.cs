@@ -23,7 +23,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using static System.Net.WebRequestMethods;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic
 {

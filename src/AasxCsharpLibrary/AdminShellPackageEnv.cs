@@ -139,10 +139,10 @@ namespace AdminShellNS
         /// </summary>
         /// <param name="s">Open for read stream</param>
         /// <returns></returns>
-        public static AasCore.Aas3_0.Environment DeserializeXmlFromStreamWithCompat(Stream s)
+        public static AasCore.Aas3_1.Environment DeserializeXmlFromStreamWithCompat(Stream s)
         {
             // not sure
-            AasCore.Aas3_0.Environment res = null;
+            AasCore.Aas3_1.Environment res = null;
 
             // try get first element
             var nsuri = TryReadXmlFirstElementNamespaceURI(s);
@@ -155,7 +155,7 @@ namespace AdminShellNS
                     typeof(AasxCompatibilityModels.AdminShellV10.AdministrationShellEnv),
                     "http://www.admin-shell.io/aas/1/0");
                 var v10 = serializer.Deserialize(s) as AasxCompatibilityModels.AdminShellV10.AdministrationShellEnv;
-                res = new AasCore.Aas3_0.Environment(new List<IAssetAdministrationShell>(), new List<ISubmodel>(), new List<IConceptDescription>());
+                res = new AasCore.Aas3_1.Environment(new List<IAssetAdministrationShell>(), new List<ISubmodel>(), new List<IConceptDescription>());
                 res.ConvertFromV10(v10);
                 return res;
 #else
@@ -171,7 +171,7 @@ namespace AdminShellNS
                     typeof(AasxCompatibilityModels.AdminShellV20.AdministrationShellEnv),
                     "http://www.admin-shell.io/aas/2/0");
                 var v20 = serializer.Deserialize(s) as AasxCompatibilityModels.AdminShellV20.AdministrationShellEnv;
-                res = new AasCore.Aas3_0.Environment(new List<IAssetAdministrationShell>(), new List<ISubmodel>(), new List<IConceptDescription>());
+                res = new AasCore.Aas3_1.Environment(new List<IAssetAdministrationShell>(), new List<ISubmodel>(), new List<IConceptDescription>());
                 res.ConvertFromV20(v20);
                 return res;
 #else
@@ -184,8 +184,8 @@ namespace AdminShellNS
             {
                 // dead-csharp off
                 //XmlSerializer serializer = new XmlSerializer(
-                //    typeof(AasCore.Aas3_0_RC02.Environment), "http://www.admin-shell.io/aas/3/0");
-                //res = serializer.Deserialize(s) as AasCore.Aas3_0_RC02.Environment;
+                //    typeof(AasCore.Aas3_1_RC02.Environment), "http://www.admin-shell.io/aas/3/0");
+                //res = serializer.Deserialize(s) as AasCore.Aas3_1_RC02.Environment;
                 // dead-csharp on
                 using (var xmlReader = XmlReader.Create(s))
                 {
@@ -276,14 +276,14 @@ namespace AdminShellNS
 
         private string _tempFn = null;
 
-        private IEnvironment _aasEnv = new AasCore.Aas3_0.Environment();
+        private IEnvironment _aasEnv = new AasCore.Aas3_1.Environment();
         private Package _openPackage = null;
         private readonly ListOfAasSupplementaryFile _pendingFilesToAdd = new ListOfAasSupplementaryFile();
         private readonly ListOfAasSupplementaryFile _pendingFilesToDelete = new ListOfAasSupplementaryFile();
 
         public AdminShellPackageEnv() { }
 
-        public AdminShellPackageEnv(AasCore.Aas3_0.Environment env)
+        public AdminShellPackageEnv(AasCore.Aas3_1.Environment env)
         {
             if (env != null)
                 _aasEnv = env;
@@ -364,7 +364,7 @@ namespace AdminShellNS
                 }
         }
 
-        private static AasCore.Aas3_0.Environment LoadXml(string fn)
+        private static AasCore.Aas3_1.Environment LoadXml(string fn)
         {
             try
             {
@@ -386,7 +386,7 @@ namespace AdminShellNS
             }
         }
 
-        private static AasCore.Aas3_0.Environment LoadJson(string fn)
+        private static AasCore.Aas3_1.Environment LoadJson(string fn)
         {
             try
             {
@@ -399,8 +399,8 @@ namespace AdminShellNS
                     //    new AdminShellConverters.JsonAasxConverter(
                     //        "modelType", "name"));
 
-                    //var aasEnv = (AasCore.Aas3_0_RC02.Environment)serializer.Deserialize(
-                    //    file, typeof(AasCore.Aas3_0_RC02.Environment));
+                    //var aasEnv = (AasCore.Aas3_1_RC02.Environment)serializer.Deserialize(
+                    //    file, typeof(AasCore.Aas3_1_RC02.Environment));
                     // dead-csharp on
                     var node = System.Text.Json.Nodes.JsonNode.Parse(file);
                     var aasEnv = Jsonization.Deserialize.EnvironmentFrom(node);
@@ -416,9 +416,9 @@ namespace AdminShellNS
         }
 
         /// <remarks><paramref name="fn"/> is unequal <paramref name="fnToLoad"/> if indirectLoadSave is used.</remarks>
-        private static (AasCore.Aas3_0.Environment, Package) LoadPackageAasx(string fn, string fnToLoad)
+        private static (AasCore.Aas3_1.Environment, Package) LoadPackageAasx(string fn, string fnToLoad)
         {
-            AasCore.Aas3_0.Environment aasEnv;
+            AasCore.Aas3_1.Environment aasEnv;
             Package openPackage = null;
 
             Package package;
@@ -487,8 +487,8 @@ namespace AdminShellNS
                             //    new AdminShellConverters.JsonAasxConverter(
                             //        "modelType", "name"));
 
-                            //aasEnv = (AasCore.Aas3_0_RC02.Environment)serializer.Deserialize(
-                            //    file, typeof(AasCore.Aas3_0_RC02.Environment));
+                            //aasEnv = (AasCore.Aas3_1_RC02.Environment)serializer.Deserialize(
+                            //    file, typeof(AasCore.Aas3_1_RC02.Environment));
 
                             var node = System.Text.Json.Nodes.JsonNode.Parse(s);
                             aasEnv = Jsonization.Deserialize.EnvironmentFrom(node);
@@ -615,8 +615,8 @@ namespace AdminShellNS
                 // TODO (Michael Hoffmeister, 2020-08-01): use a unified function to create a serializer
                 //JsonSerializer serializer = new JsonSerializer();
                 //serializer.Converters.Add(new AdminShellConverters.JsonAasxConverter("modelType", "name"));
-                //_aasEnv = (AasCore.Aas3_0_RC02.Environment)serializer.Deserialize(
-                //    file, typeof(AasCore.Aas3_0_RC02.Environment));
+                //_aasEnv = (AasCore.Aas3_1_RC02.Environment)serializer.Deserialize(
+                //    file, typeof(AasCore.Aas3_1_RC02.Environment));
 
                 var node = System.Text.Json.Nodes.JsonNode.Parse(content);
                 _aasEnv = Jsonization.Deserialize.EnvironmentFrom(node);
@@ -665,7 +665,7 @@ namespace AdminShellNS
                     {
                         // dead-csharp off
                         // TODO (Michael Hoffmeister, 2020-08-01): use a unified function to create a serializer
-                        //var serializer = new XmlSerializer(typeof(AasCore.Aas3_0_RC02.Environment));
+                        //var serializer = new XmlSerializer(typeof(AasCore.Aas3_1_RC02.Environment));
                         //var nss = GetXmlDefaultNamespaces();
                         //serializer.Serialize(s, _aasEnv, nss);
                         // dead-csharp on
@@ -1249,7 +1249,7 @@ namespace AdminShellNS
                 using (var s = new StreamWriter(bdfn))
                 {
                     // dead-csharp off
-                    //var serializer = new XmlSerializer(typeof(AasCore.Aas3_0_RC02.Environment));
+                    //var serializer = new XmlSerializer(typeof(AasCore.Aas3_1_RC02.Environment));
                     //var nss = new XmlSerializerNamespaces();
                     //nss.Add("xsi", System.Xml.Schema.XmlSchema.InstanceNamespace);
                     //nss.Add("aas", "http://www.admin-shell.io/aas/2/0");

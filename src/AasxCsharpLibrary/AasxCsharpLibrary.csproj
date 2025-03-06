@@ -9,7 +9,7 @@
     <DefineConstants>TRACE;UseAasxCompatibilityModels</DefineConstants>
   </PropertyGroup>
 	<ItemGroup>
-		<Using Include="AasCore.Aas3_0" />
+		<Using Include="AasCore.Aas3_1" />
 	</ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="LICENSE.txt">
@@ -40,6 +40,6 @@
     <PackageReference Include="System.IO.Packaging" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AasCore.Aas3_0\AasCore.Aas3_0.csproj" />
+    <ProjectReference Include="..\AasCore.Aas3_1\AasCore.Aas3_1.csproj" />
   </ItemGroup>
 </Project>

@@ -22,7 +22,7 @@ using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Windows.Documents;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AasCore.Samm2_2_0;
 using static AasxPackageLogic.DispEditHelperBasics;
 using System.Windows.Controls;
@@ -2765,7 +2765,8 @@ namespace AasxPackageLogic
                                             excludeValues: new[] {
                                                 Aas.AasSubmodelElements.DataElement,
                                                 Aas.AasSubmodelElements.EventElement,
-                                                Aas.AasSubmodelElements.Operation 
+                                                Aas.AasSubmodelElements.Operation,
+                                                Aas.AasSubmodelElements.ContainerElement
                                             });
 
                                     // ok?
@@ -3410,7 +3411,8 @@ namespace AasxPackageLogic
                                         excludeValues: new[] {
                                             Aas.AasSubmodelElements.DataElement,
                                             Aas.AasSubmodelElements.EventElement,
-                                            Aas.AasSubmodelElements.Operation
+                                            Aas.AasSubmodelElements.Operation,
+                                            Aas.AasSubmodelElements.ContainerElement
                                         });
 
                                 // ok?

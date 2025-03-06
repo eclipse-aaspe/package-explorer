@@ -15,11 +15,11 @@ using System.Text;
 using System.Threading.Tasks;
 using AasxPluginSmdExporter.Model;
 using Newtonsoft.Json.Linq;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 using System.IdentityModel.Tokens.Jwt;
-using AasCore.Aas3_0;
+using AasCore.Aas3_1;
 
 namespace AasxPluginSmdExporter
 {

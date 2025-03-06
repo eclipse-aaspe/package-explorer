@@ -24,7 +24,7 @@ using System.Reflection;
 using System.Security.Cryptography.Pkcs;
 using System.Text;
 using System.Threading.Tasks;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 // ReSharper disable MethodHasAsyncOverload
 

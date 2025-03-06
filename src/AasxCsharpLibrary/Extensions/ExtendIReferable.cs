@@ -292,7 +292,7 @@ namespace Extensions
                 return new AasElementSelfDescription("MultiLanguageProperty", "MLP",
                     KeyTypes.MultiLanguageProperty, AasSubmodelElements.MultiLanguageProperty);
             }
-            else if (referable is AasCore.Aas3_0.Range)
+            else if (referable is AasCore.Aas3_1.Range)
             {
                 return new AasElementSelfDescription("Range", "Range",
                     KeyTypes.Range, AasSubmodelElements.Range);
@@ -302,7 +302,7 @@ namespace Extensions
                 return new AasElementSelfDescription("Blob", "Blob",
                     KeyTypes.Blob, AasSubmodelElements.Blob);
             }
-            else if (referable is AasCore.Aas3_0.File)
+            else if (referable is AasCore.Aas3_1.File)
             {
                 return new AasElementSelfDescription("File", "File",
                     KeyTypes.File, AasSubmodelElements.File);

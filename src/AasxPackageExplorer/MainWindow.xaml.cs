@@ -7,7 +7,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
-using AasCore.Aas3_0;
+using AasCore.Aas3_1;
 using AasxIntegrationBase;
 using AasxIntegrationBase.AdminShellEvents;
 using AasxPackageLogic;
@@ -41,7 +41,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Workstation.ServiceModel.Ua;
 using static AasxPackageLogic.DispEditHelperBasics;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using ExhaustiveMatch = ExhaustiveMatching.ExhaustiveMatch;
 
 namespace AasxPackageExplorer
@@ -193,7 +193,7 @@ namespace AasxPackageExplorer
             // focus info
             var focusMdo = DisplayElements.SelectedItem?.GetDereferencedMainDataObject();
 
-            var t = "AASX Package Explorer V3.0";
+            var t = "AASX Package Explorer V3.1";
             //TODO (jtikekar, 0000-00-00): remove V3RC02
             if (PackageCentral.MainAvailable)
                 t += " - " + PackageCentral.MainItem.ToString();

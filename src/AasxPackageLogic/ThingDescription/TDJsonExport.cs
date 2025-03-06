@@ -11,7 +11,7 @@ using Extensions;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageExplorer
 {

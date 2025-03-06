@@ -24,7 +24,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Media;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AasxPredefinedConcepts.Qualifiers;
 
 // ReSharper disable PossiblyMistakenUseOfParamsMethod .. issue, even if according to samples of Word API
@@ -369,10 +369,10 @@ namespace AasxPluginExportTable.Table
                     if (sml.SemanticIdListElement?.IsValid() == true)
                         details.Add("semanticIdListElement=" + sml.SemanticIdListElement.ToStringExtended());
                     details.Add("typeValueListElement=" +
-                        AasCore.Aas3_0.Stringification.ToString(sml.TypeValueListElement));
+                        AasCore.Aas3_1.Stringification.ToString(sml.TypeValueListElement));
                     if (sml.ValueTypeListElement != null)
                         details.Add("valueTypeListElement=" +
-                            AasCore.Aas3_0.Stringification.ToString(sml.ValueTypeListElement));
+                            AasCore.Aas3_1.Stringification.ToString(sml.ValueTypeListElement));
                 }
                 if (details.Count < 1)
                     details.Add("-");

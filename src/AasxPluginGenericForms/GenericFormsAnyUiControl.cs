@@ -13,7 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AdminShellNS;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AasxIntegrationBase;
 using AasxIntegrationBase.AasForms;
 using AnyUi;
