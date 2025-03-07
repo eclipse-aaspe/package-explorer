@@ -48,7 +48,7 @@ namespace AasxPackageLogic
             string jsonInput,
             Aas.IQualifier qCurr)
         {
-            var qIn = JsonConvert.DeserializeObject<Aas.Qualifier>(jsonInput);
+            var qIn = AdminShellSerializationHelper.DeserializeAdaptiveFromJSON<Aas.Qualifier>(jsonInput);
             if (qCurr != null && qIn != null)
             {
                 qCurr.Type = qIn.Type;
@@ -317,8 +317,12 @@ namespace AasxPackageLogic
                                     }
                                     break;
                                 case 3:
-                                    var jsonStr = JsonConvert.SerializeObject(
-                                        qualifiers[storedI], Formatting.Indented);
+                                    var jsonStr = Aas.Jsonization.Serialize.ToJsonObject(qualifiers[storedI])
+                                            .ToJsonString(new System.Text.Json.JsonSerializerOptions()
+                                            {
+                                                WriteIndented = true
+                                            });
+
                                     this.context?.ClipboardSet(new AnyUiClipboardData(jsonStr));
                                     Log.Singleton.Info("Qualified serialized to clipboard.");
                                     break;
@@ -820,7 +824,7 @@ namespace AasxPackageLogic
             string jsonInput,
             Aas.IExtension qCurr)
         {
-            var qIn = JsonConvert.DeserializeObject<Aas.Extension>(jsonInput);
+            var qIn = AdminShellSerializationHelper.DeserializeAdaptiveFromJSON<Aas.Extension>(jsonInput);
             if (qCurr != null && qIn != null)
             {
                 qCurr.Name = qIn.Name;
@@ -940,7 +944,7 @@ namespace AasxPackageLogic
                             catch (Exception ex)
                             {
                                 Log.Singleton.Error(
-                                    ex, $"While show Qualifier presets ({pfn})");
+                                    ex, $"While show Extension presets ({pfn})");
                             }
                         }
 
@@ -1024,8 +1028,12 @@ namespace AasxPackageLogic
                                     }
                                     break;
                                 case 3:
-                                    var jsonStr = JsonConvert.SerializeObject(
-                                        extensions[storedI], Formatting.Indented);
+                                    var jsonStr = Aas.Jsonization.Serialize.ToJsonObject(extensions[storedI])
+                                            .ToJsonString(new System.Text.Json.JsonSerializerOptions()
+                                            {
+                                                WriteIndented = true
+                                            });
+
                                     this.context?.ClipboardSet(new AnyUiClipboardData(jsonStr));
                                     Log.Singleton.Info("Extension serialized to clipboard.");
                                     break;
