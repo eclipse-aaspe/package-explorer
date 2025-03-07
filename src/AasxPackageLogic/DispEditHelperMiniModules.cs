@@ -48,15 +48,7 @@ namespace AasxPackageLogic
             string jsonInput,
             Aas.IQualifier qCurr)
         {
-            // var qIn = JsonConvert.DeserializeObject<Aas.Qualifier>(jsonInput);
             var qIn = AdminShellSerializationHelper.DeserializeAdaptiveFromJSON<Aas.Qualifier>(jsonInput);
-
-            //JsonTextReader reader = new JsonTextReader(new StringReader(jsonInput));
-            //JsonSerializer serializer = new JsonSerializer();
-            //serializer.Converters.Add(new AdminShellConverters.AdaptiveAasIClassConverter(
-            //    AdminShellConverters.AdaptiveAasIClassConverter.ConversionMode.AasCore));
-            //var qIn = serializer.Deserialize<Aas.Qualifier>(reader);
-
             if (qCurr != null && qIn != null)
             {
                 qCurr.Type = qIn.Type;
@@ -832,7 +824,7 @@ namespace AasxPackageLogic
             string jsonInput,
             Aas.IExtension qCurr)
         {
-            var qIn = JsonConvert.DeserializeObject<Aas.Extension>(jsonInput);
+            var qIn = AdminShellSerializationHelper.DeserializeAdaptiveFromJSON<Aas.Extension>(jsonInput);
             if (qCurr != null && qIn != null)
             {
                 qCurr.Name = qIn.Name;

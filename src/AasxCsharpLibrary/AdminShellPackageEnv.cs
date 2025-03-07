@@ -209,18 +209,26 @@ namespace AdminShellNS
         }
 
         /// <summary>
-        /// Use this to deserialize flexible JSON "coming from the outside"
+        /// Use this (new!) to deserialize flexible JSON "coming from the outside"
         /// </summary>
         public static T DeserializeAdaptiveFromJSON<T>(string jsonInput) where T : IClass
         {
-            using (JsonTextReader reader = new JsonTextReader(new StringReader(jsonInput)))
+            try
             {
-                JsonSerializer serializer = new JsonSerializer();
-                serializer.Converters.Add(new AdminShellConverters.AdaptiveAasIClassConverter(
-                AdminShellConverters.AdaptiveAasIClassConverter.ConversionMode.AasCore));
-                var res = serializer.Deserialize<T>(reader);
-                return res;
+                using (JsonTextReader reader = new JsonTextReader(new StringReader(jsonInput)))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    serializer.Converters.Add(new AdminShellConverters.AdaptiveAasIClassConverter(
+                    AdminShellConverters.AdaptiveAasIClassConverter.ConversionMode.AasCore));
+                    var res = serializer.Deserialize<T>(reader);
+                    return res;
+                }
             }
+            catch (Exception ex)
+            {
+                LogInternally.That.CompletelyIgnoredError(ex);
+            }
+            return default(T);
         }
     }
 
