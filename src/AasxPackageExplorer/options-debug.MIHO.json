@@ -39,7 +39,7 @@
   // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_TechData_Work\\IDTA 02003-1-2_SubmodelTemplate_TechnicalData_v1.2__with_Draft_1_3_and_AsciiDoc_v01.aasx",
   // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\IDTA_02036-1-0_SMT_ProductChangeNotification_Draft_v22.aasx",
   // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\IDTA_02036-1-0_SMT_ProductChangeNotification_Examples_v08.aasx",
-  "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\SMT_ProductChangeNotification_Draft_v20_spiel.aasx",
+  // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\SMT_ProductChangeNotification_Draft_v20_spiel.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\aaspe-testing\\210_Copy_Paste\\Sample_AAS.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\aaspe-testing\\310_Plugin_DNP\\Sample_AAS.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\aaspe-testing\\200_Find_Replace\\Sample_SMT.aasx",
@@ -64,7 +64,7 @@
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\aid\\robotic_cell_for_demo_suitcase_new-v3.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\IDTA 02006-2-1_Template_Digital Nameplate_V3_Demo_ExportSMT - Kopie.aasx",
   // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\SMT_ProductChangeNotification_Draft_play_02.aasx",
-  "AasxRepositoryFn": "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\Festo-DemoCase-repo-V3-local.json",
+  // "AasxRepositoryFn": "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\Festo-DemoCase-repo-V3-local.json",
   // "AasxToLoad": "C:\\MIHO\\Develop\\Aasx\\repo\\smt_pcn\\SMT_ProductChangeNotification_Draft_play_02.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\dnp30\\IDTA 02006-3-0_Template_Digital Nameplate_AsciiDoc_Draft_v06.aasx",
   // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\contactv11\\IDTA 02002-1-1_Template_ContactInformation_AsciiDoc_Draft_v04.aasx",
@@ -140,22 +140,6 @@
   "PluginPrefer": "ANYUI",
   "PluginDll": [
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginUaNetServer\\bin\\Debug\\net8.0-windows\\AasxPluginUaNetServer.dll",
-      "Args": [
-        "-single-nodeids",
-        "-single-keys",
-        "-ns",
-        "2",
-        "-ns",
-        "3"
-      ],
-      "Options": null
-    },
-    {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginUaNetClient\\bin\\Debug\\net8.0-windows\\AasxPluginUaNetClient.dll",
-      "Args": []
-    },
-    {
       "Path": "..\\..\\..\\..\\..\\..\\AasxPluginProductChangeNotifications\\bin\\Debug\\net8.0-windows\\AasxPluginProductChangeNotifications.dll",
       "Args": []
     },
@@ -214,8 +198,7 @@
     {
       "Path": "..\\..\\..\\..\\..\\..\\AasxPluginWebBrowser\\bin\\x64\\Debug\\AasxPluginWebBrowser.dll",
       "Args": []
-    },
-
+    } /*,
     // Festo specific from here on
     {
       "Path": "..\\..\\..\\..\\..\\..\\..\\..\\AasxFesto\\AasxFesto\\AasxPluginFluiddrawViewer\\bin\\Debug\\net8.0-windows\\AasxPluginFluiddrawViewer.dll",
@@ -224,7 +207,7 @@
     {
       "Path": "..\\..\\..\\..\\..\\..\\..\\..\\AasxFesto\\AasxFesto\\AasxPluginFluiddrawBom\\bin\\Debug\\net8.0-windows\\AasxPluginFluiddrawBom.dll",
       "Args": []
-    }
+    } */
   ],
   "SecureConnectPresets": [
     {
@@ -416,7 +399,7 @@
         "Tool(\"LocationPush\");",
         "Select(\"Submodel\", \"First\");",
         "Select(\"Submodel\", \"Next\");",
-        "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\homi0002\\Desktop\\tmp\\new.zip\");",
+        "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\Micha\\Desktop\\tmp\\new.zip\");",
         "Tool(\"LocationPop\");"
       ]
     },
@@ -426,7 +409,7 @@
         "Tool(\"LocationPush\");",
         "Select(\"Submodel\", \"First\");",
         "Select(\"Submodel\", \"Next\");",
-        "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\homi0002\\Desktop\\tmp\\new.zip\", \"ExportHtml\", \"true\", \"ExportPdf\", \"false\", \"AntoraStyle\", \"false\", \"ViewResult\", \"true\");",
+        "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\Micha\\Desktop\\tmp\\new.zip\", \"ExportHtml\", \"true\", \"ExportPdf\", \"false\", \"AntoraStyle\", \"false\", \"ViewResult\", \"true\");",
         "Tool(\"LocationPop\");"
       ]
     }
