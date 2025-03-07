@@ -80,7 +80,7 @@ namespace AasxPluginExportTable.Smt
                     var panel = new AnyUiStackPanel();
                     var helper = new AnyUiSmallWidgetToolkit();
 
-                    var g = helper.AddSmallGrid(6, 2, new[] { "220:", "*" },
+                    var g = helper.AddSmallGrid(7, 2, new[] { "220:", "*" },
                                 padding: new AnyUiThickness(0, 5, 0, 5));
                     panel.Add(g);
 
@@ -166,7 +166,7 @@ namespace AasxPluginExportTable.Smt
                                 colSpan: 2),
                             (b) => { record.AntoraStyle = b; });
 
-                    // Row 4 : Export PDF
+                    // Row 5 : Export PDF
                     helper.AddSmallLabelTo(g, 5, 0, content: "Export PDF:",
                         verticalAlignment: AnyUiVerticalAlignment.Center,
                         verticalContentAlignment: AnyUiVerticalAlignment.Center);
@@ -178,6 +178,19 @@ namespace AasxPluginExportTable.Smt
                                 verticalContentAlignment: AnyUiVerticalAlignment.Center),
                                 colSpan: 2),
                             (b) => { record.ExportPdf = b; });
+
+                    // Row 6 : View
+                    helper.AddSmallLabelTo(g, 6, 0, content: "View result:",
+                        verticalAlignment: AnyUiVerticalAlignment.Center,
+                        verticalContentAlignment: AnyUiVerticalAlignment.Center);
+                    AnyUiUIElement.SetBoolFromControl(
+                        helper.Set(
+                            helper.AddSmallCheckBoxTo(g, 6, 1,
+                                content: "(export command given by options will be executed)",
+                                isChecked: record.ViewResult,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                colSpan: 2),
+                            (b) => { record.ViewResult = b; });
 
                     // give back
                     return panel;
