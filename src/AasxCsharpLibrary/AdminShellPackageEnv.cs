@@ -199,51 +199,37 @@ namespace AdminShellNS
             // nope!
             return null;
         }
-        // dead-csharp off
-        //public static JsonSerializer BuildDefaultAasxJsonSerializer()
-        //{
-        //    var serializer = new JsonSerializer();
-        //    serializer.Converters.Add(
-        //        new AdminShellConverters.JsonAasxConverter(
-        //            "modelType", "name"));
-        //    return serializer;
-        //}
+
         public static T DeserializeFromJSON<T>(string data) where T : IReferable
         {
-            //using (var tr = new StringReader(data))
-            //{
-            //var serializer = BuildDefaultAasxJsonSerializer();
-            //var rf = (T)serializer.Deserialize(tr, typeof(T));
-
             var node = System.Text.Json.Nodes.JsonNode.Parse(data);
             var rf = Jsonization.Deserialize.IReferableFrom(node);
 
             return (T)rf;
-            //}
         }
 
-        //public static T DeserializeFromJSON<T>(JToken obj) where T : IReferable
-        //{
-        //    if (obj == null)
-        //        return default(T);
-        //    var serializer = BuildDefaultAasxJsonSerializer();
-        //    var rf = obj.ToObject<T>(serializer);
-        //    return rf;
-        //}
-
-        ///// <summary>
-        ///// Use this, if <c>DeserializeFromJSON</c> is too tight.
-        ///// </summary>
-        //public static T DeserializePureObjectFromJSON<T>(string data)
-        //{
-        //    using (var tr = new StringReader(data))
-        //    {
-        //        //var serializer = BuildDefaultAasxJsonSerializer();
-        //        //var rf = (T)serializer.Deserialize(tr, typeof(T));
-        //        return null;
-        //    }
-        //}
-        // dead-csharp on
+        /// <summary>
+        /// Use this (new!) to deserialize flexible JSON "coming from the outside"
+        /// </summary>
+        public static T DeserializeAdaptiveFromJSON<T>(string jsonInput) where T : IClass
+        {
+            try
+            {
+                using (JsonTextReader reader = new JsonTextReader(new StringReader(jsonInput)))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    serializer.Converters.Add(new AdminShellConverters.AdaptiveAasIClassConverter(
+                    AdminShellConverters.AdaptiveAasIClassConverter.ConversionMode.AasCore));
+                    var res = serializer.Deserialize<T>(reader);
+                    return res;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogInternally.That.CompletelyIgnoredError(ex);
+            }
+            return default(T);
+        }
     }
 
     /// <summary>
