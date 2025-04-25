@@ -305,7 +305,8 @@ namespace AasxPackageLogic
             int comboBoxMinWidth = -1,
 			int firstColumnWidth = -1, // -1 = Standard
 			int maxLines = -1,
-			bool keyVertCenter = false)
+			bool keyVertCenter = false,
+            bool isValueReadOnly = false)
         {
             AddKeyValue(
                 view, key, value, nullValue, repo, setValue, comboBoxItems, comboBoxIsEditable,
@@ -316,7 +317,8 @@ namespace AasxPackageLogic
                 comboBoxMinWidth: comboBoxMinWidth,
 				firstColumnWidth: firstColumnWidth,
                 maxLines: maxLines,
-                keyVertCenter: keyVertCenter);
+                keyVertCenter: keyVertCenter,
+                isValueReadOnly: isValueReadOnly);
         }
 
         /// <summary>
@@ -355,7 +357,8 @@ namespace AasxPackageLogic
             int comboBoxMinWidth = -1,
             int firstColumnWidth = -1, // -1 = Standard
             int maxLines = -1,
-            bool keyVertCenter = false)
+            bool keyVertCenter = false,
+            bool isValueReadOnly = false)
         {
             // draw anyway?
             if (repo != null && value == null)
@@ -460,7 +463,7 @@ namespace AasxPackageLogic
             else
             {
                 // use plain text box
-                var tb = AddSmallTextBoxTo(g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2), text: "" + value);
+                var tb = AddSmallTextBoxTo(g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2), text: "" + value, isValReadOnly: isValueReadOnly);
                 // multiple lines
                 if (maxLines > 0)
                     tb.MaxLines = maxLines;

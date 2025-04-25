@@ -228,7 +228,8 @@ namespace AnyUi
             double? fontSize = null,
             AnyUiTextWrapping? textWrap = null,
             bool? multiLine = null,
-            bool verticalCenter = false)
+            bool verticalCenter = false,
+            bool isValReadOnly = false)
         {
             var tb = new AnyUiTextBox();
             tb.Margin = margin;
@@ -240,6 +241,7 @@ namespace AnyUi
             if (fontSize != null)
                 tb.FontSize = fontSize;
             tb.Text = text;
+            tb.IsReadOnly = isValReadOnly;
             if (verticalAlignment != null)
                 tb.VerticalAlignment = verticalAlignment;
             if (verticalContentAlignment != null)

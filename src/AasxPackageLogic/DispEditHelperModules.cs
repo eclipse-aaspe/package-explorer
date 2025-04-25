@@ -233,18 +233,22 @@ namespace AasxPackageLogic
             this.AddHintBubble(
                 stack, hintMode,
                 new HintCheck(() => referable.Category?.HasContent() == true,
-                "The use of category is deprecated. Do not plan to use this information in new developments.",
+                "The use of category is deprecated, hence the field is ReadOnly. Do not plan to use this information in new developments.",
                 severityLevel: HintCheck.Severity.Notice));
 
-            AddKeyValueExRef(
-                stack, "category", referable, referable.Category, null, repo,
-                v =>
-                {
-                    referable.Category = v as string;
-                    this.AddDiaryEntry(referable, new DiaryEntryStructChange());
-                    return new AnyUiLambdaActionNone();
-                },
-                comboBoxItems: new string[] { "CONSTANT", "PARAMETER", "VARIABLE" }, comboBoxIsEditable: true);
+            if (referable.Category?.HasContent() == true)
+            {
+                AddKeyValueExRef(
+                        stack, "category", referable, referable.Category, null, repo,
+                        v =>
+                        {
+                            referable.Category = v as string;
+                            this.AddDiaryEntry(referable, new DiaryEntryStructChange());
+                            return new AnyUiLambdaActionNone();
+                        }, isValueReadOnly: true);
+                //},
+                //comboBoxItems: new string[] { "CONSTANT", "PARAMETER", "VARIABLE" }, comboBoxIsEditable: true); 
+            }
 
             this.AddHintBubble(
                 stack, hintMode,

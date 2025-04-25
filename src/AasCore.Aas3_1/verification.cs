@@ -3296,10 +3296,9 @@ namespace AasCore.Aas3_1
                 {
                     yield return new Reporting.Error(
                         "Invariant violated:\n" +
-                        "Constraint AASd-116: ``globalAssetId`` is a reserved key. " +
-                        "If used as value for the name of specific asset ID then " +
-                        "the value of specific asset ID shall be identical to " +
-                        "the global asset ID.");
+                        "Constraint AASd-116: ``globalAssetId`` is a reserved key" +
+                        "for SpecificAssetId/name with the semantics as defined in" +
+                        "https://admin-shell.io/aas/3/1/AssetInformation/globalAssetId");
                 }
 
                 if (!(
@@ -9923,11 +9922,11 @@ namespace AasCore.Aas3_1
                     "The value must not be empty.");
             }
 
-            if (!(that.Length <= 100))
+            if (!(that.Length <= 128))
             {
                 yield return new Reporting.Error(
                     "Invariant violated:\n" +
-                    "Content type shall have a maximum length of 100 characters.");
+                    "Content type shall have a maximum length of 128 characters.");
             }
 
             if (!Verification.MatchesMimeType(that))
@@ -9961,11 +9960,11 @@ namespace AasCore.Aas3_1
                     "The value must not be empty.");
             }
 
-            if (!(that.Length <= 2000))
+            if (!(that.Length <= 2024))
             {
                 yield return new Reporting.Error(
                     "Invariant violated:\n" +
-                    "Identifier shall have a maximum length of 2000 characters.");
+                    "Identifier shall have a maximum length of 2024 characters.");
             }
 
             if (!Verification.MatchesRfc8089Path(that))

@@ -880,7 +880,7 @@ namespace AasCore.Aas3_1
     ///   <li>
     ///     Constraint AASd-006:
     ///     If both the <see cref="Aas.Qualifier.Value" /> and the <see cref="Aas.Qualifier.ValueId" /> of
-    ///     a <see cref="Aas.Qualifier" /> are present then the <see cref="Aas.Qualifier.Value" /> needs
+    ///     a <see cref="Aas.Qualifier" /> are present then the <see cref="Aas.Qualifier.Value" /> shall
     ///     to be identical to the value of the referenced coded value
     ///     in <see cref="Aas.Qualifier.ValueId" />.
     ///   </li>
@@ -941,7 +941,7 @@ namespace AasCore.Aas3_1
     ///   <li>
     ///     Constraint AASd-006:
     ///     If both the <see cref="Aas.Qualifier.Value" /> and the <see cref="Aas.Qualifier.ValueId" /> of
-    ///     a <see cref="Aas.Qualifier" /> are present then the <see cref="Aas.Qualifier.Value" /> needs
+    ///     a <see cref="Aas.Qualifier" /> are present then the <see cref="Aas.Qualifier.Value" /> shall
     ///     to be identical to the value of the referenced coded value
     ///     in <see cref="Aas.Qualifier.ValueId" />.
     ///   </li>
@@ -4598,7 +4598,7 @@ namespace AasCore.Aas3_1
     ///   <li>
     ///     Constraint AASd-007:
     ///     If both, the <see cref="Aas.Property.Value" /> and the <see cref="Aas.Property.ValueId" /> are
-    ///     present then the value of <see cref="Aas.Property.Value" /> needs to be identical to
+    ///     present then the value of <see cref="Aas.Property.Value" /> shall to be identical to
     ///     the value of the referenced coded value in <see cref="Aas.Property.ValueId" />.
     ///   </li>
     /// </ul>
