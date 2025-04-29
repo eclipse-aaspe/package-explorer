@@ -2421,8 +2421,8 @@ namespace AasxPackageLogic
                             return valueContent == null || valueContent.Trim().Length < 1 ||
                                 valueContent.IndexOf('/') < 1 || valueContent.EndsWith("/");
                         },
-                        "The content type of the file. Former known as MIME type. This is " +
-                        "mandatory information. See RFC2046.")
+                        "The content type of the file. Former known as MIME type. " +
+                        "See RFC2046.", severityLevel: HintCheck.Severity.Notice)
                 });
 
             AddKeyValueExRef(

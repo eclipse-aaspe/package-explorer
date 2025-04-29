@@ -4164,8 +4164,8 @@ namespace AasxPackageLogic
                                 return blb.ContentType == null || blb.ContentType.Trim().Length < 1 ||
                                     blb.ContentType.IndexOf('/') < 1 || blb.ContentType.EndsWith("/");
                             },
-                            "The contenty-type of the file. Also known as MIME type. " +
-                            "Mandatory information. See RFC2046.")
+                            "The content-type of the file. Also known as MIME type. " +
+                            "See RFC2046.", severityLevel: HintCheck.Severity.Notice)
                     });
 
                 AddKeyValueExRef(
