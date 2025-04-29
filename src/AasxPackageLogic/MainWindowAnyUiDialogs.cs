@@ -156,6 +156,12 @@ namespace AasxPackageLogic
                 await CommandBinding_FixAndFinalizeAsync(ticket);
             }
 
+            if(cmd == "verify")
+            {
+                Log.Singleton.Info("Verifying AASX: {0}", PackageCentral.MainItem.Filename);
+                await CommandBinding_Verify(ticket);
+            }
+
             if (cmd == "save")
             {
                 // start
@@ -1736,6 +1742,27 @@ namespace AasxPackageLogic
                     }
                 }
 
+        }
+
+        private async Task CommandBinding_Verify(AasxMenuActionTicket ticket)
+        {
+            try
+            {
+                var env = PackageCentral.Main?.AasEnv;
+                if (env != null)
+                {
+                    List<Reporting.Error> errors = Verification.Verify(env).ToList();
+                }
+                else
+                {
+                    Log.Singleton.Error("No Environment created !!");
+                }
+            }
+            catch (Exception ex) 
+            {
+                Log.Singleton.Error(ex.Message);
+                Log.Singleton.Error(ex.StackTrace);
+            }
         }
 
         private async Task CommandBinding_FixAndFinalizeAsync(AasxMenuActionTicket ticket)

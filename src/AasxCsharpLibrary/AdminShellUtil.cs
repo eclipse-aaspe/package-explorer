@@ -380,9 +380,12 @@ namespace AdminShellNS
                     }
                 case AasSubmodelElements.RelationshipElement:
                     {
-                        return new RelationshipElement(
-                            crDefRef(),
-                            crDefRef())
+                        //return new RelationshipElement(
+                        //    crDefRef(),
+                        //    crDefRef())
+                        //    .UpdateFrom(sourceSme);
+                        
+                        return new RelationshipElement()
                             .UpdateFrom(sourceSme);
                     }
                 case AasSubmodelElements.AnnotatedRelationshipElement:

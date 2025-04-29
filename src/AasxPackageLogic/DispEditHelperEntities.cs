@@ -4339,7 +4339,7 @@ namespace AasxPackageLogic
                                 "In terms of a semantic triple, it would be the subject. " +
                                 "The semantics of your reference (the predicate) shall be described " +
                                 "by the concept referred by semanticId.",
-                            severityLevel: HintCheck.Severity.High)
+                            severityLevel: HintCheck.Severity.Notice)
                     });
                 if (this.SafeguardAccess(
                         stack, repo, rele.First, "First relation:", "Create w/ default!",
@@ -4379,7 +4379,7 @@ namespace AasxPackageLogic
                                 "In terms of a semantic triple, it would be the object. " +
                                 "The semantics of your reference (the predicate) shall be described " +
                                 "by the concept referred by semanticId.",
-                            severityLevel: HintCheck.Severity.High)
+                            severityLevel: HintCheck.Severity.Notice)
                     });
                 if (this.SafeguardAccess(
                         stack, repo, rele.Second, "Second relation:", "Create w/ default!",
