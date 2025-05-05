@@ -554,9 +554,24 @@ namespace AdminShellNS
                 throw new ArgumentNullException(nameof(src));
             var res = true;
             foreach (var s in src)
-                if (!Char.IsLetterOrDigit(s) && s != '_')
+                if (!Char.IsLetterOrDigit(s) && s != '_' && s != '-')
                     res = false;
             if (src.Length > 0 && !Char.IsLetter(src[0]))
+                res = false;
+            return res;
+        }
+
+        public static bool ComplyNameType(string src)
+        {
+            if (src == null)
+                throw new ArgumentNullException(nameof(src));
+            var res = true;
+            foreach (var s in src)
+                if (!Char.IsLetterOrDigit(s) && s != '_' && s != '-')
+                    res = false;
+            if (src.Length > 0 && !Char.IsLetter(src[0]))
+                res = false;
+            if (src.Length > 128)
                 res = false;
             return res;
         }

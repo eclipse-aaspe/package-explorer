@@ -143,9 +143,10 @@ namespace AasxPackageLogic
                     new HintCheck(
                         () => {
                             if (referable.IdShort == null) return false;
-                            return !AdminShellUtil.ComplyIdShort(referable.IdShort);
+                            return !Verification.MatchesIdShort(referable.IdShort);
+                            //return !AdminShellUtil.ComplyIdShort(referable.IdShort);
                         },
-                        "The idShort shall only feature letters, digits, underscore ('_'); " +
+                        "The idShort shall only feature letters, digits, underscore ('_'), hyphen ('-'); " +
                         "starting mandatory with a letter."),
                     new HintCheck(
                         () => {
