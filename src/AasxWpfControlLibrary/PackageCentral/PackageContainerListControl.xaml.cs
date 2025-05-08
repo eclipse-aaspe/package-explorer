@@ -43,6 +43,8 @@ namespace AasxWpfControlLibrary.PackageCentral
             FileDoubleClick;
         public event Action<Control, PackageContainerListBase, string[]>
             FileDrop;
+        public event Func<Control, PackageContainerListBase, Task>
+            DataChanged;
 
         private PackageContainerListBase theFileRepository = null;
         public PackageContainerListBase FileRepository
@@ -236,22 +238,35 @@ namespace AasxWpfControlLibrary.PackageCentral
 
             if (mi?.Name == "MenuItemDelete" && fi != null)
             {
+                // set
                 this.FileRepository?.Remove(fi);
+
+                // notify
+                await this.DataChanged?.Invoke(this, theFileRepository);
             }
 
             if (mi?.Name == "MenuItemDeleteFromFileRepo" && fi != null)
             {
+                // set (but no local change)
                 this.FileRepository?.DeletePackageFromServer(fi);
             }
 
             if (mi?.Name == "MenuItemMoveUp" && fi != null)
             {
+                // set
                 this.FileRepository?.MoveUp(fi);
+
+                // notify
+                await this.DataChanged?.Invoke(this, theFileRepository);
             }
 
             if (mi?.Name == "MenuItemMoveDown" && fi != null)
             {
+                // set
                 this.FileRepository?.MoveDown(fi);
+
+                // notify
+                await this.DataChanged?.Invoke(this, theFileRepository);
             }
 
 			if (mi?.Name == "MenuItemLoad" && fi != null)
@@ -285,6 +300,7 @@ namespace AasxWpfControlLibrary.PackageCentral
             var tb = sender as TextBox;
             var fi = this.rightClickSelectedItem;
 
+            // set (particular)
             if (tb?.Name == "TextBoxTag" && fi != null)
                 fi.Tag = tb.Text;
 
@@ -340,7 +356,44 @@ namespace AasxWpfControlLibrary.PackageCentral
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (sender == TextBoxRepoHeader && FileRepository != null)
+            {
                 FileRepository.Header = TextBoxRepoHeader.Text;
+            }
+        }
+
+        // specifically added to give some change notification, when text was finalized
+
+        private async void TextBoxRepoHeader_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (sender == TextBoxRepoHeader && FileRepository != null
+                && e.Key == System.Windows.Input.Key.Enter)
+            {
+                // ends here
+                e.Handled = true;
+
+                // notify
+                await this.DataChanged?.Invoke(this, theFileRepository);
+            }
+        }
+
+        private async void TextBoxTag_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (sender is not TextBox tb)
+                return;
+
+            var isRelevant = (tb?.Name == "TextBoxTag")
+                    || (tb?.Name == "TextBoxDescription")
+                    || (tb?.Name == "TextBoxCode")
+                    || (tb?.Name == "TextBoxUpdatePeriod");
+
+            if (isRelevant && FileRepository != null)
+            {
+                // ends here
+                e.Handled = true;
+
+                // notify
+                await this.DataChanged?.Invoke(this, theFileRepository);
+            }
         }
     }
 }

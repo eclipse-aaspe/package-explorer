@@ -36,6 +36,11 @@ namespace AasxPackageLogic.PackageCentral
         [JsonIgnore]
         public string Filename = null;
 
+        /// <summary>
+        /// If true, will save list automatically when modified.
+        /// </summary>
+        public bool AutoSave = false;
+
         //
         // Specific for files
         //

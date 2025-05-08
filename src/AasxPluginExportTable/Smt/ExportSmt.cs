@@ -159,7 +159,9 @@ namespace AasxPluginExportTable.Smt
             var targetName = "image_" + Path.GetRandomFileName().Replace(".", "_");
             if (sme.IdShort.HasContent())
             {
-                targetName = AdminShellUtil.FilterFriendlyName(sme.IdShort);
+                // filter a little more relaxed (allow "-")
+                targetName = AdminShellUtil.FilterFriendlyName(sme.IdShort, 
+                    regexForFilter: @"[^a-zA-Z0-9_-]");
 
                 int p = targetName.ToLower().LastIndexOf("_dot_");
                 if (p >= 0)

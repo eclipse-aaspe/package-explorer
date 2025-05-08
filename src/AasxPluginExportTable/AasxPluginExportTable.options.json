@@ -1,5 +1,6 @@
 ﻿{
   "TemplateIdConceptDescription": "www.example.com/ids/cd/DDDD_DDDD_DDDD_DDDD",
+
   "SmtExportHtmlCmd": "docker",
   "SmtExportHtmlArgs": "run -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor -r asciidoctor-diagram -a stylesheet=asciidoc-style-idta.css %ADOC%",
   "SmtExportPdfCmd": "docker",

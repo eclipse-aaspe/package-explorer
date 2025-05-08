@@ -112,7 +112,8 @@ namespace AasxPackageLogic.PackageCentral
             {
                 var resObj = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
                         PackageContainerHttpRepoSubset.BuildUriForDescription(Endpoint),
-                        runtimeOptions: null);
+                        runtimeOptions: null,
+                        doNotLogExceptions: true);
 
                 if (resObj == null || !PackageContainerHttpRepoSubset.HasProperty(resObj, "profiles"))
                     return false;

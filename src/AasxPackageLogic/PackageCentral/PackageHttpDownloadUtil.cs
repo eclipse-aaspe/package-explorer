@@ -177,7 +177,8 @@ namespace AasxPackageLogic.PackageCentral
             Action<HttpStatusCode, MemoryStream, string> lambdaDownloadDoneOrFail,
             PackCntRuntimeOptions runtimeOptions = null,
             PackageContainerListBase containerList = null,
-            bool allowFakeResponses = false)
+            bool allowFakeResponses = false,
+            bool doNotLogExceptions = false)
         {
             // access
             if (sourceUri == null)
@@ -341,7 +342,8 @@ namespace AasxPackageLogic.PackageCentral
                 }
                 else
                 {
-                    Log.Singleton.Error($"DownloadFromSource server gave status code {response.StatusCode}!");
+                    if (!doNotLogExceptions)
+                        Log.Singleton.Error($"DownloadFromSource server gave status code {response.StatusCode} when fetching {sourceUri}!");
                     lambdaDownloadDoneOrFail?.Invoke(response.StatusCode, null, null);
                 }
             }
@@ -798,7 +800,7 @@ namespace AasxPackageLogic.PackageCentral
             {
                 await Parallel.ForEachAsync(entities,
                     new ParallelOptions() { 
-                        MaxDegreeOfParallelism = Options.Curr.MaxParallelOps,
+                        MaxDegreeOfParallelism = Options.Curr.MaxParallelReadOps,
                         CancellationToken = runtimeOptions?.CancellationTokenSource?.Token ?? CancellationToken.None
                     },
                     async (ent, token) =>
@@ -870,7 +872,8 @@ namespace AasxPackageLogic.PackageCentral
         public static async Task<dynamic> DownloadEntityToDynamicObject(
             Uri uri,
             PackCntRuntimeOptions runtimeOptions = null,
-            bool allowFakeResponses = false)
+            bool allowFakeResponses = false,
+            bool doNotLogExceptions = false)
         {
             // prepare receing the descriptors
             dynamic resObj = null;
@@ -880,6 +883,7 @@ namespace AasxPackageLogic.PackageCentral
                 null,
                 sourceUri: uri,
                 allowFakeResponses: allowFakeResponses,
+                doNotLogExceptions: doNotLogExceptions,
                 runtimeOptions: runtimeOptions,
                 lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
                 {
@@ -940,7 +944,7 @@ namespace AasxPackageLogic.PackageCentral
             {
                 await Parallel.ForEachAsync(entities,
                     new ParallelOptions() { 
-                        MaxDegreeOfParallelism = Options.Curr.MaxParallelOps , 
+                        MaxDegreeOfParallelism = Options.Curr.MaxParallelWriteOps , 
                         CancellationToken = runtimeOptions?.CancellationTokenSource?.Token ?? CancellationToken.None 
                     },
                     async (ent, token) =>

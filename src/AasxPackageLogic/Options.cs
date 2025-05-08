@@ -449,8 +449,11 @@ namespace AasxPackageLogic
         [OptionDescription(Description = "At max such much different files are used for backing up.")]
         public int BackupFiles = 10;
 
-        [OptionDescription(Description = "Maximum parallel operations, such as HTTP downloads.")]
-        public int MaxParallelOps = 20;
+        [OptionDescription(Description = "Maximum parallel read operations, such as HTTP downloads.")]
+        public int MaxParallelReadOps = 20;
+
+        [OptionDescription(Description = "Maximum parallel write operations, such as HTTP uploads.")]
+        public int MaxParallelWriteOps = 20;
 
         [OptionDescription(Description =
             "If true, will answer the HTTP GET requests of selected ressources by internal, fixed responses " +

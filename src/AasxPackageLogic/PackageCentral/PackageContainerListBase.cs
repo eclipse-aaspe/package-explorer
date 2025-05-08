@@ -33,7 +33,6 @@ namespace AasxPackageLogic.PackageCentral
     /// This class is intended to be a base class, so classes for local repos, AAS repos, AAS registries are
     /// deriving from it.
     /// In Nov 2024, the idea is incrementally adjusted to accomodate Registries and Repositories.
-    /// The process here is not perfect ..
     /// </summary>
     public class PackageContainerListBase : IPackageContainerFind
     {
@@ -92,7 +91,7 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         //
-        // Basic memeber management
+        // Basic member management
         //
 
         public void Add(PackageContainerRepoItem fi)

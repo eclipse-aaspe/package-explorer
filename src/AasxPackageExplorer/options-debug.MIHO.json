@@ -73,10 +73,11 @@
     // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\IDTA 02006-2-1_Template_Digital Nameplate_V3_Demo_ExportSMT - Kopie.aasx",
     // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\SMT_ProductChangeNotification_Draft_play_02.aasx",
     "AasxRepositoryFns": [
-        "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\Festo-DemoCase-repo-V3-local.json",
+        // "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\Festo-DemoCase-repo-V3-local.json",
         "C:\\HOMI\\Develop\\Aasx\\repo\\local-5001.json",
         "C:\\HOMI\\Develop\\Aasx\\repo\\eis-voyager.json",
-        "C:\\HOMI\\Develop\\Aasx\\repo\\smt-repo.json"
+        "C:\\HOMI\\Develop\\Aasx\\repo\\smt-repo.json",
+        "C:\\HOMI\\Develop\\Aasx\\repo\\shortcuts-aasx-repo.json"
     ],
     // "AasxRepositoryFn": "C:\\HOMI\\Develop\\Aasx\\repo\\local-5001.json",
     // "AasxRepositoryFn": "C:\\Users\\homi0002\\Desktop\\test3\\new-aasx-repo.json" ,
@@ -90,8 +91,8 @@
     "WindowWidth": 900,
     "WindowHeight": 600,
     "WindowMaximized": false,
-    "EditMode" : true,
-    "NoHints" :  true,
+    "EditMode": true,
+    "NoHints": true,
     "TemplateIdAas": "www.example.com/ids/aas/DDDD_DDDD_DDDD_DDDD",
     "TemplateIdAsset": "www.example.com/ids/asset/DDDD_DDDD_DDDD_DDDD",
     "TemplateIdSubmodelInstance": "www.example.com/ids/sm/DDDD_DDDD_DDDD_DDDD",
@@ -116,7 +117,8 @@
     "EclassTwoPass": true,
     "BackupDir": ".\\backup",
     "BackupFiles": 10,
-    "MaxParallelOps": 1,
+    "MaxParallelReadOps": 10,
+    "MaxParallelWriteOps": 1, // NOTE: currently suspecting aasx server to be not thread safe (error 500?)
     "BaseAddresses": [
         "https://cloudrepo.aas-voyager.com/",
         "https://eis-data.aas-voyager.com/",
@@ -434,7 +436,7 @@
                 "Tool(\"LocationPush\");",
                 "Select(\"Submodel\", \"First\");",
                 "Select(\"Submodel\", \"Next\");",
-                "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\homi0002\\Desktop\\tmp\\new.zip\");",
+                "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\Micha\\Desktop\\tmp\\new.zip\");",
                 "Tool(\"LocationPop\");"
             ]
         },

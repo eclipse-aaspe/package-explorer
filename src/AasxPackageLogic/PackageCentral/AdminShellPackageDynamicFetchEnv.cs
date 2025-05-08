@@ -203,7 +203,7 @@ namespace AasxPackageLogic.PackageCentral
             {
                 // parallel
                 await Parallel.ForEachAsync(
-                    ids, new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
+                    ids, new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelReadOps },
                     async (id, token) =>
                     {
                         var idf = await FindOrFetchIdentifiable(id);

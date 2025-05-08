@@ -75,7 +75,9 @@
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Tag:" VerticalAlignment="Center" Width="110"/>
-                            <TextBox Name="TextBoxTag" Margin="5 0 0 0" Width="150" Grid.Column="1" TextChanged="TextBoxContextMenu_TextChanged"/>
+                            <TextBox Name="TextBoxTag" Margin="5 0 0 0" Width="150" Grid.Column="1" 
+                                     TextChanged="TextBoxContextMenu_TextChanged"
+                                     KeyUp="TextBoxTag_KeyUp"/>
                         </Grid>
                     </MenuItem.Header>
                     <MenuItem.Icon>
@@ -90,7 +92,9 @@
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Description:" VerticalAlignment="Center" Width="110"/>
-                            <TextBox Name="TextBoxDescription" Margin="5 0 0 0" Width="150" Grid.Column="1" TextChanged="TextBoxContextMenu_TextChanged"/>
+                            <TextBox Name="TextBoxDescription" Margin="5 0 0 0" Width="150" Grid.Column="1" 
+                                     TextChanged="TextBoxContextMenu_TextChanged"
+                                     KeyUp="TextBoxTag_KeyUp"/>
                         </Grid>
                     </MenuItem.Header>
                     <MenuItem.Icon>
@@ -105,7 +109,9 @@
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="2D code type:" VerticalAlignment="Center" Width="110"/>
-                            <TextBox Name="TextBoxCode" Margin="5 0 0 0" Width="150" Grid.Column="1" TextChanged="TextBoxContextMenu_TextChanged"/>
+                            <TextBox Name="TextBoxCode" Margin="5 0 0 0" Width="150" Grid.Column="1" 
+                                     TextChanged="TextBoxContextMenu_TextChanged"
+                                     KeyUp="TextBoxTag_KeyUp"/>
                         </Grid>
                     </MenuItem.Header>
                     <MenuItem.Icon>
@@ -151,7 +157,9 @@
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Update period [ms]:" VerticalAlignment="Center" Width="110"/>
-                            <TextBox Name="TextBoxUpdatePeriod" Margin="5 0 0 0" Width="150" Grid.Column="1" TextChanged="TextBoxContextMenu_TextChanged"/>
+                            <TextBox Name="TextBoxUpdatePeriod" Margin="5 0 0 0" Width="150" Grid.Column="1" 
+                                     TextChanged="TextBoxContextMenu_TextChanged"
+                                     KeyUp="TextBoxTag_KeyUp"/>
                         </Grid>
                     </MenuItem.Header>
                     <MenuItem.Icon>
@@ -186,7 +194,8 @@
                      Foreground="Black" VerticalAlignment="Center" Margin="0" FontSize="14" FontWeight="Bold"/>
 
             <TextBox x:Name="TextBoxRepoHeader" Text="File repository" BorderThickness="0" Background="Transparent" 
-                     Foreground="#707070" VerticalContentAlignment="Center" FontWeight="Bold" TextChanged="TextBox_TextChanged"/>
+                     Foreground="#707070" VerticalContentAlignment="Center" FontWeight="Bold" 
+                     TextChanged="TextBox_TextChanged" KeyUp="TextBoxRepoHeader_KeyUp"/>
         </DockPanel>
 
         <TabControl x:Name="TabControlOneOrMany"
