@@ -1651,7 +1651,7 @@ namespace AasxPackageLogic.PackageCentral
 
                     await Parallel.ForEachAsync(lrs,
                         new ParallelOptions() { 
-                            MaxDegreeOfParallelism = record?.ParallelReads ?? Options.Curr.MaxParallelOps,
+                            MaxDegreeOfParallelism = record?.ParallelReads ?? Options.Curr.MaxParallelReadOps,
                             CancellationToken = runtimeOptions?.CancellationTokenSource?.Token ?? CancellationToken.None
                         },
                         async (lr, token) =>
@@ -1719,7 +1719,7 @@ namespace AasxPackageLogic.PackageCentral
                 if (operationFound && (record?.AutoLoadThumbnails ?? false))
                     await Parallel.ForEachAsync(env.AllAssetAdministrationShells(),
                         new ParallelOptions() {
-                            MaxDegreeOfParallelism = record?.ParallelReads ?? Options.Curr.MaxParallelOps,
+                            MaxDegreeOfParallelism = record?.ParallelReads ?? Options.Curr.MaxParallelReadOps,
                             CancellationToken = runtimeOptions?.CancellationTokenSource?.Token ?? CancellationToken.None
                         },
                         async (aas, token) =>
@@ -1753,7 +1753,7 @@ namespace AasxPackageLogic.PackageCentral
 
                     await Parallel.ForEachAsync(lrs,
                         new ParallelOptions() {
-                            MaxDegreeOfParallelism = record?.ParallelReads ?? Options.Curr.MaxParallelOps,
+                            MaxDegreeOfParallelism = record?.ParallelReads ?? Options.Curr.MaxParallelReadOps,
                             CancellationToken = runtimeOptions?.CancellationTokenSource?.Token ?? CancellationToken.None
                         },
                         async (lr, token) =>
@@ -2013,7 +2013,7 @@ namespace AasxPackageLogic.PackageCentral
             public bool EncryptIds = true;
 
             [AasxMenuArgument(help: "Number of paralle read-operations at the same time. 1 is linear.")]
-            public int ParallelReads = Options.Curr.MaxParallelOps;
+            public int ParallelReads = Options.Curr.MaxParallelReadOps;
 
             [AasxMenuArgument(help: "Stay connected with Repository/ Registry and eventually subscribe to " +
                 "AAS events.")]
@@ -3144,7 +3144,7 @@ namespace AasxPackageLogic.PackageCentral
                         lambdaGetTypeToSerialize: (row) => row.Tag?.GetType(),
                         runtimeOptions: runtimeOptions,
                         allowFakeResponses: false,
-                        useParallel: Options.Curr.MaxParallelOps > 1,
+                        useParallel: Options.Curr.MaxParallelReadOps > 1,
                         lambdaDownloadDoneOrFail: (code, idf, contentFn, row) =>
                         {
                             // can change row?
@@ -3297,7 +3297,8 @@ namespace AasxPackageLogic.PackageCentral
                         // attachments (for Submodels)
                         //
 
-                        if (idf is Aas.ISubmodel submodel && submodel.SubmodelElements != null)
+                        if (recordJob.IncludeSupplFiles 
+                            && idf is Aas.ISubmodel submodel && submodel.SubmodelElements != null)
                         {
                             // Note: the Part 2 PDF says '/', the swagger says '.'
                             var filEls = FindAllUsedFileElements(submodel,
@@ -3433,8 +3434,8 @@ namespace AasxPackageLogic.PackageCentral
                     };
 
                     // simple or parallel?
-                    // TODO: currently suspecting aasx server to be not thread safe (error 500?)
-                    if (true || Options.Curr.MaxParallelOps <= 1)
+                    // NOTE: currently suspecting aasx server to be not thread safe (error 500?)
+                    if (Options.Curr.MaxParallelWriteOps <= 1)
                     {
                         // simple to debug
                         foreach (var row in rowsToUpload)
@@ -3443,7 +3444,7 @@ namespace AasxPackageLogic.PackageCentral
                     else
                     {
                         await Parallel.ForEachAsync(rowsToUpload,
-                            new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelOps },
+                            new ParallelOptions() { MaxDegreeOfParallelism = Options.Curr.MaxParallelWriteOps },
                             async (row, token) =>
                             {
                                 await lambdaRow(row);
@@ -3656,7 +3657,7 @@ namespace AasxPackageLogic.PackageCentral
                             return type;
                         },
                         runtimeOptions: runtimeOptions,
-                        useParallel: Options.Curr.MaxParallelOps > 1,
+                        useParallel: Options.Curr.MaxParallelReadOps > 1,
                         lambdaDownloadDoneOrFail: (code, idf, contentFn, key) =>
                         {
                             // need mutex
@@ -3761,7 +3762,7 @@ namespace AasxPackageLogic.PackageCentral
                             return location;
                         },
                         runtimeOptions: runtimeOptions,
-                        useParallel: Options.Curr.MaxParallelOps > 1,
+                        useParallel: Options.Curr.MaxParallelWriteOps > 1,
                         lambdaDeleteDoneOrFail: (code, content, idf) =>
                         {
                             // need mutex

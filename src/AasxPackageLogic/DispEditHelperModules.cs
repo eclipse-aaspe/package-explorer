@@ -1195,11 +1195,17 @@ namespace AasxPackageLogic
                             severityLevel: HintCheck.Severity.Notice,
                             breakIfTrue: true),
                         new HintCheck(
-                                () => { return checkForCD &&
-                                    semElem.SemanticId.Keys[0].Type != Aas.KeyTypes.GlobalReference; },
-                                "The semanticId usually features a GlobalReference to a concept " +
-                                "within a respective concept repository.",
-                                severityLevel: HintCheck.Severity.Notice)
+                            () => { return semElem.SemanticId?.HasSuspicousWhiteSpace() == true; },
+                            "There seems to be whitespace in this Reference. This could lead to " +
+                            "matching problems. Try to resolve.",
+                            severityLevel: HintCheck.Severity.High,
+                            breakIfTrue: true),
+                        new HintCheck(
+                            () => { return checkForCD &&
+                                semElem.SemanticId.Keys[0].Type != Aas.KeyTypes.GlobalReference; },
+                            "The semanticId usually features a GlobalReference to a concept " +
+                            "within a respective concept repository.",
+                            severityLevel: HintCheck.Severity.Notice)
                     });
 
             // add from Copy Buffer
@@ -1257,7 +1263,14 @@ namespace AasxPackageLogic
                     "the primary semanticId does not semantically identifies all relevant aspects of the " +
                     "AAS element.",
                     breakIfTrue: true,
-                    severityLevel: HintCheck.Severity.Notice) });
+                    severityLevel: HintCheck.Severity.Notice),
+                new HintCheck(
+                    () => { return semElem.SupplementalSemanticIds?.HasSuspicousWhiteSpace() == true; },
+                    "There seems to be whitespace in some of these References. This could lead to " +
+                    "matching problems. Try to resolve",
+                    severityLevel: HintCheck.Severity.High,
+                    breakIfTrue: true),
+            });
             if (this.SafeguardAccess(
                     stack, this.repo, semElem.SupplementalSemanticIds, "supplementalSem.Id:", "Create w/ default!",
                     action: v =>

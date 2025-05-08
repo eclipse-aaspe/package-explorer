@@ -1958,7 +1958,7 @@ namespace AasxPackageLogic
                             {
                                 var ids = lrs.Select((lr) => (lr?.Reference?.IsValid() == true) ? lr.Reference.Keys[0].Value : null).ToList();
                                 var fetched = await dynPack.TryFetchSpecificIds(ids,
-                                        useParallel: Options.Curr.MaxParallelOps > 1);
+                                        useParallel: Options.Curr.MaxParallelReadOps > 1);
                                 if (fetched)
                                     return new AnyUiLambdaActionRedrawAllElements(nextFocus: aas);
                             }

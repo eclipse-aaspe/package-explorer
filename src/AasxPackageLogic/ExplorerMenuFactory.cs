@@ -333,6 +333,7 @@ namespace AasxPackageExplorer
                         header: "New Submodel from SMT/ SAMM ConceptDescription",
                         help: "Creates a new Submodel instance from an selected root given by accessible ConceptDescriptions.")
                     )
+                .AddMenu(header: "Change …", attachPoint: "Change")
                 .AddMenu(header: "Visualize …", attachPoint: "Visualize")
                 .AddMenu(header: "Plugins …", attachPoint: "Plugins")
                 .AddSeparator()
