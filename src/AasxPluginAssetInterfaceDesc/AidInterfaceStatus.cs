@@ -29,6 +29,7 @@ using AasxIntegrationBase.AdminShellEvents;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using AasxPluginAssetInterfaceDescription;
 
 namespace AasxPluginAssetInterfaceDescription
 {
@@ -97,7 +98,7 @@ namespace AasxPluginAssetInterfaceDescription
         public AnyUiUIElement RenderedUiElement = null;
     }
 
-    public enum AidInterfaceTechnology { HTTP, Modbus, MQTT, OPCUA }
+    public enum AidInterfaceTechnology { HTTP, Modbus, MQTT, OPCUA, BACNET }
 
     public class AidInterfaceStatus
     {
@@ -451,7 +452,7 @@ namespace AasxPluginAssetInterfaceDescription
         /// <summary>
         /// Current setting, which technologies shall be used.
         /// </summary>
-        public bool[] UseTech = { false, false, false, true };
+        public bool[] UseTech = { false, false, false, true, false };
 
         /// <summary>
         /// Will hold connections steady and continously update values, either by
@@ -472,6 +473,9 @@ namespace AasxPluginAssetInterfaceDescription
 
         public AidGenericConnections<AidOpcUaConnection> OpcUaConnections =
             new AidGenericConnections<AidOpcUaConnection>();
+
+        public AidGenericConnections<AidBacnetConnection> BacnetConnections =
+            new AidGenericConnections<AidBacnetConnection>();
 
         public AidAllInterfaceStatus(LogInstance log = null)
         {
@@ -503,6 +507,7 @@ namespace AasxPluginAssetInterfaceDescription
                 UseTech[(int)AidInterfaceTechnology.Modbus] = optRec.UseModbus;
                 UseTech[(int)AidInterfaceTechnology.MQTT] = optRec.UseMqtt;
                 UseTech[(int)AidInterfaceTechnology.OPCUA] = optRec.UseOpcUa;
+                UseTech[(int)AidInterfaceTechnology.BACNET] = optRec.UseBacnet;
             }
         }
 
@@ -538,6 +543,10 @@ namespace AasxPluginAssetInterfaceDescription
 
                 case AidInterfaceTechnology.OPCUA:
                     conn = OpcUaConnections.GetOrCreate(endpointBase, log);
+                    break;
+
+                case AidInterfaceTechnology.BACNET:
+                    conn = BacnetConnections.GetOrCreate(endpointBase, log);
                     break;
             }
 
@@ -821,6 +830,7 @@ namespace AasxPluginAssetInterfaceDescription
                 if (tech == AidInterfaceTechnology.Modbus) ifxs = dataAid?.InterfaceMODBUS;
                 if (tech == AidInterfaceTechnology.MQTT) ifxs = dataAid?.InterfaceMQTT;
                 if (tech == AidInterfaceTechnology.OPCUA) ifxs = dataAid?.InterfaceOPCUA;
+                if (tech == AidInterfaceTechnology.BACNET) ifxs = dataAid?.InterfaceBACNET;
                 if (ifxs == null || ifxs.Count < 1)
                     continue;
                 foreach (var ifx in ifxs)

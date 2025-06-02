@@ -29,6 +29,7 @@ namespace AasxPluginAssetInterfaceDescription
         public bool UseModbus = true;
         public bool UseMqtt = true;
         public bool UseOpcUa = true;
+        public bool UseBacnet = true;
     }
 
     public class AssetInterfaceOptions : AasxPluginLookupOptionsBase
