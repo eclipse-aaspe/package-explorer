@@ -15,6 +15,7 @@
     <None Remove="Resources\logo-modbus.png" />
     <None Remove="Resources\logo-mqtt.png" />
     <None Remove="Resources\logo-opc-ua.png" />
+	<None Remove="Resources\logo-bacnet.png" />  
   </ItemGroup>
   <ItemGroup>
     <None Update="AasxPluginAssetInterfaceDesc.options.json">
@@ -33,6 +34,7 @@
     <EmbeddedResource Include="Resources\logo-modbus.png" />
     <EmbeddedResource Include="Resources\logo-mqtt.png" />
     <EmbeddedResource Include="Resources\logo-opc-ua.png" />
+	<EmbeddedResource Include="Resources\logo-bacnet.png" />   
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AasxIntegrationBaseGdi\AasxIntegrationBaseGdi.csproj" />
