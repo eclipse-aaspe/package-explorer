@@ -514,12 +514,6 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
     [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasDataType")]
     public class CD_Bacv_hasDataType
     {
-        [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasNamedMember", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public List<CD_Bacv_hasNamedMember> bacv_hasNamedMember = new List<CD_Bacv_hasNamedMember>();
-
-        [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasValueMap ", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public List<CD_Bacv_hasValueMap> bacv_hasValueMap = new List<CD_Bacv_hasValueMap>();
-
         [AasConcept(Cd = "http://www.w3.org/2022/bacnet#isIso8601", Card = AasxPredefinedCardinality.ZeroToOne)]
         public string bacv_isISO8601;
 
@@ -529,22 +523,27 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
         [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasMember", Card = AasxPredefinedCardinality.ZeroToOne)]
         public CD_Bacv_hasDataType bacv_hasMember = null;
 
+        [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasNamedMember", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public List<CD_Bacv_hasNamedMember> bacv_hasNamedMember = new List<CD_Bacv_hasNamedMember>();
+
+        [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasValueMap ", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public List<CD_Bacv_hasValueMap> bacv_hasValueMap = new List<CD_Bacv_hasValueMap>();
+
         // auto-generated informations
         public AasClassMapperInfo __Info__ = null;
     }
 
-
     [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasNamedMember")]
     public class CD_Bacv_hasNamedMember
     {
-        [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasDataType", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public CD_Bacv_hasDataType bacv_hasDataType = null;
-
         [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasfieldName", Card = AasxPredefinedCardinality.One)]
         public string bacv_hasFieldName;
 
-        [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasContextTag", Card = AasxPredefinedCardinality.One)]
+        [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasContextTag", Card = AasxPredefinedCardinality.ZeroToOne)]
         public string bacv_hasContextTag;
+
+        [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasDataType", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public CD_Bacv_hasDataType bacv_hasDataType = null;
 
         // auto-generated informations
         public AasClassMapperInfo __Info__ = null;

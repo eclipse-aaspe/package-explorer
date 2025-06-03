@@ -125,6 +125,10 @@ namespace AasxPluginAssetInterfaceDescription
                     AnyUiGdiHelper.CreateAnyUiBitmapFromResource(
                         "AasxPluginAssetInterfaceDesc.Resources.logo-opc-ua.png",
                         assembly: Assembly.GetExecutingAssembly()));
+                _dictTechnologyToBitmap.Add(AidInterfaceTechnology.BACNET,
+                    AnyUiGdiHelper.CreateAnyUiBitmapFromResource(
+                        "AasxPluginAssetInterfaceDesc.Resources.logo-bacnet.png",
+                        assembly: Assembly.GetExecutingAssembly()));
             }
 
             // fill given panel
