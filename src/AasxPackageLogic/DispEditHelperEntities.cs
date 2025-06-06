@@ -1485,6 +1485,7 @@ namespace AasxPackageLogic
             AasxMenuActionTicket ticket,
             IMainWindow mainWindow,
             PackageContainerHttpRepoSubsetFetchContext fetchContext,
+            HttpHeaderData additionalHeaderData = null,
             bool preserveEditMode = true,
             bool doCheckTainted = false,
             bool doEditNewRecord = false,
@@ -1580,7 +1581,11 @@ namespace AasxPackageLogic
                     $"from {location} into container");
 
                 packages.CentralRuntimeOptions.CancellationTokenSource = new System.Threading.CancellationTokenSource();
-                packages.CentralRuntimeOptions.HeaderData = fetchContext.Record.HeaderData;
+
+                var runtimeOptions = packages.CentralRuntimeOptions;
+                runtimeOptions.HttpHeaderData = fetchContext.Record.HeaderData;
+                if (additionalHeaderData != null)
+                    runtimeOptions.HttpHeaderData = HttpHeaderData.Merge(runtimeOptions.HttpHeaderData, additionalHeaderData);
 
                 var container = await PackageContainerFactory.GuessAndCreateForAsync(
                     packages,
@@ -1588,7 +1593,7 @@ namespace AasxPackageLogic
                     location,
                     overrideLoadResident: true,
                     containerOptions: containerOptions,
-                    runtimeOptions: packages.CentralRuntimeOptions);
+                    runtimeOptions: runtimeOptions);
 
                 if (container == null)
                 {

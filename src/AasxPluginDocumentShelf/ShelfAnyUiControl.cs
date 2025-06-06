@@ -231,11 +231,12 @@ namespace AasxPluginDocumentShelf
 
             // right now: hardcoded check for model version
             _renderedVersion = DocumentEntity.SubmodelVersion.Default;
+            var mm = AasxPluginsGlobal.SubmodelCheckOnlyId ? MatchMode.Relaxed : MatchMode.Strict;
             var defs11 = AasxPredefinedConcepts.VDI2770v11.Static;
             var defs12 = AasxPredefinedConcepts.IdtaHandoverDocumentationV12.Static;
-            if (_submodel.SemanticId.MatchesExactlyOneKey(defs12?.SM_HandoverDocumentation?.GetSemanticKey()))
+            if (_submodel.SemanticId.MatchesExactlyOneKey(defs12?.SM_HandoverDocumentation?.GetSemanticKey(), mm))
                 _renderedVersion = DocumentEntity.SubmodelVersion.V12;
-            if (_submodel.SemanticId.MatchesExactlyOneKey(defs11?.SM_ManufacturerDocumentation?.GetSemanticKey()))
+            if (_submodel.SemanticId.MatchesExactlyOneKey(defs11?.SM_ManufacturerDocumentation?.GetSemanticKey(), mm))
                 _renderedVersion = DocumentEntity.SubmodelVersion.V11;
             if (foundRec.ForceVersion == DocumentEntity.SubmodelVersion.V10)
                 _renderedVersion = DocumentEntity.SubmodelVersion.V10;

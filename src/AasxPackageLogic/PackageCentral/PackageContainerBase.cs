@@ -93,7 +93,7 @@ namespace AasxPackageLogic.PackageCentral
         /// HTTP header attributes to be fed into the different HTTP get/ put/ post ..
         /// functions of the registry/ repository calls.
         /// </summary>
-        public HttpHeaderData HeaderData = null;
+        public HttpHeaderData HttpHeaderData = null;
     }
 
     /// <summary>
