@@ -34,6 +34,7 @@ using Namotion.Reflection;
 using System.Text.Json.Nodes;
 using System.Reflection.Metadata;
 using System.IO.Pipes;
+using Newtonsoft.Json.Linq;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -213,10 +214,25 @@ namespace AasxPackageLogic.PackageCentral
             bool repeat = true;
             while (repeat)
             {
-                // get response?
-                var response = await client.GetAsync(requestPath,
-                    HttpCompletionOption.ResponseHeadersRead);
+                // make a request
+                HttpResponseMessage response = null;
+                using (var requestMessage =
+                    new HttpRequestMessage(HttpMethod.Get, requestPath))
+                {
+                    // assume headers to be for authorization
+                    if (runtimeOptions?.HeaderData?.Headers != null)
+                        foreach (var header in runtimeOptions.HeaderData?.Headers)
+                        {
+                            requestMessage.Headers.Add(header.Item1, header.Item2);
+                            //requestMessage.Headers.Authorization =
+                            //    new AuthenticationHeaderValue(header.Item1, header.Item2);
+                        }
 
+                    response = await client.SendAsync(requestMessage,
+                        HttpCompletionOption.ResponseHeadersRead);
+                }
+
+                // digest response
                 var clhttp = containerList as PackageContainerListHttpRestBase;
                 var oidc = clhttp?.OpenIdClient;
                 if (clhttp != null

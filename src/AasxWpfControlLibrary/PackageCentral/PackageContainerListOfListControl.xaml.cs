@@ -370,7 +370,7 @@ namespace AasxWpfControlLibrary.PackageCentral
                             {
                                 var si = odli.GetSideInfo(ndx);
                                 if (si.StubLevel >= AasIdentifiableSideInfoLevel.IdWithEndpoint)
-                                    location = si.Endpoint.ToString();
+                                    location = si.QueriedEndpoint.ToString();
                             }
 
                             // now, re-calculate the location based on the AAS Id

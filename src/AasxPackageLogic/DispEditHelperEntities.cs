@@ -1580,6 +1580,7 @@ namespace AasxPackageLogic
                     $"from {location} into container");
 
                 packages.CentralRuntimeOptions.CancellationTokenSource = new System.Threading.CancellationTokenSource();
+                packages.CentralRuntimeOptions.HeaderData = fetchContext.Record.HeaderData;
 
                 var container = await PackageContainerFactory.GuessAndCreateForAsync(
                     packages,
@@ -1647,7 +1648,9 @@ namespace AasxPackageLogic
                     superMenu: superMenu,
                     extraMenu: new AasxMenu()
                         .AddAction("delete-aas-in-repo", "Delete AAS \u274c in Repo",
-                            "Delete AAS by Id in a given Repository or Registry."),
+                            "Delete AAS by Id in a given Repository or Registry.")
+                        .AddAction("finalize-aas", "Finalize AAS",
+                            "Check and auto-correct AAS to be uploaded into Repository."),
                     lambdaExtraMenuAsync: async (buttonNdx) =>
                     {
                         if (buttonNdx == 0)
@@ -1680,11 +1683,83 @@ namespace AasxPackageLogic
 
                                     // extract base address
                                     BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
-                                        sideInfo?.Endpoint?.AbsoluteUri)?.AbsoluteUri
+                                        sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
                                 });
 
                             // ok
                             return new AnyUiLambdaActionNone();
+                        }
+
+                        if (buttonNdx == 1)
+                        {
+                            // get a list
+                            var idfs = env?.FindAllReferencedIdentifiablesForAas(aas);
+                            if (idfs == null || idfs.Count() < 1)
+                            {
+                                Log.Singleton.Error("When finalizing AAS, no Identifiables could be found! Aborting!");
+                            }
+                            Log.Singleton.Info($"Finalize AAS {aas.IdShort}: Processing {idfs.Count()} Identifiables.");
+
+                            if (AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                                "This operation reworks the contents of the dependent Identifiables to be " +
+                                "compliant to the AAS specification. Some data might get lost! " +
+                                "Do you want to proceed?",
+                                "Finalize Identifiables",
+                                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                return new AnyUiLambdaActionNone();
+
+                            // safe
+                            try
+                            {
+                                var visitor = new AasxFixListVisitor();
+                                int naas = 0, nsm = 0, ncd = 0;
+
+                                foreach (var idf in idfs)
+                                {
+                                    // Not able to do a generic lambda, therefore multiply here ..
+                                    if (idf is Aas.IAssetAdministrationShell aas)
+                                    {
+                                        var eiaas = env.AssetAdministrationShells as OnDemandListIdentifiable<Aas.IAssetAdministrationShell>;
+                                        var ndx = eiaas?.TestIndexOf(aas);
+                                        if (eiaas == null || ndx.Value < 0)
+                                            continue;
+                                        var newaas = (Aas.AssetAdministrationShell)visitor.Transform(aas);
+                                        eiaas.Update(ndx.Value, newaas);
+                                        naas++;
+                                        idf.SetTainted(true);
+                                    }
+
+                                    if (idf is Aas.ISubmodel sm)
+                                    {
+                                        var eism = env.Submodels as OnDemandListIdentifiable<Aas.ISubmodel>;
+                                        var ndx = eism?.TestIndexOf(sm);
+                                        if (eism == null || ndx.Value < 0)
+                                            continue;
+                                        var newsm = (Aas.Submodel)visitor.Transform(sm);
+                                        eism.Update(ndx.Value, newsm);
+                                        nsm++;
+                                        idf.SetTainted(true);
+                                    }
+
+                                    if (idf is Aas.IConceptDescription cd)
+                                    {
+                                        var eicd = env.ConceptDescriptions as OnDemandListIdentifiable<Aas.IConceptDescription>;
+                                        var ndx = eicd?.TestIndexOf(cd);
+                                        if (eicd == null || ndx.Value < 0)
+                                            continue;
+                                        var newcd = (Aas.ConceptDescription)visitor.Transform(cd);
+                                        eicd.Update(ndx.Value, newcd);
+                                        ncd++;
+                                        idf.SetTainted(true);
+                                    }
+                                }
+
+                                Log.Singleton.Info($"Finalized: {naas} AAS, {nsm} Submodels, {ncd} CDs.");
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Singleton.Error(ex, $"when finalizing AAS {aas.IdShort}!");
+                            }
                         }
 
                         return new AnyUiLambdaActionNone();
@@ -2256,7 +2331,7 @@ namespace AasxPackageLogic
 
                                     // extract base address
                                     BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
-                                        sideInfo?.Endpoint?.AbsoluteUri)?.AbsoluteUri
+                                        sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
                                 });
 
                             // ok
@@ -2333,7 +2408,7 @@ namespace AasxPackageLogic
 
                                     // extract base address
                                     BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
-                                        sideInfo?.Endpoint?.AbsoluteUri)?.AbsoluteUri
+                                        sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
                                 });
 
                             // ok
@@ -2590,7 +2665,7 @@ namespace AasxPackageLogic
 
                                     // extract base address
                                     BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
-                                        sideInfo?.Endpoint?.AbsoluteUri)?.AbsoluteUri
+                                        sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
                                 });
 
                             // ok
@@ -3113,7 +3188,7 @@ namespace AasxPackageLogic
 
                                     // extract base address
                                     BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
-                                        sideInfo?.Endpoint?.AbsoluteUri)?.AbsoluteUri
+                                        sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
                                 });
 
                             // ok

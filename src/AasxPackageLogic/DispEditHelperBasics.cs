@@ -1773,7 +1773,8 @@ namespace AasxPackageLogic
             Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
             string[] auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null,
-            int maxNumOfKey = int.MaxValue)
+            int maxNumOfKey = int.MaxValue,
+            bool addKnownSemanticId = false)
         {
             // sometimes needless to show
             if (repo == null && (keys == null || keys.Count < 1))
@@ -1894,11 +1895,24 @@ namespace AasxPackageLogic
                             this.context.StartFlyoverModal(uc);
 
                             if (uc.Result &&
-                                uc.ResultItem is AasxPredefinedConcepts.DefinitionsPoolReferableEntity pe
-                                && pe.Ref is Aas.IIdentifiable id
-                                && id.Id != null)
-                                // DECISION: references to concepts are always GlobalReferences
-                                keys.AddCheckBlank(new Aas.Key(Aas.KeyTypes.GlobalReference, id.Id));
+                                uc.ResultItem is AasxPredefinedConcepts.DefinitionsPoolReferableEntity pe)
+                            {
+                                // dedicated semanticId proposed?
+                                if (addKnownSemanticId 
+                                    && pe.Ref is Aas.IHasSemantics sem
+                                    && sem.SemanticId?.IsValid() == true)
+                                {
+                                    keys.Clear();
+                                    keys.AddRange(sem.SemanticId.Keys);
+                                }
+                                // else take the Id
+                                else if (pe.Ref is Aas.IIdentifiable id
+                                    && id.Id != null)
+                                {
+                                    // DECISION: references to concepts are always GlobalReferences
+                                    keys.AddCheckBlank(new Aas.Key(Aas.KeyTypes.GlobalReference, id.Id));
+                                }
+                            }
 
                             emitCustomEvent?.Invoke(relatedReferable);
 

@@ -15,6 +15,7 @@ using AdminShellNS.Extensions;
 using Extensions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using Aas = AasCore.Aas3_0;
 
@@ -971,6 +972,14 @@ namespace AasxPackageLogic
                 {
                     that = null;
                 }
+
+                // MIHO
+                if (that != null)
+                {
+                    var str = that.Language;
+                    if (!AdminShellUtil.FixIso6391LangCode(ref str, noneResult: "en"))
+                        that.Language = str;
+                }
             }
             return that;
         }
@@ -987,6 +996,14 @@ namespace AasxPackageLogic
                 if (string.IsNullOrEmpty(that.Language) && string.IsNullOrEmpty(that.Text))
                 {
                     that = null;
+                }
+
+                // MIHO
+                if (that != null)
+                {
+                    var str = that.Language;
+                    if (!AdminShellUtil.FixIso6391LangCode(ref str, noneResult: "en"))
+                        that.Language = str;
                 }
             }
             return that;
@@ -1005,6 +1022,14 @@ namespace AasxPackageLogic
                 {
                     that = null;
                 }
+
+                // MIHO
+                if (that != null)
+                {
+                    var str = that.Language;
+                    if (!AdminShellUtil.FixIso6391LangCode(ref str, noneResult: "en"))
+                        that.Language = str;
+                }
             }
             return that;
         }
@@ -1022,6 +1047,14 @@ namespace AasxPackageLogic
                 {
                     that = null;
                 }
+
+                // MIHO
+                if (that != null)
+                {
+                    var str = that.Language;
+                    if (!AdminShellUtil.FixIso6391LangCode(ref str, noneResult: "en"))
+                        that.Language = str;
+                }
             }
             return that;
         }
@@ -1038,6 +1071,14 @@ namespace AasxPackageLogic
                 if (string.IsNullOrEmpty(that.Language) && string.IsNullOrEmpty(that.Text))
                 {
                     that = null;
+                }
+
+                // MIHO
+                if (that != null)
+                {
+                    var str = that.Language;
+                    if (AdminShellUtil.FixIso6391LangCode(ref str, noneResult: "en"))
+                        that.Language = str;
                 }
             }
             return that;
@@ -1282,6 +1323,34 @@ namespace AasxPackageLogic
                     that.ValueId = (IReference)Transform(that.ValueId);
                 }
 
+                if (that.Value != null 
+                    && (that.ValueType == DataTypeDefXsd.Double 
+                        || that.ValueType == DataTypeDefXsd.Float
+                        || that.ValueType == DataTypeDefXsd.Decimal))
+                {
+                    var str = that.Value;
+                    if (AdminShellUtil.FixFloatingPointString(ref str, noneResult: "0.0"))
+                        that.Value = str;
+                }
+
+                if (that.Value != null
+                    && (that.ValueType == DataTypeDefXsd.Integer 
+                        || that.ValueType == DataTypeDefXsd.Long
+                        || that.ValueType == DataTypeDefXsd.Short
+                        || that.ValueType == DataTypeDefXsd.NegativeInteger
+                        || that.ValueType == DataTypeDefXsd.NonNegativeInteger
+                        || that.ValueType == DataTypeDefXsd.NonPositiveInteger
+                        || that.ValueType == DataTypeDefXsd.PositiveInteger
+                        || that.ValueType == DataTypeDefXsd.UnsignedByte
+                        || that.ValueType == DataTypeDefXsd.UnsignedInt
+                        || that.ValueType == DataTypeDefXsd.UnsignedLong
+                        || that.ValueType == DataTypeDefXsd.UnsignedShort))
+                {
+                    var str = that.Value;
+                    if (AdminShellUtil.FixIntegerString(ref str, noneResult: "0.0"))
+                        that.Value = str;
+                }
+
                 if (that.Extensions == null
                     && that.Category == null
                     && that.IdShort == null
@@ -1291,7 +1360,6 @@ namespace AasxPackageLogic
                     && that.SupplementalSemanticIds == null
                     && that.Qualifiers == null
                     && that.EmbeddedDataSpecifications == null
-                    && that.ValueType == null
                     && that.Value == null
                     && that.ValueId == null)
                 {
@@ -1435,6 +1503,24 @@ namespace AasxPackageLogic
                     else
                     {
                         that = null;
+                    }
+
+                    // MIHO .. add more
+                    if (that?.Keys != null && that.Keys.Count > 0)
+                    {
+                        var fk = that.Keys.First();
+
+                        var ext = fk.Type == KeyTypes.GlobalReference;
+
+                        if (ext && that.Type == ReferenceTypes.ModelReference)
+                        {
+                            that.Type = ReferenceTypes.ExternalReference;
+                        }
+
+                        if (!ext && that.Type == ReferenceTypes.ExternalReference)
+                        {
+                            that.Type = ReferenceTypes.ModelReference;
+                        }
                     }
                 }
             }

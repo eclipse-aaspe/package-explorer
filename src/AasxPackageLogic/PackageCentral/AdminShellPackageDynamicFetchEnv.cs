@@ -135,8 +135,8 @@ namespace AasxPackageLogic.PackageCentral
                     Aas.IIdentifiable res = null;
 
                     // build the location
-                    var loc = (si.StubLevel >= AasIdentifiableSideInfoLevel.IdWithEndpoint && si.Endpoint != null)
-                        ? si.Endpoint
+                    var loc = (si.StubLevel >= AasIdentifiableSideInfoLevel.IdWithEndpoint && si.QueriedEndpoint != null)
+                        ? si.QueriedEndpoint
                         : PackageContainerHttpRepoSubset.BuildUriForRepoSingleSubmodel(_defaultRepoBaseUri, id);
                     if (loc == null)
                         return null;
@@ -295,9 +295,14 @@ namespace AasxPackageLogic.PackageCentral
 
                 // try save, need a REST ressource. Either use the existing endpoint
                 // or build the uri.
-                var uri = (si.StubLevel >= AasIdentifiableSideInfoLevel.IdWithEndpoint && si.Endpoint != null)
-                        ? si.Endpoint
-                        : lambdaBuildRessourceForNoEndpoint(_defaultRepoBaseUri, idf.Id);
+                Uri uri = null;
+                if (si.StubLevel >= AasIdentifiableSideInfoLevel.IdWithEndpoint && si.DesignatedEndpoint != null)
+                    uri = si.DesignatedEndpoint;
+                else
+                if (si.StubLevel >= AasIdentifiableSideInfoLevel.IdWithEndpoint && si.QueriedEndpoint != null)
+                    uri = si.QueriedEndpoint;
+                else
+                    uri = lambdaBuildRessourceForNoEndpoint(_defaultRepoBaseUri, idf.Id);
                 if (uri == null)
                     continue;
 

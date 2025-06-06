@@ -63,6 +63,14 @@ namespace AasxPackageLogic.PackageCentral
             }
         }
 
+        /// <summary>
+        /// Updates the data portion of the list index, however leaves the sideinfo unmodified!
+        /// </summary>
+        public void Update(int index, T value)
+        {
+            _items[index].Data = value;
+        }
+
         int ICollection<T>.Count => _items.Count;
 
         bool ICollection<T>.IsReadOnly => false;
@@ -119,6 +127,15 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         int IList<T>.IndexOf(T item)
+        {
+            for (int i = 0; i < _items.Count; i++)
+                if ((object)item == (object)_items[i].Data)
+                    return i;
+            return -1;
+        }
+
+        // TODO (MIHO, 2025-05-17): Join with above
+        public int TestIndexOf(T item)
         {
             for (int i = 0; i < _items.Count; i++)
                 if ((object)item == (object)_items[i].Data)

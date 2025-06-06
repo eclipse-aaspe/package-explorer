@@ -53,8 +53,7 @@ extra = 0;
 
 if (extra == 1)
 {
-    // Fill repo with contents of Fest demo box example
-
+    // Fill repo with contents of Festo demo box example
     var fns = [
         "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\00_FestoDemoBox-Module-2.aasx",
         "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\12_article-dpdm-32-instance_1.aasx",
@@ -74,10 +73,38 @@ if (extra == 1)
     {
         Tool("Open", "File", fn);
         Select("AAS", "First");
-        Tool("apiuploadassistant", "BaseAddress", "http://localhost:5001/api/v3.0/", "IncludeSubmodels", true, "IncludeCDs", true, "IncludeSupplFiles", true, "OverwriteIfExist", true);
+        Tool("apiuploadassistant", "BaseAddress", "http://localhost:5001/api/v3.0/", "IncludeSubmodels", true, "IncludeCDs", true, "IncludeSupplFiles", true, "IncludeThumbFiles", true, "OverwriteIfExist", true);
         Sleep(1000);
     }
+}
 
+if (extra == 2)
+{
+    // Fill repo with contents of Festo pneumatic solution
+    var fns = [
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\153002_QS-1_2F8-6_18c1920b-04b5-47ee-9fe4-90ad64dd9399.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\153304_QSM-M5-4_13ad7ae8-0445-432b-b8cb-423c1a5a5647.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\165003_UC-M5_44fa0abc-ed8d-4454-8db4-b3c62a766037.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\19235_DSNU-16-200-PPV-A_b6e9e102-8e5d-4265-b2f9-e11a7e3ff4b8.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\19242_DSNU-20-200-PPV-A_694e2603-1108-48ec-b0e7-bbca88e2e90f.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\19251_DSNU-25-200-PPV-A_dc152bae-a04b-483a-8a98-5770fde6662e.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\193138_GRLA-M5-QS-4-D_ea1bc555-dc1c-43e1-90af-9f43524274b5.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\193144_GRLA-1_2F8-QS-6-D_1a8d2389-5110-4246-a8ae-a53c059e0516.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\197383_PUN-H-4X0_2C75-BL_59330647-20c5-4842-9649-dee08b1724b5.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\197384_PUN-H-6X1-BL_5294f911-c057-4894-a6a0-8adeba3d312b.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\2307_U-1_2F8_49028810-43f5-4d1e-ae70-743de91f45ad.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\575263_VUVS-L20-M52-AD-G18-F7-1C1_b6a3807c-1a6e-44d2-a753-cbdb0824ff97.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\575263_VUVS-only_tech_data.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\8042539_VUVG-LK10-M52-AT-M5-1H2L-S_4e88bc43-28fd-4399-bdb0-fc49dfde500c.aasx"
+    ];
+
+    foreach (fn in fns)
+    {
+        Tool("Open", "File", fn);
+        Select("AAS", "First");
+        Tool("apiuploadassistant", "BaseAddress", "http://localhost:5001/api/v3.0/", "IncludeSubmodels", true, "IncludeCDs", true, "IncludeSupplFiles", true, "IncludeThumbFiles", true, "OverwriteIfExist", true);
+        Sleep(1000);
+    }
 }
 
 WriteLine("DONE!");

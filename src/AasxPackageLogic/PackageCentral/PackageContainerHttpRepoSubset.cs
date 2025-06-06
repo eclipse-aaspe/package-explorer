@@ -699,17 +699,17 @@ namespace AasxPackageLogic.PackageCentral
                     continue;
 
                 // direct access HREF
-                // var aasUri = new Uri("" + ep.protocolInformation.href);
                 var aasSi = new AasIdentifiableSideInfo()
                 {
                     IsStub = false,
                     StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                     Id = "" + aasDescriptor.id,
                     IdShort = "" + aasDescriptor.idShort,
-                    Endpoint = new Uri("" + ep.protocolInformation.href)
+                    QueriedEndpoint = new Uri("" + ep.protocolInformation.href),
+                    DesignatedEndpoint = new Uri("" + ep.protocolInformation.href)
                 };
 
-                // but in order to operate as registry, a list if Submodel endpoints
+                // but in order to operate as registry, a list of Submodel endpoints
                 // is required as well
                 var smRegged = new List<AasIdentifiableSideInfo>();
                 if (HasProperty(aasDescriptor, "submodelDescriptors"))
@@ -731,19 +731,20 @@ namespace AasxPackageLogic.PackageCentral
                                     StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                     Id = smdesc.id,
                                     IdShort = smdesc.idShort,
-                                    Endpoint = new Uri(href)
+                                    QueriedEndpoint = new Uri(href),
+                                    DesignatedEndpoint = new Uri(href)
                                 });
                         }
                     }
 
                 // ok
                 var aas = await PackageHttpDownloadUtil.DownloadIdentifiableToOK<Aas.IAssetAdministrationShell>(
-                    aasSi.Endpoint, runtimeOptions, allowFakeResponses);
+                    aasSi.QueriedEndpoint, runtimeOptions, allowFakeResponses);
                 if (aas == null)
                 {
                     runtimeOptions?.Log?.Error(
                         "Unable to download AAS via registry. Skipping! Location: {0}",
-                        aasSi.Endpoint.ToString());
+                        aasSi.QueriedEndpoint.ToString());
                     continue;
                 }
 
@@ -763,7 +764,7 @@ namespace AasxPackageLogic.PackageCentral
                     Log.Singleton.Info(StoredPrint.Color.Blue,
                         "For downloading AAS at {0}, the number of Submodels " +
                         "was different to the number of given Submodel endpoints.",
-                        aasSi.Endpoint.ToString());
+                        aasSi.QueriedEndpoint.ToString());
 
                     // cycle to next endpoint or next descriptor (more likely)
                     // continue;
@@ -790,7 +791,7 @@ namespace AasxPackageLogic.PackageCentral
                     var numRes = await PackageHttpDownloadUtil.DownloadListOfIdentifiables<Aas.ISubmodel, AasIdentifiableSideInfo>(
                         null,
                         smRegged,
-                        lambdaGetLocation: (si) => si.Endpoint,
+                        lambdaGetLocation: (si) => si.QueriedEndpoint,
                         runtimeOptions: runtimeOptions,
                         allowFakeResponses: allowFakeResponses,
                         lambdaDownloadDoneOrFail: (code, sm, contentFn, si) =>
@@ -800,7 +801,7 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 Log.Singleton.Error(
                                     "Could not download Submodel from endpoint given by registry: {0}",
-                                    si.Endpoint.ToString());
+                                    si.QueriedEndpoint.ToString());
 
                                 // add as pure side info
                                 si.IsStub = true;
@@ -838,7 +839,7 @@ namespace AasxPackageLogic.PackageCentral
                 // a little debug
                 runtimeOptions?.Log?.Info(StoredPrint.Color.Blue,
                     "Retrieved AAS (potentially with Submodels) from: {0}",
-                    aasSi.Endpoint.ToString());
+                    aasSi.QueriedEndpoint.ToString());
             }
 
             return true;
@@ -1044,7 +1045,8 @@ namespace AasxPackageLogic.PackageCentral
                                     StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                     Id = aas.Id,
                                     IdShort = aas.IdShort,
-                                    Endpoint = new Uri(fullItemLocation)
+                                    QueriedEndpoint = new Uri(fullItemLocation),
+                                    DesignatedEndpoint = BuildUriForRepoSingleAAS(baseUri, id, encryptIds: true),
                                 }))
                                 {
                                     trackNewIdentifiables?.Add(aas);
@@ -1206,14 +1208,24 @@ namespace AasxPackageLogic.PackageCentral
                                                 continue;
                                             }                                            
 
-                                            // get identifiable
+                                            // get identifiable and build designated endpoint
                                             Aas.IIdentifiable idf = null;
+                                            Uri desigEnd = null;
                                             if (isAllAAS)
+                                            {
                                                 idf = Jsonization.Deserialize.AssetAdministrationShellFrom(n2);
+                                                desigEnd = BuildUriForRepoSingleAAS(baseUri, idf.Id, encryptIds: true);
+                                            }
                                             if (isAllSM)
+                                            {
                                                 idf = Jsonization.Deserialize.SubmodelFrom(n2);
+                                                desigEnd = BuildUriForRepoSingleSubmodel(baseUri, idf.Id, encryptIds: true);
+                                            }
                                             if (isAllCD)
+                                            {
                                                 idf = Jsonization.Deserialize.ConceptDescriptionFrom(n2);
+                                                desigEnd = BuildUriForRepoSingleCD(baseUri, idf.Id, encryptIds: true);
+                                            }
                                             if (idf == null)
                                                 continue;
 
@@ -1224,7 +1236,8 @@ namespace AasxPackageLogic.PackageCentral
                                                 StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                                 Id = idf.Id,
                                                 IdShort = idf.IdShort,
-                                                Endpoint = new Uri(fullItemLocation)
+                                                QueriedEndpoint = new Uri(fullItemLocation),
+                                                DesignatedEndpoint = desigEnd
                                             };
                                             if (firstNonSkipped && record.PageOffset > 0)
                                                 si.ShowCursorAbove = true;
@@ -1311,7 +1324,7 @@ namespace AasxPackageLogic.PackageCentral
 
                     lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
 
-                    // Have  a list of ids. Decompose into single id.
+                    // Have a list of ids. Decompose into single id.
                     // Note: Parallel makes no sense, ideally only 1 result (is per AssetId)!!
                     // TODO: not parallel!
                     var noRes = true;
@@ -1320,8 +1333,9 @@ namespace AasxPackageLogic.PackageCentral
                         noRes = false;
 
                         // in res, have only an id. Get the AAS itself
+                        Uri designEnd = BuildUriForRepoSingleAAS(baseUri, "" + res, encryptIds: true);
                         var aas = await PackageHttpDownloadUtil.DownloadIdentifiableToOK<Aas.IAssetAdministrationShell>(
-                            BuildUriForRepoSingleAAS(baseUri, "" + res, encryptIds: true),
+                            designEnd,
                             runtimeOptions, allowFakeResponses);
 
                         // found?
@@ -1336,7 +1350,8 @@ namespace AasxPackageLogic.PackageCentral
                                 StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                 Id = aas.Id,
                                 IdShort = aas.IdShort,
-                                Endpoint = new Uri(fullItemLocation)
+                                QueriedEndpoint = new Uri(fullItemLocation),
+                                DesignatedEndpoint = designEnd
                             }))
                             {
                                 trackNewIdentifiables?.Add(aas);
@@ -1380,7 +1395,8 @@ namespace AasxPackageLogic.PackageCentral
                                     StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                     Id = aas.Id,
                                     IdShort = aas.IdShort,
-                                    Endpoint = new Uri(fullItemLocation)
+                                    QueriedEndpoint = new Uri(fullItemLocation),
+                                    DesignatedEndpoint = BuildUriForRepoSingleAAS(baseUri, aas.Id, encryptIds: true)
                                 }))
                                 {
                                     trackNewIdentifiables?.Add(aas);
@@ -1421,7 +1437,8 @@ namespace AasxPackageLogic.PackageCentral
                                     StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                     Id = sm.Id,
                                     IdShort = sm.IdShort,
-                                    Endpoint = new Uri(fullItemLocation)
+                                    QueriedEndpoint = new Uri(fullItemLocation),
+                                    DesignatedEndpoint = BuildUriForRepoSingleSubmodel(baseUri, sm.Id, encryptIds: true)
                                 }))
                                 {
                                     trackNewIdentifiables?.Add(sm);
@@ -1462,7 +1479,8 @@ namespace AasxPackageLogic.PackageCentral
                                     StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                     Id = cd.Id,
                                     IdShort = cd.IdShort,
-                                    Endpoint = new Uri(fullItemLocation)
+                                    QueriedEndpoint = new Uri(fullItemLocation),
+                                    DesignatedEndpoint = BuildUriForRepoSingleCD(baseUri, cd.Id, encryptIds: true)
                                 }))
                                 {
                                     trackNewIdentifiables?.Add(cd);
@@ -1619,7 +1637,8 @@ namespace AasxPackageLogic.PackageCentral
                                                 StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                                 Id = sm.Id,
                                                 IdShort = sm.IdShort,
-                                                Endpoint = new Uri(fullItemLocation)
+                                                QueriedEndpoint = new Uri(fullItemLocation),
+                                                DesignatedEndpoint = BuildUriForRepoSingleSubmodel(baseUri, sm.Id, encryptIds: true)
                                             }))
                                             {
                                                 trackNewIdentifiables?.Add(sm);
@@ -1667,7 +1686,8 @@ namespace AasxPackageLogic.PackageCentral
                                         StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                         Id = lr.Reference.Keys[0].Value,
                                         IdShort = "",
-                                        Endpoint = BuildUriForRepoSingleSubmodel(baseUri, lr.Reference)
+                                        QueriedEndpoint = BuildUriForRepoSingleSubmodel(baseUri, lr.Reference, encryptIds: true),
+                                        DesignatedEndpoint = BuildUriForRepoSingleSubmodel(baseUri, lr.Reference, encryptIds: true)
                                     });
                                 }
                             }
@@ -1699,7 +1719,8 @@ namespace AasxPackageLogic.PackageCentral
                                                     StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                                     Id = sm.Id,
                                                     IdShort = sm.IdShort,
-                                                    Endpoint = sourceUri
+                                                    QueriedEndpoint = sourceUri,
+                                                    DesignatedEndpoint = BuildUriForRepoSingleSubmodel(baseUri, sm.Id, encryptIds: true)
                                                 }))
                                                 {
                                                     trackNewIdentifiables?.Add(sm);
@@ -1778,7 +1799,8 @@ namespace AasxPackageLogic.PackageCentral
                                         StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                         Id = lr.Reference.Keys[0].Value,
                                         IdShort = "",
-                                        Endpoint = BuildUriForRepoSingleCD(baseUri, cdid)
+                                        QueriedEndpoint = BuildUriForRepoSingleCD(baseUri, cdid, encryptIds: true),
+                                        DesignatedEndpoint = BuildUriForRepoSingleCD(baseUri, cdid, encryptIds: true)
                                     });
                                 }
                             }
@@ -1810,7 +1832,8 @@ namespace AasxPackageLogic.PackageCentral
                                                     StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                                     Id = cd.Id,
                                                     IdShort = cd.IdShort,
-                                                    Endpoint = sourceUri
+                                                    QueriedEndpoint = sourceUri,
+                                                    DesignatedEndpoint = sourceUri
                                                 }))
                                                 {
                                                     trackNewIdentifiables?.Add(cd);
@@ -1928,6 +1951,11 @@ namespace AasxPackageLogic.PackageCentral
 
         public class ConnectExtendedRecord 
         {
+            public ConnectExtendedRecord() 
+            {
+                HeaderAttributes = Options.Curr.HttpHeaderAttributes;
+            }
+
             public enum BaseTypeEnum { Repository, Registry }
             public static string[] BaseTypeEnumNames = new[] { "Repository", "Registry" };
 
@@ -2037,6 +2065,18 @@ namespace AasxPackageLogic.PackageCentral
             /// </summary>
             [JsonIgnore]
             public int PageOffset;
+
+            /// <summary>
+            /// If the user wants to add further header attributes to the
+            /// HTTP header.
+            /// </summary>
+            [AasxMenuArgument(help: "Attributes to the HTTP Header (lines of \"key\" : \"value\").")]
+            public string HeaderAttributes = "";
+
+            /// <summary>
+            /// "Compiled" header attributes
+            /// </summary>
+            public HttpHeaderData HeaderData = new();
 
             public enum QueryChoice { 
                 None, 
@@ -2240,6 +2280,7 @@ namespace AasxPackageLogic.PackageCentral
             GetOptions = 0x0008,
             StayConnected = 0x0010,
             Pagination = 0x0020,
+            Header = 0x0040
         }
 
         public static async Task<bool> PerformConnectExtendedDialogue(
@@ -2739,12 +2780,39 @@ namespace AasxPackageLogic.PackageCentral
                         row++;
                     }
 
+                    if ((scope & ConnectExtendedScope.StayConnected) > 0)
+                    {
+                        // Header attributes
+                        helper.AddSmallLabelTo(g, row, 0, content: "HTTP Header\nattributes:",
+                                verticalAlignment: AnyUiVerticalAlignment.Top,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Top);
+
+                        AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallTextBoxTo(g, row, 1,
+                                        text: $"{record.HeaderAttributes}",
+                                        verticalAlignment: AnyUiVerticalAlignment.Stretch,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Top,
+                                        textWrap: AnyUiTextWrapping.Wrap,
+                                        fontSize: 0.8,
+                                        multiLine: true),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
+                                    minHeight: 60),
+                                (s) => { record.HeaderAttributes = s; });
+
+                        row++;
+                    }
+
                     // give back
                     return g;
                 });
 
             if (!(await displayContext.StartFlyoverModalAsync(uc)))
                 return false;
+
+            // prepare header
+            if (!record.HeaderData.Parse(record.HeaderAttributes))
+                Log.Singleton.Error("Error parsing HTTP header attributes.");
 
             // ok
             return true;
@@ -2837,6 +2905,9 @@ namespace AasxPackageLogic.PackageCentral
 
             [AasxMenuArgument(help: "Includes Submodels of the particular AAS into the upload.")]
             public bool IncludeSubmodels = false;
+
+            [AasxMenuArgument(help: "Includes thumbnail file(s) of the particular AAS into the upload.")]
+            public bool IncludeThumbFiles = false;
 
             [AasxMenuArgument(help: "Includes ConceptDescriptions referrred by semanticIds of the Submodels and " +
                 "SubmodelElements into the upload.")]
@@ -2999,6 +3070,17 @@ namespace AasxPackageLogic.PackageCentral
                                     isChecked: recordJob.IncludeSubmodels,
                                     verticalContentAlignment: AnyUiVerticalAlignment.Center)),
                             (b) => { recordJob.IncludeSubmodels = b; });
+
+                    row++;
+
+                    // Include thumbnails
+                    AnyUiUIElement.SetBoolFromControl(
+                            helper.Set(
+                                helper.AddSmallCheckBoxTo(g, row, 1,
+                                    content: "Include thumbnail file(s)",
+                                    isChecked: recordJob.IncludeThumbFiles,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                            (b) => { recordJob.IncludeThumbFiles = b; });
 
                     row++;
 
@@ -3264,8 +3346,8 @@ namespace AasxPackageLogic.PackageCentral
                         string aasId = null;
                         if (idf is Aas.ISubmodel)
                         {
-                            var aas = packEnv?.AasEnv?.FindAasWithSubmodelId(idf.Id);
-                            aasId = aas?.Id;
+                            var aasTemp = packEnv?.AasEnv?.FindAasWithSubmodelId(idf.Id);
+                            aasId = aasTemp?.Id;
                         }
 
                         //
@@ -3292,6 +3374,90 @@ namespace AasxPackageLogic.PackageCentral
                             usePost: usePost,
                             runtimeOptions: runtimeOptions,
                             containerList: containerList);
+
+                        //
+                        // thumbnails (for AAS)
+                        //
+
+                        if (recordJob.IncludeThumbFiles
+                            && idf is Aas.IAssetAdministrationShell aas 
+                            && aas.AssetInformation?.DefaultThumbnail?.Path?.HasContent() == true)
+                        {
+                            // try read the bytes (has NO try/catch in it)
+                            var fn = aas.AssetInformation.DefaultThumbnail.Path;
+                            byte[] ba = null;
+                            try
+                            {
+                                ba = await packEnv.GetBytesFromPackageOrExternalAsync(fn);
+                            }
+                            catch (Exception ex)
+                            {
+                                LogInternally.That.SilentlyIgnoredError(ex);
+                                ba = null;
+                            }
+                            if (ba == null || ba.Length < 1)
+                            {
+                                Log.Singleton.Error("Centralize file: cannot read file: {0}", fn);
+                                lock (rowsToUpload)
+                                {
+                                    numAttNOK++;
+                                }
+                            }
+                            else
+                            {
+                                // try PUT
+                                try
+                                {
+                                    // serialize to memory stream
+                                    var attLoc = BuildUriForRepoAasThumbnail(
+                                        baseUri, aas.Id,
+                                        encryptIds: true);
+                                    using (var ms = new MemoryStream(ba))
+                                    {
+                                        // the multi-part content needs very specific information to work
+                                        var mpFn = Path.GetFileName(fn);
+                                        var mpCt = aas.AssetInformation.DefaultThumbnail.ContentType?.Trim();
+                                        if (mpCt?.HasContent() != true)
+                                            mpCt = "application/octet-stream";
+
+                                        // do the PUT with multi-part content
+                                        // Note: according to the Swagger doc, this always is a PUT and never a POST !!
+                                        var res3 = await PackageHttpDownloadUtil.HttpPutPostFromMemoryStream(
+                                            null, // do NOT re-use client, as headers are re-defined!
+                                            ms,
+                                            destUri: attLoc,
+                                            runtimeOptions: runtimeOptions,
+                                            containerList: containerList,
+                                            usePost: false /* usePost */,
+                                            useMultiPart: true,
+                                            mpParamName: "file",
+                                            mpFileName: mpFn,
+                                            mpContentType: mpCt);
+
+                                        lock (rowsToUpload)
+                                        {
+                                            if (res3.Item1 != HttpStatusCode.OK && res3.Item1 != HttpStatusCode.NoContent)
+                                            {
+                                                Log.Singleton.Error("Error uploading thumbnail of {0} bytes to: {1}. HTTP code {2} with content: {3}",
+                                                    ba.Length, attLoc.ToString(), res3.Item1, res3.Item2);
+                                                numAttNOK++;
+                                            }
+                                            else
+                                            {
+                                                numAttOK++;
+                                            }
+                                        }
+
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Singleton.Error(ex,
+                                        $"when PUTting thumbnail with {ba.Length} bytes to AAS {aas.Id}");
+                                    numAttNOK++;
+                                }
+                            }
+                        }
 
                         //
                         // attachments (for Submodels)
@@ -3365,14 +3531,14 @@ namespace AasxPackageLogic.PackageCentral
                                             mpCt = "application/octet-stream";
 
                                         // do the PUT with multi-part content
+                                        // Note: according to the Swagger doc, this always is a PUT and never a POST !!
                                         var res3 = await PackageHttpDownloadUtil.HttpPutPostFromMemoryStream(
                                             null, // do NOT re-use client, as headers are re-defined!
                                             ms,
                                             destUri: attLoc,
                                             runtimeOptions: runtimeOptions,
                                             containerList: containerList,
-                                            usePost: usePost,
-                                            useMultiPart: true,
+                                            usePost: false /* usePost */, useMultiPart: true,
                                             mpParamName: "file",
                                             mpFileName: mpFn,
                                             mpContentType: mpCt);

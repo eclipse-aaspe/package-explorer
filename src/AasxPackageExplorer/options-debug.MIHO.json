@@ -72,12 +72,14 @@
     // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\aid\\robotic_cell_for_demo_suitcase_new-v3.aasx",
     // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\repo\\IDTA 02006-2-1_Template_Digital Nameplate_V3_Demo_ExportSMT - Kopie.aasx",
     // "AasxToLoad": "C:\\Users\\homi0002\\Desktop\\SMT_ProductChangeNotification\\SMT_ProductChangeNotification_Draft_play_02.aasx",
+    "AasxToLoad": "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\TestBOM_CAD.aasx",
     "AasxRepositoryFns": [
         // "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\Festo-DemoCase-repo-V3-local.json",
         "C:\\HOMI\\Develop\\Aasx\\repo\\local-5001.json",
         "C:\\HOMI\\Develop\\Aasx\\repo\\eis-voyager.json",
         "C:\\HOMI\\Develop\\Aasx\\repo\\smt-repo.json",
-        "C:\\HOMI\\Develop\\Aasx\\repo\\shortcuts-aasx-repo.json"
+        "C:\\HOMI\\Develop\\Aasx\\repo\\shortcuts-aasx-repo.json",
+        "C:\\HOMI\\Develop\\Aasx\\repo\\phoenix-api-key.json"
     ],
     // "AasxRepositoryFn": "C:\\HOMI\\Develop\\Aasx\\repo\\local-5001.json",
     // "AasxRepositoryFn": "C:\\Users\\homi0002\\Desktop\\test3\\new-aasx-repo.json" ,
@@ -150,6 +152,8 @@
     "DefaultStayConnected": true,
     "DefaultUpdatePeriod": 1000,
     "StayConnectOptions": "REST-QUEUE", // SIM
+    "HttpHeaderAttributes": "{ \"Ocp-Apim-Subscription-Key\" : \"196010122f2a4125a82e60a5ebfe2cc8\" }",
+    // "HttpHeaderAttributes": "{ \"BearerToken1\" : \"123\",\n\"Option2\" : \"45667\" }",
     /* "DefaultConnectRepositoryLocation": "http://localhost:51310", */
     /* "DefaultConnectRepositoryLocation": "http://admin-shell-io.com:51510", */
     /* "DefaultConnectRepositoryLocation": "https://admin-shell-io.com:51711", */

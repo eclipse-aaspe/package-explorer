@@ -775,7 +775,7 @@ namespace AasxPackageLogic
 
                                             // extract base address
                                             BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
-                                                sideInfo?.Endpoint?.AbsoluteUri)?.AbsoluteUri
+                                                sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
                                         });
                                 }
 
