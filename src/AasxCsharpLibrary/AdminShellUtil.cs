@@ -641,6 +641,128 @@ namespace AdminShellNS
             return string.Format(CultureInfo.InvariantCulture, format, input);
         }
 
+        /// <summary>
+        /// Checks a given string to be float compatible.
+        /// </summary>
+        public static bool IsFloatingPointString(string input)
+        {
+            var res = double.TryParse(input, NumberStyles.Float, CultureInfo.InvariantCulture, out var f);
+            return res;
+        }
+
+        /// <summary>
+        /// Fixes a given string to be float compatible.
+        /// </summary>
+        /// <returns>If the string was fixed.</returns>
+        public static bool FixFloatingPointString(ref string valstr, string noneResult = "0.0")
+        {
+            if (valstr?.HasContent() != true)
+            {
+                valstr = noneResult;
+                return true;
+            }
+
+            if (IsFloatingPointString(valstr))
+                return false;
+
+            var res = "";
+            foreach (var c in valstr)
+                if (c == ',')
+                    res += '.';
+                else if ("0123456789.+-E".IndexOf(c) >= 0)
+                    res += c;
+            valstr = res;
+
+            if (!IsFloatingPointString(valstr))
+                valstr = noneResult;
+
+            // was altered
+            return true;
+        }
+
+        /// <summary>
+        /// Checks a given string to be float compatible.
+        /// </summary>
+        public static bool IsIntegerString(string input)
+        {
+            var res = Int64.TryParse(input, NumberStyles.Any, CultureInfo.InvariantCulture, out var i);
+            return res;
+        }
+
+        /// <summary>
+        /// Fixes a given string to be float compatible.
+        /// </summary>
+        /// <returns>If the string was fixed.</returns>
+        public static bool FixIntegerString(ref string valstr, string noneResult = "0.0")
+        {
+            if (valstr?.HasContent() != true)
+            {
+                valstr = noneResult;
+                return true;
+            }
+
+            if (IsIntegerString(valstr))
+                return false;
+
+            var res = "";
+            foreach (var c in valstr)
+                if ("0123456789-".IndexOf(c) >= 0)
+                    res += c;
+            valstr = res;
+
+            if (!IsIntegerString(valstr))
+                valstr = noneResult;
+
+            // was altered
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if a given string is a ISO 639-1 language code; here: 2 digits only lower case
+        /// </summary>
+        public static bool IsIso6391LangCode(string input)
+        {
+            // access
+            if (input == null)
+                return false;
+
+            // directly filter
+            var test = "";
+            foreach (var c in input)
+                if ("abcdefghijklmnopqrstuvwxyz".IndexOf(c) >= 0)
+                    test += c;
+
+            return input == test && input.Length == 2;
+        }
+
+        /// <summary>
+        /// Fixes a given string to be float compatible.
+        /// </summary>
+        /// <returns>If the string was fixed.</returns>
+        public static bool FixIso6391LangCode(ref string valstr, string noneResult = "en")
+        {
+            if (valstr?.HasContent() != true)
+            {
+                valstr = noneResult;
+                return true;
+            }
+
+            if (IsIso6391LangCode(valstr))
+                return false;
+
+            var res = "";
+            foreach (var c in valstr)
+                if ("abcdefghijklmnopqrstuvwxyz".IndexOf(c) >= 0)
+                    res += c;
+            valstr = res;
+
+            if (!IsIso6391LangCode(valstr))
+                valstr = noneResult;
+
+            // was altered
+            return true;
+        }
+
         public static int CountHeadingSpaces(string line)
         {
             if (line == null)
@@ -1336,6 +1458,22 @@ namespace AdminShellNS
         }
 
         public static bool CheckIfBase64Only(byte[] data, int bytesToCheck = int.MaxValue)
+        {
+            if (data == null)
+                return true;
+
+            var b64 = true;
+            for (int i = 0; i < Math.Min(data.Length, bytesToCheck); i++)
+            {
+                var c = data[i];
+                // 'manually' check for allowed char intervals of BASE64
+                if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '+' || c == '/' || c == '='))
+                    b64 = false;
+            }
+            return b64;
+        }
+
+        public static bool CheckIfBase64Only(string data, int bytesToCheck = int.MaxValue)
         {
             if (data == null)
                 return true;

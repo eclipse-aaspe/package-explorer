@@ -41,7 +41,17 @@ namespace AasxPackageLogic.PackageCentral
         public AasIdentifiableSideInfoLevel StubLevel = AasIdentifiableSideInfoLevel.None;
 
         public string IdShort = "";
-        public Uri Endpoint;
+
+        /// <summary>
+        /// Endpoint, as being used for query of Repo/ Registry. Used for re-iterating
+        /// queries/ fetches.
+        /// </summary>
+        public Uri QueriedEndpoint;
+
+        /// <summary>
+        /// Endpoint as given by Repo (built via Id) or Registry (by descriptor)
+        /// </summary>
+        public Uri DesignatedEndpoint;
 
         /// <summary>
         /// In the tree of virtual elements, place a visual element below this entity

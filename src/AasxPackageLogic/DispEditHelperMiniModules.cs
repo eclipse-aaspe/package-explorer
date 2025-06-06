@@ -1258,6 +1258,7 @@ namespace AasxPackageLogic
             Aas.IReferable relatedReferable = null,
             Action<Aas.IReferable> emitCustomEvent = null,
             bool showRefSemId = true,
+            bool addKnownSemanticId = false,
             Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
             string[] auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null)
@@ -1407,7 +1408,8 @@ namespace AasxPackageLogic
 
                     // pass on
                     emitCustomEvent?.Invoke(o);
-                });
+                },
+                addKnownSemanticId: addKnownSemanticId);
         }
 
         //

@@ -88,6 +88,12 @@ namespace AasxPackageLogic.PackageCentral
         /// is used as source of truth.
         /// </summary>
         public CancellationTokenSource CancellationTokenSource = null;
+
+        /// <summary>
+        /// HTTP header attributes to be fed into the different HTTP get/ put/ post ..
+        /// functions of the registry/ repository calls.
+        /// </summary>
+        public HttpHeaderData HeaderData = null;
     }
 
     /// <summary>

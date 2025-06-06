@@ -359,19 +359,38 @@ namespace AasxPackageLogic
             AddKeyValue(stack, "StubLevel", "" + si.StubLevel.ToString(), repo: null);
             AddKeyValue(stack, "IdShort", "" + si.IdShort, repo: null);
             AddKeyValue(stack, "Id", "" + si.Id, repo: null);
-            AddKeyValue(stack, "Endpoint", "" + si.Endpoint?.ToString(), repo: null,
+
+            AddKeyValue(stack, "Queried endpoint", "" + si.QueriedEndpoint?.ToString(), repo: null,
                 auxButtonTitle: "Copy",
                 auxButtonLambda: (i) => {
-                    if (si.Endpoint == null)
+                    if (si.QueriedEndpoint == null)
                     {
                         Log.Singleton.Error("No endpoint data available");
                     }
                     else
                     {
                         this.context?.ClipboardSet(new AnyUiClipboardData(
-                            text: si.Endpoint.ToString())
+                            text: si.QueriedEndpoint.ToString())
                         { });
-                        Log.Singleton.Info(StoredPrint.Color.Blue, "Endpoint copied to clipboard.");
+                        Log.Singleton.Info(StoredPrint.Color.Blue, "Queried endpoint copied to clipboard.");
+                    }
+                    return new AnyUiLambdaActionNone();
+                },
+                auxButtonOverride: true);
+
+            AddKeyValue(stack, "Designated endpoint", "" + si.DesignatedEndpoint?.ToString(), repo: null,
+                auxButtonTitle: "Copy",
+                auxButtonLambda: (i) => {
+                    if (si.DesignatedEndpoint == null)
+                    {
+                        Log.Singleton.Error("No endpoint data available");
+                    }
+                    else
+                    {
+                        this.context?.ClipboardSet(new AnyUiClipboardData(
+                            text: si.DesignatedEndpoint.ToString())
+                        { });
+                        Log.Singleton.Info(StoredPrint.Color.Blue, "Designated endpoint copied to clipboard.");
                     }
                     return new AnyUiLambdaActionNone();
                 },
@@ -1246,7 +1265,8 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawEntity();
                         }
                         return new AnyUiLambdaActionNone();
-                    });
+                    }, 
+                    addKnownSemanticId: true);
 
             //
             // Supplemenatal SemanticId

@@ -663,6 +663,10 @@ namespace AasxPackageLogic
             "event update mechanisms")]
         public string StayConnectOptions = "";
 
+        [OptionDescription(Description = "May contain lines of key/value-pairs for HTTP header attributes, " +
+            "delimited by double quotes.")]
+        public string HttpHeaderAttributes = "";
+
         [OptionDescription(Description = "Point to a list of SecureConnectPresets for the respective dialogue")]
         [JetBrains.Annotations.UsedImplicitly]
         public Newtonsoft.Json.Linq.JToken SecureConnectPresets;
