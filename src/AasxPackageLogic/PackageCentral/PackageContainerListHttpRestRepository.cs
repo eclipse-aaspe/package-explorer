@@ -37,27 +37,41 @@ namespace AasxPackageLogic.PackageCentral
         [JsonIgnore]
         public string ServerStatus { get; private set; } = "Status unknown!";
 
-        [JsonIgnore]
-        public readonly PackCntRuntimeOptions CentralRuntimeOptions;
-
         /// <summary>
         /// REST endpoint of the AAS repository, that is, without <c>/shells</c> etc. but
         /// with e.g. <c>/api/v3.0/</c>
         /// </summary>
         public Uri Endpoint;
 
+        /// <summary>
+        /// HTTP header attributes to be fed into the different HTTP get/ put/ post ..
+        /// functions of the registry/ repository calls.
+        /// Note: To be set by "HttpHeaderAttributes" (serialization).
+        /// </summary>
+        [JsonIgnore] 
+        public HttpHeaderData HttpHeaderData = null;
+
+        /// <summary>
+        /// HTTP header attributes to be fed into the different HTTP get/ put/ post ..
+        /// functions of the registry/ repository calls.
+        /// </summary>
+        public string HttpHeaderAttributes
+        {
+            set
+            {
+                HttpHeaderData = new HttpHeaderData(value);
+            }
+        }
+
         //
         // Constructor
         //
 
-        public PackageContainerListHttpRestRepository(string location, PackCntRuntimeOptions centralRuntimeOptions)
+        public PackageContainerListHttpRestRepository(string location)
         {
             // infos
             this.Header = "AAS API Repository";
             this.IsStaticList = false;
-
-            // remember
-            CentralRuntimeOptions = centralRuntimeOptions;
 
             // always have a location
             Endpoint = (location == null) ? null : new Uri(location);

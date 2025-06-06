@@ -95,7 +95,7 @@ namespace AasxPackageLogic.PackageCentral
             // read via HttpClient (uses standard proxies)
             var handler = new HttpClientHandler();
             handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
-            handler.AllowAutoRedirect = false;
+            handler.AllowAutoRedirect = true;
 
             // new http client
             var client = new HttpClient(handler);
@@ -220,12 +220,10 @@ namespace AasxPackageLogic.PackageCentral
                     new HttpRequestMessage(HttpMethod.Get, requestPath))
                 {
                     // assume headers to be for authorization
-                    if (runtimeOptions?.HeaderData?.Headers != null)
-                        foreach (var header in runtimeOptions.HeaderData?.Headers)
+                    if (runtimeOptions?.HttpHeaderData?.Headers != null)
+                        foreach (var header in runtimeOptions.HttpHeaderData?.Headers)
                         {
                             requestMessage.Headers.Add(header.Item1, header.Item2);
-                            //requestMessage.Headers.Authorization =
-                            //    new AuthenticationHeaderValue(header.Item1, header.Item2);
                         }
 
                     response = await client.SendAsync(requestMessage,

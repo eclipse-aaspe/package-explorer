@@ -1101,6 +1101,8 @@ namespace AasxPackageExplorer
                                 ticket: null,
                                 mainWindow: this,
                                 fetchContext: fetchContext,
+                                // merge some HTTP headers?
+                                additionalHeaderData: restRepo.HttpHeaderData,                        
                                 preserveEditMode: true,
                                 doEditNewRecord: true,
                                 doCheckTainted: true,

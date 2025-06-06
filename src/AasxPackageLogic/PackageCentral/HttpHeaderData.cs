@@ -68,5 +68,35 @@ namespace AasxPackageLogic.PackageCentral
                 return false;
             }
         }
+
+        public static HttpHeaderData Merge(HttpHeaderData primary, HttpHeaderData subsidary)
+        {
+            // trivial cases
+            if (primary == null && subsidary == null)
+                return null;
+            if (primary != null && subsidary == null)
+                return primary;
+            if (primary == null && subsidary != null)
+                return subsidary;
+
+            // non trivial
+            var res = primary;
+            foreach (var x in subsidary.Headers)
+            {
+                // do not duplicate!
+                bool found = false;
+                foreach (var y in res.Headers)
+                    if (x.Item1 == y.Item1)
+                        found = true;
+                if (found)
+                    continue;
+
+                // add
+                res.Headers.Add(x);
+            }
+
+            // return new
+            return res;
+        }
     }
 }

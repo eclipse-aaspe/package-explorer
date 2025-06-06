@@ -664,8 +664,7 @@ namespace AasxPackageLogic
                 // ok
                 if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
                 {
-                    var fr = new PackageContainerListHttpRestRepository(
-                            record.BaseAddress, this.PackageCentral.CentralRuntimeOptions);
+                    var fr = new PackageContainerListHttpRestRepository(record.BaseAddress);
                     fr.Header = "New remote Repository";
                     MainWindow.UiShowRepositories(visible: true);
                     PackageCentral.Repositories.AddAtTop(fr);
@@ -843,8 +842,7 @@ namespace AasxPackageLogic
                 // ok
                 if (endpoint.Contains("old"))
                 {
-                    var fr = new PackageContainerListHttpRestRepository(endpoint,
-                        PackageCentral.CentralRuntimeOptions);
+                    var fr = new PackageContainerListHttpRestRepository(endpoint);
                     await fr.SyncronizeFromServerAsync();
                     MainWindow.UiShowRepositories(visible: true);
                     PackageCentral.Repositories.AddAtTop(fr);
