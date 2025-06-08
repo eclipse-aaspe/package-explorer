@@ -606,6 +606,7 @@ namespace AasxPackageLogic.PackageCentral
             {
                 // var data = new ProgressableStreamContent(ms.ToArray(), runtimeOptions);
                 overallContent = new ByteArrayContent(ms.ToArray());
+                overallContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                 // var data = new StringContent("1.2345", Encoding.UTF8, "application/json");
             }
 

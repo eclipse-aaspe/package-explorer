@@ -12,18 +12,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using AdminShellNS;
+using CefSharp;
 using JetBrains.Annotations;
 
 namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
 {
     [UsedImplicitlyAttribute]
     // the class names has to be: AasxPlugin and subclassing IAasxPluginInterface
-    public class AasxPlugin : AasxPluginBase
+    public class AasxPlugin : AasxPluginBase, IDownloadHandler /* , IRequestHandler */
     {
         private AasxPluginWebBrowser.WebBrowserOptions _options = new AasxPluginWebBrowser.WebBrowserOptions();
 
@@ -74,6 +76,32 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
             return res.ToArray();
         }
 
+        public bool CanDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, string url, string requestMethod)
+        {
+            return true;
+        }
+
+        public bool OnBeforeDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem, IBeforeDownloadCallback callback)
+        {
+            if (!callback.IsDisposed)
+            {
+                using (callback)
+                {
+                    callback.Continue(
+                        downloadItem.SuggestedFileName,
+                        showDialog: true
+                    );
+                }
+            }
+
+            return true;
+        }
+
+        /// https://cefsharp.github.io/api/51.0.0/html/T_CefSharp_DownloadItem.htm
+        public void OnDownloadUpdated(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem, IDownloadItemCallback callback)
+        {
+        }
+
         public new AasxPluginResultBase ActivateAction(string action, params object[] args)
         {
             // can basic helper help to reduce lines of code?
@@ -110,6 +138,8 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                     new ColumnDefinition() { Width = new GridLength(1.0, GridUnitType.Star) });
 
                 this._browser = new CefSharp.Wpf.ChromiumWebBrowser();
+                this._browser.DownloadHandler = this;
+                // this._browser.RequestHandler = this;
                 this._browser.Address = url;
                 this._browser.InvalidateVisual();
 
@@ -166,5 +196,51 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
             return null;
         }
 
+#if __IFX_IRequestHandler
+        bool IRequestHandler.OnBeforeBrowse(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool userGesture, bool isRedirect)
+        {
+            return false;
+        }
+
+        void IRequestHandler.OnDocumentAvailableInMainFrame(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+            ;
+        }
+
+        bool IRequestHandler.OnOpenUrlFromTab(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, string targetUrl, WindowOpenDisposition targetDisposition, bool userGesture)
+        {
+            return false;
+        }
+
+        IResourceRequestHandler IRequestHandler.GetResourceRequestHandler(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling)
+        {
+            return null;
+        }
+
+        bool IRequestHandler.GetAuthCredentials(IWebBrowser chromiumWebBrowser, IBrowser browser, string originUrl, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback)
+        {
+            return false;
+        }
+
+        bool IRequestHandler.OnCertificateError(IWebBrowser chromiumWebBrowser, IBrowser browser, CefErrorCode errorCode, string requestUrl, ISslInfo sslInfo, IRequestCallback callback)
+        {
+            return false;
+        }
+
+        bool IRequestHandler.OnSelectClientCertificate(IWebBrowser chromiumWebBrowser, IBrowser browser, bool isProxy, string host, int port, X509Certificate2Collection certificates, ISelectClientCertificateCallback callback)
+        {
+            return false;
+        }
+
+        void IRequestHandler.OnRenderViewReady(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+            ;
+        }
+
+        void IRequestHandler.OnRenderProcessTerminated(IWebBrowser chromiumWebBrowser, IBrowser browser, CefTerminationStatus status, int errorCode, string errorMessage)
+        {
+            ;
+        }
+#endif
     }
 }
