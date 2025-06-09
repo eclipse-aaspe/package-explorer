@@ -19,6 +19,7 @@ using AdminShellNS;
 using AdminShellNS.DiaryData;
 using AnyUi;
 using Extensions;
+using J2N;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using NPOI.POIFS.Properties;
@@ -1035,6 +1036,12 @@ namespace AasxPackageExplorer
                     {
                         this.UiShowRepositories(visible: true);
                         PackageCentral.Repositories.AddAtTop(fr2);
+                        Log.Singleton.Info("Added file repository {0} from: {1}.",
+                            fr2.Header, arf);
+                    }
+                    else
+                    {
+                        Log.Singleton.Error("Error loading file repository from: {0}", arf);
                     }
                 }
             }
@@ -1877,6 +1884,7 @@ namespace AasxPackageExplorer
                 return null;
 
             // search for AAS?
+            BaseUriDict baseUris = null;
             if (workRef?.IsValid() == true)
             {
                 if (workRef.Count() >= 1 && workRef.Keys[0].Type == KeyTypes.AssetAdministrationShell)
@@ -1884,7 +1892,9 @@ namespace AasxPackageExplorer
                     // want to search for an AAS
                     record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleAas);
                     record.AasId = workRef.Keys[0].Value;
-                    fullItemLocation = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    baseUris = basedLoc.BaseUris;
+                    fullItemLocation = basedLoc.Location.ToString();
                 }
 
                 // search for Asset?
@@ -1893,7 +1903,9 @@ namespace AasxPackageExplorer
                     // want to search for an Asset?
                     record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AasByAssetLink);
                     record.AssetId = workRef.Keys[0].Value;
-                    fullItemLocation = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    baseUris = basedLoc.BaseUris;
+                    fullItemLocation = basedLoc.Location.ToString();
                 }
             }
 
@@ -1906,6 +1918,7 @@ namespace AasxPackageExplorer
             var containerOptions = new PackageContainerHttpRepoSubset.
                 PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
                 record);
+            containerOptions.BaseUris = baseUris;
 
             var newIdfs = new List<Aas.IIdentifiable>();
             var loadedIdfs = new List<Aas.IIdentifiable>();
@@ -2964,7 +2977,7 @@ namespace AasxPackageExplorer
 
         private void SetProgressDownload(double? percent, string message = null)
         {
-            if (percent.HasValue)
+            if (percent.HasValue && percent.Value.IsFinite())
                 ProgressBarDownload.Dispatcher.BeginInvoke(
                             System.Windows.Threading.DispatcherPriority.Background,
                             new Action(() => ProgressBarDownload.Value = percent.Value));

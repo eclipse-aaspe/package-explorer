@@ -931,6 +931,44 @@ namespace AdminShellNS
         // String manipulations
         //
 
+        public static List<string> StringSplitUnquoted(
+            string input, 
+            char splitChar,
+            StringSplitOptions options = StringSplitOptions.None)
+        {
+            var curr = "";
+            var res = new List<string>();
+
+            Action<string> issue = (str) =>
+            {
+                if ((options & StringSplitOptions.TrimEntries) != 0)
+                    str = str.Trim();
+                if (str == "" && (options & StringSplitOptions.RemoveEmptyEntries) != 0)
+                    return;
+                res.Add(str);
+            };
+
+            foreach (var ci in input)
+            {
+                // split?
+                if (ci == splitChar)
+                {
+                    issue(curr);
+                    curr = "";
+                    continue;
+                }
+
+                // no, add
+                curr += ci;
+            }
+
+            // issue (again)?
+            issue(curr);
+
+            // ok
+            return res;
+        }
+
         public static string ReplacePercentPlaceholder(
             string input,
             string searchFor,
