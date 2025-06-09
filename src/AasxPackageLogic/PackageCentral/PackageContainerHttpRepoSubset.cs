@@ -26,8 +26,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using AasxPackageExplorer;
 using AnyUi;
-using Microsoft.Win32;
-using Namotion.Reflection;
 using System.Text.Json.Nodes;
 using System.Linq;
 using System.Web;
@@ -35,12 +33,6 @@ using Newtonsoft.Json;
 using System.Dynamic;
 using Newtonsoft.Json.Linq;
 using System.ComponentModel;
-using Lucene.Net.Util.Automaton;
-using RestSharp;
-using static Lucene.Net.Search.FieldCache;
-using System.Reflection.Metadata;
-using AngleSharp.Io;
-using System.Globalization;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -175,7 +167,7 @@ namespace AasxPackageLogic.PackageCentral
 
         public static bool IsValidUriForRepoSingleAAS(string location)
         {
-            var m = Regex.Match(location, @"^(http(|s))://(.*?)/shells/([^?]{1,99})", 
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/shells/([^?]{1,999})", 
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
@@ -189,7 +181,7 @@ namespace AasxPackageLogic.PackageCentral
 
         public static bool IsValidUriForRepoSingleSubmodel(string location)
         {
-            var m = Regex.Match(location, @"^(http(|s))://(.*?)/submodels/(.{1,99})$", 
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/submodels/(.{1,999})$", 
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             if (m.Success)
                 return true;
@@ -207,7 +199,7 @@ namespace AasxPackageLogic.PackageCentral
 
         public static bool IsValidUriForRepoSingleCD(string location)
         {
-            var m = Regex.Match(location, @"^(http(|s))://(.*?)/concept-descriptions/(.{1,99})$",
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/concept-descriptions/(.{1,999})$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
@@ -232,14 +224,14 @@ namespace AasxPackageLogic.PackageCentral
 
         public static bool IsValidUriForRegistrySingleAAS(string location)
         {
-            var m = Regex.Match(location, @"^(http(|s))://(.*?)/shell-descriptors/([^?]{1,99})",
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/shell-descriptors/([^?]{1,999})",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
 
         public static bool IsValidUriForRepoRegistryAasByAssetId(string location)
         {
-            var m = Regex.Match(location, @"^(http(|s))://(.*?)/lookup/shells/{0,1}\?(.*)assetId=([-A-Za-z0-9_]{1,99})",
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/lookup/shells/{0,1}\?(.*)assetId=([-A-Za-z0-9_]{1,999})",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
@@ -2981,7 +2973,12 @@ namespace AasxPackageLogic.PackageCentral
             [AasxMenuArgument(help: "If Identifiables exist on particular Repository/ Registry, still flag to " +
                 "upload them anyway, overwriting the existing contents.")]
             public bool OverwriteIfExist = false;
+
+            [AasxMenuArgument(help: "Try registering AAS at given discovery service.")]
+            public bool RegisterAas = false;
         }
+
+
 
         public static async Task<bool> PerformUploadAssistant(
             AasxMenuActionTicket ticket,
@@ -2995,42 +2992,6 @@ namespace AasxPackageLogic.PackageCentral
             // access
             if (displayContext == null || caption?.HasContent() != true || packEnv == null || idfs == null)
                 return false;
-
-            // if a target file is given, a headless operation occurs
-#if __later
-            if (ticket != null && ticket["Target"] is string targetFn)
-            {
-                var exportFmt = -1;
-                var targExt = System.IO.Path.GetExtension(targetFn).ToLower();
-                if (targExt == ".txt")
-                    exportFmt = 0;
-                if (targExt == ".xlsx")
-                    exportFmt = 1;
-                if (exportFmt < 0)
-                {
-                    MainWindowLogic.LogErrorToTicketStatic(ticket, null,
-                        $"For operation '{caption}', the target format could not be " +
-                        $"determined by filename '{targetFn}'. Aborting.");
-                    return;
-                }
-
-                try
-                {
-                    WriteTargetFile(exportFmt, targetFn);
-                }
-                catch (Exception ex)
-                {
-                    MainWindowLogic.LogErrorToTicketStatic(ticket, ex,
-                        $"While performing '{caption}'");
-                    return;
-                }
-
-                // ok
-                Log.Singleton.Info("Performed '{0}' and writing report to '{1}'.",
-                    caption, targetFn);
-                return;
-            }
-#endif
 
             // build statistics
             var numAas = idfs.Where((idf) => idf is Aas.IAssetAdministrationShell).Count();
@@ -3241,13 +3202,21 @@ namespace AasxPackageLogic.PackageCentral
                 .ToList();
 
             // in order to re-use sockets
-            Uri baseUri = null;
+            BaseUriDict baseUri = null;
             HttpClient client = null;
             if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
             {
                 // Note: it seems to be also possible to create an HttpClient with "" as BaseAddress and pass Host via URL!!
-                baseUri = new Uri(recordJob.BaseAddress);
-                client = PackageHttpDownloadUtil.CreateHttpClient(baseUri, runtimeOptions, containerList);
+                baseUri = new BaseUriDict(recordJob.BaseAddress);
+                // TODO
+                client = PackageHttpDownloadUtil.CreateHttpClient(baseUri.GetBaseUriForAasRepo(), runtimeOptions, containerList);
+            }
+
+            // some obvious checks
+            if (baseUri?.IsValid() != true)
+            {
+                Log.Singleton.Error("No valid BaseAddress(es) given. Aborting!");
+                return false;
             }
 
             //
@@ -3278,11 +3247,14 @@ namespace AasxPackageLogic.PackageCentral
                             if (!(row.Tag is Aas.IIdentifiable idf))
                                 return null;
                             if (idf is Aas.IAssetAdministrationShell)
-                                return BuildUriForRepoSingleAAS(baseUri, idf?.Id, encryptIds: true);
+                                return BuildUriForRepoSingleAAS(
+                                    baseUri.GetBaseUriForAasRepo(), idf?.Id, encryptIds: true);
                             if (idf is Aas.ISubmodel)
-                                return BuildUriForRepoSingleSubmodel(baseUri, idf?.Id, encryptIds: true);
+                                return BuildUriForRepoSingleSubmodel(
+                                    baseUri.GetBaseUriForAasRepo(), idf?.Id, encryptIds: true);
                             if (idf is Aas.IConceptDescription)
-                                return BuildUriForRepoSingleCD(baseUri, idf?.Id, encryptIds: true);
+                                return BuildUriForRepoSingleCD(
+                                    baseUri.GetBaseUriForAasRepo(), idf?.Id, encryptIds: true);
                             return null;
                         },
                         lambdaGetTypeToSerialize: (row) => row.Tag?.GetType(),
@@ -3388,6 +3360,10 @@ namespace AasxPackageLogic.PackageCentral
                 // ask server
                 if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
                 {
+                    // will collect AAS for later registering
+                    List<AssetAdministrationShell> uploadedAas = new List<AssetAdministrationShell>();
+
+                    // lambda for all kind of Identifiables to be uploaded
                     Func<AnyUiDialogueDataGridRow, Task> lambdaRow = async (row) =>
                     {
                         // idf?
@@ -3418,13 +3394,19 @@ namespace AasxPackageLogic.PackageCentral
 
                         // location
                         Uri location = null;
-                        if (idf is Aas.IAssetAdministrationShell)
-                            location = BuildUriForRepoSingleAAS(baseUri, idf?.Id, encryptIds: true, usePost: usePost);
+                        if (idf is Aas.IAssetAdministrationShell aas2)
+                        {
+                            location = BuildUriForRepoSingleAAS(
+                                baseUri.GetBaseUriForAasRepo(), idf?.Id, encryptIds: true, usePost: usePost);
+                            uploadedAas.Add(aas2);
+                        }
                         if (idf is Aas.ISubmodel)
-                            location = BuildUriForRepoSingleSubmodel(baseUri, idf?.Id, encryptIds: true, usePost: usePost,
+                            location = BuildUriForRepoSingleSubmodel(
+                                baseUri.GetBaseUriForAasRepo(), idf?.Id, encryptIds: true, usePost: usePost,
                                             addAasId: true, aasId: aasId);
                         if (idf is Aas.IConceptDescription)
-                            location = BuildUriForRepoSingleCD(baseUri, idf?.Id, encryptIds: true, usePost: usePost);
+                            location = BuildUriForRepoSingleCD(
+                                baseUri.GetBaseUriForAasRepo(), idf?.Id, encryptIds: true, usePost: usePost);
                         if (location == null)
                             return;
 
@@ -3472,7 +3454,7 @@ namespace AasxPackageLogic.PackageCentral
                                 {
                                     // serialize to memory stream
                                     var attLoc = BuildUriForRepoAasThumbnail(
-                                        baseUri, aas.Id,
+                                        baseUri.GetBaseUriForAasRepo(), aas.Id,
                                         encryptIds: true);
                                     using (var ms = new MemoryStream(ba))
                                     {
@@ -3580,7 +3562,7 @@ namespace AasxPackageLogic.PackageCentral
                                 {
                                     // serialize to memory stream
                                     var attLoc = BuildUriForRepoSingleSubmodelAttachment(
-                                        baseUri, submodel.Id,
+                                        baseUri.GetBaseUriForAasRepo(), submodel.Id,
                                         idShortPath: filEl.IdShortPath,
                                         aasId: null /* aasId */,        // BaSyx seems to expect ONLY at Submodel interface
                                         encryptIds: true);
@@ -3677,6 +3659,30 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 await lambdaRow(row);
                             });
+                    }
+
+                    //
+                    // Register (just not parallel..)?
+                    //
+
+                    if (recordJob.RegisterAas && uploadedAas.Count > 0
+                        && baseUri.GetBaseUriForBasicDiscovery() != null)
+                    {
+                        foreach (var aas in uploadedAas)
+                        {
+                            try
+                            {
+                                var aasDesc = InterfaceArtefacts.BuildAasDescriptor(
+                                    baseUri, aas, null);
+                                ;
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Singleton.Error(ex,
+                                    $"when trying register AAS with the discovery interface");
+                                numAttNOK++;
+                            }
+                        }
                     }
                 }
 

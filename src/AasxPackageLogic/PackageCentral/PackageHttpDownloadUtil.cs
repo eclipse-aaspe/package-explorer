@@ -588,8 +588,12 @@ namespace AasxPackageLogic.PackageCentral
 
             // make overall content
             HttpContent overallContent = null;
-            if (useMultiPart && mpParamName?.HasContent() == true && mpFileName?.HasContent() == true && mpContentType?.HasContent() == true)
+            if (useMultiPart 
+                && mpParamName?.HasContent() == true 
+                && mpFileName?.HasContent() == true 
+                && mpContentType?.HasContent() == true)
             {
+#if __code_worked_for_aasxserver
                 // Note: may re-define reUseClient's headers!!
                 client.DefaultRequestHeaders.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("multipart/form-data"));
@@ -601,6 +605,22 @@ namespace AasxPackageLogic.PackageCentral
 
                 // Adding the file as form-data
                 (overallContent as MultipartFormDataContent).Add(fileContent, mpParamName, mpFileName);
+#else
+                // code worked for BaSyx
+                var multipart = new MultipartFormDataContent();
+
+                ms.Position = 0;
+                var fileContent = new StreamContent(ms);
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(mpContentType);
+
+                // Add the file (e.g., field name = "file")
+                multipart.Add(fileContent, mpParamName, mpFileName);
+
+                // Add required string parameter: fileName (this was the key enabler!)
+                multipart.Add(new StringContent(mpFileName), "fileName");
+
+                overallContent = multipart;
+#endif
             }
             else
             {
