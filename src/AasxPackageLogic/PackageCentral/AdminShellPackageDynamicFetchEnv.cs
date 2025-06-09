@@ -395,7 +395,7 @@ namespace AasxPackageLogic.PackageCentral
             // try contact repo
             var attLoc = PackageContainerHttpRepoSubset.BuildUriForRepoSingleSubmodelAttachment(
                 _defaultRepoBaseUri, 
-                aasId: aasId,
+                aasId: null /* aasId */,        // BaSyx seems to expect ONLY at Submodel interface
                 smId: smId,
                 idShortPath: idShortPath,
                 encryptIds: true);

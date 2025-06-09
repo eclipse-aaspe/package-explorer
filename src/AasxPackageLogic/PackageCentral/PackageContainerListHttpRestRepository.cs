@@ -40,8 +40,9 @@ namespace AasxPackageLogic.PackageCentral
         /// <summary>
         /// REST endpoint of the AAS repository, that is, without <c>/shells</c> etc. but
         /// with e.g. <c>/api/v3.0/</c>
+        /// Note: This is a string, to allow some syntactic sugar for <c>BaseUriDict</c>.
         /// </summary>
-        public Uri Endpoint;
+        public string Endpoint;
 
         /// <summary>
         /// HTTP header attributes to be fed into the different HTTP get/ put/ post ..
@@ -74,7 +75,7 @@ namespace AasxPackageLogic.PackageCentral
             this.IsStaticList = false;
 
             // always have a location
-            Endpoint = (location == null) ? null : new Uri(location);
+            Endpoint = location;
 
             // directly set endpoint
             // Note: later
@@ -124,8 +125,9 @@ namespace AasxPackageLogic.PackageCentral
 
             try
             {
+                var toDescribe = new BaseUriDict(Endpoint);
                 var resObj = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
-                        PackageContainerHttpRepoSubset.BuildUriForDescription(Endpoint),
+                        PackageContainerHttpRepoSubset.BuildUriForDescription(toDescribe.GetBaseUriForDefault()),
                         runtimeOptions: null,
                         doNotLogExceptions: true);
 
@@ -194,7 +196,9 @@ namespace AasxPackageLogic.PackageCentral
             try
             {
                 // try to do this natively
-                var fil = PackageContainerHttpRepoSubset.BuildUriForRegistryAasByAssetLink(Endpoint, aid);
+                var testBaseUris = new BaseUriDict(Endpoint);
+                var fil = PackageContainerHttpRepoSubset.BuildUriForRegistryAasByAssetLink(
+                    testBaseUris.GetBaseUriForBasicDiscovery(), aid);
 
                 // prepare receiving the descriptors/ ids
                 var idsObj = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
@@ -209,7 +213,8 @@ namespace AasxPackageLogic.PackageCentral
                 foreach (var id in idsObj) {
                     var ri = new PackageContainerRepoItem()
                     {
-                        Location = PackageContainerHttpRepoSubset.BuildUriForRepoSingleAAS(Endpoint, "" + id)?.ToString()
+                        Location = PackageContainerHttpRepoSubset.BuildUriForRepoSingleAAS(
+                            testBaseUris.GetBaseUriForAasRepo(), "" + id)?.ToString()
                     };
                     return ri;
                 }

@@ -927,7 +927,12 @@ namespace AasxPackageLogic.PackageCentral
             // start
             var allowFakeResponses = runtimeOptions?.AllowFakeResponses ?? false;
             PackageContainerListBase containerList = null;
-            var baseUri = GetBaseUri(fullItemLocation);
+
+            // re-use or construct base URIs?
+            var baseUri = new BaseUriDict(GetBaseUri(fullItemLocation)?.ToString());
+            if (containerOptions is PackageContainerHttpRepoSubsetOptions repopt
+                && repopt?.BaseUris != null && repopt.BaseUris.Count > 0)
+                baseUri = repopt.BaseUris;
 
             // use existing ?
             var env = (targetEnv as AdminShellPackageEnvBase)?.AasEnv;
@@ -961,7 +966,9 @@ namespace AasxPackageLogic.PackageCentral
                 env.ConceptDescriptions = prepCD;
 
                 // also the package "around"
-                dynPack = new AdminShellPackageDynamicFetchEnv(runtimeOptions, baseUri);
+                // TODO: Check default for base uri
+                dynPack = new AdminShellPackageDynamicFetchEnv(runtimeOptions, 
+                    baseUri.GetBaseUriForAasRepo());
             }
 
             // get the record data (as supplemental infos to the fullItemLocation)
@@ -1012,7 +1019,8 @@ namespace AasxPackageLogic.PackageCentral
                         if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Registry)
                         {
                             var singleDesc = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
-                                    BuildUriForRegistrySingleAAS(baseUri, id, encryptIds: true),
+                                    BuildUriForRegistrySingleAAS(baseUri.GetBaseUriForAasReg(), 
+                                        id, encryptIds: true),
                                     runtimeOptions, allowFakeResponses);
                             if (singleDesc == null || !HasProperty(singleDesc, "endpoints"))
                                 continue;
@@ -1030,7 +1038,8 @@ namespace AasxPackageLogic.PackageCentral
                         {
                             // get the AAS (new download approach)
                             var aas = await PackageHttpDownloadUtil.DownloadIdentifiableToOK<Aas.IAssetAdministrationShell>(
-                                BuildUriForRepoSingleAAS(baseUri, id, encryptIds: true), 
+                                BuildUriForRepoSingleAAS(baseUri.GetBaseUriForAasRepo(), 
+                                    id, encryptIds: true), 
                                 runtimeOptions, allowFakeResponses);
 
                             // found?
@@ -1046,7 +1055,8 @@ namespace AasxPackageLogic.PackageCentral
                                     Id = aas.Id,
                                     IdShort = aas.IdShort,
                                     QueriedEndpoint = new Uri(fullItemLocation),
-                                    DesignatedEndpoint = BuildUriForRepoSingleAAS(baseUri, id, encryptIds: true),
+                                    DesignatedEndpoint = BuildUriForRepoSingleAAS(baseUri.GetBaseUriForAasRepo(), 
+                                        id, encryptIds: true),
                                 }))
                                 {
                                     trackNewIdentifiables?.Add(aas);
@@ -1163,7 +1173,8 @@ namespace AasxPackageLogic.PackageCentral
             if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
             {
                 // for all repo access, use the same client
-                var client = PackageHttpDownloadUtil.CreateHttpClient(baseUri, runtimeOptions, containerList);
+                var client = PackageHttpDownloadUtil.CreateHttpClient(baseUri.GetBaseUriForAasRepo(), runtimeOptions, containerList);
+                // var client = PackageHttpDownloadUtil.CreateHttpClient(new Uri(""), runtimeOptions, containerList);
 
                 // start with a list of AAS or Submodels (very similar, therefore unified)
                 var isAllAAS = IsValidUriForRepoAllAAS(fullItemLocation);
@@ -1214,17 +1225,20 @@ namespace AasxPackageLogic.PackageCentral
                                             if (isAllAAS)
                                             {
                                                 idf = Jsonization.Deserialize.AssetAdministrationShellFrom(n2);
-                                                desigEnd = BuildUriForRepoSingleAAS(baseUri, idf.Id, encryptIds: true);
+                                                desigEnd = BuildUriForRepoSingleAAS(
+                                                    baseUri.GetBaseUriForAasRepo(), idf.Id, encryptIds: true);
                                             }
                                             if (isAllSM)
                                             {
                                                 idf = Jsonization.Deserialize.SubmodelFrom(n2);
-                                                desigEnd = BuildUriForRepoSingleSubmodel(baseUri, idf.Id, encryptIds: true);
+                                                desigEnd = BuildUriForRepoSingleSubmodel(
+                                                    baseUri.GetBaseUriForSmRepo(), idf.Id, encryptIds: true);
                                             }
                                             if (isAllCD)
                                             {
                                                 idf = Jsonization.Deserialize.ConceptDescriptionFrom(n2);
-                                                desigEnd = BuildUriForRepoSingleCD(baseUri, idf.Id, encryptIds: true);
+                                                desigEnd = BuildUriForRepoSingleCD(
+                                                    baseUri.GetBaseUriForCdRepo(), idf.Id, encryptIds: true);
                                             }
                                             if (idf == null)
                                                 continue;
@@ -1333,7 +1347,8 @@ namespace AasxPackageLogic.PackageCentral
                         noRes = false;
 
                         // in res, have only an id. Get the AAS itself
-                        Uri designEnd = BuildUriForRepoSingleAAS(baseUri, "" + res, encryptIds: true);
+                        Uri designEnd = BuildUriForRepoSingleAAS(
+                                baseUri.GetBaseUriForAasRepo(), "" + res, encryptIds: true);
                         var aas = await PackageHttpDownloadUtil.DownloadIdentifiableToOK<Aas.IAssetAdministrationShell>(
                             designEnd,
                             runtimeOptions, allowFakeResponses);
@@ -1396,7 +1411,8 @@ namespace AasxPackageLogic.PackageCentral
                                     Id = aas.Id,
                                     IdShort = aas.IdShort,
                                     QueriedEndpoint = new Uri(fullItemLocation),
-                                    DesignatedEndpoint = BuildUriForRepoSingleAAS(baseUri, aas.Id, encryptIds: true)
+                                    DesignatedEndpoint = BuildUriForRepoSingleAAS(
+                                        baseUri.GetBaseUriForAasRepo(), aas.Id, encryptIds: true)
                                 }))
                                 {
                                     trackNewIdentifiables?.Add(aas);
@@ -1438,7 +1454,8 @@ namespace AasxPackageLogic.PackageCentral
                                     Id = sm.Id,
                                     IdShort = sm.IdShort,
                                     QueriedEndpoint = new Uri(fullItemLocation),
-                                    DesignatedEndpoint = BuildUriForRepoSingleSubmodel(baseUri, sm.Id, encryptIds: true)
+                                    DesignatedEndpoint = BuildUriForRepoSingleSubmodel(
+                                        baseUri.GetBaseUriForSmRepo(), sm.Id, encryptIds: true)
                                 }))
                                 {
                                     trackNewIdentifiables?.Add(sm);
@@ -1480,7 +1497,8 @@ namespace AasxPackageLogic.PackageCentral
                                     Id = cd.Id,
                                     IdShort = cd.IdShort,
                                     QueriedEndpoint = new Uri(fullItemLocation),
-                                    DesignatedEndpoint = BuildUriForRepoSingleCD(baseUri, cd.Id, encryptIds: true)
+                                    DesignatedEndpoint = BuildUriForRepoSingleCD(
+                                        baseUri.GetBaseUriForCdRepo(), cd.Id, encryptIds: true)
                                 }))
                                 {
                                     trackNewIdentifiables?.Add(cd);
@@ -1605,7 +1623,8 @@ namespace AasxPackageLogic.PackageCentral
                         if (fi.Type == FetchItemType.SmUrl)
                             loc = new Uri(fi.Value);
                         if (fi.Type == FetchItemType.SmId)
-                            loc = BuildUriForRepoSingleSubmodel(baseUri, fi.Value, encryptIds: true);
+                            loc = BuildUriForRepoSingleSubmodel(
+                                    baseUri.GetBaseUriForSmRepo(), fi.Value, encryptIds: true);
 
                         if (loc == null)
                             continue;
@@ -1638,7 +1657,8 @@ namespace AasxPackageLogic.PackageCentral
                                                 Id = sm.Id,
                                                 IdShort = sm.IdShort,
                                                 QueriedEndpoint = new Uri(fullItemLocation),
-                                                DesignatedEndpoint = BuildUriForRepoSingleSubmodel(baseUri, sm.Id, encryptIds: true)
+                                                DesignatedEndpoint = BuildUriForRepoSingleSubmodel(
+                                                    baseUri.GetBaseUriForSmRepo(), sm.Id, encryptIds: true)
                                             }))
                                             {
                                                 trackNewIdentifiables?.Add(sm);
@@ -1686,15 +1706,18 @@ namespace AasxPackageLogic.PackageCentral
                                         StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                         Id = lr.Reference.Keys[0].Value,
                                         IdShort = "",
-                                        QueriedEndpoint = BuildUriForRepoSingleSubmodel(baseUri, lr.Reference, encryptIds: true),
-                                        DesignatedEndpoint = BuildUriForRepoSingleSubmodel(baseUri, lr.Reference, encryptIds: true)
+                                        QueriedEndpoint = BuildUriForRepoSingleSubmodel(
+                                            baseUri.GetBaseUriForSmRepo(), lr.Reference, encryptIds: true),
+                                        DesignatedEndpoint = BuildUriForRepoSingleSubmodel(
+                                            baseUri.GetBaseUriForSmRepo(), lr.Reference, encryptIds: true)
                                     });
                                 }
                             }
                             else
                             {
                                 // no side info => full element
-                                var sourceUri = BuildUriForRepoSingleSubmodel(baseUri, lr.Reference);
+                                var sourceUri = BuildUriForRepoSingleSubmodel(
+                                        baseUri.GetBaseUriForSmRepo(), lr.Reference);
                                 await PackageHttpDownloadUtil.HttpGetToMemoryStream(
                                     null,
                                     sourceUri: sourceUri,
@@ -1720,7 +1743,8 @@ namespace AasxPackageLogic.PackageCentral
                                                     Id = sm.Id,
                                                     IdShort = sm.IdShort,
                                                     QueriedEndpoint = sourceUri,
-                                                    DesignatedEndpoint = BuildUriForRepoSingleSubmodel(baseUri, sm.Id, encryptIds: true)
+                                                    DesignatedEndpoint = BuildUriForRepoSingleSubmodel(
+                                                        baseUri.GetBaseUriForSmRepo(), sm.Id, encryptIds: true)
                                                 }))
                                                 {
                                                     trackNewIdentifiables?.Add(sm);
@@ -1747,7 +1771,8 @@ namespace AasxPackageLogic.PackageCentral
                         {
                             await PackageHttpDownloadUtil.HttpGetToMemoryStream(
                                 client,
-                                sourceUri: BuildUriForRepoAasThumbnail(baseUri, aas.Id),
+                                sourceUri: BuildUriForRepoAasThumbnail(
+                                    baseUri.GetBaseUriForAasRepo(), aas.Id),
                                 allowFakeResponses: allowFakeResponses,
                                 runtimeOptions: runtimeOptions,
                                 lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
@@ -1799,15 +1824,18 @@ namespace AasxPackageLogic.PackageCentral
                                         StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
                                         Id = lr.Reference.Keys[0].Value,
                                         IdShort = "",
-                                        QueriedEndpoint = BuildUriForRepoSingleCD(baseUri, cdid, encryptIds: true),
-                                        DesignatedEndpoint = BuildUriForRepoSingleCD(baseUri, cdid, encryptIds: true)
+                                        QueriedEndpoint = BuildUriForRepoSingleCD(
+                                            baseUri.GetBaseUriForCdRepo(), cdid, encryptIds: true),
+                                        DesignatedEndpoint = BuildUriForRepoSingleCD(
+                                            baseUri.GetBaseUriForCdRepo(), cdid, encryptIds: true)
                                     });
                                 }
                             }
                             else
                             {
                                 // no side info => full element
-                                var sourceUri = BuildUriForRepoSingleCD(baseUri, cdid);
+                                var sourceUri = BuildUriForRepoSingleCD(
+                                        baseUri.GetBaseUriForCdRepo(), cdid);
                                 await PackageHttpDownloadUtil.HttpGetToMemoryStream(
                                     null,
                                     sourceUri: sourceUri,
@@ -2151,15 +2179,38 @@ namespace AasxPackageLogic.PackageCentral
                 }
 
                 if (baseOpt is PackageContainerHttpRepoSubsetOptions fullOpt)
+                {
                     Record = fullOpt.Record?.Copy();
+                    BaseUris = fullOpt.BaseUris;
+                }
                 else
                     Record = record;
             }
 
+            /// <summary>
+            /// Holds, if available, the query record data used to create this container.
+            /// </summary>
             public ConnectExtendedRecord Record;
+
+            /// <summary>
+            /// Holds, if available, the different URIs for different repos, registries etc. to be used with
+            /// this container
+            /// </summary>
+            public BaseUriDict BaseUris = null;
+
         }
 
-        public static string BuildLocationFrom(
+        public class BasedLocation
+        {
+            public BaseUriDict BaseUris = null;
+            public Uri Location = null;
+
+            public BasedLocation() { }
+            public BasedLocation(Uri location) { Location = location; }
+            public BasedLocation(BaseUriDict uris, Uri location) { BaseUris = uris; Location = location; }
+        }
+
+        public static BasedLocation BuildLocationFrom(
             ConnectExtendedRecord record,
             string cursor = null)
         {
@@ -2167,7 +2218,8 @@ namespace AasxPackageLogic.PackageCentral
             if (record == null || record.BaseAddress?.HasContent() != true)
                 return null;
 
-            var baseUri = new Uri(record.BaseAddress);
+            // prepare URIs
+            var baseUris = new BaseUriDict(record.BaseAddress);
 
             //
             // REPO
@@ -2179,58 +2231,65 @@ namespace AasxPackageLogic.PackageCentral
                 if (record.GetAllAas)
                 {
                     // if a skip has been requested, these AAS need to be loaded, as well
-                    var uri = BuildUriForRepoAllAAS(baseUri, record.PageLimit + record.PageSkip, cursor);
-                    return uri?.ToString();
+                    var uri = BuildUriForRepoAllAAS(baseUris.GetBaseUriForAasRepo(), 
+                                record.PageLimit + record.PageSkip, cursor);
+                    return new BasedLocation(baseUris, uri);
                 }
 
                 // Single AAS?
                 if (record.GetSingleAas)
                 {
-                    var uri = BuildUriForRepoSingleAAS(baseUri, record.AasId, encryptIds: record.EncryptIds);
-                    return uri?.ToString();
+                    var uri = BuildUriForRepoSingleAAS(baseUris.GetBaseUriForAasRepo(), 
+                                record.AasId, encryptIds: record.EncryptIds);
+                    return new BasedLocation(baseUris, uri);
                 }
 
                 // Single AAS by AssetLink?
                 if (record.GetAasByAssetLink)
                 {
-                    var uri = BuildUriForRegistryAasByAssetLink(baseUri, record.AssetId, encryptIds: record.EncryptIds);
-                    return uri?.ToString();
+                    var uri = BuildUriForRegistryAasByAssetLink(baseUris.GetBaseUriForBasicDiscovery(), 
+                                record.AssetId, encryptIds: record.EncryptIds);
+                    return new BasedLocation(baseUris, uri);
                 }
 
                 // All Submodels?
                 if (record.GetAllSubmodel)
                 {
                     // if a skip has been requested, these AAS need to be loaded, as well
-                    var uri = BuildUriForRepoAllSubmodel(baseUri, record.PageLimit + record.PageSkip, cursor);
-                    return uri?.ToString();
+                    var uri = BuildUriForRepoAllSubmodel(baseUris.GetBaseUriForSmRepo(), 
+                                record.PageLimit + record.PageSkip, cursor);
+                    return new BasedLocation(baseUris, uri);
                 }
 
                 // Single Submodel?
                 if (record.GetSingleSubmodel)
                 {
-                    var uri = BuildUriForRepoSingleSubmodel(baseUri, record.SmId, encryptIds: record.EncryptIds);
-                    return uri?.ToString();
+                    var uri = BuildUriForRepoSingleSubmodel(baseUris.GetBaseUriForSmRepo(), 
+                                record.SmId, encryptIds: record.EncryptIds);
+                    return new BasedLocation(baseUris, uri);
                 }
 
                 // All Submodels?
                 if (record.GetAllCD)
                 {
-                    var uri = BuildUriForRepoAllCD(baseUri, record.PageLimit + record.PageSkip, cursor);
-                    return uri?.ToString();
+                    var uri = BuildUriForRepoAllCD(baseUris.GetBaseUriForCdRepo(), 
+                                record.PageLimit + record.PageSkip, cursor);
+                    return new BasedLocation(baseUris, uri);
                 }
 
                 // Single CD?
                 if (record.GetSingleCD)
                 {
-                    var uri = BuildUriForRepoSingleCD(baseUri, record.CdId, encryptIds: record.EncryptIds);
-                    return uri?.ToString();
+                    var uri = BuildUriForRepoSingleCD(baseUris.GetBaseUriForCdRepo(), 
+                                record.CdId, encryptIds: record.EncryptIds);
+                    return new BasedLocation(baseUris, uri);
                 }
 
                 // Query?
                 if (record.ExecuteQuery)
                 {
-                    var uri = BuildUriForRepoQuery(baseUri, record.QueryScript);
-                    return uri?.ToString();
+                    var uri = BuildUriForRepoQuery(baseUris.GetBaseUriForQuery(), record.QueryScript);
+                    return new BasedLocation(baseUris, uri);
                 }
 
             }
@@ -2245,22 +2304,25 @@ namespace AasxPackageLogic.PackageCentral
                 if (record.GetAllAas)
                 {
                     // if a skip has been requested, these AAS need to be loaded, as well
-                    var uri = BuildUriForRegistryAllAAS(baseUri, record.PageLimit + record.PageSkip, cursor);
-                    return uri?.ToString();
+                    var uri = BuildUriForRegistryAllAAS(baseUris.GetBaseUriForAasReg(), 
+                                record.PageLimit + record.PageSkip, cursor);
+                    return new BasedLocation(baseUris, uri);
                 }
 
                 // Single AAS?
                 if (record.GetSingleAas)
                 {
-                    var uri = BuildUriForRegistrySingleAAS(baseUri, record.AasId, encryptIds: record.EncryptIds);
-                    return uri?.ToString();
+                    var uri = BuildUriForRegistrySingleAAS(baseUris.GetBaseUriForAasReg(), 
+                                record.AasId, encryptIds: record.EncryptIds);
+                    return new BasedLocation(baseUris, uri);
                 }
 
                 // Single AAS by AssetLink?
                 if (record.GetAasByAssetLink)
                 {
-                    var uri = BuildUriForRegistryAasByAssetLink(baseUri, record.AssetId, encryptIds: record.EncryptIds);
-                    return uri?.ToString();
+                    var uri = BuildUriForRegistryAasByAssetLink(baseUris.GetBaseUriForBasicDiscovery(), 
+                                record.AssetId, encryptIds: record.EncryptIds);
+                    return new BasedLocation(baseUris, uri);
                 }
             }
 
@@ -3520,8 +3582,8 @@ namespace AasxPackageLogic.PackageCentral
                                     var attLoc = BuildUriForRepoSingleSubmodelAttachment(
                                         baseUri, submodel.Id,
                                         idShortPath: filEl.IdShortPath,
-                                        encryptIds: true,
-                                        aasId: aasId);
+                                        aasId: null /* aasId */,        // BaSyx seems to expect ONLY at Submodel interface
+                                        encryptIds: true);
                                     using (var ms = new MemoryStream(ba))
                                     {
                                         // the multi-part content needs very specific information to work

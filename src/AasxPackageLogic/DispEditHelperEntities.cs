@@ -1576,6 +1576,8 @@ namespace AasxPackageLogic
                     PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
                     fetchContext.Record);
 
+                containerOptions.BaseUris = location.BaseUris;
+
                 // load
                 Log.Singleton.Info($"For refining extended connect, loading " +
                     $"from {location} into container");
@@ -1589,8 +1591,8 @@ namespace AasxPackageLogic
 
                 var container = await PackageContainerFactory.GuessAndCreateForAsync(
                     packages,
-                    location,
-                    location,
+                    location.Location.ToString(),
+                    location.Location.ToString(),
                     overrideLoadResident: true,
                     containerOptions: containerOptions,
                     runtimeOptions: runtimeOptions);
@@ -1604,7 +1606,7 @@ namespace AasxPackageLogic
                 // display
                 mainWindow.UiLoadPackageWithNew(packages.MainItem,
                     takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
-                    storeFnToLRU: location,
+                    storeFnToLRU: location.Location.ToString(),
                     preserveEditMode: preserveEditMode,
                     autoFocusFirstRelevant: true);
 
