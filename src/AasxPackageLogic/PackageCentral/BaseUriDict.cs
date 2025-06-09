@@ -37,6 +37,14 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         /// <summary>
+        /// Checks for validity. Minimum of one URI with the default key shall exist.
+        /// </summary>
+        public bool IsValid()
+        {
+            return this.Count >=1 && this.ContainsKey(Default);
+        }
+
+        /// <summary>
         /// Parses a string containing the information on one or multiple base URIs.
         /// Variable sections are demarked by '{{' and '}}'. Inside, the choices are
         /// formatted as JSON, e.g. "SM-REG" : "/smregi/v33/", separated by comma.
