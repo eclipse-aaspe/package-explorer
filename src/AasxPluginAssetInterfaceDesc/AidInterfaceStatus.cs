@@ -29,7 +29,6 @@ using AasxIntegrationBase.AdminShellEvents;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using AasxPluginAssetInterfaceDescription;
 
 namespace AasxPluginAssetInterfaceDescription
 {
@@ -121,7 +120,7 @@ namespace AasxPluginAssetInterfaceDescription
         /// <summary>
         /// The information items (properties, actions, events)
         /// </summary>
-        public MultiValueDictionary<string, AidIfxItemStatus> Items = 
+        public MultiValueDictionary<string, AidIfxItemStatus> Items =
             new MultiValueDictionary<string, AidIfxItemStatus>();
 
         /// <summary>
@@ -202,7 +201,7 @@ namespace AasxPluginAssetInterfaceDescription
             return key;
         }
 
-        public void SetLogLine (StoredPrint.Color color, string line)
+        public void SetLogLine(StoredPrint.Color color, string line)
         {
             LogColor = color;
             LogLine = line;
@@ -220,7 +219,7 @@ namespace AasxPluginAssetInterfaceDescription
 
             // compute key
             var key = ComputeKey(item?.FormData?.Href);
-            
+
             // now add
             Items.Add(key, item);
         }
@@ -402,7 +401,7 @@ namespace AasxPluginAssetInterfaceDescription
                         }
                     }
 
-                  
+
                 }
         }
     }
@@ -452,7 +451,7 @@ namespace AasxPluginAssetInterfaceDescription
         /// <summary>
         /// Current setting, which technologies shall be used.
         /// </summary>
-        public bool[] UseTech = { false, false, false, true, false };
+        public bool[] UseTech = { false, false, false, true, true };
 
         /// <summary>
         /// Will hold connections steady and continously update values, either by
@@ -465,7 +464,7 @@ namespace AasxPluginAssetInterfaceDescription
         public AidGenericConnections<AidHttpConnection> HttpConnections =
             new AidGenericConnections<AidHttpConnection>();
 
-        public AidGenericConnections<AidModbusConnection> ModbusConnections = 
+        public AidGenericConnections<AidModbusConnection> ModbusConnections =
             new AidGenericConnections<AidModbusConnection>();
 
         public AidGenericConnections<AidMqttConnection> MqttConnections =
@@ -548,6 +547,7 @@ namespace AasxPluginAssetInterfaceDescription
                 case AidInterfaceTechnology.BACNET:
                     conn = BacnetConnections.GetOrCreate(endpointBase, log);
                     break;
+
             }
 
             conn.UpdateFreqMs = ifcStatus.UpdateFreqMs;
@@ -771,17 +771,17 @@ namespace AasxPluginAssetInterfaceDescription
 
                     // go thru all items (sync)
                     foreach (var item in ifc.Items.Values)
-                        ifc.ValueChanges += (UInt64) ifc.Connection.UpdateItemValue(item);
+                        ifc.ValueChanges += (UInt64)ifc.Connection.UpdateItemValue(item);
 
                     // go thru all items (async)
                     // see: https://www.hanselman.com/blog/parallelforeachasync-in-net-6
                     await Parallel.ForEachAsync(
-                        ifc.Items.Values, 
-                        new ParallelOptions() { MaxDegreeOfParallelism = 10 }, 
+                        ifc.Items.Values,
+                        new ParallelOptions() { MaxDegreeOfParallelism = 10 },
                         async (item, token) =>
-                    {
-                        ifc.ValueChanges += (UInt64) (await ifc.Connection.UpdateItemValueAsync(item));
-                    });
+                        {
+                            ifc.ValueChanges += (UInt64)(await ifc.Connection.UpdateItemValueAsync(item));
+                        });
                 }
             }
         }
@@ -863,7 +863,7 @@ namespace AasxPluginAssetInterfaceDescription
                             FormData = propName.Forms,
                             Value = "???"
                         };
-                        
+
 
                         // does (some) mapping have a source with this property name?
                         var lst = new List<AidMappingOutputItem>();
@@ -884,7 +884,7 @@ namespace AasxPluginAssetInterfaceDescription
                             aidIfx.AddItem(ifcItem);
                             ifcItem.MapOutputItems = lst;
                         }
-                            
+
 
                         // directly recurse?
                         if (propName?.Properties?.Property != null)
@@ -894,7 +894,7 @@ namespace AasxPluginAssetInterfaceDescription
                                 child.Forms = propName.Forms;
                                 recurseProp(location + " . " + ifcItem.DisplayName, child);
                             }
-                   
+
                     };
 
                     if (ifx.InteractionMetadata?.Properties?.Property == null)

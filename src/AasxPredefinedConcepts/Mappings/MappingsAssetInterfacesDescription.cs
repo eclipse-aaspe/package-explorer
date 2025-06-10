@@ -479,17 +479,17 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
         [AasConcept(Cd = "https://www.w3.org/2019/wot/mqtt#hasQoSFlag", Card = AasxPredefinedCardinality.ZeroToOne)]
         public string Mqv_qos;
 
-        [AasConcept(Cd = "http://www.w3.org/2022/bacnet#usesService", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public string bacv_useService;
-
-        [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasDataType", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public CD_Bacv_hasDataType bacv_hasDataType = null;
-
         [AasConcept(Cd = "https://www.w3.org/2019/wot/opc-ua#pollingTime", Card = AasxPredefinedCardinality.ZeroToOne)]
         public string OpcUa_pollingTime;
 
         [AasConcept(Cd = "https://www.w3.org/2019/wot/opc-ua#timeout", Card = AasxPredefinedCardinality.ZeroToOne)]
         public string OpcUa_timeout;
+
+        [AasConcept(Cd = "http://www.w3.org/2022/bacnet#usesService", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public string Bacv_useService;
+
+        [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasDataType", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public CD_Bacv_hasDataType Bacv_hasDataType = null;
 
         // auto-generated informations
         public AasClassMapperInfo __Info__ = null;
@@ -515,7 +515,7 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
     public class CD_Bacv_hasDataType
     {
         [AasConcept(Cd = "http://www.w3.org/2022/bacnet#isIso8601", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public string bacv_isISO8601;
+        public bool? bacv_isISO8601;
 
         [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasBinaryRepresentation", Card = AasxPredefinedCardinality.ZeroToOne)]
         public string bacv_hasBinaryRepresentation;
@@ -524,23 +524,23 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
         public CD_Bacv_hasDataType bacv_hasMember = null;
 
         [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasNamedMember", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public List<CD_Bacv_hasNamedMember> bacv_hasNamedMember = new List<CD_Bacv_hasNamedMember>();
+        public List<CD_Bacv_hasNamedMember> bacv_hasNamedMember = null;
 
-        [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasValueMap ", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public List<CD_Bacv_hasValueMap> bacv_hasValueMap = new List<CD_Bacv_hasValueMap>();
+        [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasValueMap", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public List<CD_Bacv_hasValueMap> bacv_hasValueMap = null;
 
         // auto-generated informations
         public AasClassMapperInfo __Info__ = null;
     }
 
-    [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasNamedMember")]
+    [AasConcept(Cd = "http://www.w3.org/2022/bacnet#NamedMember")]
     public class CD_Bacv_hasNamedMember
     {
         [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasfieldName", Card = AasxPredefinedCardinality.One)]
         public string bacv_hasFieldName;
 
         [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasContextTag", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public string bacv_hasContextTag;
+        public bool? bacv_hasContextTag;
 
         [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasDataType", Card = AasxPredefinedCardinality.ZeroToOne)]
         public CD_Bacv_hasDataType bacv_hasDataType = null;
@@ -549,7 +549,7 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
         public AasClassMapperInfo __Info__ = null;
     }
 
-    [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasValueMap")]
+    [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasMapEntry")]
     public class CD_Bacv_hasValueMap
     {
 
@@ -557,7 +557,7 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
         public string bacv_hasLogicalVal;
 
         [AasConcept(Cd = "http://www.w3.org/2022/bacnet#hasProtocolVal", Card = AasxPredefinedCardinality.One)]
-        public string bacv_hasProtocolVal;
+        public int bacv_hasProtocolVal;
 
         // auto-generated informations
         public AasClassMapperInfo __Info__ = null;
@@ -607,7 +607,7 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
         public List<CD_GenericInterface> InterfaceOPCUA = new List<CD_GenericInterface>();
 
         [AasConcept(Cd = "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Interface", Card = AasxPredefinedCardinality.ZeroToMany,
-            SupplSemId = "http://www.w3.org/2022/bacnet")]
+        SupplSemId = "http://www.w3.org/2022/bacnet")]
         public List<CD_GenericInterface> InterfaceBACNET = new List<CD_GenericInterface>();
 
         // auto-generated informations

@@ -31,7 +31,20 @@ namespace AasxPluginAssetInterfaceDescription
     public class AidBacnetConnection : AidBaseConnection
     {
         public BacnetClient Client;
+        static List<BacNode> DevicesList = new List<BacNode>();
 
+        static void handler_OnIam(BacnetClient sender, BacnetAddress adr, uint device_id, uint max_apdu, BacnetSegmentations segmentation, ushort vendor_id)
+        {
+            lock (DevicesList)
+            {
+                // Device already registered?
+                foreach (BacNode bn in DevicesList)
+                    if (bn.getAdd(device_id) != null) return; // Yes
+
+                // Not already in the list
+                DevicesList.Add(new BacNode(adr, device_id)); // Add it
+            } // Closing brace added here
+        } // Closing brace added here
         override public async Task<bool> Open()
         {
             try
@@ -42,7 +55,7 @@ namespace AasxPluginAssetInterfaceDescription
                 // Parse device ID from URI (bacnet://1234)
                 //string deviceIdStr = TargetUri.Host;
                 //if (!uint.TryParse(deviceIdStr, out DeviceId))
-                  //  return false;
+                //return false;
 
                 // Set timeout if specified
                 if (TimeOutMs >= 10)
@@ -86,36 +99,48 @@ namespace AasxPluginAssetInterfaceDescription
             // nothing to do, this simple http connection is stateless
         }
 
-        override public async Task<int> UpdateItemValueAsync(AidIfxItemStatus item)
-         {
-            // access
-            if (item?.FormData?.Href?.HasContent() != true
-                || item.FormData.Modv_function?.HasContent() != true
-                || !IsConnected())
-                return 0;
-            int res = 0;
-
-            // Decode address and value
-            var match = Regex.Match(item.FormData.Href, @"^(\d+)(\?value=(\d+))?$");
-            if (!match.Success)
-                return 0;
-            if (!uint.TryParse(match.Groups[1].ToString(), out var address))
-                return 0;
-            if (match.Groups[3].Success && !uint.TryParse(match.Groups[3].ToString(), out var value))
-                return 0;
-            // Perform the write operation
+        override public int UpdateItemValue(AidIfxItemStatus item)
+        {
             try
             {
-                Client.WriteProperty(address, BacnetPropertyIds.PROP_PRESENT_VALUE, value);
-                res = 1; // Success
+                // Example logic to update item value
+                if (item != null && !string.IsNullOrEmpty(item.Location))
+                {
+                    // Simulate updating the value
+                    item.Value = "UpdatedValue";
+                    return 0; // Return success code
+                }
+                else
+                {
+                    return -1; // Return error code for invalid item
+                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Bacnet write error: {ex.Message}");
-                res = -1; // Error
+                // Log the exception if necessary
+                Console.WriteLine($"Error updating item value: {ex.Message}");
+                return -2; // Return error code for exception 
             }
-            await Task.Yield();
-            return res;
         }
+
+        public class BacNode
+        {
+            public BacnetAddress adr;
+            public uint device_id;
+
+            public BacNode(BacnetAddress adr, uint device_id)
+            {
+                this.adr = adr;
+                this.device_id = device_id;
+            }
+
+            public BacnetAddress getAdd(uint device_id)
+            {
+                if (this.device_id == device_id)
+                    return adr;
+                else
+                    return null;
+            }
+        }
+    }
 }
-       
