@@ -1,146 +1,152 @@
-﻿using AasxPluginAssetInterfaceDescription;
+﻿using AasxIntegrationBase;
+using AasxIntegrationBase.AdminShellEvents;
+using AasxPluginAssetInterfaceDescription;
+using AasxPredefinedConcepts;
+using AasxPredefinedConcepts.AssetInterfacesDescription;
+using AdminShellNS;
+using AdminShellNS.DiaryData;
+using Extensions;
+using FluentModbus;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AasxPredefinedConcepts;
-using Aas = AasCore.Aas3_0;
-using AdminShellNS;
-using Extensions;
-using AasxIntegrationBase;
-using AasxPredefinedConcepts.AssetInterfacesDescription;
-using FluentModbus;
-using System.Net;
-using System.Text.RegularExpressions;
-using System.Globalization;
-using System.Net.Http;
-using AdminShellNS.DiaryData;
-using AasxIntegrationBase.AdminShellEvents;
-using System.Drawing;
-using MQTTnet;
-using MQTTnet.Client;
-using System.Web.Services.Description;
-using AasxOpcUa2Client;
-using System.IO.BACnet;
-using System.Threading;
 using System.Diagnostics;
+using System.Drawing;
+using System.Globalization;
+using System.IO.BACnet;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Web.Services.Description;
+using Aas = AasCore.Aas3_0;
 
 namespace AasxPluginAssetInterfaceDescription
 {
     public class AidBacnetConnection : AidBaseConnection
     {
         public BacnetClient Client;
-        static List<BacNode> DevicesList = new List<BacNode>();
-
-        static void handler_OnIam(BacnetClient sender, BacnetAddress adr, uint device_id, uint max_apdu, BacnetSegmentations segmentation, ushort vendor_id)
-        {
-            lock (DevicesList)
-            {
-                // Device already registered?
-                foreach (BacNode bn in DevicesList)
-                    if (bn.getAdd(device_id) != null) return; // Yes
-
-                // Not already in the list
-                DevicesList.Add(new BacNode(adr, device_id)); // Add it
-            } // Closing brace added here
-        } // Closing brace added here
+        private Dictionary<uint, BacnetAddress> DeviceAddresses = new Dictionary<uint, BacnetAddress>();
         override public async Task<bool> Open()
         {
             try
             {
-                // Simple initialization
                 Client = new BacnetClient();
+                Client.OnIam += OnIamHandler;
 
-                // Parse device ID from URI (bacnet://1234)
-                //string deviceIdStr = TargetUri.Host;
-                //if (!uint.TryParse(deviceIdStr, out DeviceId))
-                //return false;
-
-                // Set timeout if specified
                 if (TimeOutMs >= 10)
+                { 
                     Client.Timeout = (int)TimeOutMs;
+                } 
 
-                // Start the client
                 Client.Start();
-
-                Client.OnIam += new BacnetClient.IamHandler(handler_OnIam);
-
-                Client.WhoIs();
-                Thread.Sleep(1000); // Allow time for responses
-
-                Console.WriteLine("Devices discovered:");
-                lock (DevicesList)
-                {
-                    foreach (var device in DevicesList)
-                    {
-                        Console.WriteLine($"Device ID: {device.device_id}, Address: {device.adr}");
-                    }
-                }
-
+                LastActive = DateTime.Now;
+                
                 await Task.Yield();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
                 Client = null;
                 return false;
             }
         }
 
+        private void OnIamHandler(BacnetClient sender, BacnetAddress adr, uint deviceId, uint maxAPDU, BacnetSegmentations segmentation, ushort vendorId)
+        {
+            // Store the device address from I-Am response
+            DeviceAddresses[deviceId] = adr;
+        }
+
         override public bool IsConnected()
         {
-            // nothing to do, this simple http connection is stateless
+            // nothing to do, this simple bacnet connection is stateless
             return Client != null;
         }
 
         override public void Close()
         {
-            // nothing to do, this simple http connection is stateless
+            // Dispose client
+            if (Client != null)
+            {
+                Client.Dispose();
+                Client = null;
+            }
         }
 
-        override public int UpdateItemValue(AidIfxItemStatus item)
+        override public async Task<int> UpdateItemValueAsync(AidIfxItemStatus item)
         {
-            try
+            // access
+            if (item?.FormData?.Href?.HasContent() != true
+                || item.FormData.Bacv_useService?.HasContent() != true
+                || !IsConnected())
+                return 0;
+            int res = 0;
+
+            // GET?
+            if (item.FormData.Bacv_useService.Trim().ToLower() == "readproperty")
             {
-                // Example logic to update item value
-                if (item != null && !string.IsNullOrEmpty(item.Location))
+                try
                 {
-                    // Simulate updating the value
-                    item.Value = "UpdatedValue";
-                    return 0; // Return success code
+                    // Extract device ID
+                    uint deviceId = uint.Parse(TargetUri.Host);
+
+                    // Find device address
+                    BacnetAddress deviceAddress;
+                    if (!DeviceAddresses.ContainsKey(deviceId))
+                    {
+                        // Perform WhoIs request
+                        Client.WhoIs((int)deviceId, (int)deviceId);
+                        await Task.Delay(1000); // Wait for response
+                    }
+
+                    if (!DeviceAddresses.TryGetValue(deviceId, out deviceAddress))
+                    {
+                        throw new Exception($"Device {deviceId} not found.");
+                    }
+
+                    
+                    // get object type,instance, and property
+                    var href = item.FormData.Href.TrimStart('/');
+                    string[] mainParts = href.Split('/');
+                    string[] objectParts = mainParts[0].Split(',');
+                    
+                    // Create objectId
+                    var objectType = (BacnetObjectTypes)int.Parse(objectParts[0]); 
+                    uint instance = uint.Parse(objectParts[1]);
+                    BacnetObjectId objectId = new BacnetObjectId(objectType, instance);
+                    
+                    // Get property from href
+                    var propertyId = (BacnetPropertyIds)int.Parse(mainParts[1]);
+
+                    // Read Property
+                    IList<BacnetValue> values;
+                    bool result = Client.ReadPropertyRequest(
+                        deviceAddress,
+                        objectId,
+                        propertyId,                   
+                        out values
+                    );
+
+                    if (result)
+                    {
+                        var value = values[0].Value.ToString();
+                        item.Value = value;
+                        res = 1;
+                        NotifyOutputItems(item, value);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return -1; // Return error code for invalid item
+                    // set breakpoint in order to get failed connections!
                 }
             }
-            catch (Exception ex)
-            {
-                // Log the exception if necessary
-                Console.WriteLine($"Error updating item value: {ex.Message}");
-                return -2; // Return error code for exception 
-            }
+
+            return res;
         }
 
-        public class BacNode
-        {
-            public BacnetAddress adr;
-            public uint device_id;
 
-            public BacNode(BacnetAddress adr, uint device_id)
-            {
-                this.adr = adr;
-                this.device_id = device_id;
-            }
-
-            public BacnetAddress getAdd(uint device_id)
-            {
-                if (this.device_id == device_id)
-                    return adr;
-                else
-                    return null;
-            }
-        }
     }
 }

@@ -607,7 +607,7 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
         public List<CD_GenericInterface> InterfaceOPCUA = new List<CD_GenericInterface>();
 
         [AasConcept(Cd = "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Interface", Card = AasxPredefinedCardinality.ZeroToMany,
-        SupplSemId = "http://www.w3.org/2022/bacnet")]
+            SupplSemId = "http://www.w3.org/2022/bacnet")]
         public List<CD_GenericInterface> InterfaceBACNET = new List<CD_GenericInterface>();
 
         // auto-generated informations
