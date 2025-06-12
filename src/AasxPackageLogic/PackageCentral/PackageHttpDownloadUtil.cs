@@ -317,8 +317,11 @@ namespace AasxPackageLogic.PackageCentral
                         runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.StartDownload,
                                 contentLength, totalBytesRead);
 
+                        // MIHO, 25-06-11: not sure if this timeout works
+                        using var cts = new CancellationTokenSource(5000);
+
                         while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length,
-                            default(CancellationToken)).ConfigureAwait(false)) != 0)
+                            cts.Token).ConfigureAwait(false)) != 0)
                         {
                             await memStream.WriteAsync(buffer, 0, bytesRead,
                                 default(CancellationToken)).ConfigureAwait(false);
