@@ -1599,7 +1599,7 @@ namespace AasxPackageLogic
 
                 if (container == null)
                 {
-                    Log.Singleton.Error($"Failed to load from {location}.");
+                    Log.Singleton.Error($"Failed to load from {location.Location}.");
                     return false;
                 }
 
@@ -1610,7 +1610,7 @@ namespace AasxPackageLogic
                     preserveEditMode: preserveEditMode,
                     autoFocusFirstRelevant: true);
 
-                Log.Singleton.Info($"Successfully loaded {location}");
+                Log.Singleton.Info($"Successfully processed retrieval attempt of {location.Location}");
 
                 // okay
                 return true;

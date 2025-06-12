@@ -197,7 +197,7 @@ namespace AasxPackageLogic.PackageCentral
             {
                 // try to do this natively
                 var testBaseUris = new BaseUriDict(Endpoint);
-                var fil = PackageContainerHttpRepoSubset.BuildUriForRegistryAasByAssetLink(
+                var fil = PackageContainerHttpRepoSubset.BuildUriForRegistryAasByGlobalAssetId(
                     testBaseUris.GetBaseUriForBasicDiscovery(), aid);
 
                 // prepare receiving the descriptors/ ids
