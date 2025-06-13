@@ -1095,7 +1095,8 @@ namespace AasxPackageExplorer
                         {
                             Record = new ConnectExtendedRecord()
                             {
-                                BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+                                BaseType = ConnectExtendedRecord.EvalBaseType(restRepo.PreferredInterface,
+                                    ConnectExtendedRecord.BaseTypeEnum.Repository),
                                 BaseAddress = restRepo.Endpoint?.ToString()
                             }
                         };
