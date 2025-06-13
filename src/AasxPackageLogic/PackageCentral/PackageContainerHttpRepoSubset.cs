@@ -251,6 +251,30 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         //
+        // REGISTRY OF REGISTRIES
+        //
+
+        public static bool IsValidUriForRegOfRegAasByAssetId(string location)
+        {
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/registry-descriptors/([-A-Za-z0-9_]{1,999})$",
+                RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+            return m.Success;
+        }
+
+        public static string IsValidAndDecodeUriForRegOfRegAasByAssetId(string location)
+        {
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/registry-descriptors/([-A-Za-z0-9_]{1,999})$",
+                RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+            if (!m.Success)
+                return null;
+
+            // decode assetId
+            var enc = m.Groups[4].ToString();
+            var dec = AdminShellUtil.Base64UrlDecode(enc);
+            return dec;
+        }
+
+        //
         // ALL
         //
 
@@ -269,7 +293,8 @@ namespace AasxPackageLogic.PackageCentral
                 || IsValidUriForRegistryAllAAS(location)
                 || IsValidUriForRegistrySingleAAS(location)
                 || IsValidUriForRepoAasByAssetIds(location)
-                || IsValidUriForRegistryAasByAssetIds(location);
+                || IsValidUriForRegistryAasByAssetIds(location)
+                || IsValidUriForRegOfRegAasByAssetId(location);
         }
 
         public static Uri GetBaseUri(string location)
@@ -280,7 +305,8 @@ namespace AasxPackageLogic.PackageCentral
 
             // try an explicit search for known parts of ressources
             // (preserves scheme, host and leading pathes)
-            var m = Regex.Match(location, @"^(.*?)(/shells|/submodel|/concept-description|/lookup)");
+            var m = Regex.Match(location, @"^(.*?)(/shells|/submodel|/concept-description|/lookup|/description"
+                        + "|/shell-descriptor|/submodel-descriptor|/bulk|/serialization|/package)");
             if (m.Success)
                 return new Uri(m.Groups[1].ToString() + "/");
 
@@ -618,7 +644,7 @@ namespace AasxPackageLogic.PackageCentral
             return CombineUri(baseUri, $"lookup/shells?assetId={assenc}");
         }
 
-        public static Uri BuildUriForRegistryAasByGlobalAssetId(Uri baseUri, string id, bool encryptIds = true)
+        public static Uri BuildUriForRegistryAasByAssetId(Uri baseUri, string id, bool encryptIds = true)
         {
             // access
             if (id?.HasContent() != true)
@@ -632,6 +658,21 @@ namespace AasxPackageLogic.PackageCentral
             // try combine
             var assenc = encryptIds ? AdminShellUtil.Base64UrlEncode(jsonArr) : id;
             return CombineUri(baseUri, $"lookup/shells?assetIds={assenc}");
+        }
+
+        //
+        // REGISTRY of REGISTRIES
+        //
+
+        public static Uri BuildUriForRegOfRegAasByAssetId(Uri baseUri, string id, bool encryptIds = true)
+        {
+            // access
+            if (id?.HasContent() != true)
+                return null;
+
+            // try combine
+            var assenc = encryptIds ? AdminShellUtil.Base64UrlEncode(id) : id;
+            return CombineUri(baseUri, $"registry-descriptors/{assenc}");
         }
 
         //
@@ -724,7 +765,7 @@ namespace AasxPackageLogic.PackageCentral
             dynamic aasDescriptor,
             List<Aas.IIdentifiable> trackNewIdentifiables = null,
             List<Aas.IIdentifiable> trackLoadedIdentifiables = null,
-            Action<int, int> lambdaReportProgress = null)
+            Action<int, int, int, int> lambdaReportProgress = null)
         {
             // access
             if (record == null)
@@ -787,7 +828,7 @@ namespace AasxPackageLogic.PackageCentral
                     continue;
                 }
 
-                lambdaReportProgress?.Invoke(1, 0);
+                lambdaReportProgress?.Invoke(1, 0, 0, 0);
 
                 // possible culprit: Submodels are listed twice (or more) in an AAS
                 // try filter (actually: false alarm, but leave in)
@@ -852,7 +893,7 @@ namespace AasxPackageLogic.PackageCentral
                             trackLoadedIdentifiables?.Add(sm);
                             if (prepSM?.AddIfNew(sm, si) == true)
                                 trackNewIdentifiables?.Add(sm);
-                            lambdaReportProgress?.Invoke(0, 1);
+                            lambdaReportProgress?.Invoke(0, 1, 0, 0);
                         });
                 }
                 else
@@ -881,6 +922,95 @@ namespace AasxPackageLogic.PackageCentral
                     aasSi.QueriedEndpoint.ToString());
             }
 
+            return true;
+        }
+
+        private static async Task<bool> FromRegOfRegGetAasAndSubmodels(            
+            OnDemandListIdentifiable<IAssetAdministrationShell> prepAas, 
+            OnDemandListIdentifiable<ISubmodel> prepSM,
+            ConnectExtendedRecord record,
+            PackCntRuntimeOptions runtimeOptions,
+            bool allowFakeResponses,            
+            dynamic regDescriptor,
+            string assetId,
+            List<Aas.IIdentifiable> trackNewIdentifiables = null,
+            List<Aas.IIdentifiable> trackLoadedIdentifiables = null,
+            Action<int, int, int, int> lambdaReportProgress = null,
+            bool compatOldAasxServer = false)
+        {
+            // access
+            if (record == null || regDescriptor == null || assetId?.HasContent() != true)
+                return false;
+
+            // The format is:
+            // {
+            //    "Url": "http://example.com/6789",
+            //    "Security": "",
+            //    "Match": "LIKE",
+            //    "Pattern": "%6789%",
+            //    "Domain": "example.com",
+            //    "Id": "xxx",
+            //    "Info": "xxx"
+            // }
+            // However, only Url and Id are currently useful
+
+            string regUrl = "" + regDescriptor["url"];
+            string regInfo = "" + regDescriptor["info"];
+            if (regInfo == "")
+                regInfo = "<Unknown>";
+
+            // valid url?
+            if (regUrl == "")
+                return false;
+            
+            var basicUri = GetBaseUri(regUrl);
+            if (basicUri == null) 
+                return false;
+
+            // build again a set of baseUris, but only one pattern set
+            var baseUris = new BaseUriDict(key: "AAS-REG", value: basicUri.ToString());
+
+            // translate to a list of AAS-Ids ..
+            var uriGetListOfAids = BuildUriForRegistryAasByAssetId(baseUris.GetBaseUriForAasReg(), assetId);
+            if (compatOldAasxServer)
+                uriGetListOfAids = BuildUriForRegistryAasByAssetLinkDeprecated(baseUris.GetBaseUriForAasReg(), assetId);
+            var listOfAids = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
+                uriGetListOfAids, runtimeOptions, allowFakeResponses);
+
+            if (listOfAids == null || !(listOfAids is JArray) || (listOfAids as JArray).Count < 1)
+            {
+                runtimeOptions?.Log?.Info("Registry {0} did not translate glopbalAssetId={1} to any AAS Ids. " +
+                    "Aborting! URi was: {2}",
+                    basicUri, assetId, uriGetListOfAids);
+                return false;
+            }
+
+            // take the individual AAS ids
+            foreach (var aid in listOfAids)
+            {
+                // prepare receiving the descriptor
+                var uriGetAasDescr = BuildUriForRegistrySingleAAS(baseUris.GetBaseUriForAasReg(), aid.ToString());
+                var resAasDescr = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
+                    uriGetAasDescr, runtimeOptions, allowFakeResponses);
+
+                // have directly a single descriptor?!
+                if (!(resAasDescr is JObject))
+                {
+                    runtimeOptions?.Log?.Info("Registry did not return a single AAS descriptor! Aborting. URI was: {0}",
+                        uriGetAasDescr);
+                    return false;
+                }
+
+                lambdaReportProgress?.Invoke(0, 0, 0, 1);
+
+                // refer to dedicated function
+                await FromRegistryGetAasAndSubmodels(
+                    prepAas, prepSM, record, runtimeOptions, allowFakeResponses, resAasDescr,
+                    trackNewIdentifiables, trackLoadedIdentifiables,
+                    lambdaReportProgress: lambdaReportProgress);
+            }
+
+            // OK?
             return true;
         }
 
@@ -954,10 +1084,12 @@ namespace AasxPackageLogic.PackageCentral
                     message: $"{nAas} / {nSm} / {nCd} / {nDiv}");
             };
 
-            Action<int, int> lambdaReportAasSm = (iAAS, iSM) =>
+            Action<int, int, int, int> lambdaReportAasSm = (iAAS, iSM, iCD, iDiv) =>
             {
                 numAAS += iAAS;
                 numSM += iSM;
+                numCD += iCD;
+                numDiv += iDiv;
                 lambdaReportAll(numAAS, numSM, numCD, numDiv);
             };
 
@@ -1020,14 +1152,14 @@ namespace AasxPackageLogic.PackageCentral
             var operationFound = false;
 
             //
-            // in REPO & REGISTRY
+            // REGISTRY of REGISTRIES
             //
 
-            if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository
-                || record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Registry)
+            if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.RegOfReg)
             {
                 // Asset Link
-                if (IsValidUriForRepoRegistryAasByAssetIdDeprecated(fullItemLocation))
+                var foundAssetId = IsValidAndDecodeUriForRegOfRegAasByAssetId(fullItemLocation);
+                if (foundAssetId?.HasContent() == true)
                 {
                     // ok
                     operationFound = true;
@@ -1038,77 +1170,24 @@ namespace AasxPackageLogic.PackageCentral
 
                     lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
 
-                    // Note: GetAllAssetAdministrationShellIdsByAssetLink only returns a list of ids
+                    // Note: GetAllRegistryDescriptors returns a list of structs
                     if (resObj == null)
                     {
-                        runtimeOptions?.Log?.Error("Repository/ Registry did not return any AAS descriptors! Aborting.");
-                        return null;
+                        runtimeOptions?.Log?.Info("Registry-of-Registries did not return any registry descriptors! Aborting.");
                     }
-
-                    // Have  a list of ids. Decompose into single id.
-                    // Note: Parallel makes no sense, ideally only 1 result (is per AssetId)!!
-                    var noRes = true;
-                    foreach (var res in resObj)
+                    else
                     {
-                        noRes = false;
-
-                        // in res, have only an id. Get the descriptor / the AAS itself
-                        var id = "" + res;
-
-                        if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Registry)
+                        foreach (var res in resObj)
                         {
-                            var singleDesc = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
-                                    BuildUriForRegistrySingleAAS(baseUri.GetBaseUriForAasReg(), 
-                                        id, encryptIds: true),
-                                    runtimeOptions, allowFakeResponses);
-                            if (singleDesc == null || !HasProperty(singleDesc, "endpoints"))
-                                continue;
-
-                            lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
-
                             // refer to dedicated function
-                            await FromRegistryGetAasAndSubmodels(
-                                prepAas, prepSM, record, runtimeOptions, allowFakeResponses, singleDesc,
+                            await FromRegOfRegGetAasAndSubmodels(
+                                prepAas, prepSM, record, runtimeOptions, allowFakeResponses, 
+                                res, foundAssetId,
                                 trackNewIdentifiables, trackLoadedIdentifiables,
-                                lambdaReportProgress: lambdaReportAasSm);
+                                lambdaReportProgress: lambdaReportAasSm,
+                                // TODO: check!!
+                                compatOldAasxServer: true);
                         }
-
-                        if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
-                        {
-                            // get the AAS (new download approach)
-                            var aas = await PackageHttpDownloadUtil.DownloadIdentifiableToOK<Aas.IAssetAdministrationShell>(
-                                BuildUriForRepoSingleAAS(baseUri.GetBaseUriForAasRepo(), 
-                                    id, encryptIds: true), 
-                                runtimeOptions, allowFakeResponses);
-
-                            // found?
-                            if (aas != null)
-                            {
-                                // add
-                                lambdaReportAll(++numAAS, numSM, numCD, numDiv);
-                                trackLoadedIdentifiables?.Add(aas);
-                                if (prepAas.AddIfNew(aas, new AasIdentifiableSideInfo()
-                                {
-                                    IsStub = false,
-                                    StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
-                                    Id = aas.Id,
-                                    IdShort = aas.IdShort,
-                                    QueriedEndpoint = new Uri(fullItemLocation),
-                                    DesignatedEndpoint = BuildUriForRepoSingleAAS(baseUri.GetBaseUriForAasRepo(), 
-                                        id, encryptIds: true),
-                                }))
-                                {
-                                    trackNewIdentifiables?.Add(aas);
-                                }
-                            }
-                        }
-                    }
-
-                    // check again (count)
-                    if (noRes)
-                    {
-                        runtimeOptions?.Log?.Error("Repository/ Registry did not return any AAS descriptors! Aborting.");
-                        return null;
                     }
                 }
             }
@@ -1200,6 +1279,94 @@ namespace AasxPackageLogic.PackageCentral
                     if (!res)
                     {
                         runtimeOptions?.Log?.Error("Error retrieving AAS from registry! Aborting.");
+                        return null;
+                    }
+                }
+
+                // AAS by AssetIds
+                if (IsValidUriForRegistryAasByAssetIds(fullItemLocation))
+                {
+                    // ok
+                    operationFound = true;
+
+                    // prepare receiving the descriptors/ ids
+                    var resObj = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
+                        new Uri(fullItemLocation), runtimeOptions, allowFakeResponses);
+
+                    lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
+
+                    // Note: GetAllAssetAdministrationShellIdsByAssetLink only returns a list of ids
+                    if (resObj == null)
+                    {
+                        runtimeOptions?.Log?.Error("Repository/ Registry did not return any AAS descriptors! Aborting.");
+                        return null;
+                    }
+
+                    // Have  a list of ids. Decompose into single id.
+                    // Note: Parallel makes no sense, ideally only 1 result (is per AssetId)!!
+                    var noRes = true;
+                    foreach (var res in resObj)
+                    {
+                        noRes = false;
+
+                        // in res, have only an id. Get the descriptor / the AAS itself
+                        var id = "" + res;
+
+                        if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Registry)
+                        {
+                            var singleDesc = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
+                                    BuildUriForRegistrySingleAAS(baseUri.GetBaseUriForAasReg(),
+                                        id, encryptIds: true),
+                                    runtimeOptions, allowFakeResponses);
+                            if (singleDesc == null || !HasProperty(singleDesc, "endpoints"))
+                                continue;
+
+                            lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
+
+                            // refer to dedicated function
+                            await FromRegistryGetAasAndSubmodels(
+                                prepAas, prepSM, record, runtimeOptions, allowFakeResponses, singleDesc,
+                                trackNewIdentifiables, trackLoadedIdentifiables,
+                                lambdaReportProgress: lambdaReportAasSm);
+                        }
+
+#if __old
+                        if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+                        {
+                            // get the AAS (new download approach)
+                            var aas = await PackageHttpDownloadUtil.DownloadIdentifiableToOK<Aas.IAssetAdministrationShell>(
+                                BuildUriForRepoSingleAAS(baseUri.GetBaseUriForAasRepo(),
+                                    id, encryptIds: true),
+                                runtimeOptions, allowFakeResponses);
+
+                            // found?
+                            if (aas != null)
+                            {
+                                // add
+                                lambdaReportAll(++numAAS, numSM, numCD, numDiv);
+                                trackLoadedIdentifiables?.Add(aas);
+                                if (prepAas.AddIfNew(aas, new AasIdentifiableSideInfo()
+                                {
+                                    IsStub = false,
+                                    StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                    Id = aas.Id,
+                                    IdShort = aas.IdShort,
+                                    QueriedEndpoint = new Uri(fullItemLocation),
+                                    DesignatedEndpoint = BuildUriForRepoSingleAAS(baseUri.GetBaseUriForAasRepo(),
+                                        id, encryptIds: true),
+                                }))
+                                {
+                                    trackNewIdentifiables?.Add(aas);
+                                }
+                            }
+                        }
+#endif
+                    }
+
+                    // check again (count)
+                    if (noRes)
+                    {
+                        runtimeOptions?.Log?.Error("Repository/ Registry did not return any AAS descriptors! Aborting.");
                         return null;
                     }
                 }
@@ -2028,8 +2195,8 @@ namespace AasxPackageLogic.PackageCentral
                 HeaderAttributes = Options.Curr.HttpHeaderAttributes;
             }
 
-            public enum BaseTypeEnum { Repository, Registry }
-            public static string[] BaseTypeEnumNames = new[] { "Repository", "Registry" };
+            public enum BaseTypeEnum { Repository, Registry, RegOfReg }
+            public static string[] BaseTypeEnumNames = new[] { "Repository", "Registry", "Reg-of-Reg" };
 
             [AasxMenuArgument(help: "Specifies the part of the URI of the Repository/ Registry, which is " +
                 "common to all operations.")]
@@ -2207,6 +2374,22 @@ namespace AasxPackageLogic.PackageCentral
 
                 return res;
             }
+
+            public static BaseTypeEnum EvalBaseType(string input, BaseTypeEnum defaultType)
+            {
+                if (input?.HasContent() != true)
+                    return defaultType;
+
+                input = input.Trim().ToLower();
+                if (input.StartsWith("repo"))
+                    return BaseTypeEnum.Repository;
+                if (input.StartsWith("regis") || input == "reg")
+                    return BaseTypeEnum.Registry;
+                if (input == "reg-of-reg" || input == "ror")
+                    return BaseTypeEnum.RegOfReg;
+
+                return defaultType;
+            }
         }
 
         public class PackageContainerHttpRepoSubsetOptions : PackageContainerOptionsBase
@@ -2364,7 +2547,22 @@ namespace AasxPackageLogic.PackageCentral
                 // Single AAS by AssetLink?
                 if (record.GetAasByAssetLink)
                 {
-                    var uri = BuildUriForRegistryAasByGlobalAssetId(baseUris.GetBaseUriForBasicDiscovery(),
+                    var uri = BuildUriForRegistryAasByAssetId(baseUris.GetBaseUriForBasicDiscovery(),
+                                record.AssetId, encryptIds: true);
+                    return new BasedLocation(baseUris, uri);
+                }
+            }
+
+            //
+            // REGISTRY of REGISTRIES
+            //
+
+            if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.RegOfReg)
+            {
+                // Single AAS by AssetLink?
+                if (record.GetAasByAssetLink)
+                {
+                    var uri = BuildUriForRegOfRegAasByAssetId(baseUris.GetBaseUriForRegistryOfRegistries(),
                                 record.AssetId, encryptIds: true);
                     return new BasedLocation(baseUris, uri);
                 }

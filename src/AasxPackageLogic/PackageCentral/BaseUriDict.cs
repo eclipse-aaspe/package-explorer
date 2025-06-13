@@ -31,6 +31,11 @@ namespace AasxPackageLogic.PackageCentral
 
         public BaseUriDict() { }
 
+        public BaseUriDict(string key, string value)
+        {
+            this.Add(key, value);
+        }
+
         public BaseUriDict(string input) 
         { 
             Parse(input);
@@ -142,6 +147,11 @@ namespace AasxPackageLogic.PackageCentral
         public Uri GetBaseUriForSmReg()
         {
             return GetBaseUri("SM-REG", "AAS-ENV", Default);
+        }
+
+        public Uri GetBaseUriForRegistryOfRegistries()
+        {
+            return GetBaseUri("REG-OF-REG", Default);
         }
     }
 }

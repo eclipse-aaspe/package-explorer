@@ -45,6 +45,11 @@ namespace AasxPackageLogic.PackageCentral
         public string Endpoint;
 
         /// <summary>
+        /// Select the preferred interface in UI. Choices are "repository", "registry", "reg-of-reg".
+        /// </summary>
+        public string PreferredInterface;
+
+        /// <summary>
         /// HTTP header attributes to be fed into the different HTTP get/ put/ post ..
         /// functions of the registry/ repository calls.
         /// Note: To be set by "HttpHeaderAttributes" (serialization).
@@ -197,7 +202,7 @@ namespace AasxPackageLogic.PackageCentral
             {
                 // try to do this natively
                 var testBaseUris = new BaseUriDict(Endpoint);
-                var fil = PackageContainerHttpRepoSubset.BuildUriForRegistryAasByGlobalAssetId(
+                var fil = PackageContainerHttpRepoSubset.BuildUriForRegistryAasByAssetId(
                     testBaseUris.GetBaseUriForBasicDiscovery(), aid);
 
                 // prepare receiving the descriptors/ ids
