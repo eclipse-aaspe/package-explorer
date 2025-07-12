@@ -1704,7 +1704,7 @@ namespace AasxPackageLogic
                     }
 
                     // remember, that this value pair CD hangs "below" an Submodel
-                    if (submodelForCDs != null)
+                    if (submodelForCDs != null && vrpCD != null)
                     {
                         _cdToSm.Add(vrpCD, submodelForCDs);
                     }

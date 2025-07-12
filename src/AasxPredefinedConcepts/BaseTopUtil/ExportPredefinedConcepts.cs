@@ -161,14 +161,26 @@ namespace AasxPredefinedConcepts
 
                 snippets.WriteLine();
 
-				// Phase (5) generate look ups
-				message = "Phase (6) generates attributed C# structures:";
+                // Phase (6) generate attributed C# structures
+                message = "Phase (6) generates attributed C# structures:";
 				snippets.WriteLine(message);
 				snippets.WriteLine(new String('=', message.Length));
 
                 PredefinedConceptsClassMapper.ExportCSharpClassDefs(env, sm, snippets);
-                
-                snippets.WriteLine();
+
+                // Phase (7) generate attributed C# structures
+                if (sm.Administration != null
+                    && sm.Administration.Version?.HasContent() == true
+                    && sm.Administration.Revision?.HasContent() == true)
+                {
+                    message = "Phase (7) generates attributed C# structures with version and base class:";
+                    snippets.WriteLine(message);
+                    snippets.WriteLine(new String('=', message.Length));
+
+                    PredefinedConceptsClassMapper.ExportCSharpClassDefs(env, sm, snippets, withVersionAndBaseClass: true);
+
+                    snippets.WriteLine();
+                }
 			}
         }
     }
