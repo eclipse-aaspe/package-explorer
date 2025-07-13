@@ -166,8 +166,10 @@ namespace AasxPredefinedConcepts
 				snippets.WriteLine(message);
 				snippets.WriteLine(new String('=', message.Length));
 
-                PredefinedConceptsClassMapper.ExportCSharpClassDefs(env, sm, snippets);
+                PredefinedConceptsClassMapper.ExportCSharpClassDefs(env, sm, snippets,
+                    removeEnumerationTemplate: true);
 
+#if __wrong_direction
                 // Phase (7) generate attributed C# structures
                 if (sm.Administration != null
                     && sm.Administration.Version?.HasContent() == true
@@ -181,7 +183,23 @@ namespace AasxPredefinedConcepts
 
                     snippets.WriteLine();
                 }
-			}
+#endif
+
+                // Phase (8) generate attributed C# structures with upgrade constructors
+                if (true)
+                {
+                    message = "Phase (8) generate attributed C# structures with upgrade constructors:";
+                    snippets.WriteLine(message);
+                    snippets.WriteLine(new String('=', message.Length));
+
+                    PredefinedConceptsClassMapper.ExportCSharpClassDefs(env, sm, snippets, 
+                        addUpgradeConstructor: true,
+                        removeEnumerationTemplate: true);
+
+                    snippets.WriteLine();
+                }
+
+            }
         }
     }
 }

@@ -32,7 +32,6 @@ using System.Xml.XPath;
 using System.Xml;
 using AasCore.Aas3_0;
 
-using PCNBASE = AasxPredefinedConcepts.ProductChangeNotifications.Base;
 using PCNCURR = AasxPredefinedConcepts.ProductChangeNotifications.V_1_0;
 using PCNHELP = AasxPredefinedConcepts.ProductChangeNotifications.Helper;
 
@@ -54,7 +53,7 @@ namespace AasxPluginProductChangeNotifications
         private AnyUiContextBase _displayContext = null;
 
         // active date to an "empty" class
-        private PCNBASE.ICD_ProductChangeNotifications _pcnData = new PCNCURR.CD_ProductChangeNotifications();
+        private PCNCURR.CD_ProductChangeNotifications _pcnData = new PCNCURR.CD_ProductChangeNotifications();
 
         protected AnyUiSmallWidgetToolkit _uitk = new AnyUiSmallWidgetToolkit();
 
@@ -167,17 +166,31 @@ namespace AasxPluginProductChangeNotifications
             // try decode VERSION (use first record)
             if (foundRecs.Count < 1)
                 return;
+
+            var t0 = DateTime.Now;
+
             if (foundRecs.First().Version == PcnOptionsRecord.VersionEnum.V10pre)
-                _pcnData = new AasxPredefinedConcepts.ProductChangeNotifications.V_1_0_pre.CD_ProductChangeNotifications();
+            {
+                var pre = new AasxPredefinedConcepts.ProductChangeNotifications.V_1_0_pre.CD_ProductChangeNotifications();
+                PredefinedConceptsClassMapper.ParseAasElemsToObject(
+                    sm, pre,
+                    lambdaLookupReference: (rf) => package?.AasEnv?.FindReferableByReference(rf));
+                _pcnData = new PCNCURR.CD_ProductChangeNotifications(pre);
+            }
             else
             if (foundRecs.First().Version == PcnOptionsRecord.VersionEnum.V10)
+            {
                 _pcnData = new AasxPredefinedConcepts.ProductChangeNotifications.V_1_0.CD_ProductChangeNotifications();
-            else
-                return;
+                PredefinedConceptsClassMapper.ParseAasElemsToObject(
+                    sm, _pcnData,
+                    lambdaLookupReference: (rf) => package?.AasEnv?.FindReferableByReference(rf));
 
-            PredefinedConceptsClassMapper.ParseAasElemsToObject(
-                sm, _pcnData,
-                lambdaLookupReference: (rf) => package?.AasEnv?.FindReferableByReference(rf));
+            }
+            else
+                throw new NotImplementedException("FillWithAnyUiControls(): Unknown version!");
+
+            var t1 = DateTime.Now;
+            var td = (t1 - t0).TotalMilliseconds;
 
             // render
             RenderPanelOutside(view, uitk, foundRecs, package, sm, _pcnData);
@@ -188,7 +201,7 @@ namespace AasxPluginProductChangeNotifications
             IEnumerable<PcnOptionsRecord> foundRecs,
             AdminShellPackageEnv package,
             Aas.Submodel sm,
-            PCNBASE.ICD_ProductChangeNotifications data)
+            PCNCURR.CD_ProductChangeNotifications data)
         {
             // make an outer grid, very simple grid of three rows: header, list, details
             var outer = view.Add(uitk.AddSmallGrid(rows: 7, cols: 1, colWidths: new[] { "*" }));
@@ -197,7 +210,7 @@ namespace AasxPluginProductChangeNotifications
             // Dialogue is always pointing to a certain index record
             //
 
-            PCNBASE.ICD_Record currRec = null;
+            PCNCURR.CD_Record currRec = null;
             if (data?.Records?.Record != null
                 && _pcnIndex >= 0 && _pcnIndex < data.Records.Record.Count)
                 currRec = data.Records.Record[_pcnIndex];
@@ -600,7 +613,7 @@ namespace AasxPluginProductChangeNotifications
         protected void InnerDocAddLifeCycleMilestones(
             AnyUiSmallWidgetToolkit uitk,
             AnyUiGrid grid, int col, 
-            IList<PCNBASE.ICD_LifeCycleMilestone> milestones)
+            IList<PCNCURR.CD_LifeCycleMilestone> milestones)
         {
             // access and add row
             if (grid == null || milestones == null || milestones.Count < 1)
@@ -1219,7 +1232,7 @@ namespace AasxPluginProductChangeNotifications
 
         protected void InnerDocAddProductClassifications(
             AnyUiSmallWidgetToolkit uitk, AnyUiGrid grid,
-            IList<PCNBASE.ICD_ProductClassification> pds)
+            IList<PCNCURR.CD_ProductClassification> pds)
         {
             if (pds != null && pds.Count > 0)
             {
@@ -1239,7 +1252,7 @@ namespace AasxPluginProductChangeNotifications
             PcnOptionsRecord rec,
             AdminShellPackageEnv package,
             Aas.Submodel sm,
-            PCNBASE.ICD_Record data)
+            PCNCURR.CD_Record data)
         {
             // access
             if (view == null || uitk == null || sm == null)
@@ -1645,12 +1658,12 @@ namespace AasxPluginProductChangeNotifications
             return true;
         }
 
-        protected IEnumerable<PCNBASE.ICD_Record> CreateRecordFromXml(XDocument xdoc)
+        protected IEnumerable<PCNCURR.CD_Record> CreateRecordFromXml(XDocument xdoc)
         {
             // access
             if (xdoc == null)
                 return null;
-            var res = new List<PCNBASE.ICD_Record>();
+            var res = new List<PCNCURR.CD_Record>();
 
             // prepare for namespace crazyness
             var ns = "http://www.smartpcn.org/images/files/VDMA24903Schema/PCNbody";

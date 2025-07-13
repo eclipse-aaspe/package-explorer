@@ -24,428 +24,395 @@ using Aas = AasCore.Aas3_0;
 namespace AasxPredefinedConcepts.ProductChangeNotifications.V_1_0_pre
 {
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/Record/List/1/0")]
-    public class CD_RecordsOfPcn : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_RecordsOfPcn
+    public class CD_RecordsOfPcn
     {
         [AasConcept(Cd = "0173-10029#01-XFB002#001", Card = AasxPredefinedCardinality.ZeroToMany)]
-        public List<AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_Record> Record { get; set; } =
-            (new List<CD_Record>()).Cast<AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_Record>().ToList();
+        public List<CD_Record> Record = new List<CD_Record>();
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "0173-10029#01-XFB002#001")]
-    public class CD_Record : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_Record
+    public class CD_Record
     {
         [AasConcept(Cd = "0173-10029#01-XFB003#001", Card = AasxPredefinedCardinality.One)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_Manufacturer Manufacturer { get; set; } =
-            new CD_Manufacturer();
+        public CD_Manufacturer Manufacturer = new CD_Manufacturer();
 
         [AasConcept(Cd = "0173-10029#02-ABC507#001", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public string ManufacturerChangeID { get; set; }
+        public string ManufacturerChangeID;
 
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnType/1/0", Card = AasxPredefinedCardinality.One)]
-        public string PcnType { get; set; }
+        public string PcnType;
 
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/LifeCycleData/List/1/0", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_LifeCycleData LifeCycleData { get; set; } = null;
+        public CD_LifeCycleData LifeCycleData = null;
 
-        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ReasonOfChange/List/1/0", Card = AasxPredefinedCardinality.One)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ReasonsOfChange ReasonsOfChange { get; set; } =
-            new CD_ReasonsOfChange();
+        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ReasonOfChange/List/1/0", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public CD_ReasonsOfChange ReasonsOfChange = null;
 
-        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ItemCategory/List/1/0", Card = AasxPredefinedCardinality.One)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ItemCategories ItemCategories { get; set; } =
-            new CD_ItemCategories();
+        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ItemCategory/List/1/0", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public CD_ItemCategories ItemCategories = null;
 
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/AffectedPartNumber/List/1/0", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_AffectedPartNumbers AffectedPartNumbers { get; set; } = null;
+        public CD_AffectedPartNumbers AffectedPartNumbers = null;
 
         [AasConcept(Cd = "0173-1#02-ABF814#002", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public List<ILangStringTextType> PcnReasonComment { get; set; } = null;
+        public List<ILangStringTextType> PcnReasonComment = null;
 
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnChangeInformation/1/0", Card = AasxPredefinedCardinality.One)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_PcnChangeInformation PcnChangeInformation { get; set; } =
-            new CD_PcnChangeInformation();
+        public CD_PcnChangeInformation PcnChangeInformation = new CD_PcnChangeInformation();
 
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/AdditionalInformation/List/1/0", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_AdditionalInformations AdditionalInformation { get; set; } = null;
+        public CD_AdditionalInformations AdditionalInformations = null;
 
         [AasConcept(Cd = "0173-1#02-ABF816#002", Card = AasxPredefinedCardinality.One)]
-        public string DateOfRecord { get; set; }
+        public string DateOfRecord;
 
         [AasConcept(Cd = "0173-10029#01-XFB006#001", Card = AasxPredefinedCardinality.One)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ItemOfChange ItemOfChange { get; set; } =
-            new CD_ItemOfChange();
+        public CD_ItemOfChange ItemOfChange = new CD_ItemOfChange();
 
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/RecommendedItem/List/1/0", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_RecommendedItems RecommendedItems { get; set; } = null;
+        public CD_RecommendedItems RecommendedItems = null;
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "0173-10029#01-XFB003#001")]
-    public class CD_Manufacturer : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_Manufacturer
+    public class CD_Manufacturer
     {
         [AasConcept(Cd = "0173-1#02-AAO677#003", Card = AasxPredefinedCardinality.One)]
-        public List<ILangStringTextType> ManufacturerName { get; set; } =
-            new List<ILangStringTextType>();
+        public List<ILangStringTextType> ManufacturerName = new List<ILangStringTextType>();
 
         [AasConcept(Cd = "0173-1#02-AAQ832#005", Card = AasxPredefinedCardinality.One)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_Address AdressInformation { get; set; } =
-            new CD_Address();
+        public CD_Address AdressInformation = new CD_Address();
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "0173-1#02-AAQ832#005")]
-    public class CD_Address : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_Address
+    public class CD_Address
     {
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/LifeCycleData/List/1/0")]
-    public class CD_LifeCycleData : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_LifeCycleData
+    public class CD_LifeCycleData
     {
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/LifeCycleData/Milestone/1/0", Card = AasxPredefinedCardinality.ZeroToMany)]
-        public List<AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_LifeCycleMilestone> Milestone { get; set; } =
-            (new List<CD_LifeCycleMilestone>()).Cast<AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_LifeCycleMilestone>().ToList();
+        public List<CD_LifeCycleMilestone> Milestone = new List<CD_LifeCycleMilestone>();
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/LifeCycleData/Milestone/1/0")]
-    public class CD_LifeCycleMilestone : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_LifeCycleMilestone
+    public class CD_LifeCycleMilestone
     {
         [AasConcept(Cd = "0173-10029#02-ABC548#001", Card = AasxPredefinedCardinality.One)]
-        public string MilestoneClassification { get; set; }
+        public string MilestoneClassification;
 
-        [AasConcept(Cd = "0173-1#02-ABF815#002", Card = AasxPredefinedCardinality.One)]
-        public string DateOfValidity { get; set; }
+        [AasConcept(Cd = " 0173-1#02-ABF815#002", Card = AasxPredefinedCardinality.One)]
+        public string DateOfValidity;
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ReasonOfChange/List/1/0")]
-    public class CD_ReasonsOfChange : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ReasonsOfChange
+    public class CD_ReasonsOfChange
     {
-        [AasConcept(Cd = "0173-10029#01-XFB005#001", Card = AasxPredefinedCardinality.OneToMany)]
-        public List<AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ReasonOfChange> ReasonOfChange { get; set; } =
-            (new List<CD_ReasonOfChange>()).Cast<AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ReasonOfChange>().ToList();
+        [AasConcept(Cd = "0173-10029#01-XFB005#001", Card = AasxPredefinedCardinality.ZeroToMany)]
+        public List<CD_ReasonOfChange> ReasonOfChange = new List<CD_ReasonOfChange>();
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "0173-10029#01-XFB005#001")]
-    public class CD_ReasonOfChange : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ReasonOfChange
+    public class CD_ReasonOfChange
     {
         [AasConcept(Cd = "0173-1#02-ABF813#002", Card = AasxPredefinedCardinality.One)]
-        public string ReasonClassificationSystem { get; set; }
+        public string ReasonClassificationSystem;
 
         [AasConcept(Cd = "0173-1#02-AAR710#002", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public string VersionOfClassificationSystem { get; set; }
+        public string VersionOfClassificationSystem;
 
         [AasConcept(Cd = "0173-10029#02-ABC727#001", Card = AasxPredefinedCardinality.One)]
-        public string ReasonId { get; set; }
+        public string ReasonId;
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ItemCategory/List/1/0")]
-    public class CD_ItemCategories : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ItemCategories
+    public class CD_ItemCategories
     {
-        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ItemCategory/1/0", Card = AasxPredefinedCardinality.OneToMany)]
-        public List<AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ItemCategory> ItemCategory { get; set; } =
-            (new List<CD_ItemCategory>()).Cast<AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ItemCategory>().ToList();
+        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ItemCategory/1/0", Card = AasxPredefinedCardinality.ZeroToMany)]
+        public List<CD_ItemCategory> ItemCategory = new List<CD_ItemCategory>();
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ItemCategory/1/0")]
-    public class CD_ItemCategory : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ItemCategory
+    public class CD_ItemCategory
     {
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ItemCategory/ItemClassificationSystem/1/0", Card = AasxPredefinedCardinality.One)]
-        public string ItemClassificationSystem { get; set; }
+        public string ItemClassificationSystem;
 
         [AasConcept(Cd = "0173-1#02-AAR710#002", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public string VersionOfClassificationSystem { get; set; }
+        public string VersionOfClassificationSystem;
 
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ItemCategory/ItemCategory/1/0", Card = AasxPredefinedCardinality.One)]
-        public string ItemCategory { get; set; }
+        public string ItemCategory;
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/AffectedPartNumber/List/1/0")]
-    public class CD_AffectedPartNumbers : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_AffectedPartNumbers
+    public class CD_AffectedPartNumbers
     {
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/AffectedPartNumber/1/0", Card = AasxPredefinedCardinality.ZeroToMany)]
-        public List<string> AffectedPartNumber { get; set; } =
-            (new List<string>());
+        public List<string> AffectedPartNumber = new List<string>();
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnChangeInformation/1/0")]
-    public class CD_PcnChangeInformation : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_PcnChangeInformation
+    public class CD_PcnChangeInformation
     {
-        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnChangeInformation/ChangeTitle/1/0", Card = AasxPredefinedCardinality.One)]
-        public List<ILangStringTextType> ChangeTitle { get; set; } =
-            new List<ILangStringTextType>();
+        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnChangeInformation/ChangeTitle/1/0",
+            Card = AasxPredefinedCardinality.One)]
+        public List<ILangStringTextType> ChangeTitle = new List<ILangStringTextType>();
 
-        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnChangeInformation/ChangeDetail/1/0", Card = AasxPredefinedCardinality.One)]
-        public List<ILangStringTextType> ChangeDetail { get; set; } =
-            new List<ILangStringTextType>();
+        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnChangeInformation/ChangeDetail/1/0",
+            Card = AasxPredefinedCardinality.One)]
+        public List<ILangStringTextType> ChangeDetail = new List<ILangStringTextType>();
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/AdditionalInformation/List/1/0")]
-    public class CD_AdditionalInformations : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_AdditionalInformations
+    public class CD_AdditionalInformations
     {
-        [AasConcept(Cd = "0173-1#01-ADN356#009", Card = AasxPredefinedCardinality.ZeroToMany)]
-        public List<AasClassMapperFile> AdditionalInformation { get; set; } =
-            (new List<AasClassMapperFile>());
+        [AasConcept(Cd = "0173-1#01-ADN356#009",
+            Card = AasxPredefinedCardinality.ZeroToMany)]
+        public List<AasClassMapperFile> AdditionalInformation = new List<AasClassMapperFile>();
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "0173-10029#01-XFB006#001")]
-    public class CD_ItemOfChange : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ItemOfChange
+    public class CD_ItemOfChange
     {
         [AasConcept(Cd = "0173-1#02-AAU731#001", Card = AasxPredefinedCardinality.One)]
-        public List<ILangStringTextType> ManufacturerProductFamily { get; set; } =
-            new List<ILangStringTextType>();
+        public List<ILangStringTextType> ManufacturerProductFamily = new List<ILangStringTextType>();
 
         [AasConcept(Cd = "0173-1#02-AAW338#001", Card = AasxPredefinedCardinality.One)]
-        public List<ILangStringTextType> ManufacturerProductDesignation { get; set; } =
-            new List<ILangStringTextType>();
+        public List<ILangStringTextType> ManufacturerProductDesignation = new List<ILangStringTextType>();
 
         [AasConcept(Cd = "0173-1#02-AAO227#002", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public List<ILangStringTextType> OrderCodeOfManufacturer { get; set; } = null;
+        public List<ILangStringTextType> OrderCodeOfManufacturer = null;
 
         [AasConcept(Cd = "0173-10029#02-ABF978#001", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public AasClassMapperHintedReference ManufacturerAssetID { get; set; } = null;
+        public AasClassMapperHintedReference ManufacturerAssetID = null;
 
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ProductClassification/List/1/0", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ProductClassifications ProductClassifications { get; set; } = null;
+        public CD_ProductClassifications ProductClassifications = null;
 
         [AasConcept(Cd = "0173-1#02-AAN270#002", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public string HardwareVersion { get; set; }
+        public string HardwareVersion;
 
         [AasConcept(Cd = "0173-1#02-BAF551#003", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public UInt64? RemainingAmountAvailable { get; set; }
+        public uint? RemainingAmountAvailable;
 
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_Changes/List/1/0", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_TechnicalData_Changes TechnicalData_Changes { get; set; } = null;
+        public CD_TechnicalData_Changes TechnicalData_Changes = null;
 
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_CurrentState/List/1/0", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_TechnicalData_CurrentState TechnicalData_CurrentState { get; set; } = null;
+        public CD_TechnicalData_CurrentState TechnicalData_CurrentState = null;
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ProductClassification/List/1/0")]
-    public class CD_ProductClassifications : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ProductClassifications
+    public class CD_ProductClassifications
     {
         [AasConcept(Cd = "0173-10029#01-XFB007#001", Card = AasxPredefinedCardinality.ZeroToMany)]
-        public List<AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ProductClassification> ProductClassification { get; set; } =
-            (new List<CD_ProductClassification>()).Cast<AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ProductClassification>().ToList();
+        public List<CD_ProductClassification> ProductClassification = new List<CD_ProductClassification>();
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "0173-10029#01-XFB007#001")]
-    public class CD_ProductClassification : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ProductClassification
+    public class CD_ProductClassification
     {
         [AasConcept(Cd = "0173-1#02-AAR709#002", Card = AasxPredefinedCardinality.One)]
-        public string ClassificationSystem { get; set; }
+        public string ClassificationSystem;
 
         [AasConcept(Cd = "0173-1#02-AAR710#002", Card = AasxPredefinedCardinality.One)]
-        public string VersionOfClassificationSystem { get; set; }
+        public string VersionOfClassificationSystem;
 
         [AasConcept(Cd = "0173-10029#02-ABF979#001", Card = AasxPredefinedCardinality.One)]
-        public string ProductClassId { get; set; }
+        public string ProductClassId;
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_Changes/List/1/0")]
-    public class CD_TechnicalData_Changes : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_TechnicalData_Changes
+    public class CD_TechnicalData_Changes
     {
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_Changes/Change/1/0", Card = AasxPredefinedCardinality.ZeroToMany)]
-        public List<AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_SingleChange> SingleChange { get; set; } =
-            (new List<CD_SingleChange>()).Cast<AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_SingleChange>().ToList();
+        public List<CD_SingleChange> SingleChange = new List<CD_SingleChange>();
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_Changes/Change/1/0")]
-    public class CD_SingleChange : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_SingleChange
+    public class CD_SingleChange
     {
-        public string Arbitrary { get; set; }
-
-        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_Changes/OriginOfChange/1/0", Card = AasxPredefinedCardinality.One)]
-        public AasClassMapperHintedReference OriginOfChange { get; set; } =
-            new AasClassMapperHintedReference();
+        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_Changes/Origin_of_Change/1/0", Card = AasxPredefinedCardinality.One)]
+        public AasClassMapperHintedReference Origin_of_change = new AasClassMapperHintedReference();
 
         [AasConcept(Cd = "0173-10029#02-ABC727#001", Card = AasxPredefinedCardinality.One)]
-        public string ReasonId { get; set; }
+        public string ReasonId;
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_CurrentState/List/1/0")]
-    public class CD_TechnicalData_CurrentState : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_TechnicalData_CurrentState
+    public class CD_TechnicalData_CurrentState
     {
-        public List<string> Arbitrary { get; set; } =
-            (new List<string>());
-
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/RecommendedItem/List/1/0")]
-    public class CD_RecommendedItems : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_RecommendedItems
+    public class CD_RecommendedItems
     {
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/RecommendedItem/1/0", Card = AasxPredefinedCardinality.ZeroToMany)]
-        public List<AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_RecommendedItem> RecommendedItem { get; set; } =
-            (new List<CD_RecommendedItem>()).Cast<AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_RecommendedItem>().ToList();
+        public List<CD_RecommendedItem> RecommendedItem = new List<CD_RecommendedItem>();
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/RecommendedItem/1/0")]
-    public class CD_RecommendedItem : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_RecommendedItem
+    public class CD_RecommendedItem
     {
         [AasConcept(Cd = "0173-1#02-AAU731#001", Card = AasxPredefinedCardinality.One)]
-        public List<ILangStringTextType> ManufacturerProductFamily { get; set; } =
-            new List<ILangStringTextType>();
+        public List<ILangStringTextType> ManufacturerProductFamily = new List<ILangStringTextType>();
 
         [AasConcept(Cd = "0173-1#02-AAW338#001", Card = AasxPredefinedCardinality.One)]
-        public List<ILangStringTextType> ManufacturerProductDesignation { get; set; } =
-            new List<ILangStringTextType>();
+        public List<ILangStringTextType> ManufacturerProductDesignation = new List<ILangStringTextType>();
 
-        [AasConcept(Cd = "0173-1#02-AAO227#002", Card = AasxPredefinedCardinality.One)]
-        public List<ILangStringTextType> OrderCodeOfManufacturer { get; set; } =
-            new List<ILangStringTextType>();
+        [AasConcept(Cd = "0173-1#02-AAO227#002", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public List<ILangStringTextType> OrderCodeOfManufacturer = new List<ILangStringTextType>();
+
+        [AasConcept(Cd = "0173-10029#02-ABF978#001", Card = AasxPredefinedCardinality.ZeroToOne)]
+        public AasClassMapperHintedReference ManufacturerAssetID = null;
 
         [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ProductClassification/List/1/0", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ProductClassifications ProductClassifications { get; set; } = null;
+        public CD_ProductClassifications ProductClassifications = null;
 
         [AasConcept(Cd = "0173-10029#01-XFB008#001", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_TechnicalData_Fit TechnicalData_Fit { get; set; } = null;
+        public CD_TechnicalData_Fit TechnicalData_Fit = null;
 
         [AasConcept(Cd = "0173-10029#01-XFB009#001", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_TechnicalData_Form TechnicalData_Form { get; set; } = null;
+        public CD_TechnicalData_Form TechnicalData_Form = null;
 
         [AasConcept(Cd = "0173-10029#01-XFB010#001", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_TechnicalData_Function TechnicalData_Function { get; set; } = null;
+        public CD_TechnicalData_Function TechnicalData_Function = null;
 
         [AasConcept(Cd = "0173-10029#01-XFB011#001", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_TechnicalData_Other TechnicalData_Other { get; set; } = null;
+        public CD_TechnicalData_Other TechnicalData_Other = null;
 
         [AasConcept(Cd = "0173-1#02-AAO280#003", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public string IncotermCode { get; set; }
+        public string Incotermcode;
 
         [AasConcept(Cd = "0173-10029#02-ABF982#001", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public Int32? DeliveryTimeClassOtherRegion { get; set; }
+        public int? DeliveryTimeClassOtherRegion;
 
         [AasConcept(Cd = "0173-10029#02-ABF981#001", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public Int32? DeliveryTimeClassSameRegion { get; set; }
+        public int? DeliveryTimeClassSameRegion;
 
         [AasConcept(Cd = "0173-10029#01-XFB012#001", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ConformityDeclarations ConformityDeclarations { get; set; } = null;
+        public CD_ConformityDeclarations ConformityDeclarations = null;
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "0173-10029#01-XFB008#001")]
-    public class CD_TechnicalData_Fit : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_TechnicalData_Fit
+    public class CD_TechnicalData_Fit
     {
         [AasConcept(Cd = "0173-10029#02-ABF980#001", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public float? TargetEstimate { get; set; }
-
-        public string Arbitrary { get; set; }
+        public float? TargetEstimate;
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "0173-10029#01-XFB009#001")]
-    public class CD_TechnicalData_Form : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_TechnicalData_Form
+    public class CD_TechnicalData_Form
     {
         [AasConcept(Cd = "0173-10029#02-ABF980#001", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public float? TargetEstimate { get; set; }
-
-        public string Arbitrary { get; set; }
+        public float? TargetEstimate;
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "0173-10029#01-XFB010#001")]
-    public class CD_TechnicalData_Function : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_TechnicalData_Function
+    public class CD_TechnicalData_Function
     {
         [AasConcept(Cd = "0173-10029#02-ABF980#001", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public float? TargetEstimate { get; set; }
-
-        public string Arbitrary { get; set; }
+        public float? TargetEstimate;
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "0173-10029#01-XFB011#001")]
-    public class CD_TechnicalData_Other : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_TechnicalData_Other
+    public class CD_TechnicalData_Other
     {
         [AasConcept(Cd = "0173-10029#02-ABF980#001", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public float? TargetEstimate { get; set; }
-
-        public string Arbitrary { get; set; }
+        public float? TargetEstimate;
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
     [AasConcept(Cd = "0173-10029#01-XFB012#001")]
-    public class CD_ConformityDeclarations : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ConformityDeclarations
+    public class CD_ConformityDeclarations
     {
-
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
 
-    [AasConcept(Cd = "0173-10029#01-XFB001#001")]
-    public class CD_ProductChangeNotifications : AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_ProductChangeNotifications
+    [AasConcept(Cd = "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Submodel")]
+    public class CD_ProductChangeNotifications
     {
-
-        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/Record/List/1/0", Card = AasxPredefinedCardinality.ZeroToOne)]
-        public AasxPredefinedConcepts.ProductChangeNotifications.Base.ICD_RecordsOfPcn Records { get; set; } = null;
+        [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/Record/List/1/0",
+            Card = AasxPredefinedCardinality.ZeroToOne)]
+        public CD_RecordsOfPcn Records = null;
 
         // auto-generated informations
-        public AasClassMapperInfo __Info__ { get; set; } = null;
+        public AasClassMapperInfo __Info__ = null;
     }
-
 }
 

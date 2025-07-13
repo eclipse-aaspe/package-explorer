@@ -495,7 +495,8 @@ namespace AdminShellNS
         /// </example>
         public static string FilterFriendlyName(string src, 
             bool pascalCase = false,
-            bool fixMoreBlanks = false)
+            bool fixMoreBlanks = false,
+            bool removeEnumerationTemplate = false)
         {
             if (src == null)
                 return null;
@@ -511,6 +512,13 @@ namespace AdminShellNS
                 // stupid
                 for (int i=0; i<9; i++)
                     src = src.Replace("__", "_");
+            }
+
+            if (removeEnumerationTemplate)
+            {
+                src = src.Replace("__00__", "");
+                src = src.Replace("__000__", "");
+                src = src.Replace("__0000__", "");
             }
 
             return src;

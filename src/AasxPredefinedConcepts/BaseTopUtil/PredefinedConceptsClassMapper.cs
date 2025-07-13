@@ -71,6 +71,13 @@ namespace AasxPredefinedConcepts
     {
         public string Value = null;
         public string ContentType = "";
+
+        public AasClassMapperFile() { }
+        public AasClassMapperFile(AasClassMapperFile other) 
+        { 
+            Value = other.Value;
+            ContentType = other.ContentType;
+        }
     }
 
     /// <summary>
@@ -92,6 +99,14 @@ namespace AasxPredefinedConcepts
         /// This allows accessing the full AAS element.
         /// </summary>
         public AasClassMapperInfo __Info__ = null;
+
+        public AasClassMapperHintedReference() { }
+        public AasClassMapperHintedReference(AasClassMapperHintedReference other) 
+        { 
+            Value = other.Value;
+            ValueHint = other.ValueHint;
+            __Info__ = other.__Info__;
+        }
     }
 
     /// <summary>
@@ -210,7 +225,8 @@ namespace AasxPredefinedConcepts
             bool noEmptyLineFirst = false,
             bool onlyInterface = false,
             string useInterface = null,
-            bool getterSetters = false)
+            bool getterSetters = false,
+            bool removeEnumerationTemplate = false)
         {
 			// access
 			if (snippets == null || env == null || rf == null)
@@ -232,7 +248,10 @@ namespace AasxPredefinedConcepts
             // pretty idShort
             //
 
-			var idsff = AdminShellUtil.FilterFriendlyName(rf.IdShort, pascalCase: true);
+			var idsff = AdminShellUtil.FilterFriendlyName(rf.IdShort, 
+                            pascalCase: true,
+                            removeEnumerationTemplate: removeEnumerationTemplate);
+
             if (idsff.HasContent() != true)
                 return;
 
@@ -282,7 +301,7 @@ namespace AasxPredefinedConcepts
 
                 // allow skipping to new line
                 string nl = "";
-                if (true)
+                if (false)
                     nl = $"{System.Environment.NewLine}{indent}    ";
 
                 // if using additional interfaces, for new List<>(), some dynamic casting needs to occur
@@ -400,6 +419,144 @@ namespace AasxPredefinedConcepts
 			}
 		}
 
+        private static void ExportCSharpMapperSingleItemAssigment(
+            string indent, Aas.IEnvironment env, Aas.IReferable rf, System.IO.StreamWriter snippets,
+            bool removeEnumerationTemplate = false)
+        {
+            // access
+            if (snippets == null || env == null || rf == null)
+                return;
+
+            var indentPlus = indent + "    ";
+            var indentPlusPlus = indent + "        ";
+
+            //
+            // require CD
+            //
+
+            Aas.IConceptDescription cd = null;
+            if (rf is Aas.IHasSemantics ihs)
+                cd = env.FindConceptDescriptionByReference(ihs.SemanticId);
+
+            var cdff = AdminShellUtil.FilterFriendlyName(cd?.IdShort, pascalCase: true);
+
+            var cdRef = cd?.GetCdReference()?.ToStringExtended(format: 2);
+
+            //
+            // pretty idShort
+            //
+
+            var idsff = AdminShellUtil.FilterFriendlyName(rf.IdShort, 
+                            pascalCase: true, 
+                            removeEnumerationTemplate: removeEnumerationTemplate);
+            
+            if (idsff.HasContent() != true)
+                return;
+
+            //
+            // check Qualifiers/ Extensions
+            //
+
+            FormMultiplicity card = FormMultiplicity.One;
+            if (rf is Aas.IQualifiable iqf)
+            {
+                var tst = AasFormUtils.GetCardinality(iqf.Qualifiers);
+                if (tst.HasValue)
+                    card = tst.Value;
+            }
+
+            var cardSt = card.ToString();
+
+            //
+            // Property
+            //
+
+            if (rf is Aas.IProperty prop)
+            {
+                snippets.WriteLine($"{indentPlus}{idsff} = other.{idsff} ;");
+            }
+
+            //
+            // Range
+            //
+
+            if (rf is Aas.IRange rng)
+            {
+                // snippets.WriteLine($"{indentPlus}{idsff} = other.{idsff}.Copy() ;");
+                var dt = CSharpTypeFrom(rng.ValueType, specificNetType: true);
+                snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperRange<{dt}>(other.{idsff}) ;");
+            }
+
+            //
+            // File
+            //
+
+            if (rf is Aas.IFile fl)
+            {
+                // snippets.WriteLine($"{indentPlus}{idsff} = other.{idsff}.Copy() ;");
+                snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperFile(other.{idsff}) ;");
+            }
+
+            //
+            // MultiLanguageProperty
+            //
+
+            if (rf is Aas.IMultiLanguageProperty mlp)
+            {
+                // snippets.WriteLine($"{indentPlus}{idsff} = other.{idsff}.Copy() ;");
+                snippets.WriteLine($"{indentPlus}{idsff} = new List<ILangStringTextType>(other.{idsff}) ;");
+            }
+
+            //
+            // Reference
+            //
+
+            if (rf is Aas.IReferenceElement rfe)
+            {
+                // snippets.WriteLine($"{indentPlus}{idsff} = other.{idsff}.Copy() ;");
+                snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperHintedReference(other.{idsff}) ;");
+            }
+
+            //
+            // Relation
+            //
+
+            if (rf is Aas.IRelationshipElement rle)
+            {
+                // snippets.WriteLine($"{indentPlus}{idsff} = other.{idsff}.Copy() ;");
+                snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperHintedRelation(other.{idsff}) ;");
+            }
+
+            //
+            // SMC, SML ..
+            //
+
+            if ((rf is Aas.Submodel
+                || rf is Aas.SubmodelElementCollection
+                || rf is Aas.SubmodelElementList)
+                && cdRef?.HasContent() == true)
+            {
+                // use the upgrade constructor!
+                if (card == FormMultiplicity.One)
+                {
+                    snippets.WriteLine($"{indentPlus}{idsff} = new CD_{cdff}(other.{idsff}) ;");
+                }
+                else
+                if (card == FormMultiplicity.ZeroToOne)
+                {
+                    snippets.WriteLine($"{indentPlus}{idsff} = (other.{idsff} == null) ? null : new CD_{cdff}(other.{idsff}) ;");
+                }
+                else
+                if (card == FormMultiplicity.ZeroToMany || card == FormMultiplicity.OneToMany)
+                {
+                    snippets.WriteLine($"if (other.{idsff} != null)");
+                    snippets.WriteLine($"{indentPlusPlus}{idsff} = new List<CD_{cdff}>(other.{idsff}.Select((o) => new CD_{cdff}(o))) ;");
+                }
+                else
+                    throw new NotImplementedException("ExportCSharpMapperSingleItemAssigment(): unknown cardinality!");
+            }
+        }
+
         /// <summary>
         /// The contents of this class are based on one or multiple SMCs (SML..), however
         /// the class itself is associated with the associated CD of the SMC (SML..), therefore
@@ -489,6 +646,8 @@ namespace AasxPredefinedConcepts
         private static void ExportCSharpMapperOnlyClasses(
 	        string indent, Aas.IEnvironment env, Aas.ISubmodel sm, System.IO.StreamWriter snippets,
             bool addInfoObj = false,
+            bool addUpgradeConstructor = false,
+            bool removeEnumerationTemplate = false,
             string addBaseClass = null)
 		{
             var distElems = ExportCSharpPrepareDistinctClasses(env, sm);
@@ -528,7 +687,8 @@ namespace AasxPredefinedConcepts
                                 /* when base class, then getter/ setters */
                                 getterSetters: (addBaseClass != null),
                                 /* when base class, use interfaces in data type */
-                                useInterface: (addBaseClass != null) ? $"{addBaseClass}." : null);
+                                useInterface: (addBaseClass != null) ? $"{addBaseClass}." : null,
+                                removeEnumerationTemplate: removeEnumerationTemplate);
                             noEmptyLineFirst = false;
                         }
                 }
@@ -553,9 +713,35 @@ namespace AasxPredefinedConcepts
                         snippets.WriteLine($"{indent}    public AasClassMapperInfo __Info__ {{ get; set; }}");
                 }
 
+                // upgrade constructor?
+                if (addUpgradeConstructor)
+                {
+                    snippets.WriteLine($"");
+                    snippets.WriteLine($"{indent}    // default constructor");
+                    snippets.WriteLine($"{indent}    public CD_{cdff}() {{");
+                    snippets.WriteLine($"{indent}    }}");
+
+                    snippets.WriteLine($"");
+                    snippets.WriteLine($"{indent}    // upgrade constructor (from PCNPRE namespace)");
+                    snippets.WriteLine($"{indent}    public CD_{cdff}(PCNPRE.CD_{cdff} other) {{");
+
+                    if (cld.Members != null)
+                        foreach (var x in cld.Members)
+                            if (x is Aas.ISubmodelElement sme)
+                            {
+                                ExportCSharpMapperSingleItemAssigment("" + indent + "    ", env, sme, snippets,
+                                    removeEnumerationTemplate: removeEnumerationTemplate);
+                            }
+
+                    snippets.WriteLine($"{indent}    }}");
+                }
+
+                // closing class
                 snippets.WriteLine($"{indent}}}");
-			}
-		}
+            }
+        }
+
+#if __wrong_direction
 
         private static void ExportCSharpMapperOnlyInterfaces(
             string indent, Aas.IEnvironment env, Aas.ISubmodel sm, System.IO.StreamWriter snippets,
@@ -597,10 +783,13 @@ namespace AasxPredefinedConcepts
                 snippets.WriteLine($"{indent}}}");
             }
         }
+#endif
 
         public static void ExportCSharpClassDefs(
             Aas.IEnvironment env, Aas.ISubmodel sm, System.IO.StreamWriter snippets,
-            bool withVersionAndBaseClass = false)
+            bool addUpgradeConstructor = false,
+            bool withVersionAndBaseClass = false,
+            bool removeEnumerationTemplate = false)
         {
             // access
             if (snippets == null || env == null || sm == null)
@@ -640,6 +829,7 @@ namespace AasxPredefinedConcepts
             string nsConcepts = AdminShellUtil.FilterFriendlyName(sm?.IdShort);
             string nsBaseClasses = null;
 
+#if __wrong_direction
             if (withVersionAndBaseClass)
             {
                 nsConcepts = "AasxPredefinedConcepts."
@@ -661,6 +851,7 @@ namespace AasxPredefinedConcepts
                 snippets.WriteLine($"}}");
                 snippets.WriteLine($"");
             }
+#endif
 
             // concrete classes
 
@@ -668,7 +859,9 @@ namespace AasxPredefinedConcepts
 
 			ExportCSharpMapperOnlyClasses("    ", env, sm, snippets,
                 addInfoObj: true,
-                addBaseClass: nsBaseClasses);
+                addUpgradeConstructor: addUpgradeConstructor,
+                addBaseClass: nsBaseClasses,
+                removeEnumerationTemplate: removeEnumerationTemplate);
 			
             // ExportCSharpMapperSingleItems("    ", env, sm, snippets);
 
