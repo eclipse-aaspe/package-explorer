@@ -39,7 +39,8 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications.V_1_0
         // upgrade constructor (from PCNPRE namespace)
         public CD_RecordsOfPcn(PCNPRE.CD_RecordsOfPcn other)
         {
-            Record = new List<CD_Record>(other.Record.Select((o) => new CD_Record(o)));
+            if (other.Record != null)
+                Record = new List<CD_Record>(other.Record.Select((o) => new CD_Record(o)));
         }
     }
 
@@ -103,8 +104,7 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications.V_1_0
             ReasonsOfChange = new CD_ReasonsOfChange(other.ReasonsOfChange);
             ItemCategories = new CD_ItemCategories(other.ItemCategories);
             AffectedPartNumbers = (other.AffectedPartNumbers == null) ? null : new CD_AffectedPartNumbers(other.AffectedPartNumbers);
-            if (other.PcnReasonComment != null)
-                PcnReasonComment = new List<ILangStringTextType>(other.PcnReasonComment);
+            PcnReasonComment = (other.PcnReasonComment == null) ? null : new List<ILangStringTextType>(other.PcnReasonComment);
             PcnChangeInformation = new CD_PcnChangeInformation(other.PcnChangeInformation);
             AdditionalInformation = (other.AdditionalInformations == null) ? null : new CD_AdditionalInformations(other.AdditionalInformations);
             DateOfRecord = other.DateOfRecord;
@@ -133,8 +133,7 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications.V_1_0
         // upgrade constructor (from PCNPRE namespace)
         public CD_Manufacturer(PCNPRE.CD_Manufacturer other)
         {
-            if (other.ManufacturerName != null)
-                ManufacturerName = new List<ILangStringTextType>(other.ManufacturerName);
+            ManufacturerName = new List<ILangStringTextType>(other.ManufacturerName);
             AdressInformation = new CD_Address(other.AdressInformation);
         }
     }
@@ -174,14 +173,15 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications.V_1_0
         // upgrade constructor (from PCNPRE namespace)
         public CD_LifeCycleData(PCNPRE.CD_LifeCycleData other)
         {
-            Milestone = new List<CD_LifeCycleMilestone>(other.Milestone.Select((o) => new CD_LifeCycleMilestone(o)));
+            if (other.Milestone != null)
+                Milestone = new List<CD_LifeCycleMilestone>(other.Milestone.Select((o) => new CD_LifeCycleMilestone(o)));
         }
     }
 
     [AasConcept(Cd = "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/LifeCycleData/Milestone/1/0")]
     public class CD_LifeCycleMilestone
     {
-        [AasConcept(Cd = "0173-10029#02-ABC548#001", Card = AasxPredefinedCardinality.One)]
+        [AasConcept(Cd = "0173-1#02-ABG773#002", Card = AasxPredefinedCardinality.One)]
         public string MilestoneClassification;
 
         [AasConcept(Cd = "0173-1#02-ABF815#002", Card = AasxPredefinedCardinality.One)]
@@ -220,7 +220,8 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications.V_1_0
         // upgrade constructor (from PCNPRE namespace)
         public CD_ReasonsOfChange(PCNPRE.CD_ReasonsOfChange other)
         {
-            ReasonOfChange = new List<CD_ReasonOfChange>(other.ReasonOfChange.Select((o) => new CD_ReasonOfChange(o)));
+            if (other.ReasonOfChange != null)
+                ReasonOfChange = new List<CD_ReasonOfChange>(other.ReasonOfChange.Select((o) => new CD_ReasonOfChange(o)));
         }
     }
 
@@ -270,7 +271,8 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications.V_1_0
         // upgrade constructor (from PCNPRE namespace)
         public CD_ItemCategories(PCNPRE.CD_ItemCategories other)
         {
-            ItemCategory = new List<CD_ItemCategory>(other.ItemCategory.Select((o) => new CD_ItemCategory(o)));
+            if (other.ItemCategory != null)
+                ItemCategory = new List<CD_ItemCategory>(other.ItemCategory.Select((o) => new CD_ItemCategory(o)));
         }
     }
 
@@ -344,10 +346,8 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications.V_1_0
         // upgrade constructor (from PCNPRE namespace)
         public CD_PcnChangeInformation(PCNPRE.CD_PcnChangeInformation other)
         {
-            if (other.ChangeTitle != null)
-                ChangeTitle = new List<ILangStringTextType>(other.ChangeTitle);
-            if (other.ChangeDetail != null)
-                ChangeDetail = new List<ILangStringTextType>(other.ChangeDetail);
+            ChangeTitle = new List<ILangStringTextType>(other.ChangeTitle);
+            ChangeDetail = new List<ILangStringTextType>(other.ChangeDetail);
         }
     }
 
@@ -414,13 +414,10 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications.V_1_0
         // upgrade constructor (from PCNPRE namespace)
         public CD_ItemOfChange(PCNPRE.CD_ItemOfChange other)
         {
-            if (other.ManufacturerProductFamily != null)
-                ManufacturerProductFamily = new List<ILangStringTextType>(other.ManufacturerProductFamily);
-            if (other.ManufacturerProductDesignation != null)
-                ManufacturerProductDesignation = new List<ILangStringTextType>(other.ManufacturerProductDesignation);
-            if (other.OrderCodeOfManufacturer != null)
-                OrderCodeOfManufacturer = new List<ILangStringTextType>(other.OrderCodeOfManufacturer);
-            ManufacturerAssetID = new AasClassMapperHintedReference(other.ManufacturerAssetID);
+            ManufacturerProductFamily = new List<ILangStringTextType>(other.ManufacturerProductFamily);
+            ManufacturerProductDesignation = new List<ILangStringTextType>(other.ManufacturerProductDesignation);
+            OrderCodeOfManufacturer = (other.OrderCodeOfManufacturer == null) ? null : new List<ILangStringTextType>(other.OrderCodeOfManufacturer);
+            ManufacturerAssetID = (other.ManufacturerAssetID == null) ? null : new AasClassMapperHintedReference(other.ManufacturerAssetID);
             ProductClassifications = (other.ProductClassifications == null) ? null : new CD_ProductClassifications(other.ProductClassifications);
             HardwareVersion = other.HardwareVersion;
             RemainingAmountAvailable = other.RemainingAmountAvailable;
@@ -446,7 +443,8 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications.V_1_0
         // upgrade constructor (from PCNPRE namespace)
         public CD_ProductClassifications(PCNPRE.CD_ProductClassifications other)
         {
-            ProductClassification = new List<CD_ProductClassification>(other.ProductClassification.Select((o) => new CD_ProductClassification(o)));
+            if (other.ProductClassification != null)
+                ProductClassification = new List<CD_ProductClassification>(other.ProductClassification.Select((o) => new CD_ProductClassification(o)));
         }
     }
 
@@ -496,7 +494,8 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications.V_1_0
         // upgrade constructor (from PCNPRE namespace)
         public CD_TechnicalData_Changes(PCNPRE.CD_TechnicalData_Changes other)
         {
-            SingleChange = new List<CD_SingleChange>(other.SingleChange.Select((o) => new CD_SingleChange(o)));
+            if (other.SingleChange != null)
+                SingleChange = new List<CD_SingleChange>(other.SingleChange.Select((o) => new CD_SingleChange(o)));
         }
     }
 
@@ -522,7 +521,7 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications.V_1_0
         // upgrade constructor (from PCNPRE namespace)
         public CD_SingleChange(PCNPRE.CD_SingleChange other)
         {
-            OriginOfChange = new AasClassMapperHintedReference(other.Origin_of_change);
+            OriginOfChange = (other.Origin_of_change == null) ? null : new AasClassMapperHintedReference(other.Origin_of_change);
             ReasonId = other.ReasonId;
         }
     }
@@ -563,7 +562,8 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications.V_1_0
         // upgrade constructor (from PCNPRE namespace)
         public CD_RecommendedItems(PCNPRE.CD_RecommendedItems other)
         {
-            RecommendedItem = new List<CD_RecommendedItem>(other.RecommendedItem.Select((o) => new CD_RecommendedItem(o)));
+            if (other.RecommendedItem != null)
+                RecommendedItem = new List<CD_RecommendedItem>(other.RecommendedItem.Select((o) => new CD_RecommendedItem(o)));
         }
     }
 
@@ -617,12 +617,9 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications.V_1_0
         // upgrade constructor (from PCNPRE namespace)
         public CD_RecommendedItem(PCNPRE.CD_RecommendedItem other)
         {
-            if (other.ManufacturerProductFamily != null)
-                ManufacturerProductFamily = new List<ILangStringTextType>(other.ManufacturerProductFamily);
-            if (other.ManufacturerProductDesignation != null)
-                ManufacturerProductDesignation = new List<ILangStringTextType>(other.ManufacturerProductDesignation);
-            if (other.OrderCodeOfManufacturer != null)
-                OrderCodeOfManufacturer = new List<ILangStringTextType>(other.OrderCodeOfManufacturer);
+            ManufacturerProductFamily = new List<ILangStringTextType>(other.ManufacturerProductFamily);
+            ManufacturerProductDesignation = new List<ILangStringTextType>(other.ManufacturerProductDesignation);
+            OrderCodeOfManufacturer = new List<ILangStringTextType>(other.OrderCodeOfManufacturer);
             ProductClassifications = (other.ProductClassifications == null) ? null : new CD_ProductClassifications(other.ProductClassifications);
             TechnicalData_Fit = (other.TechnicalData_Fit == null) ? null : new CD_TechnicalData_Fit(other.TechnicalData_Fit);
             TechnicalData_Form = (other.TechnicalData_Form == null) ? null : new CD_TechnicalData_Form(other.TechnicalData_Form);

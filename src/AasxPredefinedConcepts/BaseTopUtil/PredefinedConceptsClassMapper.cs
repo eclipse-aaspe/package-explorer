@@ -468,6 +468,32 @@ namespace AasxPredefinedConcepts
             var cardSt = card.ToString();
 
             //
+            // lambda for assignment (depending og cardinality)
+            //
+
+            Action<string, bool, string> assignLambda = (declareDt, isScalar, instance) =>
+            {
+                // use the upgrade constructor!
+                if (card == FormMultiplicity.One)
+                {
+                    snippets.WriteLine($"{indentPlus}{instance} = new {declareDt}(other.{instance}) ;");
+                }
+                else
+                if (card == FormMultiplicity.ZeroToOne)
+                {
+                    snippets.WriteLine($"{indentPlus}{instance} = (other.{instance} == null) ? null : new {declareDt}(other.{instance}) ;");
+                }
+                else
+                if (card == FormMultiplicity.ZeroToMany || card == FormMultiplicity.OneToMany)
+                {
+                    snippets.WriteLine($"{indentPlus}if (other.{instance} != null)");
+                    snippets.WriteLine($"{indentPlusPlus}{instance} = new List<{declareDt}>(other.{instance}.Select((o) => new {declareDt}(o))) ;");
+                }
+                else
+                    throw new NotImplementedException("ExportCSharpMapperSingleItemAssigment(): unknown cardinality!");
+            };
+
+            //
             // Property
             //
 
@@ -482,9 +508,9 @@ namespace AasxPredefinedConcepts
 
             if (rf is Aas.IRange rng)
             {
-                // snippets.WriteLine($"{indentPlus}{idsff} = other.{idsff}.Copy() ;");
                 var dt = CSharpTypeFrom(rng.ValueType, specificNetType: true);
-                snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperRange<{dt}>(other.{idsff}) ;");
+                // snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperRange<{dt}>(other.{idsff}) ;");
+                assignLambda($"AasClassMapperRange<{dt}", false, idsff);
             }
 
             //
@@ -493,8 +519,8 @@ namespace AasxPredefinedConcepts
 
             if (rf is Aas.IFile fl)
             {
-                // snippets.WriteLine($"{indentPlus}{idsff} = other.{idsff}.Copy() ;");
-                snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperFile(other.{idsff}) ;");
+                // snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperFile(other.{idsff}) ;");
+                assignLambda($"AasClassMapperFile", false, idsff);
             }
 
             //
@@ -503,8 +529,8 @@ namespace AasxPredefinedConcepts
 
             if (rf is Aas.IMultiLanguageProperty mlp)
             {
-                // snippets.WriteLine($"{indentPlus}{idsff} = other.{idsff}.Copy() ;");
-                snippets.WriteLine($"{indentPlus}{idsff} = new List<ILangStringTextType>(other.{idsff}) ;");
+                // snippets.WriteLine($"{indentPlus}{idsff} = new List<ILangStringTextType>(other.{idsff}) ;");
+                assignLambda($"List<ILangStringTextType>", false, idsff);
             }
 
             //
@@ -513,8 +539,8 @@ namespace AasxPredefinedConcepts
 
             if (rf is Aas.IReferenceElement rfe)
             {
-                // snippets.WriteLine($"{indentPlus}{idsff} = other.{idsff}.Copy() ;");
-                snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperHintedReference(other.{idsff}) ;");
+                // snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperHintedReference(other.{idsff}) ;");
+                assignLambda($"AasClassMapperHintedReference", false, idsff);
             }
 
             //
@@ -523,14 +549,15 @@ namespace AasxPredefinedConcepts
 
             if (rf is Aas.IRelationshipElement rle)
             {
-                // snippets.WriteLine($"{indentPlus}{idsff} = other.{idsff}.Copy() ;");
-                snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperHintedRelation(other.{idsff}) ;");
+                // snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperHintedRelation(other.{idsff}) ;");
+                assignLambda($"AasClassMapperHintedRelation", false, idsff);
             }
 
             //
             // SMC, SML ..
             //
 
+#if __can_be_replaced
             if ((rf is Aas.Submodel
                 || rf is Aas.SubmodelElementCollection
                 || rf is Aas.SubmodelElementList)
@@ -554,6 +581,15 @@ namespace AasxPredefinedConcepts
                 }
                 else
                     throw new NotImplementedException("ExportCSharpMapperSingleItemAssigment(): unknown cardinality!");
+            }
+#endif
+
+            if ((rf is Aas.Submodel
+                || rf is Aas.SubmodelElementCollection
+                || rf is Aas.SubmodelElementList)
+                && cdRef?.HasContent() == true)
+            {
+                assignLambda($"CD_{cdff}", false, idsff);
             }
         }
 
