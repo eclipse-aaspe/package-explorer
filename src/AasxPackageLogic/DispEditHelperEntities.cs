@@ -31,6 +31,7 @@ using System.Threading.Tasks;
 using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 using VDS.Common.Filters;
 using static Lucene.Net.Search.FieldCache;
+using static AnyUi.AnyUiDialogueDataTextEditor;
 
 namespace AasxPackageLogic
 {
@@ -1298,7 +1299,7 @@ namespace AasxPackageLogic
                         AddKeyValue(stack, key: "Operation", repo: null,
                             value: record.GetFetchOperationStr());
 
-                        if (record.GetAllAas || record.GetAllSubmodel)
+                        if (record.GetAllAas || record.GetAllSubmodel || record.GetAllCD)
                         {
                             AddKeyValue(stack, key: "Page limit", repo: null,
                                 value: "" + record.PageLimit);
@@ -2688,10 +2689,15 @@ namespace AasxPackageLogic
                     ticketMenu: new AasxMenu()
                         .AddAction("upgrade-qualifiers", "Upgrade qualifiers",
                             "Upgrades particular qualifiers from V2.0 to V3.0 for selected element.")
-						.AddAction("remove-qualifiers", "Remove qualifiers",
+#if __old_approach
+                        .AddAction("remove-qualifiers", "Remove qualifiers",
                             "Removes all qualifiers for selected element.")
                         .AddAction("remove-extensions", "Remove extensions",
                             "Removes all extensions for selected element.")
+#else
+                        .AddAction("remove-attributes", "Remove attributes",
+                            "Removes specific attrributes for each selected element.")
+#endif
                         .AddAction("fix-references", "Fix References",
                             "Fix, if References first key to Identifiables use idShort instead of id."),
                     ticketAction: (buttonNdx, ticket) =>
@@ -2839,6 +2845,8 @@ namespace AasxPackageLogic
 							return new AnyUiLambdaActionRedrawAllElements(nextFocus: smref, isExpanded: true);
 						}
 #endif
+
+#if __old_approach
 						if (buttonNdx == 1)
                         {
                             if (ticket?.ScriptMode != true
@@ -2894,8 +2902,67 @@ namespace AasxPackageLogic
 
                             return new AnyUiLambdaActionRedrawAllElements(nextFocus: smref, isExpanded: true);
                         }
+#else
+                        if (buttonNdx == 1)
+                        {
+                            // define dialogue and map presets into dialogue items
+                            var uc = new AnyUiDialogueDataSelectFromList(
+                                "Select which attributes to be removed from all SubmodelElements ...");
+                            uc.ListOfItems = new AnyUiDialogueListItemList(true,
+                                "All Qualifiers", "QUAL",
+                                "All Extensions", "EXT",
+                                "Add Descriptions", "DESC");
 
+                            // perform dialogue
+                            this.context.StartFlyoverModal(uc);
+                            if (!(uc.Result && uc.ResultItem?.Tag is string selectedTag))
+                                return new AnyUiLambdaActionNone();
+
+                            // be absolute sure!
+                            if (ticket?.ScriptMode != true
+                                && AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                                    "This operation will affect the selected attributes of " +
+                                    "the Submodel and all of its SubmodelElements. Do you want to proceed?",
+                                    "Remove attributes",
+                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                return new AnyUiLambdaActionNone();
+
+                            // do it on Submodel level
+                            
+                            if (selectedTag == "QUAL")
+                                submodel.Qualifiers = null;
+                            if (selectedTag == "EXT")
+                                submodel.Extensions = null;
+                            if (selectedTag == "DESC")
+                                submodel.Description = null;
+
+                            // do it on SubmodelElements
+                            submodel.RecurseOnSubmodelElements(null, (o, parents, sme) =>
+                            {
+                                // clear
+                                if (selectedTag == "QUAL")
+                                    sme.Qualifiers = null;
+                                if (selectedTag == "EXT")
+                                    sme.Extensions = null;
+                                if (selectedTag == "DESC")
+                                    sme.Description = null;
+
+                                // recurse
+                                return true;
+                            });
+
+                            // emit event for Submodel and children
+                            this.AddDiaryEntry(submodel, new DiaryEntryStructChange(), allChildrenAffected: true);
+
+                            return new AnyUiLambdaActionRedrawAllElements(nextFocus: smref, isExpanded: true);
+                        }
+#endif
+
+#if __old_approach
                         if (buttonNdx == 3)
+#else
+                        if (buttonNdx == 2)
+#endif
                         {
                             // confirm
                             if (ticket?.ScriptMode != true
@@ -2941,10 +3008,13 @@ namespace AasxPackageLogic
 			}
 
             // info about sideInfo
-            var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
-                    .FindSideInfoInListOfIdentifiables(
-                        env.Submodels, submodel.GetReference());
-            DisplayOrEditEntitySideInfo(env, stack, submodel, sideInfo, "Submodel", superMenu);
+            if (submodel != null)
+            {
+                var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
+                        .FindSideInfoInListOfIdentifiables(
+                            env.Submodels, submodel.GetReference());
+                DisplayOrEditEntitySideInfo(env, stack, submodel, sideInfo, "Submodel", superMenu);
+            }
 
             // Submodel attributes
             if (submodel != null)

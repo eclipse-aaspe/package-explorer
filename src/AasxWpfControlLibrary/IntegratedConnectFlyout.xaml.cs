@@ -44,7 +44,7 @@ namespace AasxPackageExplorer
         private string _initialDirectory;
         private LogInstance _logger;
 
-        private List<AnyUiDialogueListItem> _selectFromListItems;
+        private AnyUiDialogueListItemList _selectFromListItems;
         private Action<AnyUiDialogueListItem> _selectFromListAction;
 
         private Action<PackageContainerCredentials> _askedUserCredentials;
@@ -518,7 +518,7 @@ namespace AasxPackageExplorer
         //
 
         private void StartPageSelectFromList(string caption,
-            List<AnyUiDialogueListItem> selectFromListItems,
+            AnyUiDialogueListItemList selectFromListItems,
             Action<AnyUiDialogueListItem> selectFromListAction)
         {
             // show tab page

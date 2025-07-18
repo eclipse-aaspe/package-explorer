@@ -1408,106 +1408,131 @@ namespace AasxPackageLogic.PackageCentral
                             try
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                                if (node["result"] is JsonArray resChilds
-                                    && resChilds.Count > 0)
+                                bool noMoreResults = false;
+                                if (node["result"] is JsonArray resChilds)
                                 {
-                                    int childsToSkip = Math.Max(0, record.PageSkip);
-                                    int childsRead = 0;
-                                    bool firstNonSkipped = true;
+                                    // Happy path: items to render
+                                    if (resChilds.Count > 0)
+                                    {
+                                        int childsToSkip = Math.Max(0, record.PageSkip);
+                                        int childsRead = 0;
+                                        bool firstNonSkipped = true;
 
-                                    foreach (var n2 in resChilds)
-                                        // second try to reduce side effects
-                                        try
-                                        {
-                                            // skip
-                                            if (childsToSkip > 0)
+                                        foreach (var n2 in resChilds)
+                                            // second try to reduce side effects
+                                            try
                                             {
-                                                childsToSkip--;
-                                                continue;
-                                            }                                            
+                                                // skip
+                                                if (childsToSkip > 0)
+                                                {
+                                                    childsToSkip--;
+                                                    continue;
+                                                }
 
-                                            // get identifiable and build designated endpoint
-                                            Aas.IIdentifiable idf = null;
-                                            Uri desigEnd = null;
-                                            if (isAllAAS)
-                                            {
-                                                idf = Jsonization.Deserialize.AssetAdministrationShellFrom(n2);
-                                                desigEnd = BuildUriForRepoSingleAAS(
-                                                    baseUri.GetBaseUriForAasRepo(), idf.Id, encryptIds: true);
-                                            }
-                                            if (isAllSM)
-                                            {
-                                                idf = Jsonization.Deserialize.SubmodelFrom(n2);
-                                                desigEnd = BuildUriForRepoSingleSubmodel(
-                                                    baseUri.GetBaseUriForSmRepo(), idf.Id, encryptIds: true);
-                                            }
-                                            if (isAllCD)
-                                            {
-                                                idf = Jsonization.Deserialize.ConceptDescriptionFrom(n2);
-                                                desigEnd = BuildUriForRepoSingleCD(
-                                                    baseUri.GetBaseUriForCdRepo(), idf.Id, encryptIds: true);
-                                            }
-                                            if (idf == null)
-                                                continue;
+                                                // get identifiable and build designated endpoint
+                                                Aas.IIdentifiable idf = null;
+                                                Uri desigEnd = null;
+                                                if (isAllAAS)
+                                                {
+                                                    idf = Jsonization.Deserialize.AssetAdministrationShellFrom(n2);
+                                                    desigEnd = BuildUriForRepoSingleAAS(
+                                                        baseUri.GetBaseUriForAasRepo(), idf.Id, encryptIds: true);
+                                                }
+                                                if (isAllSM)
+                                                {
+                                                    idf = Jsonization.Deserialize.SubmodelFrom(n2);
+                                                    desigEnd = BuildUriForRepoSingleSubmodel(
+                                                        baseUri.GetBaseUriForSmRepo(), idf.Id, encryptIds: true);
+                                                }
+                                                if (isAllCD)
+                                                {
+                                                    idf = Jsonization.Deserialize.ConceptDescriptionFrom(n2);
+                                                    desigEnd = BuildUriForRepoSingleCD(
+                                                        baseUri.GetBaseUriForCdRepo(), idf.Id, encryptIds: true);
+                                                }
+                                                if (idf == null)
+                                                    continue;
 
-                                            // on last child, attach side info for fetch prev/ next cursor
-                                            AasIdentifiableSideInfo si = new AasIdentifiableSideInfo()
-                                            {
-                                                IsStub = false,
-                                                StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
-                                                Id = idf.Id,
-                                                IdShort = idf.IdShort,
-                                                QueriedEndpoint = new Uri(fullItemLocation),
-                                                DesignatedEndpoint = desigEnd
-                                            };
-                                            if (firstNonSkipped && record.PageOffset > 0)
-                                                si.ShowCursorAbove = true;
+                                                // on last child, attach side info for fetch prev/ next cursor
+                                                AasIdentifiableSideInfo si = new AasIdentifiableSideInfo()
+                                                {
+                                                    IsStub = false,
+                                                    StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                                    Id = idf.Id,
+                                                    IdShort = idf.IdShort,
+                                                    QueriedEndpoint = new Uri(fullItemLocation),
+                                                    DesignatedEndpoint = desigEnd
+                                                };
+                                                if (firstNonSkipped && record.PageOffset > 0)
+                                                    si.ShowCursorAbove = true;
 
-                                            if (n2 == resChilds.Last() && record.PageLimit > 0)
-                                                si.ShowCursorBelow = true;
-                                            
-                                            firstNonSkipped = false;
+                                                if (n2 == resChilds.Last() && record.PageLimit > 0)
+                                                    si.ShowCursorBelow = true;
 
-                                            // add
-                                            var added = false;
-                                            if (isAllAAS)
-                                            {
-                                                lambdaReportAll(++numAAS, numSM, numCD, numDiv);
-                                                added = prepAas.AddIfNew(
-                                                    idf as Aas.IAssetAdministrationShell,
-                                                    si);
-                                            }
-                                            if (isAllSM)
-                                            {
-                                                lambdaReportAll(numAAS, ++numSM, numCD, numDiv);
-                                                added = prepSM.AddIfNew(
-                                                    idf as Aas.ISubmodel,
-                                                    si);
-                                            }
-                                            if (isAllCD)
-                                            {
-                                                lambdaReportAll(numAAS, numSM, ++numCD, numDiv);
-                                                added = prepCD.AddIfNew(
-                                                    idf as Aas.IConceptDescription,
-                                                    si);
-                                            }
-                                            receivedAllAAS++;
-                                            trackLoadedIdentifiables?.Add(idf);
-                                            if (added)
-                                                trackNewIdentifiables?.Add(idf);
+                                                firstNonSkipped = false;
 
-                                            // maintain page limit (may be server does not care..)
-                                            childsRead++;
-                                            if (record.PageLimit > 0 && childsRead >= record.PageLimit)
-                                            {
-                                                si.ShowCursorBelow = true;
-                                                break;
+                                                // add
+                                                var added = false;
+                                                if (isAllAAS)
+                                                {
+                                                    lambdaReportAll(++numAAS, numSM, numCD, numDiv);
+                                                    added = prepAas.AddIfNew(
+                                                        idf as Aas.IAssetAdministrationShell,
+                                                        si);
+                                                }
+                                                if (isAllSM)
+                                                {
+                                                    lambdaReportAll(numAAS, ++numSM, numCD, numDiv);
+                                                    added = prepSM.AddIfNew(
+                                                        idf as Aas.ISubmodel,
+                                                        si);
+                                                }
+                                                if (isAllCD)
+                                                {
+                                                    lambdaReportAll(numAAS, numSM, ++numCD, numDiv);
+                                                    added = prepCD.AddIfNew(
+                                                        idf as Aas.IConceptDescription,
+                                                        si);
+                                                }
+                                                receivedAllAAS++;
+                                                trackLoadedIdentifiables?.Add(idf);
+                                                if (added)
+                                                    trackNewIdentifiables?.Add(idf);
+
+                                                // maintain page limit (may be server does not care..)
+                                                childsRead++;
+                                                if (record.PageLimit > 0 && childsRead >= record.PageLimit)
+                                                {
+                                                    si.ShowCursorBelow = true;
+                                                    break;
+                                                }
                                             }
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            runtimeOptions?.Log?.Error(ex, "Parsing single AAS/ Submodel/ CD of list of all AAS/ Submodel/ CD");
-                                        }
+                                            catch (Exception ex)
+                                            {
+                                                runtimeOptions?.Log?.Error(ex, "Parsing single AAS/ Submodel/ CD of list of all AAS/ Submodel/ CD");
+                                            }
+
+                                        // check, if there were no results here, indeed
+                                        if (firstNonSkipped)
+                                            noMoreResults = true;
+                                    }
+                                    else
+                                    // detect the case that there might be results but aren't
+                                    if (resChilds.Count == 0 && record.PageSkip > 0 || record.PageOffset > 0)
+                                    {
+                                        noMoreResults = true;
+                                    }
+                                }
+
+                                // further indicating
+                                if (noMoreResults)
+                                {
+                                    if (isAllAAS)
+                                        dynPack.IndicateFetchPrev = AdminShellPackageDynamicFetchEnv.IndicateFetchPrevType.AllAas;
+                                    if (isAllSM)
+                                        dynPack.IndicateFetchPrev = AdminShellPackageDynamicFetchEnv.IndicateFetchPrevType.AllSm;
+                                    if (isAllCD)
+                                        dynPack.IndicateFetchPrev = AdminShellPackageDynamicFetchEnv.IndicateFetchPrevType.AllCd;
                                 }
 
                                 // cursor data
@@ -2290,7 +2315,7 @@ namespace AasxPackageLogic.PackageCentral
             /// Pagenation. Limit to <c>n</c> results.
             /// </summary>
             [AasxMenuArgument(help: "Pagenation. Limit to n results.")]
-            public int PageLimit = 15;
+            public int PageLimit = 4;
 
             /// <summary>
             /// When fetching, skip first <c>n</c> elements of the results.
@@ -2950,7 +2975,7 @@ namespace AasxPackageLogic.PackageCentral
 
                         row++;
 
-                        // Auto load Submodels
+                        // Auto load CDs
 
                         AnyUiUIElement.SetBoolFromControl(
                                 helper.Set(

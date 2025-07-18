@@ -206,8 +206,8 @@ namespace AasxPackageLogic
 
                                 // define dialogue and map presets into dialogue items
                                 var uc = new AnyUiDialogueDataSelectFromList();
-                                uc.ListOfItems = presets.Select((pr)
-                                        => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }).ToList();
+                                uc.ListOfItems = new AnyUiDialogueListItemList(presets.Select((pr)
+                                        => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }));
 
                                 // perform dialogue
                                 this.context.StartFlyoverModal(uc);
@@ -674,8 +674,8 @@ namespace AasxPackageLogic
 
                                 // define dialogue and map presets into dialogue items
                                 var uc = new AnyUiDialogueDataSelectFromList();
-                                uc.ListOfItems = presets.Select((pr)
-                                        => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }).ToList();
+                                uc.ListOfItems = new AnyUiDialogueListItemList(presets.Select((pr)
+                                        => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }));
 
                                 // perform dialogue
                                 this.context.StartFlyoverModal(uc);
@@ -920,8 +920,8 @@ namespace AasxPackageLogic
 
                                 // define dialogue and map presets into dialogue items
                                 var uc = new AnyUiDialogueDataSelectFromList();
-                                uc.ListOfItems = presets.Select((pr)
-                                        => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }).ToList();
+                                uc.ListOfItems = new AnyUiDialogueListItemList(presets.Select((pr)
+                                        => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }));
 
                                 // perform dialogue
                                 this.context.StartFlyoverModal(uc);

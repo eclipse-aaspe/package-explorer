@@ -265,7 +265,7 @@ namespace AasxPackageLogic.PackageCentral
             ro?.Log?.Info($"Perform Demo() for location {location}");
 
             // ask for a list
-            var li1 = new List<AnyUiDialogueListItem>();
+            var li1 = new AnyUiDialogueListItemList();
             li1.Add(new AnyUiDialogueListItem("AAAAAAAAAAAAAAAAAAAAAAAAAAA", "A"));
             li1.Add(new AnyUiDialogueListItem("bbbbbbbbbbbb", "B"));
             li1.Add(new AnyUiDialogueListItem("CCCCCCCCCCCCCCCCCC  CCCCC", "C"));
@@ -276,7 +276,7 @@ namespace AasxPackageLogic.PackageCentral
             ro?.Log?.Info($".. selected item is {"" + xx?.Text}");
 
             // ask for a list
-            var li2 = new List<AnyUiDialogueListItem>();
+            var li2 = new AnyUiDialogueListItemList();
             li2.Add(new AnyUiDialogueListItem("111111111", "A"));
             li2.Add(new AnyUiDialogueListItem("222222222222222222222222", "B"));
             li2.Add(new AnyUiDialogueListItem("3333333333333  3333", "C"));

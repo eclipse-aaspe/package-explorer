@@ -30,6 +30,9 @@ using System.Reflection;
 using DocumentFormat.OpenXml.Spreadsheet;
 using ClosedXML.Excel;
 using AasxPluginExportTable.Table;
+using AasCore.Aas3_0;
+using DocumentFormat.OpenXml.Wordprocessing;
+using System.Drawing;
 
 namespace AasxPluginExportTable.BulkChange
 {
@@ -68,7 +71,8 @@ namespace AasxPluginExportTable.BulkChange
         /// Bulk change of CD.id, CD.isCaseOf, SM.(suppl)semanticId, SME.(suppl)semanticId.
         /// </summary>
         /// <returns>-1 in case of error, number of changes, else.</returns>
-        public static int BulkChangeSemanticId(Aas.IEnvironment env, List<BulkChangeSemanticIdPair> pairs)
+        public static int BulkChangeSemanticId(Aas.IEnvironment env, List<BulkChangeSemanticIdPair> pairs,
+            bool changeValueId)
         {
             // access
             if (env == null || pairs == null) 
@@ -99,6 +103,16 @@ namespace AasxPluginExportTable.BulkChange
                         if (cd.IsCaseOf != null)
                             foreach (var ico in cd.IsCaseOf)
                                 num += ChangeIdInReference(ico, fromId, toId, Aas.KeyTypes.GlobalReference);
+
+                        // IEC61360 extension?
+                        var cdIec = cd.GetIEC61360();
+                        if (cdIec != null && cdIec.ValueList != null && cdIec.ValueList.ValueReferencePairs != null
+                            && cdIec.ValueList.ValueReferencePairs.Count > 0)
+                        {
+                            foreach (var vrp in cdIec.ValueList.ValueReferencePairs)
+                                if (vrp.ValueId?.IsValid() == true)
+                                    num += ChangeIdInReference(vrp.ValueId, fromId, toId, Aas.KeyTypes.GlobalReference);
+                        }
                     }
 
                     // iterate Submodels (only changing semanticIds, therefore linking AAS <-> Submodels not relevant)
@@ -125,6 +139,18 @@ namespace AasxPluginExportTable.BulkChange
                             if (sme.SupplementalSemanticIds != null)
                                 foreach (var ssi in sme.SupplementalSemanticIds)
                                     num += ChangeIdInReference(ssi, fromId, toId, Aas.KeyTypes.GlobalReference);
+
+                            // SML?
+                            if (sme is Aas.ISubmodelElementList sml
+                                && sml.SemanticIdListElement?.IsValid() == true)
+                                num += ChangeIdInReference(sml.SemanticIdListElement, fromId, toId, Aas.KeyTypes.Submodel);
+
+                            // valueId
+                            if (changeValueId)
+                            {
+                                if (sme is Aas.IProperty prop)
+                                    num += ChangeIdInReference(prop.ValueId, fromId, toId, Aas.KeyTypes.Submodel);
+                            }
 
                             // recurse on
                             return true;

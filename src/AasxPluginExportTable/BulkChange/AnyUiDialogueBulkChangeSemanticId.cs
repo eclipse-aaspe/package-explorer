@@ -222,7 +222,8 @@ namespace AasxPluginExportTable.BulkChange
             // Step 4: call intended change function
             //
 
-            var num = BulkChangeCore.BulkChangeSemanticId(ticket.Env, pairs);
+            var num = BulkChangeCore.BulkChangeSemanticId(ticket.Env, pairs, 
+                        record.ChangeValueId);
             log?.Info($"Bulk change semanticIds: {num} ids were changed.");
 
             //

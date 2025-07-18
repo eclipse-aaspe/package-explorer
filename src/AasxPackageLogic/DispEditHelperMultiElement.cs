@@ -385,12 +385,12 @@ namespace AasxPackageLogic
 
             // make list
             var uc = new AnyUiDialogueDataSelectFromList();
-            uc.ListOfItems = dict.Keys.Select((dictKey)
+            uc.ListOfItems = new AnyUiDialogueListItemList(dict.Keys.Select((dictKey)
                     => new AnyUiDialogueListItem()
                     {
                         Text = "" + dictKey + $" ({dict[dictKey].Count()})",
                         Tag = dict[dictKey].ToList()
-                    }).ToList();
+                    }));
 
             this.context.StartFlyoverModal(uc);
             if (uc.Result && uc.ResultItem?.Tag is List<Tuple<Aas.IReferable, Aas.IExtension>> tuples)
