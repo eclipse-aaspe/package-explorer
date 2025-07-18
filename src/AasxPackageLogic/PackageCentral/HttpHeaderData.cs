@@ -26,6 +26,11 @@ namespace AasxPackageLogic.PackageCentral
             Parse(jsonOrMime);
         }
 
+        public void Add(string key, string value)
+        {
+            Headers.Add(new Tuple<string, string>(key, value));
+        }
+
         /// <summary>
         /// Parses a JSON-like object with header key/ value information.
         /// </summary>

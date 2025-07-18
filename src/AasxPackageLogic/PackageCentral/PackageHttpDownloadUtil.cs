@@ -105,41 +105,6 @@ namespace AasxPackageLogic.PackageCentral
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.BaseAddress = new Uri(baseUri.GetLeftPart(UriPartial.Authority));
 
-            // Token existing?
-            var clhttp = containerList as PackageContainerListHttpRestBase;
-            var oidc = clhttp?.OpenIdClient;
-            if (oidc == null)
-            {
-                if (runtimeOptions?.ExtendedConnectionDebug == true)
-                    runtimeOptions.Log?.Info("  no ContainerList available. No OpecIdClient possible!");
-                if (clhttp != null && OpenIDClient.email != "")
-                {
-                    clhttp.OpenIdClient = new OpenIdClientInstance();
-                    clhttp.OpenIdClient.email = OpenIDClient.email;
-                    clhttp.OpenIdClient.ssiURL = OpenIDClient.ssiURL;
-                    clhttp.OpenIdClient.keycloak = OpenIDClient.keycloak;
-                    oidc = clhttp.OpenIdClient;
-                }
-            }
-            if (oidc != null)
-            {
-                if (oidc.token != "")
-                {
-                    if (runtimeOptions?.ExtendedConnectionDebug == true)
-                        runtimeOptions.Log?.Info($"  using existing bearer token.");
-                    client.SetBearerToken(oidc.token);
-                }
-                else
-                {
-                    if (oidc.email != "")
-                    {
-                        if (runtimeOptions?.ExtendedConnectionDebug == true)
-                            runtimeOptions.Log?.Info($"  using existing email token.");
-                        client.DefaultRequestHeaders.Add("Email", OpenIDClient.email);
-                    }
-                }
-            }
-
             // BEGIN Workaround behind some proxies
             // Stream is sent twice, if proxy-authorization header is not set
             string proxyFile = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal) + "/proxy.dat";
@@ -211,158 +176,104 @@ namespace AasxPackageLogic.PackageCentral
                 runtimeOptions.Log?.Info($"HttpClient GET() with base-address {client.BaseAddress} " +
                     $"and request {requestPath} .. ");
 
-            bool repeat = true;
-            while (repeat)
+            // make a request
+            HttpResponseMessage response = null;
+            using (var requestMessage =
+                new HttpRequestMessage(HttpMethod.Get, requestPath))
             {
-                // make a request
-                HttpResponseMessage response = null;
-                using (var requestMessage =
-                    new HttpRequestMessage(HttpMethod.Get, requestPath))
+                // assume headers to be for authorization
+                if (runtimeOptions?.HttpHeaderData?.Headers != null)
+                    foreach (var header in runtimeOptions.HttpHeaderData?.Headers)
+                    {
+                        requestMessage.Headers.Add(header.Item1, header.Item2);
+                    }
+
+                response = await client.SendAsync(requestMessage,
+                    HttpCompletionOption.ResponseHeadersRead);
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                var contentLength = response.Content.Headers.ContentLength;
+                var contentFn = response.Content.Headers.ContentDisposition?.FileName;
+
+                // log
+                if (runtimeOptions?.ExtendedConnectionDebug == true)
+                    runtimeOptions.Log?.Info($".. response with header-content-len {contentLength} " +
+                        $"and file-name {contentFn} ..");
+
+                var contentStream = await response?.Content?.ReadAsStreamAsync();
+                if (contentStream == null)
+                    throw new PackageContainerException(
+                    $"While getting data bytes from {sourceUri.ToString()} via HttpClient " +
+                    $"no data-content was responded!");
+
+                // create temp file and write to it
+                var givenFn = sourceUri.ToString();
+                if (contentFn != null)
+                    givenFn = contentFn;
+                if (runtimeOptions?.ExtendedConnectionDebug == true)
+                    runtimeOptions.Log?.Info($".. downloading and scanning by proxy/firewall {client.BaseAddress} " +
+                        $"and request {requestPath} .. ");
+
+                using (var memStream = new MemoryStream())
                 {
-                    // assume headers to be for authorization
-                    if (runtimeOptions?.HttpHeaderData?.Headers != null)
-                        foreach (var header in runtimeOptions.HttpHeaderData?.Headers)
+                    // copy with progress
+                    var bufferSize = 4024;
+                    var deltaSize = 512 * 1024;
+                    var buffer = new byte[bufferSize];
+                    long totalBytesRead = 0;
+                    long lastBytesRead = 0;
+                    int bytesRead;
+
+                    runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.StartDownload,
+                            contentLength, totalBytesRead);
+
+                    // MIHO, 25-06-11: not sure if this timeout works
+                    using var cts = new CancellationTokenSource(5000);
+
+                    while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length,
+                        cts.Token).ConfigureAwait(false)) != 0)
+                    {
+                        await memStream.WriteAsync(buffer, 0, bytesRead,
+                            default(CancellationToken)).ConfigureAwait(false);
+
+                        totalBytesRead += bytesRead;
+
+                        if (totalBytesRead > lastBytesRead + deltaSize)
                         {
-                            requestMessage.Headers.Add(header.Item1, header.Item2);
-                        }
-
-                    response = await client.SendAsync(requestMessage,
-                        HttpCompletionOption.ResponseHeadersRead);
-                }
-
-                // digest response
-                var clhttp = containerList as PackageContainerListHttpRestBase;
-                var oidc = clhttp?.OpenIdClient;
-                if (clhttp != null
-                    && response.StatusCode == System.Net.HttpStatusCode.TemporaryRedirect)
-                {
-                    string redirectUrl = response.Headers.Location.ToString();
-                    // ReSharper disable once RedundantExplicitArrayCreation
-                    string[] splitResult = redirectUrl.Split(new string[] { "?" },
-                        StringSplitOptions.RemoveEmptyEntries);
-                    splitResult[0] = splitResult[0].TrimEnd('/');
-
-                    if (splitResult.Length < 1)
-                    {
-                        runtimeOptions?.Log?.Error("TemporaryRedirect, but url split to successful");
-                        break;
-                    }
-
-                    if (runtimeOptions?.ExtendedConnectionDebug == true)
-                        runtimeOptions.Log?.Info("Redirect to: " + splitResult[0]);
-
-                    if (oidc == null)
-                    {
-                        if (runtimeOptions?.ExtendedConnectionDebug == true)
-                            runtimeOptions.Log?.Info("Creating new OpenIdClient..");
-                        oidc = new OpenIdClientInstance();
-                        clhttp.OpenIdClient = oidc;
-                        clhttp.OpenIdClient.email = OpenIDClient.email;
-                        clhttp.OpenIdClient.ssiURL = OpenIDClient.ssiURL;
-                        clhttp.OpenIdClient.keycloak = OpenIDClient.keycloak;
-                    }
-
-                    oidc.authServer = splitResult[0];
-
-                    if (runtimeOptions?.ExtendedConnectionDebug == true)
-                        runtimeOptions.Log?.Info($".. authentication at auth server {oidc.authServer} needed");
-
-                    var response2 = await oidc.RequestTokenAsync(null,
-                        GenerateUiLambdaSet(runtimeOptions));
-                    if (oidc.keycloak == "" && response2 != null)
-                        oidc.token = response2.AccessToken;
-                    if (oidc.token != "" && oidc.token != null)
-                        client.SetBearerToken(oidc.token);
-
-                    repeat = true;
-                    continue;
-                }
-
-                repeat = false;
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var contentLength = response.Content.Headers.ContentLength;
-                    var contentFn = response.Content.Headers.ContentDisposition?.FileName;
-
-                    // log
-                    if (runtimeOptions?.ExtendedConnectionDebug == true)
-                        runtimeOptions.Log?.Info($".. response with header-content-len {contentLength} " +
-                            $"and file-name {contentFn} ..");
-
-                    var contentStream = await response?.Content?.ReadAsStreamAsync();
-                    if (contentStream == null)
-                        throw new PackageContainerException(
-                        $"While getting data bytes from {sourceUri.ToString()} via HttpClient " +
-                        $"no data-content was responded!");
-
-                    // create temp file and write to it
-                    var givenFn = sourceUri.ToString();
-                    if (contentFn != null)
-                        givenFn = contentFn;
-                    if (runtimeOptions?.ExtendedConnectionDebug == true)
-                        runtimeOptions.Log?.Info($".. downloading and scanning by proxy/firewall {client.BaseAddress} " +
-                            $"and request {requestPath} .. ");
-
-                    using (var memStream = new MemoryStream())
-                    {
-                        // copy with progress
-                        var bufferSize = 4024;
-                        var deltaSize = 512 * 1024;
-                        var buffer = new byte[bufferSize];
-                        long totalBytesRead = 0;
-                        long lastBytesRead = 0;
-                        int bytesRead;
-
-                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.StartDownload,
+                            if (runtimeOptions?.ExtendedConnectionDebug == true)
+                                runtimeOptions.Log?.Info($".. downloading to memory stream");
+                            runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.PerformDownload,
                                 contentLength, totalBytesRead);
-
-                        // MIHO, 25-06-11: not sure if this timeout works
-                        using var cts = new CancellationTokenSource(5000);
-
-                        while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length,
-                            cts.Token).ConfigureAwait(false)) != 0)
-                        {
-                            await memStream.WriteAsync(buffer, 0, bytesRead,
-                                default(CancellationToken)).ConfigureAwait(false);
-
-                            totalBytesRead += bytesRead;
-
-                            if (totalBytesRead > lastBytesRead + deltaSize)
-                            {
-                                if (runtimeOptions?.ExtendedConnectionDebug == true)
-                                    runtimeOptions.Log?.Info($".. downloading to memory stream");
-                                runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.PerformDownload,
-                                    contentLength, totalBytesRead);
-                                lastBytesRead = totalBytesRead;
-                            }
+                            lastBytesRead = totalBytesRead;
                         }
-
-                        // assume bytes read to be total bytes
-                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.EndDownload,
-                            totalBytesRead, totalBytesRead);
-
-                        // log                
-                        if (runtimeOptions?.ExtendedConnectionDebug == true)
-                            runtimeOptions.Log?.Info($".. download done with {totalBytesRead} bytes read!");
-
-                        // execute lambda
-                        memStream.Flush();
-                        memStream.Seek(0, SeekOrigin.Begin);
-                        lambdaDownloadDoneOrFail?.Invoke(response.StatusCode, memStream, contentFn);
                     }
+
+                    // assume bytes read to be total bytes
+                    runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.EndDownload,
+                        totalBytesRead, totalBytesRead);
+
+                    // log                
+                    if (runtimeOptions?.ExtendedConnectionDebug == true)
+                        runtimeOptions.Log?.Info($".. download done with {totalBytesRead} bytes read!");
+
+                    // execute lambda
+                    memStream.Flush();
+                    memStream.Seek(0, SeekOrigin.Begin);
+                    lambdaDownloadDoneOrFail?.Invoke(response.StatusCode, memStream, contentFn);
                 }
-                else
-                if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    lambdaDownloadDoneOrFail?.Invoke(response.StatusCode, null, null);
-                }
-                else
-                {
-                    if (!doNotLogExceptions)
-                        Log.Singleton.Error($"DownloadFromSource server gave status code {response.StatusCode} when fetching {sourceUri}!");
-                    lambdaDownloadDoneOrFail?.Invoke(response.StatusCode, null, null);
-                }
+            }
+            else
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                lambdaDownloadDoneOrFail?.Invoke(response.StatusCode, null, null);
+            }
+            else
+            {
+                if (!doNotLogExceptions)
+                    Log.Singleton.Error($"DownloadFromSource server gave status code {response.StatusCode} when fetching {sourceUri}!");
+                lambdaDownloadDoneOrFail?.Invoke(response.StatusCode, null, null);
             }
         }
 
@@ -392,165 +303,107 @@ namespace AasxPackageLogic.PackageCentral
             var requestContent = new StringContent(requestBody, Encoding.UTF8, requestContentType);
 
             // retrieve response
-            bool repeat = true;
+            var response = await client.PostAsync(requestPath, requestContent);
 
-            while (repeat)
+            if (response.IsSuccessStatusCode)
             {
-                // get response?
-                var response = await client.PostAsync(requestPath, requestContent);
+                //
+                // this portion of the code is prepared to receive large sets of content data
+                //
 
-                var clhttp = containerList as PackageContainerListHttpRestBase;
-                var oidc = clhttp?.OpenIdClient;
-                if (clhttp != null
-                    && response.StatusCode == System.Net.HttpStatusCode.TemporaryRedirect)
+                var contentLength = response.Content.Headers.ContentLength;
+                var contentFn = response.Content.Headers.ContentDisposition?.FileName;
+
+                // log
+                if (runtimeOptions?.ExtendedConnectionDebug == true)
+                    runtimeOptions  .Log?.Info($".. response with header-content-len {contentLength} " +
+                        $"and file-name {contentFn} ..");
+
+                var contentStream = await response?.Content?.ReadAsStreamAsync();
+                if (contentStream == null)
+                    throw new PackageContainerException(
+                    $"While getting data bytes from {sourceUri.ToString()} via HttpClient " +
+                    $"no data-content was responded!");
+
+                // create temp file and write to it
+                var givenFn = sourceUri.ToString();
+                if (contentFn != null)
+                    givenFn = contentFn;
+                if (runtimeOptions?.ExtendedConnectionDebug == true)
+                    runtimeOptions  .Log?.Info($".. downloading and scanning by proxy/firewall {client.BaseAddress} " +
+                        $"and request {requestPath} .. ");
+
+                using (var memStream = new MemoryStream())
                 {
-                    string redirectUrl = response.Headers.Location.ToString();
-                    // ReSharper disable once RedundantExplicitArrayCreation
-                    string[] splitResult = redirectUrl.Split(new string[] { "?" },
-                        StringSplitOptions.RemoveEmptyEntries);
-                    splitResult[0] = splitResult[0].TrimEnd('/');
+                    // copy with progress
+                    var bufferSize = 4024;
+                    var deltaSize = 512 * 1024;
+                    var buffer = new byte[bufferSize];
+                    long totalBytesRead = 0;
+                    long lastBytesRead = 0;
+                    int bytesRead;
 
-                    if (splitResult.Length < 1)
+                    runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.StartDownload,
+                            contentLength, totalBytesRead);
+
+                    while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length,
+                        default(CancellationToken)).ConfigureAwait(false)) != 0)
                     {
-                        if (runtimeOptions?.ExtendedConnectionDebug == true)
-                        runtimeOptions?.Log?.Error("TemporaryRedirect, but url split to successful");
-                        break;
-                    }
+                        await memStream.WriteAsync(buffer, 0, bytesRead,
+                            default(CancellationToken)).ConfigureAwait(false);
 
-                    if (runtimeOptions?.ExtendedConnectionDebug == true)
-                        runtimeOptions.Log?.Info("Redirect to: " + splitResult[0]);
+                        totalBytesRead += bytesRead;
 
-                    if (oidc == null)
-                    {
-                        if (runtimeOptions?.ExtendedConnectionDebug == true)
-                            runtimeOptions.Log?.Info("Creating new OpenIdClient..");
-                        oidc = new OpenIdClientInstance();
-                        clhttp.OpenIdClient = oidc;
-                        clhttp.OpenIdClient.email = OpenIDClient.email;
-                        clhttp.OpenIdClient.ssiURL = OpenIDClient.ssiURL;
-                        clhttp.OpenIdClient.keycloak = OpenIDClient.keycloak;
-                    }
-
-                    oidc.authServer = splitResult[0];
-
-                    if (runtimeOptions?.ExtendedConnectionDebug == true)
-                        runtimeOptions.Log?.Info($".. authentication at auth server {oidc.authServer} needed");
-
-                    var response2 = await oidc.RequestTokenAsync(null,
-                        GenerateUiLambdaSet(runtimeOptions));
-                    if (oidc.keycloak == "" && response2 != null)
-                        oidc.token = response2.AccessToken;
-                    if (oidc.token != "" && oidc.token != null)
-                        client.SetBearerToken(oidc.token);
-
-                    repeat = true;
-                    continue;
-                }
-
-                repeat = false;
-
-                if (response.IsSuccessStatusCode)
-                {
-                    //
-                    // this portion of the code is prepared to receive large sets of content data
-                    //
-
-                    var contentLength = response.Content.Headers.ContentLength;
-                    var contentFn = response.Content.Headers.ContentDisposition?.FileName;
-
-                    // log
-                    if (runtimeOptions?.ExtendedConnectionDebug == true)
-                        runtimeOptions  .Log?.Info($".. response with header-content-len {contentLength} " +
-                            $"and file-name {contentFn} ..");
-
-                    var contentStream = await response?.Content?.ReadAsStreamAsync();
-                    if (contentStream == null)
-                        throw new PackageContainerException(
-                        $"While getting data bytes from {sourceUri.ToString()} via HttpClient " +
-                        $"no data-content was responded!");
-
-                    // create temp file and write to it
-                    var givenFn = sourceUri.ToString();
-                    if (contentFn != null)
-                        givenFn = contentFn;
-                    if (runtimeOptions?.ExtendedConnectionDebug == true)
-                        runtimeOptions  .Log?.Info($".. downloading and scanning by proxy/firewall {client.BaseAddress} " +
-                            $"and request {requestPath} .. ");
-
-                    using (var memStream = new MemoryStream())
-                    {
-                        // copy with progress
-                        var bufferSize = 4024;
-                        var deltaSize = 512 * 1024;
-                        var buffer = new byte[bufferSize];
-                        long totalBytesRead = 0;
-                        long lastBytesRead = 0;
-                        int bytesRead;
-
-                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.StartDownload,
-                                contentLength, totalBytesRead);
-
-                        while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length,
-                            default(CancellationToken)).ConfigureAwait(false)) != 0)
+                        if (totalBytesRead > lastBytesRead + deltaSize)
                         {
-                            await memStream.WriteAsync(buffer, 0, bytesRead,
-                                default(CancellationToken)).ConfigureAwait(false);
-
-                            totalBytesRead += bytesRead;
-
-                            if (totalBytesRead > lastBytesRead + deltaSize)
-                            {
-                                if (runtimeOptions?.ExtendedConnectionDebug == true)
-                                    runtimeOptions.Log?.Info($".. downloading to memory stream");
-                                runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.PerformDownload,
-                                    contentLength, totalBytesRead);
-                                lastBytesRead = totalBytesRead;
-                            }
+                            if (runtimeOptions?.ExtendedConnectionDebug == true)
+                                runtimeOptions.Log?.Info($".. downloading to memory stream");
+                            runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.PerformDownload,
+                                contentLength, totalBytesRead);
+                            lastBytesRead = totalBytesRead;
                         }
-
-                        // assume bytes read to be total bytes
-                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.EndDownload,
-                            totalBytesRead, totalBytesRead);
-
-                        // log                
-                        if (runtimeOptions?.ExtendedConnectionDebug == true)
-                            runtimeOptions.Log?.Info($".. download done with {totalBytesRead} bytes read!");
-
-                        // execute lambda
-                        memStream.Flush();
-                        memStream.Seek(0, SeekOrigin.Begin);
-                        lambdaDownloadDone?.Invoke(memStream, contentFn);
-
-                        // good
-                        return HttpStatusCode.OK;
                     }
+
+                    // assume bytes read to be total bytes
+                    runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.EndDownload,
+                        totalBytesRead, totalBytesRead);
+
+                    // log                
+                    if (runtimeOptions?.ExtendedConnectionDebug == true)
+                        runtimeOptions.Log?.Info($".. download done with {totalBytesRead} bytes read!");
+
+                    // execute lambda
+                    memStream.Flush();
+                    memStream.Seek(0, SeekOrigin.Begin);
+                    lambdaDownloadDone?.Invoke(memStream, contentFn);
+
+                    // good
+                    return HttpStatusCode.OK;
+                }
+            }
+            else
+            {
+                //
+                // assume smaller conent data
+                //
+                var responseContents = await response.Content.ReadAsStringAsync();
+
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    // not found but also no error: intentionally do nothing
+                    return response.StatusCode;
                 }
                 else
                 {
-                    //
-                    // assume smaller conent data
-                    //
-                    var responseContents = await response.Content.ReadAsStringAsync();
-
-                    if (response.StatusCode == HttpStatusCode.NotFound)
+                    if (runtimeOptions?.ExtendedConnectionDebug == true)
                     {
-                        // not found but also no error: intentionally do nothing
-                        return response.StatusCode;
+                        Log.Singleton.Error($"HttpPostRequestToMemoryStream server gave status code " +
+                            $"{(int)response.StatusCode} {response.StatusCode}!");
+                        Log.Singleton.Error("  response content: {0}", responseContents);
                     }
-                    else
-                    {
-                        if (runtimeOptions?.ExtendedConnectionDebug == true)
-                        {
-                            Log.Singleton.Error($"HttpPostRequestToMemoryStream server gave status code " +
-                                $"{(int)response.StatusCode} {response.StatusCode}!");
-                            Log.Singleton.Error("  response content: {0}", responseContents);
-                        }
-                        return response.StatusCode;
-                    }
+                    return response.StatusCode;
                 }
             }
-
-            return null;
         }
 
         /// <summary>
