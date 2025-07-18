@@ -128,6 +128,8 @@ namespace AasxPackageLogic.PackageCentral
             }
         }
 
+        // hello
+
         void IClass.Accept(Visitation.IVisitor visitor)
         {
         }
