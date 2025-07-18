@@ -1118,7 +1118,7 @@ namespace AasxPackageLogic
             AasxMenuActionTicket ticket = null)
         {
             // prepare a list
-            var fol = new List<AnyUiDialogueListItem>();
+            var fol = new AnyUiDialogueListItemList();
             foreach (var en in AdminShellUtil.GetAdequateEnums(excludeValues, includeValues))
                 fol.Add(new AnyUiDialogueListItem(Enum.GetName(typeof(Aas.AasSubmodelElements), en), en));
 

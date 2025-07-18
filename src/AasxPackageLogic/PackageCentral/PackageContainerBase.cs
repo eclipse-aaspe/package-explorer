@@ -54,7 +54,7 @@ namespace AasxPackageLogic.PackageCentral
             Progress state, long? totalFileSize = null, long? totalBytesDownloaded = null, string message = "");
 
         public delegate void AskForSelectFromListHandler(
-            string caption, List<AnyUiDialogueListItem> list,
+            string caption, AnyUiDialogueListItemList list,
             TaskCompletionSource<AnyUiDialogueListItem> propagateResult);
 
         public delegate void AskForCredentialsHandler(

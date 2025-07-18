@@ -44,7 +44,7 @@ namespace AasxPackageLogic
 		public SammIdSet SammExtensionHelperSelectSammVersion(IEnumerable<SammIdSet> idsets)
 		{
 			// create choices
-			var fol = new List<AnyUiDialogueListItem>();
+			var fol = new AnyUiDialogueListItemList();
 			foreach (var idset in idsets)
 				fol.Add(new AnyUiDialogueListItem("" + idset.Version, idset));
 
@@ -62,7 +62,7 @@ namespace AasxPackageLogic
 		public Type SammExtensionHelperSelectSammType(Type[] addableElements)
 		{
 			// create choices
-			var fol = new List<AnyUiDialogueListItem>();
+			var fol = new AnyUiDialogueListItemList();
 			foreach (var stp in addableElements)
 				fol.Add(new AnyUiDialogueListItem("" + stp.Name, stp));
 
@@ -126,7 +126,7 @@ namespace AasxPackageLogic
 				// prompt for this list
 				var uc = new AnyUiDialogueDataSelectFromList(
 					caption: "Select preset value to add ..");
-				uc.ListOfItems = presetList.Select((st) => new AnyUiDialogueListItem("" + st, st)).ToList();
+				uc.ListOfItems = new AnyUiDialogueListItemList(presetList.Select((st) => new AnyUiDialogueListItem("" + st, st)));
 				this.context.StartFlyoverModal(uc);
 				if (uc.Result && uc.ResultItem != null && uc.ResultItem.Tag != null &&
 					uc.ResultItem.Tag is string prs)

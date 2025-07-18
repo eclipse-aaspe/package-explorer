@@ -54,6 +54,9 @@ namespace AasxPackageLogic.PackageCentral
 
         protected Dictionary<string, byte[]> _thumbStreamPerAasId = new Dictionary<string, byte[]>();
 
+        public enum IndicateFetchPrevType { None = 0x0, AllAas = 0x01, AllSm = 0x02, AllCd = 0x04 };
+        public IndicateFetchPrevType IndicateFetchPrev = IndicateFetchPrevType.None; 
+
         public AdminShellPackageDynamicFetchEnv(
             PackCntRuntimeOptions runtimeOptions = null,
             Uri baseUri = null) : base()

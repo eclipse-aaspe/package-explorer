@@ -40,9 +40,14 @@ namespace AasxPluginExportTable.BulkChange
 
         public FormatEnum Format = 0;
 
-        [AasxMenuArgument(help: "Specifies the 1-based row index for the change pairs.")]
+        [AasxMenuArgument(help: "Specifies the 1-based row index for the change pair's table header.")]
         [AnyUiEditField(uiHeader: "Row for pairs",
             uiShowHelp: true, uiGroupHelp: true, minWidth: 150, maxWidth: 150)]
         public int RowPairs = 1;
+
+        [AasxMenuArgument(help: "Specifies if valueIds in SMEs shall be changed, as well.")]
+        [AnyUiEditField(uiHeader: "Change valueId",
+            uiShowHelp: true, uiGroupHelp: true, minWidth: 150, maxWidth: 150)]
+        public bool ChangeValueId = true;
     }
 }

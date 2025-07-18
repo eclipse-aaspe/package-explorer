@@ -1553,7 +1553,7 @@ namespace AasxPackageLogic
             if (cmd == "newsubmodelfromplugin")
             {
                 // create a list of plugins, which are capable of generating Submodels
-                var listOfSm = new List<AnyUiDialogueListItem>();
+                var listOfSm = new AnyUiDialogueListItemList();
                 var list = GetPotentialGeneratedSubmodels();
                 if (list != null)
                     foreach (var rec in list)
@@ -1600,7 +1600,7 @@ namespace AasxPackageLogic
             if (cmd == "newsubmodelfromknown")
             {
                 // create a list of Submodels form the known pool
-                var listOfSm = new List<AnyUiDialogueListItem>();
+                var listOfSm = new AnyUiDialogueListItemList();
                 foreach (var dom in AasxPredefinedConcepts.DefinitionsPool.Static.GetDomains())
                     listOfSm.Add(new AnyUiDialogueListItem("" + dom, dom));
 
@@ -1723,7 +1723,7 @@ namespace AasxPackageLogic
                     }
 
                     // convert these to list items
-                    var fol = new List<AnyUiDialogueListItem>();
+                    var fol = new AnyUiDialogueListItemList();
                     foreach (var o in offers)
                         fol.Add(new AnyUiDialogueListItem(o.OfferDisplay, o));
 

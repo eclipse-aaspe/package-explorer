@@ -376,9 +376,12 @@ namespace AdminShellNS
                     handler.Proxy = proxy;
                 else
                     handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
-                var hc = new HttpClient(handler);
+
+                // var hc = new HttpClient(handler);
+                var hc = new HttpClient();
 
                 var response = hc.GetAsync(uriString).GetAwaiter().GetResult();
+                var x = response.Content.ToString();    
 
                 // if you call response.EnsureSuccessStatusCode here it will throw an exception
                 if (response.StatusCode == HttpStatusCode.Moved
