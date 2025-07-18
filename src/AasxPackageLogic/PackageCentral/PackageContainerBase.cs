@@ -94,6 +94,14 @@ namespace AasxPackageLogic.PackageCentral
         /// functions of the registry/ repository calls.
         /// </summary>
         public HttpHeaderData HttpHeaderData = null;
+
+        /// <summary>
+        /// If set allows to generate security access information, such as HTTP headers, based
+        /// on context information such as baseAdress of Registries or Repositories. 
+        /// These procedures need to be maintained by main user application in order to include
+        /// specific configuration or user UI invocation.
+        /// </summary>
+        public ISecurityAccessHandler SecurityAccessHandler = null;
     }
 
     /// <summary>

@@ -1590,6 +1590,19 @@ namespace AasxPackageLogic
                 if (additionalHeaderData != null)
                     runtimeOptions.HttpHeaderData = HttpHeaderData.Merge(runtimeOptions.HttpHeaderData, additionalHeaderData);
 
+                // modify header by security access information?
+                if (runtimeOptions?.SecurityAccessHandler != null
+                    && fetchContext.Record?.AutoAuthenticate == true)
+                {
+                    var extraHeader = await runtimeOptions.SecurityAccessHandler.DetermineAuthenticateHeader(
+                            fetchContext.Record.BaseAddress,
+                            SecurityAuthenticateHeaderType.CertificateStore);
+                    if (extraHeader != null)
+                    {
+                        fetchContext.Record.HeaderData.AddForUnique(extraHeader);
+                    }
+                }
+
                 var container = await PackageContainerFactory.GuessAndCreateForAsync(
                     packages,
                     location.Location.ToString(),
