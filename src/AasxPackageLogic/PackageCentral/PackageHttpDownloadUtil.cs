@@ -185,7 +185,7 @@ namespace AasxPackageLogic.PackageCentral
                 if (runtimeOptions?.HttpHeaderData?.Headers != null)
                     foreach (var header in runtimeOptions.HttpHeaderData?.Headers)
                     {
-                        requestMessage.Headers.Add(header.Item1, header.Item2);
+                        requestMessage.Headers.Add(header.Key, header.Value);
                     }
 
                 response = await client.SendAsync(requestMessage,

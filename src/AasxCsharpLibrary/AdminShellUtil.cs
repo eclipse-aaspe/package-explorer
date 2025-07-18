@@ -13,6 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.IO.Packaging;
@@ -1270,6 +1271,25 @@ namespace AdminShellNS
                     lbool.Add(!isFalse);
                     break;
             }
+        }
+
+        /// see: https://stackoverflow.com/questions/9956648/how-do-i-check-if-a-property-exists-on-a-dynamic-anonymous-type-in-c
+        /// see: https://stackoverflow.com/questions/63972270/newtonsoft-json-check-if-property-and-its-value-exists
+        public static bool DynamicHasProperty(dynamic obj, string name)
+        {
+            Type objType = obj.GetType();
+
+            if (obj is Newtonsoft.Json.Linq.JObject jo)
+            {
+                return jo.ContainsKey(name);
+            }
+
+            if (objType == typeof(ExpandoObject))
+            {
+                return ((IDictionary<string, object>)obj).ContainsKey(name);
+            }
+
+            return objType.GetProperty(name) != null;
         }
 
         public static string ToStringInvariant(object o)

@@ -136,7 +136,7 @@ namespace AasxPackageLogic.PackageCentral
                         runtimeOptions: null,
                         doNotLogExceptions: true);
 
-                if (resObj == null || !PackageContainerHttpRepoSubset.HasProperty(resObj, "profiles"))
+                if (resObj == null || !AdminShellUtil.DynamicHasProperty(resObj, "profiles"))
                     return false;
 
                 // carefully access

@@ -103,6 +103,11 @@ namespace AasxPackageExplorer
 
         public AasxMenuWpf DynamicMenu = new AasxMenuWpf();
 
+        /// <summary>
+        /// Allows creating tokens.. based on user configured information or UI.
+        /// </summary>
+        public WinGdiSecurityAccessHandler _securityAccessHandler = new WinGdiSecurityAccessHandler();
+
         #endregion
         #region Init Component
         //====================
@@ -376,7 +381,8 @@ namespace AasxPackageExplorer
                         return ucic.MessageBoxShow(content, text, title, buttons);
                 },
                 AllowFakeResponses = Options.Curr.AllowFakeResponses,
-                ExtendedConnectionDebug = Options.Curr.ExtendedConnectionDebug
+                ExtendedConnectionDebug = Options.Curr.ExtendedConnectionDebug,
+                SecurityAccessHandler = _securityAccessHandler
             };
             return ro;
         }

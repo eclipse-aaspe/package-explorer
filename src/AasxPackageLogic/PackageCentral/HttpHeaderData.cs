@@ -17,18 +17,45 @@ using Newtonsoft.Json.Linq;
 
 namespace AasxPackageLogic.PackageCentral
 {
+    public class HttpHeaderDataItem
+    {
+        public string Key;
+        public string Value;
+
+        public HttpHeaderDataItem() { }
+        public HttpHeaderDataItem(string key, string value) {
+            Key = key;
+            Value = value;
+        }
+    }
+
     public class HttpHeaderData
     {
-        public List<Tuple<string, string>> Headers = new();
+        public List<HttpHeaderDataItem> Headers = new();
 
         public HttpHeaderData() { }
         public HttpHeaderData(string jsonOrMime) {
             Parse(jsonOrMime);
         }
 
+        public void AddForUnique(HttpHeaderDataItem item)
+        {
+            // do not duplicate!
+            foreach (var y in this.Headers)
+                if (item.Key == y.Key)
+                {
+                    // update
+                    y.Value = item.Value;
+                    return;
+                }
+
+            // no, add
+            Headers.Add(item);
+        }
+
         public void Add(string key, string value)
         {
-            Headers.Add(new Tuple<string, string>(key, value));
+            this.AddForUnique(new HttpHeaderDataItem(key, value));
         }
 
         /// <summary>
@@ -63,7 +90,7 @@ namespace AasxPackageLogic.PackageCentral
                 {
                     string key = ch.Name;
                     string val = ch.Value?.ToString();
-                    Headers.Add(new Tuple<string, string>(key, val));
+                    Headers.Add(new HttpHeaderDataItem(key, val));
                 }
                 return true;
             }
@@ -87,17 +114,9 @@ namespace AasxPackageLogic.PackageCentral
             // non trivial
             var res = primary;
             foreach (var x in subsidary.Headers)
-            {
-                // do not duplicate!
-                bool found = false;
-                foreach (var y in res.Headers)
-                    if (x.Item1 == y.Item1)
-                        found = true;
-                if (found)
-                    continue;
-
+            {              
                 // add
-                res.Headers.Add(x);
+                res.AddForUnique(x);
             }
 
             // return new
