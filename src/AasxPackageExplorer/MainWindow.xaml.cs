@@ -1428,7 +1428,7 @@ namespace AasxPackageExplorer
                 ;
             }
 
-            // AasxIntegrationBaseWpf.CountryFlagWpf.LoadImage();
+            AasxIntegrationBaseWpf.CountryFlagWpf.LoadImage();
         }
 
         private void ToolFindReplace_ResultSelected(AasxSearchUtil.SearchResultItem resultItem)
