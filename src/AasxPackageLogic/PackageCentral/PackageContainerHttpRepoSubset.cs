@@ -250,6 +250,15 @@ namespace AasxPackageLogic.PackageCentral
             return m.Success;
         }
 
+        public static int? CheckUriForValidPageLimit(string location)
+        {
+            var m = Regex.Match(location, @"\?(.*)Limit=(\d{1,9})",
+                RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+            if (m.Success && int.TryParse(m.Groups[2].ToString(), out var i))
+                return i;
+            return null;
+        }
+
         //
         // REGISTRY OF REGISTRIES
         //
@@ -1541,6 +1550,9 @@ namespace AasxPackageLogic.PackageCentral
                     runtimeOptions?.Log?.Info("No AAS found for GetAllAssetAdministrationShells.. operation. " +
                         "Try using Registry call..");
 
+                    // may be able to limit the number of results
+                    var limitResults = CheckUriForValidPageLimit(fullItemLocation);
+
                     // prepare receiving the descriptors/ ids
                     var resObj = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
                         new Uri(filNew), runtimeOptions, allowFakeResponses);
@@ -1558,6 +1570,7 @@ namespace AasxPackageLogic.PackageCentral
                         // Note: Parallel makes no sense, ideally only 1 result (is per AssetId)!!
                         // TODO: not parallel!
                         var noRes = true;
+                        int i = 0;
                         foreach (var res in resObj)
                         {
                             noRes = false;
@@ -1588,6 +1601,12 @@ namespace AasxPackageLogic.PackageCentral
                                     trackNewIdentifiables?.Add(aas);
                                 }
                             }
+
+                            // can limit?
+                            i++;
+                            if (limitResults.HasValue)
+                                if (i >= limitResults.Value)
+                                    break;
                         }
 
                     }
@@ -2279,8 +2298,8 @@ namespace AasxPackageLogic.PackageCentral
             public bool AutoLoadThumbnails = true;
             
             [AasxMenuArgument(help: "When a Submodel/ ConceptDescription is auto-loaded, either load the element " +
-                "directly (true) or just create a side-information for later fetch.")]
-            public bool AutoLoadOnDemand = true;
+                "directly (false) or just create a side-information for later fetch (true).")]
+            public bool AutoLoadOnDemand = false;
 
             [AasxMenuArgument(help: "Encrypt given Ids.")]
             public bool EncryptIds = true;
@@ -2696,7 +2715,9 @@ namespace AasxPackageLogic.PackageCentral
                                 helper.Set(
                                     helper.AddSmallComboBoxTo(g2, 0, 1,
                                         isEditable: true,
-                                        items: Options.Curr.BaseAddresses?.ToArray(),
+                                        // items: Options.Curr.BaseAddresses?.ToArray(),
+                                        items: Options.Curr.BaseAddresses?
+                                               .Concat(Options.Curr.KnownEndpoints?.Select((o) => o.BaseAddress)).ToArray(),
                                         text: "" + record.BaseAddress,
                                         margin: new AnyUiThickness(0, 0, 0, 0),
                                         padding: new AnyUiThickness(0, 0, 0, 0),
@@ -2988,7 +3009,7 @@ namespace AasxPackageLogic.PackageCentral
                         AnyUiUIElement.SetBoolFromControl(
                                 helper.Set(
                                     helper.AddSmallCheckBoxTo(g, row, 1,
-                                        content: "Mark auto-loaded elements for on-demand loading",
+                                        content: "Auto-loaded elements for later on-demand loading",
                                         isChecked: record.AutoLoadOnDemand,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Center)),
                                 (b) => { record.AutoLoadOnDemand = b; });
@@ -3335,7 +3356,8 @@ namespace AasxPackageLogic.PackageCentral
                             helper.Set(
                                 helper.AddSmallComboBoxTo(g2, 0, 1,
                                     isEditable: true,
-                                    items: Options.Curr.BaseAddresses?.ToArray(),
+                                    items: Options.Curr.BaseAddresses?
+                                           .Concat(Options.Curr.KnownEndpoints?.Select((o) => o.BaseAddress)).ToArray(),
                                     text: "" + recordJob.BaseAddress,
                                     margin: new AnyUiThickness(0, 0, 0, 0),
                                     padding: new AnyUiThickness(0, 0, 0, 0),
@@ -4076,7 +4098,8 @@ namespace AasxPackageLogic.PackageCentral
                             helper.Set(
                                 helper.AddSmallComboBoxTo(g2, 0, 1,
                                     isEditable: true,
-                                    items: Options.Curr.BaseAddresses?.ToArray(),
+                                    items: Options.Curr.BaseAddresses?
+                                           .Concat(Options.Curr.KnownEndpoints?.Select((o) => o.BaseAddress)).ToArray(),
                                     text: "" + recordJob.BaseAddress,
                                     margin: new AnyUiThickness(0, 0, 0, 0),
                                     padding: new AnyUiThickness(0, 0, 0, 0),

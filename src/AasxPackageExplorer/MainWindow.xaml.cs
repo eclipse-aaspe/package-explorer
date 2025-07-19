@@ -1290,6 +1290,10 @@ namespace AasxPackageExplorer
                 };
             }
 
+            // re-load known endpoints
+            _securityAccessHandler.ReLoad(
+                knownEndpoints: Options.Curr.KnownEndpoints);
+
             // nearly last task here ..
             Log.Singleton.Info("Application started ..");
 

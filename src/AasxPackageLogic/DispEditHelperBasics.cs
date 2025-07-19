@@ -247,6 +247,22 @@ namespace AasxPackageLogic
         // Helpers for GUI building blocks
         //
 
+        public void AddInfoText(
+            AnyUiStackPanel view, string text)
+        {
+            // Grid
+            var g = AddSmallGrid(1, 1, new[] { "*" });
+
+            // Label for key
+            var klb = AddSmallLabelTo(g, 0, 0, 
+                padding: new AnyUiThickness(5, 0, 0, 0), 
+                content: "" + text,
+                wrapping: AnyUiTextWrapping.WrapWithOverflow);
+
+            // in total
+            view.Children.Add(g);
+        }
+
 #if ONLY_INFO
                 // This was used in former times and now replaced by using a set lambda in all times
 

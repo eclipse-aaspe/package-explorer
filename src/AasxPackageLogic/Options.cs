@@ -7,6 +7,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using AnyUi;
 using Extensions;
@@ -466,6 +467,11 @@ namespace AasxPackageLogic
             "Presets for base addresses for Registries and Repositories.",
             Cmd = "-base-addresses")]
         public List<string> BaseAddresses = new List<string>();
+
+        [OptionDescription(Description =
+            "Presets for base addresses for Registries and Repositories.",
+            Cmd = "-known-endpoints")]
+        public List<KnownEndpointDescription> KnownEndpoints = new List<KnownEndpointDescription>();
 
         [OptionDescription(Description =
             "Central store to hold supplementary files for File elements.",

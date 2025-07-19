@@ -628,6 +628,7 @@ namespace AasxPackageLogic
                     if (uc.Text.HasContent())
                     {
                         Options.Curr.BaseAddresses.Add(uc.Text);
+                        Options.Curr.KnownEndpoints.Add(new KnownEndpointDescription() { BaseAddress = uc.Text });
                         Log.Singleton.Info("Base address temporarily added to presets: {0}",
                             uc.Text);
                     }

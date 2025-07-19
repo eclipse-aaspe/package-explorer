@@ -44,9 +44,42 @@ namespace AasxPackageExplorer
 {
     public class WinGdiSecurityAccessHandler : ISecurityAccessHandler
     {
+        protected class MaintainedEndpoint
+        {
+            /// <summary>
+            /// Copy of the Options information
+            /// </summary>
+            public KnownEndpointDescription Endpoint;
+
+            /// <summary>
+            /// Last time it was renewed, e.g. for hourly access token. 
+            /// <c>null</c> means it has never been established.
+            /// </summary>
+            public DateTime? LastRenewed = null;
+
+            /// <summary>
+            /// If not null, lastly generated HTTP header item (e.g. with a token)
+            /// </summary>
+            public HttpHeaderDataItem LastHeaderItem = null;
+        }
+
+        /// <summary>
+        /// Holds the actual maintained data
+        /// </summary>
+        protected List<MaintainedEndpoint> _endpoints = new List<MaintainedEndpoint>();
+
+        /// <summary>
+        /// Re-initializes the internal data structures with <c>Options</c> information.
+        /// </summary>
+        /// <param name="knownEndpoints"></param>
+        public void ReLoad(IEnumerable<KnownEndpointDescription> knownEndpoints)
+        {
+            _endpoints = knownEndpoints.Select((o) => new MaintainedEndpoint { Endpoint = o }).ToList();
+        }
+
         public async Task<HttpHeaderDataItem> DetermineAuthenticateHeader(
             string baseAddress, 
-            SecurityAuthenticateHeaderType? preferredInvocationtype)
+            SecurityAccessMethod? preferredInvocationtype)
         {
             // access
             if (!preferredInvocationtype.HasValue)
@@ -72,7 +105,18 @@ namespace AasxPackageExplorer
 
             switch (preferredInvocationtype.Value)
             {
-                case SecurityAuthenticateHeaderType.CertificateStore:
+                case SecurityAccessMethod.Basic:
+                    // TODO: get the infos
+                    var userName = "Bernd";
+                    var PW = "Brot";
+
+                    // bring together
+                    var pseudoToken = AdminShellUtil.Base64UrlEncode($"{userName}:{PW}");
+
+                    // build correct header key
+                    return new HttpHeaderDataItem("Authentification", $"Basic {pseudoToken.ToString()}");
+
+                case SecurityAccessMethod.CertificateStore:
 
                     // load root certs from auth-server
                     List<string> rootCertSubjects = new List<string>();
@@ -141,7 +185,7 @@ namespace AasxPackageExplorer
                     }
                     break;
 
-                case SecurityAuthenticateHeaderType.File:
+                case SecurityAccessMethod.File:
                     // TODO: make certificate path configurable
                     certificate = new X509Certificate2("../../../Andreas_Orzelski_Chain.pfx", "i40");
 
@@ -151,7 +195,7 @@ namespace AasxPackageExplorer
                     x5c = chain.Cast<X509Certificate2>().Reverse().Select(c => Convert.ToBase64String(c.RawData)).ToArray();
                     break;
 
-                case SecurityAuthenticateHeaderType.InteractiveEntry:
+                case SecurityAccessMethod.InteractiveEntry:
 
                     // test tenant for ENTRA id
                     // TODO: configure clientId

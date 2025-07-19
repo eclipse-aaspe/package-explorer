@@ -1596,7 +1596,7 @@ namespace AasxPackageLogic
                 {
                     var extraHeader = await runtimeOptions.SecurityAccessHandler.DetermineAuthenticateHeader(
                             fetchContext.Record.BaseAddress,
-                            SecurityAuthenticateHeaderType.CertificateStore);
+                            SecurityAccessMethod.Basic);
                     if (extraHeader != null)
                     {
                         fetchContext.Record.HeaderData.AddForUnique(extraHeader);
@@ -2253,12 +2253,13 @@ namespace AasxPackageLogic
         //
 
         public void DisplayOrEditAasEntitySubmodelOrRef(
-            PackageCentral.PackageCentral packages, Aas.IEnvironment env,
+            PackageCentral.PackageCentral packages,
+            AdminShellPackageEnvBase packEnv,
+            Aas.IEnvironment env,
             Aas.IAssetAdministrationShell aas,
             Aas.IReference smref, 
             Action setSmRefNull,
             Aas.ISubmodel submodel,
-            // AasIdentifiableSideInfo sideInfo,
             bool editMode,
             AnyUiStackPanel stack, bool hintMode = false, bool checkSmt = false,
 			AasxMenu superMenu = null)
@@ -3027,6 +3028,13 @@ namespace AasxPackageLogic
                         .FindSideInfoInListOfIdentifiables(
                             env.Submodels, submodel.GetReference());
                 DisplayOrEditEntitySideInfo(env, stack, submodel, sideInfo, "Submodel", superMenu);
+            }
+            else
+            {
+                if (packEnv is AdminShellPackageDynamicFetchEnv dynPack)
+                {
+                    DisplayOrEditEntityMissingSideInfo(stack, "Submodel");
+                }
             }
 
             // Submodel attributes
@@ -5820,7 +5828,7 @@ namespace AasxPackageLogic
 
                 // edit
                 DisplayOrEditAasEntitySubmodelOrRef(
-                    packages, vesmref.theEnv, aas, 
+                    packages, vesmref.thePackage, vesmref.theEnv, aas, 
                     vesmref.theSubmodelRef, 
                     () =>
                     {
@@ -5834,7 +5842,7 @@ namespace AasxPackageLogic
             else if (entity is VisualElementSubmodel vesm && vesm.theSubmodel != null)
             {
                 DisplayOrEditAasEntitySubmodelOrRef(
-                    packages, vesm.theEnv, 
+                    packages, vesm.thePackage, vesm.theEnv, 
                     aas: null, smref: null, setSmRefNull: null, 
                     submodel: vesm.theSubmodel, 
                     editMode: editMode, stack: stack,
