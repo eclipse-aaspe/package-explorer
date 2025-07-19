@@ -353,7 +353,7 @@ namespace AasxPackageLogic
             if (stack == null || si == null)
                 return;
 
-            this.AddGroup(stack, $"{key} is provided by Endpoint of dynamic fetch environment",
+            this.AddGroup(stack, $"{key} is provided by an Endpoint of dynamic fetch environment",
                     this.levelColors.SubSection);
 
             AddKeyValue(stack, "StubLevel", "" + si.StubLevel.ToString(), repo: null);
@@ -395,6 +395,20 @@ namespace AasxPackageLogic
                     return new AnyUiLambdaActionNone();
                 },
                 auxButtonOverride: true);
+        }
+        public void DisplayOrEditEntityMissingSideInfo(
+            AnyUiStackPanel stack, 
+            string key)
+        {
+            // access
+            if (key == null)
+                return;
+
+            this.AddGroup(stack, $"{key} could be provided by an Endpoint of a dynamic fetch environment",
+                    this.levelColors.SubSection);
+
+            AddInfoText(stack, $"However, the {key} data is not present! Reasons could be a wrong or missing"
+                + $" Reference or a missing access information.");
         }
 
         //

@@ -136,8 +136,17 @@
         "https://techday2-registry.admin-shell-io.com/",
         "http://localhost:5001/",
         "http://localhost:5001/api/v3.0/",
-        "http://localhost{{\"*\" : \":8081\", \"AAS-REG\" : \":8082\", \"SM-REG\" : \":8083\", \"DIS\" : \":8084\"}}/",
-        "https://big.aas-voyager.com/"
+        "http://localhost{{\"*\" : \":8081\", \"AAS-REG\" : \":8082\", \"SM-REG\" : \":8083\", \"DIS\" : \":8084\"}}/"
+    ],
+    "KnownEndpoints": [
+        {
+            "BaseAddress": "https://big.aas-voyager.com/",
+            "AccessInfo": {
+                "Method": "Basic",
+                "Username": "Bernd",
+                "Password":  "Brot"
+            }
+        }
     ],
     "CentralStores": [
         "file://C:\\AasxStore", /* mount point for file shares, WebDAV etc */

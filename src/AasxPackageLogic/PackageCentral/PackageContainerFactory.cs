@@ -219,10 +219,16 @@ namespace AasxPackageLogic.PackageCentral
                 var extCntOpt = new PackageContainerHttpRepoSubsetOptions(containerOptions, 
                     new ConnectExtendedRecord());
 
-                // in this situation (guess and load a "complete" ressource), make sure,
+                // if the container options had no record, for this situation
+                // (guess and load a "complete" ressource), make sure,
                 // that Submodels are loaded with it ..
-                extCntOpt.Record.AutoLoadSubmodels = true;
-                extCntOpt.Record.AutoLoadOnDemand = false;
+                if (containerOptions == null
+                    || containerOptions is not PackageContainerHttpRepoSubsetOptions pchrso
+                    || pchrso.Record == null)
+                {
+                    extCntOpt.Record.AutoLoadSubmodels = true;
+                    extCntOpt.Record.AutoLoadOnDemand = false;
+                }
 
                 // prepare runtime options
                 var cnt = await PackageContainerHttpRepoSubset.CreateAndLoadAsync(

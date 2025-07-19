@@ -18,7 +18,68 @@ namespace AasxPackageLogic.PackageCentral
     /// This enum distincts between different methods an security authentification could be 
     /// determined.
     /// </summary>
-    public enum SecurityAuthenticateHeaderType { CertificateStore, File, InteractiveEntry }
+    public enum SecurityAccessMethod { 
+        /// <summary>
+        /// Without authorization/ athentification
+        /// </summary>
+        None, 
+        /// <summary>
+        /// Ask before every attempt to connect for a certain grant time
+        /// </summary>
+        Ask, 
+        /// <summary>
+        /// Basic = username / password
+        /// </summary>
+        Basic, 
+        /// <summary>
+        /// Having a certificate in e.g. the Windows cert store
+        /// </summary>
+        CertificateStore, 
+        /// <summary>
+        /// External file, e.g. PKI file
+        /// </summary>
+        File, 
+        /// <summary>
+        /// Interactive entry, e.g. ENTRA id
+        /// </summary>
+        InteractiveEntry 
+    }
+
+    /// <summary>
+    /// This class comprises the data the user has to provide/ choose in order to authenticate or
+    /// authorize himself against a AAS server, Repository or Registry.
+    /// </summary>
+    public class SecurityAccessUserInfo
+    {
+        /// <summary>
+        /// Preferred method to authenticate or authorize
+        /// </summary>
+        public SecurityAccessMethod Method;
+
+        /// <summary>
+        /// If empty, the user will be prompted.
+        /// </summary>
+        public string Username = "";
+
+        /// <summary>
+        /// If empty, the user will be prompted.
+        /// </summary>
+        public string Password = "";
+    }
+
+    public class KnownEndpointDescription
+    {
+        /// <summary>
+        /// The part of the URI, e.g. HTTP address, which is variable before the API spec
+        /// will add.
+        /// </summary>
+        public string BaseAddress;
+
+        /// <summary>
+        /// Infos how to access the endpoint security-wise
+        /// </summary>
+        public SecurityAccessUserInfo AccessInfo;
+    }
 
     /// <summary>
     /// This interface allows accessing a handler to get some access information (e.g. HTTP headers)
@@ -27,6 +88,6 @@ namespace AasxPackageLogic.PackageCentral
     public interface ISecurityAccessHandler
     {
         Task<HttpHeaderDataItem> DetermineAuthenticateHeader(
-            string baseAddress, SecurityAuthenticateHeaderType? preferredInvocationtype);
+            string baseAddress, SecurityAccessMethod? preferredInvocationtype);
     }
 }

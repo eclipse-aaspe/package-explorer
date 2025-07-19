@@ -2148,8 +2148,13 @@ namespace AasxPackageLogic
                         continue;
                     }
 
-                    // no, notify user
-                    Log.Singleton.Error("Cannot find some submodel!");
+                    // no, notify user?
+                    if (package is AdminShellPackageFileBasedEnv)
+                    {
+                        // for AASX files, it is expected that all SM references are valid!
+                        Log.Singleton.Error(
+                            $"When visiting AAS {aas?.Id}, some Submodel reference not found: {smr?.ToStringExtended(2)}!");
+                    }
 
                     // make reference with NO submodel behind
                     var tiNoSm = new VisualElementSubmodelRef(
