@@ -72,6 +72,16 @@ namespace AasxPackageLogic.PackageCentral
         public string AuthServer = "";
 
         /// <summary>
+        /// (Absolute) filename of a certificate file to use.
+        /// </summary>
+        public string CertFile = "";
+
+        /// <summary>
+        /// Password to open the provided certificate file.
+        /// </summary>
+        public string CertPassword = "";
+
+        /// <summary>
         /// Renew the security credential after a certain period in time in minutes.
         /// Note: Default is rather short because of secure by design
         /// </summary>
@@ -99,5 +109,6 @@ namespace AasxPackageLogic.PackageCentral
     public interface ISecurityAccessHandler
     {
         Task<HttpHeaderDataItem> DetermineAuthenticateHeader(string baseAddress);
+        void ClearAllCredentials();
     }
 }

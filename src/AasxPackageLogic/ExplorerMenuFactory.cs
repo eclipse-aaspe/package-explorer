@@ -119,6 +119,7 @@ namespace AasxPackageExplorer
                 .AddSeparator()
                 .AddMenu(header: "API for Registry and Repository …", childs: (new AasxMenu())
                     .AddWpf(name: "AddBaseAddress", header: "Add preset for base address …")
+                    .AddWpf(name: "ClearBaseCredentials", header: "Clear all stored credentials …")
                     .AddWpfBlazor(name: "ConnectExtended", header: "Connect (extended) …",
                         args: new AasxMenuListOfArgDefs()
                             .AddFromReflection(new PackageContainerHttpRepoSubset.ConnectExtendedRecord()))

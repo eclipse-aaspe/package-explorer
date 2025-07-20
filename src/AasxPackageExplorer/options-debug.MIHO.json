@@ -146,8 +146,10 @@
                 "Username": "Bernd",
                 "Password": "",
                 // "Password": "Brot",
-                // "AuthServer": ""
-                "AuthServer": "https://www.admin-shell-io.com/50001/.well-known/openid-configuration"
+                // "AuthServer": "",
+                "AuthServer": "https://www.admin-shell-io.com/50001/.well-known/openid-configuration",
+                "CertFile": "",
+                "CertPassword":  ""
             }
         }
     ],

@@ -20,6 +20,7 @@ using Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Packaging;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography.Pkcs;
@@ -636,6 +637,27 @@ namespace AasxPackageLogic
                 catch (Exception ex)
                 {
                     LogErrorToTicket(ticket, ex, "when performing api upload assistant");
+                }
+            }
+
+            if (cmd == "clearbasecredentials")
+            {
+                // start
+                ticket.StartExec();
+
+                //do
+                try
+                {
+                    if (PackageCentral?.CentralRuntimeOptions?.SecurityAccessHandler == null)
+                        Log.Singleton.Error("For clearing base credentials, the central security access handler " +
+                            "is not available. Aborting!");
+
+                    PackageCentral.CentralRuntimeOptions.SecurityAccessHandler.ClearAllCredentials();
+                    Log.Singleton.Info("Cleared all credentials for base addresses.");
+                }
+                catch (Exception ex)
+                {
+                    LogErrorToTicket(ticket, ex, "when performing clearing base credentials");
                 }
             }
 
