@@ -1595,8 +1595,7 @@ namespace AasxPackageLogic
                     && fetchContext.Record?.AutoAuthenticate == true)
                 {
                     var extraHeader = await runtimeOptions.SecurityAccessHandler.DetermineAuthenticateHeader(
-                            fetchContext.Record.BaseAddress,
-                            SecurityAccessMethod.Basic);
+                            fetchContext.Record.BaseAddress);
                     if (extraHeader != null)
                     {
                         fetchContext.Record.HeaderData.AddForUnique(extraHeader);
