@@ -142,9 +142,12 @@
         {
             "BaseAddress": "https://big.aas-voyager.com/",
             "AccessInfo": {
-                "Method": "Basic",
+                "Method": "Ask",
                 "Username": "Bernd",
-                "Password":  "Brot"
+                "Password": "",
+                // "Password": "Brot",
+                // "AuthServer": ""
+                "AuthServer": "https://www.admin-shell-io.com/50001/.well-known/openid-configuration"
             }
         }
     ],

@@ -106,7 +106,7 @@ namespace AasxPackageExplorer
         /// <summary>
         /// Allows creating tokens.. based on user configured information or UI.
         /// </summary>
-        public WinGdiSecurityAccessHandler _securityAccessHandler = new WinGdiSecurityAccessHandler();
+        public WinGdiSecurityAccessHandler _securityAccessHandler = null;
 
         #endregion
         #region Init Component
@@ -935,6 +935,10 @@ namespace AasxPackageExplorer
             Logic.DisplayContext = DisplayContext;
             Logic.MainWindow = this;
 
+            // re-load known endpoints
+            _securityAccessHandler = new WinGdiSecurityAccessHandler(DisplayContext,
+                knownEndpoints: Options.Curr.KnownEndpoints);
+
             // making up "empty" picture
             this.AasId.Text = "<id unknown!>";
             this.AssetId.Text = "<id unknown!>";
@@ -1289,10 +1293,6 @@ namespace AasxPackageExplorer
                     ButtonHistoryBack.IsEnabled = active;
                 };
             }
-
-            // re-load known endpoints
-            _securityAccessHandler.ReLoad(
-                knownEndpoints: Options.Curr.KnownEndpoints);
 
             // nearly last task here ..
             Log.Singleton.Info("Application started ..");

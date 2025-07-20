@@ -38,6 +38,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 using Aas = AasCore.Aas3_0;
 
 namespace AasxPackageExplorer
@@ -68,22 +71,322 @@ namespace AasxPackageExplorer
         /// </summary>
         protected List<MaintainedEndpoint> _endpoints = new List<MaintainedEndpoint>();
 
-        /// <summary>
-        /// Re-initializes the internal data structures with <c>Options</c> information.
-        /// </summary>
-        /// <param name="knownEndpoints"></param>
-        public void ReLoad(IEnumerable<KnownEndpointDescription> knownEndpoints)
-        {
+        // enforce provision of display context and endpoints
+        protected AnyUiContextBase _displayContext = null;
+        
+        public WinGdiSecurityAccessHandler(AnyUiContextBase dc,
+            IEnumerable<KnownEndpointDescription> knownEndpoints) { 
+            _displayContext = dc;
             _endpoints = knownEndpoints.Select((o) => new MaintainedEndpoint { Endpoint = o }).ToList();
         }
 
-        public async Task<HttpHeaderDataItem> DetermineAuthenticateHeader(
-            string baseAddress, 
-            SecurityAccessMethod? preferredInvocationtype)
+        /// <summary>
+        /// This will be called by the application in order to get an HTTP header data item helping
+        /// to access restricted information from an AAS server.
+        /// </summary>
+        public async Task<HttpHeaderDataItem> DetermineAuthenticateHeader(string baseAddress)
         {
+            // can find a match in baseAddress?
+            var me = _endpoints?.Find((p) => 
+                        true == p?.Endpoint?.BaseAddress?.Trim().Equals(baseAddress?.Trim(), StringComparison.InvariantCultureIgnoreCase));
+
+            // no match?
+            if (me == null)
+            {
+                // make a new entry
+                me = new MaintainedEndpoint()
+                {
+                    Endpoint = new KnownEndpointDescription()
+                    {
+                        BaseAddress = baseAddress,
+                        AccessInfo = new SecurityAccessUserInfo() { Method = SecurityAccessMethod.Ask },
+                    }
+                };
+                _endpoints.Add(me);
+            }
+
+            // can re-use existing data?
+            if (me.LastRenewed != null
+                && me.Endpoint?.AccessInfo != null
+                && (DateTime.UtcNow - me.LastRenewed.Value).TotalMinutes < me.Endpoint.AccessInfo.RenewPeriodMins
+                && me.LastHeaderItem != null)
+            {
+                Log.Singleton.Info("Secure access credential for {0} are still valid from: {1}. Will be re-used!",
+                    baseAddress, me.LastRenewed.ToString());
+                return me.LastHeaderItem;
+            }
+
+            // may ask for a method
+            var methodToUse = SecurityAccessMethod.Ask;
+            if (me?.Endpoint?.AccessInfo != null)
+                methodToUse = me.Endpoint.AccessInfo.Method;
+
+            // if still ask?
+            if (methodToUse == SecurityAccessMethod.Ask)
+            {
+                var res = await AskForAccessMethod(baseAddress);
+                if (res != null)
+                    methodToUse = res.Value;
+                else
+                {
+                    Log.Singleton.Error("For accessing {0}, no authentification method could be provided. Aborting!", baseAddress);
+                    return null;
+                }
+            }
+
+            // pass on (with E-Stop)
+            return await DetermineAuthenticateHeaderForEndpoint(baseAddress, me, methodToUse);
+        }
+
+        protected async Task<SecurityAccessMethod?> AskForAccessMethod(string baseAddress)
+        {
+            // define dialogue and map presets into dialogue items
+            var uc = new AnyUiDialogueDataSelectFromList(
+                            "Select which access method shall be used ..");
+            uc.ListOfItems = new AnyUiDialogueListItemList(new[] {
+                                new AnyUiDialogueListItem("No security", SecurityAccessMethod.None),
+                                new AnyUiDialogueListItem("Basic (Username, PW)", SecurityAccessMethod.Basic),
+                                new AnyUiDialogueListItem("Certificate Store", SecurityAccessMethod.CertificateStore),
+                                new AnyUiDialogueListItem("Certificate File", SecurityAccessMethod.File),
+                                new AnyUiDialogueListItem("Interactive by browser", SecurityAccessMethod.InteractiveEntry)
+                            });
+
+            // perform dialogue
+            if (_displayContext != null 
+                && await _displayContext.StartFlyoverModalAsync(uc)
+                && uc.Result && uc.ResultItem?.Tag is SecurityAccessMethod sam) 
+                return sam;
+            return null;
+        }
+
+        protected async Task<Tuple<string, string>> AskForUsernamePassword(string baseAddress, string username, string password)
+        {
+            var ucJob = new AnyUiDialogueDataModalPanel("Complete Basic authentification data ..");
+            ucJob.ActivateRenderPanel(null,
+                disableScrollArea: false,
+                dialogButtons: AnyUiMessageBoxButton.OK,
+                renderPanel: (uci) =>
+                {
+                    // create panel
+                    var panel = new AnyUiStackPanel();
+                    var helper = new AnyUiSmallWidgetToolkit();
+
+                    var g = helper.AddSmallGrid(25, 2, new[] { "200:", "*" },
+                                padding: new AnyUiThickness(0, 5, 0, 5),
+                                margin: new AnyUiThickness(10, 0, 30, 0));
+
+                    panel.Add(g);
+
+                    // dynamic rows
+                    int row = 0;
+
+                    // Info
+                    helper.Set(
+                        helper.AddSmallLabelTo(g, row, 0, content: $"Intended base address: {baseAddress}"),
+                        colSpan: 2);
+                    row++;
+
+                    // separation
+                    helper.AddSmallBorderTo(g, row, 0,
+                        borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
+                        colSpan: 2,
+                        margin: new AnyUiThickness(0, 0, 0, 20));
+                    row++;
+
+                    // Username
+
+                    helper.AddSmallLabelTo(g, row, 0, content: "Username:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g, row, 1,
+                                    text: $"{username}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                            (s) => { username = s; });
+
+                    row++;
+
+                    // Password
+
+                    helper.AddSmallLabelTo(g, row, 0, content: "Password:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g, row, 1,
+                                    text: $"{password}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                            (s) => { password = s; });
+
+                    row++;
+
+                    // give back
+                    return g;
+                });
+
+            if (_displayContext != null && await _displayContext.StartFlyoverModalAsync(ucJob))
+                return new Tuple<string, string>(username, password);
+            return null;
+        }
+
+        protected async Task<string> AskForAuthServerUri(string baseAddress, string authServerUri)
+        {
+            var ucJob = new AnyUiDialogueDataModalPanel("Specify authentification server endpoint ..");
+            ucJob.ActivateRenderPanel(null,
+                disableScrollArea: false,
+                dialogButtons: AnyUiMessageBoxButton.OK,
+                renderPanel: (uci) =>
+                {
+                    // create panel
+                    var panel = new AnyUiStackPanel();
+                    var helper = new AnyUiSmallWidgetToolkit();
+
+                    var g = helper.AddSmallGrid(25, 2, new[] { "200:", "*" },
+                                padding: new AnyUiThickness(0, 5, 0, 5),
+                                margin: new AnyUiThickness(10, 0, 30, 0));
+
+                    panel.Add(g);
+
+                    // dynamic rows
+                    int row = 0;
+
+                    // Info
+                    helper.Set(
+                        helper.AddSmallLabelTo(g, row, 0, content:
+                            "For use of advanced authentification methods, the endpoint address of an authentification " +
+                            "server is required! This serves the role of an identification provider and is usually provided " +
+                            "by the data space.",
+                            wrapping: AnyUiTextWrapping.Wrap),
+                        colSpan: 2);
+                    row++;
+
+                    // separation
+                    helper.AddSmallBorderTo(g, row, 0,
+                        borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
+                        colSpan: 2,
+                        margin: new AnyUiThickness(0, 0, 0, 20));
+                    row++;
+
+                    // URI
+
+                    helper.AddSmallLabelTo(g, row, 0, content: "Endpoint URI:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g, row, 1,
+                                    text: $"{authServerUri}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                            (s) => { authServerUri = s; });
+
+                    row++;
+
+                    // give back
+                    return g;
+                });
+
+            if (_displayContext != null && await _displayContext.StartFlyoverModalAsync(ucJob))
+                return authServerUri;
+            return null;
+        }
+
+        protected async Task<X509Certificate2Collection> AskForSelectFromCertCollection(
+            string baseAddress,
+            X509Certificate2Collection fcollection)
+        {
+            //
+            // The reasonable way: let Windows do its thing!
+            // Rationale: The correct way is that the user will provide the certificate.
+            // Consequently, the certificate shall be on the users' computer.
+            // Running on Blazor, the application would see the certificates of the server
+            // and NOT of the user. Therefore, this is a feasible scenario for some use-cases
+            // where the server acts as a gateway, but security-wise, this scenario is very
+            // questionable.
+            //
+
             // access
-            if (!preferredInvocationtype.HasValue)
+            await Task.Yield();
+            if (fcollection == null)
                 return null;
+
+            if (false)
+            {
+                X509Certificate2Collection scollection = X509Certificate2UI.SelectFromCollection(fcollection,
+                    "Certificate Select",
+                    "Select a certificate for authentification on AAS server",
+                    X509SelectionFlag.SingleSelection);
+
+                return scollection;
+            }
+            else
+            {
+                // define dialogue and map presets into dialogue items
+                var uc = new AnyUiDialogueDataSelectFromList(
+                            "Select a certificate for authentification on AAS server");
+                uc.ListOfItems = new AnyUiDialogueListItemList(fcollection.Select((o) => new AnyUiDialogueListItem(
+                    $"Issuer: {o.Issuer} Not before: {o.NotBefore.ToShortDateString()} Not after: {o.NotAfter.ToShortDateString()}",
+                    o)));
+
+                // perform dialogue
+                if (_displayContext != null
+                    && await _displayContext.StartFlyoverModalAsync(uc)
+                    && uc.Result && uc.ResultItem?.Tag is X509Certificate2 cert)
+                    return new X509Certificate2Collection(cert);
+                return null;
+            }
+        }
+
+        protected async Task<HttpHeaderDataItem> DetermineAuthenticateHeaderForEndpoint(
+            string baseAddress,
+            MaintainedEndpoint endpoint,
+            SecurityAccessMethod preferredMethod)
+        {
+            // need to have some data accessible!
+            if (endpoint?.Endpoint?.AccessInfo == null)
+                return null;
+
+            // some of the methods are handled without connecting to auth-server
+            switch (preferredMethod)
+            {
+                case SecurityAccessMethod.None:
+                    // null shall be perfectly valid
+                    return null;
+
+                case SecurityAccessMethod.Basic:
+                    // get the infos shorter
+                    var userName = endpoint.Endpoint.AccessInfo.Username;
+                    var PW = endpoint.Endpoint.AccessInfo.Password;
+
+                    // to be completed
+                    if (userName?.HasContent() != true
+                        || PW?.HasContent() != true)
+                    {
+                        var res = await AskForUsernamePassword(baseAddress, userName, PW);
+                        if (res != null)
+                        {
+                            userName = res.Item1;
+                            PW = res.Item2;
+                        }
+                    }
+
+                    // bring together
+                    var pseudoToken = AdminShellUtil.Base64UrlEncode($"{userName}:{PW}");
+
+                    // build correct header key, remember, return
+                    endpoint.LastRenewed = DateTime.UtcNow;
+                    endpoint.LastHeaderItem = new HttpHeaderDataItem("Authentification", $"Basic {pseudoToken.ToString()}");
+                    return endpoint.LastHeaderItem;
+            }
 
             // prepare some variables
             string email = "";
@@ -93,29 +396,46 @@ namespace AasxPackageExplorer
             string[] x5c = null;
 
             // connect to auth-server
-            // TODO: make auth server URI configurable
-            var handler = new HttpClientHandler { DefaultProxyCredentials = CredentialCache.DefaultCredentials };
-            var client = new HttpClient(handler);
+            // check if the auth-server could be asked for
+            // var authConfigUrl = "https://www.admin-shell-io.com/50001/.well-known/openid-configuration";
+            var authConfigUrl = "" + endpoint.Endpoint.AccessInfo.AuthServer;
+            if (authConfigUrl?.HasContent() != true)
+            {
+                var res = await AskForAuthServerUri(baseAddress, authConfigUrl);
+                if (res != null)
+                {
+                    authConfigUrl = res;
+                }
+            }
+            
+            // still not?
+            if (authConfigUrl?.HasContent() != true)
+            {
+                Log.Singleton.Info(StoredPrint.Color.Blue, 
+                    "For accessing {0}, no authentification server URI could be provided. Using no security!", baseAddress);
+                return null;
+            }
 
             // first request to auth-server: token endpoint
-            var configUrl = "https://www.admin-shell-io.com/50001/.well-known/openid-configuration";
-            var configJson = await client.GetStringAsync(configUrl);
+            var handler = new HttpClientHandler { DefaultProxyCredentials = CredentialCache.DefaultCredentials };
+            var client = new HttpClient(handler);
+            var configJson = "";
+            try
+            {
+                configJson = await client.GetStringAsync(authConfigUrl);
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(ex, $"when querying authentification server {authConfigUrl}");
+                return null;
+            }
+
             var config = System.Text.Json.JsonDocument.Parse(configJson);
             var tokenEndpoint = config.RootElement.GetProperty("token_endpoint").GetString();
 
-            switch (preferredInvocationtype.Value)
+            // other methods are dependent on auth-server
+            switch (preferredMethod)
             {
-                case SecurityAccessMethod.Basic:
-                    // TODO: get the infos
-                    var userName = "Bernd";
-                    var PW = "Brot";
-
-                    // bring together
-                    var pseudoToken = AdminShellUtil.Base64UrlEncode($"{userName}:{PW}");
-
-                    // build correct header key
-                    return new HttpHeaderDataItem("Authentification", $"Basic {pseudoToken.ToString()}");
-
                 case SecurityAccessMethod.CertificateStore:
 
                     // load root certs from auth-server
@@ -160,11 +480,13 @@ namespace AasxPackageExplorer
                         fcollection = fcollection2;
 
                     // let user choose certificate 
-                    // TODO: Think about to detach from/ to Windows specific UI
-                    X509Certificate2Collection scollection = X509Certificate2UI.SelectFromCollection(fcollection,
-                        "Test Certificate Select",
-                        "Select a certificate from the following list to get information on that certificate",
-                        X509SelectionFlag.SingleSelection);
+                    var scollection = await AskForSelectFromCertCollection(baseAddress, fcollection);
+                    if (scollection == null)
+                    {
+                        Log.Singleton.Info(StoredPrint.Color.Blue,
+                            "For accessing {0}, no valid certificate could be provided. Using no security!", baseAddress);
+                        return null;
+                    }
 
                     // build BASE64 certificate chain
                     if (scollection.Count != 0)
@@ -304,9 +626,10 @@ namespace AasxPackageExplorer
                 return null;
             var accessToken = contentJson["access_token"];
 
-            // build correct header key
-            return new HttpHeaderDataItem("Authorization", $"Bearer {accessToken.ToString()}");
-
+            // build correct header key, remember, return
+            endpoint.LastRenewed = DateTime.UtcNow;
+            endpoint.LastHeaderItem = new HttpHeaderDataItem("Authorization", $"Bearer {accessToken.ToString()}");
+            return endpoint.LastHeaderItem;
         }
     }
 }

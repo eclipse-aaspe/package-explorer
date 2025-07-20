@@ -65,6 +65,17 @@ namespace AasxPackageLogic.PackageCentral
         /// If empty, the user will be prompted.
         /// </summary>
         public string Password = "";
+
+        /// <summary>
+        /// Endpoint of the authentification server
+        /// </summary>
+        public string AuthServer = "";
+
+        /// <summary>
+        /// Renew the security credential after a certain period in time in minutes.
+        /// Note: Default is rather short because of secure by design
+        /// </summary>
+        public int RenewPeriodMins = 5;
     }
 
     public class KnownEndpointDescription
@@ -87,7 +98,6 @@ namespace AasxPackageLogic.PackageCentral
     /// </summary>
     public interface ISecurityAccessHandler
     {
-        Task<HttpHeaderDataItem> DetermineAuthenticateHeader(
-            string baseAddress, SecurityAccessMethod? preferredInvocationtype);
+        Task<HttpHeaderDataItem> DetermineAuthenticateHeader(string baseAddress);
     }
 }
