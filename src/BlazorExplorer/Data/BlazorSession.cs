@@ -34,6 +34,7 @@ using Microsoft.JSInterop;
 using System.Linq;
 using AasxIntegrationBase.AdminShellEvents;
 using AasCore.Aas3_0;
+using BlazorUI.Functionality;
 
 namespace BlazorUI.Data
 {
@@ -93,6 +94,11 @@ namespace BlazorUI.Data
         /// the dynamically created element panel.
         /// </summary>
         public AasxMenuBlazor DynamicMenu = new AasxMenuBlazor();
+
+        /// <summary>
+        /// Allows creating tokens.. based on user configured information or UI.
+        /// </summary>
+        public BlazorSecurityAccessHandler _securityAccessHandler = null;
 
         /// <summary>
         /// Helper class to "compress events" (group AAS event payloads together).
