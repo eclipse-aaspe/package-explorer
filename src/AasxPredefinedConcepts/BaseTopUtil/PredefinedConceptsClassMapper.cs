@@ -249,8 +249,7 @@ namespace AasxPredefinedConcepts
             //
 
 			var idsff = AdminShellUtil.FilterFriendlyName(rf.IdShort, 
-                            pascalCase: true,
-                            removeEnumerationTemplate: removeEnumerationTemplate);
+                            pascalCase: true);
 
             if (idsff.HasContent() != true)
                 return;
@@ -447,8 +446,7 @@ namespace AasxPredefinedConcepts
             //
 
             var idsff = AdminShellUtil.FilterFriendlyName(rf.IdShort, 
-                            pascalCase: true, 
-                            removeEnumerationTemplate: removeEnumerationTemplate);
+                            pascalCase: true);
             
             if (idsff.HasContent() != true)
                 return;

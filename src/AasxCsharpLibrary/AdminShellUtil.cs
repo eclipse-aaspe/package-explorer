@@ -553,13 +553,6 @@ namespace AdminShellNS
                     src = src.Replace("__", "_");
             }
 
-            if (removeEnumerationTemplate)
-            {
-                src = src.Replace("__00__", "");
-                src = src.Replace("__000__", "");
-                src = src.Replace("__0000__", "");
-            }
-
             return src;
         }
 
