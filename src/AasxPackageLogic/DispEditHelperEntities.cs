@@ -1329,16 +1329,6 @@ namespace AasxPackageLogic
                                               as ConnectExtendedRecord)
                                              ?? new PackageContainerHttpRepoSubset.ConnectExtendedRecord();
 
-                                //record.PageSkip = 0;
-
-                                //var uiRes = await PackageContainerHttpRepoSubset.PerformConnectExtendedDialogue(
-                                //    ticket, plusDialogs,
-                                //    "Connect AAS repositories and registries",
-                                //    record);
-
-                                //if (!uiRes)
-                                //    return new AnyUiLambdaActionNone();
-
                                 // ok, prepare new fetch context (no continuiation)
                                 var fetchContext = new PackageContainerHttpRepoSubsetFetchContext()
                                 {
@@ -1590,23 +1580,12 @@ namespace AasxPackageLogic
                 if (additionalHeaderData != null)
                     runtimeOptions.HttpHeaderData = HttpHeaderData.Merge(runtimeOptions.HttpHeaderData, additionalHeaderData);
 
-                // modify header by security access information?
-                if (runtimeOptions?.SecurityAccessHandler != null
-                    && fetchContext.Record?.AutoAuthenticate == true)
-                {
-                    var extraHeader = await runtimeOptions.SecurityAccessHandler.DetermineAuthenticateHeader(
-                            fetchContext.Record.BaseAddress);
-                    if (extraHeader != null)
-                    {
-                        fetchContext.Record.HeaderData.AddForUnique(extraHeader);
-                    }
-                }
-
                 var container = await PackageContainerFactory.GuessAndCreateForAsync(
                     packages,
                     location.Location.ToString(),
                     location.Location.ToString(),
                     overrideLoadResident: true,
+                    autoAuthenticate: fetchContext.Record?.AutoAuthenticate == true,
                     containerOptions: containerOptions,
                     runtimeOptions: runtimeOptions);
 

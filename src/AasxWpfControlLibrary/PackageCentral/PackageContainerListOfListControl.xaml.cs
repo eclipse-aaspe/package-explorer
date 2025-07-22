@@ -389,6 +389,7 @@ namespace AasxWpfControlLibrary.PackageCentral
                         var cnt = PackageContainerFactory.GuessAndCreateFor(
                             null, location, location,
                             overrideLoadResident: false,
+                            autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                             containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr));
                         if (cnt is PackageContainerRepoItem ri)
                         {

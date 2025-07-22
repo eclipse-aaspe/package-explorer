@@ -448,6 +448,7 @@ namespace BlazorUI.Data
                     location,
                     location,
                     overrideLoadResident: true,
+                    autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                     null, null,
                     PackageContainerOptionsBase.CreateDefault(Options.Curr),
                     runtimeOptions: PackageCentral.CentralRuntimeOptions);

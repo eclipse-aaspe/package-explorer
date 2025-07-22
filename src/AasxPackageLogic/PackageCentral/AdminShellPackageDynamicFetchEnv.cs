@@ -65,6 +65,8 @@ namespace AasxPackageLogic.PackageCentral
             _defaultRepoBaseUri = baseUri;
         }
 
+        public PackCntRuntimeOptions RuntimeOptions { get { return _runtimeOptions; } }
+
         public override bool IsOpen
         {
             get
@@ -382,15 +384,25 @@ namespace AasxPackageLogic.PackageCentral
             string uriString,
             string aasId = null,
             string smId = null,
+            ISecurityAccessHandler secureAccess = null,
             string idShortPath = null)
         {
-            // IMPORTANT! First try to use the base implementation to get an stream to
-            // HTTP or ABSOLUTE file
-            var absBytes = await base.GetBytesFromPackageOrExternalAsync(uriString);
-            if (absBytes != null)
-                return absBytes;
+            // access
+            if (uriString?.HasContent() != true)
+                return null;
 
-            // ok, try to load from the server
+            // check if it is indeed subject to HTTP stream/ external file or is an attachment
+            if (!AdminShellUtil.CheckIfUriIsAttachment(uriString))
+            {
+                // should be HTTP stream/ external file!
+                var absBytes = await base.GetBytesFromPackageOrExternalAsync(uriString, secureAccess: secureAccess);
+                if (absBytes != null)
+                    return absBytes;
+
+                return null;
+            }
+
+            // ok, try to load as attachment from the server
             if (aasId?.HasContent() != true || smId?.HasContent() != true || idShortPath?.HasContent() != true
                 || _defaultRepoBaseUri == null)
                 return null;

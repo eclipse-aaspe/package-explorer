@@ -43,6 +43,7 @@ namespace AasxPluginTechnicalData
         private PluginEventStack _eventStack = null;
         private AnyUiStackPanel _panel = null;
         private AasxPluginBase _plugin = null;
+        private ISecurityAccessHandler _secureAccess = null;
 
         protected AnyUiSmallWidgetToolkit _uitk = new AnyUiSmallWidgetToolkit();
 
@@ -79,8 +80,10 @@ namespace AasxPluginTechnicalData
             TechnicalDataOptions theOptions,
             PluginEventStack eventStack,
             AnyUiStackPanel panel,
-            AasxPluginBase plugin)
+            AasxPluginBase plugin,
+            ISecurityAccessHandler secureAccess)
         {
+            // typecast
             _log = log;
             _package = thePackage;
             _submodel = theSubmodel;
@@ -89,6 +92,7 @@ namespace AasxPluginTechnicalData
             _eventStack = eventStack;
             _panel = panel;
             _plugin = plugin;
+            _secureAccess = secureAccess;
 
             // fill given panel
             RenderFullView(_panel, _uitk, _package, _submodel, defaultLang: null);
@@ -100,7 +104,8 @@ namespace AasxPluginTechnicalData
             TechnicalDataOptions options,
             PluginEventStack eventStack,
             object opanel,
-            AasxPluginBase plugin)
+            AasxPluginBase plugin,
+            ISecurityAccessHandler secureAccess)
         {
             // access
             var package = opackage as AdminShellPackageEnvBase;
@@ -114,7 +119,7 @@ namespace AasxPluginTechnicalData
 
             // factory this object
             var techCntl = new TechnicalDataAnyUiControl();
-            techCntl.Start(log, package, sm, options, eventStack, panel, plugin);
+            techCntl.Start(log, package, sm, options, eventStack, panel, plugin, secureAccess);
 
             // return shelf
             return techCntl;
@@ -352,7 +357,9 @@ namespace AasxPluginTechnicalData
                             theDefs.CD_ManufacturerLogo.GetSingleKey(), MatchMode.Relaxed);
 
                         // for now
-                        biManuLogo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(package, fe?.Value);
+                        biManuLogo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(
+                            package, fe?.Value,
+                            secureAccess: _secureAccess);
 
                         // for later
                         _bitmapLoader.Add(package, _aas, _submodel, fe, (fcl, bi) =>
@@ -836,16 +843,25 @@ namespace AasxPluginTechnicalData
         #region Callbacks
         //===============
 
+        protected int _dispatcherTimerNumberOfExceptions = 0;
+
         private async Task DispatcherTimer_Tick(object sender, EventArgs e)
         {
-            if ((await _bitmapLoader?.TickToLoad()) == true)
+            try
             {
-                _eventStack?.PushEvent(new AasxPluginEventReturnUpdateAnyUi()
+                if ((await _bitmapLoader?.TickToLoad(_secureAccess)) == true)
                 {
-                    PluginName = null,
-                    Mode = AnyUiRenderMode.StatusToUi,
-                    UseInnerGrid = true
-                });
+                    _eventStack?.PushEvent(new AasxPluginEventReturnUpdateAnyUi()
+                    {
+                        PluginName = null,
+                        Mode = AnyUiRenderMode.StatusToUi,
+                        UseInnerGrid = true
+                    });
+                }
+            } catch (Exception ex)
+            {
+                if (_dispatcherTimerNumberOfExceptions++ < 3)
+                    _log?.Error(ex, "cyclic display of content of plugin for technical data");
             }
         }
 

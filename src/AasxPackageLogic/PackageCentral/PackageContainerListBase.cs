@@ -241,6 +241,7 @@ namespace AasxPackageLogic.PackageCentral
                 location: fn,
                 fullItemLocation: fn,
                 overrideLoadResident: false,
+                autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                 containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr));
 
             if (fi is PackageContainerRepoItem ri)

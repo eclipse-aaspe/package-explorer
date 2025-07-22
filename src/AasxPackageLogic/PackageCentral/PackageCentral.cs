@@ -91,6 +91,7 @@ namespace AasxPackageLogic.PackageCentral
                     location,
                     fullItemLocation,
                     overrideLoadResident,
+                    autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                     null, null,
                     containerOptions,
                     runtimeOptions));

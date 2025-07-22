@@ -10,7 +10,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
+using AdminShellNS;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -82,6 +82,13 @@ namespace AasxPackageLogic.PackageCentral
         public string CertPassword = "";
 
         /// <summary>
+        /// If set with at least 3 characters, will check, if the specified sub-string is part of
+        /// a given user certificate and will pick this automatically. Case sensitive.
+        /// If not set, the user will be asked.
+        /// </summary>
+        public string CertPick = "";
+
+        /// <summary>
         /// Renew the security credential after a certain period in time in minutes.
         /// Note: Default is rather short because of secure by design
         /// </summary>
@@ -100,15 +107,5 @@ namespace AasxPackageLogic.PackageCentral
         /// Infos how to access the endpoint security-wise
         /// </summary>
         public SecurityAccessUserInfo AccessInfo;
-    }
-
-    /// <summary>
-    /// This interface allows accessing a handler to get some access information (e.g. HTTP headers)
-    /// suitable to access some AAS registries or repositories.
-    /// </summary>
-    public interface ISecurityAccessHandler
-    {
-        Task<HttpHeaderDataItem> DetermineAuthenticateHeader(string baseAddress);
-        void ClearAllCredentials();
     }
 }

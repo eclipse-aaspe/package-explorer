@@ -93,12 +93,50 @@ namespace AasxPackageExplorer
         /// <summary>
         /// This will be called by the application in order to get an HTTP header data item helping
         /// to access restricted information from an AAS server.
+        /// Note: May just lookup already existing data, does not interactively determine new data!
         /// </summary>
-        public virtual async Task<HttpHeaderDataItem> DetermineAuthenticateHeader(string baseAddress)
+        public virtual HttpHeaderDataItem LookupAuthenticateHeader(string location)
         {
+            // nead a certain distinction!
+            if (location?.HasContent() != true)
+                return null;
+
             // can find a match in baseAddress?
             var me = _endpoints?.Find((p) =>
-                        true == p?.Endpoint?.BaseAddress?.Trim().Equals(baseAddress?.Trim(), StringComparison.InvariantCultureIgnoreCase));
+                        p?.Endpoint?.BaseAddress != null
+                        && location.Trim().ToLower().StartsWith(p.Endpoint.BaseAddress.ToLower()));
+
+            if (me == null) 
+                return null;
+
+            // can re-use existing data?
+            if (me.LastRenewed != null
+                && me.Endpoint?.AccessInfo != null
+                && (DateTime.UtcNow - me.LastRenewed.Value).TotalMinutes < me.Endpoint.AccessInfo.RenewPeriodMins
+                && me.LastHeaderItem != null)
+            {
+                return me.LastHeaderItem;
+            }
+
+            // no!
+            return null;
+        }
+
+        /// <summary>
+        /// This will be called by the application in order to get an HTTP header data item helping
+        /// to access restricted information from an AAS server.
+        /// Note: This function is async and may require the GUI thread!
+        /// </summary>
+        public virtual async Task<HttpHeaderDataItem> InteractiveDetermineAuthenticateHeader(string location)
+        {
+            // nead a certain distinction!
+            if (location?.HasContent() != true)
+                return null;
+
+            // can find a match in baseAddress?
+            var me = _endpoints?.Find((p) =>
+                        p?.Endpoint?.BaseAddress != null
+                        && location.Trim().ToLower().StartsWith(p.Endpoint.BaseAddress.ToLower()));
 
             // no match?
             if (me == null)
@@ -108,7 +146,7 @@ namespace AasxPackageExplorer
                 {
                     Endpoint = new KnownEndpointDescription()
                     {
-                        BaseAddress = baseAddress,
+                        BaseAddress = location,
                         AccessInfo = new SecurityAccessUserInfo() { Method = SecurityAccessMethod.Ask },
                     }
                 };
@@ -122,7 +160,7 @@ namespace AasxPackageExplorer
                 && me.LastHeaderItem != null)
             {
                 Log.Singleton.Info("Secure access credential for {0} are still valid from: {1}. Will be re-used!",
-                    baseAddress, me.LastRenewed.ToString());
+                    location, me.LastRenewed.ToString());
                 return me.LastHeaderItem;
             }
 
@@ -134,18 +172,18 @@ namespace AasxPackageExplorer
             // if still ask?
             if (methodToUse == SecurityAccessMethod.Ask)
             {
-                var res = await AskForAccessMethod(baseAddress);
+                var res = await AskForAccessMethod(location);
                 if (res != null)
                     methodToUse = res.Value;
                 else
                 {
-                    Log.Singleton.Error("For accessing {0}, no authentification method could be provided. Aborting!", baseAddress);
+                    Log.Singleton.Error("For accessing {0}, no authentification method could be provided. Aborting!", location);
                     return null;
                 }
             }
 
             // pass on (with E-Stop)
-            return await DetermineAuthenticateHeaderForEndpoint(baseAddress, me, methodToUse);
+            return await DetermineAuthenticateHeaderForEndpoint(location, me, methodToUse);
         }
 
         protected virtual async Task<SecurityAccessMethod?> AskForAccessMethod(string baseAddress)
@@ -599,8 +637,34 @@ namespace AasxPackageExplorer
                     Log.Singleton.Info($"Security access handler: Found root certificate {rootCertFound}.");
 
                     // let user choose certificate 
-                    var scollection = await AskForSelectFromCertCollection(baseAddress, fcollection);
-                    if (scollection == null || scollection.FirstOrDefault() == null)
+                    X509Certificate2Collection scollection = null;
+
+                    // try to auto-pick
+                    if (endpoint.Endpoint.AccessInfo.CertPick?.HasContent() == true
+                        && endpoint.Endpoint.AccessInfo.CertPick.Length >= 3)
+                    {
+                        Log.Singleton.Info($"Security access handler: Try select user certificate with " +
+                            $"pick pattern of length {endpoint.Endpoint.AccessInfo.CertPick.Length} ..");
+
+                        if (fcollection != null )
+                            foreach (var cert in  fcollection)
+                                if (true == cert?.Issuer?.Contains(endpoint.Endpoint.AccessInfo.CertPick))
+                                {
+                                    Log.Singleton.Info($"Security access handler: " +
+                                        $"User certificate selected: {cert.Issuer} {cert.NotAfter.ToShortDateString()}");
+                                    scollection = new X509Certificate2Collection(cert);
+                                    break;
+                                }
+                    }
+
+                    // ask the user
+                    if (scollection?.FirstOrDefault() == null)
+                    {
+                        Log.Singleton.Info($"Security access handler: User certificate still unclear. Asking user ..");
+                        scollection = await AskForSelectFromCertCollection(baseAddress, fcollection);
+                    }
+
+                    if (scollection?.FirstOrDefault() == null)
                     {
                         Log.Singleton.Info(StoredPrint.Color.Blue,
                             "For accessing {0}, no valid certificate could be provided. Using no security!", baseAddress);

@@ -48,6 +48,7 @@
 // Tool("ToolsReplaceText", "FindText", "A", "ReplaceText", "B", "Do", "all");
 // WriteLine(GetLastLogLine());
 // TakeScreenShot("Test123");
+// Tool("ConnectExtended", "BaseAddress", "https://big.aas-voyager.com/", "GetAllAas", false, "GetSingleAas", true, "AasId", "https://i4d.de/T/0161962/aas", "AutoAuthenticate", true);
 
 extra = 0;
 

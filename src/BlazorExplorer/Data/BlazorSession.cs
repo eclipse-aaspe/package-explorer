@@ -324,6 +324,7 @@ namespace BlazorUI.Data
                         location,
                         location,
                         overrideLoadResident: true,
+                        autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                         containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr),
                         runtimeOptions: PackageCentral.CentralRuntimeOptions);
 
@@ -354,6 +355,7 @@ namespace BlazorUI.Data
                         location,
                         location,
                         overrideLoadResident: true,
+                        autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                         containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr),
                         runtimeOptions: PackageCentral.CentralRuntimeOptions);
 
@@ -745,6 +747,7 @@ namespace BlazorUI.Data
                             location,
                             location,
                             overrideLoadResident: true,
+                            autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                             takeOver: fi,
                             fi.ContainerList,
                             containerOptions: copts,
@@ -792,6 +795,7 @@ namespace BlazorUI.Data
                         ddof.TargetFileName,
                         ddof.TargetFileName,
                         overrideLoadResident: true,
+                        autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                         runtimeOptions: PackageCentral.CentralRuntimeOptions);
 
                     if (container == null)

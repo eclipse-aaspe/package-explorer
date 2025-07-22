@@ -59,68 +59,50 @@ namespace AasxPackageExplorer
 
         // Remark: basically all functionality given by UI-abstract base class!
 
-        protected override async Task<string> AskForAuthServerUri(string baseAddress, string authServerUri)
+        protected override async Task<X509Certificate2Collection> AskForSelectFromCertCollection(
+            string baseAddress,
+            X509Certificate2Collection fcollection)
         {
-            var ucJob = new AnyUiDialogueDataModalPanel("Specify authentification server endpoint ..");
-            ucJob.ActivateRenderPanel(null,
-                disableScrollArea: false,
-                dialogButtons: AnyUiMessageBoxButton.OK,
-                renderPanel: (uci) =>
-                {
-                    // create panel
-                    var panel = new AnyUiStackPanel();
-                    var helper = new AnyUiSmallWidgetToolkit();
+            //
+            // The reasonable way: let Windows do its thing!
+            // Rationale: The correct way is that the user will provide the certificate.
+            // Consequently, the certificate shall be on the users' computer.
+            // Running on Blazor, the application would see the certificates of the server
+            // and NOT of the user. Therefore, this is a feasible scenario for some use-cases
+            // where the server acts as a gateway, but security-wise, this scenario is very
+            // questionable.
+            //
 
-                    var g = helper.AddSmallGrid(25, 2, new[] { "200:", "*" },
-                                padding: new AnyUiThickness(0, 5, 0, 5),
-                                margin: new AnyUiThickness(10, 0, 30, 0));
+            // access
+            await Task.Yield();
+            if (fcollection == null)
+                return null;
 
-                    panel.Add(g);
+            if (false)
+            {
+                X509Certificate2Collection scollection = X509Certificate2UI.SelectFromCollection(fcollection,
+                    "Certificate Select",
+                    "Select a certificate for authentification on AAS server",
+                    X509SelectionFlag.SingleSelection);
 
-                    // dynamic rows
-                    int row = 0;
+                return scollection;
+            }
+            else
+            {
+                // define dialogue and map presets into dialogue items
+                var uc = new AnyUiDialogueDataSelectFromList(
+                            "Select a certificate for authentification on AAS server");
+                uc.ListOfItems = new AnyUiDialogueListItemList(fcollection.Select((o) => new AnyUiDialogueListItem(
+                    $"Issuer: {o.Issuer} Not before: {o.NotBefore.ToShortDateString()} Not after: {o.NotAfter.ToShortDateString()}",
+                    o)));
 
-                    // Info
-                    helper.Set(
-                        helper.AddSmallLabelTo(g, row, 0, content:
-                            "For use of advanced authentification methods, the endpoint address of an authentification " +
-                            "server is required! This serves the role of an identification provider and is usually provided " +
-                            "by the data space.",
-                            wrapping: AnyUiTextWrapping.Wrap),
-                        colSpan: 2);
-                    row++;
-
-                    // separation
-                    helper.AddSmallBorderTo(g, row, 0,
-                        borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
-                        colSpan: 2,
-                        margin: new AnyUiThickness(0, 0, 0, 20));
-                    row++;
-
-                    // URI
-
-                    helper.AddSmallLabelTo(g, row, 0, content: "Endpoint URI:",
-                            verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
-
-                    AnyUiUIElement.SetStringFromControl(
-                            helper.Set(
-                                helper.AddSmallTextBoxTo(g, row, 1,
-                                    text: $"{authServerUri}",
-                                    verticalAlignment: AnyUiVerticalAlignment.Center,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
-                            (s) => { authServerUri = s; });
-
-                    row++;
-
-                    // give back
-                    return g;
-                });
-
-            if (_displayContext != null && await _displayContext.StartFlyoverModalAsync(ucJob))
-                return authServerUri;
-            return null;
+                // perform dialogue
+                if (_displayContext != null
+                    && await _displayContext.StartFlyoverModalAsync(uc)
+                    && uc.Result && uc.ResultItem?.Tag is X509Certificate2 cert)
+                    return new X509Certificate2Collection(cert);
+                return null;
+            }
         }
     }
 }

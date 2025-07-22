@@ -1444,6 +1444,20 @@ namespace AdminShellNS
             };
         }
 
+        public static bool CheckIfUriIsAttachment(string uri)
+        {
+            // access
+            if (uri?.HasContent() != true || uri.Length < 2)
+                return false;
+
+            // first char needs to be a slash, second must not be a slash!!
+            // Note: URIs starting with double slashes are called protocol-relative URLs or scheme-relative URIs
+
+            if (uri[0] == '/' && uri[2] != '/')
+                return true;
+            return false;
+        }
+
         //
         // Base 64
         //
