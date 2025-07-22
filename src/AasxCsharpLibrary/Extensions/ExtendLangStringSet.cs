@@ -109,6 +109,22 @@ namespace Extensions
             return langStringSet;
         }
 
+        /// <summary>
+        /// If <c>input</c> has a trailing '@xx' code, the 'xx' will be returned and the
+        /// <c>input</c> is shortened. Else: returns <c>null</c>.
+        /// </summary>
+        public static string GetOneTrailingLanguage(ref string input)
+        {
+            if (input?.HasContent() != true)
+                return null;
+            int p = input.LastIndexOf('@');
+            if (p < 0 && input.Length <= p + 1)
+                return null;
+            var res = input.Substring(p+1);
+            input = input.Substring(0, p);
+            return res;
+        }
+
         public static List<T> Parse<T>(string cell,
             Func<string, string, T> createLs) where T : class
         {

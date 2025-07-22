@@ -1,7 +1,7 @@
 ﻿-twopass 
 -width 900
 -height 600
--logo SpecPI40_t.png 
+-logo Logo_IDTA_Custom.png
 -eclass .\eclass\ 
 -aasxrepo ..\..\..\..\..\Sample_AAS\aasxrepo-new.json 
 -qualifiers qualifier-presets.json 
