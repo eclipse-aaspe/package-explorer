@@ -1196,6 +1196,7 @@ namespace AasxPackageExplorer
                             location,
                             location,
                             overrideLoadResident: true,
+                            autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                             takeOver: fi,
                             fi.ContainerList,
                             containerOptions: copts,
@@ -1319,6 +1320,7 @@ namespace AasxPackageExplorer
                         location,
                         location,
                         overrideLoadResident: true,
+                        autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                         containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr),
                         runtimeOptions: PackageCentral.CentralRuntimeOptions);
 
@@ -1350,6 +1352,7 @@ namespace AasxPackageExplorer
                         location,
                         location,
                         overrideLoadResident: true,
+                        autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                         containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr),
                         runtimeOptions: PackageCentral.CentralRuntimeOptions);
 
@@ -1765,6 +1768,7 @@ namespace AasxPackageExplorer
                     location,
                     location,
                     overrideLoadResident: true,
+                    autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                     null, null,
                     PackageContainerOptionsBase.CreateDefault(Options.Curr),
                     runtimeOptions: PackageCentral.CentralRuntimeOptions);

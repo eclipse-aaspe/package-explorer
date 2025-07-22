@@ -49,6 +49,7 @@ namespace AasxPluginDigitalNameplate
         private AnyUiContextPlusDialogs _displayContext = null;
         private PluginOperationContextBase _opContext = null;
         private AasxPluginBase _plugin = null;
+        private ISecurityAccessHandler _secureAccess = null;
 
         protected AnyUiSmallWidgetToolkit _uitk = new AnyUiSmallWidgetToolkit();
 
@@ -83,7 +84,8 @@ namespace AasxPluginDigitalNameplate
             AnyUiStackPanel panel,
             PluginOperationContextBase opContext,
             AnyUiContextPlusDialogs cdp,
-            AasxPluginBase plugin)
+            AasxPluginBase plugin,
+            ISecurityAccessHandler secureAccess)
         {
             _log = log;
             _package = thePackage;
@@ -95,6 +97,7 @@ namespace AasxPluginDigitalNameplate
             _opContext = opContext;
             _displayContext = cdp;
             _plugin = plugin;
+            _secureAccess = secureAccess;
 
             // fill given panel
             RenderFullNameplate(_panel, _uitk);
@@ -109,7 +112,8 @@ namespace AasxPluginDigitalNameplate
             object opanel,
             PluginOperationContextBase opContext,
             AnyUiContextPlusDialogs cdp,
-            AasxPluginBase plugin)
+            AasxPluginBase plugin,
+            ISecurityAccessHandler secureAccess)
         {
             // access
             var package = opackage as AdminShellPackageEnvBase;
@@ -126,7 +130,7 @@ namespace AasxPluginDigitalNameplate
 
             // factory this object
             var shelfCntl = new NameplateAnyUiControl();
-            shelfCntl.Start(log, package, sm, options, eventStack, session, panel, opContext, cdp, plugin);
+            shelfCntl.Start(log, package, sm, options, eventStack, session, panel, opContext, cdp, plugin, secureAccess);
 
             // return shelf
             return shelfCntl;
@@ -496,7 +500,10 @@ namespace AasxPluginDigitalNameplate
             AnyUiBitmapInfo bitmapInfo = null;
             try
             {
-                bitmapInfo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(_package, aasFile.Value);
+                bitmapInfo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(
+                    _package, aasFile.Value, 
+                    secureAccess: _secureAccess,
+                    transparentBackground: true);
             }
             catch (Exception ex)
             {

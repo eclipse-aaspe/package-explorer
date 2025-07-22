@@ -10,12 +10,14 @@ This source code may use other Open Source software components (see LICENSE.txt)
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 using AdminShellNS;
 using Newtonsoft.Json.Linq;
 
-namespace AasxPackageLogic.PackageCentral
+namespace AdminShellNS
 {
     public class HttpHeaderDataItem
     {
@@ -26,6 +28,15 @@ namespace AasxPackageLogic.PackageCentral
         public HttpHeaderDataItem(string key, string value) {
             Key = key;
             Value = value;
+        }
+
+        public HttpRequestMessage Enrich(HttpRequestMessage request)
+        {
+            if (request == null)
+                return null;
+
+            request.Headers.Add(Key, Value);
+            return request;
         }
     }
 
@@ -121,6 +132,17 @@ namespace AasxPackageLogic.PackageCentral
 
             // return new
             return res;
+        }
+
+        public HttpRequestMessage Enrich(HttpRequestMessage request)
+        {
+            if (request == null)
+                return null;
+
+            foreach (var header in Headers)
+                request.Headers.Add(header.Key, header.Value);
+
+            return request;
         }
     }
 }

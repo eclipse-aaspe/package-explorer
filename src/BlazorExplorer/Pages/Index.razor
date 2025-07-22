@@ -1836,6 +1836,7 @@
                 var cnt = PackageContainerFactory.GuessAndCreateFor(
                     null, veEnv.thePackageSourceFn, veEnv.thePackageSourceFn,
                     overrideLoadResident: false,
+                    autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                     containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr));
                 if (cnt is PackageContainerRepoItem ri)
                 {

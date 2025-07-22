@@ -140,13 +140,15 @@ namespace AasxPackageLogic.PackageCentral
             string location,
             string fullItemLocation,
             bool overrideLoadResident,
+            bool autoAuthenticate,
             PackageContainerBase takeOver = null,
             PackageContainerListBase containerList = null,
             PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
         {
             var task = Task.Run(() => GuessAndCreateForAsync(
-                packageCentral, location, fullItemLocation, overrideLoadResident,
+                packageCentral, location, fullItemLocation, 
+                overrideLoadResident, autoAuthenticate,
                 takeOver, containerList, containerOptions, runtimeOptions));
             return task.Result;
         }
@@ -156,6 +158,7 @@ namespace AasxPackageLogic.PackageCentral
             string location,
             string fullItemLocation,
             bool overrideLoadResident,
+            bool autoAuthenticate,
             PackageContainerBase takeOver = null,
             PackageContainerListBase containerList = null,
             PackageContainerOptionsBase containerOptions = null,
@@ -183,6 +186,20 @@ namespace AasxPackageLogic.PackageCentral
             {
                 return await Demo(packageCentral, location,
                     overrideLoadResident, containerOptions, runtimeOptions);
+            }
+
+            // as might be relevant for multiple containers, check for auto-authentificate now
+            if (autoAuthenticate
+                && (guess.GuessedType == typeof(PackageContainerNetworkHttpFile)
+                    || guess.GuessedType == typeof(PackageContainerHttpRepoSubset))
+                && runtimeOptions?.SecurityAccessHandler != null)
+            {
+                var extraHeader = await runtimeOptions.SecurityAccessHandler.InteractiveDetermineAuthenticateHeader(location);
+                if (extraHeader != null)
+                {
+                    runtimeOptions.HttpHeaderData = runtimeOptions.HttpHeaderData ?? new HttpHeaderData();
+                    runtimeOptions.HttpHeaderData.AddForUnique(extraHeader);
+                }
             }
 
             // starts with http ?

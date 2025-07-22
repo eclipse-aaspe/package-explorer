@@ -282,7 +282,103 @@ namespace AdminShellNS
             }
         }
 
-        protected static WebProxy proxy = null;
+        protected static WebProxy _manualProxy = null;
+
+        protected WebProxy GetPossibleManualProxy()
+        {
+            // already there?
+            if (_manualProxy != null)
+                return _manualProxy;
+
+            // no, check (once, static!)
+            string proxyAddress = "";
+            string username = "";
+            string password = "";
+
+            string proxyFile = "proxy.txt";
+            if (System.IO.File.Exists(proxyFile))
+            {
+                try
+                {   // Open the text file using a stream reader.
+                    using (StreamReader sr = new StreamReader(proxyFile))
+                    {
+                        proxyFile = sr.ReadLine();
+                    }
+                }
+                catch (IOException e)
+                {
+                    Console.WriteLine("proxy.txt could not be read:");
+                    Console.WriteLine(e.Message);
+                }
+            }
+
+            try
+            {
+                using (StreamReader sr = new StreamReader(proxyFile))
+                {
+                    proxyAddress = sr.ReadLine();
+                    username = sr.ReadLine();
+                    password = sr.ReadLine();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Console.WriteLine(proxyFile + " not found!");
+            }
+
+            if (proxyAddress != "")
+            {
+                _manualProxy = new WebProxy();
+                Uri newUri = new Uri(proxyAddress);
+                _manualProxy.Address = newUri;
+                _manualProxy.Credentials = new NetworkCredential(username, password);
+
+                return _manualProxy;
+            }
+
+            return null;
+        }
+
+        public virtual HttpClient CreateDefaultHttpClient()
+        {
+            // read via HttpClient (uses standard proxies)
+            var handler = new HttpClientHandler();
+            if (GetPossibleManualProxy() != null)
+                handler.Proxy = GetPossibleManualProxy();
+            else
+                handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
+            handler.AllowAutoRedirect = true;
+
+            // new http client
+            var client = new HttpClient(handler);
+
+            // ok
+            return client;
+        }
+
+        public virtual HttpRequestMessage CreateHttpRequest(
+            HttpMethod method, string requestUri,
+            ISecurityAccessHandler secureAccess = null,
+            string acceptHeader = null)
+        {
+            // start
+            var request = new HttpRequestMessage(method, requestUri);
+
+            // seems to be required by Phoenix
+            request.Headers.Add("User-Agent", "aasx-package-explorer/1.0.0");
+
+            // would be good to always have an accept header, if in doubt: "*/*"
+            if (acceptHeader?.HasContent() == true)
+                request.Headers.Add("Accept", acceptHeader);
+
+            // add access headers?
+            var headerItem = secureAccess?.LookupAuthenticateHeader(requestUri);
+            headerItem?.Enrich(request);
+
+            // ok
+            return request;
+        }
 
         /// <summary>
         /// Checks for a file within the package or external, e.g. on a file space.
@@ -299,6 +395,8 @@ namespace AdminShellNS
             string uriString, 
             string aasId = null,
             string smId = null,
+            ISecurityAccessHandler secureAccess = null,
+            string acceptHeader = null,
             string idShortPath = null)
         {
             //
@@ -314,77 +412,36 @@ namespace AdminShellNS
             // Check, if remote
             if (sap.Scheme.StartsWith("http"))
             {
-                if (proxy == null)
+                // get httpClient
+                var client = CreateDefaultHttpClient();
+
+                // make request, may add headers
+                HttpResponseMessage response = null;
+                using (var request = CreateHttpRequest(HttpMethod.Get, uriString, 
+                    acceptHeader: acceptHeader,
+                    secureAccess: secureAccess))
                 {
-                    string proxyAddress = "";
-                    string username = "";
-                    string password = "";
-
-                    string proxyFile = "proxy.txt";
-                    if (System.IO.File.Exists(proxyFile))
-                    {
-                        try
-                        {   // Open the text file using a stream reader.
-                            using (StreamReader sr = new StreamReader(proxyFile))
-                            {
-                                proxyFile = sr.ReadLine();
-                            }
-                        }
-                        catch (IOException e)
-                        {
-                            Console.WriteLine("proxy.txt could not be read:");
-                            Console.WriteLine(e.Message);
-                        }
-                    }
-
-                    try
-                    {
-                        using (StreamReader sr = new StreamReader(proxyFile))
-                        {
-                            proxyAddress = sr.ReadLine();
-                            username = sr.ReadLine();
-                            password = sr.ReadLine();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                        Console.WriteLine(proxyFile + " not found!");
-                    }
-
-                    if (proxyAddress != "")
-                    {
-                        proxy = new WebProxy();
-                        Uri newUri = new Uri(proxyAddress);
-                        proxy.Address = newUri;
-                        proxy.Credentials = new NetworkCredential(username, password);
-                        Console.WriteLine("Using proxy: " + proxyAddress);
-                    }
+                    // send request
+                    response = client.SendAsync(request,
+                        HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
                 }
 
-                var handler = new HttpClientHandler();
+                // MIHO, 2025-07-21: old, working code:
+                // var response = client.GetAsync(uriString).GetAwaiter().GetResult();
 
-                if (proxy != null)
-                    handler.Proxy = proxy;
-                else
-                    handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
-
-                // var hc = new HttpClient(handler);
-                var hc = new HttpClient();
-
-                var response = hc.GetAsync(uriString).GetAwaiter().GetResult();
-                var x = response.Content.ToString();    
-
-                // if you call response.EnsureSuccessStatusCode here it will throw an exception
+                // re-direct?
                 if (response.StatusCode == HttpStatusCode.Moved
                     || response.StatusCode == HttpStatusCode.Found)
                 {
                     var location = response.Headers.Location;
-                    response = hc.GetAsync(location).GetAwaiter().GetResult();
+                    response = client.GetAsync(location).GetAwaiter().GetResult();
                 }
 
-                response.EnsureSuccessStatusCode();
+                // successfull?
+                if (!response.IsSuccessStatusCode)
+                    return null;
 
+                // get bytes
                 var resBytes = response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
 
                 // TODO (MIHO, 2024-11-09): looks like a hack from Andreas to
@@ -396,8 +453,11 @@ namespace AdminShellNS
                     try
                     {
                         string url = parsed.SelectToken("url").Value<string>();
-                        response = hc.GetAsync(url).GetAwaiter().GetResult();
-                        response.EnsureSuccessStatusCode();
+                        response = client.GetAsync(url).GetAwaiter().GetResult();
+
+                        if (!response.IsSuccessStatusCode)
+                            return null;
+
                         resBytes = response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
                     }
                     catch (Exception ex)
@@ -446,10 +506,11 @@ namespace AdminShellNS
             string uriString,
             string aasId = null,
             string smId = null,
+            ISecurityAccessHandler secureAccess = null,
             string idShortPath = null)
         {
             await Task.Yield();
-            return GetBytesFromPackageOrExternal(uriString, aasId, smId, idShortPath);
+            return GetBytesFromPackageOrExternal(uriString, aasId, smId, secureAccess, idShortPath);
         }
 
         /// <summary>
@@ -624,7 +685,8 @@ namespace AdminShellNS
                 return null;
 
             // get input stream
-            var inputBytes = await GetBytesFromPackageOrExternalAsync(packageUri, aasId, smId, idShortPath);
+            var inputBytes = await GetBytesFromPackageOrExternalAsync(packageUri, aasId, smId, 
+                    idShortPath: idShortPath);
             if (inputBytes == null)
                 return null;
 

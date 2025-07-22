@@ -1079,11 +1079,13 @@ namespace AdminShellNS
             string uriString,
             string aasId = null,
             string smId = null,
+            ISecurityAccessHandler secureAccess = null,
+            string acceptHeader = null,
             string idShortPath = null)
         {
             // IMPORTANT! First try to use the base implementation to get an stream to
             // HTTP or ABSOLUTE file
-            var absBytes = base.GetBytesFromPackageOrExternal(uriString);
+            var absBytes = base.GetBytesFromPackageOrExternal(uriString, secureAccess: secureAccess);
             if (absBytes != null)
                 return absBytes;
 
@@ -1120,11 +1122,12 @@ namespace AdminShellNS
             string uriString,
             string aasId = null,
             string smId = null,
+            ISecurityAccessHandler secureAccess = null,
             string idShortPath = null)
         {
             // IMPORTANT! First try to use the base implementation to get an stream to
             // HTTP or ABSOLUTE file
-            var absBytes = await base.GetBytesFromPackageOrExternalAsync(uriString);
+            var absBytes = await base.GetBytesFromPackageOrExternalAsync(uriString, secureAccess: secureAccess);
             if (absBytes != null)
                 return absBytes;
 

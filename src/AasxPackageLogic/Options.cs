@@ -474,6 +474,11 @@ namespace AasxPackageLogic
         public List<KnownEndpointDescription> KnownEndpoints = new List<KnownEndpointDescription>();
 
         [OptionDescription(Description =
+            "When connecting to given URIs, auto-authenticate by matching with known endpoints.",
+            Cmd = "-auto-authenticate-uris")]
+        public bool AutoAuthenticateUris = false;
+
+        [OptionDescription(Description =
             "Central store to hold supplementary files for File elements.",
             Cmd = "-central-stores")]
         public List<string> CentralStores = new List<string>();

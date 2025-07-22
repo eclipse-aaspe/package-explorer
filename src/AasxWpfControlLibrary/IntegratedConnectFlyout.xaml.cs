@@ -458,6 +458,7 @@ namespace AasxPackageExplorer
                     location,
                     location,
                     overrideLoadResident: true,
+                    autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                     containerOptions: copts,
                     runtimeOptions: ro);
 

@@ -28,6 +28,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO.Packaging;
+using AasxIntegrationBase;
 
 namespace AasxIntegrationBaseGdi
 {
@@ -114,19 +115,40 @@ namespace AasxIntegrationBaseGdi
             return null;
         }
 
-        public static AnyUiBitmapInfo LoadBitmapInfoFromPackage(AdminShellPackageEnvBase package, string path)
+        public static AnyUiBitmapInfo LoadBitmapInfoFromPackage(
+            AdminShellPackageEnvBase package, string path,
+            ISecurityAccessHandler secureAccess = null,
+            bool transparentBackground = false)
         {
             if (package == null || path == null)
                 return null;
 
             try
             {
-                var inputBytes = package.GetBytesFromPackageOrExternal(path);
+                var inputBytes = package.GetBytesFromPackageOrExternal(path, 
+                    acceptHeader: "image/png, image/jpeg, image/gif",
+                    secureAccess: secureAccess);
                 if (inputBytes == null)
                     return null;
 
                 // load image
-                var bi = new MagickImage(inputBytes);
+                MagickImage bi = null;
+                if (transparentBackground)
+                {
+
+                    var magicReadSettings = new MagickReadSettings
+                    {
+                        ColorSpace = ColorSpace.Transparent,
+                        BackgroundColor = MagickColors.Transparent,
+                    };
+
+                    bi = new MagickImage(inputBytes, magicReadSettings);
+                }
+                else
+                {
+                    bi = new MagickImage(inputBytes);
+                }
+                
                 var binfo = CreateAnyUiBitmapInfo(bi);
 
                 // give this back
@@ -179,7 +201,8 @@ namespace AasxIntegrationBaseGdi
             {
                 byte[] thumbBytes = null;
                 if (true /*= package?.IsLocalFile(path)*/)
-                    thumbBytes = await package.GetBytesFromPackageOrExternalAsync(path, aasId, smId, idShortPath);
+                    thumbBytes = await package.GetBytesFromPackageOrExternalAsync(path, aasId, smId, 
+                        idShortPath: idShortPath);
                 else
                 {
                     // try download
@@ -299,7 +322,8 @@ namespace AasxIntegrationBaseGdi
                 });
             }
 
-            public async Task<bool> TickToLoad()
+            public async Task<bool> TickToLoad(
+                ISecurityAccessHandler secureAccess)
             {
                 if (_jobs.Count < 1)
                     return false;
@@ -321,6 +345,7 @@ namespace AasxIntegrationBaseGdi
                         uriString: jobfc.FileUri,
                         aasId: "" + jobfc.AasId,
                         smId: "" + jobfc.SmId,
+                        secureAccess: secureAccess, 
                         idShortPath: jobfc.IdShortPath);
 
                     var bi = AnyUiGdiHelper.LoadBitmapInfoFromBytes(inputBytes);

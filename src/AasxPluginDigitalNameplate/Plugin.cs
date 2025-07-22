@@ -144,7 +144,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
             if (action == "fill-anyui-visual-extension")
             {
                 // arguments (package, submodel, panel, display-context, session-id, operation-context)
-                if (args == null || args.Length < 6)
+                if (args == null || args.Length < 7)
                     return null;
 
                 // create session and call
@@ -152,7 +152,8 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 var opContext = args[5] as PluginOperationContextBase;
                 session.AnyUiControl = AasxPluginDigitalNameplate.NameplateAnyUiControl.FillWithAnyUiControls(
                     _log, args[0], args[1], _options, _eventStack, session, args[2], opContext,
-                    args[3] as AnyUiContextPlusDialogs, this);
+                    args[3] as AnyUiContextPlusDialogs, this,
+                    args[6] as ISecurityAccessHandler);
 
                 // give object back
                 var res = new AasxPluginResultBaseObject();
