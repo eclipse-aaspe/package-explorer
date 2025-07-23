@@ -17,6 +17,7 @@ using AasxIntegrationBase;
 using Aas = AasCore.Aas3_0;
 using AdminShellNS;
 using Extensions;
+using AasCore.Aas3_0;
 
 namespace AasxPluginExportTable.Table
 {
@@ -247,6 +248,11 @@ namespace AasxPluginExportTable.Table
                     commit(cell), (lng, txt) => new Aas.LangStringTextType(lng, txt))
                     .Cast<Aas.ILangStringTextType>().ToList();
 
+            if (preset == "displayName")
+                elem.DisplayName = ExtendLangStringSet.Parse<Aas.LangStringNameType>(
+                    commit(cell), (lng, txt) => new Aas.LangStringNameType(lng, txt))
+                    .Cast<Aas.ILangStringNameType>().ToList();
+
             if (preset == "value")
                 valueStr = commit(cell);
 
@@ -358,22 +364,89 @@ namespace AasxPluginExportTable.Table
             var res = false;
             Func<string, string> commit = (s) => { res = true; return s; };
 
-            var langCode = ExtendLangStringSet.GetOneTrailingLanguage(ref cell);
+            // first attributes
 
-            if (preset == "preferredName")
-                cd.GetIEC61360().PreferredName = ExtendLangStringSet.Parse<Aas.LangStringPreferredNameTypeIec61360>(
-                    commit(cell), (lng, txt) => new Aas.LangStringPreferredNameTypeIec61360(lng, txt))
-                    .Cast<Aas.ILangStringPreferredNameTypeIec61360>().ToList();
+            if (preset == "idShort")
+                cd.IdShort = commit(cell);
 
-            if (preset == "shortName")
-                cd.GetIEC61360().ShortName = ExtendLangStringSet.Parse<Aas.LangStringShortNameTypeIec61360>(
-                    commit(cell), (lng, txt) => new Aas.LangStringShortNameTypeIec61360(lng, txt))
-                    .Cast<Aas.ILangStringShortNameTypeIec61360>().ToList();
+            if (preset == "category")
+                cd.Category = commit(cell);
 
-            if (preset == "definition")
-                cd.GetIEC61360().Definition = ExtendLangStringSet.Parse<Aas.LangStringDefinitionTypeIec61360>(
-                    commit(cell), (lng, txt) => new Aas.LangStringDefinitionTypeIec61360(lng, txt))
-                    .Cast<Aas.ILangStringDefinitionTypeIec61360>().ToList();
+            // check if the table preset directly gives a language
+            var presetStub = "" + preset;
+            var langCode = ExtendLangStringSet.GetOneTrailingLanguageTag(ref presetStub);
+
+            if (langCode != null)
+            {
+                // the whole cell gives one language string
+                if (preset == "description")
+                {
+                    cd.Description = cd.Description
+                        ?? new List<Aas.ILangStringTextType>();
+                    cd.Description.Add(
+                        new LangStringTextType(langCode, commit(cell)));
+                }
+                
+                if (preset == "displayName")
+                {
+                    cd.DisplayName = cd.DisplayName
+                        ?? new List<Aas.ILangStringNameType>();
+                    cd.DisplayName.Add(
+                        new LangStringNameType(langCode, commit(cell)));
+                }
+                
+                if (presetStub == "preferredName")
+                {
+                    cd.GetIEC61360().PreferredName = cd.GetIEC61360().PreferredName
+                        ?? new List<Aas.ILangStringPreferredNameTypeIec61360>();
+                    cd.GetIEC61360().PreferredName.Add(
+                        new LangStringPreferredNameTypeIec61360(langCode, commit(cell)));
+                }
+
+                if (presetStub == "shortName")
+                {
+                    cd.GetIEC61360().ShortName = cd.GetIEC61360().ShortName
+                        ?? new List<Aas.ILangStringShortNameTypeIec61360>();
+                    cd.GetIEC61360().ShortName.Add(
+                        new LangStringShortNameTypeIec61360(langCode, commit(cell)));
+                }
+
+                if (presetStub == "definition")
+                {
+                    cd.GetIEC61360().Definition = cd.GetIEC61360().Definition
+                        ?? new List<Aas.ILangStringDefinitionTypeIec61360>();
+                    cd.GetIEC61360().Definition.Add(
+                        new LangStringDefinitionTypeIec61360(langCode, commit(cell)));
+                }
+            }
+            else
+            {
+                // parse into individual langauge strings
+                if (preset == "description")
+                    cd.Description = ExtendLangStringSet.Parse<Aas.LangStringTextType>(
+                        commit(cell), (lng, txt) => new Aas.LangStringTextType(lng, txt))
+                        .Cast<Aas.ILangStringTextType>().ToList();
+
+                if (preset == "displayName")
+                    cd.DisplayName = ExtendLangStringSet.Parse<Aas.LangStringNameType>(
+                        commit(cell), (lng, txt) => new Aas.LangStringNameType(lng, txt))
+                        .Cast<Aas.ILangStringNameType>().ToList();
+
+                if (preset == "preferredName")
+                    cd.GetIEC61360().PreferredName = ExtendLangStringSet.Parse<Aas.LangStringPreferredNameTypeIec61360>(
+                        commit(cell), (lng, txt) => new Aas.LangStringPreferredNameTypeIec61360(lng, txt))
+                        .Cast<Aas.ILangStringPreferredNameTypeIec61360>().ToList();
+
+                if (preset == "shortName")
+                    cd.GetIEC61360().ShortName = ExtendLangStringSet.Parse<Aas.LangStringShortNameTypeIec61360>(
+                        commit(cell), (lng, txt) => new Aas.LangStringShortNameTypeIec61360(lng, txt))
+                        .Cast<Aas.ILangStringShortNameTypeIec61360>().ToList();
+
+                if (preset == "definition")
+                    cd.GetIEC61360().Definition = ExtendLangStringSet.Parse<Aas.LangStringDefinitionTypeIec61360>(
+                        commit(cell), (lng, txt) => new Aas.LangStringDefinitionTypeIec61360(lng, txt))
+                        .Cast<Aas.ILangStringDefinitionTypeIec61360>().ToList();
+            }
 
             if (preset == "unit")
                 cd.GetIEC61360().Unit = commit(cell);

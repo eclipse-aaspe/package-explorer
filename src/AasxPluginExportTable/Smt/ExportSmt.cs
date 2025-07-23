@@ -330,6 +330,89 @@ namespace AasxPluginExportTable.Smt
             }
         }
 
+        protected void ProcessEnumTables(Aas.IReferenceElement refel)
+        {
+            // access
+            if (_package?.AasEnv == null || refel == null)
+                return;
+
+            // try find target of reference
+            var target = _package?.AasEnv.FindReferableByReference(refel.Value);
+            if (target == null)
+            {
+                _log?.Error("ExportSMT: No target reference for enum-table found in {0}",
+                    refel.GetReference()?.ToStringExtended(1));
+                return;
+            }
+
+            // could be SME or CD
+            Aas.IConceptDescription foundCd = null;
+            if (target is Aas.IConceptDescription cd)
+                foundCd = cd;
+            if (target is Aas.ISubmodelElement sme)
+            {
+                var cd2 = _package?.AasEnv?.FindConceptDescriptionByReference(sme.SemanticId);
+                if (cd2 != null)
+                    foundCd = cd2;
+            }
+            var foundIec = foundCd?.GetIEC61360();
+            if (foundIec == null)
+            {
+                _log?.Error("ExportSMT: No ConceptDescription with IEC61360 for enum-table found in {0}",
+                    refel.GetReference()?.ToStringExtended(1));
+                return;
+            }
+
+            // value list?
+            var vl = foundIec?.ValueList;
+            if (vl?.ValueReferencePairs == null || vl.ValueReferencePairs.Count < 1)
+            {
+                _log?.Error("ExportSMT: No CD.IEC61360.valueList items for enum-table found in {0}",
+                    refel.GetReference()?.ToStringExtended(1));
+                return;
+            }
+
+            // check arguments
+            var q = refel.HasExtensionOfName("ExportSmt.Args");
+            var args = ExportSmtArguments.Parse(q?.Value);
+            var noDesc = args?.noDescription == true;
+
+            // start export
+            _log?.Info("ExportSMT: Starting enum-table export for element {0} ..",
+                refel.GetReference()?.ToStringExtended(1));
+
+            // overall start
+            _adoc.AppendLine("");
+            _adoc.AppendLine("[grid=rows]");
+            _adoc.AppendLine("|===");
+            _adoc.AppendLine($"|Value |ValueId {(noDesc ? "" : "|Description")}");
+            _adoc.AppendLine("");
+
+            // rows = valuelist items
+            foreach (var vrp in vl.ValueReferencePairs)
+            {
+                // first two cols
+                _adoc.AppendLine($"|{vrp.Value} ");
+                _adoc.AppendLine($"|{vrp.ValueId?.Keys?.ToStringExtended(format:2, delimiter:"/")} ");
+
+                // find CD with more fine details?
+                if (!noDesc)
+                {
+                    var cdf = _package?.AasEnv?.FindConceptDescriptionByReference(vrp.ValueId);
+                    var details = "" + cdf?.Description?.GetDefaultString();
+                    _adoc.AppendLine($"|{(details?.HasContent() == true ? details : "-")} ");
+                }
+
+                // row wrap around
+                _adoc.AppendLine("");
+            }
+
+            // overall end
+            _adoc.AppendLine("");
+            _adoc.AppendLine("|===");
+            _adoc.AppendLine("");
+        }
+
         public void ExportSmtToFile(
             LogInstance log,
             AnyUiContextPlusDialogs displayContext,
@@ -443,6 +526,8 @@ namespace AasxPluginExportTable.Smt
                         ProcessUml(refel);
                     if (semId.Matches(defs.CD_GenerateTables.GetCdReference(), mm))
                         ProcessTables(refel);
+                    if (semId.Matches(defs.CD_GenerateEnum.GetCdReference(), mm))
+                        ProcessEnumTables(refel);
                 }
 
                 // go further on

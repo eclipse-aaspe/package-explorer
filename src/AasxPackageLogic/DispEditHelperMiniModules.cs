@@ -1576,11 +1576,11 @@ namespace AasxPackageLogic
                                     ExtendIDataSpecificationContent.GetReferencForIec61360(),
                                     new Aas.DataSpecificationIec61360(
                                         preferredName: ExtendILangStringPreferredNameTypeIec61360
-                                            .CreateFrom(
-                                                AdminShellUtil.GetDefaultLngIso639(), "" + valuePairs[i].Value),
+                                            .CreateFrom(text: "" + valuePairs[i].Value,
+                                                lang: AdminShellUtil.GetDefaultLngIso639()),
                                         shortName: ExtendILangStringShortNameTypeIec61360
-                                            .CreateFrom(
-                                                AdminShellUtil.GetDefaultLngIso639(), "" + valuePairs[i].Value),
+                                            .CreateFrom(text: "" + valuePairs[i].Value,
+                                                lang: AdminShellUtil.GetDefaultLngIso639()),
                                         definition: ExtendILangStringDefinitionTypeIec61360
                                             .CreateFrom("" + valuePairs[i].Value, 
                                                 lang: AdminShellUtil.GetDefaultLngIso639()),

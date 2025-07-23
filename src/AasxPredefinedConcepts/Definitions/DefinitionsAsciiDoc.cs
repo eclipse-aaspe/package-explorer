@@ -31,7 +31,8 @@ namespace AasxPredefinedConcepts
             CD_Heading4,
             CD_ImageFile,
             CD_GenerateUml,
-            CD_GenerateTables;
+            CD_GenerateTables,
+            CD_GenerateEnum;
 
         public AsciiDoc()
         {
@@ -81,12 +82,17 @@ namespace AasxPredefinedConcepts
             CD_GenerateUml = CreateSparseConceptDescription("en", "IRI",
                 "GenerateUml",
                 "http://admin-shell.io/aasx-package-explorer/functions/asciidoc/generate-uml/1/0",
-                @"Reference element linking to set of AAS elements to create PlantUML for.");
+                @"Reference element linking to a set of AAS elements to create PlantUML for.");
 
             CD_GenerateTables = CreateSparseConceptDescription("en", "IRI",
                 "GenerateTables",
                 "http://admin-shell.io/aasx-package-explorer/functions/asciidoc/generate-tables/1/0",
                 @"Reference element linking to set of AAS elements to create export tabels for.");
+
+            CD_GenerateEnum = CreateSparseConceptDescription("en", "IRI",
+                "GenerateEnumTable",
+                "http://admin-shell.io/aasx-package-explorer/functions/asciidoc/generate-enum-table/1/0",
+                @"Reference element linking to a SubmodelElement or ConceptDescription with associatede value list.");
 
             // reflect
             AddEntriesByReflection(this.GetType(), useAttributes: false, useFieldNames: true);
