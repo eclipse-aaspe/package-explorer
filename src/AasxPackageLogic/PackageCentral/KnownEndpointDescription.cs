@@ -42,7 +42,11 @@ namespace AasxPackageLogic.PackageCentral
         /// <summary>
         /// Interactive entry, e.g. ENTRA id
         /// </summary>
-        InteractiveEntry 
+        InteractiveEntry,
+        /// <summary>
+        /// Client ID and client secret
+        /// </summary>
+        Secret
     }
 
     /// <summary>
@@ -87,6 +91,18 @@ namespace AasxPackageLogic.PackageCentral
         /// If not set, the user will be asked.
         /// </summary>
         public string CertPick = "";
+
+        /// <summary>
+        /// ID information for secret based authentication.
+        /// If empty, the id will be prompted.
+        /// </summary>
+        public string SecretId;
+
+        /// <summary>
+        /// Secret value for secret based authentication.
+        /// If empty, the id will be prompted.
+        /// </summary>
+        public string SecretValue;
 
         /// <summary>
         /// Renew the security credential after a certain period in time in minutes.

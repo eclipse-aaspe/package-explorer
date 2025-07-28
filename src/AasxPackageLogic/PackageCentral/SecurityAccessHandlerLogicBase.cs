@@ -31,6 +31,7 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.RightsManagement;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -196,7 +197,9 @@ namespace AasxPackageExplorer
                                 new AnyUiDialogueListItem("Basic (Username, PW)", SecurityAccessMethod.Basic),
                                 new AnyUiDialogueListItem("Certificate Store", SecurityAccessMethod.CertificateStore),
                                 new AnyUiDialogueListItem("Certificate File", SecurityAccessMethod.File),
-                                new AnyUiDialogueListItem("Interactive by browser", SecurityAccessMethod.InteractiveEntry)
+                                new AnyUiDialogueListItem("Interactive by browser", SecurityAccessMethod.InteractiveEntry),
+                                new AnyUiDialogueListItem("Secret based (e.g OAuth2 Client Credential Flow)", 
+                                        SecurityAccessMethod.Secret)
                             });
 
             // perform dialogue
@@ -281,6 +284,83 @@ namespace AasxPackageExplorer
 
             if (_displayContext != null && await _displayContext.StartFlyoverModalAsync(ucJob))
                 return new Tuple<string, string>(username, password);
+            return null;
+        }
+
+        protected virtual async Task<Tuple<string, string>> AskForClientSecret(string baseAddress, string id, string secret)
+        {
+            var ucJob = new AnyUiDialogueDataModalPanel("Complete client secret data ..");
+            ucJob.ActivateRenderPanel(null,
+                disableScrollArea: false,
+                dialogButtons: AnyUiMessageBoxButton.OK,
+                renderPanel: (uci) =>
+                {
+                    // create panel
+                    var panel = new AnyUiStackPanel();
+                    var helper = new AnyUiSmallWidgetToolkit();
+
+                    var g = helper.AddSmallGrid(25, 2, new[] { "200:", "*" },
+                                padding: new AnyUiThickness(0, 5, 0, 5),
+                                margin: new AnyUiThickness(10, 0, 30, 0));
+
+                    panel.Add(g);
+
+                    // dynamic rows
+                    int row = 0;
+
+                    // Info
+                    helper.Set(
+                        helper.AddSmallLabelTo(g, row, 0, content: $"Intended base address: {baseAddress}"),
+                        colSpan: 2);
+                    row++;
+
+                    // separation
+                    helper.AddSmallBorderTo(g, row, 0,
+                        borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
+                        colSpan: 2,
+                        margin: new AnyUiThickness(0, 0, 0, 20));
+                    row++;
+
+                    // Client ID
+
+                    helper.AddSmallLabelTo(g, row, 0, content: "Client ID:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g, row, 1,
+                                    text: $"{id}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                            (s) => { id = s; });
+
+                    row++;
+
+                    // Secret
+
+                    helper.AddSmallLabelTo(g, row, 0, content: "Client Secret:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g, row, 1,
+                                    text: $"{secret}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                            (s) => { secret = s; });
+
+                    row++;
+
+                    // give back
+                    return g;
+                });
+
+            if (_displayContext != null && await _displayContext.StartFlyoverModalAsync(ucJob))
+                return new Tuple<string, string>(id, secret);
             return null;
         }
 
@@ -483,46 +563,46 @@ namespace AasxPackageExplorer
                 return null;
 
             // some of the methods are handled without connecting to auth-server
-            switch (preferredMethod)
+            if (preferredMethod == SecurityAccessMethod.None)
             {
-                case SecurityAccessMethod.None:
+                // Log
+                Log.Singleton.Info("Security access handler: use no security method.");
 
-                    // Log
-                    Log.Singleton.Info("Security access handler: use no security method.");
+                // null shall be perfectly valid
+                return null;
+            }
 
-                    // null shall be perfectly valid
-                    return null;
+            if (preferredMethod == SecurityAccessMethod.Basic)
+            {
+                // Log
+                Log.Singleton.Info("Security access handler: use method for basic access (username, password).");
 
-                case SecurityAccessMethod.Basic:
+                // get the infos shorter
+                var userName = endpoint.Endpoint.AccessInfo.Username;
+                var PW = endpoint.Endpoint.AccessInfo.Password;
 
-                    // Log
-                    Log.Singleton.Info("Security access handler: use method for basic access (username, password).");
-
-                    // get the infos shorter
-                    var userName = endpoint.Endpoint.AccessInfo.Username;
-                    var PW = endpoint.Endpoint.AccessInfo.Password;
-
-                    // to be completed
-                    if (userName?.HasContent() != true
-                        || PW?.HasContent() != true)
+                // to be completed
+                if (userName?.HasContent() != true
+                    || PW?.HasContent() != true)
+                {
+                    var res = await AskForUsernamePassword(baseAddress, userName, PW);
+                    if (res != null)
                     {
-                        var res = await AskForUsernamePassword(baseAddress, userName, PW);
-                        if (res != null)
-                        {
-                            userName = res.Item1;
-                            PW = res.Item2;
-                        }
+                        userName = res.Item1;
+                        PW = res.Item2;
                     }
+                }
 
-                    // bring together
-                    Log.Singleton.Info($"Security access handler: Forming token for user {userName} " +
-                        $"and provided password of length {PW.Length}.");
-                    var pseudoToken = AdminShellUtil.Base64UrlEncode($"{userName}:{PW}");
+                // bring together
+                Log.Singleton.Info($"Security access handler: Forming token for user {userName} " +
+                    $"and provided password of length {PW.Length}.");
+                var pseudoToken = AdminShellUtil.Base64UrlEncode($"{userName}:{PW}");
 
-                    // build correct header key, remember, return
-                    endpoint.LastRenewed = DateTime.UtcNow;
-                    endpoint.LastHeaderItem = new HttpHeaderDataItem("Authorization", $"Basic {pseudoToken.ToString()}");
-                    return endpoint.LastHeaderItem;
+                // build correct header key, remember, return
+                endpoint.LastRenewed = DateTime.UtcNow;
+                endpoint.LastHeaderItem = new HttpHeaderDataItem("Authorization", $"Basic {pseudoToken.ToString()}");
+                return endpoint.LastHeaderItem;
+
             }
 
             // prepare some variables
@@ -553,9 +633,70 @@ namespace AasxPackageExplorer
                 return null;
             }
 
-            // first request to auth-server: token endpoint
+            // prepare first request to auth-server: token endpoint
             var handler = new HttpClientHandler { DefaultProxyCredentials = CredentialCache.DefaultCredentials };
             var client = new HttpClient(handler);
+
+            // can go with secret approach
+            if (preferredMethod == SecurityAccessMethod.Secret)
+            {
+                // Log
+                Log.Singleton.Info("Security access handler: use method for secret (client id, client secret).");
+
+                // get the infos shorter
+                var id = endpoint.Endpoint.AccessInfo.SecretId;
+                var secret = endpoint.Endpoint.AccessInfo.SecretValue;
+
+                // to be completed
+                if (id?.HasContent() != true
+                    || secret?.HasContent() != true)
+                {
+                    var res = await AskForClientSecret(baseAddress, id, secret);
+                    if (res != null)
+                    {
+                        id = res.Item1;
+                        secret = res.Item2;
+                    }
+                }
+
+                var secretRequest = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, authConfigUrl);
+                secretRequest.Headers.Add("Accept", "application/json");
+
+                secretRequest.Content = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("grant_type", "client_credentials"),
+                    new KeyValuePair<string, string>("client_id", id),
+                    new KeyValuePair<string, string>("client_secret", secret)
+                });
+
+                var secretResponse = await client.SendAsync(secretRequest);
+                var secretContentStr = await secretResponse.Content.ReadAsStringAsync();
+
+                if (secretContentStr?.HasContent() != true)
+                {
+                    Log.Singleton.Info($"Security access handler: Empty answer for secret! .. aborting and using no security.");
+                    return null;
+                }
+
+                // de-compose JSON object
+                Log.Singleton.Info($"Security access handler: Decomposing content for 'access_token' ..");
+                var secretContentJson = JObject.Parse(secretContentStr);
+                if (!AdminShellUtil.DynamicHasProperty(secretContentJson, "access_token"))
+                {
+                    Log.Singleton.Info($"Security access handler: No 'access_token' found .. aborting and using no security.");
+                    return null;
+                }
+
+                var secretAccessToken = secretContentJson["access_token"].ToString();
+                Log.Singleton.Info($"Security access handler: Found 'access_token': {secretAccessToken}");
+
+                // build correct header key, remember, return
+                endpoint.LastRenewed = DateTime.UtcNow;
+                endpoint.LastHeaderItem = new HttpHeaderDataItem("Authorization", $"Bearer {secretAccessToken.ToString()}");
+                return endpoint.LastHeaderItem;
+            }
+
+            // continue normal auth-request
             var configJson = "";
             try
             {
@@ -569,6 +710,7 @@ namespace AasxPackageExplorer
                 return null;
             }
 
+            // get the endpoint information
             var configAuthEndpoint = System.Text.Json.JsonDocument.Parse(configJson);
 
             var tokenEndpoint = "";
@@ -582,191 +724,188 @@ namespace AasxPackageExplorer
             Log.Singleton.Info($"Security access handler: Get endpoint {tokenEndpoint}");
 
             // other methods are dependent on auth-server
-            switch (preferredMethod)
+            if (preferredMethod == SecurityAccessMethod.CertificateStore)
             {
-                case SecurityAccessMethod.CertificateStore:
+                // Log
+                Log.Singleton.Info("Security access handler: Use certificate store.");
 
-                    // Log
-                    Log.Singleton.Info("Security access handler: Use certificate store.");
-
-                    // load root certs from auth-server
-                    List<string> rootCertSubjects = new List<string>();
-                    if (configAuthEndpoint.RootElement.TryGetProperty("rootCertSubjects", out System.Text.Json.JsonElement rootCerts))
+                // load root certs from auth-server
+                List<string> rootCertSubjects = new List<string>();
+                if (configAuthEndpoint.RootElement.TryGetProperty("rootCertSubjects", out System.Text.Json.JsonElement rootCerts))
+                {
+                    foreach (var subject in rootCerts.EnumerateArray())
                     {
-                        foreach (var subject in rootCerts.EnumerateArray())
+                        var s = subject.GetString();
+                        if (s != null)
                         {
-                            var s = subject.GetString();
-                            if (s != null)
+                            rootCertSubjects.Add(s);
+                        }
+                    }
+                }
+
+                Log.Singleton.Info($"Security access handler: Found {rootCertSubjects.Count} root certificates in question.");
+
+                // access X509 store (user certificates)
+                X509Store store = new X509Store("MY", StoreLocation.CurrentUser);
+                store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
+
+                X509Certificate2Collection collection = (X509Certificate2Collection)store.Certificates;
+                X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(
+                    X509FindType.FindByTimeValid, DateTime.Now, false);
+
+                Log.Singleton.Info($"Security access handler: Found {fcollection.Count} user certificates in question.");
+
+                // get user certificate chain
+                Boolean rootCertFound = false;
+                X509Certificate2Collection fcollection2 = new X509Certificate2Collection();
+                foreach (X509Certificate2 fc in fcollection)
+                {
+                    X509Chain fch = new X509Chain();
+                    fch.Build(fc);
+                    foreach (X509ChainElement element in fch.ChainElements)
+                    {
+                        if (rootCertSubjects.Contains(element.Certificate.Subject))
+                        {
+                            rootCertFound = true;
+                            fcollection2.Add(fc);
+                        }
+                    }
+                }
+                if (rootCertFound)
+                    fcollection = fcollection2;
+
+                Log.Singleton.Info($"Security access handler: Found root certificate {rootCertFound}.");
+
+                // let user choose certificate 
+                X509Certificate2Collection scollection = null;
+
+                // try to auto-pick
+                if (endpoint.Endpoint.AccessInfo.CertPick?.HasContent() == true
+                    && endpoint.Endpoint.AccessInfo.CertPick.Length >= 3)
+                {
+                    Log.Singleton.Info($"Security access handler: Try select user certificate with " +
+                        $"pick pattern of length {endpoint.Endpoint.AccessInfo.CertPick.Length} ..");
+
+                    if (fcollection != null)
+                        foreach (var cert in fcollection)
+                            if (true == cert?.Issuer?.Contains(endpoint.Endpoint.AccessInfo.CertPick))
                             {
-                                rootCertSubjects.Add(s);
+                                Log.Singleton.Info($"Security access handler: " +
+                                    $"User certificate selected: {cert.Issuer} {cert.NotAfter.ToShortDateString()}");
+                                scollection = new X509Certificate2Collection(cert);
+                                break;
                             }
-                        }
+                }
+
+                // ask the user
+                if (scollection?.FirstOrDefault() == null)
+                {
+                    Log.Singleton.Info($"Security access handler: User certificate still unclear. Asking user ..");
+                    scollection = await AskForSelectFromCertCollection(baseAddress, fcollection);
+                }
+
+                if (scollection?.FirstOrDefault() == null)
+                {
+                    Log.Singleton.Info(StoredPrint.Color.Blue,
+                        "For accessing {0}, no valid certificate could be provided. Using no security!", baseAddress);
+                    return null;
+                }
+                Log.Singleton.Info($"Security access handler: User certificate selected. " +
+                        $"Issued by: {scollection.FirstOrDefault()?.Issuer}");
+
+                // build BASE64 certificate chain
+                Log.Singleton.Info($"Security access handler: Building BASE64 certificate chain ..");
+                if (scollection.Count != 0)
+                {
+                    certificate = scollection[0];
+                    X509Chain ch = new X509Chain();
+                    ch.Build(certificate);
+
+                    string[] X509Base64 = new string[ch.ChainElements.Count];
+
+                    int j = 0;
+                    foreach (X509ChainElement element in ch.ChainElements)
+                    {
+                        X509Base64[j++] = Convert.ToBase64String(element.Certificate.GetRawCertData());
                     }
 
-                    Log.Singleton.Info($"Security access handler: Found {rootCertSubjects.Count} root certificates in question.");
+                    x5c = X509Base64;
+                }
+            }
+            else if (preferredMethod == SecurityAccessMethod.File)
+            {
 
-                    // access X509 store (user certificates)
-                    X509Store store = new X509Store("MY", StoreLocation.CurrentUser);
-                    store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
+                // Log
+                Log.Singleton.Info("Security access handler: use method for certificate file.");
 
-                    X509Certificate2Collection collection = (X509Certificate2Collection)store.Certificates;
-                    X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(
-                        X509FindType.FindByTimeValid, DateTime.Now, false);
+                // get the infos shorter
+                var certFn = endpoint.Endpoint.AccessInfo.CertFile;
+                var PW = endpoint.Endpoint.AccessInfo.CertPassword;
 
-                    Log.Singleton.Info($"Security access handler: Found {fcollection.Count} user certificates in question.");
-
-                    // get user certificate chain
-                    Boolean rootCertFound = false;
-                    X509Certificate2Collection fcollection2 = new X509Certificate2Collection();
-                    foreach (X509Certificate2 fc in fcollection)
+                // to be completed
+                if (certFn?.HasContent() != true
+                    || PW?.HasContent() != true)
+                {
+                    var res = await AskForCertFileAndPassword(baseAddress, certFn, PW);
+                    if (res != null)
                     {
-                        X509Chain fch = new X509Chain();
-                        fch.Build(fc);
-                        foreach (X509ChainElement element in fch.ChainElements)
-                        {
-                            if (rootCertSubjects.Contains(element.Certificate.Subject))
-                            {
-                                rootCertFound = true;
-                                fcollection2.Add(fc);
-                            }
-                        }
+                        certFn = res.Item1;
+                        PW = res.Item2;
                     }
-                    if (rootCertFound)
-                        fcollection = fcollection2;
+                }
 
-                    Log.Singleton.Info($"Security access handler: Found root certificate {rootCertFound}.");
+                if (!System.IO.File.Exists(certFn))
+                {
+                    Log.Singleton.Info(StoredPrint.Color.Blue,
+                        "For accessing {0}, no valid certificate could be provided. Using no security!", baseAddress);
+                    return null;
+                }
 
-                    // let user choose certificate 
-                    X509Certificate2Collection scollection = null;
+                try
+                {
 
-                    // try to auto-pick
-                    if (endpoint.Endpoint.AccessInfo.CertPick?.HasContent() == true
-                        && endpoint.Endpoint.AccessInfo.CertPick.Length >= 3)
-                    {
-                        Log.Singleton.Info($"Security access handler: Try select user certificate with " +
-                            $"pick pattern of length {endpoint.Endpoint.AccessInfo.CertPick.Length} ..");
+                    // load the certificate
+                    Log.Singleton.Info($"Security access handler: Try loading certificate {certFn} " +
+                            $"with given password of length {PW.Length} ..");
+                    certificate = new X509Certificate2(certFn, PW);
+                    Log.Singleton.Info($"Security access handler: Certificate loaded. Issue: {certificate?.Issuer}");
 
-                        if (fcollection != null )
-                            foreach (var cert in  fcollection)
-                                if (true == cert?.Issuer?.Contains(endpoint.Endpoint.AccessInfo.CertPick))
-                                {
-                                    Log.Singleton.Info($"Security access handler: " +
-                                        $"User certificate selected: {cert.Issuer} {cert.NotAfter.ToShortDateString()}");
-                                    scollection = new X509Certificate2Collection(cert);
-                                    break;
-                                }
-                    }
+                    // Zertifikatskette vorbereiten
+                    Log.Singleton.Info($"Security access handler: Try preparing the certificate chain ..");
+                    var chain = new X509Certificate2Collection();
+                    chain.Import(certFn, PW);
+                    x5c = chain.Cast<X509Certificate2>().Reverse().Select(c => Convert.ToBase64String(c.RawData)).ToArray();
 
-                    // ask the user
-                    if (scollection?.FirstOrDefault() == null)
-                    {
-                        Log.Singleton.Info($"Security access handler: User certificate still unclear. Asking user ..");
-                        scollection = await AskForSelectFromCertCollection(baseAddress, fcollection);
-                    }
+                } catch (Exception ex)
+                {
+                    Log.Singleton.Error(ex, $"when building certificate chain for certificate file {certFn}. " +
+                        $"Aborting. Using no security!");
+                    return null;
+                }
 
-                    if (scollection?.FirstOrDefault() == null)
-                    {
-                        Log.Singleton.Info(StoredPrint.Color.Blue,
-                            "For accessing {0}, no valid certificate could be provided. Using no security!", baseAddress);
-                        return null;
-                    }
-                    Log.Singleton.Info($"Security access handler: User certificate selected. " +
-                            $"Issued by: {scollection.FirstOrDefault()?.Issuer}");
+            }
+            else if (preferredMethod == SecurityAccessMethod.InteractiveEntry)
+            { 
+              
+                // test tenant for ENTRA id
+                // TODO: configure clientId
+                var tenant = "common"; // Damit auch externe Konten wie @live.de funktionieren
+                var clientId = "865f6ac0-cdbc-44c6-98cc-3e35c39ecb6e"; // aus der App-Registrierung
+                var scopes = new[] { "openid", "profile", "email" }; // für ID Token im JWT-Format
 
-                    // build BASE64 certificate chain
-                    Log.Singleton.Info($"Security access handler: Building BASE64 certificate chain ..");
-                    if (scollection.Count != 0)
-                    {
-                        certificate = scollection[0];
-                        X509Chain ch = new X509Chain();
-                        ch.Build(certificate);
+                // let Windows start a browser to select 
+                var app = PublicClientApplicationBuilder
+                    .Create(clientId)
+                    .WithAuthority(AzureCloudInstance.AzurePublic, tenant)
+                    .WithDefaultRedirectUri()             // entspricht http://localhost
+                    .Build();
 
-                        string[] X509Base64 = new string[ch.ChainElements.Count];
+                var result = await app
+                    .AcquireTokenInteractive(scopes)
+                    .WithPrompt(Microsoft.Identity.Client.Prompt.SelectAccount)
+                    .ExecuteAsync();
 
-                        int j = 0;
-                        foreach (X509ChainElement element in ch.ChainElements)
-                        {
-                            X509Base64[j++] = Convert.ToBase64String(element.Certificate.GetRawCertData());
-                        }
-
-                        x5c = X509Base64;
-                    }
-                    break;
-
-                case SecurityAccessMethod.File:
-
-                    // Log
-                    Log.Singleton.Info("Security access handler: use method for certificate file.");
-
-                    // get the infos shorter
-                    var certFn = endpoint.Endpoint.AccessInfo.CertFile;
-                    var PW = endpoint.Endpoint.AccessInfo.CertPassword;
-
-                    // to be completed
-                    if (certFn?.HasContent() != true
-                        || PW?.HasContent() != true)
-                    {
-                        var res = await AskForCertFileAndPassword(baseAddress, certFn, PW);
-                        if (res != null)
-                        {
-                            certFn = res.Item1;
-                            PW = res.Item2;
-                        }
-                    }
-
-                    if (!System.IO.File.Exists(certFn))
-                    {
-                        Log.Singleton.Info(StoredPrint.Color.Blue,
-                            "For accessing {0}, no valid certificate could be provided. Using no security!", baseAddress);
-                        return null;
-                    }
-
-                    try
-                    {
-
-                        // load the certificate
-                        Log.Singleton.Info($"Security access handler: Try loading certificate {certFn} " +
-                                $"with given password of length {PW.Length} ..");
-                        certificate = new X509Certificate2(certFn, PW);
-                        Log.Singleton.Info($"Security access handler: Certificate loaded. Issue: {certificate?.Issuer}");
-
-                        // Zertifikatskette vorbereiten
-                        Log.Singleton.Info($"Security access handler: Try preparing the certificate chain ..");
-                        var chain = new X509Certificate2Collection();
-                        chain.Import(certFn, PW);
-                        x5c = chain.Cast<X509Certificate2>().Reverse().Select(c => Convert.ToBase64String(c.RawData)).ToArray();
-
-                    } catch (Exception ex)
-                    {
-                        Log.Singleton.Error(ex, $"when building certificate chain for certificate file {certFn}. " +
-                            $"Aborting. Using no security!");
-                        return null;
-                    }
-
-                    break;
-
-                case SecurityAccessMethod.InteractiveEntry:
-
-                    // test tenant for ENTRA id
-                    // TODO: configure clientId
-                    var tenant = "common"; // Damit auch externe Konten wie @live.de funktionieren
-                    var clientId = "865f6ac0-cdbc-44c6-98cc-3e35c39ecb6e"; // aus der App-Registrierung
-                    var scopes = new[] { "openid", "profile", "email" }; // für ID Token im JWT-Format
-
-                    // let Windows start a browser to select 
-                    var app = PublicClientApplicationBuilder
-                        .Create(clientId)
-                        .WithAuthority(AzureCloudInstance.AzurePublic, tenant)
-                        .WithDefaultRedirectUri()             // entspricht http://localhost
-                        .Build();
-
-                    var result = await app
-                        .AcquireTokenInteractive(scopes)
-                        .WithPrompt(Microsoft.Identity.Client.Prompt.SelectAccount)
-                        .ExecuteAsync();
-
-                    entraid = result.IdToken;
-                    break;
+                entraid = result.IdToken;
             }
 
             if (entraid == "")
