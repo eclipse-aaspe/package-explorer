@@ -36,6 +36,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 using Aas = AasCore.Aas3_0;
 
 namespace AasxPackageExplorer
@@ -196,7 +197,8 @@ namespace AasxPackageExplorer
                                 new AnyUiDialogueListItem("Basic (Username, PW)", SecurityAccessMethod.Basic),
                                 new AnyUiDialogueListItem("Certificate Store", SecurityAccessMethod.CertificateStore),
                                 new AnyUiDialogueListItem("Certificate File", SecurityAccessMethod.File),
-                                new AnyUiDialogueListItem("Interactive by browser", SecurityAccessMethod.InteractiveEntry)
+                                new AnyUiDialogueListItem("Interactive by browser", SecurityAccessMethod.InteractiveEntry),
+                                new AnyUiDialogueListItem("CLient ID and Secret", SecurityAccessMethod.Secret),
                             });
 
             // perform dialogue
@@ -281,6 +283,82 @@ namespace AasxPackageExplorer
 
             if (_displayContext != null && await _displayContext.StartFlyoverModalAsync(ucJob))
                 return new Tuple<string, string>(username, password);
+            return null;
+        }
+        protected virtual async Task<Tuple<string, string>> AskForClientSecret(string baseAddress, string id, string secret)
+        {
+            var ucJob = new AnyUiDialogueDataModalPanel("Complete client secret data ..");
+            ucJob.ActivateRenderPanel(null,
+                disableScrollArea: false,
+                dialogButtons: AnyUiMessageBoxButton.OK,
+                renderPanel: (uci) =>
+                {
+                    // create panel
+                    var panel = new AnyUiStackPanel();
+                    var helper = new AnyUiSmallWidgetToolkit();
+
+                    var g = helper.AddSmallGrid(25, 2, new[] { "200:", "*" },
+                                padding: new AnyUiThickness(0, 5, 0, 5),
+                                margin: new AnyUiThickness(10, 0, 30, 0));
+
+                    panel.Add(g);
+
+                    // dynamic rows
+                    int row = 0;
+
+                    // Info
+                    helper.Set(
+                        helper.AddSmallLabelTo(g, row, 0, content: $"Intended base address: {baseAddress}"),
+                        colSpan: 2);
+                    row++;
+
+                    // separation
+                    helper.AddSmallBorderTo(g, row, 0,
+                        borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
+                        colSpan: 2,
+                        margin: new AnyUiThickness(0, 0, 0, 20));
+                    row++;
+
+                    // Client ID
+
+                    helper.AddSmallLabelTo(g, row, 0, content: "Client ID:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g, row, 1,
+                                    text: $"{id}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                            (s) => { id = s; });
+
+                    row++;
+
+                    // Secret
+
+                    helper.AddSmallLabelTo(g, row, 0, content: "Client Secret:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g, row, 1,
+                                    text: $"{secret}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                            (s) => { secret = s; });
+
+                    row++;
+
+                    // give back
+                    return g;
+                });
+
+            if (_displayContext != null && await _displayContext.StartFlyoverModalAsync(ucJob))
+                return new Tuple<string, string>(id, secret);
             return null;
         }
 
@@ -521,7 +599,7 @@ namespace AasxPackageExplorer
 
                     // build correct header key, remember, return
                     endpoint.LastRenewed = DateTime.UtcNow;
-                    endpoint.LastHeaderItem = new HttpHeaderDataItem("Authentification", $"Basic {pseudoToken.ToString()}");
+                    endpoint.LastHeaderItem = new HttpHeaderDataItem("Authorization", $"Basic {pseudoToken.ToString()}");
                     return endpoint.LastHeaderItem;
             }
 
@@ -553,9 +631,71 @@ namespace AasxPackageExplorer
                 return null;
             }
 
+            System.Text.Json.JsonDocument configAuthEndpoint = null;
+            var tokenEndpoint = "";
+            var contentStr = "";
+            JObject contentJson = null;
+            var accessToken = "";
+            HttpRequestMessage request = null;
+            HttpResponseMessage response = null;
+
             // first request to auth-server: token endpoint
             var handler = new HttpClientHandler { DefaultProxyCredentials = CredentialCache.DefaultCredentials };
             var client = new HttpClient(handler);
+
+            if (preferredMethod == SecurityAccessMethod.Secret)
+            {
+                // Log
+                Log.Singleton.Info("Security access handler: use method for secret (client id, client secret).");
+
+                // get the infos shorter
+                var id = endpoint.Endpoint.AccessInfo.id;
+                var secret = endpoint.Endpoint.AccessInfo.secret;
+
+                // to be completed
+                if (id?.HasContent() != true
+                    || secret?.HasContent() != true)
+                {
+                    var res = await AskForClientSecret(baseAddress, id, secret);
+                    if (res != null)
+                    {
+                        id = res.Item1;
+                        secret = res.Item2;
+                    }
+                }
+
+                request = new HttpRequestMessage(HttpMethod.Post, authConfigUrl);
+                request.Headers.Add("Accept", "application/json");
+
+                var content = new FormUrlEncodedContent(new[]
+                {
+                        new KeyValuePair<string, string>("grant_type", "client_credentials"),
+                        new KeyValuePair<string, string>("client_id", id),
+                        new KeyValuePair<string, string>("client_secret", secret)
+                    });
+
+                request.Content = content;
+
+                response = await client.SendAsync(request);
+                contentStr = await response.Content.ReadAsStringAsync();
+
+                // de-compose JSON object
+                Log.Singleton.Info($"Security access handler: Decomposing content for 'access_token' ..");
+                contentJson = JObject.Parse(contentStr);
+                if (!AdminShellUtil.DynamicHasProperty(contentJson, "access_token"))
+                {
+                    Log.Singleton.Info($"Security access handler: No 'access_token' found .. aborting and using no security.");
+                    return null;
+                }
+                accessToken = contentJson["access_token"].ToString();
+                Log.Singleton.Info($"Security access handler: Found 'access_token': {accessToken}");
+
+                // build correct header key, remember, return
+                endpoint.LastRenewed = DateTime.UtcNow;
+                endpoint.LastHeaderItem = new HttpHeaderDataItem("Authorization", $"Bearer {accessToken.ToString()}");
+                return endpoint.LastHeaderItem;
+            }
+
             var configJson = "";
             try
             {
@@ -569,17 +709,19 @@ namespace AasxPackageExplorer
                 return null;
             }
 
-            var configAuthEndpoint = System.Text.Json.JsonDocument.Parse(configJson);
-
-            var tokenEndpoint = "";
-            if (configAuthEndpoint.RootElement.TryGetProperty("token_endpoint", out var str))
-                tokenEndpoint = str.GetString();
-            else
+            if (preferredMethod != SecurityAccessMethod.Secret)
             {
-                Log.Singleton.Info($"Security access handler: No 'token_endpoint' found .. aborting and using no security.");
-                return null;
+                configAuthEndpoint = System.Text.Json.JsonDocument.Parse(configJson);
+
+                if (configAuthEndpoint.RootElement.TryGetProperty("token_endpoint", out var str))
+                    tokenEndpoint = str.GetString();
+                else
+                {
+                    Log.Singleton.Info($"Security access handler: No 'token_endpoint' found .. aborting and using no security.");
+                    return null;
+                }
+                Log.Singleton.Info($"Security access handler: Get endpoint {tokenEndpoint}");
             }
-            Log.Singleton.Info($"Security access handler: Get endpoint {tokenEndpoint}");
 
             // other methods are dependent on auth-server
             switch (preferredMethod)
@@ -838,7 +980,7 @@ namespace AasxPackageExplorer
 
             // token request to auth-server
             Log.Singleton.Info($"Security access handler: Building second request for authentification server ..");
-            var request = new HttpRequestMessage(HttpMethod.Post, tokenEndpoint)
+            request = new HttpRequestMessage(HttpMethod.Post, tokenEndpoint)
             {
                 Content = new FormUrlEncodedContent(new Dictionary<string, string>
                 {
@@ -851,20 +993,20 @@ namespace AasxPackageExplorer
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
 
             // second request to auth-server: get token
-            var response = await client.SendAsync(request);
+            response = await client.SendAsync(request);
             Log.Singleton.Info($"Security access handler: Response of authentification server is: {response.StatusCode}");
-            var contentStr = await response.Content.ReadAsStringAsync();
+            contentStr = await response.Content.ReadAsStringAsync();
             Log.Singleton.Info("Security access handler: Response of authentification content is: {0}", contentStr);
 
             // de-compose JSON object
             Log.Singleton.Info($"Security access handler: Decomposing content for 'access_token' ..");
-            var contentJson = JObject.Parse(contentStr);
+            contentJson = JObject.Parse(contentStr);
             if (!AdminShellUtil.DynamicHasProperty(contentJson, "access_token"))
             {
                 Log.Singleton.Info($"Security access handler: No 'access_token' found .. aborting and using no security.");
                 return null;
             }
-            var accessToken = contentJson["access_token"];
+            accessToken = contentJson["access_token"].ToString();
             Log.Singleton.Info($"Security access handler: Found 'access_token': {accessToken}");
 
             // build correct header key, remember, return
