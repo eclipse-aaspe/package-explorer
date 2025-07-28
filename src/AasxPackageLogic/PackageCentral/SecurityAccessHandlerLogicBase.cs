@@ -521,7 +521,7 @@ namespace AasxPackageExplorer
 
                     // build correct header key, remember, return
                     endpoint.LastRenewed = DateTime.UtcNow;
-                    endpoint.LastHeaderItem = new HttpHeaderDataItem("Authentification", $"Basic {pseudoToken.ToString()}");
+                    endpoint.LastHeaderItem = new HttpHeaderDataItem("Authorization", $"Basic {pseudoToken.ToString()}");
                     return endpoint.LastHeaderItem;
             }
 
