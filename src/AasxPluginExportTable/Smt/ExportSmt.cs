@@ -381,9 +381,13 @@ namespace AasxPluginExportTable.Smt
             _log?.Info("ExportSMT: Starting enum-table export for element {0} ..",
                 refel.GetReference()?.ToStringExtended(1));
 
+            // create link arguments
+            var imgId = AdminShellUtil.FilterFriendlyName(refel.IdShort);
+            var astr = EvalLinkArguments(args, refel);
+
             // overall start
             _adoc.AppendLine("");
-            _adoc.AppendLine("[grid=rows]");
+            _adoc.AppendLine($"[grid=rows, id=\"{imgId}\", {astr}]");
             _adoc.AppendLine("|===");
             _adoc.AppendLine($"|Value |ValueId {(noDesc ? "" : "|Description")}");
             _adoc.AppendLine("");
