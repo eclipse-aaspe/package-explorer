@@ -143,16 +143,21 @@
         {
             "BaseAddress": "https://big.aas-voyager.com/",
             "AccessInfo": {
-                "Method": "CertificateStore", // None, Ask, Basic, CertificateStore, File, InteractiveEntry
+                "Method": "Ask", // None, Ask, Basic, CertificateStore, File, InteractiveEntry
                 "Username": "Bernd",
                 "Password": "",
                 // "Password": "Brot",
                 // "AuthServer": "",
-                "AuthServer": "https://www.admin-shell-io.com/50001/.well-known/openid-configuration",
+                // "AuthServer": "https://www.admin-shell-io.com/50001/.well-known/openid-configuration",
+                "AuthServer": "https://credential.aas-voyager.com/token",
                 "CertFile": "",
                 "CertPassword": "",
-                "CertPick": "GEANT"
-                // "CertPick" :  ""
+                "CertPick": "GEANT",
+                // "CertPick" :  "",
+                // "SecretId": "",
+                "SecretId": "aorzelski@phoenixcontact.com",
+                // "SecretValue": "",
+                "SecretValue": "aorzelski@phoenixcontact.com-secret"
             }
         },
         {
