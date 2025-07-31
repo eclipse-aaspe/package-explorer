@@ -1088,8 +1088,17 @@ namespace AasxPackageLogic
                             object entity2 = cloneEntity((T)item.entity);
                             nextBusObj = entity2;
 
+                            // check if really a duplicate
+                            var treatAsDuplicate = true;
+                            if (parentContainer != null && entity2 is Aas.IIdentifiable ent2idf)
+                            {
+                                treatAsDuplicate = parentContainer.Exists((p) => p.Id?.HasContent() == true
+                                        && p.Id.Trim().ToLower() == ent2idf.Id?.Trim().ToLower());
+                            }
+
                             // make this pseudo-unique
-                            this.MakeNewIdentifiableUnique((T)entity2);
+                            if (treatAsDuplicate)
+                                this.MakeNewIdentifiableUnique((T)entity2);
 
                             // different cases
                             int ndx = -1;

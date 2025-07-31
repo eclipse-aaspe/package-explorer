@@ -191,7 +191,7 @@
 		// check if an item was selected prior
 		if (result && _displayElements?.SelectedItem != null && DialogueData is AnyUiDialogueDataSelectAasEntity ddsae)
 		{
-			var res = ddsae.PrepareResult(_displayElements.SelectedItem, _filterCurrent);
+			var res = ddsae.PrepareResult(_displayElements.SelectedItems, _filterCurrent);
 			EventSession?.EndModal(res);
 		}
 		else

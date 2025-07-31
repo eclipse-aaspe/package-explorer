@@ -1090,6 +1090,23 @@ namespace AasxPackageLogic
             return null;
         }
 
+        public IEnumerable<VisualElementGeneric> SmartSelectAasEntitiesVisualElement(
+            PackageCentral.PackageCentral packages,
+            PackageCentral.PackageCentral.Selector selector,
+            string filter = null)
+        {
+            var uc = new AnyUiDialogueDataSelectAasEntity(
+                caption: "Select entity of AAS ..",
+                selector: selector, filter: filter);
+            uc.MultiSelect = true;
+            this.context.StartFlyoverModal(uc);
+            if (uc.Result && uc.ResultVisualElements != null)
+                return uc.ResultVisualElements;
+
+            return null;
+        }
+
+
         public bool SmartSelectEclassEntity(
             AnyUiDialogueDataSelectEclassEntity.SelectMode mode, ref string resIRDI,
             ref Aas.ConceptDescription resCD)

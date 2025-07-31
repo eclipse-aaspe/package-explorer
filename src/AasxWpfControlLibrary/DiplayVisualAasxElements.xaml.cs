@@ -38,6 +38,7 @@ namespace AasxPackageExplorer
         private bool _lastEditMode = false;
 
         #region Public events and properties
+        
         //
         // Public events and properties
         //
@@ -46,9 +47,20 @@ namespace AasxPackageExplorer
         /// Constant to allow fall-back behaviour of the source code
         /// (basically a define?!)
         /// </summary>
-        public const int MultiSelect = 2;
+        public const int HowToHandleMultiSelect = 2;
 
         public event EventHandler SelectedItemChanged = null;
+
+        protected bool _allowMultiSelect = true;
+
+        /// <summary>
+        /// Is the user able to select multiple elements at once
+        /// </summary>
+        public bool AllowMultiSelect
+        {
+            get { return _allowMultiSelect; }
+            set { _allowMultiSelect = value; }
+        }
 
         // Future use?
         [JetBrains.Annotations.UsedImplicitly]
@@ -58,7 +70,7 @@ namespace AasxPackageExplorer
         {
             get
             {
-                if (MultiSelect != 2 || _selectedItems == null)
+                if (HowToHandleMultiSelect != 2 || _selectedItems == null)
                     return treeViewInner.SelectedItem as VisualElementGeneric;
 
                 // ok, only return definitve results
@@ -254,7 +266,7 @@ namespace AasxPackageExplorer
 
         private void TreeViewInner_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            if (MultiSelect == 1)
+            if (HowToHandleMultiSelect == 1)
                 return;
 
             if (sender != treeViewInner || preventSelectedItemChanged)
@@ -690,7 +702,7 @@ namespace AasxPackageExplorer
         // may kick off the selection of multiple items (referring to 2nd function)
         private void TreeViewInner_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (MultiSelect != 1)
+            if (HowToHandleMultiSelect != 1)
                 return;
 
             // If clicking on the + of the tree
@@ -708,7 +720,7 @@ namespace AasxPackageExplorer
         // Check done to avoid deselecting everything when clicking to drag
         private void TreeViewInner_PreviewMouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (MultiSelect != 1)
+            if (HowToHandleMultiSelect != 1)
                 return;
 
             if (_itemToCheck != null)
@@ -739,7 +751,7 @@ namespace AasxPackageExplorer
         // does the real multi select
         private void SelectedItemChangedHandler(TreeViewItem item)
         {
-            if (MultiSelect != 1)
+            if (HowToHandleMultiSelect != 1)
                 return;
 
             ITreeViewSelectable content = (ITreeViewSelectable)item.Header;
@@ -1036,7 +1048,7 @@ namespace AasxPackageExplorer
             // allow multiple selection
             var toogleActiveItem = true;
             // when control key is pressed
-            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+            if (_allowMultiSelect && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
             {
                 SuppressSelectionChangeNotification(() =>
                 {
@@ -1045,7 +1057,7 @@ namespace AasxPackageExplorer
             }
             else
             // when shift key is pressed
-            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            if (_allowMultiSelect && (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)))
             {
                 SuppressSelectionChangeNotification(() =>
                 {

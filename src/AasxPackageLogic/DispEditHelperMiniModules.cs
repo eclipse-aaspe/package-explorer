@@ -1493,7 +1493,7 @@ namespace AasxPackageLogic
                 // let the user control the number of pairs
                 AddActionPanel(
                     stack, $"{key}:",
-                    new[] { "Add blank", "Add from clipboard", "Add multiple from clipboard", "Delete last" },
+                    new[] { "Add blank", "Add existing", "Add from clipboard", "Add multiple from clipboard", "Delete last" },
                     repo,
                     (buttonNdx) =>
                     {
@@ -1505,6 +1505,38 @@ namespace AasxPackageLogic
                         }
 
                         if (buttonNdx == 1)
+                        {
+                            // NEW TODO
+                            var ves = this.SmartSelectAasEntitiesVisualElement(
+                                    packages, PackageCentral.PackageCentral.Selector.MainAux,
+                                    Aas.Stringification.ToString(Aas.KeyTypes.ConceptDescription));
+
+                            if (ves?.FirstOrDefault() != null)
+                            {
+                                // prep
+                                valuePairs = valuePairs ?? new List<IValueReferencePair>();
+                                if (valuePairs?.Count() == 1 && valuePairs[0].Value?.HasContent() != true)
+                                    valuePairs.RemoveAt(0);
+
+                                // add
+                                foreach (var ve in ves)
+                                    if (ve is VisualElementConceptDescription vecd
+                                        && vecd.theCD != null)
+                                    {
+                                        // actually, idShort will be more suitable than preferred name
+                                        var vstr = "" + vecd.theCD.GetIEC61360().PreferredName.GetDefaultString();
+                                        if (vecd.theCD.IdShort?.HasContent() == true)
+                                            vstr = vecd.theCD.IdShort;
+                                        var vrp = new ValueReferencePair(vstr, vecd.theCD.GetReference());
+                                        valuePairs.Add(vrp);
+                                    }
+
+                                // notify
+                                this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                            }
+                        }
+
+                        if (buttonNdx == 2)
                         {
                             try
                             {
@@ -1522,7 +1554,7 @@ namespace AasxPackageLogic
                             }
                         }
 
-                        if (buttonNdx == 2)
+                        if (buttonNdx == 3)
                         {
                             try
                             {
@@ -1539,7 +1571,7 @@ namespace AasxPackageLogic
                             }
                         }
 
-                        if (buttonNdx == 3)
+                        if (buttonNdx == 4)
                         {
                             if (valuePairs.Count > 0)
                                 valuePairs.RemoveAt(valuePairs.Count - 1);

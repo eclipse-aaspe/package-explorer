@@ -967,8 +967,8 @@ namespace Extensions
         /// <summary>
         /// Tries renaming an Identifiable, specifically: the identification of an Identifiable and
         /// all references to it.
-        /// Currently supported: ConceptDescriptions
-        /// Returns a list of Referables, which were changed or <c>null</c> in case of error
+        /// Currently supported: ConceptDescriptions, Submodels a bit of AAS
+        /// Returns a list of Referables (not de-duplicated), which were changed or <c>null</c> in case of error
         /// </summary>
         public static List<IReferable> RenameIdentifiable<T>(this AasCore.Aas3_0.IEnvironment environment, string oldId, string newId)
             where T : IClass
@@ -992,13 +992,43 @@ namespace Extensions
 
                 // search all SMEs referring to this CD
                 foreach (var sme in environment.FindAllSubmodelElements<ISubmodelElement>(match: (s) =>
-                {
-                    return (s != null && s.SemanticId != null && s.SemanticId.Matches(oldId));
-                }))
+                    (s != null && s.SemanticId != null && s.SemanticId.Matches(oldId))
+                ))
                 {
                     sme.SemanticId.Keys[0].Value = newId;
                     res.Add(sme);
                 }
+
+                foreach (var sme in environment.FindAllSubmodelElements<ISubmodelElement>(match: (s) =>
+                    (s != null && s.SupplementalSemanticIds != null && s.SupplementalSemanticIds.Count() > 0)
+                ))
+                {
+                    foreach (var ssid in sme.SupplementalSemanticIds)
+                        if (ssid?.Matches(oldId) == true)
+                        {
+                            ssid.Keys[0].Value = newId;
+                            res.Add(sme);
+                        }
+                }
+
+                foreach (var sme in environment.FindAllSubmodelElements<IProperty>(match: (s) =>
+                    (s != null && s.ValueId != null && s.ValueId.Matches(oldId))
+                ))
+                {
+                    sme.ValueId.Keys[0].Value = newId;
+                    res.Add(sme);
+                }
+
+                foreach (var cd in environment.AllConceptDescriptions())
+                    if (cd != cdOld && cd.GetIEC61360()?.ValueList?.ValueReferencePairs != null)
+                    {
+                        foreach (var vrp in cd.GetIEC61360().ValueList.ValueReferencePairs)
+                            if (vrp?.ValueId?.Matches(oldId) == true)
+                            {
+                                vrp.ValueId.Keys[0].Value = newId;
+                                res.Add(cd);
+                            }
+                    }
 
                 // seems fine
                 return res;
