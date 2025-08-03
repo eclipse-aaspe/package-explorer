@@ -11,6 +11,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 */
 
 
+using System.Threading.Tasks;
 using AasxPackageLogic;
 
 namespace AasxPackageExplorer
@@ -54,7 +55,9 @@ namespace AasxPackageExplorer
         /// <summary>
         /// For a given visual element, try to select it for the user view.
         /// </summary>
-        bool TrySelectVisualElement(VisualElementGeneric ve, bool? wishExpanded);
+        bool TrySelectVisualElement(VisualElementGeneric ve, bool? wishExpanded, bool specialTreeUpdate = false);
+
+        Task<bool> TrySelectVisualElementAsync(VisualElementGeneric ve, bool? wishExpanded, bool specialTreeUpdate = false);
 
         /// <summary>
         /// Carefully checks and tries to select a tree item which is identified

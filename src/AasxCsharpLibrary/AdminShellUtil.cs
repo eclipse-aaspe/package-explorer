@@ -524,6 +524,31 @@ namespace AdminShellNS
             return src;
         }
 
+        /// <summary>
+        /// Is very strict and filter out everything which is not letter or digit!
+        /// This even applies to underscores!
+        /// Result is a PascalCased string with no whitespace.
+        /// </summary>
+        public static string FullyPascalCase(string str)
+        {
+            var res = new StringBuilder();
+            bool nextUpper = true;
+            foreach (var s in str)
+            {
+                // fully skip everything which is not letter or digit,
+                if (!char.IsLetterOrDigit(s))
+                {
+                    nextUpper = true;
+                    continue;
+                }
+
+                // else add
+                res.Append(nextUpper ? char.ToUpper(s) : s);
+                nextUpper = false;  
+            }
+            return res.ToString();
+        }
+
         public static string GiveRandomIdShort(IReferable rf)
         {
             var sd = rf?.GetSelfDescription();

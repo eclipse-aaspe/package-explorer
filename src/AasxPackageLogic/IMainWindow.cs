@@ -18,6 +18,7 @@ using AdminShellNS;
 using AnyUi;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AasxPackageExplorer
 {
@@ -80,6 +81,11 @@ namespace AasxPackageExplorer
         /// <param name="nextFocusMdo">Focus a new main data object attached to an tree element.</param>
         /// <param name="wishExpanded">If focussing, expand this item.</param>
         void RedrawAllAasxElements(
+            bool keepFocus = false,
+            object nextFocusMdo = null,
+            bool wishExpanded = true);
+
+        Task RedrawAllAasxElementsAsync(
             bool keepFocus = false,
             object nextFocusMdo = null,
             bool wishExpanded = true);

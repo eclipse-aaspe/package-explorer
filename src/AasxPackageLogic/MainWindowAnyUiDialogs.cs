@@ -192,7 +192,7 @@ namespace AasxPackageLogic
                     MainWindow.CheckIfToFlushEvents();
 
                     // as saving changes the structure of pending supplementary files, re-display
-                    MainWindow.RedrawAllAasxElements(keepFocus: true);
+                    await MainWindow.RedrawAllAasxElementsAsync(keepFocus: true);
                 }
                 catch (Exception ex)
                 {

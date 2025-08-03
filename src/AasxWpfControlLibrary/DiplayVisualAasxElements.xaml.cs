@@ -12,10 +12,12 @@ using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using AnyUi;
 using Extensions;
+using NPOI.POIFS.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -158,6 +160,7 @@ namespace AasxPackageExplorer
             if (_selectedItems.Contains(displayedTreeViewLines[0]))
                 _selectedItems.Remove(displayedTreeViewLines[0]);
             EnumVisual(treeViewInner, dataObject);
+            Log.Singleton.Info("TREE:Woodoo()");
             treeViewInner.UpdateLayout();
             FireSelectedItem();
         }
@@ -287,6 +290,7 @@ namespace AasxPackageExplorer
 #if __old_version_of_code
             _selectedItems = new ListOfVisualElementBasic();
 #endif
+            Log.Singleton.Info("TREE:Refresh()");
             treeViewInner.Items.Refresh();
             treeViewInner.UpdateLayout();
             preventSelectedItemChanged = false;
@@ -484,35 +488,316 @@ namespace AasxPackageExplorer
                 FireSelectedItem();
         }
 
-        public bool TrySelectVisualElement(VisualElementGeneric ve, bool? wishExpanded)
+        // proposed by AI
+        public static TreeViewItem FindTreeViewItem(TreeView treeView, object item)
+        {
+            foreach (var obj in treeView.Items)
+            {
+                var tvi = treeView.ItemContainerGenerator.ContainerFromItem(obj) as TreeViewItem;
+                var result = FindTreeViewItem(tvi, item);
+                if (result != null)
+                    return result;
+            }
+            return null;
+        }
+
+        // proposed by AI
+        private static TreeViewItem FindTreeViewItem(TreeViewItem tvi, object item)
+        {
+            if (tvi == null)
+                return null;
+
+            if (tvi.DataContext == item)
+                return tvi;
+
+            if (tvi.DataContext is VisualElementGeneric veg
+                && veg.IsExpanded)
+            {
+                if (veg.Caption.Contains("ConceptDescriptions"))
+                {
+                    ;
+                }
+
+                tvi.IsExpanded = true;
+            }
+
+            tvi.UpdateLayout(); // force children to be generated
+
+            var test = new List<Object>();
+            foreach (var x in tvi.Items)
+                test.Add(x);
+
+            for (int i=0; i<test.Count; i++)
+                if (test[i] is VisualElementConceptDescription vecd
+                    && vecd.Caption?.Contains("Prof") == true)
+                {
+                    ;
+                    var childItem2 = tvi.ItemContainerGenerator.ContainerFromItem(test[i]) as TreeViewItem;
+                }
+
+            foreach (var child in tvi.Items)
+            {
+                var childItem = tvi.ItemContainerGenerator.ContainerFromItem(child) as TreeViewItem;
+
+                if (childItem?.DataContext is VisualElementConceptDescription vecd && 
+                    vecd.Caption?.Contains("Prof") == true)
+                {
+                    ;
+                }
+
+                var result = FindTreeViewItem(childItem, item);
+                if (result != null)
+                    return result;
+            }
+
+            return null;
+        }
+
+        public bool TrySelectVisualElement(
+            VisualElementGeneric ve, bool? wishExpanded,
+            bool specialTreeUpdate = false)
         {
             // access?
             if (ve == null)
                 return false;
 
+            Log.Singleton.Info("TrySelectVisualElement: {0}", ve.Caption);
 
-            if (wishExpanded == true)
+            // suppressed
+            SuppressSelectionChangeNotification(() =>
             {
-                // go upward the tree in order to expand, as well
-                var sii = ve;
-                while (sii != null)
+
+                if (wishExpanded == true)
                 {
-                    sii.IsExpanded = true;
-                    sii = sii.Parent;
+                    _preventExpandedSelect = true;
+                    // go upward the tree in order to expand, as well
+                    var sii = ve;
+                    while (sii != null)
+                    {
+                        sii.IsExpanded = true;
+                        sii = sii.Parent;
+                    }
+                    _preventExpandedSelect = false;
                 }
-            }
-            if (wishExpanded == false)
-                ve.IsExpanded = false;
+                if (wishExpanded == false)
+                    ve.IsExpanded = false;
 
-			// select (but no callback!)
-			SelectSingleVisualElement(ve, preventFireItem: true);
+                // select (but no callback!)
+                var specialUpdateApplied = false;
+                if (specialTreeUpdate)
+                {
+                    // this may also fail because of virtualization? 
+                    // Hopefully it does enough to expand the tree sufficiently.
+                    var treeViewItem = FindTreeViewItem(treeViewInner, ve);
+                    if (treeViewItem != null)
+                    {
+                        SelectSingleVisualElement(ve, preventFireItem: false);
+                        treeViewItem.BringIntoView();
+                        specialUpdateApplied = true;
+                    }
+                }
+                
+                if (!specialUpdateApplied)
+                {
+                    SelectSingleVisualElement(ve, preventFireItem: false);
+                }
 
-			Woodoo(ve);
+                // may try again?
+                if (specialTreeUpdate && !specialUpdateApplied)
+                {
+                    // search again?
+                    var treeViewItem = FindTreeViewItem(treeViewInner, ve);
+                    if (treeViewItem != null)
+                    {
+                        SelectSingleVisualElement(ve, preventFireItem: false);
+                        treeViewItem.BringIntoView();
+                        specialUpdateApplied = true;
+                    }
+                }
+
+                // Woodoo(ve);
+            }); 
 
             this.Refresh();
 
             // OK
             return true;
+        }
+
+        public async Task<bool> TrySelectVisualElementAsync(
+            VisualElementGeneric ve, bool? wishExpanded,
+            bool specialTreeUpdate = false)
+        {
+            await Task.Yield();
+
+            // access?
+            if (ve == null)
+                return false;
+
+            Log.Singleton.Info("TrySelectVisualElement: {0}", ve.Caption);
+
+            // suppressed
+            //SuppressSelectionChangeNotification(() =>
+            //{
+
+                if (wishExpanded == true)
+                {
+                    _preventExpandedSelect = true;
+                    // go upward the tree in order to expand, as well
+                    var sii = ve;
+                    while (sii != null)
+                    {
+                        sii.IsExpanded = true;
+                        sii = sii.Parent;
+                    }
+                    _preventExpandedSelect = false;
+                }
+                if (wishExpanded == false)
+                    ve.IsExpanded = false;
+
+                // select (but no callback!)
+                var specialUpdateApplied = false;
+                if (specialTreeUpdate)
+                {
+                    // this may also fail because of virtualization? 
+                    // Hopefully it does enough to expand the tree sufficiently.
+                    var treeViewItem = FindTreeViewItem(treeViewInner, ve);
+                    if (treeViewItem != null)
+                    {
+                        SelectSingleVisualElement(ve, preventFireItem: false);
+                        treeViewItem.BringIntoView();
+                        specialUpdateApplied = true;
+                    }
+                }
+
+                if (!specialUpdateApplied)
+                {
+                    SelectSingleVisualElement(ve, preventFireItem: false);
+                }
+
+                // may try again?
+                if (specialTreeUpdate && !specialUpdateApplied)
+                {
+                    // be more brutal!
+                    VirtualizingStackPanel.SetIsVirtualizing(treeViewInner, false);
+                    ScrollViewer.SetCanContentScroll(treeViewInner, false);
+
+                    // wait a little
+                    await Task.Delay(300);
+                    treeViewInner.UpdateLayout();
+
+                    // search again?
+                    var treeViewItem = FindTreeViewItem(treeViewInner, ve);
+
+                    if (treeViewItem != null)
+                    {
+                        // SelectSingleVisualElement(ve, preventFireItem: false);
+                        treeViewItem.BringIntoView();
+                        specialUpdateApplied = true;
+                    }
+
+                    // Note: The tree is now NON-VIRTUALIZED, UNTIL Rebuild() is executed
+                    // next time.
+                    // Reason: Setting VIRTUALIZED again will cause the tree to re-position!
+
+                //// wait a little
+                //await Task.Delay(300);
+                //    treeViewInner.UpdateLayout();
+
+                //    // re-enable (fast) virtualization again .. after the UI stabilized
+                //    await Dispatcher.InvokeAsync(() =>
+                //    {
+                //        VirtualizingStackPanel.SetIsVirtualizing(treeViewInner, true);
+                //        ScrollViewer.SetCanContentScroll(treeViewInner, true);
+                //    });
+
+
+            }
+
+                // Woodoo(ve);
+            // });
+
+            this.Refresh();
+
+            // OK
+            return true;
+        }
+
+        /// <summary>
+        /// Select MULTIPLE elements
+        /// </summary>
+        public bool TrySelectVisualElements(ListOfVisualElementBasic ves, bool preventFireItem = false)
+        {
+            // access?
+            if (ves == null)
+                return false;
+
+            // suppressed
+            SuppressSelectionChangeNotification(() =>
+            {
+
+                // step 1 : deselect all
+                foreach (var si in _selectedItems)
+                    si.IsSelected = false;
+                _selectedItems.Clear();
+
+                // step 2 : expand PARENTS
+                foreach (var x in ves)
+                {
+                    var sii = x?.Parent;
+                    while (sii != null)
+                    {
+                        sii.IsExpanded = true;
+                        sii = sii.Parent;
+                    }
+                }
+
+                // step 3 : select
+                foreach (var ve in ves)
+                {
+                    if (ve == null)
+                        continue;
+                    ve.IsSelected = true;
+                    _selectedItems.Add(ve);
+                }
+            });
+
+            // fire
+            if (!preventFireItem)
+                FireSelectedItem();
+
+            Log.Singleton.Info("TREE:TrySelectVisualElements()");
+            treeViewInner.UpdateLayout();
+
+            // OK
+            return true;
+        }
+
+        /// <summary>
+        /// This function cares, that all PARENT ABOVE the visual elements are expanded!!
+        /// </summary>
+        public void TryExpandMainDataObjects(IEnumerable<object> mainObjects, bool preventFireItem = false)
+        {
+            // gather objects
+            var ves = TranslateMainDataObjectsToVisualElements(mainObjects);
+
+            // select
+            TryExpandVisualElements(ves);
+
+            // fire event
+            FireSelectedItem();
+        }
+
+        public void TrySelectMainDataObjects(IEnumerable<object> mainObjects, bool preventFireItem = false)
+        {
+            // gather objects
+            var ves = TranslateMainDataObjectsToVisualElements(mainObjects);
+
+            // select
+            TrySelectVisualElements(ves, preventFireItem);
+
+            // fire event
+            FireSelectedItem();
         }
 
         /// <summary>
@@ -603,6 +888,7 @@ namespace AasxPackageExplorer
 
         public void Clear()
         {
+            Log.Singleton.Info("TREE:Clear()");
             treeViewInner.ItemsSource = null;
             treeViewInner.UpdateLayout();
         }
@@ -613,11 +899,17 @@ namespace AasxPackageExplorer
             bool editMode = false, string filterElementName = null,
             bool lazyLoadingFirst = false,
             int expandModePrimary = 1,
-            int expandModeAux = 0)
+            int expandModeAux = 0,
+            bool doNotSelectFirstItem = false)
         {
             // clear tree
             displayedTreeViewLines.Clear();
             _lastEditMode = editMode;
+            var startTime = DateTime.UtcNow;
+
+            // re-set virtual behaviour?
+            VirtualizingStackPanel.SetIsVirtualizing(treeViewInner, true);
+            ScrollViewer.SetCanContentScroll(treeViewInner, true);
 
             // valid?
             if (packages.MainAvailable)
@@ -668,12 +960,15 @@ namespace AasxPackageExplorer
 
             }
 
+            var deltaMs = (DateTime.UtcNow - startTime).TotalMilliseconds;
+
             // redraw
+            Log.Singleton.Info("TREE:RebuildAasxElements() {0}ms", deltaMs);
             treeViewInner.ItemsSource = displayedTreeViewLines;
             treeViewInner.UpdateLayout();
 
             // select 1st
-            if (displayedTreeViewLines.Count > 0)
+            if (displayedTreeViewLines.Count > 0 && !doNotSelectFirstItem)
                 displayedTreeViewLines[0].IsSelected = true;
         }
 
@@ -911,6 +1206,9 @@ namespace AasxPackageExplorer
             }
         }
 
+        // testwise
+        protected bool _preventExpandedSelect = false;
+
         private void TreeViewInner_Expanded(object sender, RoutedEventArgs e)
         {
             // access and check
@@ -920,7 +1218,8 @@ namespace AasxPackageExplorer
                 return;
 
             // select (but no callback!)
-            SelectSingleVisualElement(ve, preventFireItem: true);
+            if (!_preventExpandedSelect)
+                SelectSingleVisualElement(ve, preventFireItem: true);
 
             // need lazy loading?
             if (!ve.NeedsLazyLoading)
@@ -1039,6 +1338,9 @@ namespace AasxPackageExplorer
         private void TreeViewMutiSelect_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             var treeViewItem = treeViewInner.SelectedItem as VisualElementGeneric;
+
+            Log.Singleton.Info("TreeSelect: " + treeViewItem?.Caption);
+
             if (treeViewItem == null) return;
 
             // prevention completely diables behaviour
@@ -1127,52 +1429,7 @@ namespace AasxPackageExplorer
                 }
             });
 
-            treeViewInner.UpdateLayout();
-
-            // OK
-            return true;
-        }
-
-        public bool TrySelectVisualElements(ListOfVisualElementBasic ves, bool preventFireItem = false)
-        {
-            // access?
-            if (ves == null)
-                return false;
-
-            // suppressed
-            SuppressSelectionChangeNotification(() =>
-            {
-
-                // step 1 : deselect all
-                foreach (var si in _selectedItems)
-                    si.IsSelected = false;
-                _selectedItems.Clear();
-
-                // step 2 : expand PARENTS
-                foreach (var x in ves)
-                {
-                    var sii = x?.Parent;
-                    while (sii != null)
-                    {
-                        sii.IsExpanded = true;
-                        sii = sii.Parent;
-                    }
-                }
-
-                // step 3 : select
-                foreach (var ve in ves)
-                {
-                    if (ve == null)
-                        continue;
-                    ve.IsSelected = true;
-                    _selectedItems.Add(ve);
-                }
-            });
-
-            // fire
-            if (!preventFireItem)
-                FireSelectedItem();
-
+            Log.Singleton.Info("TREE:TryExpandVisualElements()");
             treeViewInner.UpdateLayout();
 
             // OK
@@ -1190,33 +1447,6 @@ namespace AasxPackageExplorer
                         ves.Add(ve);
                 }
             return ves;
-        }
-
-        /// <summary>
-        /// This function cares, that all PARENT ABOVE the visual elements are expanded!!
-        /// </summary>
-        public void TryExpandMainDataObjects(IEnumerable<object> mainObjects, bool preventFireItem = false)
-        {
-            // gather objects
-            var ves = TranslateMainDataObjectsToVisualElements(mainObjects);
-
-            // select
-            TryExpandVisualElements(ves);
-
-            // fire event
-            FireSelectedItem();
-        }
-
-        public void TrySelectMainDataObjects(IEnumerable<object> mainObjects, bool preventFireItem = false)
-        {
-            // gather objects
-            var ves = TranslateMainDataObjectsToVisualElements(mainObjects);
-
-            // select
-            TrySelectVisualElements(ves, preventFireItem);
-
-            // fire event
-            FireSelectedItem();
         }
 
     }

@@ -318,7 +318,14 @@ namespace BlazorUI
         }
 
 
-        public bool TrySelectVisualElement(VisualElementGeneric ve, bool? wishExpanded)
+        // TODO: IMPLEMENT
+        public async Task<bool> TrySelectVisualElementAsync(VisualElementGeneric ve, bool? wishExpanded, bool specialTreeUpdate = false)
+        {
+            await Task.Yield();
+            return false;
+        }
+
+        public bool TrySelectVisualElement(VisualElementGeneric ve, bool? wishExpanded, bool specialTreeUpdate = false)
         {
             // access?
             if (ve == null)

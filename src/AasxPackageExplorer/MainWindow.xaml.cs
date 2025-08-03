@@ -212,24 +212,106 @@ namespace AasxPackageExplorer
             // rebuild middle section
             DisplayElements.RebuildAasxElements(
                 PackageCentral, PackageCentral.Selector.Main, MainMenu?.IsChecked("EditMenu") == true,
-                lazyLoadingFirst: true);
+                // MIHO TODO: set to "true" after testing!
+                lazyLoadingFirst: false,
+                doNotSelectFirstItem: keepFocus);
 
-            // ok .. try re-focus!!
-            if (keepFocus)
-            {
-                // make sure that Submodel is expanded
-                this.DisplayElements.ExpandAllItems();
-
-                // still proceed?
-                var veFound = this.DisplayElements.SearchVisualElementOnMainDataObject(focusMdo,
-                        alsoDereferenceObjects: true);
-
-                if (veFound != null)
-                    DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true);
-            }
-
-            // display again
             DisplayElements.Refresh();
+
+            // according to AI, give the UI first time internally rebuild the items
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+
+                // ok .. try re-focus!!
+                if (keepFocus)
+                {
+                    // make sure that Submodel is expanded
+                    this.DisplayElements.ExpandAllItems();
+
+                    // still proceed?
+                    var veFound = this.DisplayElements.SearchVisualElementOnMainDataObject(focusMdo,
+                            alsoDereferenceObjects: true);
+
+                    if (veFound != null)
+                    {
+                        DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true, 
+                            specialTreeUpdate: true);
+                    }
+                }
+
+                // display again
+                DisplayElements.Refresh();
+
+            }), DispatcherPriority.Background);
+
+#if _log_times
+            Log.Singleton.Info("Time 90 is: " + DateTime.Now.ToString("hh:mm:ss.fff"));
+#endif
+        }
+
+        /// <summary>
+        /// Redraw window title, AAS info?, entity view (right), element tree (middle)
+        /// </summary>
+        /// <param name="keepFocus">Try remember which element was focussed and focus it after redrawing.</param>
+        /// <param name="nextFocusMdo">Focus a new main data object attached to an tree element.</param>
+        /// <param name="wishExpanded">If focussing, expand this item.</param>
+        public async Task RedrawAllAasxElementsAsync(bool keepFocus = false,
+            object nextFocusMdo = null,
+            bool wishExpanded = true)
+        {
+            // focus info
+            var focusMdo = DisplayElements.SelectedItem?.GetDereferencedMainDataObject();
+
+            var t = "AASX Package Explorer V3.0";
+            //TODO (jtikekar, 0000-00-00): remove V3RC02
+            if (PackageCentral.MainAvailable)
+                t += " - " + PackageCentral.MainItem.ToString();
+            if (PackageCentral.AuxAvailable)
+                t += " (auxiliary AASX: " + PackageCentral.AuxItem.ToString() + ")";
+            this.Title = t;
+
+#if _log_times
+            Log.Singleton.Info("Time 10 is: " + DateTime.Now.ToString("hh:mm:ss.fff"));
+#endif
+
+            // clear the right section, first (might be rebuild by callback from below)
+            DispEditEntityPanel.ClearDisplayDefaultStack();
+            TakeOverContentEnable(false);
+
+            // rebuild middle section
+            DisplayElements.RebuildAasxElements(
+                PackageCentral, PackageCentral.Selector.Main, MainMenu?.IsChecked("EditMenu") == true,
+                // MIHO TODO: set to "true" after testing!
+                lazyLoadingFirst: false,
+                doNotSelectFirstItem: keepFocus);
+
+            DisplayElements.Refresh();
+
+            // according to AI, give the UI first time internally rebuild the items
+            await Dispatcher.BeginInvoke(new Action(async () =>
+            {
+
+                // ok .. try re-focus!!
+                if (keepFocus)
+                {
+                    // make sure that Submodel is expanded
+                    this.DisplayElements.ExpandAllItems();
+
+                    // still proceed?
+                    var veFound = this.DisplayElements.SearchVisualElementOnMainDataObject(focusMdo,
+                            alsoDereferenceObjects: true);
+
+                    if (veFound != null)
+                    {
+                        await DisplayElements.TrySelectVisualElementAsync(veFound, wishExpanded: true,
+                            specialTreeUpdate: true);
+                    }
+                }
+
+                // display again
+                DisplayElements.Refresh();
+
+            }), DispatcherPriority.Background);
 
 #if _log_times
             Log.Singleton.Info("Time 90 is: " + DateTime.Now.ToString("hh:mm:ss.fff"));

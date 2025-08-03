@@ -19,6 +19,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Aas = AasCore.Aas3_0;
 using Samm = AasCore.Samm2_2_0;
 
@@ -1479,6 +1481,221 @@ namespace AasxPackageLogic
             return res.AsEnumerable();
         }
 
+        protected class ValueListToCdRegexRecord
+        {
+            public string ValuePattern = "^(.*)$";
+            public string ValueRenamed = "$1";
+            
+            public string CdIdShort = "$1";
+            public string CdPrefName = "$1";
+            public string CdShortName = "$1";
+            public string CdDefinition = "$1";
+
+            public bool CreateCds = true;
+            public bool PascalCase = false;
+            public bool Simulate = true;
+        }
+
+        protected async Task<ValueListToCdRegexRecord> 
+            AskRegexCreateFromPairs(ValueListToCdRegexRecord record = null)
+        {
+            record = record ?? new ValueListToCdRegexRecord();
+            var ucJob = new AnyUiDialogueDataModalPanel("Value reference pairs to new ConceptDescriptions ..");
+            ucJob.ActivateRenderPanel(record,
+                disableScrollArea: false,
+                dialogButtons: AnyUiMessageBoxButton.OK,
+                renderPanel: (uci) =>
+                {
+                    // create panel
+                    var panel = new AnyUiStackPanel();
+                    var helper = new AnyUiSmallWidgetToolkit();
+
+                    var g = helper.AddSmallGrid(25, 2, new[] { "180:", "*" },
+                                padding: new AnyUiThickness(0, 5, 0, 5),
+                                margin: new AnyUiThickness(10, 0, 30, 0));
+
+                    panel.Add(g);
+
+                    // dynamic rows
+                    int row = 0;
+
+                    helper.AddSmallLabelAndTextToRowPlus(g, ref row, "Value pattern:",
+                        record.ValuePattern, (s) => { record.ValuePattern = s; });
+
+                    helper.AddSmallInfoToRowPlus(g, ref row, column: 2,
+                        content: "Regex to match with given value of value reference pair.");
+
+                    helper.AddSmallLabelAndTextToRowPlus(g, ref row, "Value renamed:",
+                        record.ValueRenamed, (s) => { record.ValueRenamed = s; });
+
+                    helper.AddSmallInfoToRowPlus(g, ref row, column: 2,
+                        content: "Rename value with matching groups for \\1, \\2, ..");
+
+                    helper.AddSmallLabelAndCheckboxToRowPlus(g, ref row, "Options:",
+                        "PascalCase input value before matching", record.PascalCase, (b) => record.PascalCase = b);
+
+                    helper.AddSmallLabelAndCheckboxToRowPlus(g, ref row, "",
+                        "Create ConceptDescriptions", record.CreateCds, (b) => record.CreateCds = b);
+
+                    helper.AddSmallLabelAndCheckboxToRowPlus(g, ref row, "",
+                        "Simulate (do not change, but log)", record.Simulate, (b) => record.Simulate = b);
+
+                    helper.AddSmallSeparatorToRowPlus(g, ref row);
+
+                    helper.AddSmallLabelAndTextToRowPlus(g, ref row, "CD.idShort:",
+                        record.CdIdShort, (s) => { record.CdIdShort = s; });
+
+                    helper.AddSmallLabelAndTextToRowPlus(g, ref row, "CD.preferredName:",
+                        record.CdPrefName, (s) => { record.CdPrefName = s; });
+
+                    helper.AddSmallLabelAndTextToRowPlus(g, ref row, "CD.shortName:",
+                        record.CdShortName, (s) => { record.CdShortName = s; });
+
+                    helper.AddSmallLabelAndTextToRowPlus(g, ref row, "CD.definition:",
+                        record.CdDefinition, (s) => { record.CdDefinition = s; });
+
+                    helper.AddSmallInfoToRowPlus(g, ref row, column: 2,
+                        content: "Create CDs attributes with matching groups for \\1, \\2, ..");
+
+                    // give back
+                    return g;
+                });
+
+            if (this.context != null && await this.context.StartFlyoverModalAsync(ucJob))
+                return record;
+            return null;
+        }
+
+        protected int ExecuteRegexCreateFromPairs(
+            Aas.IEnvironment env,
+            ref List<Aas.IValueReferencePair> pairs,
+            ValueListToCdRegexRecord record)
+        {
+            // access
+            if (env == null || pairs == null || record == null)
+                return -1;
+
+            var modifiedValue = 0;
+            var addedCd = 0;
+            foreach (var vrp in pairs)
+            {
+                // access
+                if (vrp?.Value == null || vrp.ValueId?.IsValid() != true)
+                {
+                    if (record.Simulate)
+                        Log.Singleton.Error("RegexCreateFromPairs: pair attributes invalid. Skipping!");
+                    continue;
+                }
+
+                // pascal case input
+                var value = vrp.Value;
+                if (record.PascalCase)
+                    value = AdminShellUtil.FullyPascalCase(value);
+                if (value?.HasContent() != true)
+                {
+                    if (record.Simulate)
+                        Log.Singleton.Error("RegexCreateFromPairs: pair value is empty. Skipping!");
+                    continue;
+                }
+
+                // now, do the regex matching
+                var match = Regex.Match(value, record.ValuePattern, RegexOptions.Compiled);
+                if (!match.Success || match.Groups.Count < 2)
+                {
+                    if (record.Simulate)
+                        Log.Singleton.Error("RegexCreateFromPairs: Regex pattern not successfull to {0} or " +
+                            "no matching groups available. Skipping!",
+                            value);
+                    continue;
+                }
+
+                //
+                // rename value
+                //
+                var newValue = value;
+                if (record.ValueRenamed.HasContent())
+                {
+                    newValue = Regex.Replace(value, record.ValuePattern, record.ValueRenamed, 
+                            RegexOptions.Compiled);
+
+                    if (record.Simulate)
+                    {
+                        Log.Singleton.Info("RegexCreateFromPairs: Rename pair value from {0} -> {1}", 
+                            vrp.Value, newValue);
+                        modifiedValue++;
+                    }
+                }
+
+                // 
+                // create CD
+                //
+                if (record.CreateCds)
+                {
+                    // idShort must exist!
+                    var newIdShort = Regex.Replace(value, record.ValuePattern, record.CdIdShort,
+                            RegexOptions.Compiled);
+                    if (!newIdShort.HasContent())
+                    {
+                        Log.Singleton.Error("RegexCreateFromPairs: Blank idShort for value {0}. Skipping!", vrp?.Value);
+                    }
+                    else
+                    {
+                        // the others are optional
+                        var newPrefName = Regex.Replace(value, record.ValuePattern, record.CdPrefName,
+                            RegexOptions.Compiled);
+
+                        var newShortName = Regex.Replace(value, record.ValuePattern, record.CdShortName,
+                            RegexOptions.Compiled);
+
+                        var newDefinition = Regex.Replace(value, record.ValuePattern, record.CdDefinition,
+                            RegexOptions.Compiled);
+
+                        if (record.Simulate)
+                        {
+                            Log.Singleton.Info("RegexCreateFromPairs: Create CD with idShort {0}, " +
+                                "preferredName {1} shortName {2} definition {3}.",
+                                newIdShort, newPrefName, newShortName, newDefinition);
+                            addedCd++;
+                        }
+                        else
+                        {
+
+                            // create embedded data specification and mix in
+                            var iec = new Aas.DataSpecificationIec61360(
+                                    preferredName: ExtendILangStringPreferredNameTypeIec61360
+                                        .CreateFrom(text: newPrefName, lang: AdminShellUtil.GetDefaultLngIso639()),
+                                    dataType: Aas.DataTypeIec61360.StringTranslatable);
+
+                            if (newShortName.HasContent())
+                                iec.ShortName = ExtendILangStringShortNameTypeIec61360
+                                    .CreateFrom(text: newShortName, lang: AdminShellUtil.GetDefaultLngIso639());
+
+                            if (newDefinition.HasContent())
+                                iec.Definition = ExtendILangStringDefinitionTypeIec61360
+                                    .CreateFrom(newDefinition, lang: AdminShellUtil.GetDefaultLngIso639());
+
+                            var eds = new Aas.EmbeddedDataSpecification(
+                                            ExtendIDataSpecificationContent.GetReferencForIec61360(),
+                                            iec);
+
+                            // create CD and add ..
+                            var cd = new Aas.ConceptDescription(
+                                id: vrp.ValueId?.GetAsIdentifier(),
+                                idShort: "" + newIdShort,
+                                displayName: ExtendLangStringSet.CreateLangStringNameType(
+                                    AdminShellUtil.GetDefaultLngIso639(), newValue),
+                                embeddedDataSpecifications: new List<Aas.IEmbeddedDataSpecification> { eds });
+
+                            env?.Add(cd);
+                            addedCd++;
+
+                            Log.Singleton.Info("RegexCreateFromPairs: CD created: {0}", cd.IdShort);
+                        }
+                    }
+                }
+            }
+            return addedCd;
+        }
 
         public void ValueListHelper(
             Aas.IEnvironment env,
@@ -1588,13 +1805,16 @@ namespace AasxPackageLogic
                     superMenu: superMenu,
                     ticketMenu: new AasxMenu()
                         .AddAction("create-cds", "CDs \U0001f844 pairs",
-                            "For each Value /Reference pair, create a separate ConceptDescription."),
-                    ticketAction: (buttonNdx, ticket) =>
+                            "For each Value /Reference pair, create a separate ConceptDescription.")
+                        .AddAction("create-cds-regex", "CDs \U0001f844 pairs (regex)",
+                            "For each Value /Reference pair, create a separate ConceptDescription. " +
+                            "Allow more regex-based string processing"),
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
                         {
                             // make sure
-                            if (AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                            if (AnyUiMessageBoxResult.Yes != await this.context.MessageBoxFlyoutShowAsync(
                                     "This operation will create additional ConceptDescriptions for each " +
                                     "pair of Value and Reference. Do you want to proceed?",
                                     "Create CDs",
@@ -1630,6 +1850,29 @@ namespace AasxPackageLogic
 
                             // display
                             return new AnyUiLambdaActionRedrawAllElements(nextFocus: relatedReferable);
+                        }
+
+                        if (buttonNdx == 1)
+                        {
+                            // get ui
+                            var uc = await AskRegexCreateFromPairs();
+                            if (uc == null)
+                                return new AnyUiLambdaActionNone();
+
+                            // apply
+                            var res = ExecuteRegexCreateFromPairs(env, ref valuePairs, uc);
+                            if (res < 0)
+                            {
+                                Log.Singleton.Error("RegexCreateFromPairs: Some error occurred. " +
+                                    "May be do a simulate run to get more details.");
+                            }
+                            else
+                            {
+                                // notify
+                                this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                                Log.Singleton.Info("RegexCreateFromPairs: executed with {0} new ConceptDescriptions.",
+                                    res);
+                            }
                         }
 
                         return new AnyUiLambdaActionNone();

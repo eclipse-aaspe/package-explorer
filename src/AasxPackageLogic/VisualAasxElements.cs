@@ -19,6 +19,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.Intrinsics.X86;
 using System.Runtime.Serialization;
 using Aas = AasCore.Aas3_0;
 using Samm = AasCore.Samm2_2_0;
@@ -792,6 +793,9 @@ namespace AasxPackageLogic
         public Aas.IReference theSubmodelRef = null;
         public Aas.ISubmodel theSubmodel = null;
 
+        private Aas.IConceptDescription _cachedCD = null;
+        public Aas.IConceptDescription CachedCD { get { return _cachedCD; } }
+
         public VisualElementSubmodelRef(
             VisualElementGeneric parent, TreeViewLineCache cache, Aas.IEnvironment env,
             AdminShellPackageEnv package,
@@ -839,6 +843,7 @@ namespace AasxPackageLogic
                 var ci = theSubmodel.ToCaptionInfo();
                 this.Caption = ((theSubmodel.Kind != null && theSubmodel.Kind == Aas.ModellingKind.Template) ? "<T> " : "") + ci.Item1;
                 this.Info = ci.Item2;
+                this._cachedCD = this.theEnv?.FindConceptDescriptionByReference(theSubmodel.SemanticId);
             }
             else
             {
@@ -853,6 +858,9 @@ namespace AasxPackageLogic
     {
         public Aas.IEnvironment theEnv = null;
         public Aas.ISubmodel theSubmodel = null;
+
+        private Aas.IConceptDescription _cachedCD = null;
+        public Aas.IConceptDescription CachedCD { get { return _cachedCD; } }
 
         public VisualElementSubmodel(
             VisualElementGeneric parent, TreeViewLineCache cache, Aas.IEnvironment env,
@@ -891,6 +899,7 @@ namespace AasxPackageLogic
                 var ci = theSubmodel.ToCaptionInfo();
                 this.Caption = ((theSubmodel.Kind != null && theSubmodel.Kind == Aas.ModellingKind.Template) ? "<T> " : "") + ci.Item1;
                 this.Info = ci.Item2;
+                this._cachedCD = this.theEnv?.FindConceptDescriptionByReference(theSubmodel.SemanticId);
             }
         }
 
@@ -951,7 +960,6 @@ namespace AasxPackageLogic
         public int IndexPosition = 0;
 
         private Aas.IConceptDescription _cachedCD = null;
-
         public Aas.IConceptDescription CachedCD { get { return _cachedCD; } }
 
         public VisualElementSubmodelElement(
@@ -1688,6 +1696,9 @@ namespace AasxPackageLogic
                     if (vlp?.Value?.HasContent() != true || vlp.ValueId?.Keys == null)
                         continue;
 
+                    if (vlp.ValueId.Keys.Count() > 0 && vlp.ValueId.Keys[0].Value == "0112/2///61987#ABI407")
+                        ;
+
                     // try find in CDs
                     var vrpCD = env?.FindConceptDescriptionByReference(vlp.ValueId);                    
                     if (vrpCD != null && tiCDs?.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySme)
@@ -1864,6 +1875,14 @@ namespace AasxPackageLogic
                         AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
                     }
                 }
+
+            // check for semanticId
+            // bookkeeping
+            if (tiSm.CachedCD != null)
+            {
+                _cdReferred.Add(tiSm.CachedCD, tiSm);
+                _cdToSm.Add(tiSm.CachedCD, sm);
+            }
 
             // recursively into the submodel elements
             int indexPos = 0;
@@ -2112,7 +2131,7 @@ namespace AasxPackageLogic
                 {
                     // branch per Submodel
 					var tiSM = new VisualElementEnvironmentItem(
-					    parent: tiCDs, cache: cache,
+					    parent: tiSubmodelsRoot, cache: cache,
 					    package: tiCDs.thePackage, env: tiCDs.theEnv,
 					    itemType: VisualElementEnvironmentItem.ItemType.Env);
 					tiSM.Caption = "Submodel: " + sm.IdShort;
@@ -2153,6 +2172,10 @@ namespace AasxPackageLogic
             if (env != null)
                 foreach (var cd in env.AllConceptDescriptions())
                 {
+                    // test
+                    if (cd.Id.StartsWith("0112/2///61987#ABI407"))
+                        ;
+
                     // stop criteria for adding?
                     if (tiCDs.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySme
                         && _cdReferred.ContainsKey(cd))
