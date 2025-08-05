@@ -413,7 +413,8 @@ namespace AasxPackageExplorer
 
         public bool TrySelectMainDataObject(
             object dataObject, bool? wishExpanded,
-            bool alsoDereferenceObjects = false)
+            bool alsoDereferenceObjects = false,
+            bool specialTreeUpdate = false)
         {
             // access?
             var ve = SearchVisualElementOnMainDataObject(dataObject, 
@@ -422,7 +423,7 @@ namespace AasxPackageExplorer
                 return false;
 
             // select
-            return TrySelectVisualElement(ve, wishExpanded);
+            return TrySelectVisualElement(ve, wishExpanded: wishExpanded, specialTreeUpdate: specialTreeUpdate);
         }
         // dead-csharp off
         // duplicate, see below
@@ -579,6 +580,7 @@ namespace AasxPackageExplorer
                     }
                     _preventExpandedSelect = false;
                 }
+                
                 if (wishExpanded == false)
                     ve.IsExpanded = false;
 
@@ -596,7 +598,7 @@ namespace AasxPackageExplorer
                         specialUpdateApplied = true;
                     }
                 }
-                
+
                 if (!specialUpdateApplied)
                 {
                     SelectSingleVisualElement(ve, preventFireItem: false);
@@ -605,14 +607,35 @@ namespace AasxPackageExplorer
                 // may try again?
                 if (specialTreeUpdate && !specialUpdateApplied)
                 {
-                    // search again?
-                    var treeViewItem = FindTreeViewItem(treeViewInner, ve);
-                    if (treeViewItem != null)
+                    // be more brutal!
+                    VirtualizingStackPanel.SetIsVirtualizing(treeViewInner, false);
+                    ScrollViewer.SetCanContentScroll(treeViewInner, false);
+
+                    // wait a little (fake async)
+                    _ = Task.Run(async () =>
                     {
-                        SelectSingleVisualElement(ve, preventFireItem: false);
-                        treeViewItem.BringIntoView();
-                        specialUpdateApplied = true;
-                    }
+                        // wait a little pause and force as much the layout to update
+                        await Task.Delay(300);
+
+                        // execute in GUI thread
+                        await Dispatcher.InvokeAsync(() =>
+                        {
+                            treeViewInner.UpdateLayout();
+
+                            // search again?
+                            var treeViewItem = FindTreeViewItem(treeViewInner, ve);
+                            if (treeViewItem != null)
+                            {
+                                treeViewItem.BringIntoView();
+                                specialUpdateApplied = true;
+                            }
+                        });
+                    });
+
+                    // Note: The tree is now NON-VIRTUALIZED, UNTIL Rebuild() is executed
+                    // next time.
+                    // Reason: Setting VIRTUALIZED again will cause the tree to re-position!
+
                 }
 
                 // Woodoo(ve);

@@ -1486,6 +1486,8 @@ namespace AasxPackageLogic
         public AdminShellPackageEnv thePackage = null;
         public AdminShellPackageSupplementaryFile theFile = null;
 
+        public string MainDataObject = "";
+
         public VisualElementSupplementalFile(
             VisualElementGeneric parent, TreeViewLineCache cache, AdminShellPackageEnv package,
             AdminShellPackageSupplementaryFile sf)
@@ -1503,6 +1505,8 @@ namespace AasxPackageLogic
 
             this.TagString = "\u25a4";
 
+            this.MainDataObject = sf?.Uri?.ToString();
+
             RefreshFromMainData();
             RestoreFromCache();
         }
@@ -1514,7 +1518,7 @@ namespace AasxPackageLogic
 
         public override object GetMainDataObject()
         {
-            return theFile;
+            return MainDataObject;
         }
 
         public override void RefreshFromMainData()
@@ -2036,7 +2040,8 @@ namespace AasxPackageLogic
 				var tiStructuredRoot = new VisualElementEnvironmentItem(
 					parent: tiCDs, cache: cache,
 					package: tiCDs.thePackage, env: tiCDs.theEnv,
-					itemType: VisualElementEnvironmentItem.ItemType.Env);
+					itemType: VisualElementEnvironmentItem.ItemType.Env,
+                    mainDataObject: "ENV Structured ConceptDescriptions");
 				tiStructuredRoot.Caption = "Structured ConceptDescriptions";
                 tiStructuredRoot.IsExpanded = false;
 				tiCDs.Members.Add(tiStructuredRoot);
@@ -2122,7 +2127,8 @@ namespace AasxPackageLogic
 				var tiSubmodelsRoot = new VisualElementEnvironmentItem(
 					parent: tiCDs, cache: cache,
 					package: tiCDs.thePackage, env: tiCDs.theEnv,
-					itemType: VisualElementEnvironmentItem.ItemType.Env);
+					itemType: VisualElementEnvironmentItem.ItemType.Env,
+                    mainDataObject: "ENV Submodel ConceptDescriptions");
 				tiSubmodelsRoot.Caption = "Submodel ConceptDescriptions";
                 tiSubmodelsRoot.IsExpanded = false;
 				tiCDs.Members.Add(tiSubmodelsRoot);
@@ -2133,7 +2139,8 @@ namespace AasxPackageLogic
 					var tiSM = new VisualElementEnvironmentItem(
 					    parent: tiSubmodelsRoot, cache: cache,
 					    package: tiCDs.thePackage, env: tiCDs.theEnv,
-					    itemType: VisualElementEnvironmentItem.ItemType.Env);
+					    itemType: VisualElementEnvironmentItem.ItemType.Env,
+                        mainDataObject: "ENV Submodel ConceptDescriptions " + sm.IdShort);
 					tiSM.Caption = "Submodel: " + sm.IdShort;
                     if (sm.Administration != null)
                         tiSM.Info += $" V{sm.Administration.Version}.{sm.Administration.Revision}";
@@ -2159,7 +2166,8 @@ namespace AasxPackageLogic
 				tiUnstructuredRoot = new VisualElementEnvironmentItem(
                     parent: tiCDs, cache: cache,
                     package: tiCDs.thePackage, env: tiCDs.theEnv,
-                    itemType: VisualElementEnvironmentItem.ItemType.Env);
+                    itemType: VisualElementEnvironmentItem.ItemType.Env,
+                    mainDataObject: "ENV Unstructured ConceptDescriptions");
                 tiUnstructuredRoot.Caption = "Unstructured ConceptDescriptions";
                 tiCDs.Members.Add(tiUnstructuredRoot);
 				tiUnstructuredRoot.IsExpanded = false;
@@ -2432,7 +2440,8 @@ namespace AasxPackageLogic
                         // single files
                         var files = package.GetListOfSupplementaryFiles();
                         foreach (var fi in files)
-                            tiFiles.Members.Add(new VisualElementSupplementalFile(tiFiles, cache, package, fi));
+                            tiFiles.Members.Add(
+                                new VisualElementSupplementalFile(tiFiles, cache, package, fi));
                     }
                 }
 

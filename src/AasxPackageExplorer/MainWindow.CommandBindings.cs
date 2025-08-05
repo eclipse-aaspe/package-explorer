@@ -238,7 +238,7 @@ namespace AasxPackageExplorer
                 // select last object
                 if (currMdo != null)
                 {
-                    DisplayElements.TrySelectMainDataObject(currMdo, wishExpanded: true);
+                    DisplayElements.TrySelectMainDataObject(currMdo, wishExpanded: true, specialTreeUpdate: true);
                 }
                 // use selection to display right panel
                 RedrawElementView();

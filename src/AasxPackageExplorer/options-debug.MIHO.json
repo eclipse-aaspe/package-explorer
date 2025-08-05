@@ -414,6 +414,18 @@
                 "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\Micha\\Desktop\\tmp\\new.zip\", \"ExportHtml\", \"true\", \"ExportPdf\", \"false\", \"AntoraStyle\", \"false\", \"ViewResult\", \"true\");",
                 "Tool(\"LocationPop\");"
             ]
+        },
+        {
+            "Name": "List in Log all ConceptDescriptions (Ctrl+Shift+9)",
+            "Lines": [
+                "Select(\"CD\", \"First\"); i=1;",
+                "while (i++<1000) {",
+                "  rf = Select(\"This\");",
+                "  WriteLine(\"Approaching Referable \" + rf);",
+                "  Sleep(50);",
+                "  if (Select(\"CD\", \"Next\") == null) break;",
+                "}"
+            ]
         }
     ],
     "ScriptLoglevel": 2,

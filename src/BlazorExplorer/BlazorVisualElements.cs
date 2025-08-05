@@ -355,7 +355,8 @@ namespace BlazorUI
         /// </summary>
         public bool TrySelectMainDataObject(
             object dataObject, bool? wishExpanded,
-            bool alsoDereferenceObjects = false)
+            bool alsoDereferenceObjects = false,
+            bool specialTreeUpdate = false)
         {
             // access?
             var ve = SearchVisualElementOnMainDataObject(dataObject,

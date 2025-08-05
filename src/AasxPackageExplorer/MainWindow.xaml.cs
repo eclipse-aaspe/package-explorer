@@ -250,75 +250,6 @@ namespace AasxPackageExplorer
         }
 
         /// <summary>
-        /// Redraw window title, AAS info?, entity view (right), element tree (middle)
-        /// </summary>
-        /// <param name="keepFocus">Try remember which element was focussed and focus it after redrawing.</param>
-        /// <param name="nextFocusMdo">Focus a new main data object attached to an tree element.</param>
-        /// <param name="wishExpanded">If focussing, expand this item.</param>
-        public async Task RedrawAllAasxElementsAsync(bool keepFocus = false,
-            object nextFocusMdo = null,
-            bool wishExpanded = true)
-        {
-            // focus info
-            var focusMdo = DisplayElements.SelectedItem?.GetDereferencedMainDataObject();
-
-            var t = "AASX Package Explorer V3.0";
-            //TODO (jtikekar, 0000-00-00): remove V3RC02
-            if (PackageCentral.MainAvailable)
-                t += " - " + PackageCentral.MainItem.ToString();
-            if (PackageCentral.AuxAvailable)
-                t += " (auxiliary AASX: " + PackageCentral.AuxItem.ToString() + ")";
-            this.Title = t;
-
-#if _log_times
-            Log.Singleton.Info("Time 10 is: " + DateTime.Now.ToString("hh:mm:ss.fff"));
-#endif
-
-            // clear the right section, first (might be rebuild by callback from below)
-            DispEditEntityPanel.ClearDisplayDefaultStack();
-            TakeOverContentEnable(false);
-
-            // rebuild middle section
-            DisplayElements.RebuildAasxElements(
-                PackageCentral, PackageCentral.Selector.Main, MainMenu?.IsChecked("EditMenu") == true,
-                // MIHO TODO: set to "true" after testing!
-                lazyLoadingFirst: false,
-                doNotSelectFirstItem: keepFocus);
-
-            DisplayElements.Refresh();
-
-            // according to AI, give the UI first time internally rebuild the items
-            await Dispatcher.BeginInvoke(new Action(async () =>
-            {
-
-                // ok .. try re-focus!!
-                if (keepFocus)
-                {
-                    // make sure that Submodel is expanded
-                    this.DisplayElements.ExpandAllItems();
-
-                    // still proceed?
-                    var veFound = this.DisplayElements.SearchVisualElementOnMainDataObject(focusMdo,
-                            alsoDereferenceObjects: true);
-
-                    if (veFound != null)
-                    {
-                        await DisplayElements.TrySelectVisualElementAsync(veFound, wishExpanded: true,
-                            specialTreeUpdate: true);
-                    }
-                }
-
-                // display again
-                DisplayElements.Refresh();
-
-            }), DispatcherPriority.Background);
-
-#if _log_times
-            Log.Singleton.Info("Time 90 is: " + DateTime.Now.ToString("hh:mm:ss.fff"));
-#endif
-        }
-
-        /// <summary>
         /// Large extend. Basially redraws everything after new package has been loaded.
         /// </summary>
         /// <param name="onlyAuxiliary">Only tghe AUX package has been altered.</param>
@@ -1469,7 +1400,8 @@ namespace AasxPackageExplorer
                     // MIHO 24-06-09: add dereferenced object to find operation vars, submodelrefs?
                     DisplayElements.TrySelectMainDataObject(
                         wish.NextFocus, wish.IsExpanded,
-                        alsoDereferenceObjects: true);
+                        alsoDereferenceObjects: true, 
+                        specialTreeUpdate: true);
                 }
 
                 // fake selection
@@ -1841,7 +1773,8 @@ namespace AasxPackageExplorer
                 if (veFound != null)
                 {
                     // show ve
-                    DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true);
+                    DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true,
+                        specialTreeUpdate: true);
                     // remember in history
                     Logic?.LocationHistory?.Push(veFound);
                     // fake selection
@@ -2723,7 +2656,7 @@ namespace AasxPackageExplorer
                 {
                     // is directly contain in actual tree
                     // show it
-                    if (DisplayElements.TrySelectVisualElement(ve, wishExpanded: true))
+                    if (DisplayElements.TrySelectVisualElement(ve, wishExpanded: true, specialTreeUpdate: true))
                     {
                         // fake selection
                         RedrawElementView();
@@ -2784,7 +2717,7 @@ namespace AasxPackageExplorer
                     try
                     {
                         // show ve
-                        DisplayElements?.TrySelectVisualElement(veFocus, wishExpanded: true);
+                        DisplayElements?.TrySelectVisualElement(veFocus, wishExpanded: true, specialTreeUpdate: true);
                         // remember in history
                         //TODO (MIHO, 0000-00-00): this was a bug??
                         // ButtonHistory.Push(veFocus);

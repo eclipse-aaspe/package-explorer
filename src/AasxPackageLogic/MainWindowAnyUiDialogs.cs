@@ -192,7 +192,7 @@ namespace AasxPackageLogic
                     MainWindow.CheckIfToFlushEvents();
 
                     // as saving changes the structure of pending supplementary files, re-display
-                    await MainWindow.RedrawAllAasxElementsAsync(keepFocus: true);
+                    MainWindow.RedrawAllAasxElements(keepFocus: true);
                 }
                 catch (Exception ex)
                 {
@@ -1686,7 +1686,7 @@ namespace AasxPackageLogic
             }
 
             // REFACTOR: SAME
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < 10; i++)
                 if (cmd == $"launchscript{i}"
                     && Options.Curr.ScriptPresets != null)
                 {
@@ -1907,7 +1907,7 @@ namespace AasxPackageLogic
                     return false;
 
                 // ok .. focus!!
-                MainWindow.GetDisplayElements().TrySelectVisualElement(veFound, wishExpanded: true);
+                MainWindow.GetDisplayElements().TrySelectVisualElement(veFound, wishExpanded: true, specialTreeUpdate: true);
 
                 // remember in history
                 LocationHistory?.Push(veFound);

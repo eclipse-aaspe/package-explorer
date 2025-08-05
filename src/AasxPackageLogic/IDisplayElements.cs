@@ -64,7 +64,7 @@ namespace AasxPackageExplorer
         /// by the main data object (e.g. an AAS, SME, ..)
         /// </summary>
         bool TrySelectMainDataObject(object dataObject, bool? wishExpanded,
-            bool alsoDereferenceObjects = false);
+            bool alsoDereferenceObjects = false, bool specialTreeUpdate = false);
 
     }
 

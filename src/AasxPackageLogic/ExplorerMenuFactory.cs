@@ -379,7 +379,7 @@ namespace AasxPackageExplorer
                 .AddHotkey(name: "ShowIriKey", gesture: "Ctrl+I")
                 .AddHotkey(name: "EventsShowLogKey", gesture: "Ctrl+L");
 
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < 10; i++)
                 menu.AddHotkey(name: $"LaunchScript{i}", gesture: $"Ctrl+Shift+{i}");
 
             //

@@ -230,7 +230,7 @@
                 "",
                 "",
                 "%font=bold%Explanation: %bg=#0029cc% %fg=white%",
-                "%Parent.description@en% %colspan=3%",
+                "%Parent.definition@en%\r\n%Parent.description@en% %colspan=3% %trim=all%",
                 "",
                 "",
                 "",
