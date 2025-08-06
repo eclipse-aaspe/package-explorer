@@ -36,10 +36,130 @@ namespace AasxPackageLogic
             "First", "Next", "Prev", "idShort", "semanticId"
         };
 
-        protected Tuple<Aas.IReferable, object> SelectEvalObject(
+        protected Aas.IAssetAdministrationShell _currentAas = null;
+        protected Aas.ISubmodel _currentSm = null;
+        protected Aas.IConceptDescription _currentCd = null;
+        protected ScriptSelectRefType _lastRefType = ScriptSelectRefType.None;
+
+        protected Tuple<Aas.IReferable, object> SelectEvalObjectDirect(
             ScriptSelectRefType refType, ScriptSelectAdressMode adrMode)
         {
             //
+            // Try gather some selection states
+            //
+
+            // something to select
+            var pm = PackageCentral?.Main?.AasEnv;
+            if (pm == null)
+            {
+                Log.Singleton.Error("Script: Select: No main package AAS environment available!");
+                return null;
+            }
+
+            if (refType == ScriptSelectRefType.This)
+            {
+                switch (_lastRefType)
+                {
+                    case ScriptSelectRefType.AAS:
+                        return new Tuple<Aas.IReferable, object>(_currentAas, _currentAas);
+                    case ScriptSelectRefType.SM:
+                        return new Tuple<Aas.IReferable, object>(_currentSm, _currentSm);
+                    case ScriptSelectRefType.CD:
+                        return new Tuple<Aas.IReferable, object>(_currentCd, _currentCd);
+                    default:
+                        Log.Singleton.Error("Script: Select This: No prior Select() of Referable available. Aborting!");
+                        return null;
+
+                }
+            }
+
+            if (adrMode == ScriptSelectAdressMode.First)
+            {
+                if (refType == ScriptSelectRefType.AAS)
+                {
+                    _currentAas = pm.AllAssetAdministrationShells().FirstOrDefault();
+                    if (_currentAas == null)
+                    {
+                        Log.Singleton.Error("Script: Select: No AssetAdministrationShells in Environment!");
+                        return null;
+                    }
+                    _lastRefType = refType;
+                    return new Tuple<Aas.IReferable, object>(_currentAas, _currentAas);
+                }
+
+                if (refType == ScriptSelectRefType.SM)
+                {
+                    if (_currentAas == null || _currentAas?.SubmodelCount() < 1)
+                    {
+                        Log.Singleton.Error("Script: Select: Current AAS does not have Submodels!");
+                        return null;
+                    }
+                    _currentSm = pm.FindSubmodel(_currentAas.Submodels.FirstOrDefault());
+                    _lastRefType = refType;
+                    return new Tuple<Aas.IReferable, object>(_currentSm, _currentSm);
+                }
+
+                if (refType == ScriptSelectRefType.SME)
+                {
+                    if (_currentSm == null || _currentSm?.SubmodelElements == null || _currentSm.SubmodelElements.Count < 1)
+                    {
+                        Log.Singleton.Error("Script: Select: Current Submodel does not have SubmodelElements!");
+                        return null;
+                    }
+                }
+
+                if (refType == ScriptSelectRefType.CD)
+                {
+                    _currentCd = pm.AllConceptDescriptions().FirstOrDefault();
+                    if (_currentCd == null)
+                    {
+                        Log.Singleton.Error("Script: Select: No ConceptDescriptions in Environment!");
+                        return null;
+                    }
+                    _lastRefType = refType;
+                    return new Tuple<Aas.IReferable, object>(_currentCd, _currentCd);
+                }
+            }
+
+            //
+            // Next
+            //
+
+            if (adrMode == ScriptSelectAdressMode.Next)
+            {
+                if (refType == ScriptSelectRefType.CD)
+                {
+                    var idx = pm?.ConceptDescriptions?.IndexOf(_currentCd);
+                    if (_currentCd == null || idx == null
+                        || pm.ConceptDescriptionCount() < 1
+                        || idx.Value < 0 || idx.Value > pm.ConceptDescriptionCount() - 1)
+                    {
+                        Log.Singleton.Error("Script: For next CD, the selected CD is unknown " +
+                            "or no next CD can be determined!");
+                        return null;
+                    }
+
+                    if (idx.Value == pm.ConceptDescriptionCount() - 1)
+                    {
+                        // silently
+                        return null;
+                    }
+
+                    _lastRefType = refType;
+                    _currentCd = pm?.ConceptDescriptions[idx.Value + 1];
+                    return new Tuple<Aas.IReferable, object>(_currentCd, _currentCd);
+                }
+            }
+
+            // uups
+            return null;
+        }
+
+        protected Tuple<Aas.IReferable, object> SelectEvalObjectIndirect(
+            ScriptSelectRefType refType, ScriptSelectAdressMode adrMode)
+        {
+            //
+            // Indirect mode: use and move the user selected item (slow, diffi
             // Try gather some selection states
             //
 
@@ -77,8 +197,6 @@ namespace AasxPackageLogic
 #if later
             var siSME = siThis?.FindFirstParent(
                     (ve) => ve is VisualElementSubmodelElement, includeThis: true);
-            var siCD = siThis?.FindFirstParent(
-                    (ve) => ve is VisualElementConceptDescription, includeThis: true);
 #endif
 
 			//
@@ -353,6 +471,9 @@ namespace AasxPackageLogic
                 return null;
             }
 
+            // start from the beginning of the args
+            int argI = 0;
+
             // check if Referable Type is ok
             var refType = GetScriptRefType(refTypeName);
 
@@ -362,13 +483,16 @@ namespace AasxPackageLogic
                 return null;
             }
 
+            // next arguments
+            argI++;
+
             // check adress mode is ok
             ScriptSelectAdressMode adrMode = ScriptSelectAdressMode.None;
 
             if (refType != ScriptSelectRefType.This)
             {
-                if (args.Length < 2
-                    || !(args[1] is string adrModeName))
+                if (argI >= args.Length
+                    || !(args[argI] is string adrModeName))
                 {
                     Log.Singleton.Error("Script: Select: Address mode missing!");
                     return null;
@@ -382,12 +506,43 @@ namespace AasxPackageLogic
                     Log.Singleton.Error("Script: Select: Adressing mode invalid!");
                     return null;
                 }
+                
+                // next arguments
+                argI++;
             }
 
-            // evaluate next item
-            var selEval = SelectEvalObject(refType, adrMode);
+            // still some options two go?
+            var directMode = false;
+            while (argI < args.Length)
+            {
+                var foundArg = false;
+                if (argI < args.Length - 1 && args[argI] is string flag && args[argI+1] is bool bv)
+                {
+                    if (flag.Trim().ToLower() == "direct")
+                    {
+                        directMode = bv;
+                        foundArg = true;
+                        argI += 2;
+                    }
+                }
+
+                if (!foundArg)
+                {
+                    Log.Singleton.Error("Script: Select: Unknown argument {0}. Aborting!", "" + args[argI]);
+                    return null;
+                }
+            }
+
+            // execute evaluation
+            var selEval = (directMode) ? SelectEvalObjectDirect(refType, adrMode) : SelectEvalObjectIndirect(refType, adrMode);
 
             // well-defined result?
+            if (directMode && selEval?.Item1 != null)
+            {
+                // directly return, no screen update!
+                return selEval.Item1;
+            }
+            else
             if (selEval != null && selEval.Item1 != null && selEval.Item2 != null)
             {
                 if (refType == ScriptSelectRefType.CD)
