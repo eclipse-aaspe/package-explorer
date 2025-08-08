@@ -534,7 +534,8 @@ namespace AdminShellNS
         public static string FilterFriendlyName(string src,
             bool pascalCase = false,
             bool fixMoreBlanks = false,
-            string regexForFilter = null)
+            string regexForFilter = null,
+            bool removeEnumerationTemplate = false)
         {
             if (src == null)
                 return null;
