@@ -29,6 +29,7 @@ namespace AasxPluginAssetInterfaceDescription
         public bool UseModbus = true;
         public bool UseMqtt = true;
         public bool UseOpcUa = true;
+        public bool UseBacnet = true;
     }
 
     public class AssetInterfaceOptions : AasxPluginLookupOptionsBase
@@ -44,8 +45,8 @@ namespace AasxPluginAssetInterfaceDescription
 
             var rec1 = new AssetInterfaceOptionsRecord();
             rec1.IsDescription = true;
-            rec1.AllowSubmodelSemanticId = new[] { 
-                new Aas.Key(Aas.KeyTypes.Submodel, 
+            rec1.AllowSubmodelSemanticId = new[] {
+                new Aas.Key(Aas.KeyTypes.Submodel,
                 "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Submodel") }.ToList();
 
             var rec2 = new AssetInterfaceOptionsRecord();
