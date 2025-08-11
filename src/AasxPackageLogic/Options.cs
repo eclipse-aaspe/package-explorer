@@ -480,6 +480,12 @@ namespace AasxPackageLogic
         public bool AutoAuthenticateUris = false;
 
         [OptionDescription(Description =
+            "When matching with known endpoints and finding no match, ask for a authetication approach or " +
+            "assume no authentication.",
+            Cmd = "-auto-authenticate-ask")]
+        public bool AutoAuthenticateAsk = false;
+
+        [OptionDescription(Description =
             "Central store to hold supplementary files for File elements.",
             Cmd = "-central-stores")]
         public List<string> CentralStores = new List<string>();

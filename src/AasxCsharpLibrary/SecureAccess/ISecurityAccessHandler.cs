@@ -32,7 +32,7 @@ namespace AdminShellNS
         /// to access restricted information from an AAS server.
         /// Note: This function is async and may require the GUI thread!
         /// </summary>
-        Task<HttpHeaderDataItem> InteractiveDetermineAuthenticateHeader(string location);
+        Task<HttpHeaderDataItem> InteractiveDetermineAuthenticateHeader(string location, bool askForUnknown);
 
         void ClearAllCredentials();
     }

@@ -3810,7 +3810,7 @@ namespace AasxPackageLogic.PackageCentral
                                 {
                                     Log.Singleton.Error("When uploading Submodel {0}, idShort path for File " +
                                             "element contains invalid characters and prevents uploading file " +
-                                            "attchment: {1}", submodel.IdShort, idsp);
+                                            "attachment: {1}", submodel.IdShort, idsp);
                                     lock (rowsToUpload)
                                     {
                                         numAttNOK++;

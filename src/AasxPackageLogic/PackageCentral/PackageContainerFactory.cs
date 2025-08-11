@@ -194,7 +194,8 @@ namespace AasxPackageLogic.PackageCentral
                     || guess.GuessedType == typeof(PackageContainerHttpRepoSubset))
                 && runtimeOptions?.SecurityAccessHandler != null)
             {
-                var extraHeader = await runtimeOptions.SecurityAccessHandler.InteractiveDetermineAuthenticateHeader(location);
+                var extraHeader = await runtimeOptions.SecurityAccessHandler.InteractiveDetermineAuthenticateHeader(
+                        location, Options.Curr.AutoAuthenticateAsk);
                 if (extraHeader != null)
                 {
                     runtimeOptions.HttpHeaderData = runtimeOptions.HttpHeaderData ?? new HttpHeaderData();

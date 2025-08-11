@@ -128,7 +128,7 @@ namespace AasxPackageExplorer
         /// to access restricted information from an AAS server.
         /// Note: This function is async and may require the GUI thread!
         /// </summary>
-        public virtual async Task<HttpHeaderDataItem> InteractiveDetermineAuthenticateHeader(string location)
+        public virtual async Task<HttpHeaderDataItem> InteractiveDetermineAuthenticateHeader(string location, bool askForUnknown)
         {
             // nead a certain distinction!
             if (location?.HasContent() != true)
@@ -148,7 +148,9 @@ namespace AasxPackageExplorer
                     Endpoint = new KnownEndpointDescription()
                     {
                         BaseAddress = location,
-                        AccessInfo = new SecurityAccessUserInfo() { Method = SecurityAccessMethod.Ask },
+                        AccessInfo = new SecurityAccessUserInfo() { 
+                            Method = (askForUnknown) ? SecurityAccessMethod.Ask : SecurityAccessMethod.None 
+                        },
                     }
                 };
                 _endpoints.Add(me);

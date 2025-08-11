@@ -4,7 +4,7 @@
     /* If set, do not start in hinting mode. */,
     "NoHints": true
     /* This file shall be loaded as main package at start of application | Arg: <path> */,
-    "AasxToLoad": null
+    "AasxToLoad": "http://localhost:8081/shells/aHR0cHM6Ly9hZG1pbi1zaGVsbC1pby9pZHRhL2Fhcy9Qcm9kdWN0Q2hhbmdlTm90aWZpY2F0aW9ucy8xLzA"
     /* This file shall be loaded as aux package at start of application | Arg: <path> */,
     "AuxToLoad": null
     /* List of pathes to a JSON, defining a set of AasxPackage-Files, which serve as repository. | Arg: <path> */,
@@ -18,51 +18,44 @@
         "C:\\HOMI\\Develop\\Aasx\\repo\\reg-of-reg-voyager.json",
         "C:\\HOMI\\Develop\\Aasx\\repo\\phoenix-big.json"
     ]
+    /* When connecting to given URIs, auto-authenticate by matching with known endpoints. */,
+    "AutoAuthenticateUris": true
+    /* When matching with known endpoints and finding no match, ask for a authetication approach or assume no authentication. */,
+    "AutoAuthenticateAsk": false
     /* Presets for base addresses for Registries and Repositories. */,
     "KnownEndpoints": [
         {
             "BaseAddress": "https://big.aas-voyager.com/",
             "AccessInfo": {
-                "Method": 1,
+                "Method": "Ask", // None, Ask, Basic, CertificateStore, File, InteractiveEntry, Secret
                 "Username": "Admin",
                 "Password": "",
-                "AuthServer": "https://www.admin-shell-io.com/50001/.well-known/openid-configuration",
+                // "Password": "SuperSafePasswd",
+                // "AuthServer": "",
+                "AuthServer": "https://www.admin-shell-io.com/50001/.well-known/openid-configuration", // for rest of authentication
+                // "AuthServer": "https://credential.aas-voyager.com/token", // for secret based OpenID Connect
                 "CertFile": "",
                 "CertPassword": "",
                 "CertPick": "GEANT",
+                // "CertPick" :  "",
+                // "SecretId": "",
                 "SecretId": "aorzelski@phoenixcontact.com",
-                "SecretValue": "aorzelski@phoenixcontact.com-secret",
-                "RenewPeriodMins": 5
+                // "SecretValue": "",
+                "SecretValue": "aorzelski@phoenixcontact.com-secret"
             }
         },
         {
             "BaseAddress": "https://registry-of-registry.aas-voyager.com/",
             "AccessInfo": {
-                "Method": 0,
-                "Username": "",
-                "Password": "",
-                "AuthServer": "",
-                "CertFile": "",
-                "CertPassword": "",
-                "CertPick": "",
-                "SecretId": null,
-                "SecretValue": null,
-                "RenewPeriodMins": 5
+                "Method": "None" // None, Ask, Basic, CertificateStore, File, InteractiveEntry, Secret
             }
         },
         {
             "BaseAddress": "https://aasx-server-pcf.dev.pxcio.net/",
             "AccessInfo": {
-                "Method": 2,
+                "Method": "Basic", // None, Ask, Basic, CertificateStore, File, InteractiveEntry, Secret
                 "Username": "Albert",
-                "Password": "Alb",
-                "AuthServer": "",
-                "CertFile": "",
-                "CertPassword": "",
-                "CertPick": "",
-                "SecretId": null,
-                "SecretValue": null,
-                "RenewPeriodMins": 5
+                "Password": "Alb"
             }
         }
     ]
@@ -136,8 +129,6 @@
     "BackupFiles": 10
     /* If true, will answer the HTTP GET requests of selected ressources by internal, fixed responses (see PackageContainerFakeAnswers.json). This allows quick testing of repository functions without internet connection (shoutout to Deutsche Bahn). */,
     "AllowFakeResponses": true
-    /* When connecting to given URIs, auto-authenticate by matching with known endpoints. */,
-    "AutoAuthenticateUris": true
     /* Central store to hold supplementary files for File elements. */,
     "CentralStores": [
         "file://C:\\AasxStore",
