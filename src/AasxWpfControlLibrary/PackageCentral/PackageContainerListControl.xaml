@@ -75,7 +75,9 @@
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Tag:" VerticalAlignment="Center" Width="110"/>
-                            <TextBox Name="TextBoxTag" Margin="5 0 0 0" Width="150" Grid.Column="1" TextChanged="TextBoxContextMenu_TextChanged"/>
+                            <TextBox Name="TextBoxTag" Margin="5 0 0 0" Width="150" Grid.Column="1" 
+                                     TextChanged="TextBoxContextMenu_TextChanged"
+                                     KeyUp="TextBoxTag_KeyUp"/>
                         </Grid>
                     </MenuItem.Header>
                     <MenuItem.Icon>
@@ -90,7 +92,9 @@
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Description:" VerticalAlignment="Center" Width="110"/>
-                            <TextBox Name="TextBoxDescription" Margin="5 0 0 0" Width="150" Grid.Column="1" TextChanged="TextBoxContextMenu_TextChanged"/>
+                            <TextBox Name="TextBoxDescription" Margin="5 0 0 0" Width="150" Grid.Column="1" 
+                                     TextChanged="TextBoxContextMenu_TextChanged"
+                                     KeyUp="TextBoxTag_KeyUp"/>
                         </Grid>
                     </MenuItem.Header>
                     <MenuItem.Icon>
@@ -105,7 +109,9 @@
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="2D code type:" VerticalAlignment="Center" Width="110"/>
-                            <TextBox Name="TextBoxCode" Margin="5 0 0 0" Width="150" Grid.Column="1" TextChanged="TextBoxContextMenu_TextChanged"/>
+                            <TextBox Name="TextBoxCode" Margin="5 0 0 0" Width="150" Grid.Column="1" 
+                                     TextChanged="TextBoxContextMenu_TextChanged"
+                                     KeyUp="TextBoxTag_KeyUp"/>
                         </Grid>
                     </MenuItem.Header>
                     <MenuItem.Icon>
@@ -151,7 +157,9 @@
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Update period [ms]:" VerticalAlignment="Center" Width="110"/>
-                            <TextBox Name="TextBoxUpdatePeriod" Margin="5 0 0 0" Width="150" Grid.Column="1" TextChanged="TextBoxContextMenu_TextChanged"/>
+                            <TextBox Name="TextBoxUpdatePeriod" Margin="5 0 0 0" Width="150" Grid.Column="1" 
+                                     TextChanged="TextBoxContextMenu_TextChanged"
+                                     KeyUp="TextBoxTag_KeyUp"/>
                         </Grid>
                     </MenuItem.Header>
                     <MenuItem.Icon>
@@ -186,108 +194,116 @@
                      Foreground="Black" VerticalAlignment="Center" Margin="0" FontSize="14" FontWeight="Bold"/>
 
             <TextBox x:Name="TextBoxRepoHeader" Text="File repository" BorderThickness="0" Background="Transparent" 
-                     Foreground="#707070" VerticalContentAlignment="Center" FontWeight="Bold" TextChanged="TextBox_TextChanged"/>
+                     Foreground="#707070" VerticalContentAlignment="Center" FontWeight="Bold" 
+                     TextChanged="TextBox_TextChanged" KeyUp="TextBoxRepoHeader_KeyUp"/>
         </DockPanel>
 
-        <ListView x:Name="RepoList" Grid.Row="1" Grid.Column="0" Margin="2,0,2,2" BorderThickness="0" 
-                  ScrollViewer.VerticalScrollBarVisibility="Disabled" MinHeight="30"
-                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" MouseDoubleClick="RepoList_MouseDoubleClick" MouseRightButtonDown="RepoList_MouseRightButtonDown" PreviewMouseUp="RepoList_PreviewMouseUp">
-            <ListView.Resources>
-                <Style TargetType="{x:Type GridViewColumnHeader}">
-                    <Setter Property="HorizontalContentAlignment" Value="Left" />
-                    <Setter Property="Background" Value="#20202020" />
-                    <Setter Property="Foreground" Value="White" />
-                    <Setter Property="Visibility" Value="Collapsed" />
-                </Style>
-                <!--
-                <DataTemplate x:Key="Template">
-                    <Grid Width="32" Height="32">
-                        <Image Grid.Row="0" Grid.Column="0" Source="{StaticResource Icon_AASX}" Width="32" Height="32"/>
+        <TabControl x:Name="TabControlOneOrMany"
+                    Grid.Row="1" Grid.Column="0">
 
-                        <Border BorderBrush="#548235" Background="#92d050" CornerRadius="8" Margin="8">
-                            <TextBlock Text="L" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                        </Border>
-                        
-                    </Grid>
-                </DataTemplate>
-                -->
-            </ListView.Resources>
-            <ListView.View>
-                <GridView>
+            <TabItem x:Name="TabItemRepoList" Header="Test1" Visibility="Collapsed">
+                <ListView x:Name="RepoList" Grid.Row="2" Grid.Column="0" Margin="2,0,2,2" BorderThickness="0" 
+                        ScrollViewer.VerticalScrollBarVisibility="Disabled" MinHeight="30"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled" MouseDoubleClick="RepoList_MouseDoubleClick" MouseRightButtonDown="RepoList_MouseRightButtonDown" PreviewMouseUp="RepoList_PreviewMouseUp">
+                    <ListView.Resources>
+                        <Style TargetType="{x:Type GridViewColumnHeader}">
+                            <Setter Property="HorizontalContentAlignment" Value="Left" />
+                            <Setter Property="Background" Value="#20202020" />
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </Style>
+                    </ListView.Resources>
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Icon">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid Width="60" Height="40" Margin="0,2,0,2">
 
-                    <!-- <GridViewColumn Header="Icon" CellTemplate="{StaticResource Template}"/> -->
-                    <GridViewColumn Header="Icon">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid Width="60" Height="40" Margin="0,2,0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="10"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
 
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="10"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
+                                            <Border Grid.Row="0" Grid.Column="0"
+                                                    BorderThickness="0" Background="LightGray" 
+                                                    CornerRadius="0" Margin="0,0,2,0" Visibility="Visible">     
+                                            </Border>
 
-                                    <Border Grid.Row="0" Grid.Column="0"
-                                            BorderThickness="0" Background="LightGray" 
-                                            CornerRadius="0" Margin="0,0,2,0" Visibility="Visible">
-                                    </Border>
+                                            <Border Grid.Row="0" Grid.Column="0"
+                                                    BorderThickness="0" Background="#303060" 
+                                                    CornerRadius="0" Margin="0,0,2,0" 
+                                                    Visibility="{Binding VisualIsEdited, Converter={StaticResource AnyUiVisibilityToWpfVisibilityConverter}}">              
+                                                <TextBlock Text="E" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                                            </Border>
 
-                                    <Border Grid.Row="0" Grid.Column="0"
-                                            BorderThickness="0" Background="#303060" 
-                                            CornerRadius="0" Margin="0,0,2,0" 
-                                            Visibility="{Binding VisualIsEdited, Converter={StaticResource AnyUiVisibilityToWpfVisibilityConverter}}">
-                                        <TextBlock Text="E" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                                    </Border>
+                                            <Image Grid.Row="0" Grid.Column="1" 
+                                                   Source="{StaticResource Icon_AASX}" Width="40" Height="40"/>
 
-                                    <Image Grid.Row="0" Grid.Column="1" 
-                                           Source="{StaticResource Icon_AASX}" Width="40" Height="40"/>
+                                            <Border Grid.Row="0" Grid.Column="1"
+                                                    BorderBrush="{Binding VisualLabelBackground, Converter={StaticResource AnyUiBrushToWpfBrushConverter}}" 
+                                                    Background="{Binding VisualLabelBackground, Converter={StaticResource AnyUiBrushToWpfBrushConverter}}" 
+                                                    CornerRadius="4" Margin="4">        
+                                                <TextBlock Text="{Binding Path=VisualLabelText}" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                                            </Border>
 
-                                    <Border Grid.Row="0" Grid.Column="1"
-                                            BorderBrush="{Binding VisualLabelBackground, Converter={StaticResource AnyUiBrushToWpfBrushConverter}}" 
-                                            Background="{Binding VisualLabelBackground, Converter={StaticResource AnyUiBrushToWpfBrushConverter}}" 
-                                            CornerRadius="4" Margin="4">
-                                        <TextBlock Text="{Binding Path=VisualLabelText}" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                                    </Border>
+                                            <Border Grid.Row="0" Grid.Column="1"
+                                                    BorderThickness="0" Background="#303030" 
+                                                    HorizontalAlignment="Left" VerticalAlignment="Top"
+                                                    CornerRadius="3" Margin="2" Width="20" Height="20" 
+                                                    Visibility="{Binding VisualIsLoaded, Converter={StaticResource AnyUiVisibilityToWpfVisibilityConverter}}">
+                                                <TextBlock Text="Ld" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
 
-                                    <Border Grid.Row="0" Grid.Column="1"
-                                            BorderThickness="0" Background="#303030" 
-                                            HorizontalAlignment="Left" VerticalAlignment="Top"
-                                            CornerRadius="3" Margin="2" Width="20" Height="20" 
-                                            Visibility="{Binding VisualIsLoaded, Converter={StaticResource AnyUiVisibilityToWpfVisibilityConverter}}">
-                                        <TextBlock Text="Ld" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                                    </Border>
-                                </Grid>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
+                            <GridViewColumn Header="Ids" Width="300">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path=InfoIds}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource DarkestAccentColor}"/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
 
-                    <!-- <GridViewColumn Header="Ids" DisplayMemberBinding="{Binding Path=InfoIds}" Width="300"/> -->
-                    <GridViewColumn Header="Ids" Width="300">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Path=InfoIds}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource DarkestAccentColor}"/>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
+                            <GridViewColumn Header="Location" DisplayMemberBinding="{Binding Path=InfoLocation}" Width="999"/>
 
-                    <GridViewColumn Header="Location" DisplayMemberBinding="{Binding Path=InfoLocation}" Width="999"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </TabItem>
 
-                </GridView>
-            </ListView.View>
-            <!--
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource DarkestAccentColor}"/>
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource DarkestAccentColor}"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </ListView.ItemContainerStyle>
-            -->
-        </ListView>
+            <TabItem x:Name="TabItemManyRepo" Header="Test2" Visibility="Collapsed">
+                <Grid Margin="0, 0, 0, 2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="60"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="60"/>
+                        <ColumnDefinition Width="5"/>
+                        <ColumnDefinition Width="5"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Image x:Name="ImageManyIcons"
+                           Grid.Row="0" Grid.Column="1" 
+                           Source="/AasxWpfControlLibrary;component/Resources/AASX_Many_v2.png" Width="60" Height="60"
+                           MouseDown="ImageManyIcons_MouseDown"/>
+
+                    <TextBlock x:Name="TextBlockManyInfo"
+                               Grid.Row="0" Grid.Column="4"
+                               Text="cscbjhsdjb"
+                               VerticalAlignment="Center"
+                               FontSize="10" FontWeight="Bold" Foreground="{DynamicResource DarkestAccentColor}"/>
+                </Grid>
+            </TabItem>
+
+        </TabControl>
+        
     </Grid>
 
     <!-- </ScrollViewer> -->

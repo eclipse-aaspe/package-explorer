@@ -33,6 +33,11 @@ using System.Text.RegularExpressions;
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.Serialization;
 using System.Text;
+using AasxPackageLogic.PackageCentral;
+using System.Threading.Tasks;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
+using System.Security.Cryptography;
+using System.Collections;
 
 namespace AasxPackageLogic
 {
@@ -337,6 +342,75 @@ namespace AasxPackageLogic
 				relatedReferable: referable, superMenu: superMenu);
 		}
 
+        public void DisplayOrEditEntitySideInfo(
+            Aas.IEnvironment env, AnyUiStackPanel stack,
+            Aas.IReferable referable,
+            AasIdentifiableSideInfo si,
+            string key,
+            AasxMenu superMenu = null)
+        {
+            // access
+            if (stack == null || si == null)
+                return;
+
+            this.AddGroup(stack, $"{key} is provided by an Endpoint of dynamic fetch environment",
+                    this.levelColors.SubSection);
+
+            AddKeyValue(stack, "StubLevel", "" + si.StubLevel.ToString(), repo: null);
+            AddKeyValue(stack, "IdShort", "" + si.IdShort, repo: null);
+            AddKeyValue(stack, "Id", "" + si.Id, repo: null);
+
+            AddKeyValue(stack, "Queried endpoint", "" + si.QueriedEndpoint?.ToString(), repo: null,
+                auxButtonTitle: "Copy",
+                auxButtonLambda: (i) => {
+                    if (si.QueriedEndpoint == null)
+                    {
+                        Log.Singleton.Error("No endpoint data available");
+                    }
+                    else
+                    {
+                        this.context?.ClipboardSet(new AnyUiClipboardData(
+                            text: si.QueriedEndpoint.ToString())
+                        { });
+                        Log.Singleton.Info(StoredPrint.Color.Blue, "Queried endpoint copied to clipboard.");
+                    }
+                    return new AnyUiLambdaActionNone();
+                },
+                auxButtonOverride: true);
+
+            AddKeyValue(stack, "Designated endpoint", "" + si.DesignatedEndpoint?.ToString(), repo: null,
+                auxButtonTitle: "Copy",
+                auxButtonLambda: (i) => {
+                    if (si.DesignatedEndpoint == null)
+                    {
+                        Log.Singleton.Error("No endpoint data available");
+                    }
+                    else
+                    {
+                        this.context?.ClipboardSet(new AnyUiClipboardData(
+                            text: si.DesignatedEndpoint.ToString())
+                        { });
+                        Log.Singleton.Info(StoredPrint.Color.Blue, "Designated endpoint copied to clipboard.");
+                    }
+                    return new AnyUiLambdaActionNone();
+                },
+                auxButtonOverride: true);
+        }
+        public void DisplayOrEditEntityMissingSideInfo(
+            AnyUiStackPanel stack, 
+            string key)
+        {
+            // access
+            if (key == null)
+                return;
+
+            this.AddGroup(stack, $"{key} could be provided by an Endpoint of a dynamic fetch environment",
+                    this.levelColors.SubSection);
+
+            AddInfoText(stack, $"However, the {key} data is not present! Reasons could be a wrong or missing"
+                + $" Reference or a missing access information.");
+        }
+
         //
         // Extensions
         //
@@ -457,7 +531,7 @@ namespace AasxPackageLogic
                 if (identifiable.Id.HasContent())
                 {
                     this.AddKeyValue(
-                        stack, "id (Base64)", AdminShellUtil.Base64Encode(identifiable.Id),
+                        stack, "id (base64url)", AdminShellUtil.Base64UrlEncode(identifiable.Id),
                         repo: null);
                 }
 
@@ -648,8 +722,8 @@ namespace AasxPackageLogic
 
                                     // define dialogue and map presets into dialogue items
                                     var uc = new AnyUiDialogueDataSelectFromList();
-                                    uc.ListOfItems = presets.Select((pr)
-                                            => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }).ToList();
+                                    uc.ListOfItems = new AnyUiDialogueListItemList(presets.Select((pr)
+                                            => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }));
 
                                     // perform dialogue
                                     this.context.StartFlyoverModal(uc);
@@ -1154,11 +1228,17 @@ namespace AasxPackageLogic
                             severityLevel: HintCheck.Severity.Notice,
                             breakIfTrue: true),
                         new HintCheck(
-                                () => { return checkForCD &&
-                                    semElem.SemanticId.Keys[0].Type != Aas.KeyTypes.GlobalReference; },
-                                "The semanticId usually features a GlobalReference to a concept " +
-                                "within a respective concept repository.",
-                                severityLevel: HintCheck.Severity.Notice)
+                            () => { return semElem.SemanticId?.HasSuspicousWhiteSpace() == true; },
+                            "There seems to be whitespace in this Reference. This could lead to " +
+                            "matching problems. Try to resolve.",
+                            severityLevel: HintCheck.Severity.High,
+                            breakIfTrue: true),
+                        new HintCheck(
+                            () => { return checkForCD &&
+                                semElem.SemanticId.Keys[0].Type != Aas.KeyTypes.GlobalReference; },
+                            "The semanticId usually features a GlobalReference to a concept " +
+                            "within a respective concept repository.",
+                            severityLevel: HintCheck.Severity.Notice)
                     });
 
             // add from Copy Buffer
@@ -1199,7 +1279,8 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawEntity();
                         }
                         return new AnyUiLambdaActionNone();
-                    });
+                    }, 
+                    addKnownSemanticId: true);
 
             //
             // Supplemenatal SemanticId
@@ -1216,7 +1297,14 @@ namespace AasxPackageLogic
                     "the primary semanticId does not semantically identifies all relevant aspects of the " +
                     "AAS element.",
                     breakIfTrue: true,
-                    severityLevel: HintCheck.Severity.Notice) });
+                    severityLevel: HintCheck.Severity.Notice),
+                new HintCheck(
+                    () => { return semElem.SupplementalSemanticIds?.HasSuspicousWhiteSpace() == true; },
+                    "There seems to be whitespace in some of these References. This could lead to " +
+                    "matching problems. Try to resolve",
+                    severityLevel: HintCheck.Severity.High,
+                    breakIfTrue: true),
+            });
             if (this.SafeguardAccess(
                     stack, this.repo, semElem.SupplementalSemanticIds, "supplementalSem.Id:", "Create w/ default!",
                     action: v =>
@@ -1777,6 +1865,10 @@ namespace AasxPackageLogic
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
             {
+                // TODO (MIHO, 2024-12-09): check if to allow further Iec data types such as "File":
+                // comboBoxItems: (AdminShellUtil.GetEnumValues<Aas.DataTypeIec61360>()
+                //      .Select((dt) => dt.ToString())).ToArray(),
+
                 AddKeyValueExRef(
                     stack, "dataType", dsiec, Aas.Stringification.ToString(dsiec.DataType), null, repo,
                     v =>
@@ -2356,7 +2448,303 @@ namespace AasxPackageLogic
         // File / Resource attributes
         // 
 
+        public class CentralizeFilesRecord
+        {
+            public string CentralStoreUri = "";
+            public string UUID = "";
+            public bool DeleteFileAfter = false;
+        }
+
+        /// <summary>
+        /// Implements a crude, very short version of UUID, that is, base64 over hash over GUID.
+        /// For alternatives, see: https://stackoverflow.com/questions/9278909/net-short-unique-identifier
+        /// </summary>
+        public string GetShortUUid()
+        {
+            var uuid = Guid.NewGuid().ToString();
+            var hash = uuid.GetHashCode().ToString("X8");
+            var base64 = AdminShellUtil.Base64UrlEncode(hash);
+            return base64;
+        }
+
+        public CentralizeFilesRecord GenerateNewCentralizeFilesRecord()
+        {
+            return new CentralizeFilesRecord()
+            {
+                CentralStoreUri = "" + Options.Curr.CentralStores?.FirstOrDefault(),
+                UUID = GetShortUUid(),
+                DeleteFileAfter = false
+            };
+        }
+
+        public static async Task<bool> PerformCentralizeFilesDialogue(
+            AnyUiContextBase displayContext,
+            string caption,
+            CentralizeFilesRecord record,
+            string info = null)
+        {
+            // access
+            if (displayContext == null || caption?.HasContent() != true || record == null)
+                return false;
+
+            // ok, go on ..
+            var uc = new AnyUiDialogueDataModalPanel(caption);
+            uc.ActivateRenderPanel(record,
+                disableScrollArea: false,
+                dialogButtons: AnyUiMessageBoxButton.OK,
+                renderPanel: (uci) =>
+                {
+                    // create panel
+                    var panel = new AnyUiStackPanel();
+                    var helper = new AnyUiSmallWidgetToolkit();
+
+                    var g = helper.AddSmallGrid(25, 2, new[] { "180:", "*" },
+                                padding: new AnyUiThickness(0, 5, 0, 5),
+                                margin: new AnyUiThickness(10, 0, 30, 0));
+
+                    panel.Add(g);
+
+                    // dynamic rows
+                    int row = 0;
+
+                    // info?
+                    if (info?.HasContent() == true)
+                    {
+                        // Statistics
+                        helper.Set(
+                            helper.AddSmallLabelTo(g, row, 0, content: info),
+                            colSpan: 2);
+                        row++;
+
+                        // separation
+                        helper.AddSmallBorderTo(g, row, 0,
+                            borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
+                            colSpan: 2,
+                            margin: new AnyUiThickness(0, 0, 0, 20));
+                        row++;
+                    }
+
+                    // Central store URI
+                    helper.AddSmallLabelTo(g, row, 0, content: "Central store URI:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    if (displayContext is AnyUiContextPlusDialogs cpd
+                        && cpd.HasCapability(AnyUiContextCapability.WPF))
+                    {
+                        AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallComboBoxTo(g, row, 1,
+                                    isEditable: true,
+                                    items: Options.Curr.CentralStores?.ToArray(),
+                                    text: "" + record.CentralStoreUri,
+                                    margin: new AnyUiThickness(0, 0, 0, 0),
+                                    padding: new AnyUiThickness(0, 0, 0, 0),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
+                                (s) => { record.CentralStoreUri = s; });
+                    }
+                    else
+                    {
+                        AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallTextBoxTo(g, row, 1,
+                                        text: $"{record.CentralStoreUri}",
+                                        verticalAlignment: AnyUiVerticalAlignment.Center,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                                (s) => { record.CentralStoreUri = s; });
+                    }
+
+                    row++;
+
+                    // UUID
+                    helper.AddSmallLabelTo(g, row, 0, content: "UUID (header):",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g, row, 1,
+                                    text: $"{record.UUID}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                            (s) => { record.UUID = s; });
+
+                    row++;
+
+                    // Delete
+                    helper.AddSmallLabelTo(g, row, 0, content: "Post process:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetBoolFromControl(
+                            helper.Set(
+                                helper.AddSmallCheckBoxTo(g, row, 1,
+                                    content: "Delete supplementary file, if local",
+                                    isChecked: record.DeleteFileAfter,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                            (b) => { record.DeleteFileAfter = b; });
+                    row++;
+
+                    // give back
+                    return g;
+                });
+
+            if (!(await displayContext.StartFlyoverModalAsync(uc)))
+                return false;
+
+            // ok
+            return true;
+        }
+
+        public async Task<bool> PerformCentralizeFileExecution(
+            AdminShellPackageEnvBase packEnv,
+            CentralizeFilesRecord record,
+            string filePath,
+            Action<string> lambdaSetFilePath = null)
+        {
+            // access 
+            if (packEnv == null 
+                || record?.CentralStoreUri?.HasContent() != true
+                || record?.UUID?.HasContent() != true
+                || filePath?.HasContent() != true)
+                return false;
+
+            // try accessing it
+            var ba = await packEnv.GetBytesFromPackageOrExternalAsync(filePath);
+            if (ba == null || ba.Length < 1)
+            {
+                Log.Singleton.Error("Centralize file: cannot read file: {0}", filePath);
+                return false;
+            }
+
+            // filePath shall only contain harmless chars and NO separators, but dots!
+            var filterFilePath = AdminShellUtil.FilterFriendlyName(filePath,
+                            regexForFilter: @"[^a-zA-Z0-9\-_.]",
+                            fixMoreBlanks: true);
+
+            // add the UUID in front
+            var newFilePath = record.UUID.Trim() + "_" + filterFilePath;
+
+            // build target path
+            var centralStorePath = record.CentralStoreUri;
+            if (centralStorePath.EndsWith('/') || centralStorePath.EndsWith('\\'))
+                centralStorePath = centralStorePath.Substring(0, centralStorePath.Length - 1);
+            var targetPath = Path.Combine(centralStorePath, newFilePath);                           
+
+            // try to write there?
+            // assuming file storage writable to computer
+            var res = await packEnv.PutByteArrayToExternalUri(targetPath, ba);
+            if (!res)
+            {
+                Log.Singleton.Error("Centralize file: error writing bytes to location: {0}", targetPath);
+                return false;
+            }
+
+            // can set new filename
+            lambdaSetFilePath?.Invoke(targetPath);
+
+            // delete only possible for local files
+            if (packEnv.IsLocalFile(filePath) && record.DeleteFileAfter)
+            {
+                var psfs = packEnv.GetListOfSupplementaryFiles();
+                var psf = psfs?.FindByUri(filePath);
+                if (psf == null)
+                {
+                    Log.Singleton.Error("Centralize file: unable to find existing file in package " +
+                        "before deleting: {0}", targetPath);
+                    return false;
+                }
+
+                packEnv.DeleteSupplementaryFile(psf);
+
+                Log.Singleton.Info(StoredPrint.Color.Blue,
+                    "Centralized file {0} bytes to new location and deleted original: {1}. " +
+                    "A save operation is required for the package!",
+                    ba.Length, newFilePath);
+
+                return true;
+            }
+
+            // do the normal info
+            Log.Singleton.Info(StoredPrint.Color.Blue,
+                "Centralized file {0} bytes to new location (preserved original): {1}.",
+                ba.Length, targetPath);
+
+            return true;
+        }
+
+        public static bool DisplayOrEditEntityFileResource_EditTextFile(
+            AnyUiContextBase context,
+            AdminShellPackageEnvBase env,
+            string valueContent,
+            string valuePath)
+        {
+            // access
+            if (env == null || context == null)
+                return false;
+
+            // try
+            try
+            {
+                // try find ..
+                var psfs = env.GetListOfSupplementaryFiles();
+                var psf = psfs?.FindByUri(valuePath);
+                if (psf == null)
+                {
+                    Log.Singleton.Error(
+                        $"Not able to locate supplementary file {valuePath} for edit. " +
+                        $"Aborting!");
+                    return false;
+                }
+
+                // try read ..
+                Log.Singleton.Info($"Reading text-file {valuePath} ..");
+                var contents = AdminShellUtil.GetStringFromBytes(
+                        env.GetBytesFromPackageOrExternal(valuePath));
+
+                // test
+                if (contents == null)
+                {
+                    Log.Singleton.Error(
+                        $"Not able to read contents from  supplmentary file {valuePath} " +
+                        $"for edit. Aborting!");
+                    return false;
+                }
+
+                // edit
+                var uc = new AnyUiDialogueDataTextEditor(
+                            caption: $"Edit text-file '{valuePath}'",
+                            mimeType: valueContent,
+                            text: contents);
+                if (!context.StartFlyoverModal(uc))
+                    return false;
+
+                // save
+                byte[] bytes = Encoding.ASCII.GetBytes(uc.Text);
+                try
+                {
+                    // TODO: add IdShortPath !!
+                    env.PutBytesToPackageOrExternal(
+                        valuePath, bytes);
+                }
+                catch (Exception ex)
+                {
+                    Log.Singleton.Error(ex, "when storing contents to text-file: " + valuePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(
+                    ex, $"Edit text-file {valuePath} in package.");
+            }
+
+            return true;
+        }
+
         public void DisplayOrEditEntityFileResource(AnyUiStackPanel stack,
+            AdminShellPackageEnvBase packEnv,
             Aas.IReferable containingObject,
             ModifyRepo repo, AasxMenu superMenu,
             string valuePath,
@@ -2463,8 +2851,11 @@ namespace AasxPackageLogic
                         .AddAction("create-text", "Create text file",
                             "Creates a text file and adds it to the AAS environment.")
                         .AddAction("edit-text", "Edit text file",
-                            "Edits the associated text file and updates it to the AAS environment."),
-                    ticketAction: (buttonNdx, ticket) =>
+                            "Edits the associated text file and updates it to the AAS environment.")
+                        .AddAction("centralize-file", "Centralize file",
+                            "Rename file, copy it to central file storage and potentially delete supplemental file.")
+                        ,
+                    ticketActionAsync: async (buttonNdx, ticket) =>
 
                     {
                         if (buttonNdx == 0 && valuePath.HasContent())
@@ -2481,7 +2872,7 @@ namespace AasxPackageLogic
                                     if (psf == null)
                                     {
                                         Log.Singleton.Error(
-                                            $"Not able to locate supplmentary file {valuePath} for removal! " +
+                                            $"Not able to locate supplementary file {valuePath} for removal! " +
                                             $"Aborting!");
                                     }
                                     else
@@ -2548,7 +2939,7 @@ namespace AasxPackageLogic
                                 var tempFn = System.IO.Path.GetTempFileName().Replace(".tmp", ".txt");
                                 System.IO.File.WriteAllText(tempFn, "");
 
-                                var mimeType = AdminShellPackageEnv.GuessMimeType(ptfn);
+                                var mimeType = AdminShellPackageFileBasedEnv.GuessMimeType(ptfn);
 
                                 var targetPath = packages.Main.AddSupplementaryFileToStore(
                                     tempFn, ptd, ptfn,
@@ -2583,70 +2974,40 @@ namespace AasxPackageLogic
 
                         if (buttonNdx == 2)
                         {
-                            try
-                            {
-                                // try find ..
-                                var psfs = packages.Main.GetListOfSupplementaryFiles();
-                                var psf = psfs?.FindByUri(valuePath);
-                                if (psf == null)
+                            if (DisplayOrEditEntityFileResource_EditTextFile(
+                                context, packages.Main,
+                                valueContent: valueContent,
+                                valuePath: valuePath))
+                                return new AnyUiLambdaActionRedrawEntity();
+                            else
+                                return new AnyUiLambdaActionNone();
+                        }
+
+                        if (buttonNdx == 3 && valuePath.HasContent())
+                        {
+                            var changed = false;
+                            var record = GenerateNewCentralizeFilesRecord();
+
+                            if (!await PerformCentralizeFilesDialogue(
+                                    context, 
+                                    "Centralize file",
+                                    record,
+                                    $"File: {valuePath}"))
+                                return new AnyUiLambdaActionNone();
+
+                            await PerformCentralizeFileExecution(
+                                packEnv, record,
+                                valuePath,
+                                lambdaSetFilePath: (v) =>
                                 {
-                                    Log.Singleton.Error(
-                                        $"Not able to locate supplmentary file {valuePath} for edit. " +
-                                        $"Aborting!");
-                                    return new AnyUiLambdaActionNone();
-                                }
+                                    changed = true;
+                                    valuePath = v;
+                                    setOutput?.Invoke(valuePath, valueContent);
+                                    this.AddDiaryEntry(containingObject, new DiaryEntryStructChange());
+                                });
 
-                                // try read ..
-                                Log.Singleton.Info($"Reading text-file {valuePath} ..");
-                                string contents;
-                                using (var stream = packages.Main.GetStreamFromUriOrLocalPackage(valuePath))
-                                {
-                                    using (var sr = new StreamReader(stream))
-                                    {
-                                        // read contents
-                                        contents = sr.ReadToEnd();
-                                    }
-                                }
-
-                                // test
-                                if (contents == null)
-                                {
-                                    Log.Singleton.Error(
-                                        $"Not able to read contents from  supplmentary file {valuePath} " +
-                                        $"for edit. Aborting!");
-                                    return new AnyUiLambdaActionNone();
-                                }
-
-                                // edit
-                                var uc = new AnyUiDialogueDataTextEditor(
-                                            caption: $"Edit text-file '{valuePath}'",
-                                            mimeType: valueContent,
-                                            text: contents);
-                                if (!this.context.StartFlyoverModal(uc))
-                                    return new AnyUiLambdaActionNone();
-
-                                // save
-                                using (var stream = packages.Main.GetStreamFromUriOrLocalPackage(
-                                    valuePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
-                                {
-                                    using (var sw = new StreamWriter(stream))
-                                    {
-                                        // write contents
-                                        sw.Write(uc.Text);
-                                    }
-                                }
-
-                                // value event
-                                this.AddDiaryEntry(containingObject, new DiaryEntryUpdateValue());
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Singleton.Error(
-                                    ex, $"Edit text-file {valuePath} in package.");
-                            }
-
-                            // reshow
-                            return new AnyUiLambdaActionRedrawEntity();
+                            if (changed)
+                                return new AnyUiLambdaActionRedrawAllElements(nextFocus: relatedReferable);
                         }
 
                         return new AnyUiLambdaActionNone();
@@ -2705,7 +3066,7 @@ namespace AasxPackageLogic
                                     var ptfn = System.IO.Path.GetFileName(uploadAssistance.SourcePath);
                                     packages.Main.PrepareSupplementaryFileParameters(ref ptd, ref ptfn);
 
-                                    var mimeType = AdminShellPackageEnv.GuessMimeType(ptfn);
+                                    var mimeType = AdminShellPackageFileBasedEnv.GuessMimeType(ptfn);
 
                                     var targetPath = packages.Main.AddSupplementaryFileToStore(
                                         uploadAssistance.SourcePath, ptd, ptfn,

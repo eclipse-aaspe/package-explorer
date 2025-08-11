@@ -107,7 +107,15 @@ namespace AasxOpcUa2Client
                 SecurityPolicyUris.None); // no encryption
 
             // try opening a session and reading a few nodes.
-            await _channel.OpenAsync();
+            try
+            {
+                await _channel.OpenAsync();
+            } catch (Exception ex)
+            {
+                ClientStatus = AasOpcUaClientStatus.ErrorCreateSession;
+                _log?.Error(ex, "open async");
+                return;
+            }
 
             // ok
             ClientStatus = AasOpcUaClientStatus.Running;

@@ -271,6 +271,7 @@ namespace AasxPackageExplorer
             bool editMode, bool hintMode = false, bool showIriMode = false, bool checkSmt = false,
 			VisualElementEnvironmentItem.ConceptDescSortOrder? cdSortOrder = null,
             IFlyoutProvider flyoutProvider = null,
+            IMainWindow mainWindow = null,
             IPushApplicationEvent appEventProvider = null,
             DispEditHighlight.HighlightFieldInfo hightlightField = null,
             AasxMenu superMenu = null)
@@ -375,7 +376,8 @@ namespace AasxPackageExplorer
 
                 // try to delegate to common routine
                 var common = _helper.DisplayOrEditCommonEntity(
-                    packages, stack, superMenu, editMode, hintMode, checkSmt, cdSortOrder, entity);
+                    packages, stack, superMenu, editMode, hintMode, checkSmt, cdSortOrder, entity,
+                    mainWindow: mainWindow);
 
                 if (common)
                 {
@@ -387,6 +389,13 @@ namespace AasxPackageExplorer
                     // some special cases
                     if (entity is VisualElementPluginExtension vepe)
                     {
+                        // for the plugin, prepare secure access
+                        ISecurityAccessHandler secureAccess = null;
+                        if (vepe.thePackage is AdminShellPackageDynamicFetchEnv aspdfe)
+                        {
+                            secureAccess = aspdfe.RuntimeOptions?.SecurityAccessHandler;
+                        }
+
                         // Try to figure out plugin rendering approach (1=WPF, 2=AnyUI)
                         var approach = 0;
                         var hasWpf = vepe.thePlugin?.HasAction("fill-panel-visual-extension") == true;
@@ -405,14 +414,12 @@ namespace AasxPackageExplorer
                             approach = 1;
 
                         // may dispose old (other plugin)
-                        var pluginOnlyUpdate = true;
                         if (LoadedPluginInstance == null
                             || LoadedPluginNode != entity
                             || LoadedPluginInstance != vepe.thePlugin)
                         {
                             // invalidate, fill new
                             DisposeLoadedPlugin();
-                            pluginOnlyUpdate = false;
                         }
 
                         // NEW: Differentiate behaviour ..
@@ -434,7 +441,7 @@ namespace AasxPackageExplorer
                                 vepe.thePlugin?.InvokeAction(
                                     "fill-anyui-visual-extension", vepe.thePackage, vepe.theReferable,
                                     stack, _helper.context, AnyUiDisplayContextWpf.SessionSingletonWpf,
-                                    opContext);
+                                    opContext, secureAccess);
 
                                 // remember
                                 LoadedPluginNode = entity;

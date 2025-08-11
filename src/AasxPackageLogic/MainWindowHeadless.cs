@@ -1561,14 +1561,6 @@ namespace AasxPackageLogic
             {
                 ticket.StartExec();
 
-                // access
-                if (PackageCentral.Repositories == null || PackageCentral.Repositories.Count < 1)
-                {
-                    LogErrorToTicket(ticket,
-                        "AASX File Repository: No repository currently available! Please open.");
-                    return;
-                }
-
                 // make a lambda
                 Action<PackageContainerRepoItem> lambda = (ri) =>
                 {
@@ -1601,7 +1593,8 @@ namespace AasxPackageLogic
                 };
 
                 // get the list of items
-                var repoItems = PackageCentral.Repositories.EnumerateItems().ToList();
+                var repoItems = PackageCentral.Repositories?.EnumerateItems().ToList()
+                                ?? new List<PackageContainerRepoItem>();
 
                 // scripted?
                 if (ticket["Index"] is int)
@@ -1617,7 +1610,7 @@ namespace AasxPackageLogic
                 else
                 if (ticket["AAS"] is string aasid)
                 {
-                    var ri = PackageCentral.Repositories.FindByAasId(aasid);
+                    var ri = await PackageCentral.Repositories.FindByAasId(aasid);
                     if (ri == null)
                     {
                         LogErrorToTicket(ticket, "Repo Query: AAS-Id not found");
@@ -1628,7 +1621,7 @@ namespace AasxPackageLogic
                 else
                 if (ticket["Asset"] is string aid)
                 {
-                    var ri = PackageCentral.Repositories.FindByAssetId(aid);
+                    var ri = await PackageCentral.Repositories.FindByAssetId(aid);
                     if (ri == null)
                     {
                         LogErrorToTicket(ticket, "Repo Query: Asset-Id not found");
@@ -1650,7 +1643,50 @@ namespace AasxPackageLogic
                     uc.Items = repoItems;
                     if (DisplayContext.StartFlyoverModal(uc))
                     {
-                        lambda(uc.ResultItem);
+                        // try the main window for remote repos
+                        if (uc.ResultId != null)
+                        {
+                            var rf = new Aas.Reference(ReferenceTypes.ExternalReference,
+                                    (new Aas.IKey[] { new Aas.Key(KeyTypes.GlobalReference, uc.ResultId) }).ToList());
+
+                            var rres = await MainWindow?.UiSearchRepoAndExtendEnvironmentAsync(
+                                PackageCentral.Main, rf, trySelect: true);
+                            if (rres != null)
+                                return;
+                        }
+
+                        // try the remote registries
+                        if (uc.ResultId != null)
+                        {
+                            var ri = await PackageCentral.Repositories.FindByAssetId(uc.ResultId);
+                            if (ri?.Location?.HasContent() == true)
+                            {
+                                // check if load fresh or aggregate
+                                if (PackageCentral.Main is AdminShellPackageDynamicFetchEnv)
+                                {
+                                    // load aggregate
+                                    Log.Singleton.Info("Aggregating location {0} ..", ri.Location);
+                                    var res = await MainWindow?.UiSearchRepoAndExtendEnvironmentAsync(
+                                        PackageCentral.Main, 
+                                        fullItemLocation: ri.Location,
+                                        trySelect: true);
+                                    if (res != null)
+                                        return;
+                                }
+                                else
+                                {
+                                    // load
+                                    Log.Singleton.Info("Switching to location {0} ..", ri.Location);
+                                    MainWindow?.UiLoadPackageWithNew(
+                                        PackageCentral.MainItem, null, ri.Location, onlyAuxiliary: false);
+                                    return;
+                                }
+                            }
+                        }
+
+                        // got an file repo item?
+                        if (uc.ResultItem != null)
+                            lambda(uc.ResultItem);
                     }
                 }
             }

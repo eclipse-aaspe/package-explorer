@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using AasFormUtils = AasxIntegrationBase.AasForms.AasFormUtils;
 using AasSchemaValidation = AdminShellNS.AasSchemaValidation;
 using AasValidationRecordList = AdminShellNS.AasValidationRecordList;
-using AdminShellPackageEnv = AdminShellNS.AdminShellPackageEnv;
+using AdminShellPackageFileBasedEnv = AdminShellNS.AdminShellPackageFileBasedEnv;
 using AdminShellUtil = AdminShellNS.AdminShellUtil;
 using AmlExport = AasxAmlImExport.AmlExport;
 using AmlImport = AasxAmlImExport.AmlImport;
@@ -35,7 +35,7 @@ namespace AasxToolkit
         public static int Execute(IReadOnlyList<Instruction.IInstruction> instructions)
         {
             // # Context
-            AdminShellPackageEnv package = null;
+            AdminShellPackageFileBasedEnv package = null;
 
             // # Execution loop
 
@@ -73,12 +73,12 @@ namespace AasxToolkit
                             {
                                 if (load.Path.EndsWith(".aml"))
                                 {
-                                    package = new AdminShellPackageEnv();
+                                    package = new AdminShellPackageFileBasedEnv();
                                     AmlImport.ImportInto(package, load.Path);
                                 }
                                 else
                                 {
-                                    package = new AdminShellPackageEnv(load.Path);
+                                    package = new AdminShellPackageFileBasedEnv(load.Path);
                                 }
                             }
                             catch (Exception ex)

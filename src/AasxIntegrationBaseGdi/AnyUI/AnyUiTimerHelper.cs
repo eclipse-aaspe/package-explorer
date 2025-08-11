@@ -25,5 +25,18 @@ namespace AasxIntegrationBaseGdi
                 return _timer2;
             }
         }
+
+        public static object CreatePluginTimerAsync(int intervalMs, Action lambdaTick)
+        {
+            {
+                // Note: this timer shall work for all sorts of applications?
+                // see: https://stackoverflow.com/questions/21041299/c-sharp-dispatchertimer-in-dll-application-never-triggered
+                var _timer2 = new System.Timers.Timer(intervalMs);
+                _timer2.Elapsed += (s, e) => lambdaTick?.Invoke();
+                _timer2.Enabled = true;
+                _timer2.Start();
+                return _timer2;
+            }
+        }
     }
 }

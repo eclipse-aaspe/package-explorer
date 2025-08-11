@@ -45,22 +45,24 @@ namespace AasxPackageLogic.PackageCentral
         // IRepoFind interface
         //
 
-        public PackageContainerRepoItem FindByAssetId(string aid)
+        public async Task<PackageContainerRepoItem> FindByAssetId(string aid)
         {
+            await Task.Yield();
             foreach (var fr in this)
             {
-                var fi = fr?.FindByAssetId(aid);
+                var fi = await fr?.FindByAssetId(aid);
                 if (fi != null)
                     return fi;
             }
             return null;
         }
 
-        public PackageContainerRepoItem FindByAasId(string aid)
+        public async Task<PackageContainerRepoItem> FindByAasId(string aid)
         {
+            await Task.Yield();
             foreach (var fr in this)
             {
-                var fi = fr?.FindByAasId(aid);
+                var fi = await fr?.FindByAasId(aid);
                 if (fi != null)
                     return fi;
             }

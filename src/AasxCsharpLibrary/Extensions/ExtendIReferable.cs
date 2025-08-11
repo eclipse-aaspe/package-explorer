@@ -465,13 +465,19 @@ namespace Extensions
             return parent as Submodel;
         }
 
-        public static string CollectIdShortByParent(this IReferable referable)
+        public static string CollectIdShortByParent(
+            this IReferable referable,
+            char separatorChar = '/',
+            bool excludeIdentifiable = false)
         {
             // recurse first
             var head = "";
-            if (referable is not IIdentifiable && referable.Parent is IReferable parentReferable)
+            if (referable is not IIdentifiable 
+                && referable.Parent is IReferable parentReferable
+                && (!excludeIdentifiable || parentReferable is not IIdentifiable))
                 // can go up
-                head = parentReferable.CollectIdShortByParent() + "/";
+                head = parentReferable.CollectIdShortByParent(separatorChar, excludeIdentifiable) 
+                            + separatorChar;
             // add own
             var myid = "<no id-Short!>";
             if (!string.IsNullOrEmpty(referable.IdShort))

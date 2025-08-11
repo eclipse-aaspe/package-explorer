@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Aas = AasCore.Aas3_0;
 
@@ -43,12 +44,17 @@ namespace AasxPackageLogic.PackageCentral
     /// </summary>
     public class PackCntRuntimeOptions
     {
-        public enum Progress { Idle, Starting, Ongoing, Final }
+        public enum Progress { 
+            Idle, 
+            StartOverall, EndOverall,
+            StartDownload, PerformDownload, EndDownload,
+            OverallMessage }
 
-        public delegate void ProgressChangedHandler(Progress state, long? totalFileSize, long totalBytesDownloaded);
+        public delegate void ProgressChangedHandler(
+            Progress state, long? totalFileSize = null, long? totalBytesDownloaded = null, string message = "");
 
         public delegate void AskForSelectFromListHandler(
-            string caption, List<AnyUiDialogueListItem> list,
+            string caption, AnyUiDialogueListItemList list,
             TaskCompletionSource<AnyUiDialogueListItem> propagateResult);
 
         public delegate void AskForCredentialsHandler(
@@ -65,6 +71,37 @@ namespace AasxPackageLogic.PackageCentral
                             string content, string text, string caption,
                             AnyUiMessageBoxButton buttons = 0);
         public ShowMessageDelegate ShowMesssageBox;
+
+        /// <summary>
+        /// Allow simulating a repo by predefined JSON web responses.
+        /// </summary>
+        public bool AllowFakeResponses = false;
+
+        /// <summary>
+        /// Log more 
+        /// </summary>
+        public bool ExtendedConnectionDebug = false;
+
+        /// <summary>
+        /// Set by the main application in order to be able to cancel an operation
+        /// Note: Normally, only CancellationTokenSource().Token shall be passed, however this
+        /// is used as source of truth.
+        /// </summary>
+        public CancellationTokenSource CancellationTokenSource = null;
+
+        /// <summary>
+        /// HTTP header attributes to be fed into the different HTTP get/ put/ post ..
+        /// functions of the registry/ repository calls.
+        /// </summary>
+        public HttpHeaderData HttpHeaderData = null;
+
+        /// <summary>
+        /// If set allows to generate security access information, such as HTTP headers, based
+        /// on context information such as baseAdress of Registries or Repositories. 
+        /// These procedures need to be maintained by main user application in order to include
+        /// specific configuration or user UI invocation.
+        /// </summary>
+        public ISecurityAccessHandler SecurityAccessHandler = null;
     }
 
     /// <summary>
@@ -225,8 +262,8 @@ namespace AasxPackageLogic.PackageCentral
     /// </summary>
     public class PackageContainerBase : IPackageConnectorManageEvents
     {
-        public enum Format { Unknown = 0, AASX, XML, JSON }
-        public static string[] FormatExt = { ".bin", ".aasx", ".xml", ".json" };
+        public enum Format { Unknown = 0, AASX, XML, JSON, Elements }
+        public static string[] FormatExt = { ".bin", ".aasx", ".xml", ".json", ".unknown" };
 
         public enum BackupType { XML = 0, FullCopy }
 
@@ -234,7 +271,7 @@ namespace AasxPackageLogic.PackageCentral
         public enum CopyMode { None = 0, Serialized = 1, BusinessData = 2 }
 
         [JsonIgnore]
-        public AdminShellPackageEnv Env = new AdminShellPackageEnv();
+        public AdminShellPackageEnvBase Env = new AdminShellPackageFileBasedEnv();
         
         [JsonIgnore]
         public Format IsFormat = Format.Unknown;
@@ -267,7 +304,7 @@ namespace AasxPackageLogic.PackageCentral
         public PackageContainerOptionsBase ContainerOptions = new PackageContainerOptionsBase();
 
         /// <summary>
-        /// Links (optionally) to the ContainerList, which hold this Container.
+        /// Links (optionally) to the ContainerList, which holds this Container.
         /// To be set after adding to the list.
         /// </summary>
         [JsonIgnore]
@@ -355,11 +392,13 @@ namespace AasxPackageLogic.PackageCentral
         {
         }
 
-        public virtual async Task LoadFromSourceAsync(
+        public virtual async Task<bool> LoadFromSourceAsync(
             string fullItemLocation,
+            PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
         {
             await Task.Yield();
+            return true;
         }
 
         public virtual async Task<bool> SaveLocalCopyAsync(
@@ -371,7 +410,7 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         public virtual async Task SaveToSourceAsync(string saveAsNewFileName = null,
-            AdminShellPackageEnv.SerializationFormat prefFmt = AdminShellPackageEnv.SerializationFormat.None,
+            AdminShellPackageFileBasedEnv.SerializationFormat prefFmt = AdminShellPackageFileBasedEnv.SerializationFormat.None,
             PackCntRuntimeOptions runtimeOptions = null,
             bool doNotRememberLocation = false)
         {

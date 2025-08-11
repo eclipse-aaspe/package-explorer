@@ -189,6 +189,10 @@ namespace AasxPackageLogic
         public static Dictionary<string, PluginInstance> TryActivatePlugins(
             IReadOnlyList<OptionsInformation.PluginDllInfo> pluginDll)
         {
+            // set some global options
+            AasxPluginsGlobal.SubmodelCheckOnlyId = Options.Curr.SubmodelCheckOnlyId;
+
+            // try load
             var loadedPlugins = new Dictionary<string, PluginInstance>();
 
             for (int index = 0; index < pluginDll.Count; index++)

@@ -10,14 +10,68 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+using AdminShellNS;
 using AdminShellNS.Extensions;
-using Microsoft.IdentityModel.Tokens;
+using Extensions;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
+using Aas = AasCore.Aas3_0;
 
 namespace AasxPackageLogic
 {
-    internal class EmptyListVisitor : Visitation.AbstractTransformer<IClass>
+    public class AasxFixes
+    {
+        /// <summary>
+        /// This function performs fixes to the AAS, where the AAS core framework crashes instead of working through the elements.
+        /// </summary>
+        /// <param name="env"></param>
+        public static void PerformPreFixes(Aas.IEnvironment env)
+        {
+            // access
+            if (env == null)
+                return;
+            try
+            {
+                foreach (var cd in env.AllConceptDescriptions())
+                {
+                    if (cd == null)
+                        continue;
+
+                    foreach (var eds in cd.EmbeddedDataSpecifications.ForEachSafe())
+                    {
+                        if (eds == null)
+                            continue;
+
+                        if (eds.DataSpecification?.IsValid() != true)
+                        {
+                            Log.Singleton.Info($"In CD {cd.IdShort}, fixing an embedded data specification reference.");
+                            eds.FixReferenceWrtContent();
+                        }
+
+                        // THE FUCK VISITOR PATTERN IS NOT WORKING AND AFTER HOURS AND HOURS I WILL JUST DO IT FOR NORMAL PEOPLE!!!!!!
+                        if (eds.DataSpecificationContent is DataSpecificationIec61360 iec61360)
+                        {
+                            if (iec61360.PreferredName == null)
+                                iec61360.PreferredName = new List<ILangStringPreferredNameTypeIec61360>(new[] { new LangStringPreferredNameTypeIec61360("en", "EMPTY") });
+
+                            if (iec61360.PreferredName?.IsValid() != true)
+                                iec61360.PreferredName = new List<ILangStringPreferredNameTypeIec61360>(new[] { new LangStringPreferredNameTypeIec61360("en", "EMPTY") });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(ex, "when performing pre fixes to AASX.");
+            }
+
+            ;
+        }
+    }
+
+    internal class AasxFixListVisitor : Visitation.AbstractTransformer<IClass>
     {
         public override IClass TransformAdministrativeInformation(IAdministrativeInformation that)
         {
@@ -68,7 +122,7 @@ namespace AasxPackageLogic
                 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);
@@ -157,7 +211,7 @@ namespace AasxPackageLogic
                 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);
@@ -239,7 +293,7 @@ namespace AasxPackageLogic
 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);
@@ -327,7 +381,7 @@ namespace AasxPackageLogic
 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);
@@ -354,7 +408,7 @@ namespace AasxPackageLogic
                 //This is subject to change based on https://github.com/admin-shell-io/aas-specs/issues/412
                 if (string.IsNullOrWhiteSpace(that.ContentType))
                 {
-                    that.ContentType = "EMPTY";
+                    that.ContentType = "application/octet-stream";
                 }
 
                 if (that.Extensions == null
@@ -388,7 +442,7 @@ namespace AasxPackageLogic
 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);
@@ -435,7 +489,7 @@ namespace AasxPackageLogic
 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);
@@ -474,9 +528,15 @@ namespace AasxPackageLogic
         {
             if(that != null)
             {
+                // add noise ratio!
+                if (that.PreferredName == null)
+                {
+                    that.PreferredName = new List<ILangStringPreferredNameTypeIec61360>(new[] { new LangStringPreferredNameTypeIec61360("en", "EMPTY") });
+                }
+                else
                 if (that.PreferredName.IsNullOrEmpty())
                 {
-                    that.PreferredName = null;
+                    that.PreferredName = new List<ILangStringPreferredNameTypeIec61360>(new[] { new LangStringPreferredNameTypeIec61360("en", "EMPTY") });
                 }
                 else
                 {
@@ -634,7 +694,7 @@ namespace AasxPackageLogic
 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);
@@ -839,7 +899,7 @@ namespace AasxPackageLogic
 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);
@@ -866,7 +926,7 @@ namespace AasxPackageLogic
                 //This is subject to change based on https://github.com/admin-shell-io/aas-specs/issues/412
                 if (string.IsNullOrWhiteSpace(that.ContentType))
                 {
-                    that.ContentType = "EMPTY";
+                    that.ContentType = "application/octet-stream";
                 }
 
                 if (that.Extensions == null
@@ -912,6 +972,14 @@ namespace AasxPackageLogic
                 {
                     that = null;
                 }
+
+                // MIHO
+                if (that != null)
+                {
+                    var str = that.Language;
+                    if (!AdminShellUtil.FixIso6391LangCode(ref str, noneResult: "en"))
+                        that.Language = str;
+                }
             }
             return that;
         }
@@ -928,6 +996,14 @@ namespace AasxPackageLogic
                 if (string.IsNullOrEmpty(that.Language) && string.IsNullOrEmpty(that.Text))
                 {
                     that = null;
+                }
+
+                // MIHO
+                if (that != null)
+                {
+                    var str = that.Language;
+                    if (!AdminShellUtil.FixIso6391LangCode(ref str, noneResult: "en"))
+                        that.Language = str;
                 }
             }
             return that;
@@ -946,6 +1022,14 @@ namespace AasxPackageLogic
                 {
                     that = null;
                 }
+
+                // MIHO
+                if (that != null)
+                {
+                    var str = that.Language;
+                    if (!AdminShellUtil.FixIso6391LangCode(ref str, noneResult: "en"))
+                        that.Language = str;
+                }
             }
             return that;
         }
@@ -963,6 +1047,14 @@ namespace AasxPackageLogic
                 {
                     that = null;
                 }
+
+                // MIHO
+                if (that != null)
+                {
+                    var str = that.Language;
+                    if (!AdminShellUtil.FixIso6391LangCode(ref str, noneResult: "en"))
+                        that.Language = str;
+                }
             }
             return that;
         }
@@ -979,6 +1071,14 @@ namespace AasxPackageLogic
                 if (string.IsNullOrEmpty(that.Language) && string.IsNullOrEmpty(that.Text))
                 {
                     that = null;
+                }
+
+                // MIHO
+                if (that != null)
+                {
+                    var str = that.Language;
+                    if (AdminShellUtil.FixIso6391LangCode(ref str, noneResult: "en"))
+                        that.Language = str;
                 }
             }
             return that;
@@ -1002,7 +1102,7 @@ namespace AasxPackageLogic
 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);
@@ -1076,7 +1176,7 @@ namespace AasxPackageLogic
 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);
@@ -1195,7 +1295,7 @@ namespace AasxPackageLogic
 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);
@@ -1223,6 +1323,34 @@ namespace AasxPackageLogic
                     that.ValueId = (IReference)Transform(that.ValueId);
                 }
 
+                if (that.Value != null 
+                    && (that.ValueType == DataTypeDefXsd.Double 
+                        || that.ValueType == DataTypeDefXsd.Float
+                        || that.ValueType == DataTypeDefXsd.Decimal))
+                {
+                    var str = that.Value;
+                    if (AdminShellUtil.FixFloatingPointString(ref str, noneResult: "0.0"))
+                        that.Value = str;
+                }
+
+                if (that.Value != null
+                    && (that.ValueType == DataTypeDefXsd.Integer 
+                        || that.ValueType == DataTypeDefXsd.Long
+                        || that.ValueType == DataTypeDefXsd.Short
+                        || that.ValueType == DataTypeDefXsd.NegativeInteger
+                        || that.ValueType == DataTypeDefXsd.NonNegativeInteger
+                        || that.ValueType == DataTypeDefXsd.NonPositiveInteger
+                        || that.ValueType == DataTypeDefXsd.PositiveInteger
+                        || that.ValueType == DataTypeDefXsd.UnsignedByte
+                        || that.ValueType == DataTypeDefXsd.UnsignedInt
+                        || that.ValueType == DataTypeDefXsd.UnsignedLong
+                        || that.ValueType == DataTypeDefXsd.UnsignedShort))
+                {
+                    var str = that.Value;
+                    if (AdminShellUtil.FixIntegerString(ref str, noneResult: "0.0"))
+                        that.Value = str;
+                }
+
                 if (that.Extensions == null
                     && that.Category == null
                     && that.IdShort == null
@@ -1232,7 +1360,6 @@ namespace AasxPackageLogic
                     && that.SupplementalSemanticIds == null
                     && that.Qualifiers == null
                     && that.EmbeddedDataSpecifications == null
-                    && that.ValueType == null
                     && that.Value == null
                     && that.ValueId == null)
                 {
@@ -1301,7 +1428,7 @@ namespace AasxPackageLogic
 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);
@@ -1377,6 +1504,24 @@ namespace AasxPackageLogic
                     {
                         that = null;
                     }
+
+                    // MIHO .. add more
+                    if (that?.Keys != null && that.Keys.Count > 0)
+                    {
+                        var fk = that.Keys.First();
+
+                        var ext = fk.Type == KeyTypes.GlobalReference;
+
+                        if (ext && that.Type == ReferenceTypes.ModelReference)
+                        {
+                            that.Type = ReferenceTypes.ExternalReference;
+                        }
+
+                        if (!ext && that.Type == ReferenceTypes.ExternalReference)
+                        {
+                            that.Type = ReferenceTypes.ModelReference;
+                        }
+                    }
                 }
             }
             return that;
@@ -1395,7 +1540,7 @@ namespace AasxPackageLogic
 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);
@@ -1448,7 +1593,7 @@ namespace AasxPackageLogic
 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);
@@ -1579,7 +1724,7 @@ namespace AasxPackageLogic
                 
                 if(string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
                 
                 if(string.IsNullOrWhiteSpace(that.Id))
@@ -1660,7 +1805,7 @@ namespace AasxPackageLogic
 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);
@@ -1728,7 +1873,7 @@ namespace AasxPackageLogic
 
                 if (string.IsNullOrWhiteSpace(that.IdShort))
                 {
-                    that.IdShort = null;
+                    that.IdShort = "EMPTY";
                 }
 
                 that.DisplayName = TransformDisplayName(that.DisplayName);

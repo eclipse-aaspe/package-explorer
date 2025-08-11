@@ -173,7 +173,7 @@ namespace AasxMqttClient
         }
 
         public async Task StartAsync(
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             AnyUiDialogueDataMqttPublisher diaData,
             GrapevineLoggerToStoredPrints logger = null)
         {

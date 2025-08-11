@@ -25,6 +25,9 @@ using AdminShellNS;
 using Extensions;
 using AnyUi;
 using Newtonsoft.Json;
+using System.IO.Packaging;
+using System.IO;
+using System.Net.Http;
 
 // ReSharper disable NegativeEqualityExpression
 // ReSharper disable AccessToModifiedClosure
@@ -37,7 +40,7 @@ namespace AasxPluginImageMap
         //=============
 
         private LogInstance _log = new LogInstance();
-        private AdminShellPackageEnv _package = null;
+        private AdminShellPackageEnvBase _package = null;
         private Aas.Submodel _submodel = null;
         private ImageMapOptions _options = null;
         private PluginEventStack _eventStack = null;
@@ -79,7 +82,7 @@ namespace AasxPluginImageMap
 
         public void Start(
             LogInstance log,
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageEnvBase thePackage,
             Aas.Submodel theSubmodel,
             ImageMapOptions theOptions,
             PluginEventStack eventStack,
@@ -110,7 +113,7 @@ namespace AasxPluginImageMap
             AasxPluginBase plugin)
         {
             // access
-            var package = opackage as AdminShellPackageEnv;
+            var package = opackage as AdminShellPackageEnvBase;
             var sm = osm as Aas.Submodel;
             var panel = opanel as AnyUiStackPanel;
             if (package == null || sm == null || panel == null)
@@ -134,7 +137,7 @@ namespace AasxPluginImageMap
 
         private void RenderFullView(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm)
         {
             // test trivial access
@@ -154,7 +157,7 @@ namespace AasxPluginImageMap
         protected void RenderPanelOutside(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             IEnumerable<ImageMapOptionsOptionsRecord> foundRecs,
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm)
         {
             // make an outer grid, very simple grid of two rows: header & body
@@ -373,15 +376,56 @@ namespace AasxPluginImageMap
                 return;
 
             // image
+            AnyUiBitmapInfo bi = null;
+
+            // need parent information
+            _submodel.SetAllParents();
+            var aas = _package.AasEnv?.FindAasWithSubmodelId(_submodel.Id);
+            
             // file?
-            var fe = _submodel.SubmodelElements.FindFirstSemanticIdAs<Aas.File>(
+            var fe = _submodel.SubmodelElements.FindFirstSemanticIdAs<Aas.IFile>(
                 AasxPredefinedConcepts.ImageMap.Static.CD_ImageFile,
                 MatchMode.Relaxed);
-            if (fe?.Value == null)
-                return;
+            if (fe?.Value != null)
+            {
+                // build path
+                var idShortPath = "" + fe.CollectIdShortByParent(
+                        separatorChar: '.', excludeIdentifiable: true);
 
-            var bi = AnyUiGdiHelper.LoadBitmapInfoFromPackage(_package, fe.Value);
-            if (_backgroundImage != null)
+                // wrap async
+                var task = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            return await _package.GetBytesFromPackageOrExternalAsync(
+                                uriString: fe.Value,
+                                aasId: "" + aas?.Id,
+                                smId: "" + _submodel.Id,
+                                idShortPath: idShortPath);
+                        } catch (Exception ex)
+                        {
+                            LogInternally.That.SilentlyIgnoredError(ex);
+                        }
+                        return null;
+                    });
+                task.Wait();
+                var imgBytes = task.Result;
+
+                // convert to image
+                bi = AnyUiGdiHelper.LoadBitmapInfoFromBytes(imgBytes);
+            }
+
+            // BLOB
+            var be = _submodel.SubmodelElements.FindFirstSemanticIdAs<Aas.IBlob>(
+                AasxPredefinedConcepts.ImageMap.Static.CD_ImageFile,
+                MatchMode.Relaxed);
+            if (be?.Value != null)
+            { 
+                bi = AnyUiGdiHelper.LoadBitmapInfoFromBytes(be.Value);
+            }
+
+            // set
+            if (bi != null && _backgroundImage != null)
             {
                 if (bi != null)
                 {

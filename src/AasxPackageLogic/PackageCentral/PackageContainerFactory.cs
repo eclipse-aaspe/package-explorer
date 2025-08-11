@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using AasxIntegrationBase;
 using AdminShellNS;
 using AnyUi;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -67,6 +68,16 @@ namespace AasxPackageLogic.PackageCentral
                 {
                     Location = location.Substring(PackageContainerUserFile.Scheme.Length),
                     GuessedType = typeof(PackageContainerUserFile)
+                };
+            }
+
+            // has some API patterns indicating that it is part / element of a HTTP based repository
+            if (PackageContainerHttpRepoSubset.IsValidUriAnyMatch(location))
+            {
+                return new PackageContainerGuess()
+                {
+                    Location = location,
+                    GuessedType = typeof(PackageContainerHttpRepoSubset)
                 };
             }
 
@@ -129,13 +140,15 @@ namespace AasxPackageLogic.PackageCentral
             string location,
             string fullItemLocation,
             bool overrideLoadResident,
+            bool autoAuthenticate,
             PackageContainerBase takeOver = null,
             PackageContainerListBase containerList = null,
             PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
         {
             var task = Task.Run(() => GuessAndCreateForAsync(
-                packageCentral, location, fullItemLocation, overrideLoadResident,
+                packageCentral, location, fullItemLocation, 
+                overrideLoadResident, autoAuthenticate,
                 takeOver, containerList, containerOptions, runtimeOptions));
             return task.Result;
         }
@@ -145,6 +158,7 @@ namespace AasxPackageLogic.PackageCentral
             string location,
             string fullItemLocation,
             bool overrideLoadResident,
+            bool autoAuthenticate,
             PackageContainerBase takeOver = null,
             PackageContainerListBase containerList = null,
             PackageContainerOptionsBase containerOptions = null,
@@ -174,6 +188,21 @@ namespace AasxPackageLogic.PackageCentral
                     overrideLoadResident, containerOptions, runtimeOptions);
             }
 
+            // as might be relevant for multiple containers, check for auto-authentificate now
+            if (autoAuthenticate
+                && (guess.GuessedType == typeof(PackageContainerNetworkHttpFile)
+                    || guess.GuessedType == typeof(PackageContainerHttpRepoSubset))
+                && runtimeOptions?.SecurityAccessHandler != null)
+            {
+                var extraHeader = await runtimeOptions.SecurityAccessHandler.InteractiveDetermineAuthenticateHeader(
+                        location, Options.Curr.AutoAuthenticateAsk);
+                if (extraHeader != null)
+                {
+                    runtimeOptions.HttpHeaderData = runtimeOptions.HttpHeaderData ?? new HttpHeaderData();
+                    runtimeOptions.HttpHeaderData.AddForUnique(extraHeader);
+                }
+            }
+
             // starts with http ?
             if (guess.GuessedType == typeof(PackageContainerNetworkHttpFile))
             {
@@ -199,6 +228,31 @@ namespace AasxPackageLogic.PackageCentral
                             packageCentral, location, fullItemLocation,
                             overrideLoadResident, takeOver,
                             containerOptions, runtimeOptions);
+                return cnt;
+            }
+
+            if (guess.GuessedType == typeof(PackageContainerHttpRepoSubset))
+            {
+                // prepare (extend) container options
+                var extCntOpt = new PackageContainerHttpRepoSubsetOptions(containerOptions, 
+                    new ConnectExtendedRecord());
+
+                // if the container options had no record, for this situation
+                // (guess and load a "complete" ressource), make sure,
+                // that Submodels are loaded with it ..
+                if (containerOptions == null
+                    || containerOptions is not PackageContainerHttpRepoSubsetOptions pchrso
+                    || pchrso.Record == null)
+                {
+                    extCntOpt.Record.AutoLoadSubmodels = true;
+                    extCntOpt.Record.AutoLoadOnDemand = false;
+                }
+
+                // prepare runtime options
+                var cnt = await PackageContainerHttpRepoSubset.CreateAndLoadAsync(
+                            packageCentral, location, fullItemLocation,
+                            overrideLoadResident, takeOver: takeOver,
+                            containerOptions: extCntOpt, runtimeOptions: runtimeOptions);
                 return cnt;
             }
 
@@ -235,7 +289,7 @@ namespace AasxPackageLogic.PackageCentral
             ro?.Log?.Info($"Perform Demo() for location {location}");
 
             // ask for a list
-            var li1 = new List<AnyUiDialogueListItem>();
+            var li1 = new AnyUiDialogueListItemList();
             li1.Add(new AnyUiDialogueListItem("AAAAAAAAAAAAAAAAAAAAAAAAAAA", "A"));
             li1.Add(new AnyUiDialogueListItem("bbbbbbbbbbbb", "B"));
             li1.Add(new AnyUiDialogueListItem("CCCCCCCCCCCCCCCCCC  CCCCC", "C"));
@@ -246,7 +300,7 @@ namespace AasxPackageLogic.PackageCentral
             ro?.Log?.Info($".. selected item is {"" + xx?.Text}");
 
             // ask for a list
-            var li2 = new List<AnyUiDialogueListItem>();
+            var li2 = new AnyUiDialogueListItemList();
             li2.Add(new AnyUiDialogueListItem("111111111", "A"));
             li2.Add(new AnyUiDialogueListItem("222222222222222222222222", "B"));
             li2.Add(new AnyUiDialogueListItem("3333333333333  3333", "C"));

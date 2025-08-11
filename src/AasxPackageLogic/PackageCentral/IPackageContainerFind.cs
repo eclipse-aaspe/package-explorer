@@ -9,6 +9,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -19,8 +20,8 @@ namespace AasxPackageLogic.PackageCentral
     /// </summary>
     public interface IPackageContainerFind
     {
-        PackageContainerRepoItem FindByAssetId(string aid);
-        PackageContainerRepoItem FindByAasId(string aid);
+        Task<PackageContainerRepoItem> FindByAssetId(string aid);
+        Task<PackageContainerRepoItem> FindByAasId(string aid);
         IEnumerable<PackageContainerRepoItem> EnumerateItems();
         bool Contains(PackageContainerRepoItem fi);
     }
