@@ -19,15 +19,17 @@ using AdminShellNS;
 using AdminShellNS.DiaryData;
 using AnyUi;
 using Extensions;
+using J2N;
 using Microsoft.Win32;
 using Newtonsoft.Json;
-using NPOI.HPSF;
-using Org.BouncyCastle.Asn1.X509;
+using NPOI.POIFS.Properties;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Packaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,6 +43,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Workstation.ServiceModel.Ua;
 using static AasxPackageLogic.DispEditHelperBasics;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 using Aas = AasCore.Aas3_0;
 using ExhaustiveMatch = ExhaustiveMatching.ExhaustiveMatch;
 
@@ -84,7 +87,7 @@ namespace AasxPackageExplorer
 		
 		public AasxMenuWpf MainMenu = new AasxMenuWpf();
 
-        private Aas.ISubmodelElement showContentElement = null;
+        private VisualElementGeneric _showContentElement = null;
         private VisualElementGeneric currentEntityForUpdate = null;
         private IFlyoutControl currentFlyoutControl = null;
 
@@ -99,6 +102,11 @@ namespace AasxPackageExplorer
         private AasEventCompressor _eventCompressor = new AasEventCompressor();
 
         public AasxMenuWpf DynamicMenu = new AasxMenuWpf();
+
+        /// <summary>
+        /// Allows creating tokens.. based on user configured information or UI.
+        /// </summary>
+        public WinGdiSecurityAccessHandler _securityAccessHandler = null;
 
         #endregion
         #region Init Component
@@ -237,10 +245,19 @@ namespace AasxPackageExplorer
         }
 
         /// <summary>
+        /// Checks, if any identifiable is tainted (modified). Helps asking the user if to save
+        /// data before losing it.
+        /// </summary>
+        public bool CheckIsAnyTaintedIdentifiableInMain()
+        {
+            return DisplayElements.IsAnyTaintedIdentifiable();
+        }
+
+        /// <summary>
         /// Large extend. Basially redraws everything after new package has been loaded.
         /// </summary>
         /// <param name="onlyAuxiliary">Only tghe AUX package has been altered.</param>
-        public void RestartUIafterNewPackage(bool onlyAuxiliary = false)
+        public void RestartUIafterNewPackage(bool onlyAuxiliary = false, bool? nextEditMode = null)
         {
             if (onlyAuxiliary)
             {
@@ -252,7 +269,7 @@ namespace AasxPackageExplorer
                 // visually a new content
                 // switch off edit mode -> will will cause the browser to show the AAS as selected element
                 // and -> this will update the left side of the screen correctly!
-                MainMenu?.SetChecked("EditMenu", false);
+                MainMenu?.SetChecked("EditMenu", nextEditMode.HasValue ? nextEditMode.Value : false);
                 ClearAllViews();
                 RedrawAllAasxElements();
                 RedrawElementView();
@@ -261,16 +278,16 @@ namespace AasxPackageExplorer
             }
         }
 
-        private AdminShellPackageEnv LoadPackageFromFile(string fn)
+        private AdminShellPackageFileBasedEnv LoadPackageFromFile(string fn)
         {
             if (fn.Trim().ToLower().EndsWith(".aml"))
             {
-                var res = new AdminShellPackageEnv();
+                var res = new AdminShellPackageFileBasedEnv();
                 AasxAmlImExport.AmlImport.ImportInto(res, fn);
                 return res;
             }
             else
-                return new AdminShellPackageEnv(fn, Options.Curr.IndirectLoadSave);
+                return new AdminShellPackageFileBasedEnv(fn, Options.Curr.IndirectLoadSave);
         }
 
         public void TakeOverContentEnable(bool enabled)
@@ -302,18 +319,35 @@ namespace AasxPackageExplorer
             var ro = new PackCntRuntimeOptions()
             {
                 Log = Log.Singleton,
-                ProgressChanged = (state, tfs, tbd) =>
+                ProgressChanged = (state, tfs, tbd, msg) =>
                 {
-                    if (state == PackCntRuntimeOptions.Progress.Starting
-                        || state == PackCntRuntimeOptions.Progress.Ongoing)
-                        SetProgressBar(
-                            Math.Min(100.0, 100.0 * tbd / (tfs.HasValue ? tfs.Value : 5 * 1024 * 1024)),
-                            AdminShellUtil.ByteSizeHumanReadable(tbd));
+                    if (state == PackCntRuntimeOptions.Progress.StartOverall)
+                    {
+                        SetProgressOverall(true, msg);
+                    }
 
-                    if (state == PackCntRuntimeOptions.Progress.Final)
+                    if (state == PackCntRuntimeOptions.Progress.OverallMessage
+                        && _progressOverallActive)
+                    {
+                        SetProgressOverall(true, msg);
+                    }
+
+                    if (state == PackCntRuntimeOptions.Progress.EndOverall)
+                    {
+                        SetProgressOverall(false, msg);
+                    }
+
+                    if ((state == PackCntRuntimeOptions.Progress.StartDownload
+                        || state == PackCntRuntimeOptions.Progress.PerformDownload)
+                        && tfs.HasValue && tbd.HasValue)
+                        SetProgressDownload(
+                            Math.Min(100.0, 100.0 * tbd.Value / (tfs.HasValue ? tfs.Value : 5 * 1024 * 1024)),
+                            AdminShellUtil.ByteSizeHumanReadable(tbd.Value));
+
+                    if (state == PackCntRuntimeOptions.Progress.EndDownload)
                     {
                         // clear
-                        SetProgressBar();
+                        SetProgressDownload();
 
                         // close message boxes
                         if (currentFlyoutControl is IntegratedConnectFlyout)
@@ -345,7 +379,10 @@ namespace AasxPackageExplorer
                         return AnyUiMessageBoxResult.Cancel;
                     else
                         return ucic.MessageBoxShow(content, text, title, buttons);
-                }
+                },
+                AllowFakeResponses = Options.Curr.AllowFakeResponses,
+                ExtendedConnectionDebug = Options.Curr.ExtendedConnectionDebug,
+                SecurityAccessHandler = _securityAccessHandler
             };
             return ro;
         }
@@ -364,26 +401,36 @@ namespace AasxPackageExplorer
         /// <param name="takeOverContainer">Already loaded container to take over (alternative 3)</param>
         /// <param name="storeFnToLRU">Store this filename into last recently used list</param>
         /// <param name="indexItems">Index loaded contents, e.g. for animate of event sending</param>
+        /// <param name="nextEditMode">Set the edit mode AFTER loading</param>
         public void UiLoadPackageWithNew(
             PackageCentralItem packItem,
-            AdminShellPackageEnv takeOverEnv = null,
+            AdminShellPackageEnvBase takeOverEnv = null,
             string loadLocalFilename = null,
             string info = null,
             bool onlyAuxiliary = false,
             bool doNotNavigateAfterLoaded = false,
             PackageContainerBase takeOverContainer = null,
             string storeFnToLRU = null,
-            bool indexItems = false)
+            bool indexItems = false,
+            bool preserveEditMode = false,
+            bool? nextEditMode = null,
+            bool autoFocusFirstRelevant = false)
         {
             // access
             if (packItem == null)
                 return;
 
+            // do a bit logic for easy calling via IMainWindow
+            if (preserveEditMode)
+                nextEditMode = MainMenu?.IsChecked("EditMenu") == true;
+
+            // start loading new stuff
             if (loadLocalFilename != null)
             {
                 if (info == null)
                     info = loadLocalFilename;
                 Log.Singleton.Info("Loading new AASX from: {0} as auxiliary {1} ..", info, onlyAuxiliary);
+
                 if (!packItem.Load(PackageCentral, loadLocalFilename, loadLocalFilename,
                     overrideLoadResident: true,
                     PackageContainerOptionsBase.CreateDefault(Options.Curr)))
@@ -420,7 +467,45 @@ namespace AasxPackageExplorer
             // displaying
             try
             {
-                RestartUIafterNewPackage(onlyAuxiliary);
+                RestartUIafterNewPackage(onlyAuxiliary, nextEditMode);
+
+                if (autoFocusFirstRelevant && PackageCentral.Main?.AasEnv is Aas.IEnvironment menv)
+                {
+                    VisualElementEnvironmentItem.ItemType? eit = null;
+                    var nextLevelExpand = false;
+
+                    if (menv.AssetAdministrationShellCount() < 1 && menv.SubmodelCount() >= 1)
+                    {
+                        // focus on All Submodels
+                        eit = VisualElementEnvironmentItem.ItemType.AllSubmodels;
+                    }
+                    else
+                    if (menv.AssetAdministrationShellCount() < 1 && menv.SubmodelCount() < 1
+                        && menv.ConceptDescriptionCount() >= 1)
+                    {
+                        // focus on All CD
+                        eit = VisualElementEnvironmentItem.ItemType.AllConceptDescriptions;
+                        nextLevelExpand = true;
+                    }
+
+                    // now?
+                    if (eit.HasValue)
+                    { 
+                        DisplayElements.ExpandAllItems();
+                        var ve = DisplayElements.FindAllVisualElementTop()
+                            .Where((ve) => ve is VisualElementEnvironmentItem veei && veei.theItemType == eit.Value)
+                            .FirstOrDefault();
+
+                        // one level deeper expanded
+                        if (nextLevelExpand && ve?.Members != null)
+                            foreach (var child in ve.Members)
+                                if (child != null)
+                                    child.IsExpanded = true;
+
+                        // show this
+                        DisplayElements.TrySelectVisualElement(ve, wishExpanded: true);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -463,25 +548,6 @@ namespace AasxPackageExplorer
                 return;
             }
 
-            /* TODO (MIHO, 2021-12-27): consider extending for better testing or
-             * script running */
-#if __leave_in_for_accelerated_tet
-            if (false)
-            {
-                var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(4) };
-                timer.Tick += (sender, args) =>
-                {
-                    timer.Stop();
-                    var pluginName = "AasxPluginExportTable";
-                    var actionName = "export-uml";
-                    var pi = Plugins.FindPluginInstance(pluginName);
-                    pi?.InvokeAction(actionName, this, _packageCentral?.Main?.AasEnv,
-                        _packageCentral?.Main?.AasEnv?.Submodels[0], "test.uml");
-
-                };
-                timer.Start();
-            }
-#endif
 
             // done
             Log.Singleton.Info("AASX {0} loaded.", info);
@@ -590,7 +656,7 @@ namespace AasxPackageExplorer
         }
 
         public void PrepareDispEditEntity(
-            AdminShellPackageEnv package, ListOfVisualElementBasic entities,
+            AdminShellPackageEnvBase package, ListOfVisualElementBasic entities,
             bool editMode, bool hintMode, bool showIriMode, bool checkSmt,
             DispEditHighlight.HighlightFieldInfo hightlightField = null)
         {
@@ -604,6 +670,7 @@ namespace AasxPackageExplorer
                 PackageCentral, DisplayContext,
                 entities, editMode, hintMode, showIriMode, checkSmt, tiCds?.CdSortOrder,
                 flyoutProvider: this,
+                mainWindow: this,
                 appEventProvider: this,
                 hightlightField: hightlightField,
                 superMenu: DynamicMenu.Menu);
@@ -645,7 +712,7 @@ namespace AasxPackageExplorer
             ShowContent.IsEnabled = false;
             DragSource.Foreground = Brushes.DarkGray;
             UpdateContent.IsEnabled = false;
-            this.showContentElement = null;
+            _showContentElement = null;
 
             // show it
             if (ElementTabControl.SelectedIndex != 0)
@@ -654,19 +721,11 @@ namespace AasxPackageExplorer
             // some entities require special handling
             if (entities?.ExactlyOne == true && entities.First() is VisualElementSubmodelElement sme)
             { 
-                if (sme?.theWrapper is Aas.IFile file)
+                if (sme?.theWrapper is Aas.IFile || sme?.theWrapper is Aas.IBlob)
                 {
                     ShowContent.IsEnabled = true;
-                    this.showContentElement = file;
                     DragSource.Foreground = Brushes.Black;
-                }
-
-                if (sme?.theWrapper is Aas.IBlob blb
-                    && AdminShellUtil.CheckForTextContentType(blb.ContentType))
-                {
-                    ShowContent.IsEnabled = true;
-                    this.showContentElement = blb;
-                    DragSource.Foreground = Brushes.Black;
+                    _showContentElement = entities.First();
                 }
             }
 
@@ -705,7 +764,6 @@ namespace AasxPackageExplorer
                 var asset = tvlaas.theAas.AssetInformation;
                 if (asset != null)
                 {
-
                     // text id
                     if (asset.GlobalAssetId != null)
                         this.AssetId.Text = WpfStringAddWrapChars(
@@ -717,8 +775,37 @@ namespace AasxPackageExplorer
 						// identify which stream to use..
 						var picFound = false;
 
-						// specific for the AAS
-						if (PackageCentral.MainAvailable)
+                        // new approach
+                        if (PackageCentral.MainAvailable)
+                            try
+                            {
+                                var bytes = PackageCentral.Main.GetThumbnailBytesFromAasOrPackage(tvlaas.theAas.Id);
+                                if (bytes != null)
+                                    using (var ms = new MemoryStream(bytes))
+                                    { 
+                                        // load image
+                                        var bi = new BitmapImage();
+                                        bi.BeginInit();
+
+                                        // See https://stackoverflow.com/a/5346766/1600678
+                                        bi.CacheOption = BitmapCacheOption.OnLoad;
+
+                                        bi.StreamSource = ms;
+                                        bi.EndInit();
+
+                                        this.AssetPic.Source = bi;
+                                        picFound = true;
+                                    }
+                            }
+                            catch (Exception ex)
+                            {
+                                AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
+                            }
+
+
+                        // specific for the AAS
+#if __old1
+                        if (PackageCentral.MainAvailable)
 							try
 							{
 								if (asset?.DefaultThumbnail?.Path?.HasContent() == true)
@@ -747,10 +834,10 @@ namespace AasxPackageExplorer
 							{
 								AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
 							}
+#endif
 
-
-						// no, ask online server?
-						if (!picFound && this.theOnlineConnection != null 
+                        // no, ask online server?
+                        if (!picFound && this.theOnlineConnection != null 
                             && this.theOnlineConnection.IsValid() 
                             && this.theOnlineConnection.IsConnected())
 							try
@@ -776,8 +863,9 @@ namespace AasxPackageExplorer
 								AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
 							}
 
-						// no, from the AASX?
-						if (!picFound && PackageCentral.MainAvailable)
+#if __old2
+                        // no, from the AASX?
+                        if (!picFound && PackageCentral.MainAvailable)
                             try
                             {
                                 using (var thumbStream = PackageCentral.Main.GetLocalThumbnailStream())
@@ -800,10 +888,8 @@ namespace AasxPackageExplorer
                             catch (Exception ex)
                             {
                                 AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
-                            }
-
-                        
-
+                            }        
+#endif
                     }
                     catch (Exception ex)
                     {
@@ -826,7 +912,7 @@ namespace AasxPackageExplorer
 
         }
 
-        #endregion
+#endregion
         #region Callbacks
         //===============
 
@@ -849,6 +935,10 @@ namespace AasxPackageExplorer
             Logic.DisplayContext = DisplayContext;
             Logic.MainWindow = this;
 
+            // re-load known endpoints
+            _securityAccessHandler = new WinGdiSecurityAccessHandler(DisplayContext,
+                knownEndpoints: Options.Curr.KnownEndpoints);
+
             // making up "empty" picture
             this.AasId.Text = "<id unknown!>";
             this.AssetId.Text = "<id unknown!>";
@@ -866,6 +956,10 @@ namespace AasxPackageExplorer
             // WPF main menu
             MainMenu = new AasxMenuWpf();
             MainMenu.LoadAndRender(logicalMainMenu, MenuMain, this.CommandBindings, this.InputBindings);
+
+            // editor modes?
+            MainMenu?.SetChecked("EditMenu", Options.Curr.EditMode);
+            MainMenu?.SetChecked("HintsMenu", !Options.Curr.NoHints);
 
             // display elements has a cache
             DisplayElements.ActivateElementStateCache();
@@ -909,7 +1003,7 @@ namespace AasxPackageExplorer
             // attach result search
             ToolFindReplace.Flyout = this;
             ToolFindReplace.ResultSelected += ToolFindReplace_ResultSelected;
-            ToolFindReplace.SetProgressBar += SetProgressBar;
+            ToolFindReplace.SetProgressBar += SetProgressDownload;
 
             // Package Central starting ..
             PackageCentral.CentralRuntimeOptions = UiBuildRuntimeOptionsForMainAppLoad();
@@ -918,6 +1012,7 @@ namespace AasxPackageExplorer
             RepoListControl.PackageCentral = PackageCentral;
             RepoListControl.FlyoutProvider = this;
             RepoListControl.ManageVisuElems = DisplayElements;
+            RepoListControl.ExecuteMainCommand = this;
             this.UiShowRepositories(visible: false);
 
             // event viewer
@@ -939,20 +1034,113 @@ namespace AasxPackageExplorer
             }
 
             // Repository pointed by the Options
-            if (Options.Curr.AasxRepositoryFn.HasContent())
+            if (Options.Curr.AasxRepositoryFns != null && Options.Curr.AasxRepositoryFns.Count > 0)
             {
-                var fr2 = await Logic.UiLoadFileRepositoryAsync(Options.Curr.AasxRepositoryFn, tryLoadResident: true);
-                if (fr2 != null)
+                foreach (var arf in Options.Curr.AasxRepositoryFns)
                 {
-                    this.UiShowRepositories(visible: true);
-                    PackageCentral.Repositories.AddAtTop(fr2);
+                    if (arf?.HasContent() != true)
+                        continue;
+
+                    var fr2 = await Logic.UiLoadFileRepositoryAsync(arf, tryLoadResident: true);
+                    if (fr2 != null)
+                    {
+                        this.UiShowRepositories(visible: true);
+                        PackageCentral.Repositories.AddAtTop(fr2);
+                        Log.Singleton.Info("Added file repository {0} from: {1}.",
+                            fr2.Header, arf);
+                    }
+                    else
+                    {
+                        Log.Singleton.Error("Error loading file repository from: {0}", arf);
+                    }
                 }
             }
 
             // what happens on a repo file click
             RepoListControl.FileDoubleClick += async (senderList, repo, fi) =>
             {
-                // access
+                //
+                // special case: registry / repo
+                //
+
+                if (repo is PackageContainerListHttpRestRepository restRepo)
+                {
+                    // find a specific location
+                    if (PackageContainerHttpRepoSubset.IsValidUriAnyMatch(fi?.Location))
+                    {
+                        // try load that specific location
+                        // check if load fresh or aggregate
+                        if (PackageCentral.Main is AdminShellPackageDynamicFetchEnv)
+                        {
+                            // load aggregate
+                            Log.Singleton.Info("Aggregating location {0} ..", fi.Location);
+                            var res = await UiSearchRepoAndExtendEnvironmentAsync(
+                                PackageCentral.Main,
+                                fullItemLocation: fi.Location,
+                                trySelect: true);
+                            
+                            // error?
+                            if (res == null)
+                                Log.Singleton.Error("Not able to access location {0}", fi.Location);
+
+                            // in any case, stop here
+                            return;
+                        }
+                        else
+                        {
+                            // load
+                            Log.Singleton.Info("Switching to location {0} ..", fi.Location);
+                            UiLoadPackageWithNew(PackageCentral.MainItem, null, 
+                                fi.Location, onlyAuxiliary: false, preserveEditMode: true);
+
+                            // in any case, stop here
+                            return;
+                        }
+                    }
+
+                    // if not a specific location is available, display general dialogue
+                    if (true)
+                    {
+                        var fetchContext = new PackageContainerHttpRepoSubsetFetchContext()
+                        {
+                            Record = new ConnectExtendedRecord()
+                            {
+                                BaseType = ConnectExtendedRecord.EvalBaseType(restRepo.PreferredInterface,
+                                    ConnectExtendedRecord.BaseTypeEnum.Repository),
+                                BaseAddress = restRepo.Endpoint?.ToString()
+                            }
+                        };
+
+                        // refer to (static) function
+                        try
+                        {
+                            var res = await DispEditHelperEntities.ExecuteUiForFetchOfElements(
+                                PackageCentral, DisplayContext,
+                                ticket: null,
+                                mainWindow: this,
+                                fetchContext: fetchContext,
+                                // merge some HTTP headers?
+                                additionalHeaderData: restRepo.HttpHeaderData,                        
+                                preserveEditMode: true,
+                                doEditNewRecord: true,
+                                doCheckTainted: true,
+                                doFetchGoNext: false,
+                                doFetchExec: true);
+                        } 
+                        catch (OperationCanceledException)
+                        {
+                            Log.Singleton.Info("User cancellation: Repository/ Registry fetch.");
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Singleton.Error(ex, "when performing Repository/ Registry fetch");
+                        }
+                    }
+                }
+
+                //
+                // "normal" file item
+                //
                 if (repo == null || fi == null)
                     return;
 
@@ -1008,6 +1196,7 @@ namespace AasxPackageExplorer
                             location,
                             location,
                             overrideLoadResident: true,
+                            autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                             takeOver: fi,
                             fi.ContainerList,
                             containerOptions: copts,
@@ -1131,6 +1320,7 @@ namespace AasxPackageExplorer
                         location,
                         location,
                         overrideLoadResident: true,
+                        autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                         containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr),
                         runtimeOptions: PackageCentral.CentralRuntimeOptions);
 
@@ -1138,7 +1328,8 @@ namespace AasxPackageExplorer
                         Log.Singleton.Error($"Failed to auto-load AASX from {location}");
                     else
                         UiLoadPackageWithNew(PackageCentral.MainItem,
-                            takeOverContainer: container, onlyAuxiliary: false, indexItems: true);
+                            takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
+                            nextEditMode: Options.Curr.EditMode);
 
                     Log.Singleton.Info($"Successfully auto-loaded AASX {location}");
                 }
@@ -1161,6 +1352,7 @@ namespace AasxPackageExplorer
                         location,
                         location,
                         overrideLoadResident: true,
+                        autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                         containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr),
                         runtimeOptions: PackageCentral.CentralRuntimeOptions);
 
@@ -1243,7 +1435,7 @@ namespace AasxPackageExplorer
                 ;
             }
 
-            // AasxIntegrationBaseWpf.CountryFlagWpf.LoadImage();
+            AasxIntegrationBaseWpf.CountryFlagWpf.LoadImage();
         }
 
         private void ToolFindReplace_ResultSelected(AasxSearchUtil.SearchResultItem resultItem)
@@ -1576,6 +1768,7 @@ namespace AasxPackageExplorer
                     location,
                     location,
                     overrideLoadResident: true,
+                    autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                     null, null,
                     PackageContainerOptionsBase.CreateDefault(Options.Curr),
                     runtimeOptions: PackageCentral.CentralRuntimeOptions);
@@ -1679,6 +1872,112 @@ namespace AasxPackageExplorer
             }
         }
 
+        public async Task<Aas.IIdentifiable> UiSearchRepoAndExtendEnvironmentAsync(
+            AdminShellPackageEnvBase packEnv,
+            Aas.IReference workRef = null,
+            string fullItemLocation = null,
+            bool trySelect = false)
+        {
+            await Task.Yield();
+
+            // access
+            if (packEnv == null || (workRef?.IsValid() != true && fullItemLocation?.HasContent() != true))
+                return null;
+
+            // check if env is dynamic fetch
+            if (packEnv is not AdminShellPackageDynamicFetchEnv dynPack)
+                return null;
+
+            // try get a copy of the fetch record
+            var context = (dynPack.GetContext() as PackageContainerHttpRepoSubsetFetchContext);
+            var record = (context?.Record as ConnectExtendedRecord)?.Copy();
+            if (record == null)
+                return null;
+
+            // make sure there is a base
+            if (record.BaseAddress?.HasContent() != true)
+                return null;
+
+            // search for AAS?
+            BaseUriDict baseUris = null;
+            if (workRef?.IsValid() == true)
+            {
+                if (workRef.Count() >= 1 && workRef.Keys[0].Type == KeyTypes.AssetAdministrationShell)
+                {
+                    // want to search for an AAS
+                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleAas);
+                    record.AasId = workRef.Keys[0].Value;
+                    var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    baseUris = basedLoc.BaseUris;
+                    fullItemLocation = basedLoc.Location.ToString();
+                }
+
+                // search for Asset?
+                if (workRef.Count() >= 1 && workRef.Keys[0].Type == KeyTypes.GlobalReference)
+                {
+                    // want to search for an Asset?
+                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AasByAssetLink);
+                    record.AssetId = workRef.Keys[0].Value;
+                    var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    baseUris = basedLoc.BaseUris;
+                    fullItemLocation = basedLoc.Location.ToString();
+                }
+            }
+
+            // any info
+            if (fullItemLocation?.HasContent() != true)
+                return null;
+
+            // try to load
+            // TODO: take over those options from existing container
+            var containerOptions = new PackageContainerHttpRepoSubset.
+                PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
+                record);
+            containerOptions.BaseUris = baseUris;
+
+            var newIdfs = new List<Aas.IIdentifiable>();
+            var loadedIdfs = new List<Aas.IIdentifiable>();
+
+            var loadRes = await PackageContainerHttpRepoSubset.LoadFromSourceToTargetAsync(
+                fullItemLocation: fullItemLocation,
+                targetEnv: packEnv,
+                loadNew: false,
+                trackNewIdentifiables: newIdfs,
+                trackLoadedIdentifiables: loadedIdfs,
+                containerOptions: containerOptions,
+                runtimeOptions: PackageCentral.CentralRuntimeOptions);
+
+            if (loadRes == null || newIdfs.Count < 1)
+                return null;
+
+            // rebuild display elements
+            DisplayElements.RebuildAasxElements(
+                PackageCentral, PackageCentral.Selector.Main, MainMenu?.IsChecked("EditMenu") == true,
+                lazyLoadingFirst: true);
+
+            var newIdf = newIdfs.FirstOrDefault();
+
+            // display
+            if (trySelect)
+            {
+                var veFound = this.DisplayElements.SearchVisualElementOnMainDataObject(newIdf, alsoDereferenceObjects: true);
+                if (veFound != null)
+                {
+                    // show ve
+                    DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true);
+                    // remember in history
+                    Logic?.LocationHistory?.Push(veFound);
+                    // fake selection
+                    RedrawElementView();
+                    DisplayElements.Refresh();
+                    TakeOverContentEnable(false);
+                }
+            }
+
+            // the end
+            return newIdf;
+        }
+
         private async Task UiHandleNavigateTo(
             Aas.IReference targetReference,
             bool alsoDereferenceObjects = true)
@@ -1702,6 +2001,7 @@ namespace AasxPackageExplorer
                 this.DisplayElements.ExpandAllItems();
 
                 // incrementally make it unprecise
+                bool firstTime = true;
                 while (work.Keys.Count > 0)
                 {
                     // try to find a business object in the package
@@ -1709,7 +2009,15 @@ namespace AasxPackageExplorer
                     if (PackageCentral.MainAvailable && PackageCentral.Main.AasEnv != null)
                         bo = PackageCentral.Main.AasEnv.FindReferableByReference(work);
 
-                    // if not, may be in aux package
+                    // Prio 2: check for connected repositories
+                    // (An actual "up-to-date" hit in repo in more valuable than a stored container on file space)
+                    if (firstTime && bo == null)
+                    {
+                        bo = await UiSearchRepoAndExtendEnvironmentAsync(PackageCentral.Main, work);
+                        firstTime = false;
+                    }
+
+                    // if not, may be in aux package (not sure, if this works)
                     if (bo == null && PackageCentral.Aux != null && PackageCentral.Aux.AasEnv != null)
                         bo = PackageCentral.Aux.AasEnv.FindReferableByReference(work);
 
@@ -1720,15 +2028,15 @@ namespace AasxPackageExplorer
                         PackageContainerRepoItem fi = null;
                         if (work.Keys[0].Type == Aas.KeyTypes.GlobalReference)
                             //TODO (jtikekar, 0000-00-00): KeyTypes.AssetInformation
-                            fi = PackageCentral.Repositories.FindByAssetId(work.Keys[0].Value.Trim());
+                            fi = await PackageCentral.Repositories.FindByAssetId(work.Keys[0].Value.Trim());
                         if (work.Keys[0].Type == Aas.KeyTypes.AssetAdministrationShell)
-                            fi = PackageCentral.Repositories.FindByAasId(work.Keys[0].Value.Trim());
+                            fi = await PackageCentral.Repositories.FindByAasId(work.Keys[0].Value.Trim());
 
                         var boInfo = await LoadFromFileRepository(fi, work);
                         bo = boInfo?.BusinessObject;
                     }
 
-                    // still yes?
+                    // anything found?
                     if (bo != null)
                     {
                         // try to look up in visual elements
@@ -1792,6 +2100,8 @@ namespace AasxPackageExplorer
                 if (evt is AasxIntegrationBase.AasxPluginResultEventNavigateToReference evtNavTo
                     && evtNavTo.targetReference != null && evtNavTo.targetReference.Keys.Count > 0)
                 {
+                    Log.Singleton.Info("Plugin requested to naviagte to: " + evtNavTo.targetReference.ToStringExtended(1));
+
                     await UiHandleNavigateTo(evtNavTo.targetReference);
                 }
 
@@ -2334,6 +2644,27 @@ namespace AasxPackageExplorer
             }
         }
 
+        private void MainTimer_CheckTaintedIdentifiables(
+            DateTime lastTime,
+            Aas.IEnvironment env)
+        {
+            // trivial
+            if (env == null || DisplayElements == null)
+                return;
+
+            // find visual elements for Identifiables and check for tainted state
+            foreach (var ve in DisplayElements.FindAllVisualElementTopToIdentifiable())
+                if (ve is ITaintableIdentifiable ttidf)
+                {
+                    var tt = ttidf.GetTaintedTime();
+                    if (tt == null || tt < lastTime)
+                        continue;
+
+                    // kick off redisplay
+                    ve.RefreshFromMainData();
+                }
+        }
+
         protected EventHandlingStatus _eventHandling = new EventHandlingStatus();
 
         private void MainTimer_PeriodicalTaskForSelectedEntity()
@@ -2554,6 +2885,7 @@ namespace AasxPackageExplorer
         }
 
         private DateTime _mainTimer_LastCheckForDiaryEvents;
+        private DateTime _mainTimer_LastCheckForTaintedIdentifiables;
         private DateTime _mainTimer_LastCheckForAnimationElements = DateTime.Now;
 
         private bool _mainTimer_PendingReIndexElements = false;
@@ -2561,10 +2893,12 @@ namespace AasxPackageExplorer
 
         private async Task MainTimer_Tick(object sender, EventArgs e)
         {
+            // different functions
             MainTimer_HandleLogMessages();
             await MainTimer_HandleEntityPanel();
             await MainTimer_HandleApplicationEvents();
 
+            // diary dates -> events, animation
             if (PackageCentral?.MainItem?.Container?.SignificantElements != null)
             {
                 MainTimer_CheckDiaryDateToEmitEvents(
@@ -2587,8 +2921,14 @@ namespace AasxPackageExplorer
                 }
 			}
 
-			// do re-index?
-			var deltaSecs2 = (DateTime.Now - _mainTimer_LastCheckForReIndexElements).TotalSeconds;
+            // flags for tainted Identifiables
+            MainTimer_CheckTaintedIdentifiables(
+                _mainTimer_LastCheckForTaintedIdentifiables,
+                PackageCentral.MainItem.Container?.Env?.AasEnv);
+            _mainTimer_LastCheckForTaintedIdentifiables = DateTime.UtcNow;
+
+            // pending re-index?
+            var deltaSecs2 = (DateTime.Now - _mainTimer_LastCheckForReIndexElements).TotalSeconds;
             if (deltaSecs2 >= 1.0 && _mainTimer_PendingReIndexElements)
             {
                 // dis-engage
@@ -2601,6 +2941,7 @@ namespace AasxPackageExplorer
                 Log.Singleton.Info("Re-indexing Identifiables for faster access.");
 			}
 
+            // normal stuff
             MainTimer_PeriodicalTaskForSelectedEntity();
             MainTaimer_HandleIncomingAasEvents();
             DisplayElements.UpdateFromQueuedEvents();
@@ -2612,22 +2953,54 @@ namespace AasxPackageExplorer
 			_mainTimer_PendingReIndexElements = true;
 	    }
 
-		private void SetProgressBar()
+        private void SetProgressOverallIsEnabled(bool active)
         {
-            SetProgressBar(0.0, "");
+            BorderDisplayElements.IsEnabled = active;
+            BorderEditElements.IsEnabled = active;
+            BorderContainerList.IsEnabled = active;
+            MenuMain.IsEnabled = active;
         }
 
-        private void SetProgressBar(double? percent, string message = null)
+        protected bool _progressOverallActive = false;
+
+        private void SetProgressOverall(bool active, string message)
         {
-            if (percent.HasValue)
-                ProgressBarInfo.Dispatcher.BeginInvoke(
+            _progressOverallActive = active;
+
+            ProgressBarDownload.Dispatcher.BeginInvoke(
+                System.Windows.Threading.DispatcherPriority.Background,
+                new Action(() => {
+                    TextBlockProgressOverall.Background = (active) ? Brushes.DarkGreen : Brushes.White;
+                    TextBlockProgressOverall.Text = "" + message;
+                    ButtonProgressOverallClear.Visibility = (active) ? Visibility.Visible : Visibility.Collapsed;
+                    // an active == true will set all controls to isEnabled == false!! and vice versa
+                    SetProgressOverallIsEnabled(!active);
+                } ));
+        }
+
+        private void ButtonProgressOverallClear_Click(object sender, RoutedEventArgs e)
+        {
+            SetProgressOverall(false, "");
+            if (PackageCentral.CentralRuntimeOptions?.CancellationTokenSource != null)
+                PackageCentral.CentralRuntimeOptions.CancellationTokenSource.Cancel();
+        }
+
+        private void SetProgressDownload()
+        {
+            SetProgressDownload(0.0, "");
+        }
+
+        private void SetProgressDownload(double? percent, string message = null)
+        {
+            if (percent.HasValue && percent.Value.IsFinite())
+                ProgressBarDownload.Dispatcher.BeginInvoke(
                             System.Windows.Threading.DispatcherPriority.Background,
-                            new Action(() => ProgressBarInfo.Value = percent.Value));
+                            new Action(() => ProgressBarDownload.Value = percent.Value));
 
             if (message != null)
-                LabelProgressBarInfo.Dispatcher.BeginInvoke(
+                LabelProgressBarDownload.Dispatcher.BeginInvoke(
                     System.Windows.Threading.DispatcherPriority.Background,
-                    new Action(() => LabelProgressBarInfo.Content = message));
+                    new Action(() => LabelProgressBarDownload.Content = message));
         }
 
         private async Task ButtonHistory_ObjectRequested(object sender, VisualElementHistoryItem hi)
@@ -2653,18 +3026,32 @@ namespace AasxPackageExplorer
                     }
                 }
 
+                // no? Try to find the business object
+                var bo = hi?.VisualElement?.GetMainDataObject();
+                if (bo != null)
+                {
+                    if (DisplayElements.TrySelectMainDataObject(bo, wishExpanded: true, alsoDereferenceObjects: true))
+                    {
+                        // fake selection
+                        RedrawElementView();
+                        DisplayElements.Refresh();
+                        TakeOverContentEnable(false);
+
+                        // done
+                        return;
+                    }
+                }
+
                 // no? .. is there a way to another file?
                 if (PackageCentral.Repositories != null && hi?.ReferableAasId != null
                     && hi.ReferableReference != null)
                 {
-                    ;
-
                     // try lookup file in file repository
-                    var fi = PackageCentral.Repositories.FindByAasId(hi.ReferableAasId.Trim());
+                    var fi = await PackageCentral.Repositories.FindByAasId(hi.ReferableAasId.Trim());
                     if (fi == null)
                     {
-                        Log.Singleton.Error(
-                            $"Cannot lookup aas id {hi.ReferableAasId} in file repository.");
+                        Log.Singleton.Info(
+                            $"History: Cannot lookup aas id {hi.ReferableAasId} in file repository.");
                         return;
                     }
 
@@ -2672,7 +3059,7 @@ namespace AasxPackageExplorer
                     var sri = ListOfVisualElement.StripSupplementaryReferenceInformation(hi.ReferableReference);
 
                     // load it (safe)
-                    object bo = null;
+                    bo = null;
                     try
                     {
                         var boInfo = await LoadFromFileRepository(fi, sri.CleanReference);
@@ -2734,7 +3121,7 @@ namespace AasxPackageExplorer
             Message.Background = Brushes.White;
             Message.Foreground = Brushes.Black;
             Message.FontWeight = FontWeights.Normal;
-            SetProgressBar();
+            SetProgressDownload();
         }
 
         /// <summary>
@@ -2744,7 +3131,15 @@ namespace AasxPackageExplorer
         {
             // show only if not present
             if (_messageReportWindow != null)
+            {
+                // this is ridiculous, but this seems to make the trick
+                // https://stackoverflow.com/questions/257587/bring-a-window-to-the-front-in-wpf
+                _messageReportWindow.Activate();
+                _messageReportWindow.Topmost = true;  // important
+                _messageReportWindow.Topmost = false; // important
+                _messageReportWindow.Focus();         // important
                 return;
+            }
 
             // Collect all the stored log prints
             IEnumerable<StoredPrint> Prints()
@@ -2804,7 +3199,7 @@ namespace AasxPackageExplorer
                 filename += ".png";
 
             // needs to be the main thread
-            ProgressBarInfo.Dispatcher.BeginInvoke(
+            ProgressBarDownload.Dispatcher.BeginInvoke(
                 System.Windows.Threading.DispatcherPriority.Background,
                 new Action(() =>
                 {
@@ -2853,17 +3248,63 @@ namespace AasxPackageExplorer
             RedrawElementView();
         }
 
-        private void DisplayElements_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private async void DisplayElements_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             // we're assuming, that SelectedItem point to the right business object
-            if (DisplayElements.SelectedItem == null)
+            var si = DisplayElements.SelectedItem;
+            if (si == null)
                 return;
 
-            // redraw view
-            RedrawElementView();
+            // act depending on selectedItem
+            if (si is VisualElementEnvironmentItem siei 
+                && (siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev
+                    || siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext))
+            {
+                // want to refetch elements
+                // check all pre-requisites
+                if (!(siei.thePackage is AdminShellPackageDynamicFetchEnv dynPack
+                     && dynPack.GetContext() is PackageContainerHttpRepoSubsetFetchContext fetchContext
+                     && fetchContext.Record != null))
+                {
+                    Log.Singleton.Error("Fetch next within dynamic environment: " +
+                        "Not enough data to provide dynamic fetch operations.");
+                    return;
+                }
 
-            // "simulate" click on "ShowContents"
-            this.ShowContent_Click(this.ShowContent, null);
+                // at the start or end?
+                var goPrev = siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev;
+                var goNext = siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext;
+                var goNextFake = false;
+                if (goNext && fetchContext.Cursor?.HasContent() != true)
+                {
+                    Log.Singleton.Info(StoredPrint.Color.Blue, "No cursor for fetch operation available " +
+                            "(at the end of the selected subset of elements or no server support).");
+                    goNext = false;
+                    goNextFake = true;
+                }
+
+                // refer to (static) function
+                var res = await DispEditHelperEntities.ExecuteUiForFetchOfElements(
+                    PackageCentral, DisplayContext, new AasxMenuActionTicket(), this /* MainWindow */, fetchContext,
+                    preserveEditMode: true,
+                    doEditNewRecord: false,
+                    doCheckTainted: true,
+                    doFetchGoPrev: goPrev,
+                    doFetchGoNext: goNext,
+                    doFakeGoNext: goNextFake,
+                    doFetchExec: true);
+
+                // success will trigger redraw independently, therefore always do nothing
+            }
+            else
+            if (si is VisualElementSubmodelElement)
+            {
+                // redraw view
+                RedrawElementView();
+
+                // "simulate" click on "ShowContents"
+                this.ShowContent_Click(this.ShowContent, null);
+            }
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
@@ -2959,37 +3400,18 @@ namespace AasxPackageExplorer
             }
         }
 
-        private void ShowContent_Click(object sender, RoutedEventArgs e)
+        private async void ShowContent_Click(object sender, RoutedEventArgs e)
         {
-            if (sender == ShowContent && this.showContentElement != null && PackageCentral.MainAvailable)
+            await Task.Yield();
+
+            if (sender == ShowContent && _showContentElement != null && PackageCentral.MainAvailable
+                && _showContentElement is VisualElementSubmodelElement veSme)
             {
-                if (this.showContentElement is Aas.IFile scFile)
-                {
-                    Log.Singleton.Info("Trying display content {0} ..", scFile.Value);
-                    try
-                    {
-                        var contentUri = scFile.Value;
+                //
+                // Text edit of BLOB?
+                //
 
-                        // if local in the package, then make a tempfile
-                        if (!contentUri.ToLower().Trim().StartsWith("http://")
-                            && !contentUri.ToLower().Trim().StartsWith("https://"))
-                        {
-                            // make it as file
-                            contentUri = PackageCentral.Main.MakePackageFileAvailableAsTempFile(contentUri);
-                        }
-
-                        BrowserDisplayLocalFile(contentUri, scFile.ContentType);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Singleton.Error(
-                            ex, $"When displaying content {scFile.Value}, an error occurred");
-                        return;
-                    }
-                    Log.Singleton.Info("Content {0} displayed.", scFile.Value);
-                }
-
-                if (this.showContentElement is Aas.IBlob blb
+                if (veSme?.theWrapper is Aas.IBlob blb
                     && MainMenu?.IsChecked("EditMenu") == true
                     && AdminShellUtil.CheckForTextContentType(blb.ContentType))
                 {
@@ -3013,6 +3435,85 @@ namespace AasxPackageExplorer
                         return;
                     }
                     Log.Singleton.Info("Content from {0} edited.", blb.IdShort);
+                    return;
+                }
+
+                if (veSme?.theWrapper is Aas.IFile file
+                    && MainMenu?.IsChecked("EditMenu") == true
+                    && AdminShellUtil.CheckForTextContentType(file.ContentType))
+                {
+                    Log.Singleton.Info("Trying edit multiline content from {0} ..", file.IdShort);
+
+                    DispEditHelperModules.DisplayOrEditEntityFileResource_EditTextFile(
+                        DisplayContext, PackageCentral.Main,
+                        file.ContentType,
+                        file.Value);
+
+                    Log.Singleton.Info("Content from {0} edited.", file.IdShort);
+                    return;
+                }
+
+                //
+                // Display?
+                //
+
+                Tuple<object, string> contentFound = null;
+                if (veSme?.theWrapper is Aas.IFile scFile)
+                    contentFound = new Tuple<object, string>(scFile.Value, scFile.ContentType);
+                if (veSme?.theWrapper is Aas.IBlob scBlob && MainMenu?.IsChecked("EditMenu") == false)
+                    contentFound = new Tuple<object, string>(scBlob.Value, scBlob.ContentType);
+
+                if (contentFound != null)
+                {
+                    Log.Singleton.Info("Trying display content {0} ..", contentFound.Item1);
+                    try
+                    {
+                        if (contentFound.Item1 is string contentUri)
+                        {
+                            // if local in the package, then make a tempfile
+                            if (!contentUri.ToLower().Trim().StartsWith("http://")
+                                && !contentUri.ToLower().Trim().StartsWith("https://"))
+                            {
+                                // make it a file?
+                                // more info for Registry/ Repo available?
+                                var x = veSme.FindAasSubmodelIdShortPath();
+                                contentUri = await PackageCentral.Main.MakePackageFileAvailableAsTempFileAsync(contentUri,
+                                    aasId: x?.Item1?.Id,
+                                    smId: x?.Item2?.Id,
+                                    idShortPath: x?.Item3);
+                            }
+
+                            BrowserDisplayLocalFile(contentUri, contentFound.Item2);
+                        }
+                        else
+                        if (contentFound.Item1 is byte[] ba)
+                        {
+                            try
+                            {
+                                // generate tempfile name
+                                string tempext = AdminShellUtil.GuessExtension(
+                                    contentType: contentFound.Item2,
+                                    contents: ba);
+                                string temppath = System.IO.Path.GetTempFileName().Replace(".tmp", tempext);
+
+                                // write it
+                                System.IO.File.WriteAllBytes(temppath, ba);
+
+                                // display
+                                BrowserDisplayLocalFile(temppath, contentFound.Item2);
+                            } catch (Exception ex)
+                            {
+                                Log.Singleton.Error(ex, "when preparing BLOB contents to be displayed as file.");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Singleton.Error(
+                            ex, $"When displaying content {contentFound.Item1}, an error occurred");
+                        return;
+                    }
+                    Log.Singleton.Info("Content {0} displayed.", contentFound.Item1);
                 }
             }
         }
@@ -3508,7 +4009,8 @@ namespace AasxPackageExplorer
                     try
                     {
                         UiLoadPackageWithNew(
-                            PackageCentral.MainItem, null, loadLocalFilename: fn, onlyAuxiliary: false);
+                            PackageCentral.MainItem, null, loadLocalFilename: fn, onlyAuxiliary: false,
+                            nextEditMode: Options.Curr.EditMode);
                     }
                     catch (Exception ex)
                     {
@@ -3527,7 +4029,7 @@ namespace AasxPackageExplorer
             //// && (Math.Abs(dragStartPoint.X) < 0.001 && Math.Abs(dragStartPoint.Y) < 0.001)
             if (e.LeftButton == MouseButtonState.Pressed && !isDragging
                 && PackageCentral.MainAvailable
-                && this.showContentElement is Aas.IFile scFile)
+                && this._showContentElement is Aas.IFile scFile)
             {
                 Point position = e.GetPosition(null);
                 if (Math.Abs(position.X - dragStartPoint.X) > SystemParameters.MinimumHorizontalDragDistance ||
@@ -3907,5 +4409,6 @@ namespace AasxPackageExplorer
             }
         }
 
+        
     }
 }

@@ -43,7 +43,7 @@ namespace AasxPluginExportTable.Smt
     public class ExportSmt
     {
         protected LogInstance _log = null;
-        protected AdminShellPackageEnv _package = null;
+        protected AdminShellPackageEnvBase _package = null;
         protected Aas.ISubmodel _srcSm = null;
         protected ExportTableOptions _optionsAll = null;
         protected ExportSmtRecord _optionsSmt = null;
@@ -105,7 +105,7 @@ namespace AasxPluginExportTable.Smt
             string dataExt = ".bin";
             if (sme is Aas.IFile smeFile)
             {
-                data = _package?.GetByteArrayFromUriOrLocalPackage(smeFile.Value);
+                data = _package?.GetBytesFromPackageOrExternal(smeFile.Value);
                 dataExt = Path.GetExtension(smeFile.Value);
             }
 
@@ -159,7 +159,9 @@ namespace AasxPluginExportTable.Smt
             var targetName = "image_" + Path.GetRandomFileName().Replace(".", "_");
             if (sme.IdShort.HasContent())
             {
-                targetName = AdminShellUtil.FilterFriendlyName(sme.IdShort);
+                // filter a little more relaxed (allow "-")
+                targetName = AdminShellUtil.FilterFriendlyName(sme.IdShort, 
+                    regexForFilter: @"[^a-zA-Z0-9_-]");
 
                 int p = targetName.ToLower().LastIndexOf("_dot_");
                 if (p >= 0)
@@ -333,7 +335,7 @@ namespace AasxPluginExportTable.Smt
         public void ExportSmtToFile(
             LogInstance log,
             AnyUiContextPlusDialogs displayContext,
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.ISubmodel submodel,
             ExportTableOptions optionsAll,
             ExportSmtRecord optionsSmt,

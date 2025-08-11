@@ -34,7 +34,7 @@ namespace AasxPluginAssetInterfaceDescription
         //=============
 
         private LogInstance _log = new LogInstance();
-        private AdminShellPackageEnv _package = null;
+        private AdminShellPackageEnvBase _package = null;
         private Aas.Submodel _submodel = null;
         private AssetInterfaceOptions _options = null;
         private PluginEventStack _eventStack = null;
@@ -85,7 +85,7 @@ namespace AasxPluginAssetInterfaceDescription
 
         public void Start(
             LogInstance log,
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageEnvBase thePackage,
             Aas.Submodel theSubmodel,
             AssetInterfaceOptions theOptions,
             PluginEventStack eventStack,
@@ -146,7 +146,7 @@ namespace AasxPluginAssetInterfaceDescription
             AidAllInterfaceStatus ifxStatus)
         {
             // access
-            var package = opackage as AdminShellPackageEnv;
+            var package = opackage as AdminShellPackageEnvBase;
             var sm = osm as Aas.Submodel;
             var panel = opanel as AnyUiStackPanel;
             if (package == null || sm == null || panel == null)
@@ -170,7 +170,7 @@ namespace AasxPluginAssetInterfaceDescription
 
         private void RenderFullView(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm)
         {
             // test trivial access
@@ -190,7 +190,7 @@ namespace AasxPluginAssetInterfaceDescription
         protected void RenderPanelOutside(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             IEnumerable<AssetInterfaceOptionsRecord> foundRecs,
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm)
         {
             // make an outer grid, very simple grid of two rows: header & body
@@ -272,7 +272,7 @@ namespace AasxPluginAssetInterfaceDescription
         protected void RenderPanelInner(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             AssetInterfaceOptionsRecord rec,
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm)
         {
             // access

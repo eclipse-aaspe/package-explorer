@@ -8,6 +8,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 */
 
 using AdminShellNS;
+using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -470,6 +471,9 @@ namespace AnyUi
         }
     }
 
+    /// <summary>
+    /// Single item in a list the user might choose from
+    /// </summary>
     public class AnyUiDialogueListItem
     {
         public string Text = "";
@@ -484,7 +488,52 @@ namespace AnyUi
         }
     }
 
-	public class AnyUiDialogueDataGridRow
+    /// <summary>
+    /// List of items, the user might choose from
+    /// </summary>
+    public class AnyUiDialogueListItemList : List<AnyUiDialogueListItem>
+    {
+        public AnyUiDialogueListItemList() { }
+
+        public AnyUiDialogueListItemList(IEnumerable<AnyUiDialogueListItem> items)
+        {
+            foreach (var item in items) 
+                this.Add(item); 
+        }
+
+        /// <summary>
+        /// Helper to add a finite amount of fixed list items directly from params.
+        /// <c>withTextAndTags</c> specifies, if TWO strings are taken for each item, 
+        /// with <c>Text</c> and <c>Tag</c>.
+        /// </summary>
+        /// <param name="withTextAndTags"></param>
+        /// <param name="itemsTextOrTag"></param>
+        public AnyUiDialogueListItemList(bool withTextAndTags, params string[] itemsTextOrTag)
+        {
+            // access
+            if (itemsTextOrTag == null)
+                return;
+            // 1 or 2?
+            if (withTextAndTags)
+            {
+                if (itemsTextOrTag.Length < 2)
+                    return;
+                if (itemsTextOrTag.Length % 2 != 0)
+                    return;
+                for (int i = 0; i < itemsTextOrTag.Length; i += 2)
+                    this.Add(new AnyUiDialogueListItem(itemsTextOrTag[i], itemsTextOrTag[i + 1]));
+            }
+            else
+            {
+                if (itemsTextOrTag.Length < 1)
+                    return;
+                for (int i = 0; i < itemsTextOrTag.Length; i += 2)
+                    this.Add(new AnyUiDialogueListItem(itemsTextOrTag[i], null));
+            }
+        }
+    }
+
+    public class AnyUiDialogueDataGridRow
 	{
 		public List<string> Cells { get; set; } = new List<string>();
 		public object Tag = null;
@@ -502,7 +551,7 @@ namespace AnyUi
 	public class AnyUiDialogueDataSelectFromList : AnyUiDialogueDataBase
     {
         // in
-        public List<AnyUiDialogueListItem> ListOfItems = null;
+        public AnyUiDialogueListItemList ListOfItems = null;
         public string[] AlternativeSelectButtons = null;
 
         // out
@@ -526,6 +575,7 @@ namespace AnyUi
 
 		// in
 		public List<AnyUiDialogueDataGridRow> Rows = null;
+        public bool EmptySelectOk = false;
 		              
 		// out
 		public int ResultIndex = -1;
@@ -562,6 +612,11 @@ namespace AnyUi
         }
 
         public AnyUiMessageBoxImage Symbol;
+
+        /// <summary>
+        /// Set this to <c>true</c> in order to let the dialogue close itself
+        /// </summary>
+        public bool DialogShallClose = false;
 
         // out
         // currently, no out

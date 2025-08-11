@@ -1,15 +1,16 @@
 ﻿{
-    "TemplateIdConceptDescription": "www.example.com/ids/cd/DDDD_DDDD_DDDD_DDDD",
-    "SmtExportHtmlCmd": "docker",
-    "SmtExportHtmlArgs": "run -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor -r asciidoctor-diagram -a toc=left -a stylesheet=asciidoc-style-idta.css %ADOC%",
-    "SmtExportPdfCmd": "docker",
-    // without line numbers:
-    // "SmtExportPdfArgs": "run -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor-pdf -r asciidoctor-diagram -a pdf-theme=my-theme.yml %ADOC%",
-    // with line numbers:
-    "SmtExportPdfArgs": "run -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor-pdf -r asciidoctor-diagram -r ./extended.rb -a toc=macro -a pdf-theme=my-theme.yml -a env-pdf %ADOC%",
-    "SmtExportViewCmd": "cmd.exe",
-    "SmtExportViewArgs": "/c start %WD%\\%HTML% && ping 127.0.0.1 -n 5 >nul",
-    /*
+  "TemplateIdConceptDescription": "www.example.com/ids/cd/DDDD_DDDD_DDDD_DDDD",
+
+  "SmtExportHtmlCmd": "docker",
+  "SmtExportHtmlArgs": "run -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor -r asciidoctor-diagram -a stylesheet=asciidoc-style-idta.css %ADOC%",
+  "SmtExportPdfCmd": "docker",
+  // without line numbers:
+  // "SmtExportPdfArgs": "run -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor-pdf -r asciidoctor-diagram -a pdf-theme=my-theme.yml %ADOC%",
+  // with line numbers:
+  "SmtExportPdfArgs": "run -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor-pdf -r asciidoctor-diagram -r ./extended.rb -a toc=macro -a pdf-theme=my-theme.yml -a env-pdf %ADOC%",
+  "SmtExportViewCmd": "cmd.exe",
+  "SmtExportViewArgs": "/c start %WD%\\%HTML% && ping 127.0.0.1 -n 5 >nul",
+  /*
   "SmtExportHtmlCmd": "ping",
   "SmtExportHtmlArgs": "127.0.0.1 -n 6",
   "SmtExportPdfCmd": "ping",

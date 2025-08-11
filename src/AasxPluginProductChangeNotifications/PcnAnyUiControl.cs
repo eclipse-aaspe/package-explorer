@@ -20,7 +20,6 @@ using Newtonsoft.Json;
 using AasxPredefinedConcepts;
 using System.Reflection.PortableExecutable;
 
-using PDPCN = AasxPredefinedConcepts.ProductChangeNotifications;
 using System.Windows.Documents;
 using System.Linq;
 using System.Globalization;
@@ -33,6 +32,9 @@ using System.Xml.XPath;
 using System.Xml;
 using AasCore.Aas3_0;
 
+using PCNCURR = AasxPredefinedConcepts.ProductChangeNotifications.V_1_0;
+using PCNHELP = AasxPredefinedConcepts.ProductChangeNotifications.Helper;
+
 namespace AasxPluginProductChangeNotifications
 {
     public class PcnAnyUiControl
@@ -41,7 +43,7 @@ namespace AasxPluginProductChangeNotifications
         //=============
 
         private LogInstance _log = new LogInstance();
-        private AdminShellPackageEnv _package = null;
+        private AdminShellPackageEnvBase _package = null;
         private Aas.Submodel _submodel = null;
         private PcnOptions _options = null;
         private PluginEventStack _eventStack = null;
@@ -50,15 +52,17 @@ namespace AasxPluginProductChangeNotifications
         private AasxPluginBase _plugin = null;
         private AnyUiContextBase _displayContext = null;
 
-        private PDPCN.CD_ProductChangeNotifications _pcnData = new PDPCN.CD_ProductChangeNotifications();
+        // active date to an "empty" class
+        private PCNCURR.CD_ProductChangeNotifications _pcnData = new PCNCURR.CD_ProductChangeNotifications();
 
         protected AnyUiSmallWidgetToolkit _uitk = new AnyUiSmallWidgetToolkit();
 
-        protected static Dictionary<string, PDPCN.PcnReasonDescription> _dictIdToReason =
-            PDPCN.PcnReasonDescription.BuildDict();
+        // helpers
+        protected static Dictionary<string, PCNHELP.PcnReasonDescription> _dictIdToReason =
+            PCNHELP.PcnReasonDescription.BuildDict();
 
-        protected static Dictionary<string, PDPCN.PcnItemDescription> _dictIdToItem =
-            PDPCN.PcnItemDescription.BuildDict();
+        protected static Dictionary<string, PCNHELP.PcnItemDescription> _dictIdToItem =
+            PCNHELP.PcnItemDescription.BuildDict();
 
         #endregion
 
@@ -87,7 +91,7 @@ namespace AasxPluginProductChangeNotifications
 
         public void Start(
             LogInstance log,
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageEnvBase thePackage,
             Aas.Submodel theSubmodel,
             PcnOptions theOptions,
             PluginEventStack eventStack,
@@ -122,7 +126,7 @@ namespace AasxPluginProductChangeNotifications
             AnyUiContextBase displayContext)
         {
             // access
-            var package = opackage as AdminShellPackageEnv;
+            var package = opackage as AdminShellPackageEnvBase;
             var sm = osm as Aas.Submodel;
             var panel = opanel as AnyUiStackPanel;
             if (package == null || sm == null || panel == null)
@@ -146,7 +150,7 @@ namespace AasxPluginProductChangeNotifications
 
         private void RenderFullView(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm)
         {
             // test trivial access
@@ -159,11 +163,34 @@ namespace AasxPluginProductChangeNotifications
                 _submodel?.SemanticId?.GetAsExactlyOneKey()))
                 foundRecs.Add(rec);
 
-            // try decode
-            _pcnData = new PDPCN.CD_ProductChangeNotifications();
-            PredefinedConceptsClassMapper.ParseAasElemsToObject(
-                sm, _pcnData, 
-                lambdaLookupReference: (rf) => package?.AasEnv?.FindReferableByReference(rf));
+            // try decode VERSION (use first record)
+            if (foundRecs.Count < 1)
+                return;
+
+            var t0 = DateTime.Now;
+
+            if (foundRecs.First().Version == PcnOptionsRecord.VersionEnum.V10pre)
+            {
+                var pre = new AasxPredefinedConcepts.ProductChangeNotifications.V_1_0_pre.CD_ProductChangeNotifications();
+                PredefinedConceptsClassMapper.ParseAasElemsToObject(
+                    sm, pre,
+                    lambdaLookupReference: (rf) => package?.AasEnv?.FindReferableByReference(rf));
+                _pcnData = new PCNCURR.CD_ProductChangeNotifications(pre);
+            }
+            else
+            if (foundRecs.First().Version == PcnOptionsRecord.VersionEnum.V10)
+            {
+                _pcnData = new AasxPredefinedConcepts.ProductChangeNotifications.V_1_0.CD_ProductChangeNotifications();
+                PredefinedConceptsClassMapper.ParseAasElemsToObject(
+                    sm, _pcnData,
+                    lambdaLookupReference: (rf) => package?.AasEnv?.FindReferableByReference(rf));
+
+            }
+            else
+                throw new NotImplementedException("FillWithAnyUiControls(): Unknown version!");
+
+            var t1 = DateTime.Now;
+            var td = (t1 - t0).TotalMilliseconds;
 
             // render
             RenderPanelOutside(view, uitk, foundRecs, package, sm, _pcnData);
@@ -172,9 +199,9 @@ namespace AasxPluginProductChangeNotifications
         protected void RenderPanelOutside(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             IEnumerable<PcnOptionsRecord> foundRecs,
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm,
-            PDPCN.CD_ProductChangeNotifications data)
+            PCNCURR.CD_ProductChangeNotifications data)
         {
             // make an outer grid, very simple grid of three rows: header, list, details
             var outer = view.Add(uitk.AddSmallGrid(rows: 7, cols: 1, colWidths: new[] { "*" }));
@@ -183,7 +210,7 @@ namespace AasxPluginProductChangeNotifications
             // Dialogue is always pointing to a certain index record
             //
 
-            PDPCN.CD_Record currRec = null;
+            PCNCURR.CD_Record currRec = null;
             if (data?.Records?.Record != null
                 && _pcnIndex >= 0 && _pcnIndex < data.Records.Record.Count)
                 currRec = data.Records.Record[_pcnIndex];
@@ -586,7 +613,7 @@ namespace AasxPluginProductChangeNotifications
         protected void InnerDocAddLifeCycleMilestones(
             AnyUiSmallWidgetToolkit uitk,
             AnyUiGrid grid, int col, 
-            IList<PDPCN.CD_LifeCycleMilestone> milestones)
+            IList<PCNCURR.CD_LifeCycleMilestone> milestones)
         {
             // access and add row
             if (grid == null || milestones == null || milestones.Count < 1)
@@ -1139,7 +1166,7 @@ namespace AasxPluginProductChangeNotifications
         }
 
         protected void InnerDocIdentificationData(
-            AdminShellPackageEnv package, 
+            AdminShellPackageEnvBase package, 
             AnyUiSmallWidgetToolkit uitk,
             AnyUiGrid grid,
             string header,
@@ -1205,7 +1232,7 @@ namespace AasxPluginProductChangeNotifications
 
         protected void InnerDocAddProductClassifications(
             AnyUiSmallWidgetToolkit uitk, AnyUiGrid grid,
-            IList<PDPCN.CD_ProductClassification> pds)
+            IList<PCNCURR.CD_ProductClassification> pds)
         {
             if (pds != null && pds.Count > 0)
             {
@@ -1223,9 +1250,9 @@ namespace AasxPluginProductChangeNotifications
         protected void RenderPanelInner(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             PcnOptionsRecord rec,
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm,
-            PDPCN.CD_Record data)
+            PCNCURR.CD_Record data)
         {
             // access
             if (view == null || uitk == null || sm == null)
@@ -1376,13 +1403,13 @@ namespace AasxPluginProductChangeNotifications
             }
 
             // additional infos
-            if (data.AdditionalInformations?.AdditionalInformation != null
-                && data.AdditionalInformations.AdditionalInformation.Count >= 0)
+            if (data.AdditionalInformation?.AdditionalInformation != null
+                && data.AdditionalInformation.AdditionalInformation.Count >= 0)
             {
                 InnerDocAddHeadline(uitk, grid, 0, "Additional information provided by documents", 2);
 
                 InnerDocAddAdditionalInfo(uitk, grid, 0,
-                    data.AdditionalInformations.AdditionalInformation);
+                    data.AdditionalInformation.AdditionalInformation);
             }
 
             // further of item of change
@@ -1433,7 +1460,7 @@ namespace AasxPluginProductChangeNotifications
                 InnerDocIdentificationData(
                     package, uitk, grid,
                     header: $"Recommended item #{riIndex:D3}",
-                    manufacturerAssetID: ri.ManufacturerAssetID,
+                    manufacturerAssetID: null,
                     manufacturerProductFamily: "" + ri
                         .ManufacturerProductFamily?.GetDefaultString(_selectedLangStr),
                     manufacturerProductDesignation: "" + ri
@@ -1482,7 +1509,7 @@ namespace AasxPluginProductChangeNotifications
                     InnerDocAddHeadline(uitk, grid, 0, "Remaining stock information", 2);
 
                     InnerDocAddText(uitk, grid, 0, 3, "Incotermcode:",
-                        "" + ri.Incotermcode);
+                        "" + ri.IncotermCode);
 
                     InnerDocAddText(uitk, grid, 0, 3, "Delivery time other region [days]:",
                         "" + ri.DeliveryTimeClassOtherRegion);
@@ -1576,7 +1603,7 @@ namespace AasxPluginProductChangeNotifications
         //=================
 
         protected async Task<bool> AddFromSmartPcnXml(
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm)
         {
             // access
@@ -1631,12 +1658,12 @@ namespace AasxPluginProductChangeNotifications
             return true;
         }
 
-        protected IEnumerable<PDPCN.CD_Record> CreateRecordFromXml(XDocument xdoc)
+        protected IEnumerable<PCNCURR.CD_Record> CreateRecordFromXml(XDocument xdoc)
         {
             // access
             if (xdoc == null)
                 return null;
-            var res = new List<PDPCN.CD_Record>();
+            var res = new List<PCNCURR.CD_Record>();
 
             // prepare for namespace crazyness
             var ns = "http://www.smartpcn.org/images/files/VDMA24903Schema/PCNbody";
@@ -1659,7 +1686,7 @@ namespace AasxPluginProductChangeNotifications
             foreach (var it in itemNumToProcess)
             {
                 // create a new record
-                var rec = new PDPCN.CD_Record();
+                var rec = new PCNCURR.CD_Record();
 
                 // access some sub structures
                 var elMaster = elBody.Element(xns + "masterData");
@@ -1678,7 +1705,7 @@ namespace AasxPluginProductChangeNotifications
                 rec.ManufacturerChangeID = elMaster.Element(xns + "pcnNumber")?.Value;
 
                 // life cycle data 
-                rec.LifeCycleData = new PDPCN.CD_LifeCycleData();
+                rec.LifeCycleData = new PCNCURR.CD_LifeCycleData();
                 if (elLCD.HasElements)
                 {
                     Action<string, string, string> checkLambda = (xElName, value, valueId) =>
@@ -1691,7 +1718,7 @@ namespace AasxPluginProductChangeNotifications
                             date += "T12:00Z";
 
                         // add
-                        var ms = new PDPCN.CD_LifeCycleMilestone()
+                        var ms = new PCNCURR.CD_LifeCycleMilestone()
                         {
                             MilestoneClassification = "" + value,
                             // valueId for later extension
@@ -1707,7 +1734,7 @@ namespace AasxPluginProductChangeNotifications
                 }
 
                 // reasons of change
-                rec.ReasonsOfChange = new PDPCN.CD_ReasonsOfChange();
+                rec.ReasonsOfChange = new PCNCURR.CD_ReasonsOfChange();
                 var elChanges = elItem.Element(xns + "itemChanges");
                 if (elChanges != null && elChanges.HasElements) 
                     foreach (var x in elChanges.Elements(xns + "itemChange"))
@@ -1715,7 +1742,7 @@ namespace AasxPluginProductChangeNotifications
                         var itc = x?.Attribute("itemChangeType");
                         if (itc?.Value?.HasContent() == true)
                         {
-                            var res1 = new PDPCN.CD_ReasonOfChange();
+                            var res1 = new PCNCURR.CD_ReasonOfChange();
                             rec.ReasonsOfChange.ReasonOfChange.Add(res1);
                             res1.ReasonClassificationSystem = "VDMA24903";
                             res1.VersionOfClassificationSystem = "2017";
@@ -1724,8 +1751,8 @@ namespace AasxPluginProductChangeNotifications
                     }
                 
                 // item categories
-                rec.ItemCategories = new PDPCN.CD_ItemCategories();
-                var cat1 = new PDPCN.CD_ItemCategory();
+                rec.ItemCategories = new PCNCURR.CD_ItemCategories();
+                var cat1 = new PCNCURR.CD_ItemCategory();
                 rec.ItemCategories.ItemCategory.Add(cat1);
                 cat1.ItemClassificationSystem = "VDMA24903";
                 cat1.VersionOfClassificationSystem = "2017";
@@ -1735,7 +1762,7 @@ namespace AasxPluginProductChangeNotifications
                 // There is a certain difference between smartPCN item numbers and
                 // affected part numbers. However, to provide data of all sorts, 
                 // integrate them as well.
-                rec.AffectedPartNumbers = new PDPCN.CD_AffectedPartNumbers();
+                rec.AffectedPartNumbers = new PCNCURR.CD_AffectedPartNumbers();
                 foreach (var it2 in itemNumToProcess)
                     rec.AffectedPartNumbers.AffectedPartNumber.Add(""
                         + it2?.Element(xns + "itemMfrNumber")?.Value);
@@ -1773,8 +1800,8 @@ namespace AasxPluginProductChangeNotifications
                 ioc.HardwareVersion = elItem.Element(xns + "itemRev")?.Value;
 
                 // add an empty classification for ECLASS
-                ioc.ProductClassifications = new PDPCN.CD_ProductClassifications();
-                var pc1 = new PDPCN.CD_ProductClassification();
+                ioc.ProductClassifications = new PCNCURR.CD_ProductClassifications();
+                var pc1 = new PCNCURR.CD_ProductClassification();
                 ioc.ProductClassifications.ProductClassification.Add(pc1);
                 pc1.ClassificationSystem = "ECLASS";
                 pc1.VersionOfClassificationSystem = "14.0 (BASIC)";

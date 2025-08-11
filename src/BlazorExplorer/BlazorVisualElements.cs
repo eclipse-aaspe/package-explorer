@@ -206,7 +206,7 @@ namespace BlazorUI
                 // more?
                 if (packages.Repositories != null && selector == PackageCentral.Selector.MainAuxFileRepo)
                 {
-                    var pkg = new AdminShellPackageEnv();
+                    var pkg = new AdminShellPackageFileBasedEnv();
                     foreach (var fr in packages.Repositories)
                         fr.PopulateFakePackage(pkg);
 
@@ -465,5 +465,11 @@ namespace BlazorUI
                 // dead-csharp on
             }
         }
+
+        public bool IsAnyTaintedIdentifiable()
+        {
+            return TreeItems?.IsAnyTaintedIdentifiable() == true;
+        }
+
     }
 }

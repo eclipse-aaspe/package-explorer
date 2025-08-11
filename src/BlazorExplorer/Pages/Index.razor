@@ -102,6 +102,12 @@
                                                        DialogueData="evs.DialogueData" />
                     }
 
+                    @if (evs.DialogueData is AnyUiDialogueDataProgress)
+                    {
+                        <AnyUiFlyoutProgressBar EventSession="evs"
+                                                DialogueData="evs.DialogueData" />
+                    }
+
                     @if (evs.DialogueData is AnyUiDialogueDataOpenFile)
                     {
                         <AnyUiFlyoutOpenFile 
@@ -1830,6 +1836,7 @@
                 var cnt = PackageContainerFactory.GuessAndCreateFor(
                     null, veEnv.thePackageSourceFn, veEnv.thePackageSourceFn,
                     overrideLoadResident: false,
+                    autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                     containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr));
                 if (cnt is PackageContainerRepoItem ri)
                 {

@@ -9,9 +9,11 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AasxCompatibilityModels;
 using Extensions;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.IO.Packaging;
@@ -262,9 +264,11 @@ namespace AdminShellNS
                     "image/png",
                     System.Net.Mime.MediaTypeNames.Image.Gif,
                     "application/iges",
-                    "application/step"
+                    "application/step",
+                    "application/octet-stream"
                 };
         }
+
 
         public static bool CheckForTextContentType(string input)
         {
@@ -283,6 +287,40 @@ namespace AdminShellNS
                 if (input.Contains(tst.ToLower()))
                     return true;
             return false;
+        }
+        
+        public static string GuessExtension(string contentType = null, byte[] contents = null)
+        {
+            if (contentType?.HasContent() == true)
+            {
+                var list = GetPopularMimeTypes().ToList();
+                var p = list.IndexOf(contentType);
+                if (p >= 0)
+                    return (new[] {
+                        ".txt",
+                        ".xml",
+                        ".html",
+                        ".md",
+                        ".adoc",
+                        ".json",
+                        ".rdf",
+                        ".pdf",
+                        ".jpg",
+                        ".png",
+                        ".gif",
+                        ".iges",
+                        ".stp"
+                    })[p];
+            }
+
+            // ok, guess by bytes
+            if (contents != null && contents.Length > 0)
+            {
+                return GuessImageTypeExtension(contents);
+            }
+
+            // ok, nop
+            return ".tmp";
         }
 
         public static IEnumerable<AasSubmodelElements> GetAdequateEnums(AasSubmodelElements[] excludeValues = null, AasSubmodelElements[] includeValues = null)
@@ -493,9 +531,11 @@ namespace AdminShellNS
         /// <code doctest="true">Assert.AreEqual("someName", AdminShellUtil.FilterFriendlyName("someName"));</code>
         /// <code doctest="true">Assert.AreEqual("some__name", AdminShellUtil.FilterFriendlyName("some!;name"));</code>
         /// </example>
-        public static string FilterFriendlyName(string src, 
+        public static string FilterFriendlyName(string src,
             bool pascalCase = false,
-            bool fixMoreBlanks = false)
+            bool fixMoreBlanks = false,
+            string regexForFilter = null,
+            bool removeEnumerationTemplate = false)
         {
             if (src == null)
                 return null;
@@ -503,7 +543,8 @@ namespace AdminShellNS
             if (pascalCase && src.Length > 0)
                 src = char.ToUpper(src[0]) + src.Substring(1);
 
-            src = Regex.Replace(src, @"[^a-zA-Z0-9\-_]", "_");
+            var regex = regexForFilter ?? @"[^a-zA-Z0-9_]";
+            src = Regex.Replace(src, regex, "_");
 
             if (fixMoreBlanks)
             {
@@ -511,6 +552,13 @@ namespace AdminShellNS
                 // stupid
                 for (int i=0; i<9; i++)
                     src = src.Replace("__", "_");
+            }
+
+            if (removeEnumerationTemplate)
+            {
+                src = src.Replace("__00__", "");
+                src = src.Replace("__000__", "");
+                src = src.Replace("__0000__", "");
             }
 
             return src;
@@ -557,7 +605,7 @@ namespace AdminShellNS
                 res = false;
             return res;
         }
-
+         
         public static string ByteSizeHumanReadable(long len)
         {
             // see: https://stackoverflow.com/questions/281640/
@@ -601,6 +649,128 @@ namespace AdminShellNS
         public static string FromDouble(double input, string format)
         {
             return string.Format(CultureInfo.InvariantCulture, format, input);
+        }
+
+        /// <summary>
+        /// Checks a given string to be float compatible.
+        /// </summary>
+        public static bool IsFloatingPointString(string input)
+        {
+            var res = double.TryParse(input, NumberStyles.Float, CultureInfo.InvariantCulture, out var f);
+            return res;
+        }
+
+        /// <summary>
+        /// Fixes a given string to be float compatible.
+        /// </summary>
+        /// <returns>If the string was fixed.</returns>
+        public static bool FixFloatingPointString(ref string valstr, string noneResult = "0.0")
+        {
+            if (valstr?.HasContent() != true)
+            {
+                valstr = noneResult;
+                return true;
+            }
+
+            if (IsFloatingPointString(valstr))
+                return false;
+
+            var res = "";
+            foreach (var c in valstr)
+                if (c == ',')
+                    res += '.';
+                else if ("0123456789.+-E".IndexOf(c) >= 0)
+                    res += c;
+            valstr = res;
+
+            if (!IsFloatingPointString(valstr))
+                valstr = noneResult;
+
+            // was altered
+            return true;
+        }
+
+        /// <summary>
+        /// Checks a given string to be float compatible.
+        /// </summary>
+        public static bool IsIntegerString(string input)
+        {
+            var res = Int64.TryParse(input, NumberStyles.Any, CultureInfo.InvariantCulture, out var i);
+            return res;
+        }
+
+        /// <summary>
+        /// Fixes a given string to be float compatible.
+        /// </summary>
+        /// <returns>If the string was fixed.</returns>
+        public static bool FixIntegerString(ref string valstr, string noneResult = "0.0")
+        {
+            if (valstr?.HasContent() != true)
+            {
+                valstr = noneResult;
+                return true;
+            }
+
+            if (IsIntegerString(valstr))
+                return false;
+
+            var res = "";
+            foreach (var c in valstr)
+                if ("0123456789-".IndexOf(c) >= 0)
+                    res += c;
+            valstr = res;
+
+            if (!IsIntegerString(valstr))
+                valstr = noneResult;
+
+            // was altered
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if a given string is a ISO 639-1 language code; here: 2 digits only lower case
+        /// </summary>
+        public static bool IsIso6391LangCode(string input)
+        {
+            // access
+            if (input == null)
+                return false;
+
+            // directly filter
+            var test = "";
+            foreach (var c in input)
+                if ("abcdefghijklmnopqrstuvwxyz".IndexOf(c) >= 0)
+                    test += c;
+
+            return input == test && input.Length == 2;
+        }
+
+        /// <summary>
+        /// Fixes a given string to be float compatible.
+        /// </summary>
+        /// <returns>If the string was fixed.</returns>
+        public static bool FixIso6391LangCode(ref string valstr, string noneResult = "en")
+        {
+            if (valstr?.HasContent() != true)
+            {
+                valstr = noneResult;
+                return true;
+            }
+
+            if (IsIso6391LangCode(valstr))
+                return false;
+
+            var res = "";
+            foreach (var c in valstr)
+                if ("abcdefghijklmnopqrstuvwxyz".IndexOf(c) >= 0)
+                    res += c;
+            valstr = res;
+
+            if (!IsIso6391LangCode(valstr))
+                valstr = noneResult;
+
+            // was altered
+            return true;
         }
 
         public static int CountHeadingSpaces(string line)
@@ -771,6 +941,44 @@ namespace AdminShellNS
         // String manipulations
         //
 
+        public static List<string> StringSplitUnquoted(
+            string input, 
+            char splitChar,
+            StringSplitOptions options = StringSplitOptions.None)
+        {
+            var curr = "";
+            var res = new List<string>();
+
+            Action<string> issue = (str) =>
+            {
+                if ((options & StringSplitOptions.TrimEntries) != 0)
+                    str = str.Trim();
+                if (str == "" && (options & StringSplitOptions.RemoveEmptyEntries) != 0)
+                    return;
+                res.Add(str);
+            };
+
+            foreach (var ci in input)
+            {
+                // split?
+                if (ci == splitChar)
+                {
+                    issue(curr);
+                    curr = "";
+                    continue;
+                }
+
+                // no, add
+                curr += ci;
+            }
+
+            // issue (again)?
+            issue(curr);
+
+            // ok
+            return res;
+        }
+
         public static string ReplacePercentPlaceholder(
             string input,
             string searchFor,
@@ -870,14 +1078,29 @@ namespace AdminShellNS
         /// for reflection of type specific data.
         /// Works for most scalars, dateTime, string.
         /// </summary>
-        public static void SetFieldLazyValue(FieldInfo f, object obj, object value)
+        public static void SetFieldLazyValue(
+            FieldInfo f, object obj, object value,
+            bool enableEnums = false)
         {
             // access
             if (f == null || obj == null)
                 return;
 
+            var tut = GetTypeOrUnderlyingType(f.FieldType);
+
+            // enum?
+            if (enableEnums && tut?.IsEnum == true && value is string vstr)
+            {
+                foreach (var v in Enum.GetValues(tut))
+                    if (v.ToString().ToLower() == vstr.Trim().ToLower())
+                    {
+                        f.SetValue(obj, v);
+                    }
+                return;
+            }
+
             // 2024-01-04: make function more suitable for <DateTime?>
-            switch (Type.GetTypeCode(GetTypeOrUnderlyingType(f.FieldType)))
+            switch (Type.GetTypeCode(tut))
             {
                 case TypeCode.String:
                     f.SetValue(obj, "" + value);
@@ -1058,6 +1281,25 @@ namespace AdminShellNS
             }
         }
 
+        /// see: https://stackoverflow.com/questions/9956648/how-do-i-check-if-a-property-exists-on-a-dynamic-anonymous-type-in-c
+        /// see: https://stackoverflow.com/questions/63972270/newtonsoft-json-check-if-property-and-its-value-exists
+        public static bool DynamicHasProperty(dynamic obj, string name)
+        {
+            Type objType = obj.GetType();
+
+            if (obj is Newtonsoft.Json.Linq.JObject jo)
+            {
+                return jo.ContainsKey(name);
+            }
+
+            if (objType == typeof(ExpandoObject))
+            {
+                return ((IDictionary<string, object>)obj).ContainsKey(name);
+            }
+
+            return objType.GetProperty(name) != null;
+        }
+
         public static string ToStringInvariant(object o)
         {
             // trivial
@@ -1178,6 +1420,52 @@ namespace AdminShellNS
             return ext;
         }
 
+        public class SchemeAndPath
+        {
+            public string Scheme = "";
+            public string Path = "";
+        }
+
+        /// <summary>
+        /// Split info. Limits to 5 character schemes!
+        /// </summary>
+        /// <returns><c>null</c> for any error!</returns>
+        public static SchemeAndPath GetSchemeAndPath(string uri)
+        {
+            // error?
+            if (uri?.HasContent() != true)
+                return null;
+
+            // search ://
+            var p = uri.IndexOf("://");
+            if (p > 5)
+                return null;
+
+            // nothing?
+            if (p < 0)
+                return new SchemeAndPath() { Scheme = "file", Path = uri };
+
+            // split
+            return new SchemeAndPath() { 
+                Scheme = uri.Substring(0, p).ToLower(), 
+                Path = uri.Substring(p+3) 
+            };
+        }
+
+        public static bool CheckIfUriIsAttachment(string uri)
+        {
+            // access
+            if (uri?.HasContent() != true || uri.Length < 2)
+                return false;
+
+            // first char needs to be a slash, second must not be a slash!!
+            // Note: URIs starting with double slashes are called protocol-relative URLs or scheme-relative URIs
+
+            if (uri[0] == '/' && uri[2] != '/')
+                return true;
+            return false;
+        }
+
         //
         // Base 64
         //
@@ -1192,6 +1480,22 @@ namespace AdminShellNS
         {
             var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
             return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+        }
+
+        //
+        // Base 64 URL
+        //        
+
+        // Note: requires Microsoft.IdentityModel.Tokens
+
+        public static string Base64UrlEncode(string plainUrl)
+        {
+            return Base64UrlEncoder.Encode(plainUrl);
+        }
+
+        public static string Base64UrlDecode(string base64Url)
+        {
+            return Base64UrlEncoder.Decode(base64Url);
         }
 
         /// <summary>
@@ -1232,6 +1536,38 @@ namespace AdminShellNS
                 if (data[i] >= 128)
                     ascii = false;
             return ascii;
+        }
+
+        public static bool CheckIfBase64Only(byte[] data, int bytesToCheck = int.MaxValue)
+        {
+            if (data == null)
+                return true;
+
+            var b64 = true;
+            for (int i = 0; i < Math.Min(data.Length, bytesToCheck); i++)
+            {
+                var c = data[i];
+                // 'manually' check for allowed char intervals of BASE64
+                if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '+' || c == '/' || c == '='))
+                    b64 = false;
+            }
+            return b64;
+        }
+
+        public static bool CheckIfBase64Only(string data, int bytesToCheck = int.MaxValue)
+        {
+            if (data == null)
+                return true;
+
+            var b64 = true;
+            for (int i = 0; i < Math.Min(data.Length, bytesToCheck); i++)
+            {
+                var c = data[i];
+                // 'manually' check for allowed char intervals of BASE64
+                if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '+' || c == '/' || c == '='))
+                    b64 = false;
+            }
+            return b64;
         }
 
         // see: https://stackoverflow.com/questions/5209506/how-can-i-know-what-image-format-i-get-from-a-stream
@@ -1408,5 +1744,17 @@ namespace AdminShellNS
         {
             return DefaultLngIso639;
         }
+
+        //
+        // Bytes
+        //
+
+        public static string GetStringFromBytes(byte[] byteArray)
+        {
+            if (byteArray == null)
+                return null;
+            return System.Text.Encoding.UTF8.GetString(byteArray);
+        }
+        
     }
 }
