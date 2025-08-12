@@ -1278,7 +1278,7 @@ namespace AasxPackageLogic
                 return new Tuple<IAssetAdministrationShell, ISubmodel, string>(
                     veSmr.theAas,
                     veSmr.theSubmodel,
-                    theWrapper?.CollectIdShortByParent(separatorChar: '.', excludeIdentifiable: true));
+                    theWrapper?.CollectIdShortPathByParent(separatorChar: '.', excludeIdentifiable: true));
             }
 
             // find just a Submodel
@@ -1288,7 +1288,7 @@ namespace AasxPackageLogic
                 return new Tuple<IAssetAdministrationShell, ISubmodel, string>(
                     null,
                     veSm.theSubmodel,
-                    theWrapper?.CollectIdShortByParent(separatorChar: '.', excludeIdentifiable: true));
+                    theWrapper?.CollectIdShortPathByParent(separatorChar: '.', excludeIdentifiable: true));
             }
 
             return null;

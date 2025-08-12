@@ -5,6 +5,7 @@
     "NoHints": true
     /* This file shall be loaded as main package at start of application | Arg: <path> */,
     "AasxToLoad": "http://localhost:8081/shells/aHR0cHM6Ly9hZG1pbi1zaGVsbC1pby9pZHRhL2Fhcy9Qcm9kdWN0Q2hhbmdlTm90aWZpY2F0aW9ucy8xLzA"
+    // "AasxToLoad": "C:\\Users\\Micha\\Desktop\\test-smt-on-basyx\\IDTA_02036-1-0_SMT_ProductChangeNotification_Draft_v35_manual_fixes.aasx"
     /* This file shall be loaded as aux package at start of application | Arg: <path> */,
     "AuxToLoad": null
     /* List of pathes to a JSON, defining a set of AasxPackage-Files, which serve as repository. | Arg: <path> */,
@@ -279,7 +280,7 @@
                 "Tool(\"LocationPush\");",
                 "Select(\"Submodel\", \"First\");",
                 "Select(\"Submodel\", \"Next\");",
-                "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\homi0002\\Desktop\\tmp\\new.zip\", \"ExportHtml\", \"true\", \"ExportPdf\", \"false\", \"AntoraStyle\", \"false\", \"ViewResult\", \"true\");",
+                "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\Micha\\Desktop\\tmp\\new.zip\", \"ExportHtml\", \"true\", \"ExportPdf\", \"false\", \"AntoraStyle\", \"false\", \"ViewResult\", \"true\");",
                 "Tool(\"LocationPop\");"
             ],
             "Text": "Tool(\"LocationPush\");\nSelect(\"Submodel\", \"First\");\nSelect(\"Submodel\", \"Next\");\nTool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\homi0002\\Desktop\\tmp\\new.zip\", \"ExportHtml\", \"true\", \"ExportPdf\", \"false\", \"AntoraStyle\", \"false\", \"ViewResult\", \"true\");\nTool(\"LocationPop\");"

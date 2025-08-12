@@ -116,6 +116,7 @@ namespace AasxPackageLogic
                 ticket.Env = vesmr.theEnv;
                 if (selectedItem != null)
                 {
+                    ticket.AAS = vesmr.theAas;
                     ticket.Submodel = vesmr.theSubmodel;
                     ticket.SubmodelRef = vesmr.theSubmodelRef;
                 }

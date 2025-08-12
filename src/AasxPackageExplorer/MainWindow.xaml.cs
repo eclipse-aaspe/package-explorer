@@ -3425,6 +3425,7 @@ namespace AasxPackageExplorer
                         if (this.DisplayContext.StartFlyoverModal(uc))
                         {
                             blb.Value = Encoding.Default.GetBytes(uc.Text);
+                            DispEditEntityPanel.AddDiaryStructuralChange(blb);
                             RedrawElementView();
                         }
                     }
@@ -3480,7 +3481,8 @@ namespace AasxPackageExplorer
                                 contentUri = await PackageCentral.Main.MakePackageFileAvailableAsTempFileAsync(contentUri,
                                     aasId: x?.Item1?.Id,
                                     smId: x?.Item2?.Id,
-                                    idShortPath: x?.Item3);
+                                    idShortPath: x?.Item3,
+                                    secureAccess: _securityAccessHandler);
                             }
 
                             BrowserDisplayLocalFile(contentUri, contentFound.Item2);

@@ -676,7 +676,8 @@ namespace AdminShellNS
             string aasId = null,
             string smId = null,
             string idShortPath = null,
-            bool keepFilename = false)
+            bool keepFilename = false,
+            ISecurityAccessHandler secureAccess = null)
         {
             // this uses the virtual implementation and should therefore work ok in the base class
 
@@ -686,7 +687,7 @@ namespace AdminShellNS
 
             // get input stream
             var inputBytes = await GetBytesFromPackageOrExternalAsync(packageUri, aasId, smId, 
-                    idShortPath: idShortPath);
+                    idShortPath: idShortPath, secureAccess: secureAccess);
             if (inputBytes == null)
                 return null;
 

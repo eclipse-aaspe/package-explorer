@@ -7,18 +7,20 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
-using AasxIntegrationBase;
-using AasxPackageLogic;
-using AasxPackageLogic.PackageCentral;
-using AdminShellNS;
-using AnyUi;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using AasxIntegrationBase;
+using AasxPackageLogic;
+using AasxPackageLogic.PackageCentral;
+using AdminShellNS;
+using AnyUi;
+using static AasxPackageLogic.DispEditHelperBasics;
 using static AnyUi.AnyUiDisplayContextWpf;
+using Aas = AasCore.Aas3_0;
 
 namespace AasxPackageExplorer
 {
@@ -258,6 +260,19 @@ namespace AasxPackageExplorer
             {
                 LogInternally.That.CompletelyIgnoredError(ex);
             }
+        }
+
+        //
+        // 'Editing' from ouside
+        //
+
+        public void AddDiaryStructuralChange(Aas.IReferable rf)
+        {
+            // access
+            if (rf == null || _helper == null)
+                return;
+
+            _helper.AddDiaryEntry(rf, new DiaryEntryStructChange(), new DiaryReference(rf));
         }
 
         //
