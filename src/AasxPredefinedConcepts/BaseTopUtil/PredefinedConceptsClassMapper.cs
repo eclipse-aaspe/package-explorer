@@ -30,7 +30,7 @@ namespace AasxPredefinedConcepts
     /// </summary>
     public enum AasxPredefinedCardinality { ZeroToOne = 0, One, ZeroToMany, OneToMany };
 
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Class)]
     public class AasConceptAttribute : Attribute
     {
         public string Cd { get; set; }
@@ -71,6 +71,13 @@ namespace AasxPredefinedConcepts
     {
         public string Value = null;
         public string ContentType = "";
+
+        public AasClassMapperFile() { }
+        public AasClassMapperFile(AasClassMapperFile other) 
+        { 
+            Value = other.Value;
+            ContentType = other.ContentType;
+        }
     }
 
     /// <summary>
@@ -92,6 +99,14 @@ namespace AasxPredefinedConcepts
         /// This allows accessing the full AAS element.
         /// </summary>
         public AasClassMapperInfo __Info__ = null;
+
+        public AasClassMapperHintedReference() { }
+        public AasClassMapperHintedReference(AasClassMapperHintedReference other) 
+        { 
+            Value = other.Value;
+            ValueHint = other.ValueHint;
+            __Info__ = other.__Info__;
+        }
     }
 
     /// <summary>
@@ -149,7 +164,8 @@ namespace AasxPredefinedConcepts
         // Export C# classes
         //
 
-        private static string CSharpTypeFrom(Aas.DataTypeDefXsd valueType)
+        private static string CSharpTypeFrom(Aas.DataTypeDefXsd valueType,
+            bool specificNetType = false)
         {
             switch (valueType)
             {
@@ -157,7 +173,7 @@ namespace AasxPredefinedConcepts
                     return "bool";
 
                 case Aas.DataTypeDefXsd.Byte:
-                    return "byte";
+                    return "sbyte";
 
                 case Aas.DataTypeDefXsd.Date:
                 case Aas.DataTypeDefXsd.DateTime:
@@ -172,33 +188,33 @@ namespace AasxPredefinedConcepts
 
                 case Aas.DataTypeDefXsd.Int:
                 case Aas.DataTypeDefXsd.Integer:
-                    return "int";
+                    return specificNetType ? "Int32" : "int";
 
                 case Aas.DataTypeDefXsd.Long:
                     return "long";
 
                 case Aas.DataTypeDefXsd.NegativeInteger:
                 case Aas.DataTypeDefXsd.NonPositiveInteger:
-                    return "int";
+                    return specificNetType ? "Int64" : "long";
 
                 case Aas.DataTypeDefXsd.NonNegativeInteger:
                 case Aas.DataTypeDefXsd.PositiveInteger:
-                    return "unsigned int";
+                    return specificNetType ? "UInt64" : "unsigned long";
 
                 case Aas.DataTypeDefXsd.Short:
-                    return "short";
+                    return specificNetType ? "Int16" : "short";
 
                 case Aas.DataTypeDefXsd.UnsignedByte:
-                    return "unsigned byte";
+                    return "byte";
 
                 case Aas.DataTypeDefXsd.UnsignedInt:
-                    return "unsigned int";
+                    return specificNetType ? "UInt32" : "unsigned int";
 
                 case Aas.DataTypeDefXsd.UnsignedLong:
-                    return "usingned long";
+                    return specificNetType ? "UInt64" : "unsigned long";
 
                 case Aas.DataTypeDefXsd.UnsignedShort:
-                    return "unsigned short";
+                    return specificNetType ? "UInt16" : "unsigned short";
             }
             
             return "string";
@@ -206,7 +222,11 @@ namespace AasxPredefinedConcepts
 
 		private static void ExportCSharpMapperSingleItems(
             string indent, Aas.IEnvironment env, Aas.IReferable rf, System.IO.StreamWriter snippets,
-            bool noEmptyLineFirst = false)
+            bool noEmptyLineFirst = false,
+            bool onlyInterface = false,
+            string useInterface = null,
+            bool getterSetters = false,
+            bool removeEnumerationTemplate = false)
         {
 			// access
 			if (snippets == null || env == null || rf == null)
@@ -228,7 +248,9 @@ namespace AasxPredefinedConcepts
             // pretty idShort
             //
 
-			var idsff = AdminShellUtil.FilterFriendlyName(rf.IdShort, pascalCase: true);
+			var idsff = AdminShellUtil.FilterFriendlyName(rf.IdShort, 
+                            pascalCase: true);
+
             if (idsff.HasContent() != true)
                 return;
 
@@ -252,39 +274,75 @@ namespace AasxPredefinedConcepts
             // lambda for attribute declaration
             //
 
-            Action<string, bool, string> declareLambda = (dt, isScalar, instance) =>
+            Action<string, string, bool, string> declareLambda = (declareDt, useDt, isScalar, instance) =>
             {
+                // declareDt may be null
+                if (declareDt == null)
+                    declareDt = useDt;
+
                 // empty line ahead
-                if (!noEmptyLineFirst)
+                if (!noEmptyLineFirst && !onlyInterface)
                     snippets.WriteLine();
 
                 // write attribute's attribute                
-                if (cdRef?.HasContent() == true)
+                if (cdRef?.HasContent() == true && !onlyInterface)
                     snippets.WriteLine($"{indent}[AasConcept(Cd = \"{cdRef}\", " +
                         $"Card = AasxPredefinedCardinality.{cardSt})]");
 
+                // property or getter setters?
+                var pgs1 = "";
+                var pgs2 = ";";
+                if (getterSetters)
+                {
+                    pgs1 = " { get; set; }";
+                    pgs2 = "";
+                }
+
+                // allow skipping to new line
+                string nl = "";
+                if (false)
+                    nl = $"{System.Environment.NewLine}{indent}    ";
+
+                // if using additional interfaces, for new List<>(), some dynamic casting needs to occur
+                string dynCast = "";
+                if (useDt != declareDt)
+                    dynCast = $".Cast<{declareDt}>().ToList()";
+
                 // write attribute itself
+                string lineToWrite = null;
                 if (isScalar)
                 {
-                    var nullOp = (dt == "string") ? "" : "?";
+                    var nullOp = (declareDt == "string") ? "" : "?";
 
                     if (card == FormMultiplicity.ZeroToOne)
-                        snippets.WriteLine($"{indent}public {dt}{nullOp} {instance};");
+                        lineToWrite = $"{indent}public {declareDt}{nullOp} {instance}{pgs1}{pgs2}";
                     else
                     if (card == FormMultiplicity.One)
-                        snippets.WriteLine($"{indent}public {dt} {instance};");
+                        lineToWrite = $"{indent}public {declareDt} {instance}{pgs1}{pgs2}";
                     else
-                        snippets.WriteLine($"{indent}public List<{dt}> {instance} = new List<{dt}>();");
+                        lineToWrite = $"{indent}public List<{declareDt}> {instance}{pgs1} = {nl}(new List<{useDt}>()){dynCast};";
                 }
                 else
                 {
                     if (card == FormMultiplicity.ZeroToOne)
-                        snippets.WriteLine($"{indent}public {dt} {instance} = null;");
+                        lineToWrite = $"{indent}public {declareDt} {instance}{pgs1} = null;";
                     else
                     if (card == FormMultiplicity.One)
-                        snippets.WriteLine($"{indent}public {dt} {instance} = new {dt}();");
+                        lineToWrite = $"{indent}public {declareDt} {instance}{pgs1} = {nl}new {useDt}();";
                     else
-                        snippets.WriteLine($"{indent}public List<{dt}> {instance} = new List<{dt}>();");
+                        lineToWrite = $"{indent}public List<{declareDt}> {instance}{pgs1} = {nl}(new List<{useDt}>()){dynCast};";
+                }
+                if (lineToWrite != null)
+                {
+                    if (onlyInterface)
+                    {
+                        int p = lineToWrite.IndexOf('=');
+                        if (p > 0)
+                        {
+                            lineToWrite = lineToWrite.Substring(0, p) + $"{pgs2}";
+                        }
+                    }
+                    snippets.WriteLine(lineToWrite);
                 }
             };
 
@@ -294,8 +352,8 @@ namespace AasxPredefinedConcepts
 
             if (rf is Aas.IProperty prop)
             {
-                var dt = CSharpTypeFrom(prop.ValueType);
-                declareLambda(dt, true, idsff);
+                var dt = CSharpTypeFrom(prop.ValueType, specificNetType: true);
+                declareLambda(null, dt, true, idsff);
             }
 
             //
@@ -304,8 +362,8 @@ namespace AasxPredefinedConcepts
 
             if (rf is Aas.IRange rng)
             {
-                var dt = CSharpTypeFrom(rng.ValueType);
-                declareLambda($"AasClassMapperRange<{dt}>", false, idsff);
+                var dt = CSharpTypeFrom(rng.ValueType, specificNetType: true);
+                declareLambda(null, $"AasClassMapperRange<{dt}>", false, idsff);
             }
 
             //
@@ -314,7 +372,7 @@ namespace AasxPredefinedConcepts
 
             if (rf is Aas.IFile fl)
             {
-                declareLambda($"AasClassMapperFile", false, idsff);
+                declareLambda(null, $"AasClassMapperFile", false, idsff);
             }
 
             //
@@ -323,7 +381,7 @@ namespace AasxPredefinedConcepts
 
             if (rf is Aas.IMultiLanguageProperty mlp)
             {
-                declareLambda("List<ILangStringTextType>", false, idsff);
+                declareLambda(null, "List<ILangStringTextType>", false, idsff);
             }
 
             //
@@ -332,7 +390,7 @@ namespace AasxPredefinedConcepts
 
             if (rf is Aas.IReferenceElement rfe)
             {
-                declareLambda("AasClassMapperHintedReference", false, idsff);
+                declareLambda(null, "AasClassMapperHintedReference", false, idsff);
             }
 
             //
@@ -341,7 +399,7 @@ namespace AasxPredefinedConcepts
 
             if (rf is Aas.IRelationshipElement rle)
             {
-                declareLambda("AasClassMapperHintedRelation", false, idsff);
+                declareLambda(null, "AasClassMapperHintedRelation", false, idsff);
             }
 
             //
@@ -353,20 +411,185 @@ namespace AasxPredefinedConcepts
                 || rf is Aas.SubmodelElementList)
                 && cdRef?.HasContent() == true)
             {
-                // in sequence: class first
-#if do_not_do
-                snippets.WriteLine($"{indent}public class {cdff} {{");
-
-                foreach (var x in rf.DescendOnce())
-                    if (x is Aas.ISubmodelElement sme)
-                        ExportCSharpMapper("" + indent + "    ", env, sme, snippets);
-
-				snippets.WriteLine($"{indent}}}");
-#endif
-
-                declareLambda($"CD_{cdff}", false, idsff);
+                if (useInterface != null)
+                    declareLambda($"{useInterface}ICD_{cdff}", $"CD_{cdff}", false, idsff);
+                else
+                    declareLambda(null, $"CD_{cdff}", false, idsff);
 			}
 		}
+
+        private static void ExportCSharpMapperSingleItemAssigment(
+            string indent, Aas.IEnvironment env, Aas.IReferable rf, System.IO.StreamWriter snippets,
+            bool removeEnumerationTemplate = false)
+        {
+            // access
+            if (snippets == null || env == null || rf == null)
+                return;
+
+            var indentPlus = indent + "    ";
+            var indentPlusPlus = indent + "        ";
+
+            //
+            // require CD
+            //
+
+            Aas.IConceptDescription cd = null;
+            if (rf is Aas.IHasSemantics ihs)
+                cd = env.FindConceptDescriptionByReference(ihs.SemanticId);
+
+            var cdff = AdminShellUtil.FilterFriendlyName(cd?.IdShort, pascalCase: true);
+
+            var cdRef = cd?.GetCdReference()?.ToStringExtended(format: 2);
+
+            //
+            // pretty idShort
+            //
+
+            var idsff = AdminShellUtil.FilterFriendlyName(rf.IdShort, 
+                            pascalCase: true);
+            
+            if (idsff.HasContent() != true)
+                return;
+
+            //
+            // check Qualifiers/ Extensions
+            //
+
+            FormMultiplicity card = FormMultiplicity.One;
+            if (rf is Aas.IQualifiable iqf)
+            {
+                var tst = AasFormUtils.GetCardinality(iqf.Qualifiers);
+                if (tst.HasValue)
+                    card = tst.Value;
+            }
+
+            var cardSt = card.ToString();
+
+            //
+            // lambda for assignment (depending og cardinality)
+            //
+
+            Action<string, bool, string> assignLambda = (declareDt, isScalar, instance) =>
+            {
+                // use the upgrade constructor!
+                if (card == FormMultiplicity.One)
+                {
+                    snippets.WriteLine($"{indentPlus}{instance} = new {declareDt}(other.{instance}) ;");
+                }
+                else
+                if (card == FormMultiplicity.ZeroToOne)
+                {
+                    snippets.WriteLine($"{indentPlus}{instance} = (other.{instance} == null) ? null : new {declareDt}(other.{instance}) ;");
+                }
+                else
+                if (card == FormMultiplicity.ZeroToMany || card == FormMultiplicity.OneToMany)
+                {
+                    snippets.WriteLine($"{indentPlus}if (other.{instance} != null)");
+                    snippets.WriteLine($"{indentPlusPlus}{instance} = new List<{declareDt}>(other.{instance}.Select((o) => new {declareDt}(o))) ;");
+                }
+                else
+                    throw new NotImplementedException("ExportCSharpMapperSingleItemAssigment(): unknown cardinality!");
+            };
+
+            //
+            // Property
+            //
+
+            if (rf is Aas.IProperty prop)
+            {
+                snippets.WriteLine($"{indentPlus}{idsff} = other.{idsff} ;");
+            }
+
+            //
+            // Range
+            //
+
+            if (rf is Aas.IRange rng)
+            {
+                var dt = CSharpTypeFrom(rng.ValueType, specificNetType: true);
+                // snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperRange<{dt}>(other.{idsff}) ;");
+                assignLambda($"AasClassMapperRange<{dt}", false, idsff);
+            }
+
+            //
+            // File
+            //
+
+            if (rf is Aas.IFile fl)
+            {
+                // snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperFile(other.{idsff}) ;");
+                assignLambda($"AasClassMapperFile", false, idsff);
+            }
+
+            //
+            // MultiLanguageProperty
+            //
+
+            if (rf is Aas.IMultiLanguageProperty mlp)
+            {
+                // snippets.WriteLine($"{indentPlus}{idsff} = new List<ILangStringTextType>(other.{idsff}) ;");
+                assignLambda($"List<ILangStringTextType>", false, idsff);
+            }
+
+            //
+            // Reference
+            //
+
+            if (rf is Aas.IReferenceElement rfe)
+            {
+                // snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperHintedReference(other.{idsff}) ;");
+                assignLambda($"AasClassMapperHintedReference", false, idsff);
+            }
+
+            //
+            // Relation
+            //
+
+            if (rf is Aas.IRelationshipElement rle)
+            {
+                // snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperHintedRelation(other.{idsff}) ;");
+                assignLambda($"AasClassMapperHintedRelation", false, idsff);
+            }
+
+            //
+            // SMC, SML ..
+            //
+
+#if __can_be_replaced
+            if ((rf is Aas.Submodel
+                || rf is Aas.SubmodelElementCollection
+                || rf is Aas.SubmodelElementList)
+                && cdRef?.HasContent() == true)
+            {
+                // use the upgrade constructor!
+                if (card == FormMultiplicity.One)
+                {
+                    snippets.WriteLine($"{indentPlus}{idsff} = new CD_{cdff}(other.{idsff}) ;");
+                }
+                else
+                if (card == FormMultiplicity.ZeroToOne)
+                {
+                    snippets.WriteLine($"{indentPlus}{idsff} = (other.{idsff} == null) ? null : new CD_{cdff}(other.{idsff}) ;");
+                }
+                else
+                if (card == FormMultiplicity.ZeroToMany || card == FormMultiplicity.OneToMany)
+                {
+                    snippets.WriteLine($"if (other.{idsff} != null)");
+                    snippets.WriteLine($"{indentPlusPlus}{idsff} = new List<CD_{cdff}>(other.{idsff}.Select((o) => new CD_{cdff}(o))) ;");
+                }
+                else
+                    throw new NotImplementedException("ExportCSharpMapperSingleItemAssigment(): unknown cardinality!");
+            }
+#endif
+
+            if ((rf is Aas.Submodel
+                || rf is Aas.SubmodelElementCollection
+                || rf is Aas.SubmodelElementList)
+                && cdRef?.HasContent() == true)
+            {
+                assignLambda($"CD_{cdff}", false, idsff);
+            }
+        }
 
         /// <summary>
         /// The contents of this class are based on one or multiple SMCs (SML..), however
@@ -428,17 +651,16 @@ namespace AasxPredefinedConcepts
 			}
 		}
 
-		private static void ExportCSharpMapperOnlyClasses(
-	        string indent, Aas.IEnvironment env, Aas.ISubmodel sm, System.IO.StreamWriter snippets,
-            bool addInfoObj = false)
-		{
+        private static List<ExportCSharpClassDef> ExportCSharpPrepareDistinctClasses(
+            Aas.IEnvironment env, Aas.ISubmodel sm)
+        {
             // list of class definitions (not merged, yet)
             var elems = new List<ExportCSharpClassDef>();
             foreach (var sme in sm.SubmodelElements?.FindDeep<Aas.ISubmodelElement>((sme) => sme.IsStructured()))
-				elems.Add(new ExportCSharpClassDef(env, sme));
+                elems.Add(new ExportCSharpClassDef(env, sme));
 
-			// list of merged class defs
-			var distElems = new List<ExportCSharpClassDef>();
+            // list of merged class defs
+            var distElems = new List<ExportCSharpClassDef>();
             foreach (var x in elems.GroupBy((cld) => cld.Cd))
             {
                 var l = x.ToList();
@@ -447,12 +669,25 @@ namespace AasxPredefinedConcepts
                 distElems.Add(l[0]);
             }
 
-			// add Submodel at last, to be sure it is distinct
-			distElems.Add(new ExportCSharpClassDef(env, sm));
+            // add Submodel at last, to be sure it is distinct
+            distElems.Add(new ExportCSharpClassDef(env, sm));
             // distElems.Reverse();
 
+            // ok
+            return distElems;
+        }
+
+        private static void ExportCSharpMapperOnlyClasses(
+	        string indent, Aas.IEnvironment env, Aas.ISubmodel sm, System.IO.StreamWriter snippets,
+            bool addInfoObj = false,
+            bool addUpgradeConstructor = false,
+            bool removeEnumerationTemplate = false,
+            string addBaseClass = null)
+		{
+            var distElems = ExportCSharpPrepareDistinctClasses(env, sm);
+
             // try to output classed, do not recurse by itself
-			foreach (var cld in distElems)
+            foreach (var cld in distElems)
 			{
 				// gather infos
 				var cdff = AdminShellUtil.FilterFriendlyName(cld.Cd?.IdShort, pascalCase: true);
@@ -468,13 +703,12 @@ namespace AasxPredefinedConcepts
                 if (cdRef?.HasContent() == true)
                     snippets.WriteLine($"{indent}[AasConcept(Cd = \"{cdRef}\")]");
 
-                snippets.WriteLine($"{indent}public class CD_{cdff}");
-                snippets.WriteLine($"{indent}{{");
+                var bcd = "";
+                if (addBaseClass != null)
+                    bcd = $" : {addBaseClass}.ICD_{cdff}";
 
-                if (cdff == "MappingSourceSinkRelations")
-                {
-                    ;
-                }
+                snippets.WriteLine($"{indent}public class CD_{cdff}{bcd}");
+                snippets.WriteLine($"{indent}{{");
 
                 if (cld.Members != null)
                 {
@@ -483,30 +717,128 @@ namespace AasxPredefinedConcepts
                         if (x is Aas.ISubmodelElement sme)
                         {
                             ExportCSharpMapperSingleItems("" + indent + "    ", env, sme, snippets,
-                                noEmptyLineFirst: noEmptyLineFirst);
+                                noEmptyLineFirst: noEmptyLineFirst,
+                                /* when base class, then getter/ setters */
+                                getterSetters: (addBaseClass != null),
+                                /* when base class, use interfaces in data type */
+                                useInterface: (addBaseClass != null) ? $"{addBaseClass}." : null,
+                                removeEnumerationTemplate: removeEnumerationTemplate);
                             noEmptyLineFirst = false;
                         }
                 }
 
-                if (addInfoObj)
+                // __Info__ object
+
+                snippets.WriteLine($"");
+                snippets.WriteLine($"{indent}    // auto-generated informations");
+
+                if (addBaseClass == null)
+                {
+                    if (addInfoObj)
+                        snippets.WriteLine($"{indent}    public AasClassMapperInfo __Info__ = null;");
+                    else
+                        snippets.WriteLine($"{indent}    public AasClassMapperInfo __Info__;");
+                }
+                else
+                {
+                    if (addInfoObj)
+                        snippets.WriteLine($"{indent}    public AasClassMapperInfo __Info__ {{ get; set; }} = null;");
+                    else
+                        snippets.WriteLine($"{indent}    public AasClassMapperInfo __Info__ {{ get; set; }}");
+                }
+
+                // upgrade constructor?
+                if (addUpgradeConstructor)
                 {
                     snippets.WriteLine($"");
-                    snippets.WriteLine($"{indent}    // auto-generated informations");
-                    snippets.WriteLine($"{indent}    public AasClassMapperInfo __Info__ = null;");
+                    snippets.WriteLine($"{indent}    // default constructor");
+                    snippets.WriteLine($"{indent}    public CD_{cdff}() {{");
+                    snippets.WriteLine($"{indent}    }}");
+
+                    snippets.WriteLine($"");
+                    snippets.WriteLine($"{indent}    // upgrade constructor (from PCNPRE namespace)");
+                    snippets.WriteLine($"{indent}    public CD_{cdff}(PCNPRE.CD_{cdff} other) {{");
+
+                    if (cld.Members != null)
+                        foreach (var x in cld.Members)
+                            if (x is Aas.ISubmodelElement sme)
+                            {
+                                ExportCSharpMapperSingleItemAssigment("" + indent + "    ", env, sme, snippets,
+                                    removeEnumerationTemplate: removeEnumerationTemplate);
+                            }
+
+                    snippets.WriteLine($"{indent}    }}");
+                }
+
+                // closing class
+                snippets.WriteLine($"{indent}}}");
+            }
+        }
+
+#if __wrong_direction
+
+        private static void ExportCSharpMapperOnlyInterfaces(
+            string indent, Aas.IEnvironment env, Aas.ISubmodel sm, System.IO.StreamWriter snippets,
+            string addBaseClass = null)
+        {
+            var distElems = ExportCSharpPrepareDistinctClasses(env, sm);
+
+            // try to output interfaces, do not recurse by itself
+            foreach (var cld in distElems)
+            {
+                // gather infos
+                var cdff = AdminShellUtil.FilterFriendlyName(cld.Cd?.IdShort, pascalCase: true);
+
+                // no empty interface
+                if (cdff?.HasContent() != true)
+                    continue;
+
+                // write out interface
+                snippets.WriteLine();
+
+                snippets.WriteLine($"{indent}public interface ICD_{cdff}");
+                snippets.WriteLine($"{indent}{{");
+
+                if (cld.Members != null)
+                {
+                    var noEmptyLineFirst = true;
+                    foreach (var x in cld.Members)
+                        if (x is Aas.ISubmodelElement sme)
+                        {
+                            ExportCSharpMapperSingleItems("" + indent + "    ", env, sme, snippets,
+                                noEmptyLineFirst: noEmptyLineFirst,
+                                onlyInterface: true,
+                                useInterface: "",
+                                getterSetters: true);
+                            noEmptyLineFirst = false;
+                        }
                 }
 
                 snippets.WriteLine($"{indent}}}");
-			}
-		}
+            }
+        }
+#endif
 
-		public static void ExportCSharpClassDefs(Aas.IEnvironment env, Aas.ISubmodel sm, System.IO.StreamWriter snippets)
+        public static void ExportCSharpClassDefs(
+            Aas.IEnvironment env, Aas.ISubmodel sm, System.IO.StreamWriter snippets,
+            bool addUpgradeConstructor = false,
+            bool withVersionAndBaseClass = false,
+            bool removeEnumerationTemplate = false)
         {
             // access
             if (snippets == null || env == null || sm == null)
                 return;
 
+            // check option
+            if (withVersionAndBaseClass)
+            {
+                if (!(sm.Administration.Version?.HasContent() == true
+                      && sm.Administration.Revision?.HasContent() == true))
+                    return;
+            }
+
             var head = AdminShellUtil.CleanHereStringWithNewlines(
-				@"
+                @"
                 /*
                 Copyright (c) 2018-2023 Festo SE & Co. KG
                 <https://www.festo.com/net/de_de/Forms/web/contact_international>
@@ -528,15 +860,48 @@ namespace AasxPredefinedConcepts
             snippets.WriteLine(head);
             snippets.WriteLine("");
 
-			snippets.WriteLine($"namespace AasxPredefinedConcepts.{AdminShellUtil.FilterFriendlyName(sm?.IdShort)} {{");
+            string nsConcepts = AdminShellUtil.FilterFriendlyName(sm?.IdShort);
+            string nsBaseClasses = null;
+
+#if __wrong_direction
+            if (withVersionAndBaseClass)
+            {
+                nsConcepts = "AasxPredefinedConcepts."
+                    + AdminShellUtil.FilterFriendlyName(sm?.IdShort) + "."
+                    + "V_" + sm.Administration?.Version + "_" + sm.Administration?.Revision;
+                nsBaseClasses = "AasxPredefinedConcepts."
+                    + AdminShellUtil.FilterFriendlyName(sm?.IdShort) + "."
+                    + "Base";
+            }
+
+            // interfaces?
+            if (nsBaseClasses != null)
+            {
+                snippets.WriteLine($"namespace {nsBaseClasses} {{");
+
+                ExportCSharpMapperOnlyInterfaces("    ", env, sm, snippets,
+                    addBaseClass: nsBaseClasses);
+
+                snippets.WriteLine($"}}");
+                snippets.WriteLine($"");
+            }
+#endif
+
+            // concrete classes
+
+            snippets.WriteLine($"namespace {nsConcepts} {{");
 
 			ExportCSharpMapperOnlyClasses("    ", env, sm, snippets,
-                addInfoObj: true);
+                addInfoObj: true,
+                addUpgradeConstructor: addUpgradeConstructor,
+                addBaseClass: nsBaseClasses,
+                removeEnumerationTemplate: removeEnumerationTemplate);
 			
             // ExportCSharpMapperSingleItems("    ", env, sm, snippets);
 
             snippets.WriteLine($"}}");
-		}
+            snippets.WriteLine($"");
+        }
 
         //
         // Parse AASX structures
@@ -545,7 +910,7 @@ namespace AasxPredefinedConcepts
         private class ElemAttrInfo
         {
             public object Obj;
-            public FieldInfo Fi;
+            public FieldPropertyInfo FiPi;
             public AasConceptAttribute Attr;
         }
 
@@ -572,15 +937,15 @@ namespace AasxPredefinedConcepts
         }
 
         // TODO (MIHO, 2024-01-04): Move to AdminShellUtil ..
-        private static void SetFieldLazyFromSme(FieldInfo f, object obj, Aas.ISubmodelElement sme,
+        private static void SetFieldLazyFromSme(FieldPropertyInfo fiPi, object obj, Aas.ISubmodelElement sme,
             Func<Aas.IReference, Aas.IReferable> lambdaLookupReference = null)
         {
             // access
-            if (f == null || obj == null || sme == null)
+            if (fiPi == null || obj == null || sme == null)
                 return;
 
             // identify type
-            var t = AdminShellUtil.GetTypeOrUnderlyingType(f.FieldType);
+            var t = AdminShellUtil.GetTypeOrUnderlyingType(fiPi.FiPiType);
 
             //
             // Range
@@ -595,7 +960,7 @@ namespace AasxPredefinedConcepts
                 var rngObj = CreateRangeObjectSpecific(t.GenericTypeArguments[0], sme);
 
                 // set it
-                f.SetValue(obj, rngObj);
+                fiPi.SetValue(obj, rngObj);
 
                 // done
                 return;
@@ -616,7 +981,7 @@ namespace AasxPredefinedConcepts
                 };
 
                 // set it
-                f.SetValue(obj, flObj);
+                fiPi.SetValue(obj, flObj);
 
                 // done
                 return;
@@ -637,7 +1002,7 @@ namespace AasxPredefinedConcepts
                 };
 
                 // set it
-                f.SetValue(obj, flObj);
+                fiPi.SetValue(obj, flObj);
 
                 // done
                 return;
@@ -658,7 +1023,7 @@ namespace AasxPredefinedConcepts
                 var v = mlp.Value.Copy();
 
                 // set it
-                f.SetValue(obj, v);
+                fiPi.SetValue(obj, v);
 
                 // done
                 return;
@@ -680,7 +1045,7 @@ namespace AasxPredefinedConcepts
                 };
 
                 // set it
-                f.SetValue(obj, rfeObj);
+                fiPi.SetValue(obj, rfeObj);
 
                 // done
                 return;
@@ -704,7 +1069,7 @@ namespace AasxPredefinedConcepts
                 };
 
                 // set it
-                f.SetValue(obj, rleObj);
+                fiPi.SetValue(obj, rleObj);
 
                 // done
                 return;
@@ -715,20 +1080,20 @@ namespace AasxPredefinedConcepts
             //
 
             {
-                AdminShellUtil.SetFieldLazyValue(f, obj, sme.ValueAsText());
+                fiPi.SetFieldLazyValue(obj, sme.ValueAsText());
             }
         }
 
-        public static void AddToListLazySme(FieldInfo f, object obj, Aas.ISubmodelElement sme,
+        public static void AddToListLazySme(FieldPropertyInfo fiPi, object obj, Aas.ISubmodelElement sme,
             Func<Aas.IReference, Aas.IReferable> lambdaLookupReference = null)
         {
             // access
-            if (f == null || obj == null || sme == null)
+            if (fiPi == null || obj == null || sme == null)
                 return;
 
             // identify type
-            var t = AdminShellUtil.GetTypeOrUnderlyingType(f.FieldType);
-            var tGen = AdminShellUtil.GetTypeOrUnderlyingType(f.FieldType, resolveGeneric: true);
+            var t = AdminShellUtil.GetTypeOrUnderlyingType(fiPi.FiPiType);
+            var tGen = AdminShellUtil.GetTypeOrUnderlyingType(fiPi.FiPiType, resolveGeneric: true);
 
             //
             // Range
@@ -745,7 +1110,7 @@ namespace AasxPredefinedConcepts
                 var rngObj = CreateRangeObjectSpecific(t.GenericTypeArguments[0], sme);
 
                 // add it
-                var listObj = f.GetValue(obj);
+                var listObj = fiPi.GetValue(obj);
                 listObj.GetType().GetMethod("Add").Invoke(listObj, new[] { rngObj });
 
                 // ok
@@ -770,7 +1135,7 @@ namespace AasxPredefinedConcepts
                 };
 
                 // add it
-                var listObj = f.GetValue(obj);
+                var listObj = fiPi.GetValue(obj);
                 listObj.GetType().GetMethod("Add").Invoke(listObj, new[] { flObj });
 
                 // ok
@@ -795,7 +1160,7 @@ namespace AasxPredefinedConcepts
                 };
 
                 // add it
-                var listObj = f.GetValue(obj);
+                var listObj = fiPi.GetValue(obj);
                 listObj.GetType().GetMethod("Add").Invoke(listObj, new[] { flObj });
 
                 // ok
@@ -834,7 +1199,7 @@ namespace AasxPredefinedConcepts
                 };
 
                 // add it
-                var listObj = f.GetValue(obj);
+                var listObj = fiPi.GetValue(obj);
                 listObj.GetType().GetMethod("Add").Invoke(listObj, new[] { rfeObj });
 
                 // done
@@ -859,7 +1224,7 @@ namespace AasxPredefinedConcepts
                 };
 
                 // add it
-                var listObj = f.GetValue(obj);
+                var listObj = fiPi.GetValue(obj);
                 listObj.GetType().GetMethod("Add").Invoke(listObj, new[] { rleObj });
 
                 // done
@@ -873,7 +1238,7 @@ namespace AasxPredefinedConcepts
             {
                 /* TODO (MIHO, 2024-02-29): check if it is OK to *NOT* check, if the                
                  * list is NULL */
-                var listObj = f.GetValue(obj);
+                var listObj = fiPi.GetValue(obj);
                 AdminShellUtil.AddToListLazyValue(listObj, sme.ValueAsText());
             }
         }
@@ -882,7 +1247,7 @@ namespace AasxPredefinedConcepts
             Func<Aas.IReference, Aas.IReferable> lambdaLookupReference = null)
         {
             // access
-            if (eai?.Fi == null || eai.Attr == null || sme == null)
+            if (eai?.FiPi == null || eai.Attr == null || sme == null)
                 return;
 
             if (sme?.IdShort == "ItemCategory") { ; }
@@ -893,24 +1258,24 @@ namespace AasxPredefinedConcepts
                 if (eai.Attr.Card == AasxPredefinedCardinality.One)
                 {
                     // scalar value
-                    SetFieldLazyFromSme(eai.Fi, eai.Obj, sme, lambdaLookupReference);
+                    SetFieldLazyFromSme(eai.FiPi, eai.Obj, sme, lambdaLookupReference);
                 }
                 else
                 if (eai.Attr.Card == AasxPredefinedCardinality.ZeroToOne)
                 {
                     // sure to have a nullable type
-                    SetFieldLazyFromSme(eai.Fi, eai.Obj, sme, lambdaLookupReference);
+                    SetFieldLazyFromSme(eai.FiPi, eai.Obj, sme, lambdaLookupReference);
                 }
                 else
                 if ((eai.Attr.Card == AasxPredefinedCardinality.ZeroToMany
                     || eai.Attr.Card == AasxPredefinedCardinality.OneToMany)
                     // && eai.Obj.GetType().IsGenericType
                     // && eai.Obj.GetType().GetGenericTypeDefinition() == typeof(List<>))
-                    && eai.Fi.FieldType.IsGenericType
-                    && eai.Fi.FieldType.GetGenericTypeDefinition() == typeof(List<>))
+                    && eai.FiPi.FiPiType.IsGenericType
+                    && eai.FiPi.FiPiType.GetGenericTypeDefinition() == typeof(List<>))
                 {
                     // sure to have a (instantiated) List<scalar>
-                    AddToListLazySme(eai.Fi, eai.Obj, sme, lambdaLookupReference);
+                    AddToListLazySme(eai.FiPi, eai.Obj, sme, lambdaLookupReference);
                 }
             }
             else
@@ -918,7 +1283,7 @@ namespace AasxPredefinedConcepts
                 if (eai.Attr.Card == AasxPredefinedCardinality.One)
                 {
                     // assume a already existing object
-                    var childObj = eai.Fi.GetValue(eai.Obj);
+                    var childObj = eai.FiPi.GetValue(eai.Obj);
 
                     // recurse to fill in
                     ParseAasElemsToObject(sme, childObj, lambdaLookupReference);
@@ -927,14 +1292,14 @@ namespace AasxPredefinedConcepts
                 if (eai.Attr.Card == AasxPredefinedCardinality.ZeroToOne)
                 {
                     // get value first, shall not be present
-                    var childObj = eai.Fi.GetValue(eai.Obj);
+                    var childObj = eai.FiPi.GetValue(eai.Obj);
                     if (childObj != null)
                         throw new Exception(
-                            $"ParseAasElemFillData: [0..1] instance for {eai.Fi.FieldType.Name}> already present!");
+                            $"ParseAasElemFillData: [0..1] instance for {eai.FiPi.FiPiType.Name}> already present!");
 
                     // ok, make new, add
-                    childObj = Activator.CreateInstance(eai.Fi.FieldType);
-                    eai.Fi.SetValue(eai.Obj, childObj);
+                    childObj = Activator.CreateInstance(eai.FiPi.FiPiType);
+                    eai.FiPi.SetValue(eai.Obj, childObj);
 
                     // recurse to fill in
                     ParseAasElemsToObject(sme, childObj, lambdaLookupReference);
@@ -942,24 +1307,21 @@ namespace AasxPredefinedConcepts
                 else
                 if ((eai.Attr.Card == AasxPredefinedCardinality.ZeroToMany
                     || eai.Attr.Card == AasxPredefinedCardinality.OneToMany)
-                    && eai.Fi.FieldType.IsGenericType
-                    && eai.Fi.FieldType.GetGenericTypeDefinition() == typeof(List<>)
-                    && eai.Fi.FieldType.GenericTypeArguments.Length > 0
-                    && eai.Fi.FieldType.GenericTypeArguments[0] != null)
+                    && eai.FiPi.FiPiType.IsGenericType
+                    && eai.FiPi.FiPiType.GetGenericTypeDefinition() == typeof(List<>)
+                    && eai.FiPi.FiPiType.GenericTypeArguments.Length > 0
+                    && eai.FiPi.FiPiType.GenericTypeArguments[0] != null)
                 {
                     // create a new object instance
-                    var childObj = Activator.CreateInstance(eai.Fi.FieldType.GenericTypeArguments[0]);
+                    var childObj = Activator.CreateInstance(eai.FiPi.FiPiType.GenericTypeArguments[0]);
 
                     // add to list
-                    var listObj = eai.Fi.GetValue(eai.Obj);
+                    var listObj = eai.FiPi.GetValue(eai.Obj);
                     listObj.GetType().GetMethod("Add").Invoke(listObj, new [] { childObj });
 
                     // recurse to fill in
                     ParseAasElemsToObject(sme, childObj, lambdaLookupReference);
                 }
-
-                // recurse
-
             }
         }
 
@@ -980,22 +1342,23 @@ namespace AasxPredefinedConcepts
 
             // find fields for this object
             var t = obj.GetType();
-            var l = t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            foreach (var f in l)
+            // var lf = t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var lf = FieldPropertyInfo.GetFieldProperties(t, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            foreach (var fipi in lf)
             {
                 // special case
-                if (f.FieldType == typeof(AasClassMapperInfo))
+                if (fipi.FiPiType == typeof(AasClassMapperInfo))
                 {
                     var info = new AasClassMapperInfo() { Referable = root };
-                    f.SetValue(obj, info);
+                    fipi.SetValue(obj, info);
                     continue;
                 }
 
                 // store for a bit later processing
-                var a = f.GetCustomAttribute<AasConceptAttribute>();
+                var a = fipi.GetCustomAttribute<AasConceptAttribute>();
                 if (a != null)
                 {
-                    eais.Add(new ElemAttrInfo() { Obj = obj, Fi = f, Attr = a });
+                    eais.Add(new ElemAttrInfo() { Obj = obj, FiPi = fipi, Attr = a });
                 }
             }
 

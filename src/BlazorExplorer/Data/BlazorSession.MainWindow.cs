@@ -16,7 +16,6 @@ using System.Globalization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
 using AasxIntegrationBase;
 using AasxPackageExplorer;
 using AasxPackageLogic;
@@ -111,7 +110,7 @@ namespace BlazorUI.Data
             var ro = new PackCntRuntimeOptions()
             {
                 Log = Log.Singleton,
-                ProgressChanged = (state, tfs, tbd) =>
+                ProgressChanged = (state, tfs, tbd, msg) =>
                 {
                     ;
                 },
@@ -125,14 +124,17 @@ namespace BlazorUI.Data
 
         public void UiLoadPackageWithNew(
             PackageCentralItem packItem,
-            AdminShellPackageEnv takeOverEnv = null,
+            AdminShellPackageEnvBase takeOverEnv = null,
             string loadLocalFilename = null,
             string info = null,
             bool onlyAuxiliary = false,
             bool doNotNavigateAfterLoaded = false,
             PackageContainerBase takeOverContainer = null,
             string storeFnToLRU = null,
-            bool indexItems = false)
+            bool indexItems = false,
+            bool preserveEditMode = false,
+            bool? nextEditMode = null, 
+            bool autoFocusFirstRelevant = false)
         {
             // access
             if (packItem == null)
@@ -221,7 +223,12 @@ namespace BlazorUI.Data
             Log.Singleton.Info("AASX {0} loaded.", info);
         }
 
-        public void RestartUIafterNewPackage(bool onlyAuxiliary = false)
+        public bool CheckIsAnyTaintedIdentifiableInMain()
+        {
+            return DisplayElements.IsAnyTaintedIdentifiable();
+        }        
+
+        public void RestartUIafterNewPackage(bool onlyAuxiliary = false, bool? nextEditMode = null)
         {
             if (onlyAuxiliary)
             {
@@ -443,6 +450,7 @@ namespace BlazorUI.Data
                     location,
                     location,
                     overrideLoadResident: true,
+                    autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                     null, null,
                     PackageContainerOptionsBase.CreateDefault(Options.Curr),
                     runtimeOptions: PackageCentral.CentralRuntimeOptions);
@@ -501,6 +509,19 @@ namespace BlazorUI.Data
             return null;
         }
 
+        public async Task<Aas.IIdentifiable> UiSearchRepoAndExtendEnvironmentAsync(
+            AdminShellPackageEnvBase packEnv,
+            Aas.IReference workRef = null,
+            string fullItemLocation = null,
+            bool tryDisplay = false)
+        {
+            await Task.Yield();
+
+            // TODO: take over from WPF app
+
+            return null;
+        }
+
         public async Task UiHandleNavigateTo(
             Aas.IReference targetReference,
             bool alsoDereferenceObjects = true)
@@ -541,9 +562,9 @@ namespace BlazorUI.Data
                         // find?
                         PackageContainerRepoItem fi = null;
                         if (work.Keys[0].Type == Aas.KeyTypes.GlobalReference) //TODO (jtikekar, 0000-00-00): KeyTypes.AssetInformation
-                            fi = PackageCentral.Repositories.FindByAssetId(work.Keys[0].Value.Trim());
+                            fi = await PackageCentral.Repositories.FindByAssetId(work.Keys[0].Value.Trim());
                         if (work.Keys[0].Type == Aas.KeyTypes.AssetAdministrationShell)
-                            fi = PackageCentral.Repositories.FindByAasId(work.Keys[0].Value.Trim());
+                            fi = await PackageCentral.Repositories.FindByAasId(work.Keys[0].Value.Trim());
 
                         var boInfo = await LoadFromFileRepository(fi, work);
                         bo = boInfo?.BusinessObject;

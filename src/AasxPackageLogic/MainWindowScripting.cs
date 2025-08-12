@@ -444,7 +444,9 @@ namespace AasxPackageLogic
             return new IReferable[0];
         }
 
-        public async Task<int> Tool(object[] args)
+        public async Task<int> Tool(
+            object[] args,
+            Action<object> lambdaDone)
         {
             if (args == null || args.Length < 1 || !(args[0] is string toolName))
             {
@@ -508,7 +510,7 @@ namespace AasxPackageLogic
             }
 
             // invoke action
-            await foundMenu.ActivateAction(mi, ticket);
+            await foundMenu.ActivateAction(mi, ticket, lambdaDone: lambdaDone);
 
             // perform UI updates if required
             if (ticket.UiLambdaAction != null && !(ticket.UiLambdaAction is AnyUiLambdaActionNone))

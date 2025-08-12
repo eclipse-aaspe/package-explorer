@@ -19,11 +19,14 @@ using AnyUi;
 using Extensions;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Packaging;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography.Pkcs;
 using System.Text;
 using System.Threading.Tasks;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 using Aas = AasCore.Aas3_1;
 
 // ReSharper disable MethodHasAsyncOverload
@@ -140,7 +143,7 @@ namespace AasxPackageLogic
                     case "open":
                         MainWindow.UiLoadPackageWithNew(
                             PackageCentral.MainItem, null, fn, onlyAuxiliary: false,
-                            storeFnToLRU: fn);
+                            storeFnToLRU: fn, nextEditMode: Options.Curr.EditMode);
                         break;
                     case "openaux":
                         MainWindow.UiLoadPackageWithNew(
@@ -179,6 +182,7 @@ namespace AasxPackageLogic
                 {
                     // save
                     await PackageCentral.MainItem.SaveAsAsync(runtimeOptions: PackageCentral.CentralRuntimeOptions);
+                    
 
                     // backup
                     if (Options.Curr.BackupDir != null)
@@ -222,20 +226,29 @@ namespace AasxPackageLogic
                 }
 
                 // shall be a local/ user file?!
+                var proposeFn = PackageCentral.MainItem.Filename;
+                var forceLocal = false;
                 var isLocalFile = PackageCentral.MainItem.Container is PackageContainerLocalFile;
                 var isUserFile = PackageCentral.MainItem.Container is PackageContainerUserFile;
                 if (!isLocalFile && !isUserFile)
+                {
+                    // warn
                     if (!ticket.ScriptMode
                         && AnyUiMessageBoxResult.Yes != await DisplayContext.MessageBoxFlyoutShowAsync(
                         "Current AASX file is not a local or user file. Proceed and convert to such file?",
                         "Save", AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Hand))
                         return;
 
+                    // point to local directory
+                    proposeFn = System.IO.Path.GetFileName(proposeFn);
+                    forceLocal = true;
+                }
+
                 // filename
                 var ucsf = await DisplayContextPlus.MenuSelectSaveFilenameAsync(
                     ticket, "File",
                     "Save AASX package",
-                    PackageCentral.MainItem.Filename,
+                    proposeFn,
                     "AASX package files (*.aasx)|*.aasx|AASX package files w/ JSON (*.aasx)|*.aasx|" +
                         (!isLocalFile ? "" : "AAS XML file (*.xml)|*.xml|AAS JSON file (*.json)|*.json|") +
                         "All files (*.*)|*.*",
@@ -244,20 +257,35 @@ namespace AasxPackageLogic
                 if (ucsf?.Result != true)
                     return;
 
+                // make sure target filename has an extension
+                var targetFn = ucsf.TargetFileName;
+
                 // do
                 try
                 {
                     // preferred format
-                    var prefFmt = AdminShellPackageEnv.SerializationFormat.None;
+                    var prefFmt = AdminShellPackageFileBasedEnv.SerializationFormat.None;
                     if (ucsf.FilterIndex == 1)
-                        prefFmt = AdminShellPackageEnv.SerializationFormat.Xml;
+                        prefFmt = AdminShellPackageFileBasedEnv.SerializationFormat.Xml;
                     if (ucsf.FilterIndex == 2)
-                        prefFmt = AdminShellPackageEnv.SerializationFormat.Json;
+                        prefFmt = AdminShellPackageFileBasedEnv.SerializationFormat.Json;
 
                     // save 
                     DisplayContextPlus.RememberForInitialDirectory(ucsf.TargetFileName);
-                    await PackageCentral.MainItem.SaveAsAsync(ucsf.TargetFileName, prefFmt: prefFmt,
-                        doNotRememberLocation: ucsf.Location != AnyUiDialogueDataSaveFile.LocationKind.Local);
+
+                    if (!forceLocal)
+                    {
+                        // leave it where it is
+                        await PackageCentral.MainItem.SaveAsAsync(targetFn, prefFmt: prefFmt,
+                            doNotRememberLocation: ucsf.Location != AnyUiDialogueDataSaveFile.LocationKind.Local);
+                    }
+                    else
+                    {
+                        // make a temporary new file base environment
+                        var fbEnv = new AdminShellPackageFileBasedEnv(PackageCentral.Main?.AasEnv);
+                        fbEnv.SaveAs(targetFn, writeFreshly: true, prefFmt: prefFmt, saveOnlyCopy: true);
+                        fbEnv.Close();
+                    }
 
                     // backup (only for AASX)
                     if (ucsf.FilterIndex == 0)
@@ -505,6 +533,173 @@ namespace AasxPackageLogic
                     LogErrorToTicket(ticket, ex, "when assessing Submodel template");
                 }
             }
+
+            if (cmd == "connectextended")
+            {
+                // start
+                ticket.StartExec();
+
+                //do
+                try
+                {
+                    var fetchContext = new PackageContainerHttpRepoSubsetFetchContext()
+                    {
+                        Record = new ConnectExtendedRecord()
+                    };
+
+                    // refer to (static) function
+                    var res = await DispEditHelperEntities.ExecuteUiForFetchOfElements(
+                        PackageCentral, DisplayContext, ticket, MainWindow, fetchContext,
+                        preserveEditMode: true,
+                        doEditNewRecord: true,
+                        doCheckTainted: true,
+                        doFetchGoNext: false,
+                        doFetchExec: true);
+                }
+                catch (OperationCanceledException)
+                {
+                    Log.Singleton.Info("User cancellation: extended connect");
+                }
+                catch (Exception ex)
+                {
+                    LogErrorToTicket(ticket, ex, "when performing extended connect");
+                }
+            }
+
+            if (cmd == "apiuploadassistant")
+            {
+                // start
+                ticket.StartExec();
+
+                //do
+                try
+                {
+                    // work in one environment
+                    var env = PackageCentral.Main?.AasEnv;
+                    if (env == null)
+                    {
+                        LogErrorToTicket(ticket, "No main package environment available. Aborting!");
+                        return;
+                    }
+
+                    // make a list of Identifiables
+                    var idfs = new List<Aas.IIdentifiable>();
+                    foreach (var idf in ticket.SelectedDereferencedMainDataObjects
+                        .Where((o) => o is Aas.IIdentifiable)
+                        .Cast<Aas.IIdentifiable>())
+                    {
+                        idfs.AddRange(env.FindAllReferencedIdentifiablesFor(idf, makeDistint: false));
+                    }
+
+                    // suffice?
+                    if (idfs.Count < 1)
+                    {
+                        LogErrorToTicket(ticket, "No specific AAS, Submodel, ConceptDescription in " +
+                            "main package environment selected. Aborting!");
+                        return;
+                    }
+
+                    // make distinct (default comparer should work on list of Identifiables)
+                    var idfs2 = idfs.Distinct();
+
+                    // call assistant
+                    await PackageContainerHttpRepoSubset.PerformUploadAssistant(
+                        ticket, DisplayContext,
+                        "Upload current to Registry or Repository",
+                        PackageCentral.Main,
+                        idfs2,
+                        PackageCentral.CentralRuntimeOptions);
+                }
+                catch (Exception ex)
+                {
+                    LogErrorToTicket(ticket, ex, "when performing api upload assistant");
+                }
+            }
+
+            if (cmd == "addbaseaddress")
+            {
+                // start
+                ticket.StartExec();
+
+                //do
+                try
+                {
+                    // ask for an additional address
+                    var uc = new AnyUiDialogueDataTextBox("Add base address:",
+                                symbol: AnyUiMessageBoxImage.Question);
+                    await DisplayContext.StartFlyoverModalAsync(uc);
+                    if (!uc.Result)
+                        return;
+
+                    // add
+                    if (uc.Text.HasContent())
+                    {
+                        Options.Curr.BaseAddresses.Add(uc.Text);
+                        Options.Curr.KnownEndpoints.Add(new KnownEndpointDescription() { BaseAddress = uc.Text });
+                        Log.Singleton.Info("Base address temporarily added to presets: {0}",
+                            uc.Text);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogErrorToTicket(ticket, ex, "when performing api upload assistant");
+                }
+            }
+
+            if (cmd == "clearbasecredentials")
+            {
+                // start
+                ticket.StartExec();
+
+                //do
+                try
+                {
+                    if (PackageCentral?.CentralRuntimeOptions?.SecurityAccessHandler == null)
+                        Log.Singleton.Error("For clearing base credentials, the central security access handler " +
+                            "is not available. Aborting!");
+
+                    PackageCentral.CentralRuntimeOptions.SecurityAccessHandler.ClearAllCredentials();
+                    Log.Singleton.Info("Cleared all credentials for base addresses.");
+                }
+                catch (Exception ex)
+                {
+                    LogErrorToTicket(ticket, ex, "when performing clearing base credentials");
+                }
+            }
+
+            if (cmd == "createrepofromapi")
+            {
+                ticket.StartExec();
+
+                // edit infos
+                // TODO: adopt from?
+                var record = (null) ?? new PackageContainerHttpRepoSubset.ConnectExtendedRecord();
+
+                var uiRes = await PackageContainerHttpRepoSubset.PerformConnectExtendedDialogue(
+                    ticket, DisplayContext,
+                    "Specify Registry or Repository base",
+                    record,
+                    scope: ConnectExtendedScope.BaseInfo);
+
+                if (!uiRes)
+                    return;
+
+                if (record?.BaseAddress.HasContent() != true)
+                {
+                    LogErrorToTicket(ticket, "No base address for repository given!");
+                    return;
+                }
+
+                // ok
+                if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+                {
+                    var fr = new PackageContainerListHttpRestRepository(record.BaseAddress);
+                    fr.Header = "New remote Repository";
+                    MainWindow.UiShowRepositories(visible: true);
+                    PackageCentral.Repositories.AddAtTop(fr);
+                }
+            }
+
 
             if (cmd == "comparesmt")
             {
@@ -1263,7 +1458,7 @@ namespace AasxPackageLogic
 
                     // TODO (MIHO, 2022-11-17): not very elegant
                     if (ticket.PostResults != null && ticket.PostResults.ContainsKey("TakeOver")
-                        && ticket.PostResults["TakeOver"] is AdminShellPackageEnv pe)
+                        && ticket.PostResults["TakeOver"] is AdminShellPackageEnvBase pe)
                         PackageCentral.MainItem.TakeOver(pe);
 
                     MainWindow.RestartUIafterNewPackage();
@@ -1387,7 +1582,7 @@ namespace AasxPackageLogic
             if (cmd == "newsubmodelfromplugin")
             {
                 // create a list of plugins, which are capable of generating Submodels
-                var listOfSm = new List<AnyUiDialogueListItem>();
+                var listOfSm = new AnyUiDialogueListItemList();
                 var list = GetPotentialGeneratedSubmodels();
                 if (list != null)
                     foreach (var rec in list)
@@ -1434,7 +1629,7 @@ namespace AasxPackageLogic
             if (cmd == "newsubmodelfromknown")
             {
                 // create a list of Submodels form the known pool
-                var listOfSm = new List<AnyUiDialogueListItem>();
+                var listOfSm = new AnyUiDialogueListItemList();
                 foreach (var dom in AasxPredefinedConcepts.DefinitionsPool.Static.GetDomains())
                     listOfSm.Add(new AnyUiDialogueListItem("" + dom, dom));
 
@@ -1557,7 +1752,7 @@ namespace AasxPackageLogic
                     }
 
                     // convert these to list items
-                    var fol = new List<AnyUiDialogueListItem>();
+                    var fol = new AnyUiDialogueListItemList();
                     foreach (var o in offers)
                         fol.Add(new AnyUiDialogueListItem(o.OfferDisplay, o));
 
@@ -1767,15 +1962,28 @@ namespace AasxPackageLogic
 
         private async Task CommandBinding_FixAndFinalizeAsync(AasxMenuActionTicket ticket)
         {
+            // check user
+            if (!ticket.ScriptMode
+                && AnyUiMessageBoxResult.Yes != await DisplayContext.MessageBoxFlyoutShowAsync(
+                "Perform automatic fixes and save? Save will overwrite original file?!", "Fix AASX",
+                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                return;
+
             try
             {
                 var env = PackageCentral.Main?.AasEnv;
                 if (env != null)
                 {
-                    var visitor = new EmptyListVisitor();
+                    Log.Singleton.Info("Starting fixing current AASX: {0}", PackageCentral.MainItem.Filename);
+
+                    Log.Singleton.Info("Starting the pre fixes ..");
+                    AasxFixes.PerformPreFixes(env);
+
+                    Log.Singleton.Info("Starting the list visitor for the fixes ..");
+                    var visitor = new AasxFixListVisitor();
                     var newEnv = (Aas.Environment)visitor.Transform(env);
                     PackageCentral.Main.SetEnvironment(newEnv);
-                    Log.Singleton.Info("Fixed issues of AASX: {0}", PackageCentral.MainItem.Filename);             
+                    Log.Singleton.Info("Fixed issues of AASX.");             
                 }
 
                 //Save
@@ -1823,8 +2031,7 @@ namespace AasxPackageLogic
             }
             catch (Exception ex)
             {
-                Log.Singleton.Error(ex.Message);
-                Log.Singleton.Error(ex.StackTrace);
+                Log.Singleton.Error(ex, "when fixing AASX");
             }
 
         }
@@ -1855,7 +2062,7 @@ namespace AasxPackageLogic
             catch (Exception ex)
             {
                 Log.Singleton.Error(
-                    ex, $"When loading aasx file repository {Options.Curr.AasxRepositoryFn}");
+                    ex, $"When loading aasx file repository {Options.Curr.AasxRepositoryFns}");
             }
 
             return null;
@@ -1889,7 +2096,7 @@ namespace AasxPackageLogic
 			catch (Exception ex)
 			{
 				Log.Singleton.Error(
-					ex, $"When loading aasx file repository {Options.Curr.AasxRepositoryFn}");
+					ex, $"When loading aasx file repository {Options.Curr.AasxRepositoryFns}");
 			}
 
 			return null;

@@ -42,8 +42,17 @@ namespace AasxPackageLogic.PackageCentral
                 return repo;
             }
 
-            // default
-            return PackageContainerListLocal.Load<PackageContainerListLocal>(location);
+            // try load from stored type
+            var res = PackageContainerListLocal.Load<PackageContainerListBase>(location);
+
+            // if not successfull or "too base", try local
+            if (res == null || res.GetType() == typeof(PackageContainerListBase))
+            {
+                res = PackageContainerListLocal.Load<PackageContainerListLocalBase>(location);
+            }
+
+            // ok
+            return res;
         }
     }
 }

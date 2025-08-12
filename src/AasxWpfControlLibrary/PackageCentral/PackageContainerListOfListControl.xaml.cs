@@ -14,6 +14,7 @@ using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
 using AasxPackageLogic.PackageCentral.AasxFileServerInterface;
 using AdminShellNS;
+using Aas = AasCore.Aas3_1;
 using AnyUi;
 using System;
 using System.IO;
@@ -22,6 +23,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using static QRCoder.PayloadGenerator;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 
 namespace AasxWpfControlLibrary.PackageCentral
 {
@@ -37,6 +40,7 @@ namespace AasxWpfControlLibrary.PackageCentral
         private AasxPackageLogic.PackageCentral.PackageCentral _packageCentral;
         private IFlyoutProvider _flyout;
         private IManageVisualAasxElements _manageVisuElems;
+        private IExecuteMainCommand _executeMainCommand;
         private PackageContainerListOfList _repoList;
 
         /// <summary>
@@ -54,6 +58,11 @@ namespace AasxWpfControlLibrary.PackageCentral
         /// Handler, which can provide the currently selected visual elements in the AASX tree.
         /// </summary>
         public IManageVisualAasxElements ManageVisuElems { set { _manageVisuElems = value; } }
+
+        /// <summary>
+        /// Handler, which can provide the ability to execute main menu commands.
+        /// </summary>
+        public IExecuteMainCommand ExecuteMainCommand { set { _executeMainCommand = value; } }
 
         /// <summary>
         /// AasxRepoList which is being managed by this control. Is expected to sit in the PackageCentral.
@@ -105,6 +114,9 @@ namespace AasxWpfControlLibrary.PackageCentral
                 return;
             cmd = cmd.ToLower().Trim();
 
+            // evaluate auto save of local file list?
+            var autoSaveExec = false;
+
             // modify list
             if (fr != null && RepoList != null && RepoList.Contains(fr))
             {
@@ -125,7 +137,11 @@ namespace AasxWpfControlLibrary.PackageCentral
                     uc.Text = fr.Header;
                     if (await _flyout?.GetDisplayContext()?.StartFlyoverModalAsync(uc))
                     {
+                        // set
                         fr.Header = uc.Text;
+
+                        // save?
+                        autoSaveExec = true;
 
                         // damage full repo list
                         RedrawListFull();
@@ -138,6 +154,7 @@ namespace AasxWpfControlLibrary.PackageCentral
                     int i = RepoList.IndexOf(fr);
                     if (i > 0)
                     {
+                        // set (no save, as this is moving within the list of lists!)
                         RepoList.RemoveAt(i);
                         RepoList.Insert(i - 1, fr);
                     }
@@ -149,6 +166,7 @@ namespace AasxWpfControlLibrary.PackageCentral
                     int i = RepoList.IndexOf(fr);
                     if (i < RepoList.Count - 1)
                     {
+                        // set (no save, as this is moving within the list of lists!)
                         RepoList.RemoveAt(i);
                         RepoList.Insert(i + 1, fr);
                     }
@@ -189,12 +207,30 @@ namespace AasxWpfControlLibrary.PackageCentral
                     // dialogue
                     var uc = new AnyUiDialogueDataSelectFromRepository("Select from: " + fr.Header);
                     uc.Items = fr.EnumerateItems().ToList();
-                    if (await _flyout?.GetDisplayContext()?.StartFlyoverModalAsync(uc)
-                        && uc.ResultItem != null)
+                    if (await _flyout?.GetDisplayContext()?.StartFlyoverModalAsync(uc))
                     {
-                        var fi = uc.ResultItem;
+                        // got an asset id only?
+                        if (uc.ResultId != null)
+                        {
+                            var ri = await fr.FindByAssetId(uc.ResultId);
+                            if (ri?.Location?.HasContent() == true)
+                                try
+                                {
+                                    // load
+                                    Log.Singleton.Info("Switching to repository location {0} ..", ri.Location);
+                                    FileDoubleClick?.Invoke(senderList, fr, ri);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Singleton.Error(
+                                        ex, $"When loading item on repository location {ri.Location}.");
+                                }
+                        }
+
+                        // use an item directly
+                        var fi = uc?.ResultItem;
                         var fn = fi?.Location;
-                        if (fn != null)
+                        if (fn?.HasContent() == true)
                         {
                             // start animation
                             fr.StartAnimation(fi,
@@ -215,15 +251,37 @@ namespace AasxWpfControlLibrary.PackageCentral
                     }
                 }
 
+                if (cmd == "filerepoenabletoquery")
+                {
+                    // set
+                    fr.ToBeQueried = !fr.ToBeQueried;
+
+                    // save?
+                    autoSaveExec = true;
+                }
+
+                if (cmd == "filerepoautosave" && fr is PackageContainerListLocal frll2)
+                {
+                    // set
+                    frll2.AutoSave = !frll2.AutoSave;
+
+                    // save?
+                    autoSaveExec = true;
+                }
+
                 if (cmd == "filerepoloadallresident")
                     if (fr is PackageContainerListLocalBase frlb
                         && !(fr is PackageContainerListLastRecentlyUsed))
                     {
+                        // set
                         foreach (var fi in frlb.EnumerateItems())
                         {
 							await fi.LoadResidentIfPossible(frlb.GetFullItemLocation(fi.Location));
 							Log.Singleton.Info($"Repository item {fi.Location} loaded.");
 						}
+
+                        // save?
+                        autoSaveExec = true;
                     }
 
                 if (cmd == "filerepomakerelative")
@@ -246,9 +304,13 @@ namespace AasxWpfControlLibrary.PackageCentral
                         // execute (is data binded)
                         try
                         {
+                            // set
                             Log.Singleton.Info("Make AASX file names relative to {0}",
                                 Path.GetFullPath(Path.GetDirectoryName("" + frl.Filename)));
                             frl.MakeFilenamesRelative();
+
+                            // save?
+                            autoSaveExec = true;
                         }
                         catch (Exception ex)
                         {
@@ -273,16 +335,14 @@ namespace AasxWpfControlLibrary.PackageCentral
 
                 if (cmd == "filerepoaddcurrent")
                 {
-                    // check
-                    var veAas = _manageVisuElems?.GetSelectedItem() as VisualElementAdminShell;
+                    // check, if to get all infos
+                    var veAass = _manageVisuElems?.GetSelectedItems()?.ToList();
+                    var veEnv = veAass.FirstOrDefault()?.FindFirstParent((ve) =>
+                                    (ve is VisualElementEnvironmentItem vev
+                                     && vev.theItemType == VisualElementEnvironmentItem.ItemType.Package), includeThis: false)
+                                        as VisualElementEnvironmentItem;
 
-                    var veEnv = veAas?.FindFirstParent((ve) =>
-                    (ve is VisualElementEnvironmentItem vev
-                    && vev.theItemType == VisualElementEnvironmentItem.ItemType.Package), includeThis: false)
-                        as VisualElementEnvironmentItem;
-
-                    if (veAas == null || veAas.theAas == null || veAas.theEnv == null || veAas.thePackage == null
-                        || veEnv == null || !veEnv.thePackageSourceFn.HasContent())
+                    if (veAass == null || veAass.Count() < 1 || veEnv == null || !veEnv.thePackageSourceFn.HasContent())
                     {
                         await _flyout?.GetDisplayContext()?.MessageBoxFlyoutShowAsync(
                             "No valid AAS selected. The application needs to be in edit mode. " +
@@ -291,17 +351,74 @@ namespace AasxWpfControlLibrary.PackageCentral
                         return;
                     }
 
-                    // generate appropriate container
-                    var cnt = PackageContainerFactory.GuessAndCreateFor(
-                        null, veEnv.thePackageSourceFn, veEnv.thePackageSourceFn,
-                        overrideLoadResident: false,
-                        containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr));
-                    if (cnt is PackageContainerRepoItem ri)
+                    // now, for each
+                    foreach (var ve in veAass)
                     {
-                        ri.Env = veAas.thePackage;
-                        ri.CalculateIdsTagAndDesc();
-                        fr.Add(ri);
+                        // more specific access
+                        if (ve is not VisualElementAdminShell veAas
+                            || veAas.theAas == null || veAas.theEnv == null || veAas.thePackage == null
+                            || veAas.theAas.Id?.HasContent() != true)
+                            continue;
+
+                        // check for the location of the environment or more specifically
+                        var location = veEnv.thePackageSourceFn;
+                        if (veAas.theEnv?.AssetAdministrationShells is OnDemandListIdentifiable<Aas.IAssetAdministrationShell> odli)
+                        {
+                            // have an endpoint
+                            var ndx = odli.FindSideInfoIndexFromId(veAas.theAas.Id);
+                            if (ndx >= 0)
+                            {
+                                var si = odli.GetSideInfo(ndx);
+                                if (si.StubLevel >= AasIdentifiableSideInfoLevel.IdWithEndpoint)
+                                    location = si.QueriedEndpoint.ToString();
+                            }
+
+                            // now, re-calculate the location based on the AAS Id
+                            try
+                            {
+                                var baseUri = PackageContainerHttpRepoSubset.GetBaseUri(location);
+                                location = PackageContainerHttpRepoSubset.BuildUriForRepoSingleAAS(baseUri, "" + veAas.theAas?.Id)?.ToString();
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Singleton.Error(ex, "when determining AAS location from endpoint");
+                            }
+                        }
+
+                        // generate appropriate container
+                        var cnt = PackageContainerFactory.GuessAndCreateFor(
+                            null, location, location,
+                            overrideLoadResident: false,
+                            autoAuthenticate: Options.Curr.AutoAuthenticateUris,
+                            containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr));
+                        if (cnt is PackageContainerRepoItem ri)
+                        {
+                            ri.Env = veAas.thePackage;
+                            ri.CalculateIdsTagAndDesc(specificAas: veAas.theAas);
+
+                            // fix, if a link to a Repo/ Registry
+                            if (ri is PackageContainerHttpRepoSubset rss)
+                            {   
+                                // in the options, cure for loading CDs
+                                if (ri.ContainerOptions is PackageContainerHttpRepoSubsetOptions rso && rso.Record != null)
+                                {
+                                    rso.Record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleAas);
+                                    rso.Record.AutoLoadOnDemand = false;
+                                    rso.Record.AutoLoadSubmodels = true;
+                                    rso.Record.AutoLoadCds = true;
+                                }
+
+                                // delete ID information, trust on query interfaces
+                                ri.SubmodelIds.Clear();
+                            }
+
+                            // add
+                            fr.Add(ri);
+                        }
                     }
+
+                    // save?
+                    autoSaveExec = true;
                 }
 
                 if (cmd == "filerepoaddtoserver")
@@ -340,27 +457,13 @@ namespace AasxWpfControlLibrary.PackageCentral
                     if (!(await _flyout?.GetDisplayContext()?.StartFlyoverModalAsync(uc))
                         || !uc.Result)
                         return;
-                    // dead-csharp off
-                    //var inputDlg = new Microsoft.Win32.OpenFileDialog();
-                    //inputDlg.Title = "Multi-select AASX package files to be in repository";
-                    //inputDlg.Filter = "AASX package files (*.aasx)|*.aasx" +
-                    //    "|AAS XML file (*.xml)|*.xml|All files (*.*)|*.*";
-                    //inputDlg.Multiselect = true;
-
-                    //_flyout.StartFlyover(new EmptyFlyout());
-                    //var res = inputDlg.ShowDialog();
-                    //_flyout.CloseFlyover();
-
-                    //if (res != true || inputDlg.FileNames.Length < 1)
-                    //    return;
-
-                    //// loop
-                    //foreach (var fn in inputDlg.FileNames)
-                    //    fr.AddByAasxFn(_packageCentral, fn);
-                    // dead-csharp on
-                    // loop
+                    
+                    // set
                     foreach (var fn in uc.Filenames)
                         fr.AddByAasxFn(_packageCentral, fn);
+
+                    // save?
+                    autoSaveExec = true;
                 }
 
                 if (cmd == "filerepoaddfromserver")
@@ -390,6 +493,9 @@ namespace AasxWpfControlLibrary.PackageCentral
                         // loop
                         foreach (var fi in items)
                             fr.Add(fi);
+
+                        // save?
+                        autoSaveExec = true;
                     }
                     catch (Exception ex)
                     {
@@ -398,6 +504,36 @@ namespace AasxWpfControlLibrary.PackageCentral
                     }
                 }
 
+                if (cmd == "filerepouploadtoapi" && fr is PackageContainerListHttpRestRepository frRepo)
+                {
+                    await _executeMainCommand?.ExecuteMainMenuCommand(
+                        "ApiUploadAssistant",
+                        "BaseType", "Repository",
+                        "BaseAddress", "" + frRepo.Endpoint?.ToString());
+                }
+            }
+
+            // other update?
+            if (cmd == "eventdatachanged")
+            {
+                // trigger
+                autoSaveExec = true;
+            }
+
+            // auto-save?
+            if (autoSaveExec && fr is PackageContainerListLocal frll3
+                && frll3.AutoSave)
+            {
+                // try save
+                try
+                {
+                    Log.Singleton.Info($"Saving AASX file repository to {frll3.Filename} ..");
+                    fr.SaveAsLocalFile(frll3.Filename);
+                }
+                catch (Exception ex)
+                {
+                    Log.Singleton.Error(ex, $"When saving AASX file repository to {frll3.Filename}");
+                }
             }
         }
 
@@ -437,25 +573,45 @@ namespace AasxWpfControlLibrary.PackageCentral
                 }
 
                 menu.AddSeparator()
-                    .AddAction("FileRepoSaveAs", "Save as ..", icon: "\U0001f4be")
-                    .AddSeparator();
+                    .AddAction("FileRepoSaveAs", "Save as ..", icon: "\U0001f4be");
+
+                if (fr is PackageContainerListLocal frll2)
+                    menu.AddAction("FileRepoAutoSave", "Auto save when modified", icon: "\u26cb", isChecked: frll2.AutoSave);
+
+                menu.AddSeparator();
+
+                menu.AddAction("FileRepoEnableToQuery", 
+                        "Enable to be queried", icon: "\u26cb", isChecked: fr.ToBeQueried);
 
                 if (!(fr is PackageContainerListLastRecentlyUsed))
                 {
-					menu.AddAction(
-                    	"FileRepoLoadAllResident", "Load all resident files ..", icon: "\U0001f503");
+                    if (!(fr is PackageContainerListHttpRestBase))
+                    {
+                        menu.AddAction(
+                            "FileRepoLoadAllResident", "Load all resident files ..", icon: "\U0001f503");
+                    }
 
-					if (fr is PackageContainerListLocal)
+                    if (fr is PackageContainerListLocal)
                     {
                         menu.AddAction(
                             "FileRepoMakeRelative", "Make AASX filenames relative ..", icon: "\u2699");
 					}
 
-					menu.AddAction("FileRepoAddCurrent", "Add current AAS", icon: "\u2699")
-                        .AddAction("FileRepoAddToServer", "Add AASX File to File Repository", icon: "\u2699")
-                        .AddAction("FileRepoMultiAdd", "Add multiple AASX files ..", icon: "\u2699")
-                        .AddAction("FileRepoAddFromServer", "Add from REST server ..", icon: "\u2699")
-                        .AddAction("FileRepoPrint", "Print 2D code sheet ..", icon: "\u2699");
+                    if (fr is PackageContainerListLocalBase)
+                    {
+                        menu.AddAction("FileRepoAddCurrent", "Add current AAS", icon: "\u2699")
+                            .AddAction("FileRepoAddToServer", "Add AASX File to File Repository", icon: "\u2699")
+                            .AddAction("FileRepoMultiAdd", "Add multiple AASX files ..", icon: "\u2699")
+                            .AddAction("FileRepoAddFromServer", "Add from REST server ..", icon: "\u2699")
+                            .AddAction("FileRepoPrint", "Print 2D code sheet ..", icon: "\u2699");
+                    }
+
+                    if (fr is PackageContainerListHttpRestRepository
+                        || fr is PackageContainerListHttpRestRegistry)
+                    {
+                        menu.AddAction(
+                            "FileRepoUploadToApi", "Upload to API ..", icon: "\U0001f879");
+                    }
                 }
 
                 var cm2 = DynamicContextMenu.CreateNew(
@@ -494,5 +650,11 @@ namespace AasxWpfControlLibrary.PackageCentral
 
         }
 
+        private async Task PackageContainerListControl_DataChanged(Control fileCntl, PackageContainerListBase fr)
+        {
+            Task.Yield();
+
+            await CommandBinding_FileRepoAll(fileCntl, fr, "EventDataChanged");
+        }
     }
 }

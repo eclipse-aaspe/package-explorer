@@ -1129,7 +1129,7 @@ namespace AasxAmlImExport
             }
         }
 
-        public static bool ExportTo(AdminShellPackageEnv package, string amlfn, bool tryUseCompactProperties = false)
+        public static bool ExportTo(AdminShellPackageEnvBase package, string amlfn, bool tryUseCompactProperties = false)
         {
             // start
             if (package == null || amlfn == null || package.AasEnv == null)

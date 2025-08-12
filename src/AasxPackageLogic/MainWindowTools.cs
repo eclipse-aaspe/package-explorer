@@ -28,6 +28,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Aas = AasCore.Aas3_1;
@@ -999,35 +1000,59 @@ namespace AasxPackageExplorer
                 using (var file = System.IO.File.OpenRead(sourceFn))
                 {
                     var node = System.Text.Json.Nodes.JsonNode.Parse(file);
-                    readSm = Aas.Jsonization.Deserialize.SubmodelFrom(node);
+                    if (node is JsonObject nodeObject)
+                    {
+                        if (nodeObject.ContainsKey("submodels"))
+                        {
+                            var submodelsArray = nodeObject["submodels"] as JsonArray;
+                            foreach (var submodel in submodelsArray)
+                            {
+                                readSm = Aas.Jsonization.Deserialize.SubmodelFrom(submodel);
+                                ReadAndAddSubmodel(readSm, env, aas, ticket);
+                            }
+                        }
+                        else
+                        {
+                            readSm = Aas.Jsonization.Deserialize.SubmodelFrom(nodeObject);
+                            ReadAndAddSubmodel(readSm, env, aas, ticket);
+                        }
+                    }
+                    else 
+                    {
+                        throw new Exception("Unexpected JSON Serialization. Expecting a serialization for submodels (list) or a single submodel");
+                    }
                 }
 
-                // need id for idempotent behaviour
-                if (readSm == null || readSm.Id == null)
-                {
-                    LogErrorToTicket(ticket,
-                        "Import Submodel from JSON: Identification of SubModel is (null).");
-                    return;
-                }
-
-                // add Submodel
-                var existingSm = env.FindSubmodelById(readSm.Id);
-                if (existingSm != null)
-                    env.Remove(existingSm);
-                env.Add(readSm);
-
-                // add SubmodelRef to AAS
-                // access the AAS
-                var newsmr = ExtendReference.CreateFromKey(new Aas.Key(Aas.KeyTypes.Submodel, readSm.Id));
-                var existsmr = aas.HasSubmodelReference(newsmr);
-                if (!existsmr)
-                    aas.Add(newsmr);
             }
             catch (Exception ex)
             {
                 LogErrorToTicket(ticket, ex,
                     "Import Submodel from JSON: Can not read Submodel.");
             }
+        }
+
+        public void ReadAndAddSubmodel(ISubmodel readSm, IEnvironment env, IAssetAdministrationShell aas, AasxMenuActionTicket ticket)
+        {
+            // need id for idempotent behaviour
+            if (readSm == null || readSm.Id == null)
+            {
+                LogErrorToTicket(ticket,
+                    "Import Submodel from JSON: Identification of SubModel is (null).");
+                return;
+            }
+
+            // add Submodel
+            var existingSm = env.FindSubmodelById(readSm.Id);
+            if (existingSm != null)
+                env.Remove(existingSm);
+            env.Add(readSm);
+
+            // add SubmodelRef to AAS
+            // access the AAS
+            var newsmr = ExtendReference.CreateFromKey(new Aas.Key(Aas.KeyTypes.Submodel, readSm.Id));
+            var existsmr = aas.HasSubmodelReference(newsmr);
+            if (!existsmr)
+                aas.Add(newsmr);
         }
 
         /// <summary>

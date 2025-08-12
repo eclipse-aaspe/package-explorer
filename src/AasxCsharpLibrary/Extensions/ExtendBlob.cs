@@ -66,6 +66,8 @@ namespace Extensions
             {
                 if (srcFile.Value != null)
                     elem.Value = Encoding.Default.GetBytes(srcFile.Value);
+                if (srcFile.ContentType != null)
+                    elem.ContentType = srcFile.ContentType;
             }
 
             return elem;

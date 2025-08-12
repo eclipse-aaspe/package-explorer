@@ -47,7 +47,7 @@ namespace AasxPredefinedConcepts.ConceptModel
             CD_TextStatement,
             CD_ValidDate;
 
-        public ConceptModelZveiTechnicalData(Aas.Submodel sm)
+        public ConceptModelZveiTechnicalData(Aas.ISubmodel sm)
         {
             InitFromSubmodel(sm);
         }
@@ -155,7 +155,7 @@ namespace AasxPredefinedConcepts.ConceptModel
             }
         }
 
-        public void InitFromSubmodel(Aas.Submodel sm)
+        public void InitFromSubmodel(Aas.ISubmodel sm)
         {
             var defsV10 = new AasxPredefinedConcepts.DefinitionsZveiTechnicalData.SetOfDefs(
                     new AasxPredefinedConcepts.DefinitionsZveiTechnicalData());

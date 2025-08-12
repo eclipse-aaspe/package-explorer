@@ -358,6 +358,8 @@ namespace AasxPluginExportTable.Table
             var res = false;
             Func<string, string> commit = (s) => { res = true; return s; };
 
+            var langCode = ExtendLangStringSet.GetOneTrailingLanguage(ref cell);
+
             if (preset == "preferredName")
                 cd.GetIEC61360().PreferredName = ExtendLangStringSet.Parse<Aas.LangStringPreferredNameTypeIec61360>(
                     commit(cell), (lng, txt) => new Aas.LangStringPreferredNameTypeIec61360(lng, txt))

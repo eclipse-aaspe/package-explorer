@@ -7,6 +7,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using AnyUi;
 using Extensions;
@@ -14,6 +15,8 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Web;
@@ -301,6 +304,13 @@ namespace AasxPackageLogic
     /// </summary>
     public class OptionsInformation
     {
+        [OptionDescription(Description = "If set, start in editor mode instead of browse mode.",
+            Cmd = "-edit-mode")]
+        public bool EditMode = false;
+
+        [OptionDescription(Description = "If set, do not start in hinting mode.",
+            Cmd = "-no-hints")]
+        public bool NoHints = false;
 
         [OptionDescription(Description = "This file shall be loaded as main package at start of application",
             Cmd = "-aasx-to-load", Arg = "<path>")]
@@ -311,23 +321,39 @@ namespace AasxPackageLogic
             Cmd = "-aux-to-load", Arg = "<path>")]
         public string AuxToLoad = null;
 
-        [OptionDescription(Description = "if not -1, the left of window",
+        [OptionDescription(Description = "List of pathes to a JSON, defining a set of AasxPackage-Files, " +
+            "which serve as repository.",
+            Cmd = "-aasxrepo", Arg = "<path>")]
+        public List<string> AasxRepositoryFns = null;
+
+        [OptionDescription(Description =
+            "Presets for base addresses for Registries and Repositories.",
+            Cmd = "-known-endpoints")]
+        public List<KnownEndpointDescription> KnownEndpoints = new List<KnownEndpointDescription>();
+
+        [OptionDescription(Description = "Maximum parallel read operations, such as HTTP downloads.")]
+        public int MaxParallelReadOps = 20;
+
+        [OptionDescription(Description = "Maximum parallel write operations, such as HTTP uploads.")]
+        public int MaxParallelWriteOps = 20;
+
+        [OptionDescription(Description = "If not -1, the left of window",
             Cmd = "-left", Arg = "<pixel>")]
         public int WindowLeft = -1;
 
-        [OptionDescription(Description = "if not -1, the top of window",
+        [OptionDescription(Description = "If not -1, the top of window",
             Cmd = "-top", Arg = "<pixel>")]
         public int WindowTop = -1;
 
-        [OptionDescription(Description = "if not -1, the width of window",
+        [OptionDescription(Description = "If not -1, the width of window",
             Cmd = "-width", Arg = "<pixel>")]
         public int WindowWidth = -1;
 
-        [OptionDescription(Description = "if not -1, the height of window",
+        [OptionDescription(Description = "If not -1, the height of window",
             Cmd = "-height", Arg = "<pixel>")]
         public int WindowHeight = -1;
 
-        [OptionDescription(Description = "if set, then maximize window on application startup",
+        [OptionDescription(Description = "If set, then maximize window on application startup",
             Cmd = "-maximized")]
         public bool WindowMaximized = false;
 
@@ -361,11 +387,11 @@ namespace AasxPackageLogic
             Cmd = "-id-cd", Arg = "<string>")]
         public string TemplateIdConceptDescription = "https://example.com/ids/cd/DDDD_DDDD_DDDD_DDDD";
 
-        [OptionDescription(Description = "Link ConceptDescriptions by ModelReferences",
+        [OptionDescription(Description = "Link ConceptDescriptions by ModelReferences.",
             Cmd = "-model-ref-cd")]
         public bool ModelRefCd = false;
 
-        [OptionDescription(Description = "Path to ECLASS files",
+        [OptionDescription(Description = "Path to ECLASS XML files",
             Cmd = "-eclass", Arg = "<path>")]
         public string EclassDir = null;
 
@@ -395,11 +421,6 @@ namespace AasxPackageLogic
         [OptionDescription(Description = "Path to JSON file defining data specification presets.",
             Cmd = "-dataspecpreset", Arg = "<path>")]
         public string DataSpecPresetFile = null;
-
-        [OptionDescription(Description = "Path to a JSON, defining a set of AasxPackage-Files, which serve as " +
-            "repository",
-            Cmd = "-aasxrepo", Arg = "<path>")]
-        public string AasxRepositoryFn = null;
 
         [OptionDescription(Description = "Home address of the content browser on startup, on change of AASX",
             Cmd = "-contenthome", Arg = "<URL>")]
@@ -438,8 +459,41 @@ namespace AasxPackageLogic
             Cmd = "-backupdir", Arg = "<path>")]
         public string BackupDir = null;
 
-        [OptionDescription(Description = "At max such much different files are used for backing up")]
+        [OptionDescription(Description = "At max such much different files are used for backing up.")]
         public int BackupFiles = 10;
+
+        [OptionDescription(Description =
+            "If true, will answer the HTTP GET requests of selected ressources by internal, fixed responses " +
+            "(see PackageContainerFakeAnswers.json). This allows quick testing of repository functions without " +
+            "internet connection (shoutout to Deutsche Bahn).",
+            Cmd = "-allow-fake-responses")]
+        public bool AllowFakeResponses = true;
+
+        [OptionDescription(Description =
+            "Presets for base addresses for Registries and Repositories.",
+            Cmd = "-base-addresses")]
+        public List<string> BaseAddresses = new List<string>();
+
+        [OptionDescription(Description =
+            "When connecting to given URIs, auto-authenticate by matching with known endpoints.",
+            Cmd = "-auto-authenticate-uris")]
+        public bool AutoAuthenticateUris = false;
+
+        [OptionDescription(Description =
+            "When matching with known endpoints and finding no match, ask for a authetication approach or " +
+            "assume no authentication.",
+            Cmd = "-auto-authenticate-ask")]
+        public bool AutoAuthenticateAsk = false;
+
+        [OptionDescription(Description =
+            "Central store to hold supplementary files for File elements.",
+            Cmd = "-central-stores")]
+        public List<string> CentralStores = new List<string>();
+
+        [OptionDescription(Description =
+            "When connecting to Registry/ Repository, add more details to the log messages.",
+            Cmd = "-extended-connection-debug")]
+        public bool ExtendedConnectionDebug = false;
 
         [OptionDescription(Description = "If set, load and store AASX files via temporary package to " +
             "avoid corruptions. RECOMMENDED!",
@@ -546,7 +600,13 @@ namespace AasxPackageLogic
 			Cmd = "-cd-sort-order")]
 		public string CdSortOrder = null;
 
-		[OptionDescription(Description =
+        [OptionDescription(Description =
+            "Only check the value (id) field of keys of semanticId for Submodels. That is, both" +
+            "GlobalReference and Submodel types match.",
+            Cmd = "-sm-only-id")]
+        public bool SubmodelCheckOnlyId = false;
+
+        [OptionDescription(Description =
             "For such operations as query repository, do load a new AASX file without " +
             "prompting the user.",
             Cmd = "-load-without-prompt")]
@@ -627,6 +687,10 @@ namespace AasxPackageLogic
             "event update mechanisms")]
         public string StayConnectOptions = "";
 
+        [OptionDescription(Description = "May contain lines of key/value-pairs for HTTP header attributes, " +
+            "delimited by double quotes.")]
+        public string HttpHeaderAttributes = "";
+
         [OptionDescription(Description = "Point to a list of SecureConnectPresets for the respective dialogue")]
         [JetBrains.Annotations.UsedImplicitly]
         public Newtonsoft.Json.Linq.JToken SecureConnectPresets;
@@ -677,14 +741,29 @@ namespace AasxPackageLogic
 
         /// <summary>
         /// Will save options to a file. Catches exceptions.
+        /// Will write options descriptions as JSON comments.
         /// </summary>
-        public static void WriteJson(OptionsInformation optionsInformation, string filename)
+        public static void WriteJson(
+            OptionsInformation optionsInformation, string filename,
+            bool withComments)
         {
             // execute in-line, in order to represent to correct order to the human operator
             try
             {
-                var jsonStr = JsonConvert.SerializeObject(optionsInformation, Formatting.Indented);
-                System.IO.File.WriteAllText(filename, jsonStr);
+                if (!withComments)
+                {
+                    var jsonStr = JsonConvert.SerializeObject(optionsInformation, Formatting.Indented);
+                    System.IO.File.WriteAllText(filename, jsonStr);
+                }
+                else
+                {
+                    // use special serializer, which allows comments
+                    var serializer = new JsonSerializer() { 
+                        Formatting = Formatting.Indented
+                    };
+                    using var sw = new StreamWriter(filename);
+                    OptionJsonWriter.SerializeWithComments(serializer, optionsInformation, sw);
+                }
             }
             catch (Exception ex)
             {
@@ -784,8 +863,8 @@ namespace AasxPackageLogic
                     var filename = System.IO.Path.GetFullPath(args[index + 1]);
                     index++;
 
-                    // do
-                    OptionsInformation.WriteJson(optionsInformation, filename);
+                    // do (with comments for the user)
+                    OptionsInformation.WriteJson(optionsInformation, filename, withComments: true);
 
                     // next arg
                     continue;
@@ -877,7 +956,8 @@ namespace AasxPackageLogic
                 }
                 if (arg == "-aasxrepo" && morearg > 0)
                 {
-                    optionsInformation.AasxRepositoryFn = args[index + 1];
+                    optionsInformation.AasxRepositoryFns = new List<string>();
+                    optionsInformation.AasxRepositoryFns.Add(args[index + 1]);
                     index++;
                     continue;
                 }
@@ -1087,6 +1167,59 @@ namespace AasxPackageLogic
             {
                 CreateDefaultReference = GetDefaultEmptyReference,
             };
+        }
+    }
+
+    public static class OptionJsonWriter
+    {
+        public static void SerializeWithComments(JsonSerializer serializer, object obj, TextWriter textWriter)
+        {
+            using var writer = new JsonTextWriter(textWriter)
+            {
+                Formatting = Formatting.Indented
+            };
+
+            int depth = 0;
+
+            WriteObjectWithComments(serializer, writer, obj, ref depth);
+        }
+
+        private static void WriteObjectWithComments(JsonSerializer serializer, JsonTextWriter writer, object obj, ref int depth)
+        {
+            writer.WriteStartObject();
+            depth++;
+
+            var type = obj.GetType();
+            var members = type.GetMembers(BindingFlags.Public | BindingFlags.Instance)
+                .Where(m => m.MemberType is MemberTypes.Field or MemberTypes.Property);
+
+            foreach (var member in members)
+            {
+                var attr = member.GetCustomAttribute<OptionDescription>();
+                if (attr is not null)
+                {
+                    var commentParts = new List<string> { attr.Description };
+                    if (!string.IsNullOrWhiteSpace(attr.Arg)) commentParts.Add($"Arg: {attr.Arg}");
+
+                    string indentSpaces = new string(' ', depth * writer.Indentation);
+                    writer.WriteRaw(System.Environment.NewLine + indentSpaces);
+                    writer.WriteComment(" " + string.Join(" | ", commentParts).Trim() + " ");
+                }
+
+                writer.WritePropertyName(member.Name);
+
+                var value = member.MemberType switch
+                {
+                    MemberTypes.Field => ((FieldInfo)member).GetValue(obj),
+                    MemberTypes.Property => ((PropertyInfo)member).GetValue(obj),
+                    _ => null
+                };
+
+                serializer.Serialize(writer, value);
+            }
+
+            depth--;
+            writer.WriteEndObject();
         }
     }
 }

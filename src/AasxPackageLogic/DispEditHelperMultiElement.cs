@@ -15,6 +15,7 @@ using Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 using static AnyUi.AnyUiDialogueDataTextEditor;
 using Aas = AasCore.Aas3_1;
 
@@ -125,7 +126,7 @@ namespace AasxPackageLogic
         /// </summary>
         public void EntityListMultipleUpDownDeleteHelper<T>(
             AnyUiPanel stack, ModifyRepo repo,
-            List<T> list, List<T> entities, ListOfVisualElementBasic.IndexInfo indexInfo,
+            IList<T> list, List<T> entities, ListOfVisualElementBasic.IndexInfo indexInfo,
             object alternativeFocus = null, string label = "Entities:",
             PackCntChangeEventData sendUpdateEvent = null, bool preventMove = false, bool reFocus = false,
             AasxMenu superMenu = null)
@@ -384,12 +385,12 @@ namespace AasxPackageLogic
 
             // make list
             var uc = new AnyUiDialogueDataSelectFromList();
-            uc.ListOfItems = dict.Keys.Select((dictKey)
+            uc.ListOfItems = new AnyUiDialogueListItemList(dict.Keys.Select((dictKey)
                     => new AnyUiDialogueListItem()
                     {
                         Text = "" + dictKey + $" ({dict[dictKey].Count()})",
                         Tag = dict[dictKey].ToList()
-                    }).ToList();
+                    }));
 
             this.context.StartFlyoverModal(uc);
             if (uc.Result && uc.ResultItem?.Tag is List<Tuple<Aas.IReferable, Aas.IExtension>> tuples)
@@ -469,6 +470,31 @@ namespace AasxPackageLogic
 
                     return new AnyUiLambdaActionNone();
                 });
+        }
+
+        protected void AddToListOfKey<T>(
+            List<Aas.IKey> list,
+            Aas.IEnvironment env,
+            object listOfIdf,
+            Aas.KeyTypes keyType,
+            string id,
+            Aas.IReference reference,
+            ref AasIdentifiableSideInfo sideInfo) where T : Aas.IIdentifiable
+        {
+            // access
+            if (list == null || listOfIdf == null || id?.HasContent() != true || reference?.IsValid() != true)
+                return;
+
+            // look for side infos
+            if (sideInfo == null)
+            {
+                var si = OnDemandListIdentifiable<T>.FindSideInfoInListOfIdentifiables(listOfIdf, reference);
+                if (si != null)
+                    sideInfo = si;
+            }
+
+            // ordinary add
+            list.Add(new Aas.Key(keyType, id));
         }
 
         public void DisplayOrEditAasEntityMultipleElements(
@@ -678,6 +704,83 @@ namespace AasxPackageLogic
                     // cut copy paste
                     DispMultiElementCutCopyPasteHelper(stack, repo, veaas.theEnv, (Aas.IClass)(veaas.theEnv?.AssetAdministrationShells),
                         this.theCopyPaste, entities, superMenu: superMenu);
+                }
+
+                // delete Identifiable in repo?
+                // Note: this is OVERLY COMPLEX, but I did not find any other way :-///
+                int wrongElems = 0;
+                var idfToDel = new List<Aas.IKey>();
+                AasIdentifiableSideInfo sideInfo = null;
+                foreach (var x in entities)
+                {
+                    if (x is VisualElementAdminShell veaas2 && veaas2?.theAas?.Id?.HasContent() == true)
+                        AddToListOfKey<Aas.IAssetAdministrationShell>(
+                            idfToDel, veaas2.theEnv, 
+                            veaas2.theEnv?.AssetAdministrationShells, KeyTypes.AssetAdministrationShell, 
+                            veaas2.theAas.Id, veaas2.theAas.GetReference(), ref sideInfo);
+                    else
+                    if (x is VisualElementSubmodel vesm2 && vesm2?.theSubmodel?.Id?.HasContent() == true)
+                        AddToListOfKey<Aas.ISubmodel>(
+                            idfToDel, vesm2.theEnv,
+                            vesm2.theEnv?.Submodels, KeyTypes.Submodel,
+                            vesm2.theSubmodel.Id, vesm2.theSubmodel.GetReference(), ref sideInfo);
+                    else
+                    if (x is VisualElementSubmodelRef vesmr2 && vesmr2?.theSubmodelRef?.IsValid() == true)
+                        AddToListOfKey<Aas.ISubmodel>(
+                            idfToDel, vesmr2.theEnv,
+                            vesmr2.theEnv?.Submodels, KeyTypes.Submodel,
+                            vesmr2.theSubmodel.Id, vesmr2.theSubmodel.GetReference(), ref sideInfo);
+                    else
+                    if (x is VisualElementSubmodelStub vesmst && vesmst.theSideInfo?.Id?.HasContent() == true)
+                        AddToListOfKey<Aas.ISubmodel>(
+                            idfToDel, vesmst.thePackEnv?.AasEnv,
+                            vesmst.thePackEnv?.AasEnv?.Submodels, KeyTypes.Submodel,
+                            vesmst.theSideInfo.Id, 
+                            new Aas.Reference(ReferenceTypes.ModelReference, 
+                                (new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, vesmst.theSideInfo.Id) }).ToList()),
+                            ref sideInfo);
+                    else
+                    if (x is VisualElementConceptDescription vecd2 && vecd2?.theCD?.Id?.HasContent() == true)
+                        AddToListOfKey<Aas.IConceptDescription>(
+                            idfToDel, vecd2.theEnv,
+                            vecd2.theEnv?.ConceptDescriptions, KeyTypes.ConceptDescription,
+                            vecd2.theCD.Id, vecd2.theCD.GetReference(), ref sideInfo);
+                    else wrongElems++;
+                }
+
+                if (idfToDel.Count() > 0 && wrongElems == 0)
+                {
+                    AddActionPanel(stack, "Actions:",
+                            repo: repo, superMenu: superMenu,
+                            ticketMenu: new AasxMenu()
+                                .AddAction("delete-idf-in-repo", "Delete Identifiable(s) \u274c in Repo",
+                            "Delete Identifiable(s) by Id in a given Repository or Registry."),
+                            ticketActionAsync: async (buttonNdx, ticket) =>
+                            {
+                                if (buttonNdx == 0)
+                                {
+                                    // call function
+                                    // (only the side info in the _specific_ endpoint gives information, in which
+                                    //  repo the CDs could be deleted)
+                                    await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
+                                        ticket, context,
+                                        "Delete Identifiables in Repository/ Registry",
+                                        "Identifiables",
+                                        idfToDel,
+                                        runtimeOptions: packages.CentralRuntimeOptions,
+                                        presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                                        {
+                                            // assume Repo ?!
+                                            BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                            // extract base address
+                                            BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                                sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
+                                        });
+                                }
+
+                                return new AnyUiLambdaActionNone();
+                            });                    
                 }
 
                 //

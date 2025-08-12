@@ -22,6 +22,9 @@ namespace AasxPluginProductChangeNotifications
 {
     public class PcnOptionsRecord : AasxPluginOptionsLookupRecordBase
     {
+        public enum VersionEnum { V10pre, V10 }
+
+        public VersionEnum Version = VersionEnum.V10;
     }
 
     public class PcnOptions : AasxPluginLookupOptionsBase
@@ -36,11 +39,18 @@ namespace AasxPluginProductChangeNotifications
             var defs = new DefinitionsMTP.ModuleTypePackage();
 
             var rec1 = new PcnOptionsRecord();
+            rec1.Version = PcnOptionsRecord.VersionEnum.V10pre;
             rec1.AllowSubmodelSemanticId = new[] { 
                 new Aas.Key(Aas.KeyTypes.Submodel, "0173-10029#01-XFB001#001") }.ToList();
 
+            var rec2 = new PcnOptionsRecord();
+            rec2.Version = PcnOptionsRecord.VersionEnum.V10;
+            rec2.AllowSubmodelSemanticId = new[] {
+                new Aas.Key(Aas.KeyTypes.Submodel, "0173-1#01-AHE582#003") }.ToList();
+
             var opt = new PcnOptions();
             opt.Records.Add(rec1);
+            opt.Records.Add(rec2);
 
             return opt;
         }

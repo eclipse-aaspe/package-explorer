@@ -43,7 +43,7 @@ namespace AasxPredefinedConcepts.Convert
         }
 
         public override bool ExecuteOffer(
-            AdminShellPackageEnv package, Aas.IReferable currentReferable,
+            AdminShellPackageEnvBase package, Aas.IReferable currentReferable,
             ConvertOfferBase offerBase, bool deleteOldCDs, bool addNewCDs)
         {
             // access

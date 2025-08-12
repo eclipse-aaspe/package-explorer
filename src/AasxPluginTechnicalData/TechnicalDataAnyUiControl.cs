@@ -36,14 +36,19 @@ namespace AasxPluginTechnicalData
         //=============
 
         private LogInstance _log = new LogInstance();
-        private AdminShellPackageEnv _package = null;
-        private Aas.Submodel _submodel = null;
+        private AdminShellPackageEnvBase _package = null;
+        private Aas.IAssetAdministrationShell _aas = null;
+        private Aas.ISubmodel _submodel = null;
         private TechnicalDataOptions _options = null;
         private PluginEventStack _eventStack = null;
         private AnyUiStackPanel _panel = null;
         private AasxPluginBase _plugin = null;
+        private ISecurityAccessHandler _secureAccess = null;
 
         protected AnyUiSmallWidgetToolkit _uitk = new AnyUiSmallWidgetToolkit();
+
+        protected AnyUiGdiHelper.DelayedFileContentLoader _bitmapLoader = 
+                    new AnyUiGdiHelper.DelayedFileContentLoader();
 
         #endregion
 
@@ -63,25 +68,31 @@ namespace AasxPluginTechnicalData
         // ReSharper disable EmptyConstructor
         public TechnicalDataAnyUiControl()
         {
+            // start a timer
+            AnyUiTimerHelper.CreatePluginTimerAsync(300, lambdaTick: async () => await DispatcherTimer_Tick(null, null));
         }
         // ReSharper enable EmptyConstructor
 
         public void Start(
             LogInstance log,
-            AdminShellPackageEnv thePackage,
-            Aas.Submodel theSubmodel,
+            AdminShellPackageEnvBase thePackage,
+            Aas.ISubmodel theSubmodel,
             TechnicalDataOptions theOptions,
             PluginEventStack eventStack,
             AnyUiStackPanel panel,
-            AasxPluginBase plugin)
+            AasxPluginBase plugin,
+            ISecurityAccessHandler secureAccess)
         {
+            // typecast
             _log = log;
             _package = thePackage;
             _submodel = theSubmodel;
+            _aas = _package?.AasEnv?.FindAasWithSubmodelId(_submodel?.Id);
             _options = theOptions;
             _eventStack = eventStack;
             _panel = panel;
             _plugin = plugin;
+            _secureAccess = secureAccess;
 
             // fill given panel
             RenderFullView(_panel, _uitk, _package, _submodel, defaultLang: null);
@@ -93,10 +104,11 @@ namespace AasxPluginTechnicalData
             TechnicalDataOptions options,
             PluginEventStack eventStack,
             object opanel,
-            AasxPluginBase plugin)
+            AasxPluginBase plugin,
+            ISecurityAccessHandler secureAccess)
         {
             // access
-            var package = opackage as AdminShellPackageEnv;
+            var package = opackage as AdminShellPackageEnvBase;
             var sm = osm as Aas.Submodel;
             var panel = opanel as AnyUiStackPanel;
             if (package == null || sm == null || panel == null)
@@ -107,7 +119,7 @@ namespace AasxPluginTechnicalData
 
             // factory this object
             var techCntl = new TechnicalDataAnyUiControl();
-            techCntl.Start(log, package, sm, options, eventStack, panel, plugin);
+            techCntl.Start(log, package, sm, options, eventStack, panel, plugin, secureAccess);
 
             // return shelf
             return techCntl;
@@ -120,8 +132,8 @@ namespace AasxPluginTechnicalData
 
         private void RenderFullView(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
-            AdminShellPackageEnv package,
-            Aas.Submodel sm, string defaultLang = null)
+            AdminShellPackageEnvBase package,
+            Aas.ISubmodel sm, string defaultLang = null)
         {
             // test trivial access
             if (_options == null || _submodel?.SemanticId == null)
@@ -146,8 +158,8 @@ namespace AasxPluginTechnicalData
         protected void RenderPanelOutside(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             ConceptModelZveiTechnicalData theDefs,
-            AdminShellPackageEnv package,
-            Aas.Submodel sm, string defaultLang = null)
+            AdminShellPackageEnvBase package,
+            Aas.ISubmodel sm, string defaultLang = null)
         {
             // make an outer grid, very simple grid of two rows: header & body
             var outer = view.Add(uitk.AddSmallGrid(rows: 7, cols: 1, colWidths: new[] { "*" }));
@@ -281,8 +293,8 @@ namespace AasxPluginTechnicalData
         protected void RenderPanelHeader(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             ConceptModelZveiTechnicalData theDefs,
-            AdminShellPackageEnv package,
-            Aas.Submodel sm, string defaultLang = null)
+            AdminShellPackageEnvBase package,
+            Aas.ISubmodel sm, string defaultLang = null)
         {
             // access
             if (view == null || uitk == null || sm == null)
@@ -327,7 +339,8 @@ namespace AasxPluginTechnicalData
                     smcGeneral.Value.FindFirstSemanticIdAs<Aas.Property>(
                         theDefs.CD_ManufacturerName.GetSingleKey(), MatchMode.Relaxed)?.Value;
 
-                AnyUiBitmapInfo imageManuLogo = null;
+                AnyUiBitmapInfo biManuLogo = null;
+                AnyUiImage imageManuLogo = null;
                 if (package != null)
                 {
 #if USE_WPF
@@ -338,10 +351,22 @@ namespace AasxPluginTechnicalData
                         );
                     imageManuLogo = AnyUiHelper.CreateAnyUiBitmapInfo(bi);
 #else
-                    imageManuLogo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(package,
-                        smcGeneral.Value.FindFirstSemanticIdAs<Aas.File>(
-                            theDefs.CD_ManufacturerLogo.GetSingleKey(), MatchMode.Relaxed)?.Value
-                        );
+                    {
+                        // File
+                        var fe = smcGeneral.Value.FindFirstSemanticIdAs<Aas.File>(
+                            theDefs.CD_ManufacturerLogo.GetSingleKey(), MatchMode.Relaxed);
+
+                        // for now
+                        biManuLogo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(
+                            package, fe?.Value,
+                            secureAccess: _secureAccess);
+
+                        // for later
+                        _bitmapLoader.Add(package, _aas, _submodel, fe, (fcl, bi) =>
+                        {
+                            imageManuLogo.BitmapInfo = bi;
+                        });
+                    }
 #endif
                 }
 
@@ -370,11 +395,11 @@ namespace AasxPluginTechnicalData
                     setBold: false,
                     content: manuName);
 
-                uitk.Set(
+                imageManuLogo = uitk.Set(
                     uitk.AddSmallImageTo(outer, 1, 1,
                         margin: new AnyUiThickness(2),
                         stretch: AnyUiStretch.Uniform,
-                        bitmap: imageManuLogo),
+                        bitmap: biManuLogo),
                     rowSpan: 2,
                     maxHeight: 100, maxWidth: 200,
                     horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
@@ -384,44 +409,41 @@ namespace AasxPluginTechnicalData
                 // Product Images
                 //
 
-                // gather
+                // list of file elements
+                var fePIs = smcGeneral.Value.FindAllSemanticIdAs<Aas.File>(
+                                theDefs.CD_ProductImage.GetSingleKey(), MatchMode.Relaxed).ToList();
 
-                var pil = new List<AnyUiBitmapInfo>();
-                foreach (var pi in
-                            smcGeneral.Value.FindAllSemanticIdAs<Aas.File>(
-                                theDefs.CD_ProductImage.GetSingleKey(), MatchMode.Relaxed))
+                // make an outer grid, very simple grid of two rows: header & body
+                var pilGrid = uitk.AddSmallGridTo(outer, 3, 0, rows: 1, cols: fePIs.Count);
+
+                int col = 0;
+                foreach (var fePI in fePIs)
                 {
+                    var imageElem = uitk.Set(
+                        uitk.AddSmallImageTo(pilGrid, 0, col++,
+                            margin: new AnyUiThickness(2),
+                            stretch: AnyUiStretch.Uniform),
+                        maxHeight: 100, maxWidth: 200,
+                        horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
+                        verticalAlignment: AnyUiVerticalAlignment.Stretch);
+
 #if USE_WPF
                     var bi = AasxWpfBaseUtils.LoadBitmapImageFromPackage(package, pi.value);
                     var imgInfo = AnyUiHelper.CreateAnyUiBitmapInfo(bi);
                     if (imgInfo != null)
-                        pil.Add(imgInfo);
+                        thisImage.BitmapInfo = bi;
 #else
-                    var imgInfo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(package, pi.Value);
-                    if (imgInfo != null)
-                        pil.Add(imgInfo);
+                    // for now
+                    imageElem.BitmapInfo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(package, fePI.Value);
+
+                    // for later
+                    _bitmapLoader.Add(package, _aas, _submodel, fePI, (fcl, bi) =>
+                    {
+                        imageElem.BitmapInfo = bi;
+                    });
 #endif
                 }
-
-                // ok, render?
-
-                if (pil.Count > 0)
-                {
-                    // make an outer grid, very simple grid of two rows: header & body
-                    var pilGrid = uitk.AddSmallGridTo(outer, 3, 0, rows: 1, cols: pil.Count);
-
-                    for (int i = 0; i < pil.Count; i++)
-                    {
-                        uitk.Set(
-                            uitk.AddSmallImageTo(pilGrid, 0, 0 + i,
-                                margin: new AnyUiThickness(2),
-                                stretch: AnyUiStretch.Uniform,
-                                bitmap: pil[i]),
-                            maxHeight: 100, maxWidth: 200,
-                            horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
-                            verticalAlignment: AnyUiVerticalAlignment.Stretch);
-                    }
-                }
+                
             }
 
             //
@@ -442,15 +464,15 @@ namespace AasxPluginTechnicalData
                     var sys = (
                         "" +
                         smc.Value.FindFirstSemanticIdAs<Aas.Property>(
-                            theDefs.CD_ProductClassificationSystem.GetSingleKey(), MatchMode.Relaxed)?.Value).Trim();
+                            theDefs.CD_ProductClassificationSystem.GetSingleKey(), MatchMode.Relaxed)?.Value)?.Trim();
                     var ver = (
                         "" +
                         smc.Value.FindFirstSemanticIdAs<Aas.Property>(
-                            theDefs.CD_ClassificationSystemVersion.GetSingleKey(), MatchMode.Relaxed)?.Value).Trim();
+                            theDefs.CD_ClassificationSystemVersion.GetSingleKey(), MatchMode.Relaxed)?.Value)?.Trim();
                     var cls = (
                         "" +
                         smc.Value.FindFirstSemanticIdAs<Aas.Property>(
-                            theDefs.CD_ProductClassId.GetSingleKey(), MatchMode.Relaxed)?.Value).Trim();
+                            theDefs.CD_ProductClassId.GetSingleKey(), MatchMode.Relaxed)?.Value)?.Trim();
 
                     if (sys != "" && cls != "")
                         clr.Add(new ClassificationRecord() { System = sys, Version = ver, ClassTxt = cls });
@@ -562,7 +584,7 @@ namespace AasxPluginTechnicalData
         }
 
         protected void TableAddPropertyRows_Recurse(
-            ConceptModelZveiTechnicalData theDefs, string defaultLang, AdminShellPackageEnv package,
+            ConceptModelZveiTechnicalData theDefs, string defaultLang, AdminShellPackageEnvBase package,
             List<TripleRowData> rows, List<Aas.ISubmodelElement> smec, int depth = 0)
         {
             // access
@@ -713,8 +735,8 @@ namespace AasxPluginTechnicalData
         protected void RenderPanelInner(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             ConceptModelZveiTechnicalData theDefs,
-            AdminShellPackageEnv package,
-            Aas.Submodel sm, string defaultLang = null)
+            AdminShellPackageEnvBase package,
+            Aas.ISubmodel sm, string defaultLang = null)
         {
             // access
             if (view == null || uitk == null || sm == null)
@@ -752,8 +774,8 @@ namespace AasxPluginTechnicalData
         protected void RenderPanelFooter(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             ConceptModelZveiTechnicalData theDefs,
-            AdminShellPackageEnv package,
-            Aas.Submodel sm, string defaultLang = null)
+            AdminShellPackageEnvBase package,
+            Aas.ISubmodel sm, string defaultLang = null)
         {
             // access
             if (view == null || uitk == null || sm == null)
@@ -820,6 +842,28 @@ namespace AasxPluginTechnicalData
 
         #region Callbacks
         //===============
+
+        protected int _dispatcherTimerNumberOfExceptions = 0;
+
+        private async Task DispatcherTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                if ((await _bitmapLoader?.TickToLoad(_secureAccess)) == true)
+                {
+                    _eventStack?.PushEvent(new AasxPluginEventReturnUpdateAnyUi()
+                    {
+                        PluginName = null,
+                        Mode = AnyUiRenderMode.StatusToUi,
+                        UseInnerGrid = true
+                    });
+                }
+            } catch (Exception ex)
+            {
+                if (_dispatcherTimerNumberOfExceptions++ < 3)
+                    _log?.Error(ex, "cyclic display of content of plugin for technical data");
+            }
+        }
 
 
         #endregion

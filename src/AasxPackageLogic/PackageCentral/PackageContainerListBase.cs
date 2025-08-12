@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic.PackageCentral
@@ -31,6 +32,7 @@ namespace AasxPackageLogic.PackageCentral
     /// AASX Package file is to be loaded and hosted and functinality, HOW this can be done.
     /// This class is intended to be a base class, so classes for local repos, AAS repos, AAS registries are
     /// deriving from it.
+    /// In Nov 2024, the idea is incrementally adjusted to accomodate Registries and Repositories.
     /// </summary>
     public class PackageContainerListBase : IPackageContainerFind
     {
@@ -52,13 +54,44 @@ namespace AasxPackageLogic.PackageCentral
             new ObservableCollection<PackageContainerRepoItem>();
 
         /// <summary>
+        /// If true, will respond on querying.
+        /// </summary>
+        public bool ToBeQueried = true;
+
+        /// <summary>
         /// Length of the fading effect of animations in [sec]
         /// </summary>
         [JsonIgnore]
         public double DefaultAnimationTime = 2.0d;
 
+        /// <summary>
+        /// <c>True</c> if it represents a finalized list of items.
+        /// <c>False</c> e.g. for a Repository or Regeistry, where the count of items varies.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsStaticList = true;
+
+        /// <summary>
+        /// Acquire some status data, may take a while
+        /// </summary>
+        /// <returns></returns>
+        virtual public async Task<bool> PrepareStatus()
+        {
+            await Task.Yield();
+            return false;
+        }
+
+        /// <summary>
+        /// Render a multi line status; maybe with async acquired stats.
+        /// </summary>
+        /// <returns></returns>
+        virtual public string GetMultiLineStatusInfo()
+        {
+            return "";
+        }
+
         //
-        // Basic memeber management
+        // Basic member management
         //
 
         public void Add(PackageContainerRepoItem fi)
@@ -92,8 +125,11 @@ namespace AasxPackageLogic.PackageCentral
         // IFindRepo interface
         //
 
-        public PackageContainerRepoItem FindByAssetId(string aid)
+        public virtual async Task<PackageContainerRepoItem> FindByAssetId(string aid)
         {
+            await Task.Yield();
+            if (!ToBeQueried)
+                return null;
             return this.FileMap?.FirstOrDefault((fi) =>
             {
                 foreach (var id in fi.EnumerateAssetIds())
@@ -103,8 +139,11 @@ namespace AasxPackageLogic.PackageCentral
             });
         }
 
-        public PackageContainerRepoItem FindByAasId(string aid)
+        public virtual async Task<PackageContainerRepoItem> FindByAasId(string aid)
         {
+            await Task.Yield();
+            if (!ToBeQueried)
+                return null;
             return this.FileMap?.FirstOrDefault((fi) =>
             {
                 foreach (var id in fi.EnumerateAasIds())
@@ -170,12 +209,12 @@ namespace AasxPackageLogic.PackageCentral
             return null;
         }
 
-        protected JsonSerializerSettings GetSerializerSettings()
+        protected static JsonSerializerSettings GetSerializerSettings()
         {
             // need special settings (to handle different typs of child classes of PackageContainer)
             var settings = AasxPluginOptionSerialization.GetDefaultJsonSettings(
                 new[] { typeof(PackageContainerListBase), typeof(PackageContainerLocalFile),
-                    typeof(PackageContainerNetworkHttpFile) });
+                    typeof(PackageContainerNetworkHttpFile), typeof(PackageContainerHttpRepoSubset) });
             return settings;
         }
 
@@ -184,13 +223,13 @@ namespace AasxPackageLogic.PackageCentral
             using (var s = new StreamWriter(fn))
             {
                 var settings = GetSerializerSettings();
-                settings.TypeNameHandling = TypeNameHandling.Auto;
+                settings.TypeNameHandling = TypeNameHandling.Objects;
                 var json = JsonConvert.SerializeObject(this, Formatting.Indented, settings);
                 s.WriteLine(json);
             }
         }
 
-        public void AddByAasPackage(PackageCentral packageCentral, AdminShellPackageEnv env, string fn)
+        public void AddByAasPackage(PackageCentral packageCentral, AdminShellPackageEnvBase env, string fn)
         {
             // access
             if (env == null)
@@ -202,6 +241,7 @@ namespace AasxPackageLogic.PackageCentral
                 location: fn,
                 fullItemLocation: fn,
                 overrideLoadResident: false,
+                autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                 containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr));
 
             if (fi is PackageContainerRepoItem ri)
@@ -219,7 +259,7 @@ namespace AasxPackageLogic.PackageCentral
             try
             {
                 // load
-                var pkg = new AdminShellPackageEnv(fn);
+                var pkg = new AdminShellPackageFileBasedEnv(fn);
 
                 // for each Admin Shell and then each AssetInformation
                 this.AddByAasPackage(packageCentral, pkg, fn);
@@ -243,7 +283,7 @@ namespace AasxPackageLogic.PackageCentral
         // Converters & generators
         //
 
-        public void PopulateFakePackage(AdminShellPackageEnv pkg)
+        public void PopulateFakePackage(AdminShellPackageEnvBase pkg)
         {
             // access
             if (pkg == null)
@@ -310,20 +350,28 @@ namespace AasxPackageLogic.PackageCentral
             return tr;
         }
 
-        public bool LoadFromLocalFile(string fn)
+        public static T LoadFromLocalFile<T>(string fn) where T : PackageContainerListBase
         {
-            // from file
-            if (!System.IO.File.Exists(fn))
-                return false;
+            try
+            {
+                // from file
+                if (!System.IO.File.Exists(fn))
+                    return null;
 
-            // need special settings (to handle different typs of child classes of PackageContainer)
-            var settings = GetSerializerSettings();
+                // need special settings (to handle different typs of child classes of PackageContainer)
+                var settings = GetSerializerSettings();
 
-            var init = System.IO.File.ReadAllText(fn);
-            JsonConvert.PopulateObject(init, this, settings);
+                var init = System.IO.File.ReadAllText(fn);
+                var res = JsonConvert.DeserializeObject<T>(init, settings);
 
-            // return
-            return true;
+                // return
+                return res;
+            }
+            catch (Exception ex)
+            {
+                LogInternally.That.SilentlyIgnoredError(ex);
+            }
+            return null;
         }
 
         //

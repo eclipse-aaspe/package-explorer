@@ -16,8 +16,8 @@ using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using AnyUi;
-using System.Collections;
-using System.Collections.Generic;
+using System.Threading.Tasks;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageExplorer
 {
@@ -97,10 +97,16 @@ namespace AasxPackageExplorer
         public void RedrawAllElementsAndFocus(object nextFocus = null, bool isExpanded = true);
 
         /// <summary>
+        /// Checks, if any identifiable is tainted (modified). Helps asking the user if to save
+        /// data before losing it.
+        /// </summary>
+        bool CheckIsAnyTaintedIdentifiableInMain();
+
+        /// <summary>
         /// Large extend. Basially redraws everything after new package has been loaded.
         /// </summary>
         /// <param name="onlyAuxiliary">Only tghe AUX package has been altered.</param>
-        void RestartUIafterNewPackage(bool onlyAuxiliary = false);
+        void RestartUIafterNewPackage(bool onlyAuxiliary = false, bool? nextEditMode = null);
 
         /// <summary>
         /// This function serve as a kind of unified contact point for all kind
@@ -118,14 +124,23 @@ namespace AasxPackageExplorer
         /// <param name="indexItems">Index loaded contents, e.g. for animate of event sending</param>
         void UiLoadPackageWithNew(
             PackageCentralItem packItem,
-            AdminShellPackageEnv takeOverEnv = null,
+            AdminShellPackageEnvBase takeOverEnv = null,
             string loadLocalFilename = null,
             string info = null,
             bool onlyAuxiliary = false,
             bool doNotNavigateAfterLoaded = false,
             PackageContainerBase takeOverContainer = null,
             string storeFnToLRU = null,
-            bool indexItems = false);
+            bool indexItems = false,
+            bool preserveEditMode = false,
+            bool? nextEditMode = null,
+            bool autoFocusFirstRelevant = false);
+
+        public Task<Aas.IIdentifiable> UiSearchRepoAndExtendEnvironmentAsync(
+            AdminShellPackageEnvBase packEnv,
+            Aas.IReference workRef = null,
+            string fullItemLocation = null,
+            bool trySelect = false);
 
         /// <summary>
         /// Check for menu switch and flush events, if required.

@@ -201,7 +201,7 @@ namespace AasxIntegrationBase
                     foreach (var ad in this)
                         if (ad.Key?.Name?.Trim().ToLower() == name.ToLower())
                         {
-                            AdminShellUtil.SetFieldLazyValue(f, o, ad.Value);
+                            AdminShellUtil.SetFieldLazyValue(f, o, ad.Value, enableEnums: true);
                             break;
                         }
                 }
@@ -622,7 +622,7 @@ namespace AasxIntegrationBase
         // Operate
         //
 
-        public async Task ActivateAction(AasxMenuItemBase mi, AasxMenuActionTicket ticket)
+        public async Task ActivateAction(AasxMenuItemBase mi, AasxMenuActionTicket ticket, Action<object> lambdaDone = null)
         {
             var name = mi?.Name?.Trim()?.ToLower();
 
@@ -634,6 +634,8 @@ namespace AasxIntegrationBase
                 await this.DefaultActionAsync(name, mi, ticket);
             else if (this.DefaultAction != null)
                 this.DefaultAction(name, mi, ticket);
+
+            lambdaDone?.Invoke(this);
         }
 
         //
@@ -844,7 +846,7 @@ namespace AasxIntegrationBase
         /// <summary>
         /// Filled by the currently selected element.
         /// </summary>
-        public AdminShellPackageEnv Package;
+        public AdminShellPackageEnvBase Package;
 
         /// <summary>
         /// Filled by the currently selected element.

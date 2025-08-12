@@ -480,7 +480,7 @@ namespace AasCore.Aas3_1
     /// <summary>
     /// An element that has a globally unique identifier.
     /// </summary>
-    public interface IIdentifiable : IReferable
+    public interface IIdentifiable : IReferable, ITaintedData
     {
         /// <summary>
         /// Administrative information of an identifiable element.
@@ -1323,6 +1323,12 @@ namespace AasCore.Aas3_1
 
         [JsonIgnore]
         public DiaryDataDef DiaryData { get { return _diaryData; } }
+
+        [JsonIgnore]
+        private TaintedDataDef _taintedData = new TaintedDataDef();
+
+        [JsonIgnore]
+        public TaintedDataDef TaintedData { get { return _taintedData; } }
 
         #endregion
 
@@ -2475,6 +2481,12 @@ namespace AasCore.Aas3_1
 
         [JsonIgnore]
         public DiaryDataDef DiaryData { get { return _diaryData; } }
+
+        [JsonIgnore]
+        private TaintedDataDef _taintedData = new TaintedDataDef();
+
+        [JsonIgnore]
+        public TaintedDataDef TaintedData { get { return _taintedData; } }
 
         #endregion
 
@@ -10842,6 +10854,12 @@ namespace AasCore.Aas3_1
         [JsonIgnore]
         public DiaryDataDef DiaryData { get { return _diaryData; } }
 
+        [JsonIgnore]
+        private TaintedDataDef _taintedData = new TaintedDataDef();
+
+        [JsonIgnore]
+        public TaintedDataDef TaintedData { get { return _taintedData; } }
+
         #endregion
 
         /// <summary>
@@ -12021,17 +12039,17 @@ namespace AasCore.Aas3_1
         /// <summary>
         /// Asset administration shell
         /// </summary>
-        public List<IAssetAdministrationShell>? AssetAdministrationShells { get; set; }
+        public IList<IAssetAdministrationShell>? AssetAdministrationShells { get; set; }
 
         /// <summary>
         /// Submodel
         /// </summary>
-        public List<ISubmodel>? Submodels { get; set; }
+        public IList<ISubmodel>? Submodels { get; set; }
 
         /// <summary>
         /// Concept description
         /// </summary>
-        public List<IConceptDescription>? ConceptDescriptions { get; set; }
+        public IList<IConceptDescription>? ConceptDescriptions { get; set; }
 
         /// <summary>
         /// Iterate over AssetAdministrationShells, if set, and otherwise return an empty enumerable.
@@ -12062,17 +12080,17 @@ namespace AasCore.Aas3_1
         /// <summary>
         /// Asset administration shell
         /// </summary>
-        public List<IAssetAdministrationShell>? AssetAdministrationShells { get; set; }
+        public IList<IAssetAdministrationShell>? AssetAdministrationShells { get; set; }
 
         /// <summary>
         /// Submodel
         /// </summary>
-        public List<ISubmodel>? Submodels { get; set; }
+        public IList<ISubmodel>? Submodels { get; set; }
 
         /// <summary>
         /// Concept description
         /// </summary>
-        public List<IConceptDescription>? ConceptDescriptions { get; set; }
+        public IList<IConceptDescription>? ConceptDescriptions { get; set; }
 
         /// <summary>
         /// Iterate over AssetAdministrationShells, if set, and otherwise return an empty enumerable.
@@ -12227,9 +12245,9 @@ namespace AasCore.Aas3_1
         }
 
         public Environment(
-            List<IAssetAdministrationShell>? assetAdministrationShells = null,
-            List<ISubmodel>? submodels = null,
-            List<IConceptDescription>? conceptDescriptions = null)
+            IList<IAssetAdministrationShell>? assetAdministrationShells = null,
+            IList<ISubmodel>? submodels = null,
+            IList<IConceptDescription>? conceptDescriptions = null)
         {
             AssetAdministrationShells = assetAdministrationShells;
             Submodels = submodels;

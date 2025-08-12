@@ -63,6 +63,9 @@ namespace AasxPluginBomStructure
             {
                 foreach (var k in r.Keys)
                 {
+                    if (k?.Value == null)
+                        continue;
+
                     // DO NOT include the Type into the hash, as this would render it impossible
                     // to find CDs with either "ConceptDescription" / "GlobalReference"
                     //// var bs = BitConverter.GetBytes((int) k.Type);

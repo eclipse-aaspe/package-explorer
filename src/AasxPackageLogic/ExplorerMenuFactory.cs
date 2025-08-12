@@ -12,6 +12,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AasxIntegrationBase;
 using AasxPackageLogic;
+using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using Extensions;
 
@@ -48,11 +49,16 @@ namespace AasxPackageExplorer
                 childs: (new AasxMenu())
                 .AddWpfBlazor(name: "New", header: "_New …", inputGesture: "Ctrl+N",
                     help: "Create new AASX package.")
-                .AddWpfBlazor(name: "Open", header: "_Open …", inputGesture: "Ctrl+O",
-                    help: "Open existing AASX package.",
+                .AddWpfBlazor(name: "Open", header: "_Open (local) …", inputGesture: "Ctrl+O",
+                    help: "Open (local) existing AASX package.",
                     args: new AasxMenuListOfArgDefs()
                         .Add("File", "Source filename including a path and extension."))
-                .AddWpfBlazor(name: "ConnectIntegrated", header: "Connect …", inputGesture: "Ctrl+Shift+I")
+                .AddWpfBlazor(name: "FileRepoQuery", header: "Query open repositories/ registries …", inputGesture: "F12",
+                        help: "Selects and repository item (AASX) from the open AASX file repositories.",
+                        args: new AasxMenuListOfArgDefs()
+                            .Add("Index", "Zero-based integer index to the list of all open repos.")
+                            .Add("AAS", "String with AAS-Id")
+                            .Add("Asset", "String with Asset-Id."))
                 .AddWpfBlazor(name: "Save", header: "_Save", inputGesture: "Ctrl+S")
                 .AddWpfBlazor(name: "SaveAs", header: "_Save as …", 
                     help: "Saves current package to given file name and typr",
@@ -103,9 +109,28 @@ namespace AasxPackageExplorer
                 .AddWpfBlazor(name: "CloseAux", header: "Close Auxiliary AAS")
                 .AddSeparator()
                 .AddMenu(header: "Further connect options …", childs: (new AasxMenu())
-                    .AddWpfBlazor(name: "ConnectSecure", header: "Secure Connect …", inputGesture: "Ctrl+Shift+S")
-                    .AddWpfBlazor(name: "ConnectOpcUa", header: "Connect via OPC-UA …")
-                    .AddWpfBlazor(name: "ConnectRest", header: "Connect via REST …", inputGesture: "F6"))
+                    .AddWpfBlazor(name: "ConnectSecure", header: "Secure Connect (deprecated) …")
+                    .AddWpfBlazor(name: "ConnectOpcUa", header: "Connect via OPC-UA (deprecated) …")
+                    .AddWpfBlazor(name: "ConnectRest", header: "Connect via REST (deprecated) …")
+                    .AddWpfBlazor(name: "ConnectIntegrated", header: "Connect integrated (deprecated) …")
+                    .AddWpfBlazor(name: "FileRepoConnectRepository", header: "Connect HTTP/REST repository … (deprecated, for Event demo)",
+                        help: "Connects to an online repository via HTTP/REST.",
+                        args: new AasxMenuListOfArgDefs()
+                            .Add("Endpoint", "Endpoint of repo (without \"/server/listaas\").")))
+                .AddSeparator()
+                .AddMenu(header: "API for Registry and Repository …", childs: (new AasxMenu())
+                    .AddWpf(name: "AddBaseAddress", header: "Add preset for base address …")
+                    .AddWpf(name: "ClearBaseCredentials", header: "Clear all stored credentials …")
+                    .AddWpfBlazor(name: "ConnectExtended", header: "Connect (extended) …",
+                        args: new AasxMenuListOfArgDefs()
+                            .AddFromReflection(new PackageContainerHttpRepoSubset.ConnectExtendedRecord()))
+                    .AddWpfBlazor(name: "ApiUploadAssistant", header: "Upload assistant …",
+                        args: new AasxMenuListOfArgDefs()
+                            .AddFromReflection(new PackageContainerHttpRepoSubset.UploadAssistantJobRecord()))
+                    .AddWpf(name: "CreateRepoFromApi", header: "Create (local) file repository from API base …",
+                        args: new AasxMenuListOfArgDefs()
+                            .AddFromReflection(new PackageContainerHttpRepoSubset.ConnectExtendedRecord()))
+                )
                 .AddSeparator()
                 .AddMenu(header: "AASX File Repository …", childs: (new AasxMenu())
                     .AddWpfBlazor(name: "FileRepoNew", header: "New (local) repository …",
@@ -114,20 +139,8 @@ namespace AasxPackageExplorer
                         help: "Opens an existing AASX file repository and adds it to the list of open repos.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "Path and filename of existing AASX file repository."))
-                    .AddWpfBlazor(name: "FileRepoConnectRepository", header: "Connect HTTP/REST repository …",
-                        help: "Connects to an online repository via HTTP/REST.",
-                        args: new AasxMenuListOfArgDefs()
-                            .Add("Endpoint", "Endpoint of repo (without \"/server/listaas\")."))
-                    .AddWpfBlazor(name: "FileRepoConnectRegistry", header: "Query HTTP/REST registry …")
                     .AddSeparator()
-                    .AddWpfBlazor(name: "FileRepoCreateLRU", header: "Create last recently used list …")
-                    .AddSeparator()
-                    .AddWpfBlazor(name: "FileRepoQuery", header: "Query open repositories …", inputGesture: "F12",
-                        help: "Selects and repository item (AASX) from the open AASX file repositories.",
-                        args: new AasxMenuListOfArgDefs()
-                            .Add("Index", "Zero-based integer index to the list of all open repos.")
-                            .Add("AAS", "String with AAS-Id")
-                            .Add("Asset", "String with Asset-Id.")))
+                    .AddWpfBlazor(name: "FileRepoCreateLRU", header: "Create last recently used list …"))
                 .AddSeparator()
                 .AddMenu(header: "Import …", attachPoint: "import", childs: (new AasxMenu())
 					.AddWpfBlazor(name: "ImportAASX", header: "Import further AASX file into AASX …",
@@ -322,6 +335,7 @@ namespace AasxPackageExplorer
                         header: "New Submodel from SMT/ SAMM ConceptDescription",
                         help: "Creates a new Submodel instance from an selected root given by accessible ConceptDescriptions.")
                     )
+                .AddMenu(header: "Change …", attachPoint: "Change")
                 .AddMenu(header: "Visualize …", attachPoint: "Visualize")
                 .AddMenu(header: "Plugins …", attachPoint: "Plugins")
                 .AddSeparator()

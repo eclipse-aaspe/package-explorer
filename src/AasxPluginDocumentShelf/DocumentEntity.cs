@@ -28,7 +28,7 @@ namespace AasxPluginDocumentShelf
     public class DocumentEntity
     {
         public delegate void DocumentEntityEvent(DocumentEntity e);
-        public event DocumentEntityEvent DoubleClick = null;
+        public Func<DocumentEntity, Task> DoubleClick = null;
 
         public delegate Task MenuClickDelegate(DocumentEntity e, string menuItemHeader, object tag);
         public event MenuClickDelegate MenuClick = null;
@@ -73,12 +73,19 @@ namespace AasxPluginDocumentShelf
             public string Path = "";
             public string MimeType = "";
 
+            public string AasId = "";
+            public string SmId = "";
+            public string IdShortPath = "";
+
             public FileInfo() { }
 
-            public FileInfo(Aas.File file)
+            public FileInfo(string aasId, string smId, Aas.File file)
             {
                 Path = file?.Value;
                 MimeType = file?.ContentType;
+                AasId = aasId;
+                SmId = smId;
+                IdShortPath = file?.CollectIdShortByParent(separatorChar: '.', excludeIdentifiable: true);
             }
         }
 
@@ -92,10 +99,10 @@ namespace AasxPluginDocumentShelf
             this.CountryCodes = LangCodes;
         }
 
-        public void RaiseDoubleClick()
+        public async Task RaiseDoubleClick()
         {
             if (DoubleClick != null)
-                DoubleClick(this);
+                await DoubleClick(this);
         }
 
         public async Task RaiseMenuClick(string menuItemHeader, object tag)
@@ -174,8 +181,9 @@ namespace AasxPluginDocumentShelf
         //
 
         public static ListOfDocumentEntity ParseSubmodelForV10(
-            AdminShellPackageEnv thePackage,
-            Aas.Submodel subModel, AasxPluginDocumentShelf.DocumentShelfOptions options,
+            AdminShellPackageEnvBase thePackage,
+            Aas.IAssetAdministrationShell aas,
+            Aas.ISubmodel subModel, AasxPluginDocumentShelf.DocumentShelfOptions options,
             string defaultLang,
             int selectedDocClass, AasxLanguageTuple selectedLanguage)
         {
@@ -304,7 +312,7 @@ namespace AasxPluginDocumentShelf
                         var fl = smcVer.Value.FindFirstSemanticIdAs<Aas.File>(
                             _semConfigV10.SemIdDigitalFile, MatchMode.Relaxed);
 
-                        ent.DigitalFile = new DocumentEntity.FileInfo(fl);
+                        ent.DigitalFile = new DocumentEntity.FileInfo("" + aas?.Id, "" + subModel?.Id, fl);
 
                         // add
                         ent.SmVersion = DocumentEntity.SubmodelVersion.Default;
@@ -348,8 +356,10 @@ namespace AasxPluginDocumentShelf
         }
 
         public static ListOfDocumentEntity ParseSubmodelForV11(
-            AdminShellPackageEnv thePackage,
-            Aas.Submodel subModel, AasxPredefinedConcepts.VDI2770v11 defs11,
+            AdminShellPackageEnvBase thePackage,
+            Aas.IAssetAdministrationShell aas,
+            Aas.ISubmodel subModel, 
+            AasxPredefinedConcepts.VDI2770v11 defs11,
             string defaultLang,
             int selectedDocClass, AasxLanguageTuple selectedLanguage)
         {
@@ -510,12 +520,12 @@ namespace AasxPluginDocumentShelf
                         var fl = smcVer.Value.FindFirstSemanticIdAs<Aas.File>(
                             defs11.CD_DigitalFile?.GetReference(), MatchMode.Relaxed);
                         if (fl != null)
-                            ent.DigitalFile = new DocumentEntity.FileInfo(fl);
+                            ent.DigitalFile = new DocumentEntity.FileInfo("" + aas?.Id, "" + subModel?.Id, fl);
 
                         fl = smcVer.Value.FindFirstSemanticIdAs<Aas.File>(
                             defs11.CD_PreviewFile?.GetReference(), MatchMode.Relaxed);
                         if (fl != null)
-                            ent.PreviewFile = new DocumentEntity.FileInfo(fl);
+                            ent.PreviewFile = new DocumentEntity.FileInfo("" + aas?.Id, "" + subModel?.Id, fl);
 
                         // relations
                         SearchForRelations(smcVer.Value, DocumentEntity.DocRelationType.DocumentedEntity,
@@ -542,7 +552,7 @@ namespace AasxPluginDocumentShelf
                                 semanticId: defs11.CD_PreviewFile?.GetReference(),
                                 value: path2);
                             smcVer.Add(fl2);
-                            ent.PreviewFile = new DocumentEntity.FileInfo(fl);
+                            ent.PreviewFile = new DocumentEntity.FileInfo("" + aas?.Id, "" + subModel?.Id, fl);
                             return true;
                         };
                     }
@@ -553,8 +563,10 @@ namespace AasxPluginDocumentShelf
         }
 
         public static ListOfDocumentEntity ParseSubmodelForV12(
-            AdminShellPackageEnv thePackage,
-            Aas.Submodel subModel, AasxPredefinedConcepts.IdtaHandoverDocumentationV12 defs12,
+            AdminShellPackageEnvBase thePackage,
+            Aas.IAssetAdministrationShell aas,
+            Aas.ISubmodel subModel, 
+            AasxPredefinedConcepts.IdtaHandoverDocumentationV12 defs12,
             string defaultLang,
             int selectedDocClass, AasxLanguageTuple selectedLanguage)
         {
@@ -716,12 +728,12 @@ namespace AasxPluginDocumentShelf
                         var fl = smcVer.Value.FindFirstSemanticIdAs<Aas.File>(
                             defs12.CD_DigitalFile?.GetReference(), MatchMode.Relaxed);
                         if (fl != null)
-                            ent.DigitalFile = new DocumentEntity.FileInfo(fl);
+                            ent.DigitalFile = new DocumentEntity.FileInfo("" + aas?.Id, "" + subModel?.Id, fl);
 
                         fl = smcVer.Value.FindFirstSemanticIdAs<Aas.File>(
                             defs12.CD_PreviewFile?.GetReference(), MatchMode.Relaxed);
                         if (fl != null)
-                            ent.PreviewFile = new DocumentEntity.FileInfo(fl);
+                            ent.PreviewFile = new DocumentEntity.FileInfo("" + aas?.Id, "" + subModel?.Id, fl);
 
                         // relations
                         SearchForRelations(smcVer.Value, DocumentEntity.DocRelationType.DocumentedEntity,
@@ -748,7 +760,7 @@ namespace AasxPluginDocumentShelf
                                 semanticId: defs12.CD_PreviewFile?.GetReference(),
                                 value: path2);
                             smcVer.Add(fl2);
-                            ent.PreviewFile = new DocumentEntity.FileInfo(fl);
+                            ent.PreviewFile = new DocumentEntity.FileInfo("" + aas?.Id, "" + subModel?.Id, fl);
                             return true;
                         };
                     }

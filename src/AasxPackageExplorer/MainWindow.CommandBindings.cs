@@ -33,12 +33,12 @@ using System.Windows.Input;
 using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageExplorer
-{
+{   
     /// <summary>
     /// This partial class contains all command bindings, such as for the main menu, in order to reduce the
     /// complexity of MainWindow.xaml.cs
     /// </summary>
-    public partial class MainWindow : Window, IFlyoutProvider
+    public partial class MainWindow : Window, IFlyoutProvider, IExecuteMainCommand
     {
         private string lastFnForInitialDirectory = null;
 
@@ -48,7 +48,6 @@ namespace AasxPackageExplorer
         //// or
         //// <MenuItem Header="([^"]+)"\s+([^I]|InputGestureText="([^"]+)")(.*?)Command="{StaticResource (\w+)}"/>
         //// .AddWpf\(name: "\5", header: "\1", inputGesture: "\3", \4\)
-
 
         public void RememberForInitialDirectory(string fn)
         {
@@ -97,6 +96,82 @@ namespace AasxPackageExplorer
         /// Set to <c>true</c>, if the application shall be shut down via script
         /// </summary>
         public bool ScriptModeShutdown = false;
+        
+        public async Task<int> ExecuteMainMenuCommand(string menuItemName, params object[] args)
+        {
+            if (menuItemName?.HasContent() != true)
+            {
+                Log.Singleton.Error("MainWindow execute menu command: menu item name missing!");
+                return -1;
+            }
+
+            // name of tool, find it
+            var foundMenu = this.GetMainMenu();
+            var mi = foundMenu.FindName(menuItemName);
+            if (mi == null)
+            {
+                foundMenu = this.GetDynamicMenu();
+                mi = foundMenu.FindName(menuItemName);
+            }
+            if (mi == null)
+            {
+                Log.Singleton.Error($"MainWindow execute menu command: menu item name invalid: {menuItemName}");
+                return -1;
+            }
+
+            // create a ticket
+            var ticket = new AasxMenuActionTicket()
+            {
+                MenuItem = mi,
+                ScriptMode = true,
+                ArgValue = new AasxMenuArgDictionary()
+            };
+
+            // go thru the remaining arguments and find arg names and values
+            var argi = 0;
+            while (args != null && argi < args.Length)
+            {
+                // get arg name
+                if (!(args[argi] is string argname))
+                {
+                    Log.Singleton.Error($"MainWindow execute menu command: Argument at index {argi} is " +
+                        $"not string type for argument name.");
+                    return -1;
+                }
+
+                // find argname?
+                var ad = mi.ArgDefs?.Find(argname);
+                if (ad == null)
+                {
+                    Log.Singleton.Error($"MainWindow execute menu command: Argument at index {argi} is " +
+                        $"not valid argument name.");
+                    return -1;
+                }
+
+                // create arg value (not available is okay)
+                object av = null;
+                if (argi + 1 < args.Length)
+                    av = args[argi + 1];
+
+                // into ticket
+                ticket.ArgValue.Add(ad, av);
+
+                // 2 forward!
+                argi += 2;
+            }
+
+            // invoke action
+            await foundMenu.ActivateAction(mi, ticket);
+
+            // perform UI updates if required
+            if (ticket.UiLambdaAction != null && !(ticket.UiLambdaAction is AnyUiLambdaActionNone))
+            {
+                // add to "normal" event quoue
+                this.AddWishForToplevelAction(ticket.UiLambdaAction);
+            }
+
+            return 0;
+        }
 
         private async Task CommandBinding_GeneralDispatch(
             string cmd,
@@ -415,7 +490,7 @@ namespace AasxPackageExplorer
 
                 // validate as XML
                 var ms = new MemoryStream();
-                PackageCentral.Main.SaveAs("noname.xml", true, AdminShellPackageEnv.SerializationFormat.Xml, ms,
+                PackageCentral.Main.SaveAs("noname.xml", true, AdminShellPackageFileBasedEnv.SerializationFormat.Xml, ms,
                     saveOnlyCopy: true);
                 ms.Flush();
                 ms.Position = 0;
@@ -424,7 +499,7 @@ namespace AasxPackageExplorer
 
                 // validate as JSON
                 var ms2 = new MemoryStream();
-                PackageCentral.Main.SaveAs("noname.json", true, AdminShellPackageEnv.SerializationFormat.Json, ms2,
+                PackageCentral.Main.SaveAs("noname.json", true, AdminShellPackageFileBasedEnv.SerializationFormat.Json, ms2,
                     saveOnlyCopy: true);
                 ms2.Flush();
                 ms2.Position = 0;
@@ -530,7 +605,7 @@ namespace AasxPackageExplorer
 
             // start CONNECT as a worker (will start in the background)
             var worker = new BackgroundWorker();
-            AdminShellPackageEnv envToload = null;
+            AdminShellPackageFileBasedEnv envToload = null;
             worker.DoWork += (s1, e1) =>
             {
                 for (int i = 0; i < 15; i++)

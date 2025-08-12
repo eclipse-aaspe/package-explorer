@@ -31,7 +31,7 @@ namespace AasxPackageExplorer
     /// </summary>
     public interface IAasxScriptRemoteInterface
     {
-        Task<int> Tool(object[] args);
+        Task<int> Tool(object[] args, Action<object> lambdaDone);
         Aas.IReferable Select(object[] args);
         Aas.IReferable[] SelectAll(object[] args);
         Task<bool> Location(object[] args);
@@ -64,17 +64,17 @@ namespace AasxPackageExplorer
         {
             public static void Show(string caption)
             {
-                Console.WriteLine(caption);
+                Log.Singleton.Info(caption);
             }
 
             public static void Tool(string cmd, params string[] args)
             {
-                Console.WriteLine($"Execute {cmd} " + string.Join(",", args));
+                Log.Singleton.Info($"Execute {cmd} " + string.Join(",", args));
             }
 
             public static void Flex(int a = 0, int b = 0, int c = 0)
             {
-                Console.WriteLine($"Flex a {a} b {b} c{c}");
+                Log.Singleton.Info($"Flex a {a} b {b} c{c}");
             }
         }
 
@@ -95,7 +95,82 @@ namespace AasxPackageExplorer
             }
         }
 
-        public class Script_WriteLine : ScriptInvokableBase
+        public class ScriptInvokableBaseAsync : ScriptInvokableBase
+        {
+            protected static int _mutex = 0;
+
+            public ScriptInvokableBaseAsync(AasxScript script) : base(script) 
+            {
+            }
+
+            public virtual async Task<object> InnerInvoke(IScriptContext context, object[] args)
+            {
+                await Task.Yield();
+                return 0;
+            }
+
+            public override object Invoke(IScriptContext context, object[] args)
+            {
+                // debug
+                if (_script._logLevel >= 2)
+                    Log.Singleton.Info($"Execute {this.GetType().Name} " + string.Join(",", args));
+
+                // for the outer script loop, wait for any invocation the Task to be completed!
+                int n = 0;
+                while (_mutex > 0)
+                {
+                    n++;
+                    Thread.Sleep(100);
+                }
+                if (_script._logLevel >= 2 && n > 0)
+                    Log.Singleton.Info($"Waiting for mutex = {_mutex} the time of {n} x 100ms.");
+
+                // inner
+                object res = 0;
+                if (Application.Current != null)
+                {
+                    // WPF case
+                    Task<object> x = null;
+                    x = Application.Current.Dispatcher.Invoke(async () =>
+                    {
+                        if (_script?.Remote == null)
+                            return -1;
+
+                        lock (_script)
+                        {
+                            _mutex = 1 + (new Random()).Next(98);
+                        }
+
+                        if (_script._logLevel >= 2)
+                            Log.Singleton.Info($"Started new mutex = {_mutex} and going to invocation of script function ..");
+
+                        res = await InnerInvoke(context, args);
+
+                        if (_script._logLevel >= 2)
+                            Log.Singleton.Info($".. done with result = {res}.");   
+                        
+                        return res;
+                    });
+                    if (x != null)
+                        Log.Singleton.Silent("" + x + " ");
+                    res = x.Result;
+                }
+                else
+                {
+                    // Blazor?? case
+                    res = _script.Remote?.Select(args);
+                }
+
+                // debug
+                if (_script._logLevel >= 2)
+                    Log.Singleton.Info($"Finalized execute {this.GetType().Name} " + string.Join(",", args));
+
+                // end
+                return res;
+            }
+        }
+
+        public class Script_WriteLine : ScriptInvokableBaseAsync
         {
             public Script_WriteLine(AasxScript script) : base(script)
             {
@@ -105,14 +180,21 @@ namespace AasxPackageExplorer
                         .Add("<any>", "All arguments are writen to the scriot log."));
             }
 
-            public override object Invoke(IScriptContext context, object[] args)
+            public override async Task<object> InnerInvoke(IScriptContext context, object[] args)
             {
+                await Task.Yield();
+                
                 _script?.ScriptLog?.Info("Script: " + string.Join(",", args));
+                lock (_script)
+                {
+                    _mutex = 0;
+                }
+
                 return 0;
             }
         }
 
-        public class Script_Sleep : ScriptInvokableBase
+        public class Script_Sleep : ScriptInvokableBaseAsync
         {
             public Script_Sleep(AasxScript script) : base(script)
             {
@@ -122,15 +204,21 @@ namespace AasxPackageExplorer
                         .Add("<time>", "Pause time in milli seconds."));
             }
 
-            public override object Invoke(IScriptContext context, object[] args)
+            public override async Task<object> InnerInvoke(IScriptContext context, object[] args)
             {
                 if (args != null && args.Length == 1 && args[0] is int a0i)
-                    Thread.Sleep(a0i);
+                    await Task.Delay(a0i);
+
+                lock (_script)
+                {
+                    _mutex = 0;
+                }
+
                 return 0;
             }
         }
 
-        public class Script_FileReadAll : ScriptInvokableBase
+        public class Script_FileReadAll : ScriptInvokableBaseAsync
         {
             public Script_FileReadAll(AasxScript script) : base(script)
             {
@@ -141,26 +229,34 @@ namespace AasxPackageExplorer
                         .Add("returns:", "All lines of text file as one string; null if file is not accessible."));
             }
 
-            public override object Invoke(IScriptContext context, object[] args)
+            public override async Task<object> InnerInvoke(IScriptContext context, object[] args)
             {
+                await Task.Yield();
+                object res = null;
                 if (args != null && args.Length == 1 && args[0] is string fn)
                     try
                     {
                         if (!System.IO.File.Exists(fn))
                             return null;
                         using (var f = new StreamReader(fn))
-                            return f.ReadToEnd();
+                            res = f.ReadToEnd();
                     }
                     catch (Exception ex)
                     {
                         if (_script != null && _script._logLevel >= 2)
                             Log.Singleton.Error(ex, $"when reading text contents of {fn}");
                     }
-                return null;
+
+                lock (_script)
+                {
+                    _mutex = 0;
+                }
+
+                return res;
             }
         }
 
-        public class Script_FileExists : ScriptInvokableBase
+        public class Script_FileExists : ScriptInvokableBaseAsync
         {
             public Script_FileExists(AasxScript script) : base(script)
             {
@@ -171,24 +267,33 @@ namespace AasxPackageExplorer
                         .Add("returns:", "True, if file or path exists; null if not accessible."));
             }
 
-            public override object Invoke(IScriptContext context, object[] args)
+            public override async Task<object> InnerInvoke(IScriptContext context, object[] args)
             {
+                await Task.Yield();
+                
+                var res = false;
                 if (args != null && args.Length == 1 && args[0] is string fn)
                     try
                     {
                         if (System.IO.File.Exists(fn) || Directory.Exists(fn))
-                            return true;
+                            res = true;
                     }
                     catch (Exception ex)
                     {
                         if (_script != null && _script._logLevel >= 2)
                             Log.Singleton.Error(ex, $"when check existence of {fn}");
                     }
-                return false;
+
+                lock (_script)
+                {
+                    _mutex = 0;
+                }
+
+                return res;
             }
         }
 
-        public class Script_GetLastLogLine : ScriptInvokableBase
+        public class Script_GetLastLogLine : ScriptInvokableBaseAsync
         {
             public Script_GetLastLogLine(AasxScript script) : base(script)
             {
@@ -199,16 +304,24 @@ namespace AasxPackageExplorer
                         .Add("returns:", "Log line with attributes as string."));
             }
 
-            public override object Invoke(IScriptContext context, object[] args)
+            public override async Task<object> InnerInvoke(IScriptContext context, object[] args)
             {
+                await Task.Yield();
                 int ofs = 0;
                 if (args != null && args.Length == 1 && args[0] is int i)
                     ofs = i;
-                return "" + Log.Singleton.GetLastLongTermPrint(ofs);
+                
+                var res = "" + Log.Singleton.GetLastLongTermPrint(ofs);
+                lock (_script)
+                {
+                    _mutex = 0;
+                }
+
+                return res;
             }
         }
 
-        public class Script_TakeScreenShot : ScriptInvokableBase
+        public class Script_TakeScreenShot : ScriptInvokableBaseAsync
         {
             public Script_TakeScreenShot(AasxScript script) : base(script)
             {
@@ -218,19 +331,25 @@ namespace AasxPackageExplorer
                         .Add("<file>", "Filename to save screenshot to."));
             }
 
-            public override object Invoke(IScriptContext context, object[] args)
+            public override async Task<object> InnerInvoke(IScriptContext context, object[] args)
             {
+                await Task.Yield();
                 string fn = "noname";
                 if (args != null && args.Length == 1 && args[0] is string afn)
                     fn = afn;
+                
                 _script.Remote?.TakeScreenshot(fn);
+                lock (_script)
+                {
+                    _mutex = 0;
+                }
 
                 // done
                 return 0;
             }
         }
 
-        public class Script_Tool : ScriptInvokableBase
+        public class Script_Tool : ScriptInvokableBaseAsync
         {
             public Script_Tool(AasxScript script) : base(script)
             {
@@ -242,7 +361,7 @@ namespace AasxPackageExplorer
                         .Add("<value>", "Arbitrary type and value for that argument."));
             }
 
-            public override async Task<object> Invoke(IScriptContext context, object[] args)
+            public override async Task<object> InnerInvoke(IScriptContext context, object[] args)
             {
                 // access
                 if (_script == null)
@@ -254,37 +373,18 @@ namespace AasxPackageExplorer
                     return -1;
                 }
 
-                // debug
-                if (_script._logLevel >= 2)
-                    Console.WriteLine($"Execute Tool " + string.Join(",", args));
-
-                // invoke action
-                // https://stackoverflow.com/questions/39438441/
-                Task<int> x = null;
-                if (Application.Current != null)
-                {
-                    // WPF case
-                    x = Application.Current.Dispatcher.Invoke(async () =>
+                var res = await _script?.Remote?.Tool(args, 
+                    lambdaDone: (o) =>
                     {
-                        if (_script?.Remote == null)
-                            return -1;
-                        return await _script?.Remote?.Tool(args);
+                        lock (_script) { _mutex = 0; }
                     });
-                    if (x != null)
-                        Log.Singleton.Silent("" + x);
-                }
-                else
-                {
-                    // Blazor case
-                    await _script?.Remote?.Tool(args);
-                }
 
                 // done
-                return 0;
+                return res;
             }
         }
 
-        public class Script_Select : ScriptInvokableBase
+        public class Script_Select : ScriptInvokableBaseAsync
         {
             public Script_Select(AasxScript script) : base(script)
             {
@@ -298,8 +398,10 @@ namespace AasxPackageExplorer
                         .Add("returns:", "Referable which is currently selected."));
             }
 
-            public override object Invoke(IScriptContext context, object[] args)
+            public override async Task<object> InnerInvoke(IScriptContext context, object[] args)
             {
+                await Task.Yield();
+
                 // access
                 if (_script == null)
                     return -1;
@@ -312,39 +414,19 @@ namespace AasxPackageExplorer
 
                 // debug
                 if (_script._logLevel >= 2)
-                    Console.WriteLine($"Execute Select " + string.Join(",", args));
+                    Log.Singleton.Info($"Execute Select " + string.Join(",", args));
 
-                // which application
-                if (Application.Current == null)
-                {
-                    Log.Singleton.Error("For script execution, Application.Current for Blazor is not available.");
-                }
-
-                // invoke action
-                // https://stackoverflow.com/questions/39438441/
-                Aas.IReferable x = null;
-                if (Application.Current != null)
-                {
-                    // WPF case
-                    x = Application.Current?.Dispatcher.Invoke(() =>
-                    {
-                        return _script.Remote?.Select(args);
-                    });
-                    if (x != null)
-                        Log.Singleton.Silent("" + x.IdShort);
-                }
-                else
-                {
-                    // Blazor?? case
-                    x = _script.Remote?.Select(args);
+                var res = _script?.Remote?.Select(args);
+                lock (_script) { 
+                    _mutex = 0; 
                 }
 
                 // done
-                return x;
+                return res;
             }
         }
 
-        public class Script_SelectAll : ScriptInvokableBase
+        public class Script_SelectAll : ScriptInvokableBaseAsync
         {
             public Script_SelectAll(AasxScript script) : base(script)
             {
@@ -355,8 +437,10 @@ namespace AasxPackageExplorer
                         .Add("returns:", "Enumeration of Referables of certain kind."));
             }
 
-            public override object Invoke(IScriptContext context, object[] args)
+            public override async Task<object> InnerInvoke(IScriptContext context, object[] args)
             {
+                await Task.Yield();
+
                 // access
                 if (_script == null)
                     return -1;
@@ -367,41 +451,18 @@ namespace AasxPackageExplorer
                     return -1;
                 }
 
-                // debug
-                if (_script._logLevel >= 2)
-                    Console.WriteLine($"Execute SelectAll " + string.Join(",", args));
-
-                // which application
-                if (Application.Current == null)
+                var res =  _script.Remote?.SelectAll(args);
+                lock (_script)
                 {
-                    Log.Singleton.Error("For script execution, Application.Current for Blazor is not available.");
-                }
-
-                // invoke action
-                // https://stackoverflow.com/questions/39438441/
-                Aas.IReferable[] x = null;
-                if (Application.Current != null)
-                {
-                    // WPF case
-                    x = Application.Current?.Dispatcher.Invoke(() =>
-                    {
-                        return _script.Remote?.SelectAll(args);
-                    });
-                    if (x != null)
-                        Log.Singleton.Silent("" + x.Count());
-                }
-                else
-                {
-                    // Blazor?? case
-                    x = _script.Remote?.SelectAll(args);
+                    _mutex = 0;
                 }
 
                 // done
-                return x;
+                return res;
             }
         }
 
-        public class Script_Location : ScriptInvokableBase
+        public class Script_Location : ScriptInvokableBaseAsync
         {
             public Script_Location(AasxScript script) : base(script)
             {
@@ -411,8 +472,10 @@ namespace AasxPackageExplorer
                         .Add("<cmd>", "Either 'Push' or 'Pop'."));
             }
 
-            public async override Task<object> Invoke(IScriptContext context, object[] args)
+            public override async Task<object> InnerInvoke(IScriptContext context, object[] args)
             {
+                await Task.Yield();
+
                 // access
                 if (_script == null)
                     return -1;
@@ -435,32 +498,20 @@ namespace AasxPackageExplorer
 
                 // debug
                 if (_script._logLevel >= 2)
-                    Console.WriteLine($"Execute Location " + string.Join(",", args));
+                    Log.Singleton.Info($"Execute Location " + string.Join(",", args));
 
-                // invoke action
-                // https://stackoverflow.com/questions/39438441/
-                bool x = false;
-                if (Application.Current != null)
+                var res = await _script.Remote?.Location(args);
+                lock (_script)
                 {
-                    // WPF case
-                    x = await Application.Current.Dispatcher.Invoke(async () =>
-                    {
-                        return await _script.Remote?.Location(args);
-                    });
-                    Log.Singleton.Silent("" + x);
-                }
-                else
-                {
-                    // Blazor case
-                    x = await _script.Remote?.Location(args);
+                    _mutex = 0;
                 }
 
                 // done
-                return 0;
+                return res;
             }
         }
 
-        public class Script_System : ScriptInvokableBase
+        public class Script_System : ScriptInvokableBaseAsync
         {
             public Script_System(AasxScript script) : base(script)
             {
@@ -470,8 +521,10 @@ namespace AasxPackageExplorer
                         .Add("<any>", "All arguments are passed to the command line."));
             }
 
-            public override object Invoke(IScriptContext context, object[] args)
+            public override async Task<object> InnerInvoke(IScriptContext context, object[] args)
             {
+                await Task.Yield();
+
                 // access
                 if (_script == null)
                     return -1;
@@ -490,7 +543,7 @@ namespace AasxPackageExplorer
 
                 // debug
                 if (_script._logLevel >= 2)
-                    Console.WriteLine($"Execute System " + string.Join(" ", args));
+                    Log.Singleton.Info($"Execute System " + string.Join(" ", args));
 
                 // Start the child process.
                 Process p = new Process();
@@ -514,6 +567,11 @@ namespace AasxPackageExplorer
                     Log.Singleton.Info("Script: System: " + stdout);
                 if (stderr?.HasContent() == true)
                     Log.Singleton.Info(StoredPrint.Color.Red, "Script: System: " + stderr);
+
+                lock (_script)
+                {
+                    _mutex = 0;
+                }
 
                 // done
                 return p.ExitCode;

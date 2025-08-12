@@ -6,6 +6,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 
 This source code may use other Open Source software components (see LICENSE.txt).
 */
+using AdminShellNS;
 using AdminShellNS.Exceptions;
 using System;
 using System.Collections.Generic;
@@ -51,6 +52,26 @@ namespace Extensions
                 }
             }
             return isValid;
+        }
+
+        public static bool HasSuspicousWhiteSpace(this IReference reference)
+        {
+            if (reference == null || reference.Count() < 1)
+                return false;
+            foreach (var key in reference.Keys)
+                if (key.HasSuspicousWhiteSpace())
+                    return true;
+            return false;
+        }
+
+        public static bool HasSuspicousWhiteSpace(this List<IReference> references)
+        {
+            if (references == null || references.Count() < 1)
+                return false;
+            foreach (var rf in references)
+                if (rf?.HasSuspicousWhiteSpace() == true)
+                    return true;
+            return false;
         }
 
         /// <summary>

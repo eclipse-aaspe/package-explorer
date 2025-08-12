@@ -163,12 +163,12 @@ namespace AasxPackageLogic.PackageCentral
 
                             if (fileSize > totalBytes)
                             {
-                                runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Ongoing,
+                                runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.PerformDownload,
                                 fileSize, totalBytes);
                             }
                             else
                             {
-                                runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Final, fileSize, totalBytes);
+                                runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.EndDownload, fileSize, totalBytes);
                                 runtimeOptions?.Log?.Info($".. download done with {totalBytes} bytes read!");
                             }
 

@@ -146,13 +146,14 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
             if (action == "fill-anyui-visual-extension")
             {
                 // arguments (package, submodel, panel, display-context, session-id)
-                if (args == null || args.Length < 5)
+                if (args == null || args.Length < 7)
                     return null;
 
                 // create session and call
                 var session = _sessions.CreateNewSession<Session>(args[4]);
                 session.AnyUiControl = AasxPluginTechnicalData.TechnicalDataAnyUiControl.FillWithAnyUiControls(
-                    _log, args[0], args[1], _options, _eventStack, args[2], this);
+                    _log, args[0], args[1], _options, _eventStack, args[2], this, 
+                    args[6] as ISecurityAccessHandler);
 
                 // give object back
                 var res = new AasxPluginResultBaseObject();

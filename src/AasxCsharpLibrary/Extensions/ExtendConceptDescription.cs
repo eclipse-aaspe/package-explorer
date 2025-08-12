@@ -298,7 +298,7 @@ namespace Extensions
 		/// <summary>
 		/// Returns false, if there is another element with same idShort in the list
 		/// </summary>
-		public static bool CheckIdShortIsUnique(this List<IConceptDescription> cds, string idShort)
+		public static bool CheckIdShortIsUnique(this IList<IConceptDescription> cds, string idShort)
 		{
 			idShort = idShort?.Trim();
 			if (idShort == null || idShort.Length < 1)
@@ -318,7 +318,7 @@ namespace Extensions
         /// <summary>
         /// Creates ids with numerical index according to template string, until a unique idShort is found
         /// </summary>
-		public static string IterateIdShortTemplateToBeUnique(this List<IConceptDescription> cds, string idShortTemplate, int maxNum)
+		public static string IterateIdShortTemplateToBeUnique(this IList<IConceptDescription> cds, string idShortTemplate, int maxNum)
 		{
 			if (idShortTemplate == null || maxNum < 1 || !idShortTemplate.Contains("{0"))
 				return null;

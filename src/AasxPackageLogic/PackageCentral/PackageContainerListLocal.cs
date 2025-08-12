@@ -36,6 +36,11 @@ namespace AasxPackageLogic.PackageCentral
         [JsonIgnore]
         public string Filename = null;
 
+        /// <summary>
+        /// If true, will save list automatically when modified.
+        /// </summary>
+        public bool AutoSave = false;
+
         //
         // Specific for files
         //
@@ -48,15 +53,22 @@ namespace AasxPackageLogic.PackageCentral
             this.Filename = fn;
         }
 
-        public static T Load<T>(string fn) where T : PackageContainerListLocalBase, new()
+        public static T Load<T>(string fn) where T : PackageContainerListBase, new()
         {
             // make sub type, but populate base type
+#if __old
             var repo = new T();
             if (!repo.LoadFromLocalFile(fn))
                 return null;
+#else
+            var repo = PackageContainerListBase.LoadFromLocalFile<T>(fn);
+            if (repo == null) 
+                return null;
+#endif
 
             // record
-            repo.Filename = fn;
+            if (repo is PackageContainerListLocalBase rlb)
+                rlb.Filename = fn;
 
             // return
             return repo;

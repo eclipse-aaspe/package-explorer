@@ -28,7 +28,7 @@ namespace AasxPluginGenericForms
         //=============
 
         private LogInstance _log = new LogInstance();
-        private AdminShellPackageEnv _package = null;
+        private AdminShellPackageEnvBase _package = null;
         private Aas.Submodel _submodel = null;
         private AasxPluginGenericForms.GenericFormOptions _options = null;
         private PluginEventStack _eventStack = null;
@@ -48,7 +48,7 @@ namespace AasxPluginGenericForms
 
         public void Start(
             LogInstance log,
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageEnvBase thePackage,
             Aas.Submodel theSubmodel,
             AasxPluginGenericForms.GenericFormOptions theOptions,
             PluginEventStack eventStack,
@@ -76,7 +76,7 @@ namespace AasxPluginGenericForms
             PluginOperationContextBase opContext)
         {
             // access
-            var package = opackage as AdminShellPackageEnv;
+            var package = opackage as AdminShellPackageEnvBase;
             var sm = osm as Aas.Submodel;
             var panel = opanel as AnyUiStackPanel;
             if (package == null || sm == null || panel == null)

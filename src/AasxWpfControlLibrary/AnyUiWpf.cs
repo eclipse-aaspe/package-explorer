@@ -319,7 +319,7 @@ namespace AnyUi
                             if ( ((cntl.EmitEvent & AnyUiEventMask.LeftDown) > 0)
                                 || ((cntl.EmitEvent & AnyUiEventMask.LeftDouble) > 0) )
                             {
-                                wpf.MouseLeftButtonDown += (s5, e5) => {
+                                wpf.MouseLeftButtonDown += async (s5, e5) => {
                                     if (e5.LeftButton == MouseButtonState.Pressed)
                                     {
                                         // get the current coordinates relative to the framework element
@@ -338,6 +338,8 @@ namespace AnyUi
                                         {
                                             var la = cntl.setValueLambda?.Invoke(
                                                 new AnyUiEventData(AnyUiEventMask.LeftDown, cntl, e5.ClickCount, p));
+                                            if (la == null && cntl.setValueAsyncLambda != null)
+                                                la = await cntl.setValueAsyncLambda.Invoke(cntl);
                                             EmitOutsideAction(la);
                                         }
                                     }
@@ -699,15 +701,23 @@ namespace AnyUi
                             // double click
                             if ((cntl.EmitEvent & AnyUiEventMask.MouseAll) > 0)
                             {
-                                wpf.MouseDown += (s2,e2) =>
+                                wpf.MouseDown += async (s2,e2) =>
                                 {
                                     if (((cntl.EmitEvent & AnyUiEventMask.LeftDown) > 0) && (e2.ClickCount == 1))
-                                        cntl.setValueLambda?.Invoke(
+                                    {
+                                        var la = cntl.setValueLambda?.Invoke(
                                             new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2));
+                                        if (la == null) await cntl.setValueAsyncLambda?.Invoke(
+                                            new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2));
+                                    }
 
                                     if (((cntl.EmitEvent & AnyUiEventMask.LeftDouble) > 0) && (e2.ClickCount == 2))
-                                        cntl.setValueLambda?.Invoke(
+                                    {
+                                        var la = cntl.setValueLambda?.Invoke(
                                             new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2));
+                                        if (la == null) await cntl.setValueAsyncLambda?.Invoke(
+                                            new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2));
+                                    }
                                 };
                             }
                         }

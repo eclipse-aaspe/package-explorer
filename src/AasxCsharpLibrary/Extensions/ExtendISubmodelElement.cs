@@ -1043,7 +1043,7 @@ namespace Extensions
                 where T : ISubmodelElement
         {
             if (submodelELements.IsNullOrEmpty())
-                yield return default(T);
+                yield break;
             foreach (var submodelElement in submodelELements)
                 if (submodelElement != null && submodelElement is T
                     && submodelElement.SemanticId != null)

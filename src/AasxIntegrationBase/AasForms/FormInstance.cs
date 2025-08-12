@@ -320,7 +320,7 @@ namespace AasxIntegrationBase.AasForms
         /// </summary>
         public List<Aas.ISubmodelElement> AddOrUpdateDifferentElementsToCollection(
             List<Aas.ISubmodelElement> elements,
-            AdminShellPackageEnv packageEnv = null, bool addFilesToPackage = false)
+            AdminShellPackageEnvBase packageEnv = null, bool addFilesToPackage = false)
         {
             // will be a list of newly added elements (for tracing)
             var res = new List<Aas.ISubmodelElement>();
@@ -480,7 +480,7 @@ namespace AasxIntegrationBase.AasForms
         /// Render the form description and adds or updates its instances into a list of SubmodelElements.
         /// </summary>
         public List<Aas.ISubmodelElement> AddOrUpdateSameElementsToCollection(
-            List<Aas.ISubmodelElement> elements, AdminShellPackageEnv packageEnv = null,
+            List<Aas.ISubmodelElement> elements, AdminShellPackageEnvBase packageEnv = null,
             bool addFilesToPackage = false)
         {
             // access
@@ -1057,7 +1057,7 @@ namespace AasxIntegrationBase.AasForms
         /// </summary>
         public List<Aas.ISubmodelElement> AddOrUpdateDifferentElementsToCollection(
             List<Aas.ISubmodelElement> elements,
-            AdminShellPackageEnv packageEnv = null,
+            AdminShellPackageEnvBase packageEnv = null,
             bool addFilesToPackage = false,
             bool editSource = false)
         {
@@ -1165,7 +1165,7 @@ namespace AasxIntegrationBase.AasForms
         /// </summary>
         /// <returns>True, if a new element shall be rendered from the instance <c>sme</c>.</returns>
         public virtual bool ProcessSmeForRender(
-            AdminShellPackageEnv packageEnv = null, bool addFilesToPackage = false, bool editSource = false)
+            AdminShellPackageEnvBase packageEnv = null, bool addFilesToPackage = false, bool editSource = false)
         {
             if (this.sme != null && Touched && this.sourceSme != null && editSource)
             {
@@ -1183,7 +1183,7 @@ namespace AasxIntegrationBase.AasForms
         /// </summary>
         public virtual List<Aas.ISubmodelElement> AddOrUpdateSmeToCollection(
             List<Aas.ISubmodelElement> collectionNewElements,
-            AdminShellPackageEnv packageEnv = null, bool addFilesToPackage = false)
+            AdminShellPackageEnvBase packageEnv = null, bool addFilesToPackage = false)
         {
             // typically, there will be only one SME
             var res = new List<Aas.ISubmodelElement>();
@@ -1280,7 +1280,7 @@ namespace AasxIntegrationBase.AasForms
         /// </summary>
 
         public override List<Aas.ISubmodelElement> AddOrUpdateSmeToCollection(
-            List<Aas.ISubmodelElement> elements, AdminShellPackageEnv packageEnv = null,
+            List<Aas.ISubmodelElement> elements, AdminShellPackageEnvBase packageEnv = null,
             bool addFilesToPackage = false)
         {
             // SMEC as Refrable
@@ -1312,7 +1312,7 @@ namespace AasxIntegrationBase.AasForms
         /// Render the list of form elements into a list of SubmodelElements.
         /// </summary>
         public List<Aas.ISubmodelElement> AddOrUpdateDifferentElementsToCollection(
-            List<Aas.ISubmodelElement> elements, AdminShellPackageEnv packageEnv = null,
+            List<Aas.ISubmodelElement> elements, AdminShellPackageEnvBase packageEnv = null,
             bool addFilesToPackage = false)
         {
             if (this.PairInstances != null)
@@ -1422,7 +1422,7 @@ namespace AasxIntegrationBase.AasForms
         /// producing a new element. Returns True, if a new element shall be rendered.
         /// </summary>
         public override bool ProcessSmeForRender(
-            AdminShellPackageEnv packageEnv = null, bool addFilesToPackage = false, bool editSource = false)
+            AdminShellPackageEnvBase packageEnv = null, bool addFilesToPackage = false, bool editSource = false)
         {
             // refer to base (SME) function, but not caring about result
             base.ProcessSmeForRender(packageEnv, addFilesToPackage, editSource);
@@ -1616,7 +1616,7 @@ namespace AasxIntegrationBase.AasForms
         /// the new values instead of producing a new element. Returns True, if a new element shall be rendered.
         /// </summary>
         public override bool ProcessSmeForRender(
-            AdminShellPackageEnv packageEnv = null, bool addFilesToPackage = false, bool editSource = false)
+            AdminShellPackageEnvBase packageEnv = null, bool addFilesToPackage = false, bool editSource = false)
         {
             // refer to base (SME) function, but not caring about result
             base.ProcessSmeForRender(packageEnv, addFilesToPackage, editSource);
@@ -1784,7 +1784,7 @@ namespace AasxIntegrationBase.AasForms
         /// producing a new element. Returns True, if a new element shall be rendered.
         /// </summary>
         public override bool ProcessSmeForRender(
-            AdminShellPackageEnv packageEnv = null, bool addFilesToPackage = false, bool editSource = false)
+            AdminShellPackageEnvBase packageEnv = null, bool addFilesToPackage = false, bool editSource = false)
         {
             // refer to base (SME) function, but not caring about result
             base.ProcessSmeForRender(packageEnv, addFilesToPackage, editSource);
@@ -1969,7 +1969,7 @@ namespace AasxIntegrationBase.AasForms
         /// the new values instead of producing a new element. Returns True, if a new element shall be rendered.
         /// </summary>
         public override bool ProcessSmeForRender(
-            AdminShellPackageEnv packageEnv = null, bool addFilesToPackage = false, bool editSource = false)
+            AdminShellPackageEnvBase packageEnv = null, bool addFilesToPackage = false, bool editSource = false)
         {
             // refer to base (SME) function, but not caring about result
             base.ProcessSmeForRender(packageEnv, addFilesToPackage, editSource);
@@ -2108,7 +2108,7 @@ namespace AasxIntegrationBase.AasForms
         /// the new values instead of producing a new element. Returns True, if a new element shall be rendered.
         /// </summary>
         public override bool ProcessSmeForRender(
-            AdminShellPackageEnv packageEnv = null, bool addFilesToPackage = false, bool editSource = false)
+            AdminShellPackageEnvBase packageEnv = null, bool addFilesToPackage = false, bool editSource = false)
         {
             // refer to base (SME) function, but not caring about result
             base.ProcessSmeForRender(packageEnv, addFilesToPackage, editSource);
@@ -2270,7 +2270,7 @@ namespace AasxIntegrationBase.AasForms
         /// the new values instead of producing a new element. Returns True, if a new element shall be rendered.
         /// </summary>
         public override bool ProcessSmeForRender(
-            AdminShellPackageEnv packageEnv = null, bool addFilesToPackage = false, bool editSource = false)
+            AdminShellPackageEnvBase packageEnv = null, bool addFilesToPackage = false, bool editSource = false)
         {
             // refer to base (SME) function, but not caring about result
             base.ProcessSmeForRender(packageEnv, addFilesToPackage, editSource);

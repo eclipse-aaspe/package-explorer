@@ -20,7 +20,7 @@ namespace AasxToolkit
 {
     public static class Generate
     {
-        public static AdminShellPackageEnv GeneratePackage(string preffn = "*")
+        public static AdminShellPackageFileBasedEnv GeneratePackage(string preffn = "*")
         {
 
             // MAKE or LOAD prefs
@@ -193,12 +193,12 @@ namespace AasxToolkit
             // Make PACKAGE
             //
 
-            AdminShellPackageEnv package = null;
+            AdminShellPackageFileBasedEnv package = null;
             try
             {
 
                 Log.WriteLine(2, "Creating package in RAM ..");
-                package = new AdminShellPackageEnv(aasenv1);
+                package = new AdminShellPackageFileBasedEnv(aasenv1);
 
                 // supplementary files
                 Log.WriteLine(2, "Adding supplementary files ..");
@@ -284,7 +284,7 @@ namespace AasxToolkit
                 // FILE
                 var propFile = new AasCore.Aas3_1.File("", idShort: "File", category: "PARAMETER", semanticId: cdFile.GetCdReference());
                 propGroup.Add(propFile);
-                propFile.ContentType = AdminShellPackageEnv.GuessMimeType(fr.fn);
+                propFile.ContentType = AdminShellPackageFileBasedEnv.GuessMimeType(fr.fn);
                 propFile.Value = "" + fr.targetdir.Trim() + Path.GetFileName(fr.fn);
 
                 // FILEFORMAT
@@ -486,7 +486,7 @@ namespace AasxToolkit
                             var file = new AasCore.Aas3_1.File("", idShort: cd.GetDefaultPreferredName(), category: "CONSTANT", semanticId: cd.GetReference());
                             {
                                 p1.Add(file);
-                                file.ContentType = AdminShellPackageEnv.GuessMimeType(fn);
+                                file.ContentType = AdminShellPackageFileBasedEnv.GuessMimeType(fn);
                                 file.Value = "" + targetdir.Trim() + Path.GetFileName(fn);
                             }
                         }
@@ -497,7 +497,7 @@ namespace AasxToolkit
                             var file = new AasCore.Aas3_1.File("", idShort: cd.GetDefaultPreferredName(), category: "CONSTANT", semanticId: cd.GetReference());
                             {
                                 p1.Add(file);
-                                file.ContentType = AdminShellPackageEnv.GuessMimeType(url);
+                                file.ContentType = AdminShellPackageFileBasedEnv.GuessMimeType(url);
                                 file.Value = "" + url.Trim();
                             }
 

@@ -155,6 +155,13 @@ namespace Extensions
             return key.Type == KeyTypes.GlobalReference || key.Type == KeyTypes.AssetAdministrationShell || key.Type == KeyTypes.Submodel;
         }
 
+        public static bool HasSuspicousWhiteSpace(this IKey key)
+        {
+            if (key?.Value?.HasContent() != true)
+                return false;
+            return AdminShellUtil.HasWhitespace(key.Value);
+        }
+
         public static Key Parse(string cell, KeyTypes typeIfNotSet = KeyTypes.GlobalReference,
                 bool allowFmtAll = false, bool allowFmt0 = false,
                 bool allowFmt1 = false, bool allowFmt2 = false)

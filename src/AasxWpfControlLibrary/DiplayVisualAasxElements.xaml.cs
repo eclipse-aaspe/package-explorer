@@ -365,6 +365,29 @@ namespace AasxPackageExplorer
                     yield return ve;
         }
 
+        /// <summary>
+        /// Identifies visual elements, which are *directly* superordinate to Identifiable.
+        /// Note: Could contain duplicates.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<VisualElementGeneric> FindAllVisualElementTopToIdentifiable()
+        {
+            if (displayedTreeViewLines != null)
+                foreach (var ve in displayedTreeViewLines.FindAllVisualElementTopToIdentifiable())
+                    yield return ve;
+        }
+
+        /// <summary>
+        /// Identifies top visual elements, which are above all content elements
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<VisualElementGeneric> FindAllVisualElementTop()
+        {
+            if (displayedTreeViewLines != null)
+                foreach (var ve in displayedTreeViewLines.FindAllVisualElementTop())
+                    yield return ve;
+        }
+
         public bool Contains(VisualElementGeneric ve)
         {
             if (displayedTreeViewLines != null)
@@ -629,7 +652,7 @@ namespace AasxPackageExplorer
                 // more?
                 if (packages.Repositories != null && selector == PackageCentral.Selector.MainAuxFileRepo)
                 {
-                    var pkg = new AdminShellPackageEnv();
+                    var pkg = new AdminShellPackageFileBasedEnv();
                     foreach (var fr in packages.Repositories)
                         fr.PopulateFakePackage(pkg);
 
@@ -1205,6 +1228,11 @@ namespace AasxPackageExplorer
 
             // fire event
             FireSelectedItem();
+        }
+
+        public bool IsAnyTaintedIdentifiable()
+        {
+            return displayedTreeViewLines?.IsAnyTaintedIdentifiable() == true;
         }
 
     }

@@ -95,7 +95,7 @@ namespace BlazorUI.Data
                 foreach (var ch in res.Childs)
                     if (ch != null
                         && ch.Type == "Plugin"
-                        && ch.Tag is Tuple<AdminShellPackageEnv, Aas.Submodel,
+                        && ch.Tag is Tuple<AdminShellPackageEnvBase, Aas.Submodel,
                             Plugins.PluginInstance, AasxIntegrationBase.AasxPluginResultVisualExtension> tag
                         && tag?.Item4?.Tag?.Trim().ToLower() == pluginTag.Trim().ToLower())
                         return ch;
@@ -116,7 +116,7 @@ namespace BlazorUI.Data
                     return false;
                 return parit.Referable is Aas.Submodel sm && sm?.Id == smid
                     && it.Type == "Plugin"
-                    && it.Tag is Tuple<AdminShellPackageEnv, Aas.Submodel,
+                    && it.Tag is Tuple<AdminShellPackageEnvBase, Aas.Submodel,
                             Plugins.PluginInstance, AasxIntegrationBase.AasxPluginResultVisualExtension> tag
                     && tag?.Item4?.Tag?.Trim().ToLower() == pluginTag.Trim().ToLower();
             }).FirstOrDefault();
@@ -247,7 +247,7 @@ namespace BlazorUI.Data
                                                 Referable = sm,
                                                 envIndex = i,
                                                 Text = "PLUGIN",
-                                                Tag = new Tuple<AdminShellPackageEnv, Aas.ISubmodel,
+                                                Tag = new Tuple<AdminShellPackageEnvBase, Aas.ISubmodel,
                                                     Plugins.PluginInstance, AasxPluginResultVisualExtension>
                                                         (bi.env, sm, lpi, ext),
                                                 Type = "Plugin"
