@@ -396,6 +396,7 @@ namespace AasxPackageLogic
                 },
                 auxButtonOverride: true);
         }
+        
         public void DisplayOrEditEntityMissingSideInfo(
             AnyUiStackPanel stack, 
             string key)
@@ -451,6 +452,7 @@ namespace AasxPackageLogic
         //
 
         public void DisplayOrEditEntityIdentifiable(AnyUiStackPanel stack,
+            AdminShellPackageEnvBase packageEnv,
             Aas.IEnvironment env,
             Aas.IIdentifiable identifiable,
             string templateForIdString,
@@ -459,6 +461,10 @@ namespace AasxPackageLogic
             // access
             if (stack == null || identifiable == null)
                 return;
+
+            // special flags
+            var isDynEnv = packageEnv is AdminShellPackageDynamicFetchEnv;
+            var idReadOnly = isDynEnv && identifiable.Id?.HasContent() == true;
 
             // members
             this.AddGroup(stack, "Identifiable:", levelColors.SubSection);
@@ -496,18 +502,18 @@ namespace AasxPackageLogic
                     }))
             {
                 AddKeyValueExRef(
-                    stack, "id", identifiable, identifiable.Id, null, repo,
+                    stack, "id", identifiable, identifiable.Id, null, 
+                    (idReadOnly) ? null : repo,
                     v =>
                     {
                         var dr = new DiaryReference(identifiable);
                         string value = v as string;
-                        bool duplicate = false;
                         identifiable.Id = v as string;
-                        //mlem
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange(), diaryReference: dr);
                         return new AnyUiLambdaActionNone();
                     },
                     takeOverLambdaAction: new AnyUiLambdaActionRedrawAllElements(nextFocus: identifiable),
+                    auxButtonOverride: true,
                     auxButtonTitles: DispEditInjectAction.GetTitles(new[] { "Generate" }, injectToId),
                     auxButtonLambda: (i) =>
                     {

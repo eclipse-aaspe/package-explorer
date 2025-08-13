@@ -7,31 +7,32 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Runtime.Intrinsics.X86;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using AasCore.Samm2_2_0;
 using AasxIntegrationBase;
 using AasxIntegrationBase.AdminShellEvents;
+using AasxPackageExplorer;
 using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using AnyUi;
 using Extensions;
-using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Runtime.Intrinsics.X86;
-using System.Text;
-using System.Windows.Documents;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
-using Aas = AasCore.Aas3_0;
-using AasCore.Samm2_2_0;
-using static AasxPackageLogic.DispEditHelperBasics;
-using System.Windows.Controls;
-using AasxPackageExplorer;
-using System.Threading.Tasks;
-using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 using VDS.Common.Filters;
-using static Lucene.Net.Search.FieldCache;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
+using static AasxCompatibilityModels.AdminShellV10;
+using static AasxPackageLogic.DispEditHelperBasics;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 using static AnyUi.AnyUiDialogueDataTextEditor;
+using static Lucene.Net.Search.FieldCache;
+using Aas = AasCore.Aas3_0;
 
 namespace AasxPackageLogic
 {
@@ -2064,7 +2065,7 @@ namespace AasxPackageLogic
 
             // Identifiable
             this.DisplayOrEditEntityIdentifiable(
-                stack, env, aas,
+                stack, package, env, aas,
                 Options.Curr.TemplateIdAas,
                 injectToId: new DispEditHelperModules.DispEditInjectAction(
                     new[] { "Rename" },
@@ -2083,6 +2084,40 @@ namespace AasxPackageLogic
 
                                 try
                                 {
+                                    // test, if in a repo
+                                    if (package is AdminShellPackageDynamicFetchEnv dynPack)
+                                    {
+                                        ;
+                                    }
+
+                                    // check, if Submodel is sitting in Repo
+                                    var sideInfo = OnDemandListIdentifiable<Aas.IAssetAdministrationShell>
+                                            .FindSideInfoInListOfIdentifiables(
+                                                env.AssetAdministrationShells, aas.GetReference());
+                                    if (sideInfo != null)
+                                    {
+                                        ;
+
+                                        // call function
+                                        // (only the side info in the _specific_ endpoint gives information, in which
+                                        //  repo the Indentifiables could be deleted)
+                                        await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
+                                            null, context,
+                                            "Delete AAS and Submodels in Repository/ Registry",
+                                            "AAS and Submodel",
+                                            idfKeys,
+                                            runtimeOptions: packages.CentralRuntimeOptions,
+                                            presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                                            {
+                                                // assume Repo ?!
+                                                BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                                // extract base address
+                                                BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                                    sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
+                                            });
+                                    }
+
                                     // rename
                                     var lrf = env.RenameIdentifiable<Aas.AssetAdministrationShell>(
                                         aas.Id, uc.Text);
@@ -3031,7 +3066,7 @@ namespace AasxPackageLogic
 
                 // Identifiable
                 this.DisplayOrEditEntityIdentifiable(
-                    stack, env, submodel,
+                    stack, packEnv, env, submodel,
                     (submodel.Kind == Aas.ModellingKind.Template)
                         ? Options.Curr.TemplateIdSubmodelTemplate
                         : Options.Curr.TemplateIdSubmodelInstance,
@@ -3380,7 +3415,7 @@ namespace AasxPackageLogic
             Action lambdaIdf = () =>
             {
                 this.DisplayOrEditEntityIdentifiable(
-                    stack, env, cd,
+                    stack, packages?.Main, env, cd,
                     Options.Curr.TemplateIdConceptDescription,
                     new DispEditHelperModules.DispEditInjectAction(
                     new[] { "Rename" },

@@ -4333,6 +4333,26 @@ namespace AasxPackageLogic.PackageCentral
 
             return true;
         }
+
+        /// <summary>
+        /// Renames a range of Identifiables from an Repo / Registry.
+        /// Note: Currently, minimal interaction/ functionality is implemented.
+        /// </summary>
+        /// <param name="idfIds">Each key to be an individual Identifiable!</param>
+        public static async Task<bool> AssistantRenameIdfsInRepo(
+            AasxMenuActionTicket ticket,
+            AnyUiContextBase displayContext,
+            string caption,
+            string elemKindName,
+            IEnumerable<Aas.IKey> idfIds,
+            PackCntRuntimeOptions runtimeOptions = null,
+            PackageContainerListBase containerList = null,
+            DeleteAssistantJobRecord presetRecord = null)
+        {
+            // access
+
+        }
+
     }
 
 }

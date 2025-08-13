@@ -321,7 +321,8 @@ namespace AasxPackageLogic
             int comboBoxMinWidth = -1,
 			int firstColumnWidth = -1, // -1 = Standard
 			int maxLines = -1,
-			bool keyVertCenter = false)
+			bool keyVertCenter = false,
+            bool auxButtonOverride = false)
         {
             AddKeyValue(
                 view, key, value, nullValue, repo, setValue, comboBoxItems, comboBoxIsEditable,
@@ -330,9 +331,10 @@ namespace AasxPackageLogic
                 (value == null) ? 0 : value.GetHashCode(), containingObject: containingObject,
                 limitToOneRowForNoEdit: limitToOneRowForNoEdit,
                 comboBoxMinWidth: comboBoxMinWidth,
-				firstColumnWidth: firstColumnWidth,
+                firstColumnWidth: firstColumnWidth,
                 maxLines: maxLines,
-                keyVertCenter: keyVertCenter);
+                keyVertCenter: keyVertCenter,
+                auxButtonOverride: auxButtonOverride);
         }
 
         /// <summary>
