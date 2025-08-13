@@ -182,14 +182,23 @@ namespace AdminShellNS
 #endif
             }
 
+            //read 3.0
+            if (nsuri != null && nsuri.Trim() == "https://admin-shell.io/aas/3/0")
+            {
+                using (var xmlReader = XmlReader.Create(s))
+                {
+                    // TODO (MIHO, 2022-12-26): check if could be feature of AAS core
+                    XmlSkipHeader(xmlReader);
+                    res = new AasCore.Aas3_1.Environment(new List<IAssetAdministrationShell>(), new List<ISubmodel>(), new List<IConceptDescription>());
+                    var v30 = AasCore.Aas3_0.Xmlization.Deserialize.EnvironmentFrom(xmlReader);
+                    var output = res.ConvertFromV30(v30) as AasCore.Aas3_1.Environment;
+                    return output;
+                }
+            }
+
             // read V3.0?
             if (nsuri != null && nsuri.Trim() == Xmlization.NS)
             {
-                // dead-csharp off
-                //XmlSerializer serializer = new XmlSerializer(
-                //    typeof(AasCore.Aas3_0_RC02.Environment), "http://www.admin-shell.io/aas/3/0");
-                //res = serializer.Deserialize(s) as AasCore.Aas3_0_RC02.Environment;
-                // dead-csharp on
                 using (var xmlReader = XmlReader.Create(s))
                 {
                     // TODO (MIHO, 2022-12-26): check if could be feature of AAS core

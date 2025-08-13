@@ -158,6 +158,24 @@ namespace Extensions
                     yield return cd;
         }
 
+        public static IEnvironment ConvertFromV30(this IEnvironment environment, AasCore.Aas3_0.IEnvironment sourceEnvironment)
+        {
+            // access
+            if (sourceEnvironment == null)
+                return environment;
+            // create new environment
+            if (environment == null)
+                environment = new AasCore.Aas3_1.Environment();
+
+            // As there are only few metamodel changes, that too backward compatible, following approach should be sufficient.
+            var env30_json = AasCore.Aas3_0.Jsonization.Serialize.ToJsonObject(sourceEnvironment);
+            environment = AasCore.Aas3_1.Jsonization.Deserialize.EnvironmentFrom(env30_json);
+
+            // ok
+            return environment;
+        }
+
+
 #if !DoNotUseAasxCompatibilityModels
 
         public static AasCore.Aas3_1.IEnvironment ConvertFromV10(this AasCore.Aas3_1.IEnvironment environment, AasxCompatibilityModels.AdminShellV10.AdministrationShellEnv sourceEnvironement)
