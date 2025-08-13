@@ -5338,7 +5338,8 @@ namespace AasxPackageLogic
                 {
                     this.AddKeyReference(
                         stack, "first", 
-                        rele.First, () => rele.First = Options.Curr.GetDefaultEmptyReference(),                        
+                        //rele.First, () => rele.First = Options.Curr.GetDefaultEmptyReference(),                        
+                        rele.First, () => rele.First = null,                        
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All", // no restriction
@@ -5378,7 +5379,8 @@ namespace AasxPackageLogic
                 {
                     this.AddKeyReference(
                         stack, "second", 
-                        rele.Second, () => rele.Second = Options.Curr.GetDefaultEmptyReference(),
+                        //rele.Second, () => rele.Second = Options.Curr.GetDefaultEmptyReference(),
+                        rele.Second, () => rele.Second = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All", // no restriction
