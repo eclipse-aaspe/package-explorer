@@ -1013,7 +1013,6 @@ namespace AnyUi
                             wpf.Padding = GetWpfTickness(cntl.Padding);
                         if (cntl.IsEditable.HasValue)
                             wpf.IsEditable = cntl.IsEditable.Value;
-
                         if (cntl.Items != null)
                         {
                             foreach (var i in cntl.Items)

@@ -11,7 +11,7 @@ using AdminShellNS;
 using Extensions;
 using System;
 using System.Collections.Generic;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 // ReSharper disable MergeIntoPattern
 

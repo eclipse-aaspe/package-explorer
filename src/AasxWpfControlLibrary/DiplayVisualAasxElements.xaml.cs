@@ -21,7 +21,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using Key = System.Windows.Input.Key;
 
 namespace AasxPackageExplorer

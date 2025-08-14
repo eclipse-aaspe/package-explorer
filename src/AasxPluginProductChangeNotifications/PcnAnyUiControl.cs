@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using AasxIntegrationBase;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 using AnyUi;
@@ -30,7 +30,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using System.Xml;
-using AasCore.Aas3_0;
+using AasCore.Aas3_1;
 
 using PCNCURR = AasxPredefinedConcepts.ProductChangeNotifications.V_1_0;
 using PCNHELP = AasxPredefinedConcepts.ProductChangeNotifications.Helper;

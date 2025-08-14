@@ -20,7 +20,7 @@ using AasxOpenIdClient;
 using AdminShellNS;
 using IO.Swagger.Model;
 using Newtonsoft.Json;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using Extensions;
 
 namespace AasxPackageLogic.PackageCentral

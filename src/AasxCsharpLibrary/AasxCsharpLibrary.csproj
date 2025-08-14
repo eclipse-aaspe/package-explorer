@@ -9,7 +9,7 @@
     <DefineConstants>TRACE;UseAasxCompatibilityModels</DefineConstants>
   </PropertyGroup>
 	<ItemGroup>
-		<Using Include="AasCore.Aas3_0" />
+		<Using Include="AasCore.Aas3_1" />
 	</ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="LICENSE.txt">
@@ -32,6 +32,7 @@
     <EmbeddedResource Include="Resources\schemaV201\aas.json" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="AasCore.Aas3_0" Version="1.0.4" />
     <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.0.2" />
     <PackageReference Include="Namotion.Reflection" Version="2.1.1" />
@@ -41,6 +42,6 @@
     <PackageReference Include="System.IO.Packaging" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AasCore.Aas3_0\AasCore.Aas3_0.csproj" />
+    <ProjectReference Include="..\AasCore.Aas3_1\AasCore.Aas3_1.csproj" />
   </ItemGroup>
 </Project>

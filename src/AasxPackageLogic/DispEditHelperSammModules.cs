@@ -26,7 +26,7 @@ using System.Xaml;
 using VDS.RDF.Parsing;
 using VDS.RDF;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using Samm = AasCore.Samm2_2_0;
 using System.Text.RegularExpressions;
 using System.Runtime.Serialization;

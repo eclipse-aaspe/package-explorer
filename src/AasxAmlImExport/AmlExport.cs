@@ -15,7 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxAmlImExport
 {
@@ -620,7 +620,7 @@ namespace AasxAmlImExport
                             ExportListOfSme(matcher, internalLinksToCreate, ie, env, ent.Statements);
                             break;
 
-                        case AasCore.Aas3_0.Range rng:
+                        case AasCore.Aas3_1.Range rng:
                             // min
                             if (rng.Min != null)
                             {
@@ -730,7 +730,7 @@ namespace AasxAmlImExport
         }
 
         //private static void ExportView(
-        //    AasAmlMatcher matcher, InternalElementSequence ieseq, AasCore.Aas3_0_RC02.Environment env, View view)
+        //    AasAmlMatcher matcher, InternalElementSequence ieseq, AasCore.Aas3_1_RC02.Environment env, View view)
         //{
         //    if (ieseq == null || env == null || view == null)
         //        return;

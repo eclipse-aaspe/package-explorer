@@ -22,7 +22,7 @@ using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Windows.Documents;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AasCore.Samm2_2_0;
 using static AasxPackageLogic.DispEditHelperBasics;
 using System.Windows.Controls;
@@ -3697,7 +3697,8 @@ namespace AasxPackageLogic
                                             excludeValues: new[] {
                                                 Aas.AasSubmodelElements.DataElement,
                                                 Aas.AasSubmodelElements.EventElement,
-                                                Aas.AasSubmodelElements.Operation 
+                                                Aas.AasSubmodelElements.Operation,
+                                                Aas.AasSubmodelElements.ContainerElement
                                             });
 
                                     // ok?
@@ -4342,7 +4343,8 @@ namespace AasxPackageLogic
                                         excludeValues: new[] {
                                             Aas.AasSubmodelElements.DataElement,
                                             Aas.AasSubmodelElements.EventElement,
-                                            Aas.AasSubmodelElements.Operation
+                                            Aas.AasSubmodelElements.Operation,
+                                            Aas.AasSubmodelElements.ContainerElement
                                         });
 
                                 // ok?
@@ -5148,8 +5150,8 @@ namespace AasxPackageLogic
                                 return blb.ContentType == null || blb.ContentType.Trim().Length < 1 ||
                                     blb.ContentType.IndexOf('/') < 1 || blb.ContentType.EndsWith("/");
                             },
-                            "The contenty-type of the file. Also known as MIME type. " +
-                            "Mandatory information. See RFC2046.")
+                            "The content-type of the file. Also known as MIME type. " +
+                            "See RFC2046.", severityLevel: HintCheck.Severity.Notice)
                     });
 
                 AddKeyValueExRef(
@@ -5323,7 +5325,7 @@ namespace AasxPackageLogic
                                 "In terms of a semantic triple, it would be the subject. " +
                                 "The semantics of your reference (the predicate) shall be described " +
                                 "by the concept referred by semanticId.",
-                            severityLevel: HintCheck.Severity.High)
+                            severityLevel: HintCheck.Severity.Notice)
                     });
                 if (this.SafeguardAccess(
                         stack, repo, rele.First, "First relation:", "Create w/ default!",
@@ -5336,7 +5338,8 @@ namespace AasxPackageLogic
                 {
                     this.AddKeyReference(
                         stack, "first", 
-                        rele.First, () => rele.First = Options.Curr.GetDefaultEmptyReference(),                        
+                        //rele.First, () => rele.First = Options.Curr.GetDefaultEmptyReference(),                        
+                        rele.First, () => rele.First = null,                        
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All", // no restriction
@@ -5363,7 +5366,7 @@ namespace AasxPackageLogic
                                 "In terms of a semantic triple, it would be the object. " +
                                 "The semantics of your reference (the predicate) shall be described " +
                                 "by the concept referred by semanticId.",
-                            severityLevel: HintCheck.Severity.High)
+                            severityLevel: HintCheck.Severity.Notice)
                     });
                 if (this.SafeguardAccess(
                         stack, repo, rele.Second, "Second relation:", "Create w/ default!",
@@ -5376,7 +5379,8 @@ namespace AasxPackageLogic
                 {
                     this.AddKeyReference(
                         stack, "second", 
-                        rele.Second, () => rele.Second = Options.Curr.GetDefaultEmptyReference(),
+                        //rele.Second, () => rele.Second = Options.Curr.GetDefaultEmptyReference(),
+                        rele.Second, () => rele.Second = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All", // no restriction

@@ -65,6 +65,7 @@ namespace AasxPackageExplorer
                     args: new AasxMenuListOfArgDefs()
                         .Add("File", "Filename including path and extension."))
                 .AddWpfBlazor(name: "FixAndFinalize", header: "Fix and Finalize ...")
+                .AddWpfBlazor(name: "Verify", header: "Verify ...")
                 .AddWpfBlazor(name: "Close", header: "_Close …")
                 .AddWpfBlazor(name: "CheckAndFix", header: "Check, validate and fix …")
                 .AddMenu(header: "Security …", childs: (new AasxMenu())

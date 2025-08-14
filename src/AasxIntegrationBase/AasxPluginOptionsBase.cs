@@ -15,9 +15,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 //TODO (jtikekar, 0000-00-00): remove
-using AAS = AasCore.Aas3_0;
+using AAS = AasCore.Aas3_1;
 
 // ReSharper disable AssignNullToNotNullAttribute .. a bit unclear, why issues here
 

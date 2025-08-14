@@ -7,18 +7,18 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 using System;
-using AAS = AasCore.Aas3_0;
+using AAS = AasCore.Aas3_1;
 
 namespace Extensions
 {
     public static class ExtendRange
     {
-        public static string ValueAsText(this AasCore.Aas3_0.Range range)
+        public static string ValueAsText(this AasCore.Aas3_1.Range range)
         {
             return "" + range.Min + " .. " + range.Max;
         }
 
-        public static AasCore.Aas3_0.Range ConvertFromV20(this AasCore.Aas3_0.Range range, AasxCompatibilityModels.AdminShellV20.Range sourceRange)
+        public static AasCore.Aas3_1.Range ConvertFromV20(this AasCore.Aas3_1.Range range, AasxCompatibilityModels.AdminShellV20.Range sourceRange)
         {
             if (sourceRange == null)
             {

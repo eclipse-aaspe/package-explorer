@@ -15,7 +15,7 @@ using Extensions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 // ReSharper disable UnassignedField.Global
 

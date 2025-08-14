@@ -7,7 +7,7 @@
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 	<ItemGroup>
-		<Using Include="AasCore.Aas3_0" />
+		<Using Include="AasCore.Aas3_1" />
 	</ItemGroup>
   <ItemGroup>
     <PackageReference Include="JsonSubTypes" Version="1.9.0" />
@@ -17,6 +17,6 @@
     <PackageReference Include="System.Text.Encodings.Web" Version="9.0.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AasCore.Aas3_0\AasCore.Aas3_0.csproj" />
+    <ProjectReference Include="..\AasCore.Aas3_1\AasCore.Aas3_1.csproj" />
   </ItemGroup>
 </Project>

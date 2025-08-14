@@ -12,23 +12,17 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 #if UseMagickNet
 
-using System;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Reflection;
-using System.Xml.Schema;
-using System.Xml;
 using AdminShellNS;
-using Aas = AasCore.Aas3_0;
-using Extensions;
 using AnyUi;
+using Extensions;
 using ImageMagick;
-using System.Threading.Tasks;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.IO.Packaging;
-using AasxIntegrationBase;
+using System.Reflection;
+using System.Threading.Tasks;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxIntegrationBaseGdi
 {

@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic
 {
@@ -404,11 +404,10 @@ namespace AasxPackageLogic
                     that.Value = null;
                 }
 
-                //Setting default value to "EMPTY".
-                //This is subject to change based on https://github.com/admin-shell-io/aas-specs/issues/412
+                //ContentType is not mandatory anymore. So no need for default value.
                 if (string.IsNullOrWhiteSpace(that.ContentType))
                 {
-                    that.ContentType = "application/octet-stream";
+                    that.ContentType = null;
                 }
 
                 if (that.Extensions == null
@@ -922,11 +921,10 @@ namespace AasxPackageLogic
                     that.Value = null;
                 }
 
-                //Setting default value to "EMPTY".
-                //This is subject to change based on https://github.com/admin-shell-io/aas-specs/issues/412
+                //ContentType is now allowed to be null, so no default value is set.
                 if (string.IsNullOrWhiteSpace(that.ContentType))
                 {
-                    that.ContentType = "application/octet-stream";
+                    that.ContentType = null;
                 }
 
                 if (that.Extensions == null
@@ -1611,24 +1609,15 @@ namespace AasxPackageLogic
 
                 that.EmbeddedDataSpecifications = TransformEmbeddedDataSpecifications(that.EmbeddedDataSpecifications);
 
-                //As first and second are mandatory parameters, empty keys are added.
-                //This handling is subject to change based on https://github.com/admin-shell-io/aas-specs/issues/412
+                //first and second are no more mandatory parameters
                 if (that.First != null)
                 {
-                    if (that.First.Keys.IsNullOrEmpty())
-                    {
-                        var emptyKey = new Key(KeyTypes.GlobalReference, "EMPTY");
-                        that.First.Keys.Add(emptyKey);
-                    }
+                    that.First = (IReference)Transform(that.First);
                 }
 
                 if (that.Second != null)
                 {
-                    if (that.Second.Keys.IsNullOrEmpty())
-                    {
-                        var emptyKey = new Key(KeyTypes.GlobalReference, "EMPTY");
-                        that.Second.Keys.Add(emptyKey);
-                    }
+                    that.Second = (IReference)Transform(that.Second);
                 }
 
                 if (that.Extensions == null

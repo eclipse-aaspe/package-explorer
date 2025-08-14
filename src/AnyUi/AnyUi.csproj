@@ -13,7 +13,7 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<Using Include="AasCore.Aas3_0" />
+		<Using Include="AasCore.Aas3_1" />
 	</ItemGroup>
 
   <ItemGroup>

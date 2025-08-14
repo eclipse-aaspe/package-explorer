@@ -15,11 +15,9 @@ using AasxIntegrationBase;
 using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
-using Aas = AasCore.Aas3_0;
 using AnyUi;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageExplorer
 {
