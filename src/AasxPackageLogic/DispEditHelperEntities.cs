@@ -2069,7 +2069,8 @@ namespace AasxPackageLogic
                 Options.Curr.TemplateIdAas,
                 injectToId: new DispEditHelperModules.DispEditInjectAction(
                     new[] { "Rename" },
-                    (i) =>
+                    auxLambda: null,
+                    auxLambdaAsync: async (i) =>
                     {
                         if (i == 0 && env != null)
                         {
@@ -2078,49 +2079,64 @@ namespace AasxPackageLogic
                                 symbol: AnyUiMessageBoxImage.Question,
                                 maxWidth: 1400,
                                 text: aas.Id);
-                            if (this.context.StartFlyoverModal(uc))
+                            if (await this.context.StartFlyoverModalAsync(uc)
+                                && uc.Text?.HasContent() == true)
                             {
+                                var oldId = aas.Id;
+                                var newId = uc.Text.Trim();
                                 var res = false;
 
                                 try
                                 {
-                                    // test, if in a repo
-                                    if (package is AdminShellPackageDynamicFetchEnv dynPack)
-                                    {
-                                        ;
-                                    }
-
                                     // check, if Submodel is sitting in Repo
                                     var sideInfo = OnDemandListIdentifiable<Aas.IAssetAdministrationShell>
                                             .FindSideInfoInListOfIdentifiables(
                                                 env.AssetAdministrationShells, aas.GetReference());
                                     if (sideInfo != null)
                                     {
-                                        ;
+                                        // in any case, update Id
+                                        sideInfo.Id = newId;
 
-                                        // call function
-                                        // (only the side info in the _specific_ endpoint gives information, in which
-                                        //  repo the Indentifiables could be deleted)
-                                        await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
-                                            null, context,
-                                            "Delete AAS and Submodels in Repository/ Registry",
-                                            "AAS and Submodel",
-                                            idfKeys,
-                                            runtimeOptions: packages.CentralRuntimeOptions,
-                                            presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
-                                            {
-                                                // assume Repo ?!
-                                                BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+                                        // ask user for repo operation
+                                        if (AnyUiMessageBoxResult.Yes == await this.context.MessageBoxFlyoutShowAsync(
+                                                "Rename AAS in Repository as well? This operation can not be reverted!",
+                                                "Rename Identifiable",
+                                                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                        {
 
-                                                // extract base address
-                                                BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
-                                                    sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
-                                            });
+                                            // rename in repo
+                                            // (only the side info in the _specific_ endpoint gives information, in
+                                            // which repo the Indentifiables could be deleted)
+                                            var newEndpoint = await PackageContainerHttpRepoSubset
+                                                .AssistantRenameIdfsInRepo<Aas.IAssetAdministrationShell>(
+                                                baseUri: PackageContainerHttpRepoSubset.GetBaseUri(
+                                                    sideInfo.DesignatedEndpoint?.AbsoluteUri),
+                                                oldId: oldId,
+                                                newId: newId,
+                                                runtimeOptions: packages.CentralRuntimeOptions,
+                                                moreLog: true);
+
+                                            Log.Singleton.Info("Rename in repo performed successfully.");
+
+                                            // adopt in side info
+                                            sideInfo.QueriedEndpoint = newEndpoint;
+                                            sideInfo.DesignatedEndpoint = newEndpoint;
+                                        }
                                     }
 
                                     // rename
                                     var lrf = env.RenameIdentifiable<Aas.AssetAdministrationShell>(
-                                        aas.Id, uc.Text);
+                                        oldId, newId);
+
+                                    Log.Singleton.Info("Rename in ram-based environment performed successfully.");
+
+                                    // rename in environment helper structures?
+                                    if (package is AdminShellPackageDynamicFetchEnv dynPack)
+                                    {
+                                        // rename in dynamic fetch environment
+                                        dynPack.RenameThumbnailData(oldId, newId);
+                                        Log.Singleton.Info("Rename of thumbnail in dynamic fetch environment performed successfully.");
+                                    }
 
                                     // use this information to emit events
                                     if (lrf != null)
@@ -3072,7 +3088,8 @@ namespace AasxPackageLogic
                         : Options.Curr.TemplateIdSubmodelInstance,
                     new DispEditHelperModules.DispEditInjectAction(
                         new[] { "Rename" },
-                        (i) =>
+                        auxLambda: null,
+                        auxLambdaAsync: async (i) =>
                         {
                             if (i == 0 && env != null)
                             {
@@ -3083,10 +3100,47 @@ namespace AasxPackageLogic
                                     text: submodel.Id);
                                 if (this.context.StartFlyoverModal(uc))
                                 {
+                                    var oldId = submodel.Id;
+                                    var newId = uc.Text.Trim();
                                     var res = false;
 
                                     try
                                     {
+                                        // check, if Submodel is sitting in Repo
+                                        var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
+                                                .FindSideInfoInListOfIdentifiables(
+                                                    env.Submodels, submodel.GetReference());
+                                        if (sideInfo != null)
+                                        {
+                                            // in any case, update Id
+                                            sideInfo.Id = newId;
+
+                                            // ask user for repo operation
+                                            if (AnyUiMessageBoxResult.Yes == await this.context.MessageBoxFlyoutShowAsync(
+                                                    "Rename Submodel in Repository as well? This operation can not be reverted!",
+                                                    "Rename Identifiable",
+                                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                            {
+                                                // rename in repo
+                                                // (only the side info in the _specific_ endpoint gives information, in
+                                                // which repo the Indentifiables could be deleted)
+                                                var newEndpoint = await PackageContainerHttpRepoSubset
+                                                    .AssistantRenameIdfsInRepo<Aas.ISubmodel>(
+                                                    baseUri: PackageContainerHttpRepoSubset.GetBaseUri(
+                                                        sideInfo.DesignatedEndpoint?.AbsoluteUri),
+                                                    oldId: oldId,
+                                                    newId: newId,
+                                                    runtimeOptions: packages.CentralRuntimeOptions,
+                                                    moreLog: true);
+
+                                                Log.Singleton.Info("Rename in repo performed successfully.");
+
+                                                // adopt in side info
+                                                sideInfo.QueriedEndpoint = newEndpoint;
+                                                sideInfo.DesignatedEndpoint = newEndpoint;
+                                            }
+                                        }
+
                                         // rename
                                         var lrf = env.RenameIdentifiable<Aas.Submodel>(
                                             submodel.Id, uc.Text);
@@ -3419,7 +3473,8 @@ namespace AasxPackageLogic
                     Options.Curr.TemplateIdConceptDescription,
                     new DispEditHelperModules.DispEditInjectAction(
                     new[] { "Rename" },
-                    (i) =>
+                    auxLambda: null,
+                    auxLambdaAsync: async (i) =>
                     {
                         if (i == 0 && env != null)
                         {
@@ -3430,10 +3485,49 @@ namespace AasxPackageLogic
                                 text: cd.Id);
                             if (this.context.StartFlyoverModal(uc))
                             {
+                                var oldId = cd.Id;
+                                var newId = uc.Text.Trim();
                                 var res = false;
 
                                 try
                                 {
+                                    // check, if Submodel is sitting in Repo
+                                    var sideInfo = OnDemandListIdentifiable<Aas.IConceptDescription>
+                                            .FindSideInfoInListOfIdentifiables(
+                                                env.ConceptDescriptions, cd.GetReference());
+                                    if (sideInfo != null)
+                                    {
+                                        // in any case, update Id
+                                        sideInfo.Id = newId;
+
+                                        // ask user for repo operation
+                                        if (AnyUiMessageBoxResult.Yes == await this.context.MessageBoxFlyoutShowAsync(
+                                                "Rename ConceptDescription in Repository as well? " +
+                                                "This operation can not be reverted!",
+                                                "Rename Identifiable",
+                                                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                        {
+
+                                            // rename in repo
+                                            // (only the side info in the _specific_ endpoint gives information, in
+                                            // which repo the Indentifiables could be deleted)
+                                            var newEndpoint = await PackageContainerHttpRepoSubset
+                                                .AssistantRenameIdfsInRepo<Aas.IConceptDescription>(
+                                                baseUri: PackageContainerHttpRepoSubset.GetBaseUri(
+                                                    sideInfo.DesignatedEndpoint?.AbsoluteUri),
+                                                oldId: oldId,
+                                                newId: newId,
+                                                runtimeOptions: packages.CentralRuntimeOptions,
+                                                moreLog: true);
+
+                                            Log.Singleton.Info("Rename in repo performed successfully.");
+
+                                            // adopt in side info
+                                            sideInfo.QueriedEndpoint = newEndpoint;
+                                            sideInfo.DesignatedEndpoint = newEndpoint;
+                                        }
+                                    }
+
                                     // rename
                                     var lrf = env.RenameIdentifiable<Aas.ConceptDescription>(
                                         cd.Id, uc.Text);
@@ -5801,6 +5895,8 @@ namespace AasxPackageLogic
         /// Super function to basically edit all known visual elements.
         /// Note: With hesitation, the <c>mainWindow</c> is passed into this function and shall only 
         ///       be used in exceptional cases.
+        /// Note: Because of Blazor principles for display of components, this function or its subordinates 
+        ///       MUST NOT be async!
         /// </summary>
         public bool DisplayOrEditCommonEntity(
             PackageCentral.PackageCentral packages,

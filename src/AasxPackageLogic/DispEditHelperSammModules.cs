@@ -268,7 +268,6 @@ namespace AasxPackageLogic
 					setValue?.Invoke(createInstance?.Invoke((string)v));
 					return new AnyUiLambdaActionNone();
 				},
-				keyVertCenter: true,
 				firstColumnWidth: firstColumnWidth,
 				auxButtonTitles: !showButtons ? null : new[] { "Preset", "Existing", "New", "Jump" },
 				auxButtonToolTips: !showButtons ? null : new[] {

@@ -1446,8 +1446,12 @@ namespace AasxPackageLogic
         {
             if (theCD != null)
             {
+                var td = "";
+                if (GetTaintedTime() != null)
+                    td = "\u273d ";
+
                 var ci = theCD.ToCaptionInfo();
-                this.Caption = "" + ci.Item1 + " ";
+                this.Caption = td + "" + ci.Item1 + " ";
                 this.Info = ci.Item2;
 
                 // enrich?

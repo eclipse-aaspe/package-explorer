@@ -312,7 +312,9 @@ namespace AasxPackageLogic
             AnyUiStackPanel view, string key, object containingObject, string value, string nullValue = null,
             ModifyRepo repo = null, Func<object, AnyUiLambdaActionBase> setValue = null,
             string[] comboBoxItems = null, bool comboBoxIsEditable = false,
-            string auxButtonTitle = null, Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
+            string auxButtonTitle = null, 
+            Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
+            Func<int, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
             string auxButtonToolTip = null,
             string[] auxButtonTitles = null,
             string[] auxButtonToolTips = null,
@@ -326,7 +328,7 @@ namespace AasxPackageLogic
         {
             AddKeyValue(
                 view, key, value, nullValue, repo, setValue, comboBoxItems, comboBoxIsEditable,
-                auxButtonTitle, auxButtonLambda, auxButtonToolTip,
+                auxButtonTitle, auxButtonLambda, auxButtonLambdaAsync, auxButtonToolTip,
                 auxButtonTitles, auxButtonToolTips, takeOverLambdaAction,
                 (value == null) ? 0 : value.GetHashCode(), containingObject: containingObject,
                 limitToOneRowForNoEdit: limitToOneRowForNoEdit,
@@ -364,6 +366,7 @@ namespace AasxPackageLogic
             ModifyRepo repo = null, Func<object, AnyUiLambdaActionBase> setValue = null,
             string[] comboBoxItems = null, bool comboBoxIsEditable = false,
             string auxButtonTitle = null, Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
+            Func<int, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
             string auxButtonToolTip = null,
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
             AnyUiLambdaActionBase takeOverLambdaAction = null,
@@ -373,7 +376,7 @@ namespace AasxPackageLogic
             int comboBoxMinWidth = -1,
             int firstColumnWidth = -1, // -1 = Standard
             int maxLines = -1,
-            bool keyVertCenter = false,
+            bool keyVertCenter = true,
             bool auxButtonOverride = false)
         {
             // draw anyway?
@@ -404,7 +407,7 @@ namespace AasxPackageLogic
                 intButtonToolTips.AddRange(auxButtonToolTips);
 
             var auxButton = auxButtonOverride
-                    || (repo != null && intButtonTitles.Count > 0 && auxButtonLambda != null);
+                    || (repo != null && intButtonTitles.Count > 0 && (auxButtonLambda != null || auxButtonLambdaAsync != null));
 
             // Grid
             var g = new AnyUiGrid();
@@ -444,7 +447,8 @@ namespace AasxPackageLogic
             {
                 if (limitToOneRowForNoEdit)
                     value = AdminShellUtil.RemoveNewLinesAndLimit("" + value, 120, ellipsis: "\u2026");
-                AddSmallLabelTo(g, 0, 1, padding: new AnyUiThickness(4, 0, 0, 0), content: "" + value);
+                AddSmallLabelTo(g, 0, 1, padding: new AnyUiThickness(4, 0, 0, 0), content: "" + value,
+                    verticalCenter: true);
             }
             else if (comboBoxItems != null)
             {
@@ -499,19 +503,28 @@ namespace AasxPackageLogic
                 for (int i = 0; i < intButtonTitles.Count; i++)
                 {
                     Func<object, AnyUiLambdaActionBase> lmb = null;
+                    Func<object, Task<AnyUiLambdaActionBase>> lmbAsync = null;
                     int closureI = i;
+                    
                     if (auxButtonLambda != null)
                         lmb = (o) =>
                         {
                             return auxButtonLambda(closureI); // exchange o with i !!
                         };
+
+                    if (auxButtonLambdaAsync != null)
+                        lmbAsync = async (o) =>
+                        {
+                            return await auxButtonLambdaAsync(closureI); // exchange o with i !!
+                        };
+
                     var b = AnyUiUIElement.RegisterControl(
                         AddSmallButtonTo(
                             g, 0, 2 + i,
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             content: intButtonTitles[i]),
-                        lmb) as AnyUiButton;
+                        lmb, lmbAsync) as AnyUiButton;
                     if (i < intButtonToolTips.Count)
                         b.ToolTip = intButtonToolTips[i];
                 }

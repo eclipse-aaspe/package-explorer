@@ -967,7 +967,7 @@
                 if (ndm.ExecuteLambdaAction is AnyUiLambdaActionRedrawAllElementsBase larae)
                 {
                     // force the sticky update mode to false, because of total redraw
-                    Session.RedrawAllAasxElements(
+                    Session.RedrawAllAasxElementsAsync(
                         keepFocus: true,
                         nextFocusMdo: larae.NextFocus,
                         wishExpanded: larae.IsExpanded ?? true);
@@ -1004,7 +1004,7 @@
                     {
                         // if an index is moved within the tree, both the tree shall be re-drawn
                         // and the panel shall be updated (because of index)
-                        Session.RedrawAllAasxElements(keepFocus: true);
+                        Session.RedrawAllAasxElementsAsync(keepFocus: true);
                         _onlyUpdatePluginUi = false;
                     }
 
@@ -1013,7 +1013,7 @@
                         // if an element is deleted within the tree, the tree shall be re-drawn,
                         // the focus shall be shifted to a recommended element
                         // and the panel shall be updated (because of index)
-                        Session.RedrawAllAasxElements(
+                        Session.RedrawAllAasxElementsAsync(
                             keepFocus: true, nextFocusMdo: lapcc.NextFocus, wishExpanded: false);
                         _onlyUpdatePluginUi = false;
                     }
@@ -1330,8 +1330,11 @@
 
     private Timer _timer;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        // do the session initialization
+        await Session.InitializeAsync();
+
         // wire components
         FileDrop_Handler.FileDropped = async (ddof) =>
         {

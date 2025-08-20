@@ -7,32 +7,34 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
-using AasxIntegrationBase;
-using AasxOpenIdClient;
-using AdminShellNS;
-using Aas = AasCore.Aas3_0;
-using Extensions;
-using IdentityModel.Client;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Dynamic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using AasxPackageExplorer;
-using AnyUi;
-using System.Text.Json.Nodes;
-using System.Linq;
 using System.Web;
+using AasxIntegrationBase;
+using AasxOpenIdClient;
+using AasxPackageExplorer;
+using AdminShellNS;
+using AngleSharp.Dom;
+using AnyUi;
+using Extensions;
+using IdentityModel.Client;
 using Newtonsoft.Json;
-using System.Dynamic;
 using Newtonsoft.Json.Linq;
-using System.ComponentModel;
+using RestSharp;
+using Aas = AasCore.Aas3_0;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -412,6 +414,20 @@ namespace AasxPackageLogic.PackageCentral
             // theoretically, a MITM attack could modify the cursor to modify this query!!
 
             return uri.Uri;
+        }
+
+        public static Uri BuildUriForRepoSingleIdentifiable<T>(
+            Uri baseUri, string id,
+            bool encryptIds = true,
+            bool usePost = false) where T : Aas.IIdentifiable
+        {
+            if (typeof(T).IsAssignableFrom(typeof(Aas.IAssetAdministrationShell)))
+                return BuildUriForRepoSingleAAS(baseUri, id, encryptIds: encryptIds, usePost: usePost);
+            if (typeof(T).IsAssignableFrom(typeof(Aas.ISubmodel)))
+                return BuildUriForRepoSingleSubmodel(baseUri, id, encryptIds: encryptIds, usePost: usePost);
+            if (typeof(T).IsAssignableFrom(typeof(Aas.IConceptDescription)))
+                return BuildUriForRepoSingleCD(baseUri, id, encryptIds: encryptIds, usePost: usePost);
+            return null;
         }
 
         public static Uri BuildUriForRepoSingleAAS(
@@ -4339,18 +4355,206 @@ namespace AasxPackageLogic.PackageCentral
         /// Note: Currently, minimal interaction/ functionality is implemented.
         /// </summary>
         /// <param name="idfIds">Each key to be an individual Identifiable!</param>
-        public static async Task<bool> AssistantRenameIdfsInRepo(
-            AasxMenuActionTicket ticket,
-            AnyUiContextBase displayContext,
-            string caption,
-            string elemKindName,
-            IEnumerable<Aas.IKey> idfIds,
+        /// <returns>Endpoint of renamed Identifiable, <c>null</c> else</returns>
+        public static async Task<Uri> AssistantRenameIdfsInRepo<T>(
+            Uri baseUri,
+            string oldId,
+            string newId,
             PackCntRuntimeOptions runtimeOptions = null,
             PackageContainerListBase containerList = null,
-            DeleteAssistantJobRecord presetRecord = null)
+            bool moreLog = false)
+                where T : Aas.IIdentifiable
         {
             // access
+            Uri newResUri = null;
+            if (baseUri == null || !baseUri.IsAbsoluteUri)
+                return null;
 
+            // ok
+            try
+            {
+                // for all repo access, use the same client
+                var client = PackageHttpDownloadUtil.CreateHttpClient(baseUri, runtimeOptions, containerList: containerList);
+
+                // 
+                // Step 1 : Download the Identifiable from old Id
+                //
+
+                var uri = BuildUriForRepoSingleIdentifiable<T>(baseUri, oldId, encryptIds: true, usePost: false);
+                var idf = await PackageHttpDownloadUtil.DownloadIdentifiableToOK<T>(
+                    uri, runtimeOptions);
+                if (idf == null)
+                {
+                    runtimeOptions?.Log?.Error(
+                        "For renaming Identifiable, unable to download Identifiable. Skipping! Location: {0}",
+                        uri.ToString());
+                    return null;
+                }
+
+                if (moreLog)
+                    Log.Singleton.Info("For renaming Identifiable, downloaded Identifiable with Id {0} from: {1}",
+                        oldId, uri) ;
+
+                // thumbnail
+
+                byte[] aasThumbnail = null;
+                if (idf is Aas.IAssetAdministrationShell idfAas)
+                {
+                    try
+                    {
+                        await PackageHttpDownloadUtil.HttpGetToMemoryStream(
+                            client,
+                            sourceUri: BuildUriForRepoAasThumbnail(
+                                baseUri, idfAas.Id),
+                            runtimeOptions: runtimeOptions,
+                            lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
+                            {
+                                if (code != HttpStatusCode.OK)
+                                    return;
+
+                                try
+                                {
+                                    aasThumbnail = ms.ToArray();
+
+                                    if (moreLog)
+                                        Log.Singleton.Info("For renaming Identifiable, downloaded AAS thumbnail for AAS {0}.", oldId);
+                                }
+                                catch (Exception ex)
+                                {
+                                    runtimeOptions?.Log?.Error(ex, $"When trying to read thumbnail for Identifiable {oldId}");
+                                }
+                            });
+                    }
+                    catch (Exception ex)
+                    {
+                        if (moreLog)
+                            Log.Singleton.Error(ex, $"When trying to read thumbnail for Identifiable {oldId}");
+                    }
+                }
+
+                //
+                // Step 2 : Rename the Identifiable to new Id, upload
+                //
+
+                idf.Id = newId;
+
+                // the "working uri" will get the POST method
+                uri = BuildUriForRepoSingleIdentifiable<T>(baseUri, newId, encryptIds: true, usePost: true);
+
+                // the result endpoint is built as PUT, therefore having the full resource path in it
+                newResUri = BuildUriForRepoSingleIdentifiable<T>(baseUri, newId, encryptIds: true, usePost: false);
+
+                // Identifiable (should be post?!)
+                var stillOk = false;
+
+                try
+                {
+                    var res2 = await PackageHttpDownloadUtil.HttpPutPostIdentifiable(
+                        client,
+                        idf,
+                        destUri: uri,
+                        usePost: true,
+                        runtimeOptions: runtimeOptions,
+                        containerList: containerList);
+
+                    stillOk = true;
+
+                    if (moreLog)
+                        Log.Singleton.Info("For renaming Identifiable, posted Identifiable with new Id {0} to " +
+                            "new endpoint {1}.", newId, uri.AbsolutePath);
+                }
+                catch (Exception ex)
+                {
+                    if (moreLog)
+                        Log.Singleton.Error(ex, $"When trying to post Identifiable {newId}");
+                }
+
+                if (stillOk && aasThumbnail != null
+                    && idf is Aas.IAssetAdministrationShell idfAas2)
+                {
+                    try
+                    {
+                        using (var ms = new MemoryStream(aasThumbnail))
+                        {
+                            // the multi-part content needs very specific information to work
+                            var mpFn = Path.GetFileName(idfAas2.AssetInformation.DefaultThumbnail.Path);
+                            var mpCt = idfAas2.AssetInformation.DefaultThumbnail.ContentType?.Trim();
+                            if (mpCt?.HasContent() != true)
+                                mpCt = "application/octet-stream";
+
+                            // where?
+                            var attUri = BuildUriForRepoAasThumbnail(baseUri, newId, encryptIds: true);
+
+                            // do the PUT with multi-part content
+                            // Note: according to the Swagger doc, this always is a PUT and never a POST !!
+                            var res3 = await PackageHttpDownloadUtil.HttpPutPostFromMemoryStream(
+                                null, // do NOT re-use client, as headers are re-defined!
+                                ms,
+                                destUri: attUri,
+                                runtimeOptions: runtimeOptions,
+                                containerList: containerList,
+                                usePost: false /* usePost */,
+                                useMultiPart: true,
+                                mpParamName: "file",
+                                mpFileName: mpFn,
+                                mpContentType: mpCt);
+
+                            if (res3 != null && (int) res3.Item1 >= 200 && (int)res3.Item1 <= 299)
+                            {
+                                if (moreLog)
+                                    Log.Singleton.Info("For renaming Identifiable, uploaded AAS thumbnail for AAS {0}.", newId);
+                            }
+                            else
+                            {
+                                Log.Singleton.Error($"Error when trying to delete Identifiable {oldId}");
+                            }                           
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (moreLog)
+                            Log.Singleton.Error(ex, $"When trying to post thumbnail of Identifiable {newId}");
+                    }
+                }
+
+                //
+                // Step 3 : Delete old Id
+                // Assumption: potential thumbnail will be deleted automatically
+                //
+
+                try
+                {
+                    uri = BuildUriForRepoSingleIdentifiable<T>(baseUri, oldId, encryptIds: true, usePost: false);
+
+                    var res = await PackageHttpDownloadUtil.HttpDeleteUri(
+                                client,
+                                delUri: uri,
+                                runtimeOptions: runtimeOptions);
+
+                    if (res != null && (int)res.Item1 >= 200 && (int)res.Item1 <= 299)
+                    {
+                        if (moreLog)
+                            Log.Singleton.Info("For renaming Identifiable, deleted Identifiable with old Id {0}.", oldId);
+                    } 
+                    else
+                    {
+                        Log.Singleton.Error($"Error when trying to delete Identifiable {oldId}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (moreLog)
+                        Log.Singleton.Error(ex, $"When trying to delete Identifiable {oldId}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(ex, $"When renaming Identifiable {oldId} to {newId} in Repository {baseUri.ToString()}");
+                return null;
+            }
+
+            // return the new Identifiable URI
+            return newResUri;
         }
 
     }

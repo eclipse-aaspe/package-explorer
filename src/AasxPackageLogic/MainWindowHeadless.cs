@@ -1718,7 +1718,7 @@ namespace AasxPackageLogic
                     else
                     if (res is AasxPluginResultEventRedrawAllElements aprrae)
                     {
-                        MainWindow.CommandExecution_RedrawAll();
+                        MainWindow.CommandExecution_RedrawAllAsync();
                     }
                 }
                 catch (Exception ex)

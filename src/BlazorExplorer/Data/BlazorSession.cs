@@ -306,9 +306,36 @@ namespace BlazorUI.Data
             // nearly last task here ..
             Log.Singleton.Info("Application started ..");
 
+            //
+            // OLD code
+            //
+
+            env = null;
+
+            helper = new DispEditHelperMultiElement();
+            helper.levelColors = DispLevelColors.GetLevelColorsFromOptions(Options.Curr);
+
+            // some functionality still uses repo != null to detect editMode!!
+            repo = new ModifyRepo();
+            helper.editMode = EditMode;
+            helper.hintMode = HintMode;
+            helper.repo = repo;
+            helper.context = null;
+            helper.packages = PackageCentral;
+
+            ElementPanel = new AnyUiStackPanel() { Orientation = AnyUiOrientation.Vertical };
+
+            htmlDotnetThread = new Thread(AnyUiDisplayContextHtml.htmlDotnetLoop);
+            htmlDotnetThread.Start();
+
+        }
+
+        // called once by the Index.razor component
+        public async Task InitializeAsync() { 
+
             // start with a new file
             PackageCentral.MainItem.New();
-            RedrawAllAasxElements();
+            await RedrawAllAasxElementsAsync();
 
             // Try to load?            
             if (Options.Curr.AasxToLoad != null)
@@ -331,7 +358,7 @@ namespace BlazorUI.Data
                     if (container == null)
                         Log.Singleton.Error($"Failed to auto-load AASX from {location}");
                     else
-                        UiLoadPackageWithNew(PackageCentral.MainItem,
+                        await UiLoadPackageWithNew(PackageCentral.MainItem,
                             takeOverContainer: container, onlyAuxiliary: false, indexItems: true);
 
                     Log.Singleton.Info($"Successfully auto-loaded AASX {location}");
@@ -362,7 +389,7 @@ namespace BlazorUI.Data
                     if (container == null)
                         Log.Singleton.Error($"Failed to auto-load AASX from {location}");
                     else
-                        UiLoadPackageWithNew(PackageCentral.AuxItem,
+                        await UiLoadPackageWithNew(PackageCentral.AuxItem,
                             takeOverContainer: container, onlyAuxiliary: true, indexItems: false);
 
                     Log.Singleton.Info($"Successfully auto-loaded AASX {location}");
@@ -374,30 +401,13 @@ namespace BlazorUI.Data
             }
 
             //
-            // OLD
+            // Display right side
             //
-
-            env = null;
-
-            helper = new DispEditHelperMultiElement();
-            helper.levelColors = DispLevelColors.GetLevelColorsFromOptions(Options.Curr);
-
-            // some functionality still uses repo != null to detect editMode!!
-            repo = new ModifyRepo();
-            helper.editMode = EditMode;
-            helper.hintMode = HintMode;
-            helper.repo = repo;
-            helper.context = null;
-            helper.packages = PackageCentral;
-
-            ElementPanel = new AnyUiStackPanel() { Orientation = AnyUiOrientation.Vertical };
 
             if (env?.AasEnv?.AssetAdministrationShells != null)
                 helper.DisplayOrEditAasEntityAas(PackageCentral, env, env.AasEnv,
                     env.AasEnv.AllAssetAdministrationShells().FirstOrDefault(), EditMode, ElementPanel, hintMode: HintMode);
 
-            htmlDotnetThread = new Thread(AnyUiDisplayContextHtml.htmlDotnetLoop);
-            htmlDotnetThread.Start();
 
         }
 

@@ -106,7 +106,7 @@ namespace AasxPackageLogic.PackageCentral
                     return smsi.GetSideInfo(ndx);
             }
             return null;
-        }
+        }        
 
         //
         // make this class suitable for IClass as well

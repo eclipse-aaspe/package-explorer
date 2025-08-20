@@ -380,6 +380,22 @@ namespace AasxPackageLogic.PackageCentral
             return base.GetThumbnailBytesFromAasOrPackage(aasId);
         }
 
+        public void RenameThumbnailData(string oldId, string newId)
+        {
+            // access
+            if (oldId?.HasContent() != true || newId?.HasContent() != true)
+                return;
+            // rename
+            lock (_thumbStreamPerAasId)
+            {
+                if (_thumbStreamPerAasId.ContainsKey(oldId))
+                {
+                    _thumbStreamPerAasId[newId] = _thumbStreamPerAasId[oldId];
+                    _thumbStreamPerAasId.Remove(oldId);
+                }
+            }
+        }
+
         public override async Task<byte[]> GetBytesFromPackageOrExternalAsync(
             string uriString,
             string aasId = null,
