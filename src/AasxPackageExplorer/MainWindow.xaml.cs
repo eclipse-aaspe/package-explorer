@@ -384,7 +384,64 @@ namespace AasxPackageExplorer
                 },
                 AllowFakeResponses = Options.Curr.AllowFakeResponses,
                 ExtendedConnectionDebug = Options.Curr.ExtendedConnectionDebug,
-                SecurityAccessHandler = _securityAccessHandler
+                SecurityAccessHandler = _securityAccessHandler,
+                GetBaseUriForNewIdentifiablesHandler = async (defBaseUri, idf) =>
+                {
+                    // allready remembered
+                    string baseUriStr = null;
+                    if (Logic.RememberNewIdentifiableBaseUri 
+                        && Logic.RememberedNewIdentifiableBaseUriStr?.HasContent() == true)
+                    {
+                        baseUriStr = Logic.RememberedNewIdentifiableBaseUriStr;
+                    }
+                    else
+                    {
+                        // ask user
+
+                        var rec = new PackageContainerHttpRepoSubset.GetBaseAddressUploadRecord()
+                        {
+                            DisplayIdf = idf,
+                            BaseAddress = defBaseUri.AbsoluteUri,
+                            BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+                            Remember = false,
+                        };
+
+                        var res = await PackageContainerHttpRepoSubset.PerformGetBaseAddressUploadDialogue(
+                            ticket: null,
+                            displayContext: DisplayContext,
+                            caption: "Get Base Address for New Identifiable",
+                            record: rec);
+
+                        if (res)
+                        {
+                            baseUriStr = rec.BaseAddress;
+                            if (rec.Remember)
+                            {
+                                Logic.RememberNewIdentifiableBaseUri = true;
+                                Logic.RememberedNewIdentifiableBaseUriStr = baseUriStr;
+                            }
+                        }
+                    }
+
+                    // try convert to URI, again
+                    if (baseUriStr == null)
+                        return null;
+                    try
+                    {
+                        var uris = new BaseUriDict(baseUriStr);
+                        if (idf is Aas.IAssetAdministrationShell)
+                            return uris.GetBaseUriForAasRepo();
+                        if (idf is Aas.ISubmodel)
+                            return uris.GetBaseUriForSmRepo();
+                        if (idf is Aas.IConceptDescription)
+                            return uris.GetBaseUriForCdRepo();
+                        return new Uri(baseUriStr);
+                    } catch (Exception ex)
+                    {
+                        Log.Singleton.Error(ex, $"when building URi for new Identifiables from base address: {baseUriStr}");
+                        return null;
+                    }
+                }
             };
             return ro;
         }

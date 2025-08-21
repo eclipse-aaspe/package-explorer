@@ -577,6 +577,102 @@ namespace AnyUi
         }
 
         //
+        // Combinations of above
+        //
+
+        public void AddSmallLabelAndTextToRowPlus(
+            AnyUiGrid grid,
+            ref int row,
+            string contentLabel,
+            string valueText,
+            Action<string> setValue)
+        {
+            AddSmallLabelTo(grid, row, 0, content: contentLabel,
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+            AnyUiUIElement.SetStringFromControl(
+                    Set(
+                        AddSmallTextBoxTo(grid, row, 1,
+                            text: valueText,
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                        horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                    setValue);
+
+            row++;
+        }
+
+        public void AddSmallLabelAndCheckboxToRowPlus(
+            AnyUiGrid grid,
+            ref int row,
+            string contentLeft,
+            string contentRight,
+            bool isChecked,
+            Action<bool> setValue)
+        {
+            AddSmallLabelTo(grid, row, 0, content: contentLeft,
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+            AnyUiUIElement.SetBoolFromControl(
+                    Set(
+                        AddSmallCheckBoxTo(grid, row, 1,
+                            content: contentRight,
+                            isChecked: isChecked,
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                        horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                    setValue);
+
+            row++;
+        }
+
+        public void AddSmallInfoToRowPlus(
+            AnyUiGrid grid,
+            ref int row,
+            string content,
+            int column = 1,
+            int colSpan = 1,
+            AnyUiTextWrapping wrapping = AnyUiTextWrapping.Wrap)
+        {
+            Set(AddSmallLabelTo(grid, row, column, content: content,
+                    wrapping: wrapping),
+                colSpan: colSpan);
+            row++;
+        }
+
+        public void AddSmallLabelAndInfoToRowPlus(
+            AnyUiGrid grid,
+            ref int row,
+            string contentLabel,
+            string contentInfo,
+            AnyUiTextWrapping wrapping = AnyUiTextWrapping.Wrap)
+        {
+            AddSmallLabelTo(grid, row, 0, content: contentLabel,
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+            AddSmallLabelTo(grid, row, 1, content: contentInfo,
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center,
+                            wrapping: wrapping);
+
+            row++;
+        }
+
+        public void AddSmallSeparatorToRowPlus(
+            AnyUiGrid grid,
+            ref int row)
+        {
+            AddSmallBorderTo(grid, row, 0,
+                borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
+                colSpan: 2,
+                margin: new AnyUiThickness(0, 0, 0, 20));
+            row++;
+        }
+
+        //
         // small widget handling
         //
 

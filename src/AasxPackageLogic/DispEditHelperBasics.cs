@@ -2555,10 +2555,11 @@ namespace AasxPackageLogic
             object nextFocus = null, PackCntChangeEventData sendUpdateEvent = null, bool preventMove = false,
             Aas.IReferable explicitParent = null,
             AasxMenu superMenu = null,
-            Action<string, AasxMenuActionTicket> postActionHook = null,
+            Func<string, AasxMenuActionTicket, Task> postActionHookAsync = null,
             AasxMenu extraMenu = null,
             Func<int, AnyUiLambdaActionBase> lambdaExtraMenu = null,
-            Func<int, Task<AnyUiLambdaActionBase>> lambdaExtraMenuAsync = null)
+            Func<int, Task<AnyUiLambdaActionBase>> lambdaExtraMenuAsync = null,
+            bool moveDoesNotModify = false)
         {
             if (nextFocus == null)
                 nextFocus = entity;
@@ -2615,9 +2616,10 @@ namespace AasxPackageLogic
                         if (buttonNdx == 3) newndx = MoveElementToBottomOfList<T>(list, entity);
                         if (newndx >= 0)
                         {
-                            postActionHook?.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
+                            if (postActionHookAsync != null)
+                                await postActionHookAsync.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
 
-                            if (entityRf != null)
+                            if (entityRf != null && !moveDoesNotModify)
                                 this.AddDiaryEntry(entityRf,
                                     new DiaryEntryStructChange(StructuralChangeReason.Modify, createAtIndex: newndx),
                                     explicitParent: explicitParent);
@@ -2649,7 +2651,7 @@ namespace AasxPackageLogic
                             if (list.Count < 1)
                                 setOutputList?.Invoke(null);
 
-                            postActionHook?.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
+                            await postActionHookAsync?.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
 
                             this.AddDiaryEntry(entityRf,
                                 new DiaryEntryStructChange(StructuralChangeReason.Delete),

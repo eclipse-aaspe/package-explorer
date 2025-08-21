@@ -71,6 +71,16 @@ namespace AasxPackageLogic
         protected static string _userLastGetUrl = "http://???:51310";
 
         /// <summary>
+        /// Flag, if to remember the new identifiable base URI.
+        /// </summary>
+        public bool RememberNewIdentifiableBaseUri = false;
+
+        /// <summary>
+        /// Base URI for new Identifiable elements, if remembered.
+        /// </summary>
+        public string RememberedNewIdentifiableBaseUriStr = null;
+
+        /// <summary>
         /// Display context with more features for UI
         /// </summary>
         public AnyUiContextPlusDialogs DisplayContextPlus
@@ -174,10 +184,12 @@ namespace AasxPackageLogic
                 // do
                 try
                 {
+                    // remember the base URI is always stopped before new manual operation
+                    RememberNewIdentifiableBaseUri = false;
+
                     // save
                     await PackageCentral.MainItem.SaveAsAsync(runtimeOptions: PackageCentral.CentralRuntimeOptions);
                     
-
                     // backup
                     if (Options.Curr.BackupDir != null)
                         PackageCentral.MainItem.Container.BackupInDir(
@@ -266,6 +278,9 @@ namespace AasxPackageLogic
 
                     // save 
                     DisplayContextPlus.RememberForInitialDirectory(ucsf.TargetFileName);
+
+                    // remember the base URI is always stopped before new manual operation
+                    RememberNewIdentifiableBaseUri = false;
 
                     if (!forceLocal)
                     {
