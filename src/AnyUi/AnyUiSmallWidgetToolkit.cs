@@ -611,19 +611,26 @@ namespace AnyUi
             bool isChecked,
             Action<bool> setValue)
         {
-            AddSmallLabelTo(grid, row, 0, content: contentLeft,
-                            verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+            int col = 0;
+            if (contentLeft != null)
+            {
+                AddSmallLabelTo(grid, row, col++, content: contentLeft,
+                                verticalAlignment: AnyUiVerticalAlignment.Center,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center);
+            }
 
-            AnyUiUIElement.SetBoolFromControl(
+            var cb = AnyUiUIElement.SetBoolFromControl(
                     Set(
-                        AddSmallCheckBoxTo(grid, row, 1,
+                        AddSmallCheckBoxTo(grid, row, col++,
                             content: contentRight,
                             isChecked: isChecked,
                             verticalAlignment: AnyUiVerticalAlignment.Center,
                             verticalContentAlignment: AnyUiVerticalAlignment.Center),
                         horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
                     setValue);
+
+            if (col < 2)
+                Set(cb, colSpan: 2);
 
             row++;
         }
@@ -668,7 +675,7 @@ namespace AnyUi
             AddSmallBorderTo(grid, row, 0,
                 borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
                 colSpan: 2,
-                margin: new AnyUiThickness(0, 0, 0, 20));
+                margin: new AnyUiThickness(0, 5, 0, 10));
             row++;
         }
 

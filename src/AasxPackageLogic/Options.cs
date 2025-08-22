@@ -691,6 +691,9 @@ namespace AasxPackageLogic
             "delimited by double quotes.")]
         public string HttpHeaderAttributes = "";
 
+        [OptionDescription(Description = "For connecting to repositories/ registry, default pagination limit.")]
+        public int DefaultConnectPageLimit = 10;
+
         [OptionDescription(Description = "Point to a list of SecureConnectPresets for the respective dialogue")]
         [JetBrains.Annotations.UsedImplicitly]
         public Newtonsoft.Json.Linq.JToken SecureConnectPresets;

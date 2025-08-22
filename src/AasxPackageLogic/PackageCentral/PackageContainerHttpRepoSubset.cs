@@ -1459,6 +1459,34 @@ namespace AasxPackageLogic.PackageCentral
                                                 if (idf == null)
                                                     continue;
 
+                                                // only here, filtering may happen
+                                                var ct = (record.FilterCaseInvariant) ? StringComparison.InvariantCultureIgnoreCase 
+                                                            : StringComparison.InvariantCulture;
+                                                if (record.FilterByText && record.FilterText?.HasContent() == true)
+                                                {
+                                                    var hit = idf.Id?.Contains(record.FilterText, ct) == true
+                                                            || idf.IdShort?.Contains(record.FilterText, ct) == true
+                                                            || idf.Description?.Contains(record.FilterText, ct) == true
+                                                            || idf.DisplayName?.Contains(record.FilterText, ct) == true;
+                                                    if (!hit)
+                                                        continue;
+                                                }
+
+                                                if (record.FilterByExtension && record.FilterExtName?.HasContent() == true)
+                                                {
+                                                    var hit = false;
+                                                    if (idf.Extensions?.IsValid() == true)
+                                                        foreach (var ext in idf.Extensions)
+                                                            if (ext?.Name?.Contains(record.FilterExtName, ct) == true)
+                                                                // an empty search value counts as a hit
+                                                                if (record.FilterExtName?.HasContent() != true)
+                                                                    hit = true;
+                                                                else
+                                                                    hit = hit || (ext.Value?.Contains("" + record.FilterExtValue, ct) == true);
+                                                    if (!hit)
+                                                        continue;
+                                                }
+
                                                 // on last child, attach side info for fetch prev/ next cursor
                                                 AasIdentifiableSideInfo si = new AasIdentifiableSideInfo()
                                                 {
@@ -2269,7 +2297,7 @@ namespace AasxPackageLogic.PackageCentral
             [AasxMenuArgument(help: "Get a single AAS, which is specified by AasId.")]
             public bool GetSingleAas;
 
-            [AasxMenuArgument(help: "Specicies the Id of the AAS to be retrieved.")]
+            [AasxMenuArgument(help: "Specifies the Id of the AAS to be retrieved.")]
             // public string AasId = "https://new.abb.com/products/de/2CSF204101R1400/aas";
             public string AasId = "";
             // public string AasId = "https://phoenixcontact.com/qr/2900542/1/aas/1B";
@@ -2277,7 +2305,7 @@ namespace AasxPackageLogic.PackageCentral
             [AasxMenuArgument(help: "Get a single AAS, which is specified by a asset link/ asset id.")]
             public bool GetAasByAssetLink;
 
-            [AasxMenuArgument(help: "Specicies the Id of the asset to be retrieved.")]
+            [AasxMenuArgument(help: "Specifies the Id of the asset to be retrieved.")]
             public string AssetId = "";
             // public string AssetId = "https://pk.harting.com/?.20P=ZSN1";
 
@@ -2288,7 +2316,7 @@ namespace AasxPackageLogic.PackageCentral
             [AasxMenuArgument(help: "Get a single AAS, which is specified by SmId.")]
             public bool GetSingleSubmodel;
 
-            [AasxMenuArgument(help: "Specicies the Id of the Submodel to be retrieved.")]
+            [AasxMenuArgument(help: "Specifies the Id of the Submodel to be retrieved.")]
             // public string SmId = "aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMjAxNV82MDIwXzMwMTJfMDU4NQ==";
             public string SmId = "";
 
@@ -2299,17 +2327,35 @@ namespace AasxPackageLogic.PackageCentral
             [AasxMenuArgument(help: "Get a single ConceptDescription, which is specified by CdId.")]
             public bool GetSingleCD;
 
-            [AasxMenuArgument(help: "Specicies the Id of the ConceptDescription to be retrieved.")]
+            [AasxMenuArgument(help: "Specifies the Id of the ConceptDescription to be retrieved.")]
             public string CdId;
 
             [AasxMenuArgument(help: "Executes a GraphQL query on the Repository/ Registry. ")]
             public bool ExecuteQuery;
 
-            [AasxMenuArgument(help: "Specicies the contents of the query script to be executed. " +
+            [AasxMenuArgument(help: "Specifies the contents of the query script to be executed. " +
                 "Note: Complex syntax and quoting needs to be applied!")]
             public string QueryScript = "";
             // public string QueryScript = "{\r\n  searchSMs(\r\n    expression: \"\"\"$LOG\r\n     filter=\r\n      or(\r\n        str_contains(sm.IdShort, \"Technical\"),\r\n        str_contains(sm.IdShort, \"Nameplate\")\r\n      )\r\n   \"\"\"\r\n  )\r\n  {\r\n    url\r\n    smId\r\n  }\r\n}";
             // public string QueryScript = "{\r\n  searchSMs(\r\n    expression: \"\"\"$LOG$QL\r\n          ( contains(sm.idShort, \"Technical\") and\r\n          sme.value ge 100 and\r\n          sme.value le 200 )\r\n        or\r\n          ( contains(sm.idShort, \"Nameplate\") and\r\n          contains(sme.idShort,\"ManufacturerName\") and\r\n          not(contains(sme.value,\"Phoenix\")))\r\n    \"\"\"\r\n  )\r\n  {\r\n    url\r\n    smId\r\n  }\r\n}";
+
+            [AasxMenuArgument(help: "Filter elements on (Id, IdShort, DisplayName, Description) after getting.")]
+            public bool FilterByText;
+
+            [AasxMenuArgument(help: "Specifies the text to filter for.")]
+            public string FilterText = "";
+
+            [AasxMenuArgument(help: "Filter elements on a specific extension name and value after getting.")]
+            public bool FilterByExtension;
+
+            [AasxMenuArgument(help: "Specifies the name of extension to filter for.")]
+            public string FilterExtName = "";
+
+            [AasxMenuArgument(help: "Specifies the value of extension to filter for.")]
+            public string FilterExtValue = "";
+
+            [AasxMenuArgument(help: "Specifies the filtering to be case-invariant.")]
+            public bool FilterCaseInvariant = true;
 
             [AasxMenuArgument(help: "When a AAS is retrieved, try to retrieve Submodels as well. " +
                 "Note: For this retrieveal, AutoLoadOnDemand may apply.")]
@@ -2345,7 +2391,7 @@ namespace AasxPackageLogic.PackageCentral
             /// Pagenation. Limit to <c>n</c> results.
             /// </summary>
             [AasxMenuArgument(help: "Pagenation. Limit to n results.")]
-            public int PageLimit = 4;
+            public int PageLimit = Options.Curr.DefaultConnectPageLimit;
 
             /// <summary>
             /// When fetching, skip first <c>n</c> elements of the results.
@@ -2639,9 +2685,10 @@ namespace AasxPackageLogic.PackageCentral
             IdfTypes = 0x0002,
             Query = 0x004,
             GetOptions = 0x0008,
-            StayConnected = 0x0010,
-            Pagination = 0x0020,
-            Header = 0x0040
+            Filters = 0x0010,
+            StayConnected = 0x0020,
+            Pagination = 0x0040,
+            Header = 0x0080
         }
 
         public static async Task<bool> PerformConnectExtendedDialogue(
@@ -2709,7 +2756,7 @@ namespace AasxPackageLogic.PackageCentral
                     var panel = new AnyUiStackPanel();
                     var helper = new AnyUiSmallWidgetToolkit();
 
-                    var g = helper.AddSmallGrid(25, 2, new[] { "120:", "*" },
+                    var g = helper.AddSmallGrid(35, 2, new[] { "120:", "*" },
                                 padding: new AnyUiThickness(0, 5, 0, 5),
                                 margin: new AnyUiThickness(10, 0, 30, 0));
 
@@ -2770,6 +2817,8 @@ namespace AasxPackageLogic.PackageCentral
 
                     if ((scope & ConnectExtendedScope.IdfTypes) > 0)
                     {
+                        helper.AddSmallSeparatorToRowPlus(g, ref row);
+
                         // All AASes
                         AnyUiUIElement.RegisterControl(
                                 helper.Set(
@@ -2992,8 +3041,48 @@ namespace AasxPackageLogic.PackageCentral
                         row += 2;
                     }
 
+                    if ((scope & ConnectExtendedScope.Filters) > 0)
+                    {
+                        helper.AddSmallSeparatorToRowPlus(g, ref row);
+
+                        helper.AddSmallLabelAndCheckboxToRowPlus(g, ref row, null, "Filter \"Get all ..\" by text",
+                            isChecked: record.FilterByText, setValue: (b) => record.FilterByText = b);
+
+                        helper.AddSmallLabelAndTextToRowPlus(g, ref row, "Filter text:",
+                            record.FilterText, setValue: (s) => record.FilterText = s);
+
+                        helper.AddSmallLabelAndCheckboxToRowPlus(g, ref row, null, "Filter elements by extension name / value ..",
+                            isChecked: record.FilterByExtension, setValue: (b) => record.FilterByExtension = b);
+
+                        // Extension label / name / value
+                        helper.AddSmallLabelTo(g, row, 0, content: "Extension:", verticalCenter: true);
+
+                        var g2 = helper.AddSmallGridTo(g, row, 1, 1, 3, new[] { "*", "#", "*" });
+
+                        AnyUiUIElement.SetStringFromControl(
+                            helper.AddSmallTextBoxTo(g2, 0, 0, 
+                                text: $"{record.FilterExtName}", verticalCenter: true),
+                            (s) => { record.FilterExtName = s; });
+
+                        helper.AddSmallLabelTo(g2, 0, 1, content: " / ", verticalCenter: true);
+                        
+                        AnyUiUIElement.SetStringFromControl(
+                            helper.AddSmallTextBoxTo(g2, 0, 2,
+                                text: $"{record.FilterExtValue}", verticalCenter: true),
+                            (s) => { record.FilterExtValue = s; });
+
+                        row++;
+
+                        // last flag
+
+                        helper.AddSmallLabelAndCheckboxToRowPlus(g, ref row, "Options:", "Filter case-invariant",
+                            isChecked: record.FilterCaseInvariant, setValue: (b) => record.FilterCaseInvariant = b);
+                    }
+
                     if ((scope & ConnectExtendedScope.GetOptions) > 0)
                     {
+                        helper.AddSmallSeparatorToRowPlus(g, ref row);
+
                         // Auto load Submodels
                         helper.AddSmallLabelTo(g, row, 0, content: "For above:",
                                 verticalAlignment: AnyUiVerticalAlignment.Center,

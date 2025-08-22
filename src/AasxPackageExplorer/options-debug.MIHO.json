@@ -74,6 +74,8 @@
     "MaxParallelReadOps": 10
     /* Maximum parallel write operations, such as HTTP uploads. */,
     "MaxParallelWriteOps": 1
+    /* For connecting to repositories/ registry, default pagination limit. */,
+    "DefaultConnectPageLimit" :  20
     /* If not -1, the left of window | Arg: <pixel> */,
     "WindowLeft": -1
     /* If not -1, the top of window | Arg: <pixel> */,
