@@ -1630,6 +1630,11 @@ namespace AasxPackageLogic
             if (aas == null)
                 return;
 
+            // check, if Submodel is sitting in Repo
+            var sideInfo = OnDemandListIdentifiable<Aas.IAssetAdministrationShell>
+                    .FindSideInfoInListOfIdentifiables(
+                        env.AssetAdministrationShells, aas.GetReference());
+
             // Entities
             if (editMode)
             {
@@ -1655,61 +1660,91 @@ namespace AasxPackageLogic
                     aas, env, "AAS:",
                     superMenu: superMenu,
                     extraMenu: new AasxMenu()
-                        .AddAction("delete-aas-in-repo", "Delete AAS \u274c in Repo",
-                            "Delete AAS by Id in a given Repository or Registry.")
                         .AddAction("finalize-aas", "Finalize AAS",
                             "Check and auto-correct AAS to be uploaded into Repository."),
                     moveDoesNotModify: true,
                     sendUpdateEvent: evTemplate,
-                    lambdaExtraMenuAsync: async (buttonNdx) =>
+                    postActionHookAsync: async (actionName, ticket) =>
                     {
-                        if (buttonNdx == 0)
+                        await Task.Yield();
+
+                        if (actionName == "aas-elem-delete")
                         {
-                            // check, if Submodel is sitting in Repo
-                            var sideInfo = OnDemandListIdentifiable<Aas.IAssetAdministrationShell>
-                                    .FindSideInfoInListOfIdentifiables(
-                                        env.AssetAdministrationShells, aas.GetReference());
-
-                            // enough info
-                            if (sideInfo.StubLevel < AasIdentifiableSideInfoLevel.IdOnly
-                                || sideInfo.Id?.HasContent() != true)
-                            {
-                                Log.Singleton.Error("No Id information available for deleting Identifiable in " +
-                                    "Repository or Registry.");
-                                return new AnyUiLambdaActionNone();
-                            }
-
+                            // be a bit informy
+                            Log.Singleton.Info($"Deleted AAS {aas.IdShort} from local Environment.");
+                            
                             // simply prepare some Keys!
-                            var idfKeys = (new Aas.IKey[] { 
+                            var idfKeys = (new Aas.IKey[] {
                                 new Aas.Key(KeyTypes.AssetAdministrationShell, "" + aas.Id) }).ToList();
                             foreach (var smr in aas.Submodels.ForEachSafe())
                                 if (smr?.IsValid() == true)
                                     idfKeys.Add(new Aas.Key(KeyTypes.Submodel, smr.Keys.First().Value));
 
-                            // call function
-                            // (only the side info in the _specific_ endpoint gives information, in which
-                            //  repo the Indentifiables could be deleted)
-                            await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
-                                null, context,
-                                "Delete AAS and Submodels in Repository/ Registry",
-                                "AAS and Submodel",
-                                idfKeys,
-                                runtimeOptions: packages.CentralRuntimeOptions,
-                                presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
-                                {
-                                    // assume Repo ?!
-                                    BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+                            // check if to delete Submodels in local Environment?
+                            var delInLocal = AnyUiMessageBoxResult.Yes == await this.context.MessageBoxFlyoutShowAsync(
+                                    "Delete Submodels in local Environment as well? " +
+                                    "This operation can not be reverted!",
+                                    "Delete Submodels in local Environment?",
+                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning);
+                            if (delInLocal)
+                            {
+                                foreach (var ik in idfKeys)
+                                    if (ik.Type == KeyTypes.Submodel)
+                                    {
+                                        var sm = env?.FindSubmodelById(ik.Value);
+                                        if (sm != null)
+                                        {
+                                            env.Remove(sm);
+                                            Log.Singleton.Info($"Deleted Submodel {sm.IdShort} from local Environment.");
+                                        }
+                                    }
+                            }
 
-                                    // extract base address
-                                    BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
-                                        sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
-                                });
+                            // delete in repo as well?
+                            var delInRepo = sideInfo?.Id?.HasContent() == true
+                                    && sideInfo.StubLevel >= AasIdentifiableSideInfoLevel.IdOnly;
 
-                            // ok
-                            return new AnyUiLambdaActionNone();
+                            if (delInRepo)
+                            {
+                                if (AnyUiMessageBoxResult.Yes != await this.context.MessageBoxFlyoutShowAsync(
+                                        "Delete AAS in Repository as well? " +
+                                        "This operation can not be reverted!",
+                                        "Delete in Repository?",
+                                        AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                    delInRepo = false;
+                            }
+
+                            // delete in repo?
+                            if (delInRepo)
+                            {
+                                // call function
+                                // (only the side info in the _specific_ endpoint gives information, in which
+                                //  repo the CDs could be deleted)
+                                await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
+                                    null, context,
+                                    "Delete AAS and Submodels in Repository/ Registry",
+                                    "AAS and Submodel",
+                                    idfKeys,
+                                    runtimeOptions: packages.CentralRuntimeOptions,
+                                    presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                                    {
+                                        // assume Repo ?!
+                                        BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                        // extract base address
+                                        BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                            sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
+                                    });
+                            }
+
+                            // manually redraw
+                            this.appEventsProvider?.PushApplicationEvent(new AasxPluginResultEventRedrawAllElements());
                         }
-
-                        if (buttonNdx == 1)
+                    },
+                    lambdaExtraMenuAsync: async (buttonNdx) =>
+                    {
+                        await Task.Yield();
+                        if (buttonNdx == 0)
                         {
                             // get a list
                             var idfs = env?.FindAllReferencedIdentifiablesForAas(aas);
@@ -2071,9 +2106,6 @@ namespace AasxPackageLogic
             }
 
             // info about sideInfo
-            var sideInfo = OnDemandListIdentifiable<Aas.IAssetAdministrationShell>
-                    .FindSideInfoInListOfIdentifiables(
-                        env.AssetAdministrationShells, aas.GetReference());
             DisplayOrEditEntitySideInfo(env, stack, aas, sideInfo, "AAS", superMenu);
 
             // Referable

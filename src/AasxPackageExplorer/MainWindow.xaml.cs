@@ -1675,6 +1675,7 @@ namespace AasxPackageExplorer
                 var rf = tempNavTo.targetReference.Copy();
 
                 if (tempNavTo.translateAssetToAAS
+                    && rf?.IsValid() == true
                     && rf.Keys.Count == 1
                     && rf.Keys.First().Type == Aas.KeyTypes.GlobalReference)
                 //TODO (jtikekar, 0000-00-00): KeyType.AssetInformation
@@ -1695,7 +1696,7 @@ namespace AasxPackageExplorer
                     }
                 }
 
-                // handle it by UI
+                // handle it by UI (may include repo lookup)
                 await UiHandleNavigateTo(rf, alsoDereferenceObjects: tempNavTo.alsoDereferenceObjects);
             }
 
@@ -1961,8 +1962,10 @@ namespace AasxPackageExplorer
 
             // search for AAS?
             BaseUriDict baseUris = null;
+            var searches = new List<Tuple<ConnectExtendedRecord, BaseUriDict, string>>();
             if (workRef?.IsValid() == true)
             {
+                // search for AAS?
                 if (workRef.Count() >= 1 && workRef.Keys[0].Type == KeyTypes.AssetAdministrationShell)
                 {
                     // want to search for an AAS
@@ -1971,6 +1974,8 @@ namespace AasxPackageExplorer
                     var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
                     baseUris = basedLoc.BaseUris;
                     fullItemLocation = basedLoc.Location.ToString();
+                    searches.Add(
+                        new Tuple<ConnectExtendedRecord, BaseUriDict, string>(record, baseUris, fullItemLocation));
                 }
 
                 // search for Asset?
@@ -1982,33 +1987,73 @@ namespace AasxPackageExplorer
                     var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
                     baseUris = basedLoc.BaseUris;
                     fullItemLocation = basedLoc.Location.ToString();
+                    searches.Add(
+                        new Tuple<ConnectExtendedRecord, BaseUriDict, string>(record, baseUris, fullItemLocation));
+                }
+
+                // search for Submodel?
+                if (workRef.Count() >= 1 && (workRef.Keys[0].Type == KeyTypes.GlobalReference
+                                          || workRef.Keys[0].Type == KeyTypes.Submodel))
+                {
+                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleSM);
+                    record.SmId = workRef.Keys[0].Value;
+                    var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    baseUris = basedLoc.BaseUris;
+                    fullItemLocation = basedLoc.Location.ToString();
+                    searches.Add(
+                        new Tuple<ConnectExtendedRecord, BaseUriDict, string>(record, baseUris, fullItemLocation));
+                }
+
+                // search for CD?
+                if (workRef.Count() >= 1 && (workRef.Keys[0].Type == KeyTypes.GlobalReference
+                                          || workRef.Keys[0].Type == KeyTypes.ConceptDescription))
+                {
+                    // want to search for an CD?
+                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleCD);
+                    record.CdId = workRef.Keys[0].Value;
+                    var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    baseUris = basedLoc.BaseUris;
+                    fullItemLocation = basedLoc.Location.ToString();
+                    searches.Add(
+                        new Tuple<ConnectExtendedRecord, BaseUriDict, string>(record, baseUris, fullItemLocation));
                 }
             }
 
-            // any info
-            if (fullItemLocation?.HasContent() != true)
+            // any searches?
+            if (searches.Count < 1)
                 return null;
 
-            // try to load
+            // try to load in sequence, until new Identifiable is found
             // TODO: take over those options from existing container
-            var containerOptions = new PackageContainerHttpRepoSubset.
-                PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
-                record);
-            containerOptions.BaseUris = baseUris;
+            var foundIdfs = new List<Aas.IIdentifiable>();
+            foreach (var search in searches)
+            {
+                var containerOptions = new PackageContainerHttpRepoSubset.
+                    PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
+                    search.Item1);
+                containerOptions.BaseUris = search.Item2;
 
-            var newIdfs = new List<Aas.IIdentifiable>();
-            var loadedIdfs = new List<Aas.IIdentifiable>();
+                var newIdfs = new List<Aas.IIdentifiable>();
+                var loadedIdfs = new List<Aas.IIdentifiable>();
 
-            var loadRes = await PackageContainerHttpRepoSubset.LoadFromSourceToTargetAsync(
-                fullItemLocation: fullItemLocation,
-                targetEnv: packEnv,
-                loadNew: false,
-                trackNewIdentifiables: newIdfs,
-                trackLoadedIdentifiables: loadedIdfs,
-                containerOptions: containerOptions,
-                runtimeOptions: PackageCentral.CentralRuntimeOptions);
+                var loadRes = await PackageContainerHttpRepoSubset.LoadFromSourceToTargetAsync(
+                    fullItemLocation: search.Item3,
+                    targetEnv: packEnv,
+                    loadNew: false,
+                    trackNewIdentifiables: newIdfs,
+                    trackLoadedIdentifiables: loadedIdfs,
+                    containerOptions: containerOptions,
+                    runtimeOptions: PackageCentral.CentralRuntimeOptions);
 
-            if (loadRes == null || newIdfs.Count < 1)
+                if (loadRes != null && newIdfs.Count >= 1)
+                {
+                    foundIdfs.AddRange(newIdfs);
+                    // may be in the future, we want also NOT to break here?
+                    break;
+                }
+            }
+
+            if (foundIdfs.Count < 1)
                 return null;
 
             // rebuild display elements
@@ -2016,7 +2061,7 @@ namespace AasxPackageExplorer
                 PackageCentral, PackageCentral.Selector.Main, MainMenu?.IsChecked("EditMenu") == true,
                 lazyLoadingFirst: true);
 
-            var newIdf = newIdfs.FirstOrDefault();
+            var newIdf = foundIdfs.FirstOrDefault();
 
             // display
             if (trySelect)
@@ -2025,6 +2070,7 @@ namespace AasxPackageExplorer
                 if (veFound != null)
                 {
                     // show ve
+                    DisplayElements.ExpandAllItems();
                     DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true);
                     // remember in history
                     Logic?.LocationHistory?.Push(veFound);
@@ -2103,6 +2149,7 @@ namespace AasxPackageExplorer
                         // try to look up in visual elements
                         if (this.DisplayElements != null)
                         {
+                            DisplayElements.ExpandAllItems();
                             var ve = this.DisplayElements.SearchVisualElementOnMainDataObject(bo,
                                 alsoDereferenceObjects: alsoDereferenceObjects, sri: sri);
                             if (ve != null)

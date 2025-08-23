@@ -394,6 +394,40 @@ namespace AasxPackageLogic.PackageCentral
             return count;
         }
 
+        /// <summary>
+        /// As the requirement is, that a list of Identifiables is null, if empty and most of the
+        /// functionality (AasxCSharpLibrary and beyond) is not aware, that the list of Identifiables
+        /// should be <code>OnDemandListIdentifiable<T></code>, these functionality might create an
+        /// ordinary list of Identifiables, not fullfilling the requirements.
+        /// This function tries to fix it.
+        /// </summary>
+        public void FixIdfListsToBeOnDemandLists()
+        {
+            if (_aasEnv.AssetAdministrationShells is not null
+                && _aasEnv.AssetAdministrationShells is not OnDemandListIdentifiable<Aas.IAssetAdministrationShell>)
+            {
+                // fix
+                _aasEnv.AssetAdministrationShells = new OnDemandListIdentifiable<Aas.IAssetAdministrationShell>(
+                    _aasEnv.AssetAdministrationShells);
+            }
+
+            if (_aasEnv.Submodels is not null
+                && _aasEnv.Submodels is not OnDemandListIdentifiable<Aas.ISubmodel>)
+            {
+                // fix
+                _aasEnv.Submodels = new OnDemandListIdentifiable<Aas.ISubmodel>(
+                    _aasEnv.Submodels);
+            }
+
+            if (_aasEnv.ConceptDescriptions is not null
+                && _aasEnv.ConceptDescriptions is not OnDemandListIdentifiable<Aas.IConceptDescription>)
+            {
+                // fix
+                _aasEnv.ConceptDescriptions = new OnDemandListIdentifiable<Aas.IConceptDescription>(
+                    _aasEnv.ConceptDescriptions);
+            }
+        }
+
         public async Task<int> TrySaveAllTaintedIdentifiables(
             bool allAas = true,
             bool allSubmodels = true,
@@ -401,7 +435,9 @@ namespace AasxPackageLogic.PackageCentral
             Func<Uri, Aas.IIdentifiable, Task<Uri>> lambdaGetBaseUriForNewIdentifiables = null)
         {
             var count = 0;
-            
+
+            FixIdfListsToBeOnDemandLists();
+
             if (allAas) count += await TrySaveAllTaintedIdentifiablesOf<Aas.IAssetAdministrationShell>(
                 _aasEnv?.AssetAdministrationShells,
                 lambdaGetBaseUriForNewIdentifiables: lambdaGetBaseUriForNewIdentifiables);

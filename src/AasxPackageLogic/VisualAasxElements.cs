@@ -2342,7 +2342,7 @@ namespace AasxPackageLogic
                 {
                     // branch per Submodel
 					var tiSM = new VisualElementEnvironmentItem(
-					    parent: tiCDs, cache: cache,
+					    parent: tiSubmodelsRoot, cache: cache,
 					    package: tiCDs.thePackage, env: tiCDs.theEnv,
 					    itemType: VisualElementEnvironmentItem.ItemType.Env);
 					tiSM.Caption = "Submodel: " + sm.IdShort;
