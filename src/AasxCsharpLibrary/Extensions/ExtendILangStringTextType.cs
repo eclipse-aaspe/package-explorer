@@ -52,5 +52,15 @@ namespace Extensions
                     return false;
             return true;
         }
+
+        public static bool Contains(this List<ILangStringTextType> elems, String value, StringComparison comparisonType)
+        {
+            if (elems == null || elems.Count < 1)
+                return false;
+            var res = false;
+            foreach (var ls in elems)
+                res = res || ls?.Text?.Contains(value, comparisonType) == true;
+            return res;
+        }
     }
 }

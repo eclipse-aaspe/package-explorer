@@ -27,6 +27,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.Linq;
+using Lucene.Net.Util;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -71,6 +72,13 @@ namespace AasxPackageLogic.PackageCentral
     public class OnDemandListIdentifiable<T> : OnDemandList<T, AasIdentifiableSideInfo>, IClass 
         where T : Aas.IIdentifiable
     {
+        public OnDemandListIdentifiable() { }
+
+        public OnDemandListIdentifiable(IEnumerable<T> items)
+        {
+            this.AddRange(items);
+        }
+
         public int FindSideInfoIndexFromId(string id)
         {
             if (id?.HasContent() != true)
@@ -106,7 +114,7 @@ namespace AasxPackageLogic.PackageCentral
                     return smsi.GetSideInfo(ndx);
             }
             return null;
-        }
+        }        
 
         //
         // make this class suitable for IClass as well

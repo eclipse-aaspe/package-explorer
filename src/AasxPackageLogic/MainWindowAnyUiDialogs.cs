@@ -71,6 +71,16 @@ namespace AasxPackageLogic
         protected static string _userLastGetUrl = "http://???:51310";
 
         /// <summary>
+        /// Flag, if to remember the new identifiable base URI.
+        /// </summary>
+        public bool RememberNewIdentifiableBaseUri = false;
+
+        /// <summary>
+        /// Base URI for new Identifiable elements, if remembered.
+        /// </summary>
+        public string RememberedNewIdentifiableBaseUriStr = null;
+
+        /// <summary>
         /// Display context with more features for UI
         /// </summary>
         public AnyUiContextPlusDialogs DisplayContextPlus
@@ -113,7 +123,7 @@ namespace AasxPackageLogic
                     // create new AASX package
                     PackageCentral.MainItem.New();
                     // redraw
-                    MainWindow.CommandExecution_RedrawAll();
+                    await MainWindow.CommandExecution_RedrawAllAsync();
                 }
                 catch (Exception ex)
                 {
@@ -174,10 +184,12 @@ namespace AasxPackageLogic
                 // do
                 try
                 {
+                    // remember the base URI is always stopped before new manual operation
+                    RememberNewIdentifiableBaseUri = false;
+
                     // save
                     await PackageCentral.MainItem.SaveAsAsync(runtimeOptions: PackageCentral.CentralRuntimeOptions);
                     
-
                     // backup
                     if (Options.Curr.BackupDir != null)
                         PackageCentral.MainItem.Container.BackupInDir(
@@ -196,7 +208,7 @@ namespace AasxPackageLogic
                     MainWindow.CheckIfToFlushEvents();
 
                     // as saving changes the structure of pending supplementary files, re-display
-                    MainWindow.RedrawAllAasxElements(keepFocus: true);
+                    MainWindow.RedrawAllAasxElementsAsync(keepFocus: true);
                 }
                 catch (Exception ex)
                 {
@@ -267,6 +279,9 @@ namespace AasxPackageLogic
                     // save 
                     DisplayContextPlus.RememberForInitialDirectory(ucsf.TargetFileName);
 
+                    // remember the base URI is always stopped before new manual operation
+                    RememberNewIdentifiableBaseUri = false;
+
                     if (!forceLocal)
                     {
                         // leave it where it is
@@ -290,7 +305,7 @@ namespace AasxPackageLogic
                                 PackageContainerBase.BackupType.FullCopy);
 
                     // as saving changes the structure of pending supplementary files, re-display
-                    MainWindow.RedrawAllAasxElements();
+                    MainWindow.RedrawAllAasxElementsAsync();
 
                     // LRU?
                     // record in LRU?
@@ -349,7 +364,7 @@ namespace AasxPackageLogic
                 try
                 {
                     PackageCentral.MainItem.Close();
-                    MainWindow.RedrawAllAasxElements();
+                    MainWindow.RedrawAllAasxElementsAsync();
                 }
                 catch (Exception ex)
                 {
@@ -380,8 +395,8 @@ namespace AasxPackageLogic
                     await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
                     // update
-                    MainWindow.RedrawAllAasxElements();
-                    MainWindow.RedrawElementView();
+                    MainWindow.RedrawAllAasxElementsAsync();
+                    await MainWindow.RedrawElementViewAsync();
                     return;
                 }
 
@@ -928,8 +943,8 @@ namespace AasxPackageLogic
                 await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
                 // update
-                MainWindow.RedrawAllAasxElements();
-                MainWindow.RedrawElementView();
+                MainWindow.RedrawAllAasxElementsAsync();
+                await MainWindow.RedrawElementViewAsync();
             }
 
             if (cmd == "submodelread")
@@ -950,8 +965,8 @@ namespace AasxPackageLogic
                 {
                     await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
-                    MainWindow.RedrawAllAasxElements();
-                    MainWindow.RedrawElementView();
+                    MainWindow.RedrawAllAasxElementsAsync();
+                    await MainWindow.RedrawElementViewAsync();
                 }
                 catch (Exception ex)
                 {
@@ -1059,8 +1074,8 @@ namespace AasxPackageLogic
                     await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
                     // redisplay
-                    MainWindow.RedrawAllAasxElements();
-                    MainWindow.RedrawElementView();
+                    MainWindow.RedrawAllAasxElementsAsync();
+                    await MainWindow.RedrawElementViewAsync();
                 }
                 catch (Exception ex)
                 {
@@ -1133,8 +1148,8 @@ namespace AasxPackageLogic
                     await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
                     // redisplay
-                    MainWindow.RedrawAllAasxElements();
-                    MainWindow.RedrawElementView();
+                    MainWindow.RedrawAllAasxElementsAsync();
+                    await MainWindow.RedrawElementViewAsync();
                 }
                 catch (Exception ex)
                 {
@@ -1161,8 +1176,8 @@ namespace AasxPackageLogic
 					await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
 					// redisplay
-					MainWindow.RedrawAllAasxElements();
-					MainWindow.RedrawElementView();
+					MainWindow.RedrawAllAasxElementsAsync();
+					await MainWindow.RedrawElementViewAsync();
 				}
 				catch (Exception ex)
 				{
@@ -1191,8 +1206,8 @@ namespace AasxPackageLogic
 					await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
 					// redisplay
-					MainWindow.RedrawAllAasxElements();
-					MainWindow.RedrawElementView();
+					MainWindow.RedrawAllAasxElementsAsync();
+					await MainWindow.RedrawElementViewAsync();
 				}
 				catch (Exception ex)
 				{
@@ -1249,8 +1264,8 @@ namespace AasxPackageLogic
                     await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
                     // redisplay
-                    MainWindow.RedrawAllAasxElements();
-                    MainWindow.RedrawElementView();
+                    MainWindow.RedrawAllAasxElementsAsync();
+                    await MainWindow.RedrawElementViewAsync();
                 }
                 catch (Exception ex)
                 {
@@ -1992,7 +2007,7 @@ namespace AasxPackageLogic
                     MainWindow.CheckIfToFlushEvents();
 
                     // as saving changes the structure of pending supplementary files, re-display
-                    MainWindow.RedrawAllAasxElements(keepFocus: true);
+                    MainWindow.RedrawAllAasxElementsAsync(keepFocus: true);
                 }
                 catch (Exception ex)
                 {
@@ -2079,7 +2094,7 @@ namespace AasxPackageLogic
 		/// Using the currently loaded AASX, will check if a CD_AasxLoadedNavigateTo elements can be
 		/// found to be activated
 		/// </summary>
-		public bool UiCheckIfActivateLoadedNavTo()
+		public async Task<bool> UiCheckIfActivateLoadedNavTo()
         {
             // access
             if (PackageCentral.Main?.AasEnv == null || MainWindow.GetDisplayElements() == null)
@@ -2120,7 +2135,7 @@ namespace AasxPackageLogic
                 LocationHistory?.Push(veFound);
 
                 // fake selection
-                MainWindow.RedrawElementView();
+                await MainWindow.RedrawElementViewAsync();
                 MainWindow.TakeOverContentEnable(false);
                 MainWindow.UpdateDisplay();
 

@@ -1218,7 +1218,7 @@ namespace Extensions
                             {
                                 // directly replace
                                 r.Keys[i].Value = newId;
-                                if (res.Contains(lr.Identifiable))
+                                if (!res.Contains(lr.Identifiable))
                                     res.Add(lr.Identifiable);
                             }
                 }

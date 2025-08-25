@@ -98,7 +98,7 @@ namespace BlazorUI.Data
 				this.CheckSmtMode = MainMenu?.IsChecked("CheckSmtElements") == true;
 
 				// edit mode affects the total element view
-				RedrawAllAasxElements(nextFocusMdo: currMdo);
+				RedrawAllAasxElementsAsync(nextFocusMdo: currMdo);
 
                 return;
             }

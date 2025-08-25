@@ -85,11 +85,11 @@ namespace AasxPackageExplorer
         /// <summary>
         /// Redraw tree elements (middle), AAS entitty (right side)
         /// </summary>
-        public void CommandExecution_RedrawAll()
+        public async Task CommandExecution_RedrawAllAsync()
         {
             // redraw everything
-            RedrawAllAasxElements();
-            RedrawElementView();
+            await RedrawAllAasxElementsAsync();
+            await RedrawElementViewAsync();
         }
 
         /// <summary>
@@ -307,9 +307,9 @@ namespace AasxPackageExplorer
                     currMdo = DisplayElements.SelectedItem.GetMainDataObject();
 
                 // edit mode affects the total element view
-                RedrawAllAasxElements();
+                await RedrawAllAasxElementsAsync();
                 // fake selection
-                RedrawElementView();
+                await RedrawElementViewAsync();
                 // select last object
                 if (currMdo != null)
                 {
@@ -468,7 +468,7 @@ namespace AasxPackageExplorer
             }
         }
 
-        public void CommandBinding_CheckAndFix()
+        public async Task CommandBinding_CheckAndFix()
         {
             // work on package
             var msgBoxHeadline = "Check, validate and fix ..";
@@ -561,7 +561,7 @@ namespace AasxPackageExplorer
                    AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Information);
 
                 // redraw
-                CommandExecution_RedrawAll();
+                await CommandExecution_RedrawAllAsync();
             }
         }
 
@@ -1274,7 +1274,7 @@ namespace AasxPackageExplorer
             return true;
         }
 
-        public void CommandBinding_ImportDictToSubmodel(
+        public async Task CommandBinding_ImportDictToSubmodel(
             string cmd,
             AasxMenuActionTicket ticket = null)
         {
@@ -1326,7 +1326,7 @@ namespace AasxPackageExplorer
                 if (dataChanged)
                 {
                     Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
-                    RestartUIafterNewPackage();
+                    await RestartUIafterNewPackage();
                     Mouse.OverrideCursor = null;
                 }
 #endif
@@ -1362,7 +1362,7 @@ namespace AasxPackageExplorer
                 if (dataChanged)
                 {
                     Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
-                    RestartUIafterNewPackage();
+                    await RestartUIafterNewPackage();
                     Mouse.OverrideCursor = null;
                 }
 #endif
@@ -1398,141 +1398,8 @@ namespace AasxPackageExplorer
                         $"Import/Export: While displaying html-based help.");
                 }
             };
-            // dead-csharp off
-            //if (cmd == "exporttable" || cmd == "importtable")
-            //{
-            //    if (ticket?.ScriptMode != true)
-            //    {
-            //        // interactive
-            //        // handle the export dialogue
-            //        var uc = new ExportTableFlyout((cmd == "exporttable")
-            //            ? "Export SubmodelElements as Table"
-            //            : "Import SubmodelElements from Table");
-            //        uc.Presets = Logic?.GetImportExportTablePreset().Item1;
 
-            //        StartFlyoverModal(uc);
-
-            //        if (uc.CloseForHelp)
-            //        {
-            //            callHelp?.Invoke();
-            //            return;
-            //        }
-
-            //        if (uc.Result == null)
-            //            return;
-
-            //        // have a result
-            //        var record = uc.Result;
-
-            //        // be a little bit specific
-            //        var dlgTitle = "Select text file to be exported";
-            //        var dlgFileName = "";
-            //        var dlgFilter = "";
-
-            //        if (record.Format == (int)ImportExportTableRecord.FormatEnum.TSF)
-            //        {
-            //            dlgFileName = "new.txt";
-            //            dlgFilter =
-            //                "Tab separated file (*.txt)|*.txt|Tab separated file (*.tsf)|*.tsf|All files (*.*)|*.*";
-            //        }
-            //        if (record.Format == (int)ImportExportTableRecord.FormatEnum.LaTex)
-            //        {
-            //            dlgFileName = "new.tex";
-            //            dlgFilter = "LaTex file (*.tex)|*.tex|All files (*.*)|*.*";
-            //        }
-            //        if (record.Format == (int)ImportExportTableRecord.FormatEnum.Excel)
-            //        {
-            //            dlgFileName = "new.xlsx";
-            //            dlgFilter = "Microsoft Excel (*.xlsx)|*.xlsx|All files (*.*)|*.*";
-            //        }
-            //        if (record.Format == (int)ImportExportTableRecord.FormatEnum.Word)
-            //        {
-            //            dlgFileName = "new.docx";
-            //            dlgFilter = "Microsoft Word (*.docx)|*.docx|All files (*.*)|*.*";
-            //        }
-            //        if (record.Format == (int)ImportExportTableRecord.FormatEnum.NarkdownGH)
-            //        {
-            //            dlgFileName = "new.md";
-            //            dlgFilter = "Markdown (*.md)|*.md|All files (*.*)|*.*";
-            //        }
-
-            //        // store
-            //        ticket["Record"] = record;
-
-            //        // ask now for a filename
-            //        if (!(await DisplayContext.MenuSelectSaveFilenameToTicketAsync(
-            //            ticket, "File",
-            //            dlgTitle,
-            //            dlgFileName,
-            //            dlgFilter,
-            //            "Import/ export table: No valid filename.")))
-            //            return;
-            //    }
-
-            //    // pass on
-            //    try
-            //    {
-            //        Logic?.CommandBinding_GeneralDispatchHeadless(cmd, null, ticket);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Logic?.LogErrorToTicket(ticket, ex, "Import/export table: passing on.");
-            //    }
-            //}
-
-            //if (cmd == "importtimeseries")
-            //{
-            //    if (ticket?.ScriptMode != true)
-            //    {
-            //        // interactive
-            //        // handle the export dialogue
-            //        var uc = new ImportTimeSeriesFlyout();
-            //        uc.Result = Logic?.GetImportExportTablePreset().Item3 ?? new ImportTimeSeriesRecord();
-
-            //        StartFlyoverModal(uc);
-
-            //        if (uc.Result == null)
-            //            return;
-
-            //        // have a result
-            //        var result = uc.Result;
-
-            //        // store
-            //        ticket["Record"] = result;
-
-            //        // be a little bit specific
-            //        var dlgTitle = "Select file for time series import ..";
-            //        var dlgFilter = "All files (*.*)|*.*";
-
-            //        if (result.Format == (int)ImportTimeSeriesRecord.FormatEnum.Excel)
-            //        {
-            //            dlgFilter =
-            //                "Tab separated file (*.txt)|*.txt|Tab separated file (*.tsf)|*.tsf|All files (*.*)|*.*";
-            //        }
-
-            //        // ask now for a filename
-            //        if (!(await DisplayContext.MenuSelectOpenFilenameToTicketAsync(
-            //            ticket, "File",
-            //            dlgTitle,
-            //            null,
-            //            dlgFilter,
-            //            "Import time series: No valid filename.")))
-            //            return;
-            //    }
-
-            //    // pass on
-            //    try
-            //    {
-            //        Logic?.CommandBinding_GeneralDispatchHeadless(cmd, null, ticket);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Logic?.LogErrorToTicket(ticket, ex, "Import time series: passing on.");
-            //    }
-            //}
-            // dead-csharp on
-            // redraw
-            CommandExecution_RedrawAll();
+            await CommandExecution_RedrawAllAsync();
         }
 
         public async Task CommandBinding_ToolsFind(

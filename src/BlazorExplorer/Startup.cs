@@ -47,7 +47,7 @@ namespace BlazorUI
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSingleton<AASService>();
-            services.AddScoped<BlazorSession>();
+            services.AddScoped<BlazorSession>(); // is only created once per session!!
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

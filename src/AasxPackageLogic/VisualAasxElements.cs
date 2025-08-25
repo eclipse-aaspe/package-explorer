@@ -1278,7 +1278,7 @@ namespace AasxPackageLogic
                 return new Tuple<IAssetAdministrationShell, ISubmodel, string>(
                     veSmr.theAas,
                     veSmr.theSubmodel,
-                    theWrapper?.CollectIdShortByParent(separatorChar: '.', excludeIdentifiable: true));
+                    theWrapper?.CollectIdShortPathByParent(separatorChar: '.', excludeIdentifiable: true));
             }
 
             // find just a Submodel
@@ -1288,7 +1288,7 @@ namespace AasxPackageLogic
                 return new Tuple<IAssetAdministrationShell, ISubmodel, string>(
                     null,
                     veSm.theSubmodel,
-                    theWrapper?.CollectIdShortByParent(separatorChar: '.', excludeIdentifiable: true));
+                    theWrapper?.CollectIdShortPathByParent(separatorChar: '.', excludeIdentifiable: true));
             }
 
             return null;
@@ -1446,8 +1446,12 @@ namespace AasxPackageLogic
         {
             if (theCD != null)
             {
+                var td = "";
+                if (GetTaintedTime() != null)
+                    td = "\u273d ";
+
                 var ci = theCD.ToCaptionInfo();
-                this.Caption = "" + ci.Item1 + " ";
+                this.Caption = td + "" + ci.Item1 + " ";
                 this.Info = ci.Item2;
 
                 // enrich?
@@ -2115,6 +2119,7 @@ namespace AasxPackageLogic
                 var tiAsset = new VisualElementAsset(tiAas, cache, env, aas, asset);
                 tiAas.IsExpanded = aasIsExpanded;
                 tiAas.Members.Add(tiAsset);
+                tiAas.VirtualMembersAtTop++;
             }
 
             // have submodels?
@@ -2337,7 +2342,7 @@ namespace AasxPackageLogic
                 {
                     // branch per Submodel
 					var tiSM = new VisualElementEnvironmentItem(
-					    parent: tiCDs, cache: cache,
+					    parent: tiSubmodelsRoot, cache: cache,
 					    package: tiCDs.thePackage, env: tiCDs.theEnv,
 					    itemType: VisualElementEnvironmentItem.ItemType.Env);
 					tiSM.Caption = "Submodel: " + sm.IdShort;
@@ -3209,12 +3214,20 @@ namespace AasxPackageLogic
             int res = 0;
 
             // find the correct parent(s)
-            foreach (var parentVE in FindAllVisualElementOnMainDataObject(
-                data.ParentElem, alsoDereferenceObjects: true))
-            {
+            // 25-08-21: do not use "ParentElem" but use "ThisElem"
+            // var thisVE = FindFirstVisualElementOnMainDataObject(data.ThisElem, alsoDereferenceObjects: true);
+            foreach (var thisVE in FindAllVisualElementOnMainDataObject(data.ThisElem, alsoDereferenceObjects: true))
+            { 
+                // exclude some (e.g. avoid AAS)
+
+                // get the correct parent
+                var parentVE = thisVE?.Parent;
+                if (parentVE == null)
+                    continue;
+
                 // trivial
                 var ni = parentVE.VirtualMembersAtTop + data.NewIndex;
-                if (parentVE?.Members == null || ni < 0 || ni >= parentVE.Members.Count)
+                if (parentVE.Members == null || ni < 0 || ni >= parentVE.Members.Count)
                     continue;
 
                 // now, below these find direct childs matching the SME (only these can be removed)
@@ -3233,6 +3246,7 @@ namespace AasxPackageLogic
 
                 // moved
                 res++;
+                break;
             }
 
             // ok
@@ -3447,20 +3461,33 @@ namespace AasxPackageLogic
 
             if (data.Reason == PackCntChangeEventReason.MoveToIndex)
             {
-                if (data.ParentElem is Aas.IReferable parentMgr
-                    && data.ThisElem is Aas.ISubmodelElement sme)
+                if (data.ParentElem is Aas.IReferable
+                    && data.ThisElem is Aas.ISubmodelElement)
                 {
                     return 0 < UpdateByEventTryMoveGenericVE(data);
                 }
 
-                if (data.ParentElem is Aas.AssetAdministrationShell aas
-                    && data.ThisElem is Aas.Reference smref)
+                if (data.ParentElem is Aas.IAssetAdministrationShell
+                    && data.ThisElem is Aas.IReference)
                 {
                     return 0 < UpdateByEventTryMoveGenericVE(data);
                 }
 
-                if (data.ParentElem is List<Aas.ConceptDescription> cds
-                    && data.ThisElem is Aas.ConceptDescription cd)
+                if (data.ParentElem is Aas.IEnvironment
+                    && data.ThisElem is Aas.IAssetAdministrationShell)
+                {
+                    return 0 < UpdateByEventTryMoveGenericVE(data);
+                }
+
+                if (data.ParentElem is Aas.IEnvironment
+                    && data.ThisElem is Aas.ISubmodel)
+                {
+                    return 0 < UpdateByEventTryMoveGenericVE(data);
+                }
+
+                // if (data.ParentElem is List<Aas.ConceptDescription>
+                if (data.ParentElem is Aas.IEnvironment
+                    && data.ThisElem is Aas.IConceptDescription)
                 {
                     return 0 < UpdateByEventTryMoveGenericVE(data);
                 }

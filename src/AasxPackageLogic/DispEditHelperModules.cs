@@ -67,13 +67,17 @@ namespace AasxPackageLogic
             public string[] auxTitles = null;
             public string[] auxToolTips = null;
             public Func<int, AnyUiLambdaActionBase> auxLambda = null;
+            public Func<int, Task<AnyUiLambdaActionBase>> auxLambdaAsync = null;
 
             public DispEditInjectAction() { }
 
-            public DispEditInjectAction(string[] auxTitles, Func<int, AnyUiLambdaActionBase> auxLambda)
+            public DispEditInjectAction(string[] auxTitles, 
+                Func<int, AnyUiLambdaActionBase> auxLambda,
+                Func<int, Task<AnyUiLambdaActionBase>> auxLambdaAsync)
             {
                 this.auxTitles = auxTitles;
                 this.auxLambda = auxLambda;
+                this.auxLambdaAsync = auxLambdaAsync;
             }
 
             public DispEditInjectAction(string[] auxTitles, string[] auxToolTips,
@@ -360,6 +364,17 @@ namespace AasxPackageLogic
             AddKeyValue(stack, "IdShort", "" + si.IdShort, repo: null);
             AddKeyValue(stack, "Id", "" + si.Id, repo: null);
 
+            AddKeyValue(stack, "Id endpoint", "" + si.Id, repo: null,
+                auxButtonTitle: "Copy",
+                auxButtonLambda: (i) => {
+                    this.context?.ClipboardSet(new AnyUiClipboardData(
+                        text: si.Id)
+                        { });
+                    Log.Singleton.Info(StoredPrint.Color.Blue, "Id copied to clipboard.");
+                    return new AnyUiLambdaActionNone();
+                },
+                auxButtonOverride: true);
+
             AddKeyValue(stack, "Queried endpoint", "" + si.QueriedEndpoint?.ToString(), repo: null,
                 auxButtonTitle: "Copy",
                 auxButtonLambda: (i) => {
@@ -371,7 +386,7 @@ namespace AasxPackageLogic
                     {
                         this.context?.ClipboardSet(new AnyUiClipboardData(
                             text: si.QueriedEndpoint.ToString())
-                        { });
+                            { });
                         Log.Singleton.Info(StoredPrint.Color.Blue, "Queried endpoint copied to clipboard.");
                     }
                     return new AnyUiLambdaActionNone();
@@ -389,13 +404,14 @@ namespace AasxPackageLogic
                     {
                         this.context?.ClipboardSet(new AnyUiClipboardData(
                             text: si.DesignatedEndpoint.ToString())
-                        { });
+                            { });
                         Log.Singleton.Info(StoredPrint.Color.Blue, "Designated endpoint copied to clipboard.");
                     }
                     return new AnyUiLambdaActionNone();
                 },
                 auxButtonOverride: true);
         }
+        
         public void DisplayOrEditEntityMissingSideInfo(
             AnyUiStackPanel stack, 
             string key)
@@ -451,6 +467,7 @@ namespace AasxPackageLogic
         //
 
         public void DisplayOrEditEntityIdentifiable(AnyUiStackPanel stack,
+            AdminShellPackageEnvBase packageEnv,
             Aas.IEnvironment env,
             Aas.IIdentifiable identifiable,
             string templateForIdString,
@@ -459,6 +476,10 @@ namespace AasxPackageLogic
             // access
             if (stack == null || identifiable == null)
                 return;
+
+            // special flags
+            var isDynEnv = packageEnv is AdminShellPackageDynamicFetchEnv;
+            var idReadOnly = isDynEnv && identifiable.Id?.HasContent() == true;
 
             // members
             this.AddGroup(stack, "Identifiable:", levelColors.SubSection);
@@ -496,20 +517,20 @@ namespace AasxPackageLogic
                     }))
             {
                 AddKeyValueExRef(
-                    stack, "id", identifiable, identifiable.Id, null, repo,
+                    stack, "id", identifiable, identifiable.Id, null, 
+                    (idReadOnly) ? null : repo,
                     v =>
                     {
                         var dr = new DiaryReference(identifiable);
                         string value = v as string;
-                        bool duplicate = false;
                         identifiable.Id = v as string;
-                        //mlem
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange(), diaryReference: dr);
                         return new AnyUiLambdaActionNone();
                     },
                     takeOverLambdaAction: new AnyUiLambdaActionRedrawAllElements(nextFocus: identifiable),
+                    auxButtonOverride: true,
                     auxButtonTitles: DispEditInjectAction.GetTitles(new[] { "Generate" }, injectToId),
-                    auxButtonLambda: (i) =>
+                    auxButtonLambdaAsync: async (i) =>
                     {
                         if (i == 0)
                         {
@@ -521,7 +542,11 @@ namespace AasxPackageLogic
                         }
                         if (i >= 1)
                         {
-                            var la = injectToId?.auxLambda?.Invoke(i - 1);
+                            AnyUiLambdaActionBase la = null;
+                            if (injectToId?.auxLambda != null)
+                                la = injectToId.auxLambda?.Invoke(i - 1);
+                            if (injectToId?.auxLambdaAsync != null)
+                                la = await injectToId.auxLambdaAsync?.Invoke(i - 1);
                             return la;
                         }
                         return new AnyUiLambdaActionNone();

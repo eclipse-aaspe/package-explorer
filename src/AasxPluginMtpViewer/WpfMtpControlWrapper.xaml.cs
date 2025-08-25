@@ -138,7 +138,7 @@ namespace AasxPluginMtpViewer
                 if (CheckIfPackageFile(inputFn))
                 {
                     // build idShort Path
-                    var idShortPath = "" + _activeMtpFileElem.CollectIdShortByParent(
+                    var idShortPath = "" + _activeMtpFileElem.CollectIdShortPathByParent(
                             separatorChar: '.', excludeIdentifiable: true);
 
                     // _mtpTypeSm might be in another AAS
