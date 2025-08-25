@@ -6620,12 +6620,15 @@ namespace AasCore.Aas3_1
                     }
                 }
 
-                foreach (var error in Verification.VerifyContentType(that.ContentType))
+                if (that.ContentType != null)
                 {
-                    error.PrependSegment(
-                        new Reporting.NameSegment(
-                            "contentType"));
-                    yield return error;
+                    foreach (var error in Verification.VerifyContentType(that.ContentType))
+                    {
+                        error.PrependSegment(
+                            new Reporting.NameSegment(
+                                "contentType"));
+                        yield return error;
+                    }
                 }
             }
 
