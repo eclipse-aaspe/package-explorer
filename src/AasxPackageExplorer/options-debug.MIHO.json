@@ -5,6 +5,7 @@
     "NoHints": true
     /* This file shall be loaded as main package at start of application | Arg: <path> */,
     "AasxToLoad": "http://localhost:8081/shells/aHR0cHM6Ly9hZG1pbi1zaGVsbC1pby9pZHRhL2Fhcy9Qcm9kdWN0Q2hhbmdlTm90aWZpY2F0aW9ucy8xLzA"
+    // "AasxToLoad": "http://localhost:8081/shells/aHR1cHM6Ly9hZG1pbi1zaGVsbC1pby9pZHRhL2Fhcy9Qcm9kdWN0Q2hhbmdlTm90aWZpY2F0aW9ucy8xLzA"
     // "AasxToLoad": "C:\\Users\\Micha\\Desktop\\test-smt-on-basyx\\IDTA_02036-1-0_SMT_ProductChangeNotification_Draft_v35_manual_fixes.aasx"
     /* This file shall be loaded as aux package at start of application | Arg: <path> */,
     "AuxToLoad": null
@@ -31,14 +32,14 @@
                 "Method": "Ask", // None, Ask, Basic, CertificateStore, File, InteractiveEntry, Secret
                 "Username": "Admin",
                 "Password": "",
-                // "Password": "SuperSafePasswd",
+                // "Password": "superSafePasswd",
                 // "AuthServer": "",
                 "AuthServer": "https://www.admin-shell-io.com/50001/.well-known/openid-configuration", // for rest of authentication
                 // "AuthServer": "https://credential.aas-voyager.com/token", // for secret based OpenID Connect
                 "CertFile": "",
                 "CertPassword": "",
-                "CertPick": "GEANT",
-                // "CertPick" :  "",
+                // "CertPick": "GEANT",
+                "CertPick" :  "",
                 // "SecretId": "",
                 "SecretId": "aorzelski@phoenixcontact.com",
                 // "SecretValue": "",
@@ -119,7 +120,7 @@
     /* If other then -1, then time in ms for the splash window to stay on the screen. | Arg: <milli-secs> */,
     "SplashTime": 0
     /* Fraction of main window with dedicated to left column of screen when resizing window. | Arg: Percent 0-100.0 */,
-    "PercentageLeftColumn": 12.0
+    "PercentageLeftColumn": 15.0
     /* Fraction of main window with dedicated to right column of screen (content section) when resizing window. | Arg: Percent 0-100.0 */,
     "PercentageRightColumn": 60.0
     /* If true, use always internal browser */,

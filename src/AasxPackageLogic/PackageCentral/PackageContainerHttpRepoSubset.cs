@@ -1151,7 +1151,7 @@ namespace AasxPackageLogic.PackageCentral
             // get the record data (as supplemental infos to the fullItemLocation)
             var record = (containerOptions as PackageContainerHttpRepoSubsetOptions)?.Record;
 
-            // invalidate cursor data (as a new request is about to be started)
+            // invalidate cursor data (as a new request is  about to be started)
             string cursor = null;
 
             // TODO: very long function, needs to be refactored
@@ -1410,6 +1410,13 @@ namespace AasxPackageLogic.PackageCentral
                                 return;
 
                             lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
+
+                            if (isAllAAS)
+                                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllAas);
+                            if (isAllSM)
+                                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllSM);
+                            if (isAllCD)
+                                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllCD);
 
                             try
                             {
@@ -1676,6 +1683,8 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var aas = Jsonization.Deserialize.AssetAdministrationShellFrom(node);
+                                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleAas);
+                                record.AasId = aas.Id;
                                 lambdaReportAll(++numAAS, numSM, numCD, numDiv);
                                 trackLoadedIdentifiables?.Add(aas);
                                 if (prepAas.AddIfNew(aas, new AasIdentifiableSideInfo()
@@ -1719,6 +1728,8 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var sm = Jsonization.Deserialize.SubmodelFrom(node);
+                                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleSM);
+                                record.SmId = sm.Id;
                                 lambdaReportAll(numAAS, ++numSM, numCD, numDiv);
                                 trackLoadedIdentifiables?.Add(sm);
                                 if (prepSM.AddIfNew(sm, new AasIdentifiableSideInfo()
@@ -1762,6 +1773,8 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var cd = Jsonization.Deserialize.ConceptDescriptionFrom(node);
+                                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleCD);
+                                record.CdId = cd.Id;
                                 lambdaReportAll(numAAS, numSM, ++numCD, numDiv);
                                 trackLoadedIdentifiables?.Add(cd);
                                 if (prepCD.AddIfNew(cd, new AasIdentifiableSideInfo()
@@ -2744,6 +2757,10 @@ namespace AasxPackageLogic.PackageCentral
             if (ticket?.ScriptMode == true)
                 return true;
 
+            // some memory
+            AnyUiUIElement testElem1 = null;
+            int heightQueryEditor = 120;
+
             // ok, go on ..
             var uc = new AnyUiDialogueDataModalPanel(caption);
             uc.ActivateRenderPanel(record,
@@ -3004,7 +3021,7 @@ namespace AasxPackageLogic.PackageCentral
 
                     if ((scope & ConnectExtendedScope.Query) > 0)
                     {
-                        // Query
+                        // Query check box
                         AnyUiUIElement.RegisterControl(
                                 helper.Set(
                                     helper.AddSmallCheckBoxTo(g, row, 0,
@@ -3021,13 +3038,58 @@ namespace AasxPackageLogic.PackageCentral
                                     return new AnyUiLambdaActionModalPanelReRender(uc);
                                 });
 
-                        helper.AddSmallLabelTo(g, row + 1, 0, content: "Query:",
+                        // Complex query line
+                        helper.AddSmallLabelTo(g, row + 1, 0, content: "Preset/ Size:",
+                                verticalAlignment: AnyUiVerticalAlignment.Center,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                        var g2 = helper.AddSmallGridTo(g, row + 1, 1, 1, 3, new[] { "*", "#", "#" });
+
+                        AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallComboBoxTo(g2, 0, 0,
+                                    isEditable: true,
+                                    // items: Options.Curr.BaseAddresses?.ToArray(),
+                                    items: Options.Curr.BaseAddresses?
+                                           .Concat(Options.Curr.KnownEndpoints?.Select((o) => o.BaseAddress)).ToArray(),
+                                    text: "" + record.BaseAddress,
+                                    margin: new AnyUiThickness(0, 0, 0, 0),
+                                    padding: new AnyUiThickness(0, 0, 0, 0),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
+                                (s) => { record.BaseAddress = s; });
+
+                        AnyUiUIElement.RegisterControl(
+                            helper.AddSmallButtonTo(g2, 0, 1, 
+                                margin: new AnyUiThickness(5, 0, 5, 0),
+                                content: " \uff0b ",
+                                modalDialogStyle: true,
+                                foreground: AnyUiBrushes.White,
+                                toolTip: "Enlarges the size of the query text editor"),
+                                setValue: (o) => {
+                                    heightQueryEditor += 50;
+                                    return new AnyUiLambdaActionModalPanelReRender(uc);
+                                });
+
+                        var b2 = AnyUiUIElement.RegisterControl(
+                            helper.AddSmallButtonTo(g2, 0, 2,
+                                margin: new AnyUiThickness(5, 0, 5, 0),
+                                content: "  \u2212  ",
+                                modalDialogStyle: true,
+                                foreground: AnyUiBrushes.White,
+                                toolTip: "Decreases the size of the query text editor"),
+                                setValue: (o) => {
+                                    heightQueryEditor = Math.Max(120, heightQueryEditor - 50);
+                                    return new AnyUiLambdaActionModalPanelReRender(uc);
+                                });
+
+                        helper.AddSmallLabelTo(g, row + 2, 0, content: "Query:",
                                 verticalAlignment: AnyUiVerticalAlignment.Top,
                                 verticalContentAlignment: AnyUiVerticalAlignment.Top);
 
-                        AnyUiUIElement.SetStringFromControl(
+                        // Query text itself
+                        testElem1 = AnyUiUIElement.SetStringFromControl(
                                 helper.Set(
-                                    helper.AddSmallTextBoxTo(g, row + 1, 1,
+                                    helper.AddSmallTextBoxTo(g, row + 2, 1,
                                         text: $"{record.QueryScript}",
                                         verticalAlignment: AnyUiVerticalAlignment.Stretch,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Top,
@@ -3035,10 +3097,10 @@ namespace AasxPackageLogic.PackageCentral
                                         fontSize: 0.7,
                                         multiLine: true),
                                     horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
-                                    minHeight: 120),
+                                    minHeight: heightQueryEditor),
                                 (s) => { record.QueryScript = s; });
 
-                        row += 2;
+                        row += 3;
                     }
 
                     if ((scope & ConnectExtendedScope.Filters) > 0)
@@ -3389,33 +3451,27 @@ namespace AasxPackageLogic.PackageCentral
             public bool RegisterAas = false;
         }
 
+        public class UploadFilesJobRecord : UploadAssistantJobRecord
+        {
+            [AasxMenuArgument(help: "List of file names to upload.")]
+            public List<string> Filenames = new List<string>();
+        }
 
-
-        public static async Task<bool> PerformUploadAssistant(
+        public static async Task<bool> PerformUploadAssistantDialogue(
             AasxMenuActionTicket ticket,
             AnyUiContextBase displayContext,
             string caption,
-            AdminShellPackageEnvBase packEnv,
-            IEnumerable<Aas.IIdentifiable> idfs,
-            PackCntRuntimeOptions runtimeOptions = null,
-            PackageContainerListBase containerList = null)
+            UploadAssistantJobRecord recordJob,
+            IEnumerable<Aas.IIdentifiable> idfs)
         {
             // access
-            if (displayContext == null || caption?.HasContent() != true || packEnv == null || idfs == null)
+            if (displayContext == null || caption?.HasContent() != true || recordJob == null)
                 return false;
-
-            // build statistics
-            var numAas = idfs.Where((idf) => idf is Aas.IAssetAdministrationShell).Count();
-            var numSm = idfs.Where((idf) => idf is Aas.ISubmodel).Count();
-            var numCD = idfs.Where((idf) => idf is Aas.IConceptDescription).Count();
 
             //
             // Screen 1 : Job attributes
             //
-
-            var recordJob = new UploadAssistantJobRecord();
-            ticket?.ArgValue?.PopulateObjectFromArgs(recordJob);
-
+           
             var ucJob = new AnyUiDialogueDataModalPanel(caption);
             ucJob.ActivateRenderPanel(recordJob,
                 disableScrollArea: false,
@@ -3435,21 +3491,29 @@ namespace AasxPackageLogic.PackageCentral
                     // dynamic rows
                     int row = 0;
 
-                    // Statistics
-                    helper.AddSmallLabelTo(g, row, 0, content: "Available for upload:");
+                    // build statistics
+                    if (idfs != null)
+                    {
+                        var numAas = idfs.Where((idf) => idf is Aas.IAssetAdministrationShell).Count();
+                        var numSm = idfs.Where((idf) => idf is Aas.ISubmodel).Count();
+                        var numCD = idfs.Where((idf) => idf is Aas.IConceptDescription).Count();
 
-                    helper.AddSmallLabelTo(g, row, 1, content: "# of AAS: " + numAas);
-                    helper.AddSmallLabelTo(g, row + 1, 1, content: "# of Submodel: " + numSm);
-                    helper.AddSmallLabelTo(g, row + 2, 1, content: "# of ConceptDescription: " + numCD);
+                        // show statistics
+                        helper.AddSmallLabelTo(g, row, 0, content: "Available for upload:");
 
-                    row += 3;
+                        helper.AddSmallLabelTo(g, row, 1, content: "# of AAS: " + numAas);
+                        helper.AddSmallLabelTo(g, row + 1, 1, content: "# of Submodel: " + numSm);
+                        helper.AddSmallLabelTo(g, row + 2, 1, content: "# of ConceptDescription: " + numCD);
 
-                    // separation
-                    helper.AddSmallBorderTo(g, row, 0,
-                        borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
-                        colSpan: 2,
-                        margin: new AnyUiThickness(0, 0, 0, 20));
-                    row++;
+                        row += 3;
+
+                        // separation
+                        helper.AddSmallBorderTo(g, row, 0,
+                            borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
+                            colSpan: 2,
+                            margin: new AnyUiThickness(0, 0, 0, 20));
+                        row++;
+                    }
 
                     // Base address + Type
                     helper.AddSmallLabelTo(g, row, 0, content: "Base address:",
@@ -3563,8 +3627,26 @@ namespace AasxPackageLogic.PackageCentral
                     return false;
             }
 
+            // ok
+            return true;
+        }
+
+        public static async Task<bool> PerformUploadAssistant(
+            AasxMenuActionTicket ticket,
+            AnyUiContextBase displayContext,
+            UploadAssistantJobRecord record,
+            AdminShellPackageEnvBase packEnv,
+            IEnumerable<Aas.IIdentifiable> idfs,
+            bool doNotAskForRowsToUpload = false,
+            PackCntRuntimeOptions runtimeOptions = null,
+            PackageContainerListBase containerList = null)
+        {
+            // access
+            if (displayContext == null || packEnv == null || idfs == null)
+                return false;            
+
             // some obvious checks
-            if (recordJob.BaseAddress?.HasContent() != true)
+            if (record.BaseAddress?.HasContent() != true)
             {
                 Log.Singleton.Error("No BaseAddress given. Aborting!");
                 return false;
@@ -3597,8 +3679,8 @@ namespace AasxPackageLogic.PackageCentral
             // build list
             var rows = sorted
                 .Where((idf) => (
-                       (!(idf is Aas.ISubmodel) || recordJob.IncludeSubmodels)
-                    && (!(idf is Aas.IConceptDescription) || recordJob.IncludeCDs)
+                       (!(idf is Aas.ISubmodel) || record.IncludeSubmodels)
+                    && (!(idf is Aas.IConceptDescription) || record.IncludeCDs)
                 ))
                 .Select((idf) => new AnyUiDialogueDataGridRow()
                 {
@@ -3618,10 +3700,10 @@ namespace AasxPackageLogic.PackageCentral
             // in order to re-use sockets
             BaseUriDict baseUri = null;
             HttpClient client = null;
-            if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+            if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
             {
                 // Note: it seems to be also possible to create an HttpClient with "" as BaseAddress and pass Host via URL!!
-                baseUri = new BaseUriDict(recordJob.BaseAddress);
+                baseUri = new BaseUriDict(record.BaseAddress);
                 // TODO
                 client = PackageHttpDownloadUtil.CreateHttpClient(baseUri.GetBaseUriForAasRepo(), runtimeOptions, containerList);
             }
@@ -3650,7 +3732,7 @@ namespace AasxPackageLogic.PackageCentral
             workerCheck.DoWork += async (sender, e) =>
             {
                 // ask server
-                if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+                if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
                 {
                     var numRes = await PackageHttpDownloadUtil.DownloadListOfIdentifiables<Aas.IIdentifiable, AnyUiDialogueDataGridRow>(
                         client,
@@ -3709,7 +3791,7 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 // status
                                 row.Cells[4] = "-";
-                                if (recordJob.OverwriteIfExist)
+                                if (record.OverwriteIfExist)
                                     row.Cells[4] = "PUT";
                                 row.Cells[5] = (idf.Administration?.ToStringExtended(1)) ?? "-";
                                 lambdaStat(true);
@@ -3727,29 +3809,35 @@ namespace AasxPackageLogic.PackageCentral
             await displayContext.StartFlyoverModalAsync(ucProgExist);
 
             //
-            // Screen 3: show list of elements
+            // Screen 3: show list of elements?
             //
-            var ucSelect = new AnyUiDialogueDataSelectFromDataGrid(
-                        "Select element(s) to be uploaded ..",
-                        maxWidth: 9999);
 
-            ucSelect.ColumnDefs = AnyUiListOfGridLength.Parse(new[] { "50:", "1*", "3*", "70:", "70:", "70:" });
-            ucSelect.ColumnHeaders = new[] { "Type", "IdShort", "Id", "V.Local", "Action", "V.Server" };
-            ucSelect.Rows = rows.ToList();
-            ucSelect.EmptySelectOk = true;
+            IList<AnyUiDialogueDataGridRow> rowsToUpload = rows;
 
-            if (ticket?.ScriptMode != true)
+            if (!doNotAskForRowsToUpload)
             {
-                // if not in script mode, perform dialogue
-                if (!(await displayContext.StartFlyoverModalAsync(ucSelect)))
-                    return false;
-            }
+                var ucSelect = new AnyUiDialogueDataSelectFromDataGrid(
+                            "Select element(s) to be uploaded ..",
+                            maxWidth: 9999);
 
-            // translate result items
-            var rowsToUpload = ucSelect.ResultItems;
-            if (rowsToUpload == null || rowsToUpload.Count() < 1)
-                // nothings means: everything!
-                rowsToUpload = rows;
+                ucSelect.ColumnDefs = AnyUiListOfGridLength.Parse(new[] { "50:", "1*", "3*", "70:", "70:", "70:" });
+                ucSelect.ColumnHeaders = new[] { "Type", "IdShort", "Id", "V.Local", "Action", "V.Server" };
+                ucSelect.Rows = rows.ToList();
+                ucSelect.EmptySelectOk = true;
+
+                if (ticket?.ScriptMode != true)
+                {
+                    // if not in script mode, perform dialogue
+                    if (!(await displayContext.StartFlyoverModalAsync(ucSelect)))
+                        return false;
+                }
+
+                // translate result items
+                rowsToUpload = ucSelect.ResultItems;
+                if (rowsToUpload == null || rowsToUpload.Count() < 1)
+                    // nothings means: everything!
+                    rowsToUpload = rows;
+            }
 
             //
             // Screen 4: make a progress on the upload of Identifiables
@@ -3773,7 +3861,7 @@ namespace AasxPackageLogic.PackageCentral
             workerUpload.DoWork += async (sender, e) =>
             {
                 // ask server
-                if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+                if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
                 {
                     // will collect AAS for later registering
                     List<AssetAdministrationShell> uploadedAas = new List<AssetAdministrationShell>();
@@ -3838,7 +3926,7 @@ namespace AasxPackageLogic.PackageCentral
                         // thumbnails (for AAS)
                         //
 
-                        if (recordJob.IncludeThumbFiles
+                        if (record.IncludeThumbFiles
                             && idf is Aas.IAssetAdministrationShell aas
                             && aas.AssetInformation?.DefaultThumbnail?.Path?.HasContent() == true)
                         {
@@ -3922,7 +4010,7 @@ namespace AasxPackageLogic.PackageCentral
                         // attachments (for Submodels)
                         //
 
-                        if (recordJob.IncludeSupplFiles
+                        if (record.IncludeSupplFiles
                             && idf is Aas.ISubmodel submodel && submodel.SubmodelElements != null)
                         {
                             // Note: the Part 2 PDF says '/', the swagger says '.'
@@ -4081,7 +4169,7 @@ namespace AasxPackageLogic.PackageCentral
                     // Register (just not parallel..)?
                     //
 
-                    if (recordJob.RegisterAas && uploadedAas.Count > 0
+                    if (record.RegisterAas && uploadedAas.Count > 0
                         && baseUri.GetBaseUriForBasicDiscovery() != null)
                     {
                         foreach (var aas in uploadedAas)
@@ -4115,18 +4203,18 @@ namespace AasxPackageLogic.PackageCentral
             {
                 runtimeOptions?.Log?.Error("When Put/ Push to Registry/ Repository, {0} element(s) were not uploaded " +
                     "while {1} uploaded ok. Location: {2}",
-                    numNOK, numOK, recordJob.BaseAddress);
+                    numNOK, numOK, record.BaseAddress);
             }
             else if (numOK < 1)
             {
                 runtimeOptions?.Log?.Info(StoredPrint.Color.Blue, "No need of Put/ Push element(s) " +
-                    "to Registry/ Repository. Location {0}", recordJob.BaseAddress);
+                    "to Registry/ Repository. Location {0}", record.BaseAddress);
             }
             else
             {
                 runtimeOptions?.Log?.Info(StoredPrint.Color.Blue, "Successful Put/ Push of {0} element(s) " +
                     "to Registry/ Repository. Location {1}",
-                    numOK, recordJob.BaseAddress);
+                    numOK, record.BaseAddress);
             }
 
             // ok

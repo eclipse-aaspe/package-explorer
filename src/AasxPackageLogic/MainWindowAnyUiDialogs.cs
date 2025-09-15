@@ -611,13 +611,129 @@ namespace AasxPackageLogic
                     // make distinct (default comparer should work on list of Identifiables)
                     var idfs2 = idfs.Distinct();
 
-                    // call assistant
-                    await PackageContainerHttpRepoSubset.PerformUploadAssistant(
+                    // call assistant in 3 steps
+                    // get the record
+                    var recordJob = new UploadAssistantJobRecord();
+                    ticket?.ArgValue?.PopulateObjectFromArgs(recordJob);
+
+                    // ask for the record
+                    if (!await PackageContainerHttpRepoSubset.PerformUploadAssistantDialogue(
                         ticket, DisplayContext,
                         "Upload current to Registry or Repository",
+                        recordJob,
+                        idfs: idfs2))
+                        return;
+
+                    // now, perform
+                    await PackageContainerHttpRepoSubset.PerformUploadAssistant(
+                        ticket, DisplayContext,
+                        recordJob,
                         PackageCentral.Main,
-                        idfs2,
-                        PackageCentral.CentralRuntimeOptions);
+                        idfs: idfs2,
+                        runtimeOptions: PackageCentral.CentralRuntimeOptions);
+                }
+                catch (Exception ex)
+                {
+                    LogErrorToTicket(ticket, ex, "when performing api upload assistant");
+                }
+            }
+
+            if (cmd == "apiuploadfiles")
+            {
+                // start
+                ticket.StartExec();
+
+                //do
+                try
+                {
+                    // get the (extended) record
+                    var recordJob = new UploadFilesJobRecord();
+                    ticket?.ArgValue?.PopulateObjectFromArgs(recordJob);
+
+                    // get the file list from the record?
+                    var fns = recordJob.Filenames;
+
+                    if (ticket?.ScriptMode != true)
+                    {
+                        // define dialogue and map presets into dialogue items
+                        var uc = new AnyUiDialogueDataSelectFromList(
+                                        "Select files to be uploaded ..");
+                        uc.SelectFiles = true;
+                        uc.ListOfItems = new AnyUiDialogueListItemList(recordJob.Filenames?.Select(
+                               (s) => new AnyUiDialogueListItem() { Text = s, Tag = s } )) 
+                            ?? new AnyUiDialogueListItemList();
+
+                        // perform dialogue
+                        var res = await DisplayContext.StartFlyoverModalAsync(uc);
+                        if (!res || !uc.Result)
+                            return;
+
+                        fns = uc.ListOfItems.Select((it) => it.Tag as string).ToList();
+                    }
+
+                    // any files
+                    if (fns.Count < 1)
+                    {
+                        LogErrorToTicket(ticket, "No files specified. Aborting!");
+                        return;
+                    }
+
+                    // ask for the record
+                    if (!await PackageContainerHttpRepoSubset.PerformUploadAssistantDialogue(
+                        ticket, DisplayContext,
+                        "Upload current to Registry or Repository",
+                        recordJob,
+                        idfs: null))
+                        return;
+
+                    // over the single files
+                    foreach (var fn in fns)
+                    {
+                        // check extension
+                        var ext = System.IO.Path.GetExtension(fn).ToLower();
+                        if (ext == ".aasx" || ext == ".xml" || ext == ".json")
+                        {
+                            // log
+                            Log.Singleton.Info("Loading package file: {0}", fn);
+
+                            // open
+                            try
+                            {
+                                // load
+                                var env = new AdminShellPackageFileBasedEnv(fn, indirectLoadSave: false);
+                                if (env?.AasEnv == null)
+                                {
+                                    LogErrorToTicket(ticket, $"Error reading file contents! Skipping file: {fn}");
+                                    continue;
+                                }
+
+                                // basically make a list of all Identifiables
+                                var idfs2 = new List<Aas.IIdentifiable>();
+                                idfs2.AddRange(env.AasEnv.AllIdentifiables());
+
+                                // now, perform
+                                await PackageContainerHttpRepoSubset.PerformUploadAssistant(
+                                    ticket, DisplayContext,
+                                    recordJob,
+                                    env,
+                                    idfs: idfs2,
+                                    doNotAskForRowsToUpload: true,
+                                    runtimeOptions: PackageCentral.CentralRuntimeOptions);
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new PackageContainerException(
+                                    $"While opening aasx {fn} from source {this.ToString()} " +
+                                    $"at {AdminShellUtil.ShortLocation(ex)} gave: {ex.Message}");
+                            }
+
+                        }
+                        else
+                        {
+                            LogErrorToTicket(ticket, $"Extension/ file type could not be recognised! Skipping file: {fn}");
+                        }
+
+                    }
                 }
                 catch (Exception ex)
                 {

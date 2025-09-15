@@ -233,6 +233,11 @@ namespace AasxPackageLogic.PackageCentral
         /// </summary>
         public PackCntChangeEventHandler ChangeEventHandler = null;
 
+        /// <summary>
+        /// Allow to execute certain main commands, e.g. from container 
+        /// </summary>
+        public IExecuteMainCommand ExecuteMainCommand = null;
+
         //
         // Container members
         //

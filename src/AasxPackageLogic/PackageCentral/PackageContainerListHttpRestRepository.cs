@@ -231,5 +231,29 @@ namespace AasxPackageLogic.PackageCentral
             return null;
         }
 
+        //
+        // Upload
+        //
+
+        // make adding a single file "deaf"
+        public override void AddByAasxFn(PackageCentral packageCentral, string fn)
+        {
+        }
+
+        // and "enable" the bulk adding
+        public override async Task AddByListOfAasxFn(PackageCentral packageCentral, IEnumerable<string> fns)
+        {
+            // access
+            if (packageCentral?.ExecuteMainCommand == null || fns == null)
+                return;
+
+            // try to trigger UI
+            await packageCentral.ExecuteMainCommand.ExecuteMainMenuCommand(
+                    "ApiUploadFiles", false,
+                    "BaseType", "Repository",
+                    "BaseAddress", "" + this.Endpoint?.ToString(),
+                    "Filenames", fns);
+        }
+
     }
 }

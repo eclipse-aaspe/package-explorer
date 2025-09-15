@@ -418,6 +418,20 @@ namespace Extensions
         }
 
         /// <summary>
+        /// Enumerates any Identifiables in the Environment. Will not return <c>null</c>.
+        /// Is tolerant, if the list is <c>null</c>.
+        /// </summary>
+        public static IEnumerable<IIdentifiable> AllIdentifiables(this AasCore.Aas3_0.IEnvironment env)
+        {
+            foreach (var aas in env.AllAssetAdministrationShells())
+                yield return aas;
+            foreach (var sm in env.AllSubmodels())
+                yield return sm;
+            foreach (var cd in env.AllConceptDescriptions())
+                yield return cd;    
+        }
+
+        /// <summary>
         /// Returns the number of AssetAdministrationShells.
         /// Is tolerant, if the list is <c>null</c>.
         /// </summary>

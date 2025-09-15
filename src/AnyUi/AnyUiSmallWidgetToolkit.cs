@@ -366,7 +366,8 @@ namespace AnyUi
             AnyUiGrid g, int row, int col, AnyUiThickness margin = null, AnyUiThickness padding = null,
             string content = "", AnyUiBrush foreground = null, AnyUiBrush background = null,
             double? setHeight = null, AnyUiVerticalAlignment? verticalAlignment = null,
-            bool? directInvoke = null, string toolTip = null)
+            bool? directInvoke = null, string toolTip = null,
+            bool? modalDialogStyle = null)
         {
             var but = new AnyUiButton();
             but.Margin = margin;
@@ -385,6 +386,8 @@ namespace AnyUi
             if (directInvoke.HasValue)
                 but.DirectInvoke = directInvoke.Value;
             but.Content = content;
+            if (modalDialogStyle != null)
+                but.ModalDialogStyle = modalDialogStyle.Value;
             if (toolTip != null)
                 but.ToolTip = toolTip;
             AnyUiGrid.SetRow(but, row);

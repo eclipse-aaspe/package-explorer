@@ -8,6 +8,6 @@ namespace AasxPackageLogic
 {
     public interface IExecuteMainCommand
     {
-        Task<int> ExecuteMainMenuCommand(string menuItemName, params object[] args);
+        Task<int> ExecuteMainMenuCommand(string menuItemName, bool scriptMode, params object[] args);
     }
 }

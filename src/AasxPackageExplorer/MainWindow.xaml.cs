@@ -1068,6 +1068,7 @@ namespace AasxPackageExplorer
 
             // Package Central starting ..
             PackageCentral.CentralRuntimeOptions = UiBuildRuntimeOptionsForMainAppLoad();
+            PackageCentral.ExecuteMainCommand = this;
 
             // start with empty repository and load, if given by options
             RepoListControl.PackageCentral = PackageCentral;
@@ -1285,11 +1286,15 @@ namespace AasxPackageExplorer
             };
 
             // what happens on a file drop -> dispatch
-            RepoListControl.FileDrop += (senderList, fr, files) =>
+            RepoListControl.FileDrop += async (senderList, fr, files) =>
             {
                 // access
                 if (files == null || files.Length < 1)
                     return;
+
+                // hand over the full list for potential bulk adding
+                if (fr != null)
+                    await fr.AddByListOfAasxFn(PackageCentral, files);
 
                 // more than one?
                 foreach (var fn in files)
@@ -1387,6 +1392,11 @@ namespace AasxPackageExplorer
 
                     if (container == null)
                         Log.Singleton.Error($"Failed to auto-load AASX from {location}");
+                    else if (container.Env?.AasEnv != null && container.Env.AasEnv.AllIdentifiables().Count() < 1)
+                    {
+                        Log.Singleton.Info(StoredPrint.Color.Blue, 
+                            $"Auto-load request seem to result in empty data! Auto-load location: {location}");
+                    }
                     else
                         UiLoadPackageWithNew(PackageCentral.MainItem,
                             takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
@@ -1590,14 +1600,21 @@ namespace AasxPackageExplorer
 
             // always tell the errors
             var ne = Log.Singleton.NumberErrors;
+            var nb = Log.Singleton.NumberBlues;
             if (ne > 0)
             {
                 LabelNumberErrors.Content = "Errors: " + ne;
                 LabelNumberErrors.Background = new SolidColorBrush(Color.FromRgb(0xd4, 0x20, 0x44)); // #D42044
             }
             else
+            if (nb > 0)
             {
-                LabelNumberErrors.Content = "No errors";
+                LabelNumberErrors.Content = "Major: " + nb;
+                LabelNumberErrors.Background = Brushes.LightBlue;
+            }
+            else
+            {
+                LabelNumberErrors.Content = "No attention";
                 LabelNumberErrors.Background = Brushes.White;
             }
         }

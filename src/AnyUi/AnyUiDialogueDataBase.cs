@@ -553,6 +553,7 @@ namespace AnyUi
         // in
         public AnyUiDialogueListItemList ListOfItems = null;
         public string[] AlternativeSelectButtons = null;
+        public bool SelectFiles = false;
 
         // out
         public int ResultIndex = -1;

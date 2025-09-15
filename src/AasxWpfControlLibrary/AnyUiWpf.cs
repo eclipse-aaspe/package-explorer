@@ -1154,6 +1154,12 @@ namespace AnyUi
 
                         wpf.Content = cntl.Content;
                         wpf.ToolTip = cntl.ToolTip;
+
+                        if (cntl.ModalDialogStyle)
+                        {
+                            wpf.SetResourceReference(Control.StyleProperty, "TranspRoundCorner");;
+                        }
+
                         // callbacks
                         wpf.Click += async (sender, e) =>
                         {
