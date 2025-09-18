@@ -39,7 +39,7 @@
                 "CertFile": "",
                 "CertPassword": "",
                 // "CertPick": "GEANT",
-                "CertPick" :  "",
+                "CertPick": "",
                 // "SecretId": "",
                 "SecretId": "aorzelski@phoenixcontact.com",
                 // "SecretValue": "",
@@ -76,7 +76,7 @@
     /* Maximum parallel write operations, such as HTTP uploads. */,
     "MaxParallelWriteOps": 1
     /* For connecting to repositories/ registry, default pagination limit. */,
-    "DefaultConnectPageLimit" :  20
+    "DefaultConnectPageLimit": 20
     /* If not -1, the left of window | Arg: <pixel> */,
     "WindowLeft": -1
     /* If not -1, the top of window | Arg: <pixel> */,
@@ -113,6 +113,8 @@
     "ExtensionsPresetFile": "extension-presets.json"
     /* Path to JSON file defining data specification presets. | Arg: <path> */,
     "DataSpecPresetFile": "data-spec-presets.json"
+    /* Path to JSON file defining query presets. */,
+    "QueryPresetFile": "query-presets.json"
     /* Home address of the content browser on startup, on change of AASX | Arg: <URL> */,
     "ContentHome": "https://github.com/eclipse-aaspe/package-explorer/blob/main/README.md"
     /* If unset, use transparent flyover dialogs, where possible */,

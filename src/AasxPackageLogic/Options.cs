@@ -422,6 +422,10 @@ namespace AasxPackageLogic
             Cmd = "-dataspecpreset", Arg = "<path>")]
         public string DataSpecPresetFile = null;
 
+        [OptionDescription(Description = "Path to JSON file defining query presets.",
+            Cmd = "-querypreset", Arg = "<path>")]
+        public string QueryPresetFile = null;
+
         [OptionDescription(Description = "Home address of the content browser on startup, on change of AASX",
             Cmd = "-contenthome", Arg = "<URL>")]
         public string ContentHome = @"https://github.com/admin-shell/io/blob/master/README.md";

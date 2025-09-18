@@ -952,6 +952,7 @@ namespace AnyUi
 
                             wpf.VerticalScrollBarVisibility = (ScrollBarVisibility)
                                 ((int) cntl.VerticalScrollBarVisibility);
+
                             if (cntl.MaxLines != null)
                                 wpf.MaxLines = cntl.MaxLines.Value;
                             wpf.Text = cntl.Text;

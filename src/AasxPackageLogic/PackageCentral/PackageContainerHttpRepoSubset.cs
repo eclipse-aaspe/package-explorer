@@ -34,6 +34,7 @@ using IdentityModel.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using static AasxPackageLogic.DispEditHelperMiniModules;
 using Aas = AasCore.Aas3_0;
 
 namespace AasxPackageLogic.PackageCentral
@@ -160,7 +161,11 @@ namespace AasxPackageLogic.PackageCentral
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
 
             // prevent the false alarm for looking for single assetIds
-            if (m.Success && location.Contains("assetId"))
+            if (m.Success && location.Contains("assetId", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
                 return false;
 
             // ok?
@@ -171,6 +176,11 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/shells/([^?]{1,999})",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             return m.Success;
         }
 
@@ -178,6 +188,11 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/submodels(|/|/?\?(.*))$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             return m.Success;
         }
 
@@ -185,6 +200,11 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/submodels/(.{1,999})$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             if (m.Success)
                 return true;
 
@@ -196,6 +216,11 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/concept-descriptions(|/|/?\?(.*))$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             return m.Success;
         }
 
@@ -203,12 +228,17 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/concept-descriptions/(.{1,999})$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             return m.Success;
         }
 
         public static bool IsValidUriForRepoQuery(string location)
         {
-            var m = Regex.Match(location, @"^(http(|s))://(.*?)/graphql(|/|/?\?(.*))$",
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/query/(shells|submodels|conceptdescriptions)(|/|/?\?(.*))$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
@@ -221,6 +251,11 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/shell-descriptors(|/|/?\?(.*))$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             return m.Success;
         }
 
@@ -228,6 +263,11 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/shell-descriptors/([^?]{1,999})",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             return m.Success;
         }
 
@@ -242,6 +282,11 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/shells/{0,1}\?(.*)assetIds=([-A-Za-z0-9_]{1,999})",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             return m.Success;
         }
 
@@ -612,7 +657,7 @@ namespace AasxPackageLogic.PackageCentral
         /// Note: this is an AASPE specific, proprietary extension.
         /// This REST ressource does not exist in the official specification!
         /// </summary>
-        public static Uri BuildUriForRepoQuery(Uri baseUri, string query)
+        public static Uri BuildUriForRepoQuery(Uri baseUri, string query, string elementName)
         {
             // access
             if (query?.HasContent() != true)
@@ -622,7 +667,7 @@ namespace AasxPackageLogic.PackageCentral
             // endpoint name is required for the real call. 
             // However, lets store the query as BASE64 query parameter
             var queryEnc = AdminShellUtil.Base64UrlEncode(query);
-            var uri = new UriBuilder(CombineUri(baseUri, $"graphql"));
+            var uri = new UriBuilder(CombineUri(baseUri, $"/query/{elementName}"));
             uri.Query = $"query={queryEnc}";
             return uri.Uri;
         }
@@ -1826,17 +1871,31 @@ namespace AasxPackageLogic.PackageCentral
                         return null;
                     }
 
-                    // but, the query needs to be reformatted as JSON
-                    // query = "{ searchSMs(expression: \"\"\"$LOG  \"\"\") { url smId } }";
-                    // query = "{ searchSMs(expression: \"\"\"$LOG filter=or(str_contains(sm.IdShort, \"Technical\"), str_contains(sm.IdShort, \"Nameplate\")) \"\"\") { url smId } }";
-                    query = query.Replace("\\", "\\\\");
-                    query = query.Replace("\"", "\\\"");
-                    query = query.Replace("\r", " ");
-                    query = query.Replace("\n", " ");
-                    var jsonQuery = $"{{ \"query\" : \"{query}\" }} ";
+                    // in prior versions of the AASX servers, there was more to re-format
+                    var jsonQuery = "";
+                    if (false)
+                    {
+
+                        // but, the query needs to be reformatted as JSON
+                        // query = "{ searchSMs(expression: \"\"\"$LOG  \"\"\") { url smId } }";
+                        // query = "{ searchSMs(expression: \"\"\"$LOG filter=or(str_contains(sm.IdShort, \"Technical\"), str_contains(sm.IdShort, \"Nameplate\")) \"\"\") { url smId } }";
+                        query = query.Replace("\\", "\\\\");
+                        query = query.Replace("\"", "\\\"");
+                        query = query.Replace("\r", " ");
+                        query = query.Replace("\n", " ");
+                        jsonQuery = $"{{ \"query\" : \"{query}\" }} ";
+                    }
+                    else
+                    {
+                        query = query.Replace("\r", " ");
+                        query = query.Replace("\n", " ");
+                        query = Regex.Replace(query, @"\s+", " ");
+                        jsonQuery = query;
+                    }
 
                     // there are subsequent fetch operations necessary
                     var fetchItems = new List<FetchItem>();
+                    int numTotal = 0, numError = 0;
 
                     // HTTP POST
                     var statCode = await PackageHttpDownloadUtil.HttpPostRequestToMemoryStream(
@@ -1849,93 +1908,57 @@ namespace AasxPackageLogic.PackageCentral
                         {
                             try
                             {
-                                lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
+                                var overallNode = System.Text.Json.Nodes.JsonNode.Parse(ms);
 
-                                var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                                if (node["data"]?["searchSMs"] is JsonArray smdata
-                                    && smdata.Count >= 1)
+                                // paging metadata . resultType may overrule the elementType
+                                var qet = record.QueryElementType;
+                                var rT = overallNode["paging_metadata"]?["resultType"]?.ToString().ToLower();
+                                if (rT == null) // typo in Basyx.milestone07
+                                    rT = overallNode["paging_metadata"]?["resulType"]?.ToString().ToLower();
+                                if (rT == "aas" || rT == "assetadministrationshell")
+                                    qet = "AAS";
+                                if (rT == "sm" || rT == "submodel")
+                                    qet = "Submodel";
+                                if (rT == "cd" || rT == "conceptdescription")
+                                    qet = "ConceptDescription";
+
+                                // try to get result data
+                                JsonArray resArr = null;
+                                if (overallNode["result"] is JsonArray ra
+                                    && ra.Count >= 1)
+                                    resArr = ra;
+
+                                // go on
+                                var resIndex = -1;
+                                foreach (var resNode in resArr)
                                 {
-                                    foreach (var smrec in smdata)
-                                    {
-                                        var url = smrec["url"]?.ToString();
-                                        var smId = smrec["smId"]?.ToString();
-                                        if (smId?.HasContent() == true)
-                                            fetchItems.Add(new FetchItem() { Type = FetchItemType.SmId, Value = smId });
-                                        else
-                                        if (url?.HasContent() == true)
-                                            fetchItems.Add(new FetchItem() { Type = FetchItemType.SmUrl, Value = url });
-                                    }
-                                }
-
-                            }
-                            catch (Exception ex)
-                            {
-                                runtimeOptions?.Log?.Error(ex, "Parsing graphql result set");
-                            }
-                        });
-
-                    if (statCode != HttpStatusCode.OK)
-                    {
-                        Log.Singleton.Error("Could not fetch new dynamic elements by graphql. Aborting!");
-                        Log.Singleton.Error("  POST request was: {0}", jsonQuery);
-                        return null;
-                    }
-
-                    // only makes sense, if query returns something
-                    if (fetchItems.Count < 1)
-                    {
-                        Log.Singleton.Info(StoredPrint.Color.Blue, "Query resulted in zero elements, " +
-                            "which could be fetched. Aborting!");
-                        return null;
-                    }
-
-                    // skip items?
-                    if (record.PageSkip > 0)
-                    {
-                        fetchItems.RemoveRange(0, Math.Min(fetchItems.Count, record.PageSkip));
-                    }
-                    var numItem = 0;
-
-                    // TODO: convert to parallel for each async
-                    var dlErrors = 0;
-                    foreach (var fi in fetchItems)
-                    {
-                        // reached end
-                        numItem++;
-                        if (record.PageLimit > 0 && numItem > record.PageLimit)
-                            break;
-
-                        // prepare download
-                        Uri loc = null;
-                        if (fi.Type == FetchItemType.SmUrl)
-                            loc = new Uri(fi.Value);
-                        if (fi.Type == FetchItemType.SmId)
-                            loc = BuildUriForRepoSingleSubmodel(
-                                    baseUri.GetBaseUriForSmRepo(), fi.Value, encryptIds: true);
-
-                        if (loc == null)
-                            continue;
-
-                        // download (and skip errors)
-                        try
-                        {
-                            await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                                null,
-                                sourceUri: loc,
-                                allowFakeResponses: allowFakeResponses,
-                                runtimeOptions: runtimeOptions,
-                                lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
-                                {
-                                    if (code != HttpStatusCode.OK)
-                                        return;
-
+                                    resIndex++;
+                                    numTotal++;
                                     try
                                     {
-                                        var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                                        var sm = Jsonization.Deserialize.SubmodelFrom(node);
-                                        lambdaReportAll(numAAS, ++numSM, numCD, numDiv);
-                                        if (fi.Type == FetchItemType.SmUrl || fi.Type == FetchItemType.SmId)
+                                        if (qet.Equals("AAS", StringComparison.InvariantCultureIgnoreCase))
                                         {
+                                            var aas = Jsonization.Deserialize.AssetAdministrationShellFrom(resNode);
+                                            lambdaReportAll(++numAAS, numSM, numCD, numDiv);
+                                            trackLoadedIdentifiables?.Add(aas);
+                                            if (prepAas.AddIfNew(aas, new AasIdentifiableSideInfo()
+                                            {
+                                                IsStub = false,
+                                                StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                                Id = aas.Id,
+                                                IdShort = aas.IdShort,
+                                                QueriedEndpoint = new Uri(fullItemLocation),
+                                                DesignatedEndpoint = BuildUriForRepoSingleAAS(
+                                                    baseUri.GetBaseUriForAasRepo(), aas.Id, encryptIds: true)
+                                            }))
+                                            {
+                                                trackNewIdentifiables?.Add(aas);
+                                            }
+                                        } 
+                                        else if (qet.Equals("Submodel", StringComparison.InvariantCultureIgnoreCase))
+                                        {
+                                            var sm = Jsonization.Deserialize.SubmodelFrom(resNode);
+                                            lambdaReportAll(numAAS, ++numSM, numCD, numDiv);
                                             trackLoadedIdentifiables?.Add(sm);
                                             if (prepSM.AddIfNew(sm, new AasIdentifiableSideInfo()
                                             {
@@ -1945,29 +1968,62 @@ namespace AasxPackageLogic.PackageCentral
                                                 IdShort = sm.IdShort,
                                                 QueriedEndpoint = new Uri(fullItemLocation),
                                                 DesignatedEndpoint = BuildUriForRepoSingleSubmodel(
-                                                    baseUri.GetBaseUriForSmRepo(), sm.Id, encryptIds: true)
+                                                    baseUri.GetBaseUriForAasRepo(), sm.Id, encryptIds: true)
                                             }))
                                             {
                                                 trackNewIdentifiables?.Add(sm);
                                             }
+                                        } 
+                                        else if (qet.Equals("ConceptDescription", StringComparison.InvariantCultureIgnoreCase))
+                                        {
+                                            var cd = Jsonization.Deserialize.ConceptDescriptionFrom(resNode);
+                                            lambdaReportAll(numAAS, numSM, ++numCD, numDiv);
+                                            trackLoadedIdentifiables?.Add(cd);
+                                            if (prepCD.AddIfNew(cd, new AasIdentifiableSideInfo()
+                                            {
+                                                IsStub = false,
+                                                StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                                Id = cd.Id,
+                                                IdShort = cd.IdShort,
+                                                QueriedEndpoint = new Uri(fullItemLocation),
+                                                DesignatedEndpoint = BuildUriForRepoSingleCD(
+                                                    baseUri.GetBaseUriForAasRepo(), cd.Id, encryptIds: true)
+                                            }))
+                                            {
+                                                trackNewIdentifiables?.Add(cd);
+                                            }
                                         }
-                                    }
-                                    catch (Exception ex)
+                                        else
+                                        {
+                                            runtimeOptions?.Log?.Error($"Trying to deserialize to impossible " +
+                                                $"Identifiable type {qet}. Aborting!");
+                                            break;
+                                        }
+                                    } catch (Exception ex)
                                     {
-                                        dlErrors++;
-                                        runtimeOptions?.Log?.Error(ex, "Parsing individual fetch element of query.");
+                                        runtimeOptions?.Log?.Error(ex, 
+                                            $"Parsing of single Identifiable {qet} with index {resIndex} of query " +
+                                            $"result set failed. Skipping.");
+                                        numError++;
                                     }
-                                });
-                        }
-                        catch (Exception ex)
-                        {
-                            dlErrors++;
-                            LogInternally.That.CompletelyIgnoredError(ex);
-                        }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                runtimeOptions?.Log?.Error(ex, "Parsing query result set");
+                            }
+                        });
+
+                    if (statCode != HttpStatusCode.OK)
+                    {
+                        Log.Singleton.Error("Could not fetch new dynamic elements by query. Aborting!");
+                        Log.Singleton.Error("  POST request was: {0}", jsonQuery);
+                        return null;
                     }
 
-                    Log.Singleton.Info(StoredPrint.Color.Blue, "Executed GraphQL query. Receiving list of {0} elements, " +
-                        "found {1} errors when individually downloading elements.", fetchItems.Count, dlErrors);
+                    // to be fixed
+                    Log.Singleton.Info(StoredPrint.Color.Blue, "Executed query. Receiving list of {0} elements, " +
+                        "found {1} errors when individually downloading elements.", numTotal, numError);
                 }
 
                 // start auto-load missing Submodels?
@@ -2352,6 +2408,9 @@ namespace AasxPackageLogic.PackageCentral
             // public string QueryScript = "{\r\n  searchSMs(\r\n    expression: \"\"\"$LOG\r\n     filter=\r\n      or(\r\n        str_contains(sm.IdShort, \"Technical\"),\r\n        str_contains(sm.IdShort, \"Nameplate\")\r\n      )\r\n   \"\"\"\r\n  )\r\n  {\r\n    url\r\n    smId\r\n  }\r\n}";
             // public string QueryScript = "{\r\n  searchSMs(\r\n    expression: \"\"\"$LOG$QL\r\n          ( contains(sm.idShort, \"Technical\") and\r\n          sme.value ge 100 and\r\n          sme.value le 200 )\r\n        or\r\n          ( contains(sm.idShort, \"Nameplate\") and\r\n          contains(sme.idShort,\"ManufacturerName\") and\r\n          not(contains(sme.value,\"Phoenix\")))\r\n    \"\"\"\r\n  )\r\n  {\r\n    url\r\n    smId\r\n  }\r\n}";
 
+            [AasxMenuArgument(help: "Specifies the AAS meta model element type name to be queried (AAS, Submodel, ConceptDescription).")]
+            public string QueryElementType = "AAS";
+
             [AasxMenuArgument(help: "Filter elements on (Id, IdShort, DisplayName, Description) after getting.")]
             public bool FilterByText;
 
@@ -2630,7 +2689,20 @@ namespace AasxPackageLogic.PackageCentral
                 // Query?
                 if (record.ExecuteQuery)
                 {
-                    var uri = BuildUriForRepoQuery(baseUris.GetBaseUriForQuery(), record.QueryScript);
+                    // do some manual stuff for element type
+                    var qet = ("" + record.QueryElementType).ToLower().Trim();
+                    string et = null;
+                    if (qet == "aas" || qet == "shells")
+                        et = "shells";
+                    if (qet == "submodel" || qet == "submodels")
+                        et = "submodels";
+                    if (qet == "conceptdescription" || qet == "conceptdescriptions")
+                        et = "conceptdescriptions";
+                    if (et == null)
+                        return null;
+
+                    // build
+                    var uri = BuildUriForRepoQuery(baseUris.GetBaseUriForQuery(), record.QueryScript, et);
                     return new BasedLocation(baseUris, uri);
                 }
 
@@ -2704,6 +2776,63 @@ namespace AasxPackageLogic.PackageCentral
             Header = 0x0080
         }
 
+        protected class QueryPresetDef
+        {
+            [JsonProperty("name")]
+            public string Name { get; set; }
+
+            [JsonProperty("elementType")]
+            public string ElementType { get; set; }
+
+            [JsonProperty("query")]
+            public JToken Query { get; set; }  // <-- dynamic JSON
+        }
+
+        protected static List<QueryPresetDef> ReadQueryPresets()
+        {
+            var pfn = Options.Curr.QueryPresetFile;
+            if (pfn == null || !System.IO.File.Exists(pfn))
+            {
+                Log.Singleton.Error(
+                    $"JSON file for query presets not defined nor existing ({pfn}).");
+                return null;
+            }
+            try
+            {
+                // read file contents
+                var init = System.IO.File.ReadAllText(pfn);
+                var presets = JsonConvert.DeserializeObject<List<QueryPresetDef>>(init);
+
+                return presets;
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(
+                    $"JSON file for query presets not readable ({pfn}): {ex.Message}");
+                return null;
+            }
+        }
+
+        protected static string ValidateJson(string strInput)
+        {
+            try
+            {
+                var obj = JToken.Parse(strInput);
+                return "Seems to be JSON format.";
+            }
+            catch (JsonReaderException jex)
+            {
+                //Exception in parsing json
+                Console.WriteLine(jex.Message);
+                return "JSON error: " + jex.Message;
+            }
+            catch (Exception ex) //some other exception
+            {
+                Console.WriteLine(ex.ToString());
+                return "General error: " + ex.Message;
+            }
+        }
+
         public static async Task<bool> PerformConnectExtendedDialogue(
             AasxMenuActionTicket ticket,
             AnyUiContextBase displayContext,
@@ -2758,8 +2887,14 @@ namespace AasxPackageLogic.PackageCentral
                 return true;
 
             // some memory
-            AnyUiUIElement testElem1 = null;
             int heightQueryEditor = 120;
+            var validateResult = "";
+
+            // read query presets
+            var queryPresets = ReadQueryPresets();
+            var queryPresetNames = (new[] {""}).ToList();
+            if (queryPresets != null)
+                queryPresetNames.AddRange(queryPresets.Select((p) => p.Name));
 
             // ok, go on ..
             var uc = new AnyUiDialogueDataModalPanel(caption);
@@ -3022,85 +3157,143 @@ namespace AasxPackageLogic.PackageCentral
                     if ((scope & ConnectExtendedScope.Query) > 0)
                     {
                         // Query check box
-                        AnyUiUIElement.RegisterControl(
-                                helper.Set(
-                                    helper.AddSmallCheckBoxTo(g, row, 0,
+                        {
+                            var g2 = helper.AddSmallGridTo(g, row, 0, 1, 3, new[] { "#", "#", "#" });
+                            g2.GridColumnSpan = 2;
+
+                            AnyUiUIElement.RegisterControl(
+                                    helper.AddSmallCheckBoxTo(g2, 0, 0,
                                         content: "Get by query definition",
                                         isChecked: record.ExecuteQuery,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                    colSpan: 2),
-                                (o) =>
-                                {
-                                    if ((bool)o)
-                                        record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.Query);
-                                    else
-                                        record.ExecuteQuery = false;
-                                    return new AnyUiLambdaActionModalPanelReRender(uc);
-                                });
+                                    (o) =>
+                                    {
+                                        if ((bool)o)
+                                            record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.Query);
+                                        else
+                                            record.ExecuteQuery = false;
+                                        return new AnyUiLambdaActionModalPanelReRender(uc);
+                                    });
 
-                        // Complex query line
-                        helper.AddSmallLabelTo(g, row + 1, 0, content: "Preset/ Size:",
-                                verticalAlignment: AnyUiVerticalAlignment.Center,
-                                verticalContentAlignment: AnyUiVerticalAlignment.Center);
+                            helper.AddSmallLabelTo(g2, 0, 1, content: " .. for: ", verticalCenter: true);
 
-                        var g2 = helper.AddSmallGridTo(g, row + 1, 1, 1, 3, new[] { "*", "#", "#" });
+                            AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallComboBoxTo(g2, 0, 2,
+                                        isEditable: false,
+                                        items: new[] { "AAS", "Submodel", "ConceptDescription" },
+                                        text: "" + record.QueryElementType,
+                                        margin: new AnyUiThickness(10, 0, 0, 0),
+                                        padding: new AnyUiThickness(5, 0, 5, 0),
+                                        minWidth: 200,
+                                        horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
+                                    (s) => { record.QueryElementType = s; });
+                        }
 
-                        AnyUiUIElement.SetStringFromControl(
-                            helper.Set(
-                                helper.AddSmallComboBoxTo(g2, 0, 0,
-                                    isEditable: true,
-                                    // items: Options.Curr.BaseAddresses?.ToArray(),
-                                    items: Options.Curr.BaseAddresses?
-                                           .Concat(Options.Curr.KnownEndpoints?.Select((o) => o.BaseAddress)).ToArray(),
-                                    text: "" + record.BaseAddress,
-                                    margin: new AnyUiThickness(0, 0, 0, 0),
-                                    padding: new AnyUiThickness(0, 0, 0, 0),
-                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
-                                (s) => { record.BaseAddress = s; });
+                        // Complex query preset and size line
+                        {
+                            helper.AddSmallLabelTo(g, row + 1, 0, content: "Preset/ Size:",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center);
 
-                        AnyUiUIElement.RegisterControl(
-                            helper.AddSmallButtonTo(g2, 0, 1, 
-                                margin: new AnyUiThickness(5, 0, 5, 0),
-                                content: " \uff0b ",
-                                modalDialogStyle: true,
-                                foreground: AnyUiBrushes.White,
-                                toolTip: "Enlarges the size of the query text editor"),
-                                setValue: (o) => {
-                                    heightQueryEditor += 50;
-                                    return new AnyUiLambdaActionModalPanelReRender(uc);
-                                });
+                            var g2 = helper.AddSmallGridTo(g, row + 1, 1, 1, 3, new[] { "*", "#", "#" });
 
-                        var b2 = AnyUiUIElement.RegisterControl(
-                            helper.AddSmallButtonTo(g2, 0, 2,
-                                margin: new AnyUiThickness(5, 0, 5, 0),
-                                content: "  \u2212  ",
-                                modalDialogStyle: true,
-                                foreground: AnyUiBrushes.White,
-                                toolTip: "Decreases the size of the query text editor"),
-                                setValue: (o) => {
-                                    heightQueryEditor = Math.Max(120, heightQueryEditor - 50);
-                                    return new AnyUiLambdaActionModalPanelReRender(uc);
-                                });
+                            AnyUiComboBox cbPreset = null;
+                            cbPreset = AnyUiUIElement.RegisterControl(
+                                helper.Set(
+                                    helper.AddSmallComboBoxTo(g2, 0, 0,
+                                        isEditable: false,
+                                        items: queryPresetNames.ToArray(),
+                                        text: "",
+                                        margin: new AnyUiThickness(0, 0, 0, 0),
+                                        padding: new AnyUiThickness(0, 0, 0, 0),
+                                        horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
+                                    (o) => {
+                                        if (!cbPreset.SelectedIndex.HasValue)
+                                            return new AnyUiLambdaActionNone();
+                                        int i2 = cbPreset.SelectedIndex.Value - 1; 
+                                        if (i2 < 0 || i2 >= queryPresets.Count)
+                                            return new AnyUiLambdaActionNone();
+                                        
+                                        record.QueryScript = queryPresets[i2].Query.ToString();
+                                        return new AnyUiLambdaActionModalPanelReRender(uc);
+                                    });
 
+                            AnyUiUIElement.RegisterControl(
+                                helper.AddSmallButtonTo(g2, 0, 1,
+                                    margin: new AnyUiThickness(5, 0, 5, 0),
+                                    content: " \uff0b ",
+                                    modalDialogStyle: true,
+                                    foreground: AnyUiBrushes.White,
+                                    toolTip: "Enlarges the size of the query text editor"),
+                                    setValue: (o) =>
+                                    {
+                                        heightQueryEditor += 50;
+                                        return new AnyUiLambdaActionModalPanelReRender(uc);
+                                    });
+
+                            var b2 = AnyUiUIElement.RegisterControl(
+                                helper.AddSmallButtonTo(g2, 0, 2,
+                                    margin: new AnyUiThickness(5, 0, 5, 0),
+                                    content: "  \u2212  ",
+                                    modalDialogStyle: true,
+                                    foreground: AnyUiBrushes.White,
+                                    toolTip: "Decreases the size of the query text editor"),
+                                    setValue: (o) =>
+                                    {
+                                        heightQueryEditor = Math.Max(120, heightQueryEditor - 50);
+                                        return new AnyUiLambdaActionModalPanelReRender(uc);
+                                    });
+                        }
+
+                        // Query text itself
                         helper.AddSmallLabelTo(g, row + 2, 0, content: "Query:",
                                 verticalAlignment: AnyUiVerticalAlignment.Top,
                                 verticalContentAlignment: AnyUiVerticalAlignment.Top);
 
-                        // Query text itself
-                        testElem1 = AnyUiUIElement.SetStringFromControl(
+                        AnyUiUIElement.SetStringFromControl(
                                 helper.Set(
                                     helper.AddSmallTextBoxTo(g, row + 2, 1,
                                         text: $"{record.QueryScript}",
-                                        verticalAlignment: AnyUiVerticalAlignment.Stretch,
+                                        verticalAlignment: AnyUiVerticalAlignment.Top,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Top,
                                         textWrap: AnyUiTextWrapping.Wrap,
+                                        fontMono: true,
                                         fontSize: 0.7,
-                                        multiLine: true),
+                                        multiLine: true,
+                                        verticalScroll: AnyUiScrollBarVisibility.Visible),
                                     horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
-                                    minHeight: heightQueryEditor),
+                                    minHeight: heightQueryEditor, maxHeight: heightQueryEditor),
                                 (s) => { record.QueryScript = s; });
 
-                        row += 3;
+                        // Validate
+                        {
+                            helper.AddSmallLabelTo(g, row + 3, 0, content: "Validate:", verticalCenter: true);
+
+                            var g2 = helper.AddSmallGridTo(g, row + 3, 1, 1, 2, new[] { "#", "*" });
+
+                            AnyUiUIElement.RegisterControl(
+                                helper.AddSmallButtonTo(g2, 0, 0,
+                                    margin: new AnyUiThickness(5, 0, 5, 0),
+                                    content: "Check",
+                                    modalDialogStyle: true,
+                                    foreground: AnyUiBrushes.White,
+                                    toolTip: "Checks if the JSON is valid. Does not check against JSON schema."),
+                                    setValue: (o) =>
+                                    {
+                                        validateResult = ValidateJson(record.QueryScript) ;
+                                        return new AnyUiLambdaActionModalPanelReRender(uc);
+                                    });
+
+                            helper.Set(
+                                    helper.AddSmallTextBoxTo(g2, 0, 1,
+                                        text: $"{validateResult}",
+                                        verticalCenter: true,
+                                        readOnly: true),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch);
+                        }
+
+                        row += 4;
                     }
 
                     if ((scope & ConnectExtendedScope.Filters) > 0)

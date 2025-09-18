@@ -228,7 +228,10 @@ namespace AnyUi
             double? fontSize = null,
             AnyUiTextWrapping? textWrap = null,
             bool? multiLine = null,
-            bool verticalCenter = false)
+            bool verticalCenter = false,
+            bool? fontMono = null,
+            bool? readOnly = null,
+            AnyUiScrollBarVisibility? verticalScroll = null)
         {
             var tb = new AnyUiTextBox();
             tb.Margin = margin;
@@ -251,6 +254,14 @@ namespace AnyUi
             }
             if (textWrap.HasValue)
                 tb.TextWrapping = textWrap.Value;
+            if (fontMono.HasValue)
+                tb.FontMono = fontMono.Value;
+            if (readOnly.HasValue)
+                tb.IsReadOnly = readOnly.Value;
+                        
+            tb.VerticalScrollBarVisibility = AnyUiScrollBarVisibility.Auto;
+            if (verticalScroll.HasValue)
+                tb.VerticalScrollBarVisibility = verticalScroll.Value;
 
             // (MIHO, 2020-11-13): be default constrain to one line
             tb.MultiLine = false;
@@ -259,7 +270,6 @@ namespace AnyUi
             if (multiLine.HasValue)
                 tb.MultiLine = multiLine.Value;
 
-            tb.VerticalScrollBarVisibility = AnyUiScrollBarVisibility.Auto;
 
             AnyUiGrid.SetRow(tb, row);
             AnyUiGrid.SetColumn(tb, col);

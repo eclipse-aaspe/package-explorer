@@ -1,0 +1,54 @@
+[
+  {
+    "name": "Get all AAS with specific idShort",
+    "elementType": "AAS",
+    "query": {
+        "$condition": {
+            "$or": [
+                {
+                    "$contains": [
+                        {
+                            "$field": "$aas#idShort"
+                        },
+                        {
+                            "$strVal": "Test"
+                        }
+                    ]
+                },
+                {
+                    "$lt": [
+                        {
+                            "$numCast": {
+                                "$field": "$aas#administration.revision"
+                            }
+                        },
+                        {
+                            "$numVal": 11
+                        }
+                    ]
+                },
+                {
+                    "$ne": [
+                        {
+                            "$field": "$aas#assetInformation.globalAssetId"
+                        },
+                        {
+                            "$field": "$aas#assetInformation.assetKind"
+                        }
+                    ]
+                },
+                {
+                    "$contains": [
+                        {
+                            "$field": "$aas#submodels.keys[]"
+                        },
+                        {
+                            "$strVal": "BillOfMaterial"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+  }
+]
