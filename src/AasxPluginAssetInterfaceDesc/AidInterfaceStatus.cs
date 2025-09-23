@@ -97,7 +97,7 @@ namespace AasxPluginAssetInterfaceDescription
         public AnyUiUIElement RenderedUiElement = null;
     }
 
-    public enum AidInterfaceTechnology { HTTP, Modbus, MQTT, OPCUA }
+    public enum AidInterfaceTechnology { HTTP, Modbus, MQTT, OPCUA, BACNET }
 
     public class AidInterfaceStatus
     {
@@ -120,7 +120,7 @@ namespace AasxPluginAssetInterfaceDescription
         /// <summary>
         /// The information items (properties, actions, events)
         /// </summary>
-        public MultiValueDictionary<string, AidIfxItemStatus> Items = 
+        public MultiValueDictionary<string, AidIfxItemStatus> Items =
             new MultiValueDictionary<string, AidIfxItemStatus>();
 
         /// <summary>
@@ -201,7 +201,7 @@ namespace AasxPluginAssetInterfaceDescription
             return key;
         }
 
-        public void SetLogLine (StoredPrint.Color color, string line)
+        public void SetLogLine(StoredPrint.Color color, string line)
         {
             LogColor = color;
             LogLine = line;
@@ -219,7 +219,7 @@ namespace AasxPluginAssetInterfaceDescription
 
             // compute key
             var key = ComputeKey(item?.FormData?.Href);
-            
+
             // now add
             Items.Add(key, item);
         }
@@ -401,7 +401,7 @@ namespace AasxPluginAssetInterfaceDescription
                         }
                     }
 
-                  
+
                 }
         }
     }
@@ -451,7 +451,7 @@ namespace AasxPluginAssetInterfaceDescription
         /// <summary>
         /// Current setting, which technologies shall be used.
         /// </summary>
-        public bool[] UseTech = { false, false, false, true };
+        public bool[] UseTech = { false, false, false, true, true };
 
         /// <summary>
         /// Will hold connections steady and continously update values, either by
@@ -464,7 +464,7 @@ namespace AasxPluginAssetInterfaceDescription
         public AidGenericConnections<AidHttpConnection> HttpConnections =
             new AidGenericConnections<AidHttpConnection>();
 
-        public AidGenericConnections<AidModbusConnection> ModbusConnections = 
+        public AidGenericConnections<AidModbusConnection> ModbusConnections =
             new AidGenericConnections<AidModbusConnection>();
 
         public AidGenericConnections<AidMqttConnection> MqttConnections =
@@ -472,6 +472,9 @@ namespace AasxPluginAssetInterfaceDescription
 
         public AidGenericConnections<AidOpcUaConnection> OpcUaConnections =
             new AidGenericConnections<AidOpcUaConnection>();
+
+        public AidGenericConnections<AidBacnetConnection> BacnetConnections =
+            new AidGenericConnections<AidBacnetConnection>();
 
         public AidAllInterfaceStatus(LogInstance log = null)
         {
@@ -503,6 +506,7 @@ namespace AasxPluginAssetInterfaceDescription
                 UseTech[(int)AidInterfaceTechnology.Modbus] = optRec.UseModbus;
                 UseTech[(int)AidInterfaceTechnology.MQTT] = optRec.UseMqtt;
                 UseTech[(int)AidInterfaceTechnology.OPCUA] = optRec.UseOpcUa;
+                UseTech[(int)AidInterfaceTechnology.BACNET] = optRec.UseBacnet;
             }
         }
 
@@ -539,6 +543,11 @@ namespace AasxPluginAssetInterfaceDescription
                 case AidInterfaceTechnology.OPCUA:
                     conn = OpcUaConnections.GetOrCreate(endpointBase, log);
                     break;
+
+                case AidInterfaceTechnology.BACNET:
+                    conn = BacnetConnections.GetOrCreate(endpointBase, log);
+                    break;
+
             }
 
             conn.UpdateFreqMs = ifcStatus.UpdateFreqMs;
@@ -762,17 +771,17 @@ namespace AasxPluginAssetInterfaceDescription
 
                     // go thru all items (sync)
                     foreach (var item in ifc.Items.Values)
-                        ifc.ValueChanges += (UInt64) ifc.Connection.UpdateItemValue(item);
+                        ifc.ValueChanges += (UInt64)ifc.Connection.UpdateItemValue(item);
 
                     // go thru all items (async)
                     // see: https://www.hanselman.com/blog/parallelforeachasync-in-net-6
                     await Parallel.ForEachAsync(
-                        ifc.Items.Values, 
-                        new ParallelOptions() { MaxDegreeOfParallelism = 10 }, 
+                        ifc.Items.Values,
+                        new ParallelOptions() { MaxDegreeOfParallelism = 10 },
                         async (item, token) =>
-                    {
-                        ifc.ValueChanges += (UInt64) (await ifc.Connection.UpdateItemValueAsync(item));
-                    });
+                        {
+                            ifc.ValueChanges += (UInt64)(await ifc.Connection.UpdateItemValueAsync(item));
+                        });
                 }
             }
         }
@@ -821,6 +830,7 @@ namespace AasxPluginAssetInterfaceDescription
                 if (tech == AidInterfaceTechnology.Modbus) ifxs = dataAid?.InterfaceMODBUS;
                 if (tech == AidInterfaceTechnology.MQTT) ifxs = dataAid?.InterfaceMQTT;
                 if (tech == AidInterfaceTechnology.OPCUA) ifxs = dataAid?.InterfaceOPCUA;
+                if (tech == AidInterfaceTechnology.BACNET) ifxs = dataAid?.InterfaceBACNET;
                 if (ifxs == null || ifxs.Count < 1)
                     continue;
                 foreach (var ifx in ifxs)
@@ -853,7 +863,7 @@ namespace AasxPluginAssetInterfaceDescription
                             FormData = propName.Forms,
                             Value = "???"
                         };
-                        
+
 
                         // does (some) mapping have a source with this property name?
                         var lst = new List<AidMappingOutputItem>();
@@ -874,7 +884,7 @@ namespace AasxPluginAssetInterfaceDescription
                             aidIfx.AddItem(ifcItem);
                             ifcItem.MapOutputItems = lst;
                         }
-                            
+
 
                         // directly recurse?
                         if (propName?.Properties?.Property != null)
@@ -884,7 +894,7 @@ namespace AasxPluginAssetInterfaceDescription
                                 child.Forms = propName.Forms;
                                 recurseProp(location + " . " + ifcItem.DisplayName, child);
                             }
-                   
+
                     };
 
                     if (ifx.InteractionMetadata?.Properties?.Property == null)
