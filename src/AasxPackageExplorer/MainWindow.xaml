@@ -382,7 +382,8 @@
                 <Label x:Name="LabelNumberErrors"
                        DockPanel.Dock="Right" MinWidth="60" Margin="2,3,2,2" Padding="2,0,2,0"
                        VerticalContentAlignment="Center" BorderBrush="LightGray" BorderThickness="1"
-                       Content="No errors"/>
+                       Content="No errors"
+                       MouseDown="LabelNumberErrors_MouseDown"/>
 
                 <Grid DockPanel.Dock="Right">
                     <Grid.RowDefinitions>

@@ -1158,7 +1158,8 @@ namespace AnyUi
             string caption,
             string workDir,
             string cmd,
-            string args)
+            string args,
+            string[] ignoreError = null)
         {
             // create dialogue
             var uc = new AnyUiDialogueDataLogMessage(caption);

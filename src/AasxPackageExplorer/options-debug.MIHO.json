@@ -2,11 +2,12 @@
     /* If set, start in editor mode instead of browse mode. */
     "EditMode": true
     /* If set, do not start in hinting mode. */,
-    "NoHints": true
-    /* This file shall be loaded as main package at start of application | Arg: <path> */,
-    "AasxToLoad": "http://localhost:8081/shells/aHR0cHM6Ly9hZG1pbi1zaGVsbC1pby9pZHRhL2Fhcy9Qcm9kdWN0Q2hhbmdlTm90aWZpY2F0aW9ucy8xLzA"
+    "NoHints": true,
+    /* This file shall be loaded as main package at start of application | Arg: <path> */
+    // "AasxToLoad": "http://localhost:8081/shells/aHR0cHM6Ly9hZG1pbi1zaGVsbC1pby9pZHRhL2Fhcy9Qcm9kdWN0Q2hhbmdlTm90aWZpY2F0aW9ucy8xLzA"
     // "AasxToLoad": "http://localhost:8081/shells/aHR1cHM6Ly9hZG1pbi1zaGVsbC1pby9pZHRhL2Fhcy9Qcm9kdWN0Q2hhbmdlTm90aWZpY2F0aW9ucy8xLzA"
     // "AasxToLoad": "C:\\Users\\Micha\\Desktop\\test-smt-on-basyx\\IDTA_02036-1-0_SMT_ProductChangeNotification_Draft_v35_manual_fixes.aasx"
+    "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\SMT\\IDTA 02036-1-0_Submodel_ProductChangeNotification\\IDTA_02036-1-0_SMT_ProductChangeNotification_Draft_v40_add_podman.aasx"
     /* This file shall be loaded as aux package at start of application | Arg: <path> */,
     "AuxToLoad": null
     /* List of pathes to a JSON, defining a set of AasxPackage-Files, which serve as repository. | Arg: <path> */,
@@ -40,10 +41,10 @@
                 "CertPassword": "",
                 // "CertPick": "GEANT",
                 "CertPick": "",
-                // "SecretId": "",
-                "SecretId": "aorzelski@phoenixcontact.com",
-                // "SecretValue": "",
-                "SecretValue": "aorzelski@phoenixcontact.com-secret"
+                "SecretId": "",
+                // "SecretId": "aorzelski@phoenixcontact.com",
+                "SecretValue": ""
+                // "SecretValue": "aorzelski@phoenixcontact.com-secret"
             }
         },
         {
@@ -82,9 +83,9 @@
     /* If not -1, the top of window | Arg: <pixel> */,
     "WindowTop": -1
     /* If not -1, the width of window | Arg: <pixel> */,
-    "WindowWidth": 900
+    "WindowWidth": 1440
     /* If not -1, the height of window | Arg: <pixel> */,
-    "WindowHeight": 600
+    "WindowHeight": 584
     /* If set, then maximize window on application startup */,
     "WindowMaximized": false
     /* Template string for the id of an AAS. Could contain up to 16 placeholders of: D = decimal digit, X = hex digit, A = alphanumerical digit | Arg: <string> */,

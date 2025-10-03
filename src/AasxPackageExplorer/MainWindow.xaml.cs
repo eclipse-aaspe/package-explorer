@@ -1535,6 +1535,9 @@ namespace AasxPackageExplorer
                     onlyReFocus: true));
         }
 
+        private string _lastMessageBlue = "";
+        private string _lastMessageError = "";
+
         private void MainTimer_HandleLogMessages()
         {
             // pop log messages from the plug-ins into the Stored Prints in Log
@@ -1561,6 +1564,7 @@ namespace AasxPackageExplorer
                         }
                     case StoredPrint.Color.Blue:
                         {
+                            _lastMessageBlue = "" + sp.msg;
                             Message.Background = Brushes.LightBlue;
                             Message.Foreground = Brushes.Black;
                             Message.FontWeight = FontWeights.Normal;
@@ -1568,6 +1572,7 @@ namespace AasxPackageExplorer
                         }
                     case StoredPrint.Color.Yellow:
                         {
+                            _lastMessageBlue = "" + sp.msg;
                             Message.Background = Brushes.Yellow;
                             Message.Foreground = Brushes.Black;
                             Message.FontWeight = FontWeights.Bold;
@@ -1575,6 +1580,7 @@ namespace AasxPackageExplorer
                         }
                     case StoredPrint.Color.Red:
                         {
+                            _lastMessageError = "" + sp.msg;
                             Message.Background = new SolidColorBrush(Color.FromRgb(0xd4, 0x20, 0x44)); // #D42044
                             Message.Foreground = Brushes.White;
                             Message.FontWeight = FontWeights.Bold;
@@ -3241,12 +3247,37 @@ namespace AasxPackageExplorer
         /// </summary>
         public void StatusLineClear()
         {
+            _lastMessageBlue = "";
+            _lastMessageError = "";
             Log.Singleton.ClearNumberErrors();
             Message.Content = "";
             Message.Background = Brushes.White;
             Message.Foreground = Brushes.Black;
             Message.FontWeight = FontWeights.Normal;
             SetProgressDownload();
+        }
+
+        public void ShowLastMessage(StoredPrint.Color showColor)
+        {
+            switch (showColor)
+            {
+                case StoredPrint.Color.Blue:
+                    {
+                        Message.Content = "" + _lastMessageBlue;
+                        Message.Background = Brushes.LightBlue;
+                        Message.Foreground = Brushes.Black;
+                        Message.FontWeight = FontWeights.Normal;
+                        break;
+                    }
+                case StoredPrint.Color.Red:
+                    {
+                        Message.Content = "" + _lastMessageError;
+                        Message.Background = new SolidColorBrush(Color.FromRgb(0xd4, 0x20, 0x44)); // #D42044
+                        Message.Foreground = Brushes.White;
+                        Message.FontWeight = FontWeights.Bold;
+                        break;
+                    }
+            }
         }
 
         /// <summary>
@@ -3305,6 +3336,16 @@ namespace AasxPackageExplorer
             {
                 LogShow();
             }
+        }
+
+        private void LabelNumberErrors_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // something important
+            if (Log.Singleton.NumberErrors > 0 && _lastMessageError?.HasContent() == true)
+                ShowLastMessage(StoredPrint.Color.Red);
+            else
+                if (Log.Singleton.NumberBlues > 0 && _lastMessageBlue?.HasContent() == true)
+                    ShowLastMessage(StoredPrint.Color.Blue);
         }
 
         /// <summary>
@@ -4536,6 +4577,5 @@ namespace AasxPackageExplorer
             }
         }
 
-        
     }
 }

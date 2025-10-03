@@ -439,7 +439,7 @@ namespace AasxPackageLogic.PackageCentral
         // REPO
         //
 
-        public static Uri BuildUriForRepoAllAAS(Uri baseUri, int pageLimit = 100, string cursor = null)
+        public static Uri BuildUriForRepoAllAAS(Uri baseUri, int pageLimit = -1, string cursor = null)
         {
             // access
             if (baseUri == null)
@@ -523,7 +523,7 @@ namespace AasxPackageLogic.PackageCentral
             return CombineUri(baseUri, $"shells/{smidenc}/asset-information/thumbnail");
         }
 
-        public static Uri BuildUriForRepoAllSubmodel(Uri baseUri, int pageLimit = 100, string cursor = null)
+        public static Uri BuildUriForRepoAllSubmodel(Uri baseUri, int pageLimit = -1, string cursor = null)
         {
             // for more info: see BuildUriForRepoAllAAS
             // access
@@ -616,7 +616,7 @@ namespace AasxPackageLogic.PackageCentral
                 encryptIds: encryptIds, usePost: usePost);
         }
 
-        public static Uri BuildUriForRepoAllCD(Uri baseUri, int pageLimit = 100, string cursor = null)
+        public static Uri BuildUriForRepoAllCD(Uri baseUri, int pageLimit = -1, string cursor = null)
         {
             // for more info: see BuildUriForRepoAllAAS
             // access
@@ -657,7 +657,7 @@ namespace AasxPackageLogic.PackageCentral
         /// Note: this is an AASPE specific, proprietary extension.
         /// This REST ressource does not exist in the official specification!
         /// </summary>
-        public static Uri BuildUriForRepoQuery(Uri baseUri, string query, string elementName)
+        public static Uri BuildUriForRepoQuery(Uri baseUri, string query, string elementName, int pageLimit = -1)
         {
             // access
             if (query?.HasContent() != true)
@@ -669,6 +669,8 @@ namespace AasxPackageLogic.PackageCentral
             var queryEnc = AdminShellUtil.Base64UrlEncode(query);
             var uri = new UriBuilder(CombineUri(baseUri, $"/query/{elementName}"));
             uri.Query = $"query={queryEnc}";
+            if (pageLimit > 0)
+                uri.Query += $"&Limit={pageLimit:D}";
             return uri.Uri;
         }
 
@@ -1871,6 +1873,9 @@ namespace AasxPackageLogic.PackageCentral
                         return null;
                     }
 
+                    // may be able to limit the number of results
+                    var limitResults = CheckUriForValidPageLimit(fullItemLocation);
+
                     // in prior versions of the AASX servers, there was more to re-format
                     var jsonQuery = "";
                     if (false)
@@ -1897,10 +1902,15 @@ namespace AasxPackageLogic.PackageCentral
                     var fetchItems = new List<FetchItem>();
                     int numTotal = 0, numError = 0;
 
+                    // build the new source uri (again with query parameters)
+                    var sourceUri = quri.GetLeftPart(UriPartial.Path);
+                    if (limitResults.HasValue)
+                        sourceUri += $"?Limit={limitResults.Value}";
+
                     // HTTP POST
                     var statCode = await PackageHttpDownloadUtil.HttpPostRequestToMemoryStream(
                         client,
-                        sourceUri: new Uri(quri.GetLeftPart(UriPartial.Path)),
+                        sourceUri: new Uri(sourceUri),
                         requestBody: jsonQuery,
                         requestContentType: "application/json",
                         runtimeOptions: runtimeOptions,
@@ -2017,7 +2027,7 @@ namespace AasxPackageLogic.PackageCentral
                     if (statCode != HttpStatusCode.OK)
                     {
                         Log.Singleton.Error("Could not fetch new dynamic elements by query. Aborting!");
-                        Log.Singleton.Error("  POST request was: {0}", jsonQuery);
+                        Log.Singleton.Error("  POST request was status {0}, body: {1}", statCode.ToString(), jsonQuery);
                         return null;
                     }
 
@@ -2702,7 +2712,7 @@ namespace AasxPackageLogic.PackageCentral
                         return null;
 
                     // build
-                    var uri = BuildUriForRepoQuery(baseUris.GetBaseUriForQuery(), record.QueryScript, et);
+                    var uri = BuildUriForRepoQuery(baseUris.GetBaseUriForQuery(), record.QueryScript, et, record.PageLimit);
                     return new BasedLocation(baseUris, uri);
                 }
 
@@ -2783,6 +2793,9 @@ namespace AasxPackageLogic.PackageCentral
 
             [JsonProperty("elementType")]
             public string ElementType { get; set; }
+
+            [JsonProperty("args")]
+            public List<string> ArgNames { get; set; }
 
             [JsonProperty("query")]
             public JToken Query { get; set; }  // <-- dynamic JSON
@@ -2892,9 +2905,14 @@ namespace AasxPackageLogic.PackageCentral
 
             // read query presets
             var queryPresets = ReadQueryPresets();
-            var queryPresetNames = (new[] {""}).ToList();
+            var queryPresetNames = (new[] {"\u2014"}).ToList();
             if (queryPresets != null)
                 queryPresetNames.AddRange(queryPresets.Select((p) => p.Name));
+
+            // selected query preset
+            var selectedQueryNdx = -1;
+            var selectedQueryArgs = new List<string>();
+            var queryArgValues = new Dictionary<int, string>();
 
             // ok, go on ..
             var uc = new AnyUiDialogueDataModalPanel(caption);
@@ -3156,47 +3174,13 @@ namespace AasxPackageLogic.PackageCentral
 
                     if ((scope & ConnectExtendedScope.Query) > 0)
                     {
-                        // Query check box
-                        {
-                            var g2 = helper.AddSmallGridTo(g, row, 0, 1, 3, new[] { "#", "#", "#" });
-                            g2.GridColumnSpan = 2;
-
-                            AnyUiUIElement.RegisterControl(
-                                    helper.AddSmallCheckBoxTo(g2, 0, 0,
-                                        content: "Get by query definition",
-                                        isChecked: record.ExecuteQuery,
-                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                    (o) =>
-                                    {
-                                        if ((bool)o)
-                                            record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.Query);
-                                        else
-                                            record.ExecuteQuery = false;
-                                        return new AnyUiLambdaActionModalPanelReRender(uc);
-                                    });
-
-                            helper.AddSmallLabelTo(g2, 0, 1, content: " .. for: ", verticalCenter: true);
-
-                            AnyUiUIElement.SetStringFromControl(
-                                helper.Set(
-                                    helper.AddSmallComboBoxTo(g2, 0, 2,
-                                        isEditable: false,
-                                        items: new[] { "AAS", "Submodel", "ConceptDescription" },
-                                        text: "" + record.QueryElementType,
-                                        margin: new AnyUiThickness(10, 0, 0, 0),
-                                        padding: new AnyUiThickness(5, 0, 5, 0),
-                                        minWidth: 200,
-                                        horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
-                                    (s) => { record.QueryElementType = s; });
-                        }
-
                         // Complex query preset and size line
                         {
-                            helper.AddSmallLabelTo(g, row + 1, 0, content: "Preset/ Size:",
+                            helper.AddSmallLabelTo(g, row, 0, content: "Query preset:",
                                     verticalAlignment: AnyUiVerticalAlignment.Center,
                                     verticalContentAlignment: AnyUiVerticalAlignment.Center);
 
-                            var g2 = helper.AddSmallGridTo(g, row + 1, 1, 1, 3, new[] { "*", "#", "#" });
+                            var g2 = helper.AddSmallGridTo(g, row, 1, 1, 3, new[] { "*", "#", "#" });
 
                             AnyUiComboBox cbPreset = null;
                             cbPreset = AnyUiUIElement.RegisterControl(
@@ -3204,18 +3188,26 @@ namespace AasxPackageLogic.PackageCentral
                                     helper.AddSmallComboBoxTo(g2, 0, 0,
                                         isEditable: false,
                                         items: queryPresetNames.ToArray(),
-                                        text: "",
+                                        text: $"{((selectedQueryNdx >= 0 && selectedQueryNdx < queryPresets.Count) ? queryPresets[selectedQueryNdx].Name : "\u2014")}",
                                         margin: new AnyUiThickness(0, 0, 0, 0),
-                                        padding: new AnyUiThickness(0, 0, 0, 0),
+                                        padding: new AnyUiThickness(5, 0, 5, 0),
                                         horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
                                     (o) => {
                                         if (!cbPreset.SelectedIndex.HasValue)
                                             return new AnyUiLambdaActionNone();
-                                        int i2 = cbPreset.SelectedIndex.Value - 1; 
-                                        if (i2 < 0 || i2 >= queryPresets.Count)
-                                            return new AnyUiLambdaActionNone();
-                                        
-                                        record.QueryScript = queryPresets[i2].Query.ToString();
+                                        selectedQueryNdx = cbPreset.SelectedIndex.Value - 1;
+                                        selectedQueryArgs = new List<string>();
+                                        if (selectedQueryNdx < 0 || selectedQueryNdx >= queryPresets.Count)
+                                        {
+                                            record.QueryScript = "";
+                                            return new AnyUiLambdaActionModalPanelReRender(uc);
+                                        }
+
+                                        // ok, "real" preset selected
+                                        record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.Query);
+                                        record.QueryScript = queryPresets[selectedQueryNdx].Query.ToString();
+                                        record.QueryElementType = queryPresets[selectedQueryNdx].ElementType;
+                                        selectedQueryArgs = queryPresets[selectedQueryNdx].ArgNames;
                                         return new AnyUiLambdaActionModalPanelReRender(uc);
                                     });
 
@@ -3246,14 +3238,77 @@ namespace AasxPackageLogic.PackageCentral
                                     });
                         }
 
+                        // Query check box
+                        {
+                            var g2 = helper.AddSmallGridTo(g, row + 1, 0, 1, 3, new[] { "#", "#", "#" });
+                            g2.GridColumnSpan = 2;
+
+                            AnyUiUIElement.RegisterControl(
+                                    helper.AddSmallCheckBoxTo(g2, 0, 0,
+                                        content: "Get by query definition",
+                                        isChecked: record.ExecuteQuery,
+                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    (o) =>
+                                    {
+                                        if ((bool)o)
+                                            record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.Query);
+                                        else
+                                            record.ExecuteQuery = false;
+                                        return new AnyUiLambdaActionModalPanelReRender(uc);
+                                    });
+
+                            helper.AddSmallLabelTo(g2, 0, 1, content: " .. for: ", verticalCenter: true);
+
+                            AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallComboBoxTo(g2, 0, 2,
+                                        isEditable: false,
+                                        items: new[] { "AAS", "Submodel", "ConceptDescription" },
+                                        text: "" + record.QueryElementType,
+                                        margin: new AnyUiThickness(10, 0, 0, 0),
+                                        padding: new AnyUiThickness(5, 0, 5, 0),
+                                        minWidth: 200,
+                                        horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
+                                    (s) => { record.QueryElementType = s; });
+                        }
+                       
+                        // Query arguments
+                        if (selectedQueryArgs != null && selectedQueryArgs.Count > 0)
+                        {
+                            helper.AddSmallLabelTo(g, row + 2, 0, content: "Args:", verticalCenter: true);
+
+                            var g2 = helper.AddSmallGridTo(g, row + 2, 1, selectedQueryArgs.Count, 2, new[] { "#", "*" });
+
+                            for (int i=0; i< selectedQueryArgs.Count; i++)
+                            {
+                                helper.AddSmallLabelTo(g2, i, 0, 
+                                    content: $"{selectedQueryArgs[i]} (%{i+1}%):", 
+                                    verticalCenter: true,
+                                    margin: new AnyUiThickness(5, 0, 5, 0));
+
+                                int thatI = i;
+
+                                AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallTextBoxTo(g2, i, 1,
+                                        text: $"{(queryArgValues.ContainsKey(i) ? queryArgValues[i] : "")}", verticalCenter: true),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                                (s) => {  
+                                    if (queryArgValues.ContainsKey(thatI))
+                                        queryArgValues.Remove(thatI);
+                                    queryArgValues[thatI] = s;
+                                });
+                            }
+                        }
+
                         // Query text itself
-                        helper.AddSmallLabelTo(g, row + 2, 0, content: "Query:",
+                        helper.AddSmallLabelTo(g, row + 3, 0, content: "Query:",
                                 verticalAlignment: AnyUiVerticalAlignment.Top,
                                 verticalContentAlignment: AnyUiVerticalAlignment.Top);
 
                         AnyUiUIElement.SetStringFromControl(
                                 helper.Set(
-                                    helper.AddSmallTextBoxTo(g, row + 2, 1,
+                                    helper.AddSmallTextBoxTo(g, row + 3, 1,
                                         text: $"{record.QueryScript}",
                                         verticalAlignment: AnyUiVerticalAlignment.Top,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Top,
@@ -3268,9 +3323,9 @@ namespace AasxPackageLogic.PackageCentral
 
                         // Validate
                         {
-                            helper.AddSmallLabelTo(g, row + 3, 0, content: "Validate:", verticalCenter: true);
+                            helper.AddSmallLabelTo(g, row + 4, 0, content: "Validate:", verticalCenter: true);
 
-                            var g2 = helper.AddSmallGridTo(g, row + 3, 1, 1, 2, new[] { "#", "*" });
+                            var g2 = helper.AddSmallGridTo(g, row + 4, 1, 1, 2, new[] { "#", "*" });
 
                             AnyUiUIElement.RegisterControl(
                                 helper.AddSmallButtonTo(g2, 0, 0,
@@ -3293,7 +3348,7 @@ namespace AasxPackageLogic.PackageCentral
                                     horizontalAlignment: AnyUiHorizontalAlignment.Stretch);
                         }
 
-                        row += 4;
+                        row += 5;
                     }
 
                     if ((scope & ConnectExtendedScope.Filters) > 0)
@@ -3528,6 +3583,16 @@ namespace AasxPackageLogic.PackageCentral
 
             if (!(await displayContext.StartFlyoverModalAsync(uc)))
                 return false;
+
+            // do a query substitution?
+            if (selectedQueryArgs != null && selectedQueryArgs.Count > 0)
+            {
+                for (int i=0; i< selectedQueryArgs.Count; i++)
+                {
+                    var rv = (queryArgValues != null && queryArgValues.ContainsKey(i)) ? queryArgValues[i] : "";
+                    record.QueryScript = record.QueryScript.Replace($"%{i + 1}%", rv);
+                }
+            }
 
             // prepare header
             if (!record.HeaderData.Parse(record.HeaderAttributes))

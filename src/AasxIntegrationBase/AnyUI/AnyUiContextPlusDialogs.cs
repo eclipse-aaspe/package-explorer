@@ -445,7 +445,8 @@ namespace AnyUi
             string caption,
             string workDir,
             string cmd,
-            string args)
+            string args,
+            string[] ignoreError = null)
         {
             await Task.Yield();
             throw new NotImplementedException("MenuExecuteSystemCommand");
