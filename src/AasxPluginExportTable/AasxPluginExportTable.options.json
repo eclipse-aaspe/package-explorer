@@ -8,7 +8,7 @@
     "SmtExportPdfCmd": "podman",
     "SmtExportHtmlArgs": "run -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor -r asciidoctor-diagram -a stylesheet=asciidoc-style-idta.css %ADOC%",
     "SmtExportPdfArgs": "run -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor-pdf -r asciidoctor-diagram -r ./extended.rb -a toc=macro -a pdf-theme=my-theme.yml -a env-pdf %ADOC%",
-    // this is required to ignore a non-critical error message from podman
+    // this is required to ignore a non-critical error message from podman, preventing the export to stop.
     "SmtExportIgnoreError": [ "Failed to obtain TTY size" ],
     // without line numbers:
     // "SmtExportPdfArgs": "run -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor-pdf -r asciidoctor-diagram -a pdf-theme=my-theme.yml %ADOC%",
