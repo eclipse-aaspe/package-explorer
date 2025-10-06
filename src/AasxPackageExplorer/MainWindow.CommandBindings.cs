@@ -97,7 +97,7 @@ namespace AasxPackageExplorer
         /// </summary>
         public bool ScriptModeShutdown = false;
         
-        public async Task<int> ExecuteMainMenuCommand(string menuItemName, params object[] args)
+        public async Task<int> ExecuteMainMenuCommand(string menuItemName, bool scriptMode, params object[] args)
         {
             if (menuItemName?.HasContent() != true)
             {
@@ -123,7 +123,7 @@ namespace AasxPackageExplorer
             var ticket = new AasxMenuActionTicket()
             {
                 MenuItem = mi,
-                ScriptMode = true,
+                ScriptMode = scriptMode,
                 ArgValue = new AasxMenuArgDictionary()
             };
 

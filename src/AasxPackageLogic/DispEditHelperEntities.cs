@@ -697,7 +697,12 @@ namespace AasxPackageLogic
                                                         var tmpFile =
                                                             rve.thePackage.MakePackageFileAvailableAsTempFile(fn);
                                                         var targetDir = System.IO.Path.GetDirectoryName(fn);
+
+                                                        // target dir must not contain backslashes (!)
                                                         var targetFn = System.IO.Path.GetFileName(fn);
+                                                        targetDir = targetDir.Replace("\\", "/");
+
+                                                        // add
                                                         packages.Main.AddSupplementaryFileToStore(
                                                             tmpFile, targetDir, targetFn, false);
                                                     }

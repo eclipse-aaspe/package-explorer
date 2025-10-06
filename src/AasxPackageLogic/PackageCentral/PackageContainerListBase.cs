@@ -254,7 +254,8 @@ namespace AasxPackageLogic.PackageCentral
             }
         }
 
-        public void AddByAasxFn(PackageCentral packageCentral, string fn)
+        // by default, allow adding single files
+        public virtual void AddByAasxFn(PackageCentral packageCentral, string fn)
         {
             try
             {
@@ -273,6 +274,11 @@ namespace AasxPackageLogic.PackageCentral
             }
         }
 
+        // and "disable" the bulk adding
+        public virtual async Task AddByListOfAasxFn(PackageCentral packageCentral, IEnumerable<string> fns)
+        {
+            await Task.Yield();
+        }
 
         public virtual void DeletePackageFromServer(PackageContainerRepoItem repoItem)
         {

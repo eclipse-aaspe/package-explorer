@@ -81,6 +81,9 @@
 
   <ItemGroup>
     <Folder Include="FlyoutsForPlugins\" />
+    <None Update="query-presets.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="data-spec-presets.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

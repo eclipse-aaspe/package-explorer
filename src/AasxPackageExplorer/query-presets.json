@@ -1,0 +1,125 @@
+[
+    {
+        "name": "Get all Submodels with specific name (AASX-Server)",
+        "elementType": "Submodel",
+        "args": [ "SM.idShort" ],
+        "query": {
+            "Query": {
+                "$condition": {
+                    "$eq": [
+                        { "$field": "$sm#idShort" },
+                        {
+                            "$strVal": "%1%"
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    {
+        "name": "Get all AAS with specific idShort (Basyx)",
+        "elementType": "AAS",
+        "query": {
+            "$condition": {
+                "$or": [
+                    {
+                        "$contains": [
+                            {
+                                "$field": "$aas#idShort"
+                            },
+                            {
+                                "$strVal": "Test"
+                            }
+                        ]
+                    },
+                    {
+                        "$lt": [
+                            {
+                                "$numCast": {
+                                    "$field": "$aas#administration.revision"
+                                }
+                            },
+                            {
+                                "$numVal": 11
+                            }
+                        ]
+                    },
+                    {
+                        "$ne": [
+                            {
+                                "$field": "$aas#assetInformation.globalAssetId"
+                            },
+                            {
+                                "$field": "$aas#assetInformation.assetKind"
+                            }
+                        ]
+                    },
+                    {
+                        "$contains": [
+                            {
+                                "$field": "$aas#submodels.keys[]"
+                            },
+                            {
+                                "$strVal": "BillOfMaterial"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "name": "Get all AAS with specific idShort (AASX-Server)",
+        "elementType": "AAS",
+        "query": {
+            "Query": {
+                "$condition": {
+                    "$or": [
+                        {
+                            "$contains": [
+                                {
+                                    "$field": "$aas#idShort"
+                                },
+                                {
+                                    "$strVal": "Test"
+                                }
+                            ]
+                        },
+                        {
+                            "$lt": [
+                                {
+                                    "$numCast": {
+                                        "$field": "$aas#administration.revision"
+                                    }
+                                },
+                                {
+                                    "$numVal": 11
+                                }
+                            ]
+                        },
+                        {
+                            "$ne": [
+                                {
+                                    "$field": "$aas#assetInformation.globalAssetId"
+                                },
+                                {
+                                    "$field": "$aas#assetInformation.assetKind"
+                                }
+                            ]
+                        },
+                        {
+                            "$contains": [
+                                {
+                                    "$field": "$aas#submodels.keys[]"
+                                },
+                                {
+                                    "$strVal": "BillOfMaterial"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+    }
+]

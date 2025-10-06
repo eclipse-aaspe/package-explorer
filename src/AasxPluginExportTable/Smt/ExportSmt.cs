@@ -163,6 +163,8 @@ namespace AasxPluginExportTable.Smt
 
             // determine (automatic) target file name
             var targetName = "image_" + Path.GetRandomFileName().Replace(".", "_");
+
+            // define by idShort (as default)
             if (sme.IdShort.HasContent())
             {
                 // filter a little more relaxed (allow "-")
@@ -176,7 +178,6 @@ namespace AasxPluginExportTable.Smt
                     targetName = targetName.Substring(0, p);
                 }
             }
-
             var fn = targetName + dataExt;
 
             // may be overruled?
@@ -496,6 +497,11 @@ namespace AasxPluginExportTable.Smt
             File.WriteAllText(absAdocFn, adocText);
             log?.Info("ExportSmt: written {0} bytes to temp file {1}.", adocText.Length, absAdocFn);
 
+            // prepare ignore error patterns
+            string[] ignoreError = null;
+            if (_optionsAll?.SmtExportIgnoreError != null && _optionsAll.SmtExportIgnoreError.Count > 0)
+                ignoreError = _optionsAll.SmtExportIgnoreError.ToArray();
+
             // start outside commands?
             if (_optionsSmt.ExportHtml)
             {
@@ -504,7 +510,7 @@ namespace AasxPluginExportTable.Smt
                     .Replace("%WD%", "" + _tempDir)
                     .Replace("%ADOC%", "" + adocFn);
 
-                displayContext?.MenuExecuteSystemCommand("Exporting HTML", _tempDir, cmd, args);
+                displayContext?.MenuExecuteSystemCommand("Exporting HTML", _tempDir, cmd, args, ignoreError: ignoreError);
             }
 
             if (_optionsSmt.ExportPdf)
@@ -514,7 +520,7 @@ namespace AasxPluginExportTable.Smt
                     .Replace("%WD%", "" + _tempDir)
                     .Replace("%ADOC%", "" + adocFn);
 
-                displayContext?.MenuExecuteSystemCommand("Exporting PDF", _tempDir, cmd, args);
+                displayContext?.MenuExecuteSystemCommand("Exporting PDF", _tempDir, cmd, args, ignoreError: ignoreError);
             }
 
             // now, how to handle files?
@@ -564,7 +570,7 @@ namespace AasxPluginExportTable.Smt
                     .Replace("%HTML%", "" + adocFn.Replace(".adoc", ".html"))
                     .Replace("%PDF%", "" + adocFn.Replace(".adoc", ".pdf"));
 
-                displayContext?.MenuExecuteSystemCommand("Viewing results", _tempDir, cmd, args);
+                displayContext?.MenuExecuteSystemCommand("Viewing results", _tempDir, cmd, args, ignoreError: ignoreError);
             }
 
             // remove temp directory

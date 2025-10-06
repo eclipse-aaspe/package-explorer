@@ -1099,6 +1099,18 @@ namespace AdminShellNS
                 return;
             }
 
+            // list of strings is vary common, therefore a special case is justified
+            if (tut?.IsGenericType == true 
+                && tut.GetGenericTypeDefinition() == typeof(List<>)
+                && tut.GetGenericArguments().Count() == 1
+                && tut.GetGenericArguments()[0] == typeof(string)
+                && value is IEnumerable<string> vstr2)
+            {
+                var lststr = vstr2.ToList();
+                f.SetValue(obj, lststr);
+                return;
+            }
+
             // 2024-01-04: make function more suitable for <DateTime?>
             switch (Type.GetTypeCode(tut))
             {

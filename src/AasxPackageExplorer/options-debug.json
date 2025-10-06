@@ -21,6 +21,7 @@
     "ExtensionsPresetFile": "extension-presets.json",
     "IdentifierKeyValuePairsFile": "local-identifier-presets.json",
     "DataSpecPresetFile": "data-spec-presets.json",
+    "QueryPresetFile": "query-presets.json",
     "ContentHome": "https://github.com/admin-shell/io/blob/master/README.md",
     "UseFlyovers": true,
     "SplashTime": 0,

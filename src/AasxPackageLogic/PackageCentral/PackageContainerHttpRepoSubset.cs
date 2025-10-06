@@ -34,6 +34,7 @@ using IdentityModel.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using static AasxPackageLogic.DispEditHelperMiniModules;
 using Aas = AasCore.Aas3_0;
 
 namespace AasxPackageLogic.PackageCentral
@@ -160,7 +161,11 @@ namespace AasxPackageLogic.PackageCentral
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
 
             // prevent the false alarm for looking for single assetIds
-            if (m.Success && location.Contains("assetId"))
+            if (m.Success && location.Contains("assetId", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
                 return false;
 
             // ok?
@@ -171,6 +176,11 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/shells/([^?]{1,999})",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             return m.Success;
         }
 
@@ -178,6 +188,11 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/submodels(|/|/?\?(.*))$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             return m.Success;
         }
 
@@ -185,6 +200,11 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/submodels/(.{1,999})$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             if (m.Success)
                 return true;
 
@@ -196,6 +216,11 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/concept-descriptions(|/|/?\?(.*))$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             return m.Success;
         }
 
@@ -203,12 +228,17 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/concept-descriptions/(.{1,999})$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             return m.Success;
         }
 
         public static bool IsValidUriForRepoQuery(string location)
         {
-            var m = Regex.Match(location, @"^(http(|s))://(.*?)/graphql(|/|/?\?(.*))$",
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/query/(shells|submodels|conceptdescriptions)(|/|/?\?(.*))$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
@@ -221,6 +251,11 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/shell-descriptors(|/|/?\?(.*))$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             return m.Success;
         }
 
@@ -228,6 +263,11 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/shell-descriptors/([^?]{1,999})",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             return m.Success;
         }
 
@@ -242,6 +282,11 @@ namespace AasxPackageLogic.PackageCentral
         {
             var m = Regex.Match(location, @"^(http(|s))://(.*?)/shells/{0,1}\?(.*)assetIds=([-A-Za-z0-9_]{1,999})",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+
+            // prevent the false alarm of having a query
+            if (m.Success && location.Contains("/query/", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
             return m.Success;
         }
 
@@ -394,7 +439,7 @@ namespace AasxPackageLogic.PackageCentral
         // REPO
         //
 
-        public static Uri BuildUriForRepoAllAAS(Uri baseUri, int pageLimit = 100, string cursor = null)
+        public static Uri BuildUriForRepoAllAAS(Uri baseUri, int pageLimit = -1, string cursor = null)
         {
             // access
             if (baseUri == null)
@@ -478,7 +523,7 @@ namespace AasxPackageLogic.PackageCentral
             return CombineUri(baseUri, $"shells/{smidenc}/asset-information/thumbnail");
         }
 
-        public static Uri BuildUriForRepoAllSubmodel(Uri baseUri, int pageLimit = 100, string cursor = null)
+        public static Uri BuildUriForRepoAllSubmodel(Uri baseUri, int pageLimit = -1, string cursor = null)
         {
             // for more info: see BuildUriForRepoAllAAS
             // access
@@ -571,7 +616,7 @@ namespace AasxPackageLogic.PackageCentral
                 encryptIds: encryptIds, usePost: usePost);
         }
 
-        public static Uri BuildUriForRepoAllCD(Uri baseUri, int pageLimit = 100, string cursor = null)
+        public static Uri BuildUriForRepoAllCD(Uri baseUri, int pageLimit = -1, string cursor = null)
         {
             // for more info: see BuildUriForRepoAllAAS
             // access
@@ -612,7 +657,7 @@ namespace AasxPackageLogic.PackageCentral
         /// Note: this is an AASPE specific, proprietary extension.
         /// This REST ressource does not exist in the official specification!
         /// </summary>
-        public static Uri BuildUriForRepoQuery(Uri baseUri, string query)
+        public static Uri BuildUriForRepoQuery(Uri baseUri, string query, string elementName, int pageLimit = -1)
         {
             // access
             if (query?.HasContent() != true)
@@ -622,8 +667,10 @@ namespace AasxPackageLogic.PackageCentral
             // endpoint name is required for the real call. 
             // However, lets store the query as BASE64 query parameter
             var queryEnc = AdminShellUtil.Base64UrlEncode(query);
-            var uri = new UriBuilder(CombineUri(baseUri, $"graphql"));
+            var uri = new UriBuilder(CombineUri(baseUri, $"/query/{elementName}"));
             uri.Query = $"query={queryEnc}";
+            if (pageLimit > 0)
+                uri.Query += $"&Limit={pageLimit:D}";
             return uri.Uri;
         }
 
@@ -1151,7 +1198,7 @@ namespace AasxPackageLogic.PackageCentral
             // get the record data (as supplemental infos to the fullItemLocation)
             var record = (containerOptions as PackageContainerHttpRepoSubsetOptions)?.Record;
 
-            // invalidate cursor data (as a new request is about to be started)
+            // invalidate cursor data (as a new request is  about to be started)
             string cursor = null;
 
             // TODO: very long function, needs to be refactored
@@ -1410,6 +1457,13 @@ namespace AasxPackageLogic.PackageCentral
                                 return;
 
                             lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
+
+                            if (isAllAAS)
+                                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllAas);
+                            if (isAllSM)
+                                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllSM);
+                            if (isAllCD)
+                                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllCD);
 
                             try
                             {
@@ -1676,6 +1730,8 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var aas = Jsonization.Deserialize.AssetAdministrationShellFrom(node);
+                                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleAas);
+                                record.AasId = aas.Id;
                                 lambdaReportAll(++numAAS, numSM, numCD, numDiv);
                                 trackLoadedIdentifiables?.Add(aas);
                                 if (prepAas.AddIfNew(aas, new AasIdentifiableSideInfo()
@@ -1719,6 +1775,8 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var sm = Jsonization.Deserialize.SubmodelFrom(node);
+                                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleSM);
+                                record.SmId = sm.Id;
                                 lambdaReportAll(numAAS, ++numSM, numCD, numDiv);
                                 trackLoadedIdentifiables?.Add(sm);
                                 if (prepSM.AddIfNew(sm, new AasIdentifiableSideInfo()
@@ -1762,6 +1820,8 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
                                 var cd = Jsonization.Deserialize.ConceptDescriptionFrom(node);
+                                record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleCD);
+                                record.CdId = cd.Id;
                                 lambdaReportAll(numAAS, numSM, ++numCD, numDiv);
                                 trackLoadedIdentifiables?.Add(cd);
                                 if (prepCD.AddIfNew(cd, new AasIdentifiableSideInfo()
@@ -1813,22 +1873,44 @@ namespace AasxPackageLogic.PackageCentral
                         return null;
                     }
 
-                    // but, the query needs to be reformatted as JSON
-                    // query = "{ searchSMs(expression: \"\"\"$LOG  \"\"\") { url smId } }";
-                    // query = "{ searchSMs(expression: \"\"\"$LOG filter=or(str_contains(sm.IdShort, \"Technical\"), str_contains(sm.IdShort, \"Nameplate\")) \"\"\") { url smId } }";
-                    query = query.Replace("\\", "\\\\");
-                    query = query.Replace("\"", "\\\"");
-                    query = query.Replace("\r", " ");
-                    query = query.Replace("\n", " ");
-                    var jsonQuery = $"{{ \"query\" : \"{query}\" }} ";
+                    // may be able to limit the number of results
+                    var limitResults = CheckUriForValidPageLimit(fullItemLocation);
+
+                    // in prior versions of the AASX servers, there was more to re-format
+                    var jsonQuery = "";
+                    if (false)
+                    {
+
+                        // but, the query needs to be reformatted as JSON
+                        // query = "{ searchSMs(expression: \"\"\"$LOG  \"\"\") { url smId } }";
+                        // query = "{ searchSMs(expression: \"\"\"$LOG filter=or(str_contains(sm.IdShort, \"Technical\"), str_contains(sm.IdShort, \"Nameplate\")) \"\"\") { url smId } }";
+                        query = query.Replace("\\", "\\\\");
+                        query = query.Replace("\"", "\\\"");
+                        query = query.Replace("\r", " ");
+                        query = query.Replace("\n", " ");
+                        jsonQuery = $"{{ \"query\" : \"{query}\" }} ";
+                    }
+                    else
+                    {
+                        query = query.Replace("\r", " ");
+                        query = query.Replace("\n", " ");
+                        query = Regex.Replace(query, @"\s+", " ");
+                        jsonQuery = query;
+                    }
 
                     // there are subsequent fetch operations necessary
                     var fetchItems = new List<FetchItem>();
+                    int numTotal = 0, numError = 0;
+
+                    // build the new source uri (again with query parameters)
+                    var sourceUri = quri.GetLeftPart(UriPartial.Path);
+                    if (limitResults.HasValue)
+                        sourceUri += $"?Limit={limitResults.Value}";
 
                     // HTTP POST
                     var statCode = await PackageHttpDownloadUtil.HttpPostRequestToMemoryStream(
                         client,
-                        sourceUri: new Uri(quri.GetLeftPart(UriPartial.Path)),
+                        sourceUri: new Uri(sourceUri),
                         requestBody: jsonQuery,
                         requestContentType: "application/json",
                         runtimeOptions: runtimeOptions,
@@ -1836,93 +1918,57 @@ namespace AasxPackageLogic.PackageCentral
                         {
                             try
                             {
-                                lambdaReportAll(numAAS, numSM, numCD, ++numDiv);
+                                var overallNode = System.Text.Json.Nodes.JsonNode.Parse(ms);
 
-                                var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                                if (node["data"]?["searchSMs"] is JsonArray smdata
-                                    && smdata.Count >= 1)
+                                // paging metadata . resultType may overrule the elementType
+                                var qet = record.QueryElementType;
+                                var rT = overallNode["paging_metadata"]?["resultType"]?.ToString().ToLower();
+                                if (rT == null) // typo in Basyx.milestone07
+                                    rT = overallNode["paging_metadata"]?["resulType"]?.ToString().ToLower();
+                                if (rT == "aas" || rT == "assetadministrationshell")
+                                    qet = "AAS";
+                                if (rT == "sm" || rT == "submodel")
+                                    qet = "Submodel";
+                                if (rT == "cd" || rT == "conceptdescription")
+                                    qet = "ConceptDescription";
+
+                                // try to get result data
+                                JsonArray resArr = null;
+                                if (overallNode["result"] is JsonArray ra
+                                    && ra.Count >= 1)
+                                    resArr = ra;
+
+                                // go on
+                                var resIndex = -1;
+                                foreach (var resNode in resArr)
                                 {
-                                    foreach (var smrec in smdata)
-                                    {
-                                        var url = smrec["url"]?.ToString();
-                                        var smId = smrec["smId"]?.ToString();
-                                        if (smId?.HasContent() == true)
-                                            fetchItems.Add(new FetchItem() { Type = FetchItemType.SmId, Value = smId });
-                                        else
-                                        if (url?.HasContent() == true)
-                                            fetchItems.Add(new FetchItem() { Type = FetchItemType.SmUrl, Value = url });
-                                    }
-                                }
-
-                            }
-                            catch (Exception ex)
-                            {
-                                runtimeOptions?.Log?.Error(ex, "Parsing graphql result set");
-                            }
-                        });
-
-                    if (statCode != HttpStatusCode.OK)
-                    {
-                        Log.Singleton.Error("Could not fetch new dynamic elements by graphql. Aborting!");
-                        Log.Singleton.Error("  POST request was: {0}", jsonQuery);
-                        return null;
-                    }
-
-                    // only makes sense, if query returns something
-                    if (fetchItems.Count < 1)
-                    {
-                        Log.Singleton.Info(StoredPrint.Color.Blue, "Query resulted in zero elements, " +
-                            "which could be fetched. Aborting!");
-                        return null;
-                    }
-
-                    // skip items?
-                    if (record.PageSkip > 0)
-                    {
-                        fetchItems.RemoveRange(0, Math.Min(fetchItems.Count, record.PageSkip));
-                    }
-                    var numItem = 0;
-
-                    // TODO: convert to parallel for each async
-                    var dlErrors = 0;
-                    foreach (var fi in fetchItems)
-                    {
-                        // reached end
-                        numItem++;
-                        if (record.PageLimit > 0 && numItem > record.PageLimit)
-                            break;
-
-                        // prepare download
-                        Uri loc = null;
-                        if (fi.Type == FetchItemType.SmUrl)
-                            loc = new Uri(fi.Value);
-                        if (fi.Type == FetchItemType.SmId)
-                            loc = BuildUriForRepoSingleSubmodel(
-                                    baseUri.GetBaseUriForSmRepo(), fi.Value, encryptIds: true);
-
-                        if (loc == null)
-                            continue;
-
-                        // download (and skip errors)
-                        try
-                        {
-                            await PackageHttpDownloadUtil.HttpGetToMemoryStream(
-                                null,
-                                sourceUri: loc,
-                                allowFakeResponses: allowFakeResponses,
-                                runtimeOptions: runtimeOptions,
-                                lambdaDownloadDoneOrFail: (code, ms, contentFn) =>
-                                {
-                                    if (code != HttpStatusCode.OK)
-                                        return;
-
+                                    resIndex++;
+                                    numTotal++;
                                     try
                                     {
-                                        var node = System.Text.Json.Nodes.JsonNode.Parse(ms);
-                                        var sm = Jsonization.Deserialize.SubmodelFrom(node);
-                                        lambdaReportAll(numAAS, ++numSM, numCD, numDiv);
-                                        if (fi.Type == FetchItemType.SmUrl || fi.Type == FetchItemType.SmId)
+                                        if (qet.Equals("AAS", StringComparison.InvariantCultureIgnoreCase))
                                         {
+                                            var aas = Jsonization.Deserialize.AssetAdministrationShellFrom(resNode);
+                                            lambdaReportAll(++numAAS, numSM, numCD, numDiv);
+                                            trackLoadedIdentifiables?.Add(aas);
+                                            if (prepAas.AddIfNew(aas, new AasIdentifiableSideInfo()
+                                            {
+                                                IsStub = false,
+                                                StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                                Id = aas.Id,
+                                                IdShort = aas.IdShort,
+                                                QueriedEndpoint = new Uri(fullItemLocation),
+                                                DesignatedEndpoint = BuildUriForRepoSingleAAS(
+                                                    baseUri.GetBaseUriForAasRepo(), aas.Id, encryptIds: true)
+                                            }))
+                                            {
+                                                trackNewIdentifiables?.Add(aas);
+                                            }
+                                        } 
+                                        else if (qet.Equals("Submodel", StringComparison.InvariantCultureIgnoreCase))
+                                        {
+                                            var sm = Jsonization.Deserialize.SubmodelFrom(resNode);
+                                            lambdaReportAll(numAAS, ++numSM, numCD, numDiv);
                                             trackLoadedIdentifiables?.Add(sm);
                                             if (prepSM.AddIfNew(sm, new AasIdentifiableSideInfo()
                                             {
@@ -1932,29 +1978,62 @@ namespace AasxPackageLogic.PackageCentral
                                                 IdShort = sm.IdShort,
                                                 QueriedEndpoint = new Uri(fullItemLocation),
                                                 DesignatedEndpoint = BuildUriForRepoSingleSubmodel(
-                                                    baseUri.GetBaseUriForSmRepo(), sm.Id, encryptIds: true)
+                                                    baseUri.GetBaseUriForAasRepo(), sm.Id, encryptIds: true)
                                             }))
                                             {
                                                 trackNewIdentifiables?.Add(sm);
                                             }
+                                        } 
+                                        else if (qet.Equals("ConceptDescription", StringComparison.InvariantCultureIgnoreCase))
+                                        {
+                                            var cd = Jsonization.Deserialize.ConceptDescriptionFrom(resNode);
+                                            lambdaReportAll(numAAS, numSM, ++numCD, numDiv);
+                                            trackLoadedIdentifiables?.Add(cd);
+                                            if (prepCD.AddIfNew(cd, new AasIdentifiableSideInfo()
+                                            {
+                                                IsStub = false,
+                                                StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                                Id = cd.Id,
+                                                IdShort = cd.IdShort,
+                                                QueriedEndpoint = new Uri(fullItemLocation),
+                                                DesignatedEndpoint = BuildUriForRepoSingleCD(
+                                                    baseUri.GetBaseUriForAasRepo(), cd.Id, encryptIds: true)
+                                            }))
+                                            {
+                                                trackNewIdentifiables?.Add(cd);
+                                            }
                                         }
-                                    }
-                                    catch (Exception ex)
+                                        else
+                                        {
+                                            runtimeOptions?.Log?.Error($"Trying to deserialize to impossible " +
+                                                $"Identifiable type {qet}. Aborting!");
+                                            break;
+                                        }
+                                    } catch (Exception ex)
                                     {
-                                        dlErrors++;
-                                        runtimeOptions?.Log?.Error(ex, "Parsing individual fetch element of query.");
+                                        runtimeOptions?.Log?.Error(ex, 
+                                            $"Parsing of single Identifiable {qet} with index {resIndex} of query " +
+                                            $"result set failed. Skipping.");
+                                        numError++;
                                     }
-                                });
-                        }
-                        catch (Exception ex)
-                        {
-                            dlErrors++;
-                            LogInternally.That.CompletelyIgnoredError(ex);
-                        }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                runtimeOptions?.Log?.Error(ex, "Parsing query result set");
+                            }
+                        });
+
+                    if (statCode != HttpStatusCode.OK)
+                    {
+                        Log.Singleton.Error("Could not fetch new dynamic elements by query. Aborting!");
+                        Log.Singleton.Error("  POST request was status {0}, body: {1}", statCode.ToString(), jsonQuery);
+                        return null;
                     }
 
-                    Log.Singleton.Info(StoredPrint.Color.Blue, "Executed GraphQL query. Receiving list of {0} elements, " +
-                        "found {1} errors when individually downloading elements.", fetchItems.Count, dlErrors);
+                    // to be fixed
+                    Log.Singleton.Info(StoredPrint.Color.Blue, "Executed query. Receiving list of {0} elements, " +
+                        "found {1} errors when individually downloading elements.", numTotal, numError);
                 }
 
                 // start auto-load missing Submodels?
@@ -2339,6 +2418,9 @@ namespace AasxPackageLogic.PackageCentral
             // public string QueryScript = "{\r\n  searchSMs(\r\n    expression: \"\"\"$LOG\r\n     filter=\r\n      or(\r\n        str_contains(sm.IdShort, \"Technical\"),\r\n        str_contains(sm.IdShort, \"Nameplate\")\r\n      )\r\n   \"\"\"\r\n  )\r\n  {\r\n    url\r\n    smId\r\n  }\r\n}";
             // public string QueryScript = "{\r\n  searchSMs(\r\n    expression: \"\"\"$LOG$QL\r\n          ( contains(sm.idShort, \"Technical\") and\r\n          sme.value ge 100 and\r\n          sme.value le 200 )\r\n        or\r\n          ( contains(sm.idShort, \"Nameplate\") and\r\n          contains(sme.idShort,\"ManufacturerName\") and\r\n          not(contains(sme.value,\"Phoenix\")))\r\n    \"\"\"\r\n  )\r\n  {\r\n    url\r\n    smId\r\n  }\r\n}";
 
+            [AasxMenuArgument(help: "Specifies the AAS meta model element type name to be queried (AAS, Submodel, ConceptDescription).")]
+            public string QueryElementType = "AAS";
+
             [AasxMenuArgument(help: "Filter elements on (Id, IdShort, DisplayName, Description) after getting.")]
             public bool FilterByText;
 
@@ -2617,7 +2699,20 @@ namespace AasxPackageLogic.PackageCentral
                 // Query?
                 if (record.ExecuteQuery)
                 {
-                    var uri = BuildUriForRepoQuery(baseUris.GetBaseUriForQuery(), record.QueryScript);
+                    // do some manual stuff for element type
+                    var qet = ("" + record.QueryElementType).ToLower().Trim();
+                    string et = null;
+                    if (qet == "aas" || qet == "shells")
+                        et = "shells";
+                    if (qet == "submodel" || qet == "submodels")
+                        et = "submodels";
+                    if (qet == "conceptdescription" || qet == "conceptdescriptions")
+                        et = "conceptdescriptions";
+                    if (et == null)
+                        return null;
+
+                    // build
+                    var uri = BuildUriForRepoQuery(baseUris.GetBaseUriForQuery(), record.QueryScript, et, record.PageLimit);
                     return new BasedLocation(baseUris, uri);
                 }
 
@@ -2691,6 +2786,66 @@ namespace AasxPackageLogic.PackageCentral
             Header = 0x0080
         }
 
+        protected class QueryPresetDef
+        {
+            [JsonProperty("name")]
+            public string Name { get; set; }
+
+            [JsonProperty("elementType")]
+            public string ElementType { get; set; }
+
+            [JsonProperty("args")]
+            public List<string> ArgNames { get; set; }
+
+            [JsonProperty("query")]
+            public JToken Query { get; set; }  // <-- dynamic JSON
+        }
+
+        protected static List<QueryPresetDef> ReadQueryPresets()
+        {
+            var pfn = Options.Curr.QueryPresetFile;
+            if (pfn == null || !System.IO.File.Exists(pfn))
+            {
+                Log.Singleton.Error(
+                    $"JSON file for query presets not defined nor existing ({pfn}).");
+                return null;
+            }
+            try
+            {
+                // read file contents
+                var init = System.IO.File.ReadAllText(pfn);
+                var presets = JsonConvert.DeserializeObject<List<QueryPresetDef>>(init);
+
+                return presets;
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(
+                    $"JSON file for query presets not readable ({pfn}): {ex.Message}");
+                return null;
+            }
+        }
+
+        protected static string ValidateJson(string strInput)
+        {
+            try
+            {
+                var obj = JToken.Parse(strInput);
+                return "Seems to be JSON format.";
+            }
+            catch (JsonReaderException jex)
+            {
+                //Exception in parsing json
+                Console.WriteLine(jex.Message);
+                return "JSON error: " + jex.Message;
+            }
+            catch (Exception ex) //some other exception
+            {
+                Console.WriteLine(ex.ToString());
+                return "General error: " + ex.Message;
+            }
+        }
+
         public static async Task<bool> PerformConnectExtendedDialogue(
             AasxMenuActionTicket ticket,
             AnyUiContextBase displayContext,
@@ -2743,6 +2898,21 @@ namespace AasxPackageLogic.PackageCentral
 
             if (ticket?.ScriptMode == true)
                 return true;
+
+            // some memory
+            int heightQueryEditor = 120;
+            var validateResult = "";
+
+            // read query presets
+            var queryPresets = ReadQueryPresets();
+            var queryPresetNames = (new[] {"\u2014"}).ToList();
+            if (queryPresets != null)
+                queryPresetNames.AddRange(queryPresets.Select((p) => p.Name));
+
+            // selected query preset
+            var selectedQueryNdx = -1;
+            var selectedQueryArgs = new List<string>();
+            var queryArgValues = new Dictionary<int, string>();
 
             // ok, go on ..
             var uc = new AnyUiDialogueDataModalPanel(caption);
@@ -3004,41 +3174,181 @@ namespace AasxPackageLogic.PackageCentral
 
                     if ((scope & ConnectExtendedScope.Query) > 0)
                     {
-                        // Query
-                        AnyUiUIElement.RegisterControl(
+                        // Complex query preset and size line
+                        {
+                            helper.AddSmallLabelTo(g, row, 0, content: "Query preset:",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                            var g2 = helper.AddSmallGridTo(g, row, 1, 1, 3, new[] { "*", "#", "#" });
+
+                            AnyUiComboBox cbPreset = null;
+                            cbPreset = AnyUiUIElement.RegisterControl(
                                 helper.Set(
-                                    helper.AddSmallCheckBoxTo(g, row, 0,
+                                    helper.AddSmallComboBoxTo(g2, 0, 0,
+                                        isEditable: false,
+                                        items: queryPresetNames.ToArray(),
+                                        text: $"{((selectedQueryNdx >= 0 && selectedQueryNdx < queryPresets.Count) ? queryPresets[selectedQueryNdx].Name : "\u2014")}",
+                                        margin: new AnyUiThickness(0, 0, 0, 0),
+                                        padding: new AnyUiThickness(5, 0, 5, 0),
+                                        horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
+                                    (o) => {
+                                        if (!cbPreset.SelectedIndex.HasValue)
+                                            return new AnyUiLambdaActionNone();
+                                        selectedQueryNdx = cbPreset.SelectedIndex.Value - 1;
+                                        selectedQueryArgs = new List<string>();
+                                        if (selectedQueryNdx < 0 || selectedQueryNdx >= queryPresets.Count)
+                                        {
+                                            record.QueryScript = "";
+                                            return new AnyUiLambdaActionModalPanelReRender(uc);
+                                        }
+
+                                        // ok, "real" preset selected
+                                        record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.Query);
+                                        record.QueryScript = queryPresets[selectedQueryNdx].Query.ToString();
+                                        record.QueryElementType = queryPresets[selectedQueryNdx].ElementType;
+                                        selectedQueryArgs = queryPresets[selectedQueryNdx].ArgNames;
+                                        return new AnyUiLambdaActionModalPanelReRender(uc);
+                                    });
+
+                            AnyUiUIElement.RegisterControl(
+                                helper.AddSmallButtonTo(g2, 0, 1,
+                                    margin: new AnyUiThickness(5, 0, 5, 0),
+                                    content: " \uff0b ",
+                                    modalDialogStyle: true,
+                                    foreground: AnyUiBrushes.White,
+                                    toolTip: "Enlarges the size of the query text editor"),
+                                    setValue: (o) =>
+                                    {
+                                        heightQueryEditor += 50;
+                                        return new AnyUiLambdaActionModalPanelReRender(uc);
+                                    });
+
+                            var b2 = AnyUiUIElement.RegisterControl(
+                                helper.AddSmallButtonTo(g2, 0, 2,
+                                    margin: new AnyUiThickness(5, 0, 5, 0),
+                                    content: "  \u2212  ",
+                                    modalDialogStyle: true,
+                                    foreground: AnyUiBrushes.White,
+                                    toolTip: "Decreases the size of the query text editor"),
+                                    setValue: (o) =>
+                                    {
+                                        heightQueryEditor = Math.Max(120, heightQueryEditor - 50);
+                                        return new AnyUiLambdaActionModalPanelReRender(uc);
+                                    });
+                        }
+
+                        // Query check box
+                        {
+                            var g2 = helper.AddSmallGridTo(g, row + 1, 0, 1, 3, new[] { "#", "#", "#" });
+                            g2.GridColumnSpan = 2;
+
+                            AnyUiUIElement.RegisterControl(
+                                    helper.AddSmallCheckBoxTo(g2, 0, 0,
                                         content: "Get by query definition",
                                         isChecked: record.ExecuteQuery,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                    colSpan: 2),
-                                (o) =>
-                                {
-                                    if ((bool)o)
-                                        record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.Query);
-                                    else
-                                        record.ExecuteQuery = false;
-                                    return new AnyUiLambdaActionModalPanelReRender(uc);
-                                });
+                                    (o) =>
+                                    {
+                                        if ((bool)o)
+                                            record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.Query);
+                                        else
+                                            record.ExecuteQuery = false;
+                                        return new AnyUiLambdaActionModalPanelReRender(uc);
+                                    });
 
-                        helper.AddSmallLabelTo(g, row + 1, 0, content: "Query:",
+                            helper.AddSmallLabelTo(g2, 0, 1, content: " .. for: ", verticalCenter: true);
+
+                            AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallComboBoxTo(g2, 0, 2,
+                                        isEditable: false,
+                                        items: new[] { "AAS", "Submodel", "ConceptDescription" },
+                                        text: "" + record.QueryElementType,
+                                        margin: new AnyUiThickness(10, 0, 0, 0),
+                                        padding: new AnyUiThickness(5, 0, 5, 0),
+                                        minWidth: 200,
+                                        horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
+                                    (s) => { record.QueryElementType = s; });
+                        }
+                       
+                        // Query arguments
+                        if (selectedQueryArgs != null && selectedQueryArgs.Count > 0)
+                        {
+                            helper.AddSmallLabelTo(g, row + 2, 0, content: "Args:", verticalCenter: true);
+
+                            var g2 = helper.AddSmallGridTo(g, row + 2, 1, selectedQueryArgs.Count, 2, new[] { "#", "*" });
+
+                            for (int i=0; i< selectedQueryArgs.Count; i++)
+                            {
+                                helper.AddSmallLabelTo(g2, i, 0, 
+                                    content: $"{selectedQueryArgs[i]} (%{i+1}%):", 
+                                    verticalCenter: true,
+                                    margin: new AnyUiThickness(5, 0, 5, 0));
+
+                                int thatI = i;
+
+                                AnyUiUIElement.SetStringFromControl(
+                                helper.Set(
+                                    helper.AddSmallTextBoxTo(g2, i, 1,
+                                        text: $"{(queryArgValues.ContainsKey(i) ? queryArgValues[i] : "")}", verticalCenter: true),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                                (s) => {  
+                                    if (queryArgValues.ContainsKey(thatI))
+                                        queryArgValues.Remove(thatI);
+                                    queryArgValues[thatI] = s;
+                                });
+                            }
+                        }
+
+                        // Query text itself
+                        helper.AddSmallLabelTo(g, row + 3, 0, content: "Query:",
                                 verticalAlignment: AnyUiVerticalAlignment.Top,
                                 verticalContentAlignment: AnyUiVerticalAlignment.Top);
 
                         AnyUiUIElement.SetStringFromControl(
                                 helper.Set(
-                                    helper.AddSmallTextBoxTo(g, row + 1, 1,
+                                    helper.AddSmallTextBoxTo(g, row + 3, 1,
                                         text: $"{record.QueryScript}",
-                                        verticalAlignment: AnyUiVerticalAlignment.Stretch,
+                                        verticalAlignment: AnyUiVerticalAlignment.Top,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Top,
                                         textWrap: AnyUiTextWrapping.Wrap,
+                                        fontMono: true,
                                         fontSize: 0.7,
-                                        multiLine: true),
+                                        multiLine: true,
+                                        verticalScroll: AnyUiScrollBarVisibility.Visible),
                                     horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
-                                    minHeight: 120),
+                                    minHeight: heightQueryEditor, maxHeight: heightQueryEditor),
                                 (s) => { record.QueryScript = s; });
 
-                        row += 2;
+                        // Validate
+                        {
+                            helper.AddSmallLabelTo(g, row + 4, 0, content: "Validate:", verticalCenter: true);
+
+                            var g2 = helper.AddSmallGridTo(g, row + 4, 1, 1, 2, new[] { "#", "*" });
+
+                            AnyUiUIElement.RegisterControl(
+                                helper.AddSmallButtonTo(g2, 0, 0,
+                                    margin: new AnyUiThickness(5, 0, 5, 0),
+                                    content: "Check",
+                                    modalDialogStyle: true,
+                                    foreground: AnyUiBrushes.White,
+                                    toolTip: "Checks if the JSON is valid. Does not check against JSON schema."),
+                                    setValue: (o) =>
+                                    {
+                                        validateResult = ValidateJson(record.QueryScript) ;
+                                        return new AnyUiLambdaActionModalPanelReRender(uc);
+                                    });
+
+                            helper.Set(
+                                    helper.AddSmallTextBoxTo(g2, 0, 1,
+                                        text: $"{validateResult}",
+                                        verticalCenter: true,
+                                        readOnly: true),
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch);
+                        }
+
+                        row += 5;
                     }
 
                     if ((scope & ConnectExtendedScope.Filters) > 0)
@@ -3274,6 +3584,16 @@ namespace AasxPackageLogic.PackageCentral
             if (!(await displayContext.StartFlyoverModalAsync(uc)))
                 return false;
 
+            // do a query substitution?
+            if (selectedQueryArgs != null && selectedQueryArgs.Count > 0)
+            {
+                for (int i=0; i< selectedQueryArgs.Count; i++)
+                {
+                    var rv = (queryArgValues != null && queryArgValues.ContainsKey(i)) ? queryArgValues[i] : "";
+                    record.QueryScript = record.QueryScript.Replace($"%{i + 1}%", rv);
+                }
+            }
+
             // prepare header
             if (!record.HeaderData.Parse(record.HeaderAttributes))
                 Log.Singleton.Error("Error parsing HTTP header attributes.");
@@ -3389,33 +3709,27 @@ namespace AasxPackageLogic.PackageCentral
             public bool RegisterAas = false;
         }
 
+        public class UploadFilesJobRecord : UploadAssistantJobRecord
+        {
+            [AasxMenuArgument(help: "List of file names to upload.")]
+            public List<string> Filenames = new List<string>();
+        }
 
-
-        public static async Task<bool> PerformUploadAssistant(
+        public static async Task<bool> PerformUploadAssistantDialogue(
             AasxMenuActionTicket ticket,
             AnyUiContextBase displayContext,
             string caption,
-            AdminShellPackageEnvBase packEnv,
-            IEnumerable<Aas.IIdentifiable> idfs,
-            PackCntRuntimeOptions runtimeOptions = null,
-            PackageContainerListBase containerList = null)
+            UploadAssistantJobRecord recordJob,
+            IEnumerable<Aas.IIdentifiable> idfs)
         {
             // access
-            if (displayContext == null || caption?.HasContent() != true || packEnv == null || idfs == null)
+            if (displayContext == null || caption?.HasContent() != true || recordJob == null)
                 return false;
-
-            // build statistics
-            var numAas = idfs.Where((idf) => idf is Aas.IAssetAdministrationShell).Count();
-            var numSm = idfs.Where((idf) => idf is Aas.ISubmodel).Count();
-            var numCD = idfs.Where((idf) => idf is Aas.IConceptDescription).Count();
 
             //
             // Screen 1 : Job attributes
             //
-
-            var recordJob = new UploadAssistantJobRecord();
-            ticket?.ArgValue?.PopulateObjectFromArgs(recordJob);
-
+           
             var ucJob = new AnyUiDialogueDataModalPanel(caption);
             ucJob.ActivateRenderPanel(recordJob,
                 disableScrollArea: false,
@@ -3435,21 +3749,29 @@ namespace AasxPackageLogic.PackageCentral
                     // dynamic rows
                     int row = 0;
 
-                    // Statistics
-                    helper.AddSmallLabelTo(g, row, 0, content: "Available for upload:");
+                    // build statistics
+                    if (idfs != null)
+                    {
+                        var numAas = idfs.Where((idf) => idf is Aas.IAssetAdministrationShell).Count();
+                        var numSm = idfs.Where((idf) => idf is Aas.ISubmodel).Count();
+                        var numCD = idfs.Where((idf) => idf is Aas.IConceptDescription).Count();
 
-                    helper.AddSmallLabelTo(g, row, 1, content: "# of AAS: " + numAas);
-                    helper.AddSmallLabelTo(g, row + 1, 1, content: "# of Submodel: " + numSm);
-                    helper.AddSmallLabelTo(g, row + 2, 1, content: "# of ConceptDescription: " + numCD);
+                        // show statistics
+                        helper.AddSmallLabelTo(g, row, 0, content: "Available for upload:");
 
-                    row += 3;
+                        helper.AddSmallLabelTo(g, row, 1, content: "# of AAS: " + numAas);
+                        helper.AddSmallLabelTo(g, row + 1, 1, content: "# of Submodel: " + numSm);
+                        helper.AddSmallLabelTo(g, row + 2, 1, content: "# of ConceptDescription: " + numCD);
 
-                    // separation
-                    helper.AddSmallBorderTo(g, row, 0,
-                        borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
-                        colSpan: 2,
-                        margin: new AnyUiThickness(0, 0, 0, 20));
-                    row++;
+                        row += 3;
+
+                        // separation
+                        helper.AddSmallBorderTo(g, row, 0,
+                            borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
+                            colSpan: 2,
+                            margin: new AnyUiThickness(0, 0, 0, 20));
+                        row++;
+                    }
 
                     // Base address + Type
                     helper.AddSmallLabelTo(g, row, 0, content: "Base address:",
@@ -3563,8 +3885,26 @@ namespace AasxPackageLogic.PackageCentral
                     return false;
             }
 
+            // ok
+            return true;
+        }
+
+        public static async Task<bool> PerformUploadAssistant(
+            AasxMenuActionTicket ticket,
+            AnyUiContextBase displayContext,
+            UploadAssistantJobRecord record,
+            AdminShellPackageEnvBase packEnv,
+            IEnumerable<Aas.IIdentifiable> idfs,
+            bool doNotAskForRowsToUpload = false,
+            PackCntRuntimeOptions runtimeOptions = null,
+            PackageContainerListBase containerList = null)
+        {
+            // access
+            if (displayContext == null || packEnv == null || idfs == null)
+                return false;            
+
             // some obvious checks
-            if (recordJob.BaseAddress?.HasContent() != true)
+            if (record.BaseAddress?.HasContent() != true)
             {
                 Log.Singleton.Error("No BaseAddress given. Aborting!");
                 return false;
@@ -3597,8 +3937,8 @@ namespace AasxPackageLogic.PackageCentral
             // build list
             var rows = sorted
                 .Where((idf) => (
-                       (!(idf is Aas.ISubmodel) || recordJob.IncludeSubmodels)
-                    && (!(idf is Aas.IConceptDescription) || recordJob.IncludeCDs)
+                       (!(idf is Aas.ISubmodel) || record.IncludeSubmodels)
+                    && (!(idf is Aas.IConceptDescription) || record.IncludeCDs)
                 ))
                 .Select((idf) => new AnyUiDialogueDataGridRow()
                 {
@@ -3618,10 +3958,10 @@ namespace AasxPackageLogic.PackageCentral
             // in order to re-use sockets
             BaseUriDict baseUri = null;
             HttpClient client = null;
-            if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+            if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
             {
                 // Note: it seems to be also possible to create an HttpClient with "" as BaseAddress and pass Host via URL!!
-                baseUri = new BaseUriDict(recordJob.BaseAddress);
+                baseUri = new BaseUriDict(record.BaseAddress);
                 // TODO
                 client = PackageHttpDownloadUtil.CreateHttpClient(baseUri.GetBaseUriForAasRepo(), runtimeOptions, containerList);
             }
@@ -3650,7 +3990,7 @@ namespace AasxPackageLogic.PackageCentral
             workerCheck.DoWork += async (sender, e) =>
             {
                 // ask server
-                if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+                if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
                 {
                     var numRes = await PackageHttpDownloadUtil.DownloadListOfIdentifiables<Aas.IIdentifiable, AnyUiDialogueDataGridRow>(
                         client,
@@ -3709,7 +4049,7 @@ namespace AasxPackageLogic.PackageCentral
                             {
                                 // status
                                 row.Cells[4] = "-";
-                                if (recordJob.OverwriteIfExist)
+                                if (record.OverwriteIfExist)
                                     row.Cells[4] = "PUT";
                                 row.Cells[5] = (idf.Administration?.ToStringExtended(1)) ?? "-";
                                 lambdaStat(true);
@@ -3727,29 +4067,35 @@ namespace AasxPackageLogic.PackageCentral
             await displayContext.StartFlyoverModalAsync(ucProgExist);
 
             //
-            // Screen 3: show list of elements
+            // Screen 3: show list of elements?
             //
-            var ucSelect = new AnyUiDialogueDataSelectFromDataGrid(
-                        "Select element(s) to be uploaded ..",
-                        maxWidth: 9999);
 
-            ucSelect.ColumnDefs = AnyUiListOfGridLength.Parse(new[] { "50:", "1*", "3*", "70:", "70:", "70:" });
-            ucSelect.ColumnHeaders = new[] { "Type", "IdShort", "Id", "V.Local", "Action", "V.Server" };
-            ucSelect.Rows = rows.ToList();
-            ucSelect.EmptySelectOk = true;
+            IList<AnyUiDialogueDataGridRow> rowsToUpload = rows;
 
-            if (ticket?.ScriptMode != true)
+            if (!doNotAskForRowsToUpload)
             {
-                // if not in script mode, perform dialogue
-                if (!(await displayContext.StartFlyoverModalAsync(ucSelect)))
-                    return false;
-            }
+                var ucSelect = new AnyUiDialogueDataSelectFromDataGrid(
+                            "Select element(s) to be uploaded ..",
+                            maxWidth: 9999);
 
-            // translate result items
-            var rowsToUpload = ucSelect.ResultItems;
-            if (rowsToUpload == null || rowsToUpload.Count() < 1)
-                // nothings means: everything!
-                rowsToUpload = rows;
+                ucSelect.ColumnDefs = AnyUiListOfGridLength.Parse(new[] { "50:", "1*", "3*", "70:", "70:", "70:" });
+                ucSelect.ColumnHeaders = new[] { "Type", "IdShort", "Id", "V.Local", "Action", "V.Server" };
+                ucSelect.Rows = rows.ToList();
+                ucSelect.EmptySelectOk = true;
+
+                if (ticket?.ScriptMode != true)
+                {
+                    // if not in script mode, perform dialogue
+                    if (!(await displayContext.StartFlyoverModalAsync(ucSelect)))
+                        return false;
+                }
+
+                // translate result items
+                rowsToUpload = ucSelect.ResultItems;
+                if (rowsToUpload == null || rowsToUpload.Count() < 1)
+                    // nothings means: everything!
+                    rowsToUpload = rows;
+            }
 
             //
             // Screen 4: make a progress on the upload of Identifiables
@@ -3773,7 +4119,7 @@ namespace AasxPackageLogic.PackageCentral
             workerUpload.DoWork += async (sender, e) =>
             {
                 // ask server
-                if (recordJob.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
+                if (record.BaseType == ConnectExtendedRecord.BaseTypeEnum.Repository)
                 {
                     // will collect AAS for later registering
                     List<AssetAdministrationShell> uploadedAas = new List<AssetAdministrationShell>();
@@ -3838,7 +4184,7 @@ namespace AasxPackageLogic.PackageCentral
                         // thumbnails (for AAS)
                         //
 
-                        if (recordJob.IncludeThumbFiles
+                        if (record.IncludeThumbFiles
                             && idf is Aas.IAssetAdministrationShell aas
                             && aas.AssetInformation?.DefaultThumbnail?.Path?.HasContent() == true)
                         {
@@ -3922,7 +4268,7 @@ namespace AasxPackageLogic.PackageCentral
                         // attachments (for Submodels)
                         //
 
-                        if (recordJob.IncludeSupplFiles
+                        if (record.IncludeSupplFiles
                             && idf is Aas.ISubmodel submodel && submodel.SubmodelElements != null)
                         {
                             // Note: the Part 2 PDF says '/', the swagger says '.'
@@ -4081,7 +4427,7 @@ namespace AasxPackageLogic.PackageCentral
                     // Register (just not parallel..)?
                     //
 
-                    if (recordJob.RegisterAas && uploadedAas.Count > 0
+                    if (record.RegisterAas && uploadedAas.Count > 0
                         && baseUri.GetBaseUriForBasicDiscovery() != null)
                     {
                         foreach (var aas in uploadedAas)
@@ -4115,18 +4461,18 @@ namespace AasxPackageLogic.PackageCentral
             {
                 runtimeOptions?.Log?.Error("When Put/ Push to Registry/ Repository, {0} element(s) were not uploaded " +
                     "while {1} uploaded ok. Location: {2}",
-                    numNOK, numOK, recordJob.BaseAddress);
+                    numNOK, numOK, record.BaseAddress);
             }
             else if (numOK < 1)
             {
                 runtimeOptions?.Log?.Info(StoredPrint.Color.Blue, "No need of Put/ Push element(s) " +
-                    "to Registry/ Repository. Location {0}", recordJob.BaseAddress);
+                    "to Registry/ Repository. Location {0}", record.BaseAddress);
             }
             else
             {
                 runtimeOptions?.Log?.Info(StoredPrint.Color.Blue, "Successful Put/ Push of {0} element(s) " +
                     "to Registry/ Repository. Location {1}",
-                    numOK, recordJob.BaseAddress);
+                    numOK, record.BaseAddress);
             }
 
             // ok
