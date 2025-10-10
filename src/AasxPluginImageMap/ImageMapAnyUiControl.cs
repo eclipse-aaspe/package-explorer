@@ -389,7 +389,7 @@ namespace AasxPluginImageMap
             if (fe?.Value != null)
             {
                 // build path
-                var idShortPath = "" + fe.CollectIdShortByParent(
+                var idShortPath = "" + fe.CollectIdShortPathByParent(
                         separatorChar: '.', excludeIdentifiable: true);
 
                 // wrap async

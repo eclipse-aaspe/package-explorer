@@ -98,14 +98,20 @@ namespace AasxPluginExportTable.Smt
             return astr;
         }
 
-        protected void ProcessImageLink(Aas.ISubmodelElement sme)
+        protected async Task ProcessImageLink(Aas.ISubmodelElement sme,
+            string aasId = null,
+            string smId = null,
+            string idShortPath = null)
         {
             // first get to the data
             byte[] data = null;
             string dataExt = ".bin";
             if (sme is Aas.IFile smeFile)
             {
-                data = _package?.GetBytesFromPackageOrExternal(smeFile.Value);
+                // old: data = _package?.GetBytesFromPackageOrExternal(smeFile.Value);
+                data = await _package?.GetBytesFromPackageOrExternalAsync(
+                    smeFile.Value, aasId: aasId, smId: smId, idShortPath: idShortPath);
+
                 dataExt = Path.GetExtension(smeFile.Value);
             }
 
@@ -157,6 +163,8 @@ namespace AasxPluginExportTable.Smt
 
             // determine (automatic) target file name
             var targetName = "image_" + Path.GetRandomFileName().Replace(".", "_");
+
+            // define by idShort (as default)
             if (sme.IdShort.HasContent())
             {
                 // filter a little more relaxed (allow "-")
@@ -170,7 +178,6 @@ namespace AasxPluginExportTable.Smt
                     targetName = targetName.Substring(0, p);
                 }
             }
-
             var fn = targetName + dataExt;
 
             // may be overruled?
@@ -332,10 +339,18 @@ namespace AasxPluginExportTable.Smt
             }
         }
 
-        public void ExportSmtToFile(
+        protected class SmeLinearItem
+        {
+            public Aas.IReference SemId;
+            public Aas.ISubmodelElement Sme;
+            public List<Aas.IReferable> Parents;
+        }
+
+        public async Task ExportSmtToFile(
             LogInstance log,
             AnyUiContextPlusDialogs displayContext,
             AdminShellPackageEnvBase package,
+            Aas.IAssetAdministrationShell aas,
             Aas.ISubmodel submodel,
             ExportTableOptions optionsAll,
             ExportSmtRecord optionsSmt,
@@ -408,7 +423,8 @@ namespace AasxPluginExportTable.Smt
             var defs = AasxPredefinedConcepts.AsciiDoc.Static;
             var mm = MatchMode.Relaxed;
 
-            // walk the Submodel
+            // walk the Submodel (need to linearize because of async)
+            var linearSmes = new List<SmeLinearItem>();
             _srcSm.RecurseOnSubmodelElements(null, (o, parents, sme) =>
             {
                 // semantic id
@@ -416,7 +432,23 @@ namespace AasxPluginExportTable.Smt
                 if (semId?.IsValid() != true)
                     return true;
 
-                // elements
+                // add
+                linearSmes.Add(new SmeLinearItem()
+                {
+                    SemId = semId,
+                    Sme = sme,
+                    Parents = parents.ToList()
+                });
+                return true;
+            });
+
+            // now go this linear list
+            foreach (var item in linearSmes)
+            {
+                var semId = item.SemId;
+                var sme = item.Sme;
+
+                // check for special semantic ids and process elements
                 if (sme is Aas.IBlob blob)
                 {
                     if (semId.Matches(defs.CD_TextBlock.GetCdReference(), mm))
@@ -436,7 +468,10 @@ namespace AasxPluginExportTable.Smt
                 if (sme is Aas.IFile || sme is Aas.IBlob)
                 {
                     if (semId.Matches(defs.CD_ImageFile.GetCdReference(), mm))
-                        ProcessImageLink(sme);
+                        await ProcessImageLink(sme,
+                            aasId: aas?.Id, smId: submodel?.Id, 
+                            idShortPath: ExtendISubmodelElement.CollectIdShortPathBySmeAndParents(
+                                sme, item.Parents, separatorChar: '.', excludeIdentifiable: true));
                 }
 
                 if (sme is Aas.IReferenceElement refel)
@@ -446,10 +481,7 @@ namespace AasxPluginExportTable.Smt
                     if (semId.Matches(defs.CD_GenerateTables.GetCdReference(), mm))
                         ProcessTables(refel);
                 }
-
-                // go further on
-                return true;
-            });
+            }
 
             // ok, build raw Adoc
             var adocText = _adoc.ToString();
@@ -465,6 +497,11 @@ namespace AasxPluginExportTable.Smt
             File.WriteAllText(absAdocFn, adocText);
             log?.Info("ExportSmt: written {0} bytes to temp file {1}.", adocText.Length, absAdocFn);
 
+            // prepare ignore error patterns
+            string[] ignoreError = null;
+            if (_optionsAll?.SmtExportIgnoreError != null && _optionsAll.SmtExportIgnoreError.Count > 0)
+                ignoreError = _optionsAll.SmtExportIgnoreError.ToArray();
+
             // start outside commands?
             if (_optionsSmt.ExportHtml)
             {
@@ -473,7 +510,7 @@ namespace AasxPluginExportTable.Smt
                     .Replace("%WD%", "" + _tempDir)
                     .Replace("%ADOC%", "" + adocFn);
 
-                displayContext?.MenuExecuteSystemCommand("Exporting HTML", _tempDir, cmd, args);
+                displayContext?.MenuExecuteSystemCommand("Exporting HTML", _tempDir, cmd, args, ignoreError: ignoreError);
             }
 
             if (_optionsSmt.ExportPdf)
@@ -483,19 +520,7 @@ namespace AasxPluginExportTable.Smt
                     .Replace("%WD%", "" + _tempDir)
                     .Replace("%ADOC%", "" + adocFn);
 
-                displayContext?.MenuExecuteSystemCommand("Exporting PDF", _tempDir, cmd, args);
-            }
-
-            if (_optionsSmt.ViewResult)
-            {
-                var cmd = _optionsAll.SmtExportViewCmd;
-                var args = _optionsAll.SmtExportViewArgs
-                    .Replace("%WD%", "" + _tempDir)
-                    .Replace("%ADOC%", "" + adocFn)
-                    .Replace("%HTML%", "" + adocFn.Replace(".adoc", ".html"))
-                    .Replace("%PDF%", "" + adocFn.Replace(".adoc", ".pdf"));
-
-                displayContext?.MenuExecuteSystemCommand("Viewing results", _tempDir, cmd, args);
+                displayContext?.MenuExecuteSystemCommand("Exporting PDF", _tempDir, cmd, args, ignoreError: ignoreError);
             }
 
             // now, how to handle files?
@@ -518,14 +543,34 @@ namespace AasxPluginExportTable.Smt
                     first = false;
                 }
 #else
-                using (Package zip = System.IO.Packaging.Package.Open(fn, FileMode.Create))
+                try
                 {
-                    AdminShellUtil.RecursiveAddDirToZip(
-                        zip,
-                        _tempDir);
+                    using (Package zip = System.IO.Packaging.Package.Open(fn, FileMode.Create))
+                    {
+                        AdminShellUtil.RecursiveAddDirToZip(
+                            zip,
+                            _tempDir);
+                    }
+                } catch (Exception ex)
+                {
+                    log?.Error(ex, $"ExportSmt: Error creating zip file {fn}");
+                    throw;
                 }
 #endif
                 log?.Info("ExportSmt: packed all files to {0}", fn);
+            }
+
+            // now, view?
+            if (_optionsSmt.ViewResult)
+            {
+                var cmd = _optionsAll.SmtExportViewCmd;
+                var args = _optionsAll.SmtExportViewArgs
+                    .Replace("%WD%", "" + _tempDir)
+                    .Replace("%ADOC%", "" + adocFn)
+                    .Replace("%HTML%", "" + adocFn.Replace(".adoc", ".html"))
+                    .Replace("%PDF%", "" + adocFn.Replace(".adoc", ".pdf"));
+
+                displayContext?.MenuExecuteSystemCommand("Viewing results", _tempDir, cmd, args, ignoreError: ignoreError);
             }
 
             // remove temp directory

@@ -727,6 +727,10 @@ namespace AasxPackageLogic.PackageCentral
             PackCntRuntimeOptions runtimeOptions = null,
             bool allowFakeResponses = false) where T : Aas.IIdentifiable
         {
+            // access
+            if (location == null)
+                return default(T);
+
             T res = default(T);
 
             await DownloadListOfIdentifiables<T, Uri>(

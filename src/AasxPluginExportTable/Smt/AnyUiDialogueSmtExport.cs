@@ -226,9 +226,9 @@ namespace AasxPluginExportTable.Smt
 
             // export
             var export = new ExportSmt();
-            export.ExportSmtToFile(
+            await export.ExportSmtToFile(
                 log, displayContext, ticket.Package,
-                sm, pluginOptionsTable, record, fn);
+                ticket.AAS, sm, pluginOptionsTable, record, fn);
 
             // persist
             await displayContext.CheckIfDownloadAndStart(log, loc, fn);

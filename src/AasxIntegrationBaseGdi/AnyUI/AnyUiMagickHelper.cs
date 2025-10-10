@@ -301,7 +301,7 @@ namespace AasxIntegrationBaseGdi
                 if (package == null || aas == null || submodel == null || fileElem == null)
                     return;
 
-                var idShortPath = "" + fileElem.CollectIdShortByParent(
+                var idShortPath = "" + fileElem.CollectIdShortPathByParent(
                         separatorChar: '.', excludeIdentifiable: true);
 
 

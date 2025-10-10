@@ -422,6 +422,10 @@ namespace AasxPackageLogic
             Cmd = "-dataspecpreset", Arg = "<path>")]
         public string DataSpecPresetFile = null;
 
+        [OptionDescription(Description = "Path to JSON file defining query presets.",
+            Cmd = "-querypreset", Arg = "<path>")]
+        public string QueryPresetFile = null;
+
         [OptionDescription(Description = "Home address of the content browser on startup, on change of AASX",
             Cmd = "-contenthome", Arg = "<URL>")]
         public string ContentHome = @"https://github.com/admin-shell/io/blob/master/README.md";
@@ -690,6 +694,9 @@ namespace AasxPackageLogic
         [OptionDescription(Description = "May contain lines of key/value-pairs for HTTP header attributes, " +
             "delimited by double quotes.")]
         public string HttpHeaderAttributes = "";
+
+        [OptionDescription(Description = "For connecting to repositories/ registry, default pagination limit.")]
+        public int DefaultConnectPageLimit = 10;
 
         [OptionDescription(Description = "Point to a list of SecureConnectPresets for the respective dialogue")]
         [JetBrains.Annotations.UsedImplicitly]

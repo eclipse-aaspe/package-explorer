@@ -465,7 +465,7 @@ namespace Extensions
             return parent as Submodel;
         }
 
-        public static string CollectIdShortByParent(
+        public static string CollectIdShortPathByParent(
             this IReferable referable,
             char separatorChar = '/',
             bool excludeIdentifiable = false)
@@ -476,7 +476,7 @@ namespace Extensions
                 && referable.Parent is IReferable parentReferable
                 && (!excludeIdentifiable || parentReferable is not IIdentifiable))
                 // can go up
-                head = parentReferable.CollectIdShortByParent(separatorChar, excludeIdentifiable) 
+                head = parentReferable.CollectIdShortPathByParent(separatorChar, excludeIdentifiable) 
                             + separatorChar;
             // add own
             var myid = "<no id-Short!>";

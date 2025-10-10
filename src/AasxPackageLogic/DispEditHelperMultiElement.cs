@@ -725,7 +725,8 @@ namespace AasxPackageLogic
                             vesm2.theEnv?.Submodels, KeyTypes.Submodel,
                             vesm2.theSubmodel.Id, vesm2.theSubmodel.GetReference(), ref sideInfo);
                     else
-                    if (x is VisualElementSubmodelRef vesmr2 && vesmr2?.theSubmodelRef?.IsValid() == true)
+                    if (x is VisualElementSubmodelRef vesmr2 && vesmr2?.theSubmodelRef?.IsValid() == true
+                        && vesmr2?.theSubmodel != null)
                         AddToListOfKey<Aas.ISubmodel>(
                             idfToDel, vesmr2.theEnv,
                             vesmr2.theEnv?.Submodels, KeyTypes.Submodel,

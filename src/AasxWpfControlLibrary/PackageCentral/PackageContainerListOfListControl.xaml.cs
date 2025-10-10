@@ -504,12 +504,24 @@ namespace AasxWpfControlLibrary.PackageCentral
                     }
                 }
 
-                if (cmd == "filerepouploadtoapi" && fr is PackageContainerListHttpRestRepository frRepo)
                 {
-                    await _executeMainCommand?.ExecuteMainMenuCommand(
-                        "ApiUploadAssistant",
-                        "BaseType", "Repository",
-                        "BaseAddress", "" + frRepo.Endpoint?.ToString());
+                    if (cmd == "filerepouploadtoapi" && fr is PackageContainerListHttpRestRepository frRepo)
+                    {
+                        await _executeMainCommand?.ExecuteMainMenuCommand(
+                            "ApiUploadAssistant", true,
+                            "BaseType", "Repository",
+                            "BaseAddress", "" + frRepo.Endpoint?.ToString());
+                    }
+                }
+
+                {
+                    if (cmd == "filerepofilestoapi" && fr is PackageContainerListHttpRestRepository frRepo)
+                    {
+                        await _executeMainCommand?.ExecuteMainMenuCommand(
+                            "ApiUploadFiles", false,
+                            "BaseType", "Repository",
+                            "BaseAddress", "" + frRepo.Endpoint?.ToString());
+                    }
                 }
             }
 
@@ -610,7 +622,9 @@ namespace AasxWpfControlLibrary.PackageCentral
                         || fr is PackageContainerListHttpRestRegistry)
                     {
                         menu.AddAction(
-                            "FileRepoUploadToApi", "Upload to API ..", icon: "\U0001f879");
+                            "FileRepoUploadToApi", "Upload selected Identifiable to API ..", icon: "\U0001f879");
+                        menu.AddAction(
+                            "FileRepoFilesToApi", "Upload package files to API ..", icon: "\U0001f879");
                     }
                 }
 

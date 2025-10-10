@@ -7,26 +7,15 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
-using AasxIntegrationBase;
-using AasxOpenIdClient;
 using AdminShellNS;
-using Aas = AasCore.Aas3_1;
+using AdminShellNS.DiaryData;
 using Extensions;
-using IdentityModel.Client;
 using System;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using AdminShellNS.DiaryData;
-using System.Text.Json;
+using System.Net;
+using System.Threading.Tasks;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic.PackageCentral
 {
@@ -263,7 +252,7 @@ namespace AasxPackageLogic.PackageCentral
 
         protected async Task<int> TrySaveAllTaintedIdentifiablesOf<T>(
             object listOfIdf,
-            Func<Uri, string, Uri> lambdaBuildRessourceForNoEndpoint,
+            Func<Uri, Aas.IIdentifiable, Task<Uri>> lambdaGetBaseUriForNewIdentifiables = null,
             bool clearTaintedFlags = true) where T : Aas.IIdentifiable
         {
             var list = listOfIdf as OnDemandListIdentifiable<T>;
@@ -271,52 +260,93 @@ namespace AasxPackageLogic.PackageCentral
                 return 0;
 
             var count = 0;
-            for (int i = 0; i < list.Count(); i++)
+            for (int listNdx = 0; listNdx < list.Count(); listNdx++)
             {
-#if __old
-                // Note: elements with side info are not relevant, as only fetched elements
-                // need to be written back ..
-                var si = list.GetSideInfo(i);
-                if (si != null)
-                    continue;
-#else
-                // Get the side info. Continue, if side info present (was dynamically fetched) but
-                // is no stub
-                var si = list.GetSideInfo(i);
-                if (si == null || si.IsStub)
-                    continue;
-#endif
-
                 // access
-                var idf = list[i];
+                var idf = list[listNdx];
                 if (idf == null)
                     // surprising :-/
                     continue;
 
-                // tainted? (in doubt, yes)
+                // Only concern on tainted data
                 var tidf = idf as ITaintedData;
                 if (tidf?.TaintedData != null && tidf.TaintedData.Tainted == null)
                     continue;
 
-                // try save, need a REST ressource. Either use the existing endpoint
-                // or build the uri.
+                // Prepare building URI for REST ressource
                 Uri uri = null;
-                if (si.StubLevel >= AasIdentifiableSideInfoLevel.IdWithEndpoint && si.DesignatedEndpoint != null)
-                    uri = si.DesignatedEndpoint;
-                else
-                if (si.StubLevel >= AasIdentifiableSideInfoLevel.IdWithEndpoint && si.QueriedEndpoint != null)
-                    uri = si.QueriedEndpoint;
-                else
-                    uri = lambdaBuildRessourceForNoEndpoint(_defaultRepoBaseUri, idf.Id);
-                if (uri == null)
+                Uri futureEP = null;
+                bool usePost = false;
+                bool buildSideInfo = false;
+
+                // Get the side info. 
+                var si = list.GetSideInfo(listNdx);
+                if (si == null)
+                {
+                    // no side info, so this might be a new Identifiable
+                    // Investigate further, need to get a "positive info" from tghe user (lambda)
+                    Uri workBaseUri = null;
+                    if (lambdaGetBaseUriForNewIdentifiables != null) 
+                        workBaseUri = await lambdaGetBaseUriForNewIdentifiables.Invoke(_defaultRepoBaseUri, idf);
+                    if (workBaseUri == null || !workBaseUri.IsAbsoluteUri)
+                    {
+                        // skip Identifiable
+                        continue;
+                    }
+                    else
+                    {
+                        // build the uri
+                        // assume no collision, so use POST
+                        usePost = true;
+                        uri = PackageContainerHttpRepoSubset.BuildUriForRepoSingleIdentifiable<T>(
+                                workBaseUri, idf.Id, usePost: true, encryptIds: true);
+                        buildSideInfo = true;
+                        futureEP = PackageContainerHttpRepoSubset.BuildUriForRepoSingleIdentifiable<T>(
+                                workBaseUri, idf.Id, usePost: false, encryptIds: true);
+
+                        if (uri == null)
+                        {
+                            // skip Identifiable
+                            continue;
+                        }
+                    }
+                }
+
+                if (si != null && si.IsStub)
+                {
+                    // Continue (for the time being), if side info present (was dynamically fetched) but
+                    // is a stub to a registry
                     continue;
+                }
+
+                if (uri == null)
+                {
+                    // try use the existing endpoint
+                    if (si.StubLevel >= AasIdentifiableSideInfoLevel.IdWithEndpoint && si.DesignatedEndpoint != null)
+                        uri = si.DesignatedEndpoint;
+                    else
+                    if (si.StubLevel >= AasIdentifiableSideInfoLevel.IdWithEndpoint && si.QueriedEndpoint != null)
+                        uri = si.QueriedEndpoint;
+                    else
+                        uri = PackageContainerHttpRepoSubset
+                                .BuildUriForRepoSingleIdentifiable<T>(_defaultRepoBaseUri, idf.Id, encryptIds: true);
+                }
+
+                if (uri == null)
+                {
+                    _runtimeOptions?.Log?.Error("Could not determine URI for saving Identifiable {0} with id {1}",
+                        typeof(T).Name, idf.Id);
+                    continue;
+                }
 
                 // serialize to memory stream
                 var res2 = await PackageHttpDownloadUtil.HttpPutPostIdentifiable(
                     reUseClient: null,
+                    usePost: usePost,
                     idf: idf,
                     destUri: uri);
-                if (res2 == null || ((res2.Item1 != HttpStatusCode.OK) && (res2.Item1 != HttpStatusCode.NoContent)))
+                
+                if (res2 == null || !((int)res2.Item1 >= 200 && (int)res2.Item1 <= 299))
                 {
                     _runtimeOptions?.Log?.Error("Save of modified Identifiable returned error {0} for id={1} at {2}",
                         "" + ((res2 != null) ? (int)res2.Item1 : -1),
@@ -328,30 +358,85 @@ namespace AasxPackageLogic.PackageCentral
                     // clear the tainted flag
                     if (clearTaintedFlags && tidf?.TaintedData != null)
                         tidf.TaintedData.Tainted = null;
+
+                    // may be new, build side info
+                    if (buildSideInfo && futureEP != null)
+                    {
+                        // build side info
+                        si = new AasIdentifiableSideInfo()
+                        {
+                            IsStub = false,
+                            StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                            Id = idf.Id,
+                            IdShort = idf.IdShort,
+                            QueriedEndpoint = futureEP,
+                            DesignatedEndpoint = futureEP
+                        };
+
+                        // add to list
+                        list.SetSideInfo(listNdx, si);
+                    }
                 }
             }
 
             return count;
         }
 
+        /// <summary>
+        /// As the requirement is, that a list of Identifiables is null, if empty and most of the
+        /// functionality (AasxCSharpLibrary and beyond) is not aware, that the list of Identifiables
+        /// should be <code>OnDemandListIdentifiable<T></code>, these functionality might create an
+        /// ordinary list of Identifiables, not fullfilling the requirements.
+        /// This function tries to fix it.
+        /// </summary>
+        public void FixIdfListsToBeOnDemandLists()
+        {
+            if (_aasEnv.AssetAdministrationShells is not null
+                && _aasEnv.AssetAdministrationShells is not OnDemandListIdentifiable<Aas.IAssetAdministrationShell>)
+            {
+                // fix
+                _aasEnv.AssetAdministrationShells = new OnDemandListIdentifiable<Aas.IAssetAdministrationShell>(
+                    _aasEnv.AssetAdministrationShells);
+            }
+
+            if (_aasEnv.Submodels is not null
+                && _aasEnv.Submodels is not OnDemandListIdentifiable<Aas.ISubmodel>)
+            {
+                // fix
+                _aasEnv.Submodels = new OnDemandListIdentifiable<Aas.ISubmodel>(
+                    _aasEnv.Submodels);
+            }
+
+            if (_aasEnv.ConceptDescriptions is not null
+                && _aasEnv.ConceptDescriptions is not OnDemandListIdentifiable<Aas.IConceptDescription>)
+            {
+                // fix
+                _aasEnv.ConceptDescriptions = new OnDemandListIdentifiable<Aas.IConceptDescription>(
+                    _aasEnv.ConceptDescriptions);
+            }
+        }
+
         public async Task<int> TrySaveAllTaintedIdentifiables(
             bool allAas = true,
             bool allSubmodels = true,
-            bool allCDs = true)
+            bool allCDs = true,
+            Func<Uri, Aas.IIdentifiable, Task<Uri>> lambdaGetBaseUriForNewIdentifiables = null)
         {
             var count = 0;
-            
+
+            FixIdfListsToBeOnDemandLists();
+
             if (allAas) count += await TrySaveAllTaintedIdentifiablesOf<Aas.IAssetAdministrationShell>(
                 _aasEnv?.AssetAdministrationShells,
-                (defBase, id) => PackageContainerHttpRepoSubset.BuildUriForRepoSingleAAS(defBase, id));
+                lambdaGetBaseUriForNewIdentifiables: lambdaGetBaseUriForNewIdentifiables);
 
             if (allSubmodels) count += await TrySaveAllTaintedIdentifiablesOf<Aas.ISubmodel>(
                 _aasEnv?.Submodels,
-                (defBase, id) => PackageContainerHttpRepoSubset.BuildUriForRepoSingleSubmodel(defBase, id));
+                lambdaGetBaseUriForNewIdentifiables: lambdaGetBaseUriForNewIdentifiables);
 
             if (allCDs) count += await TrySaveAllTaintedIdentifiablesOf<Aas.IConceptDescription>(
                 _aasEnv?.ConceptDescriptions,
-                (defBase, id) => PackageContainerHttpRepoSubset.BuildUriForRepoSingleCD(defBase, id));
+                lambdaGetBaseUriForNewIdentifiables: lambdaGetBaseUriForNewIdentifiables);
 
             return count;
         }
@@ -378,6 +463,22 @@ namespace AasxPackageLogic.PackageCentral
 
             // refer to base
             return base.GetThumbnailBytesFromAasOrPackage(aasId);
+        }
+
+        public void RenameThumbnailData(string oldId, string newId)
+        {
+            // access
+            if (oldId?.HasContent() != true || newId?.HasContent() != true)
+                return;
+            // rename
+            lock (_thumbStreamPerAasId)
+            {
+                if (_thumbStreamPerAasId.ContainsKey(oldId))
+                {
+                    _thumbStreamPerAasId[newId] = _thumbStreamPerAasId[oldId];
+                    _thumbStreamPerAasId.Remove(oldId);
+                }
+            }
         }
 
         public override async Task<byte[]> GetBytesFromPackageOrExternalAsync(

@@ -98,11 +98,13 @@ namespace BlazorUI.Data
             // no such capability
         }
 
-        public void CommandExecution_RedrawAll()
+        public async Task CommandExecution_RedrawAllAsync()
         {
+            await Task.Yield();
+
             // redraw everything
-            RedrawAllAasxElements();
-            RedrawElementView();
+            await RedrawAllAasxElementsAsync();
+            await RedrawElementViewAsync();
         }
 
         private PackCntRuntimeOptions UiBuildRuntimeOptionsForMainAppLoad()
@@ -122,7 +124,7 @@ namespace BlazorUI.Data
             return ro;
         }
 
-        public void UiLoadPackageWithNew(
+        public async Task UiLoadPackageWithNew(
             PackageCentralItem packItem,
             AdminShellPackageEnvBase takeOverEnv = null,
             string loadLocalFilename = null,
@@ -136,6 +138,8 @@ namespace BlazorUI.Data
             bool? nextEditMode = null, 
             bool autoFocusFirstRelevant = false)
         {
+            await Task.Yield();
+
             // access
             if (packItem == null)
                 return;
@@ -228,12 +232,12 @@ namespace BlazorUI.Data
             return DisplayElements.IsAnyTaintedIdentifiable();
         }        
 
-        public void RestartUIafterNewPackage(bool onlyAuxiliary = false, bool? nextEditMode = null)
+        public async Task RestartUIafterNewPackage(bool onlyAuxiliary = false, bool? nextEditMode = null)
         {
             if (onlyAuxiliary)
             {
                 // reduced, in the background
-                RedrawAllAasxElements();
+                await RedrawAllAasxElementsAsync();
             }
             else
             {
@@ -243,8 +247,8 @@ namespace BlazorUI.Data
                 // and -> this will update the left side of the screen correctly!
                 // _mainMenu?.SetChecked("EditMenu", false);
                 // ClearAllViews();
-                RedrawAllAasxElements();
-                RedrawElementView();
+                await RedrawAllAasxElementsAsync();
+                await RedrawElementViewAsync();
                 // ShowContentBrowser(Options.Curr.ContentHome, silent: true);
                 // _eventHandling.Reset();
                 // dead-csharp on
@@ -257,7 +261,7 @@ namespace BlazorUI.Data
         /// <param name="keepFocus">Try remember which element was focussed and focus it after redrawing.</param>
         /// <param name="nextFocusMdo">Focus a new main data object attached to an tree element.</param>
         /// <param name="wishExpanded">If focussing, expand this item.</param>
-        public void RedrawAllAasxElements(
+        public async Task RedrawAllAasxElementsAsync(
             bool keepFocus = false,
             object nextFocusMdo = null,
             bool wishExpanded = true)
@@ -304,7 +308,7 @@ namespace BlazorUI.Data
             }
 
             // Info box ..
-            RedrawElementView();
+            await RedrawElementViewAsync();
 
             // display again
             Program.signalNewData(
@@ -321,8 +325,10 @@ namespace BlazorUI.Data
         /// Based on save information, will redraw the AAS entity (element) view (right).
         /// </summary>
         /// <param name="hightlightField">Highlight field (for find/ replace)</param>
-        public void RedrawElementView(DispEditHighlight.HighlightFieldInfo hightlightField = null)
+        public async Task RedrawElementViewAsync(DispEditHighlight.HighlightFieldInfo hightlightField = null)
         {
+            await Task.Yield();
+
             if (DisplayElements == null)
                 return;
 
@@ -348,7 +354,7 @@ namespace BlazorUI.Data
             DisplayElements.Clear();
         }
 
-        public void DisplayElements_SelectedItemChanged(object sender, EventArgs e)
+        public async Task DisplayElements_SelectedItemChanged(object sender, EventArgs e)
         {
             // access
             if (DisplayElements == null || sender != DisplayElements)
@@ -364,7 +370,7 @@ namespace BlazorUI.Data
             CheckIfToFlushEvents();
 
             // redraw view
-            RedrawElementView();
+            await RedrawElementViewAsync();
         }
 
         /// <summary>
@@ -606,7 +612,7 @@ namespace BlazorUI.Data
                     // remember in history
                     // ButtonHistory.Push(veFound);
                     // fake selection
-                    RedrawElementView();
+                    await RedrawElementViewAsync();
                     DisplayElements.Refresh();
                     // ContentTakeOver.IsEnabled = false;
                 }

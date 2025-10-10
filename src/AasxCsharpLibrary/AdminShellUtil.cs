@@ -1117,6 +1117,18 @@ namespace AdminShellNS
                 return;
             }
 
+            // list of strings is vary common, therefore a special case is justified
+            if (tut?.IsGenericType == true 
+                && tut.GetGenericTypeDefinition() == typeof(List<>)
+                && tut.GetGenericArguments().Count() == 1
+                && tut.GetGenericArguments()[0] == typeof(string)
+                && value is IEnumerable<string> vstr2)
+            {
+                var lststr = vstr2.ToList();
+                f.SetValue(obj, lststr);
+                return;
+            }
+
             // 2024-01-04: make function more suitable for <DateTime?>
             switch (Type.GetTypeCode(tut))
             {
@@ -1476,11 +1488,21 @@ namespace AdminShellNS
             if (uri?.HasContent() != true || uri.Length < 2)
                 return false;
 
-            // first char needs to be a slash, second must not be a slash!!
-            // Note: URIs starting with double slashes are called protocol-relative URLs or scheme-relative URIs
+            // can extract scheme and path -> no attachment
+            var p = uri.IndexOf("://");
+            if (p >= 0 && p <= 5)
+                return false;
 
+            // old style supplemental files: first char needs to be a slash, second must not be a slash!!
+            // Note: URIs starting with double slashes are called protocol-relative URLs or scheme-relative URIs
             if (uri[0] == '/' && uri[2] != '/')
                 return true;
+
+            // Basyx style for attachment: starting with a 'normal' char
+            if (char.IsAsciiLetterOrDigit(uri[0]))
+                return true;
+
+            // rest of the cases: assume is external
             return false;
         }
 

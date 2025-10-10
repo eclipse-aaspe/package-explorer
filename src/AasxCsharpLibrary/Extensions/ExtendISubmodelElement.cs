@@ -1115,6 +1115,34 @@ namespace Extensions
                     yield return sme;
         }
 
+        public static string CollectIdShortPathBySmeAndParents(
+            IReferable sme,
+            IEnumerable<IReferable> parents,
+            char separatorChar = '/',
+            bool excludeIdentifiable = false)
+        {
+            // access
+            if (sme == null)
+                return null;
+            var path = "" + sme.IdShort?.Trim();
+
+            // now put the parents in front
+            if (parents != null)
+                foreach (var parent in parents.Reverse())
+                {
+                    // exclude
+                    if (parent == null || string.IsNullOrEmpty(parent.IdShort))
+                        continue;
+                    if (excludeIdentifiable && parent is IIdentifiable)
+                        continue;
+                    // prepend
+                    path = parent.IdShort.Trim() + separatorChar + path;
+                }
+
+            // ok
+            return path;
+        }
+
         public static void RecurseOnReferables(
             this List<ISubmodelElement> submodelElements, object state, List<IReferable> parents,
                 Func<object, List<IReferable>, IReferable, bool> lambda)

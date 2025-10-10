@@ -515,7 +515,7 @@ namespace AasxPackageLogic
             // perform UI updates if required
             if (ticket.UiLambdaAction != null && !(ticket.UiLambdaAction is AnyUiLambdaActionNone))
             {
-                // add to "normal" event quoue
+                // add to "normal" event queue
                 MainWindow.AddWishForToplevelAction(ticket.UiLambdaAction);
             }
 

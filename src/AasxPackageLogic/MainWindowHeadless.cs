@@ -116,6 +116,7 @@ namespace AasxPackageLogic
                 ticket.Env = vesmr.theEnv;
                 if (selectedItem != null)
                 {
+                    ticket.AAS = vesmr.theAas;
                     ticket.Submodel = vesmr.theSubmodel;
                     ticket.SubmodelRef = vesmr.theSubmodelRef;
                 }
@@ -1717,7 +1718,7 @@ namespace AasxPackageLogic
                     else
                     if (res is AasxPluginResultEventRedrawAllElements aprrae)
                     {
-                        MainWindow.CommandExecution_RedrawAll();
+                        MainWindow.CommandExecution_RedrawAllAsync();
                     }
                 }
                 catch (Exception ex)

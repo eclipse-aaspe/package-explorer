@@ -1,414 +1,422 @@
 {
-    /* If set, start in editor mode instead of browse mode. */
-    "EditMode": true
-    /* If set, do not start in hinting mode. */,
-    "NoHints": true
-    /* This file shall be loaded as main package at start of application | Arg: <path> */,
-    "AasxToLoad": "http://localhost:8081/shells/aHR0cHM6Ly9hZG1pbi1zaGVsbC1pby9pZHRhL2Fhcy9Qcm9kdWN0Q2hhbmdlTm90aWZpY2F0aW9ucy8xLzA"
-    /* This file shall be loaded as aux package at start of application | Arg: <path> */,
-    "AuxToLoad": null
-    /* List of pathes to a JSON, defining a set of AasxPackage-Files, which serve as repository. | Arg: <path> */,
-    "AasxRepositoryFns": [
-        "C:\\HOMI\\Develop\\Aasx\\repo\\local-5001.json",
-        "C:\\HOMI\\Develop\\Aasx\\repo\\eis-voyager.json",
-        "C:\\HOMI\\Develop\\Aasx\\repo\\smt-repo.json",
-        "C:\\HOMI\\Develop\\Aasx\\repo\\shortcuts-aasx-repo.json",
-        "C:\\HOMI\\Develop\\Aasx\\repo\\phoenix-api-key.json",
-        "C:\\HOMI\\Develop\\Aasx\\repo\\local-basyx.json",
-        "C:\\HOMI\\Develop\\Aasx\\repo\\reg-of-reg-voyager.json",
-        "C:\\HOMI\\Develop\\Aasx\\repo\\phoenix-big.json"
-    ]
-    /* When connecting to given URIs, auto-authenticate by matching with known endpoints. */,
-    "AutoAuthenticateUris": true
-    /* When matching with known endpoints and finding no match, ask for a authetication approach or assume no authentication. */,
-    "AutoAuthenticateAsk": false
-    /* Presets for base addresses for Registries and Repositories. */,
-    "KnownEndpoints": [
-        {
-            "BaseAddress": "https://big.aas-voyager.com/",
-            "AccessInfo": {
-                "Method": "Ask", // None, Ask, Basic, CertificateStore, File, InteractiveEntry, Secret
-                "Username": "Admin",
-                "Password": "",
-                // "Password": "SuperSafePasswd",
-                // "AuthServer": "",
-                "AuthServer": "https://www.admin-shell-io.com/50001/.well-known/openid-configuration", // for rest of authentication
-                // "AuthServer": "https://credential.aas-voyager.com/token", // for secret based OpenID Connect
-                "CertFile": "",
-                "CertPassword": "",
-                "CertPick": "GEANT",
-                // "CertPick" :  "",
-                // "SecretId": "",
-                "SecretId": "aorzelski@phoenixcontact.com",
-                // "SecretValue": "",
-                "SecretValue": "aorzelski@phoenixcontact.com-secret"
-            }
-        },
-        {
-            "BaseAddress": "https://registry-of-registry.aas-voyager.com/",
-            "AccessInfo": {
-                "Method": "None" // None, Ask, Basic, CertificateStore, File, InteractiveEntry, Secret
-            }
-        },
-        {
-            "BaseAddress": "https://aasx-server-pcf.dev.pxcio.net/",
-            "AccessInfo": {
-                "Method": "Basic", // None, Ask, Basic, CertificateStore, File, InteractiveEntry, Secret
-                "Username": "Albert",
-                "Password": "Alb"
-            }
-        }
-    ]
-    /* Presets for base addresses for Registries and Repositories. */,
-    "BaseAddresses": [
-        "https://cloudrepo.aas-voyager.com/",
-        "https://eis-data.aas-voyager.com/",
-        "http://smt-repo.admin-shell-io.com/api/v3.0",
-        "https://techday2-registry.admin-shell-io.com/",
-        "http://localhost:5001/",
-        "http://localhost:5001/api/v3.0/",
-        "http://localhost{{\"*\" : \":8081\", \"AAS-REG\" : \":8082\", \"SM-REG\" : \":8083\", \"DIS\" : \":8084\"}}/"
-    ]
-    /* Maximum parallel read operations, such as HTTP downloads. */,
-    "MaxParallelReadOps": 10
-    /* Maximum parallel write operations, such as HTTP uploads. */,
-    "MaxParallelWriteOps": 1
-    /* If not -1, the left of window | Arg: <pixel> */,
-    "WindowLeft": -1
-    /* If not -1, the top of window | Arg: <pixel> */,
-    "WindowTop": -1
-    /* If not -1, the width of window | Arg: <pixel> */,
-    "WindowWidth": 900
-    /* If not -1, the height of window | Arg: <pixel> */,
-    "WindowHeight": 600
-    /* If set, then maximize window on application startup */,
-    "WindowMaximized": false
-    /* Template string for the id of an AAS. Could contain up to 16 placeholders of: D = decimal digit, X = hex digit, A = alphanumerical digit | Arg: <string> */,
-    "TemplateIdAas": "www.example.com/ids/aas/DDDD_DDDD_DDDD_DDDD"
-    /* Template string for the id of an aaset. Could contain up to 16 placeholders of: D = decimal digit, X = hex digit, A = alphanumerical digit | Arg: <string> */,
-    "TemplateIdAsset": "www.example.com/ids/asset/DDDD_DDDD_DDDD_DDDD"
-    /* Template string for the id of an submodel of kind instance. Could contain up to 16 placeholders of: D = decimal digit, X = hex digit, A = alphanumerical digit | Arg: <string> */,
-    "TemplateIdSubmodelInstance": "www.example.com/ids/sm/DDDD_DDDD_DDDD_DDDD"
-    /* Template string for the id of an submodel of kind type. Could contain up to 16 placeholders of: D = decimal digit, X = hex digit, A = alphanumerical digit | Arg: <string> */,
-    "TemplateIdSubmodelTemplate": "www.example.com/ids/smt/DDDD_DDDD_DDDD_DDDD"
-    /* Template string for the id of a concept description. Could contain up to 16 placeholders of: D = decimal digit, X = hex digit, A = alphanumerical digit | Arg: <string> */,
-    "TemplateIdConceptDescription": "www.example.com/ids/cd/DDDD_DDDD_DDDD_DDDD"
-    /* Link ConceptDescriptions by ModelReferences. */,
-    "ModelRefCd": false
-    /* Path to ECLASS XML files | Arg: <path> */,
-    "EclassDir": ".\\eclass\\"
-    /* Path to the directory with the default sources for the Dictionary Import feature (see AasxDictionaryImport).  If this option is not set, the current working directory is used. | Arg: <path> */,
-    "DictImportDir": null
-    /* Path to an image to be displayed as logo | Arg: <path> */,
-    "LogoFile": "Logo_IDTA_Custom.png"
-    /* Path to JSON file defining qualifier presets. | Arg: <path> */,
-    "QualifiersFile": "qualifier-presets.json"
-    /* Path to JSON file defining IdentifierKeyValuePair presets. | Arg: <path> */,
-    "IdentifierKeyValuePairsFile": "local-identifier-presets.json"
-    /* Path to JSON file defining Referable.extension presets. | Arg: <path> */,
-    "ExtensionsPresetFile": "extension-presets.json"
-    /* Path to JSON file defining data specification presets. | Arg: <path> */,
-    "DataSpecPresetFile": "data-spec-presets.json"
-    /* Home address of the content browser on startup, on change of AASX | Arg: <URL> */,
-    "ContentHome": "https://github.com/eclipse-aaspe/package-explorer/blob/main/README.md"
-    /* If unset, use transparent flyover dialogs, where possible */,
-    "UseFlyovers": true
-    /* If other then -1, then time in ms for the splash window to stay on the screen. | Arg: <milli-secs> */,
-    "SplashTime": 0
-    /* Fraction of main window with dedicated to left column of screen when resizing window. | Arg: Percent 0-100.0 */,
-    "PercentageLeftColumn": 12.0
-    /* Fraction of main window with dedicated to right column of screen (content section) when resizing window. | Arg: Percent 0-100.0 */,
-    "PercentageRightColumn": 60.0
-    /* If true, use always internal browser */,
-    "InternalBrowser": false
-    /* If true, apply second search operation in ECLASS to join multi-language information. */,
-    "EclassTwoPass": true
-    /* If not null, enables backing up XML files of the AAS-ENV in some files under BackupDir, which could be relative | Arg: <path> */,
-    "BackupDir": ".\\backup"
-    /* At max such much different files are used for backing up. */,
-    "BackupFiles": 10
-    /* If true, will answer the HTTP GET requests of selected ressources by internal, fixed responses (see PackageContainerFakeAnswers.json). This allows quick testing of repository functions without internet connection (shoutout to Deutsche Bahn). */,
-    "AllowFakeResponses": true
-    /* Central store to hold supplementary files for File elements. */,
-    "CentralStores": [
-        "file://C:\\AasxStore",
-        "https://store.example.com/client123"
-    ]
-    /* When connecting to Registry/ Repository, add more details to the log messages. */,
-    "ExtendedConnectionDebug": false
-    /* If set, load and store AASX files via temporary package to avoid corruptions. RECOMMENDED! */,
-    "IndirectLoadSave": true
-    /* Hostname for the REST server. If other than "localhost", use of admin rights might be required. | Arg: <host> */,
-    "RestServerHost": "localhost"
-    /* Port for the REST server. Port numbers below 1023 may not work. | Arg: <port> */,
-    "RestServerPort": "1111"
-    /* If not null, will retrieve the (default?) options of all instantiated plugins and will write this large data set into JSON option file. | Arg: <path> */,
-    "WriteDefaultOptionsFN": null
-    /* If not null points to the dir, where per user a directory is provided to load/ save files. */,
-    "UserDir": null
-    /* Designates the user name. Only [A-Za-z0-9_] allowed. Must be not null in order to access user files. */,
-    "UserName": null
-    /* If true, will allow the storage of local files. The server functions might restrict this. */,
-    "AllowLocalFiles": true
-    /* Designates the default language codes in ISO639-1. This will be used for new language strings of uncertain information. Each language separated by comma. First language code is the default one. */,
-    "DefaultLangs": "en"
-    /* List of language/ country codes offered by the UI. Comma-separated tags of two-digit ISO 639-2 and ISO 3166-1 codes, also known (but not equal) to RFC 5464 locales. */,
-    "OfferedLangs": "af-ZA,am-ET,ar-AE,ar-BH,ar-DZ,ar-EG,ar-IQ,ar-JO,ar-KW,ar-LB,ar-LY,ar-MA,ar-OM,ar-QA,ar-SA,ar-SD,ar-SY,ar-TN,ar-YE,as-IN,az-az,ba-RU,be-BY,bg-BG,bn-BD,bn-IN,bo-CN,br-FR,ca-ES,co-FR,cs-CZ,cy-GB,da-DK,de-DE,de-AT,de-CH,de-LI,de-LU,dv-MV,el-CY,el-GR,en-GB,en-AU,en-BZ,en-CA,en-cb,en-IE,en-IN,en-JM,en-MT,en-MY,en-NZ,en-PH,en-SG,en-TT,en-US,en-ZA,en-ZW,es-ES,es-AR,es-BO,es-CL,es-CO,es-CR,es-DO,es-EC,es-GT,es-HN,es-MX,es-NI,es-PA,es-PE,es-PR,es-PY,es-SV,es-US,es-UY,es-VE,et-EE,eu-ES,fa-IR,fi-FI,fo-FO,fr-FR,fr-BE,fr-CA,fr-CH,fr-LU,fr-MC,fy-NL,ga-IE,gd-GB,gd-ie,gl-ES,gu-IN,he-IL,hi-IN,hr-BA,hr-HR,hu-HU,hy-AM,id-ID,ig-NG,ii-CN,in-ID,is-IS,it-CH,it-IT,iw-IL,ja-JP,ka-GE,kk-KZ,kl-GL,km-KH,kn-IN,ko-KR,ky-KG,lb-LU,lo-LA,lt-LT,lv-LV,mi-NZ,mk-MK,ml-IN,mn-MN,mr-IN,ms-BN,ms-MY,mt-MT,nb-NO,ne-NP,nl-BE,nl-NL,nn-NO,no-no,oc-FR,or-IN,pa-IN,pl-PL,ps-AF,pt-BR,pt-PT,rm-CH,ro-mo,ro-RO,ru-mo,ru-RU,rw-RW,sa-IN,se-FI,se-NO,se-SE,si-LK,sk-SK,sl-SI,sq-AL,sr-BA,sr-CS,sr-ME,sr-RS,sr-sp,sv-FI,sv-SE,sw-KE,ta-IN,te-IN,th-TH,tk-TM,tn-ZA,tr-TR,tt-RU,ug-CN,uk-UA,ur-PK,uz-uz,vi-VN,wo-SN,xh-ZA,yo-NG,zh-CN,zh-HK,zh-MO,zh-SG,zh-TW,zu-ZA"
-    /* Designates the default value of the first text value of a newly created multi language list. If left blank, the application will create warnings because violating the AAS specification and some AASX export might not work properly. */,
-    "DefaultEmptyLangText": ""
-    /* Designates the default value of the first key of a newly created AAS Reference. If left blank, the application will create warnings because violating the AAS specification and some AASX export might not work properly. */,
-    "DefaultEmptyReferenceKey": ""
-    /* Path to file to capture all log messages. Will be (re-) created at application startup. */,
-    "LogFile": null
-    /* If not null points to the dir, where plugins are (recursively) searched */,
-    "PluginDir": ".\\plugins"
-    /* Plugin usage prefernces, e.g. WPF or ANYUI */,
-    "PluginPrefer": "ANYUI"
-    /* Sorting order of ConceptDescriptions (ListIndex, IdShort, Id, Submodel, SME, Structured) */,
-    "CdSortOrder": "Structured"
-    /* Only check the value (id) field of keys of semanticId for Submodels. That is, bothGlobalReference and Submodel types match. */,
-    "SubmodelCheckOnlyId": true
-    /* For such operations as query repository, do load a new AASX file without prompting the user. */,
-    "LoadWithoutPrompt": true
-    /* When activated, the UI will check if identifications and other texts are starting with schemes like http:// and will render IRIs for them */,
-    "ShowIdAsIri": false
-    /* When activated, the UI will show verbose information on (secure) connect procedures. When de-activated, default answers to questions within these procedures will be given */,
-    "VerboseConnect": true
-    /* When activated, the UI will initially show the event viewer. The use can hide the  panel, if required. */,
-    "ShowEvents": false
-    /* When activated, the UI will detect SubmodelElements which feature Extension of type "Animate.Args" and will cyclically animate its values. */,
-    "AnimateElements": false
-    /* When activated, the UI will observe AAS events, which are subsequently emited by the editor. AAS events are emited, when "take over" or load/ save is activiated. */,
-    "ObserveEvents": true
-    /* When activated, the UI will compress events, which are emited by the editor. */,
-    "CompressEvents": true
-    /* When activated, the UI will detect presence of SMT attributes and will perform value checks on AAS elements. This might be slow! */,
-    "CheckSmtElements": false
-    /* Default value for the StayConnected options of PackageContainer. That is, a loaded container will automatically try receive events, e.g. for value update. */,
-    "DefaultStayConnected": true
-    /* Default value for the update period in [ms] for StayConnect containers. */,
-    "DefaultUpdatePeriod": 1000
-    /* Preset shown in the file repo connect to AAS repository dialogue */,
-    "DefaultConnectRepositoryLocation": "https://admin-shell-io.com/51711"
-    /* List of tuples (Name, Text) with presets for available scripts. */,
-    "ScriptPresets": [
-        {
-            "Name": "Test1",
-            "Lines": [
-                "Select(\"AAS\", \"First\");",
-                "Sleep(1000);",
-                "Location(\"Push\");",
-                "Sleep(1000);",
-                "Select(\"Submodel\", \"First\");",
-                "Sleep(1000);",
-                "while (true) {",
-                "  rf = Select(\"This\");",
-                "  WriteLine(\"Approaching Referable \" + rf);",
-                "  if (Select(\"Submodel\", \"Next\") == null) break;",
-                "}"
-            ],
-            "Text": "Select(\"AAS\", \"First\");\nSleep(1000);\nLocation(\"Push\");\nSleep(1000);\nSelect(\"Submodel\", \"First\");\nSleep(1000);\nwhile (true) {\n  rf = Select(\"This\");\n  WriteLine(\"Approaching Referable \" + rf);\n  if (Select(\"Submodel\", \"Next\") == null) break;\n}"
-        },
-        {
-            "Name": "Test2",
-            "Lines": [
-                "Select(\"Submodel\", \"First\");",
-                "Sleep(1000);",
-                "Tool(\"ImportTimeSeries\", ",
-                "  \"Format\", \"Excel\", \"File\", \"Test.xlsx\", ",
-                "  \"ColData\", \"3\" );",
-                "Sleep(1000);",
-                "WriteLine(\"Done\");"
-            ],
-            "Text": "Select(\"Submodel\", \"First\");\nSleep(1000);\nTool(\"ImportTimeSeries\", \n  \"Format\", \"Excel\", \"File\", \"Test.xlsx\", \n  \"ColData\", \"3\" );\nSleep(1000);\nWriteLine(\"Done\");"
-        },
-        {
-            "Name": "Select Test 3",
-            "Lines": [
-                "Select(\"AAS\", \"Next\");"
-            ],
-            "Text": "Select(\"AAS\", \"Next\");"
-        },
-        {
-            "Name": "Select Test 4",
-            "Lines": [
-                "Select(\"AAS\", \"Prev\");"
-            ],
-            "Text": "Select(\"AAS\", \"Prev\");"
-        },
-        {
-            "Name": "Test 5",
-            "Lines": [
-                "Tool(\"EditMenu\", \"Mode\", true);",
-                "res = Tool(\"ToolsFindText\", \"FindText\", \"DE\"); ",
-                "num = 0;",
-                "while (res) {",
-                "    x = Select(\"This\"); ",
-                "    WriteLine(num, \":\", x.idShort);",
-                "    num = num + 1;",
-                "    if (num > 18)",
-                "        break;",
-                "    res = Tool(\"ToolsFindForward\");",
-                "    Sleep(200);",
-                "}"
-            ],
-            "Text": "Tool(\"EditMenu\", \"Mode\", true);\nres = Tool(\"ToolsFindText\", \"FindText\", \"DE\"); \nnum = 0;\nwhile (res) {\n    x = Select(\"This\"); \n    WriteLine(num, \":\", x.idShort);\n    num = num + 1;\n    if (num > 18)\n        break;\n    res = Tool(\"ToolsFindForward\");\n    Sleep(200);\n}"
-        },
-        {
-            "Name": "Test 6",
-            "Lines": [
-                "Tool(\"EditMenu\", \"Mode\", true);",
-                "res = Tool(\"ToolsReplaceText\", \"FindText\", \"DE\", \"ReplaceText\", \"GDR\", \"Do\", \"All\"); "
-            ],
-            "Text": "Tool(\"EditMenu\", \"Mode\", true);\nres = Tool(\"ToolsReplaceText\", \"FindText\", \"DE\", \"ReplaceText\", \"GDR\", \"Do\", \"All\"); "
-        },
-        {
-            "Name": "AsciiDoc - Just export (Ctrl+Shift+7)",
-            "Lines": [
-                "Tool(\"LocationPush\");",
-                "Select(\"Submodel\", \"First\");",
-                "Select(\"Submodel\", \"Next\");",
-                "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\Micha\\Desktop\\tmp\\new.zip\");",
-                "Tool(\"LocationPop\");"
-            ],
-            "Text": "Tool(\"LocationPush\");\nSelect(\"Submodel\", \"First\");\nSelect(\"Submodel\", \"Next\");\nTool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\Micha\\Desktop\\tmp\\new.zip\");\nTool(\"LocationPop\");"
-        },
-        {
-            "Name": "AsciiDoc - Export and view  (Ctrl+Shift+8)",
-            "Lines": [
-                "Tool(\"LocationPush\");",
-                "Select(\"Submodel\", \"First\");",
-                "Select(\"Submodel\", \"Next\");",
-                "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\homi0002\\Desktop\\tmp\\new.zip\", \"ExportHtml\", \"true\", \"ExportPdf\", \"false\", \"AntoraStyle\", \"false\", \"ViewResult\", \"true\");",
-                "Tool(\"LocationPop\");"
-            ],
-            "Text": "Tool(\"LocationPush\");\nSelect(\"Submodel\", \"First\");\nSelect(\"Submodel\", \"Next\");\nTool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\homi0002\\Desktop\\tmp\\new.zip\", \"ExportHtml\", \"true\", \"ExportPdf\", \"false\", \"AntoraStyle\", \"false\", \"ViewResult\", \"true\");\nTool(\"LocationPop\");"
-        }
-    ]
-    /* Verbosity level for script execution (0=silent, 2=very verbose). */,
-    "ScriptLoglevel": 2
-    /* Determins if user is prompted before starting a script.. */,
-    "ScriptLaunchWithoutPrompt": true
-    /* Determins if the script is allowed to execute system commands on the shell (CMD.EXE). */,
-    "ScriptExecuteSystem": true
-    /* Filename for scipt to read and execute. */,
-    "ScriptFn": "debug.MIHO.script"
-    /* Rest of command line will by treated as script. Double quotes to be escaped by backslash. In PowerShell, overall command itself to be escaped by single ticks. */,
-    "ScriptCmd": ""
-    /* May contain different string-based options for stay connect, event update mechanisms */,
-    "StayConnectOptions": "REST-QUEUE"
-    /* May contain lines of key/value-pairs for HTTP header attributes, delimited by double quotes. */,
-    "HttpHeaderAttributes": ""
-    /* Point to a list of SecureConnectPresets for the respective dialogue */,
-    "SecureConnectPresets": [
-    ]
-    /* Point to a set of options for MQTT publish */,
-    "MqttPublisherOptions": {
-        "BrokerUrl": "localhost:1883",
-        "MqttRetain": false,
-        "EnableFirstPublish": true,
-        "FirstTopicAAS": "AAS",
-        "FirstTopicSubmodel": "{aas}/Submodel_{sm}",
-        "EnableEventPublish": true,
-        "EventTopic": "Events/aas/{aas}/sm/{sm}/{path}",
-        "SingleValuePublish": true,
-        "SingleValueFirstTime": true,
-        "SingleValueTopic": "Values/aas/{aas}/sm/{sm}/{path}"
+  /* If set, start in editor mode instead of browse mode. */
+  "EditMode": true
+  /* If set, do not start in hinting mode. */,
+  "NoHints": true,
+  /* This file shall be loaded as main package at start of application | Arg: <path> */
+  // "AasxToLoad": "http://localhost:8081/shells/aHR0cHM6Ly9hZG1pbi1zaGVsbC1pby9pZHRhL2Fhcy9Qcm9kdWN0Q2hhbmdlTm90aWZpY2F0aW9ucy8xLzA"
+  // "AasxToLoad": "http://localhost:8081/shells/aHR1cHM6Ly9hZG1pbi1zaGVsbC1pby9pZHRhL2Fhcy9Qcm9kdWN0Q2hhbmdlTm90aWZpY2F0aW9ucy8xLzA"
+  // "AasxToLoad": "C:\\Users\\Micha\\Desktop\\test-smt-on-basyx\\IDTA_02036-1-0_SMT_ProductChangeNotification_Draft_v35_manual_fixes.aasx"
+  //"AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\SMT\\IDTA 02036-1-0_Submodel_ProductChangeNotification\\IDTA_02036-1-0_SMT_ProductChangeNotification_Draft_v40_add_podman.aasx"
+  "AasxToLoad": "http://localhost:8081/shells/aHR0cHM6Ly9hZG1pbi1zaGVsbC1pby9pZHRhL2Fhcy9Qcm9kdWN0Q2hhbmdlTm90aWZpY2F0aW9ucy8xLzA"
+  /* This file shall be loaded as aux package at start of application | Arg: <path> */,
+  "AuxToLoad": null
+  /* List of pathes to a JSON, defining a set of AasxPackage-Files, which serve as repository. | Arg: <path> */,
+  "AasxRepositoryFns": [
+    "C:\\HOMI\\Develop\\Aasx\\repo\\local-5001.json",
+    "C:\\HOMI\\Develop\\Aasx\\repo\\eis-voyager.json",
+    "C:\\HOMI\\Develop\\Aasx\\repo\\smt-repo.json",
+    "C:\\HOMI\\Develop\\Aasx\\repo\\shortcuts-aasx-repo.json",
+    "C:\\HOMI\\Develop\\Aasx\\repo\\phoenix-api-key.json",
+    "C:\\HOMI\\Develop\\Aasx\\repo\\local-basyx.json",
+    "C:\\HOMI\\Develop\\Aasx\\repo\\reg-of-reg-voyager.json",
+    "C:\\HOMI\\Develop\\Aasx\\repo\\phoenix-big.json"
+  ]
+  /* When connecting to given URIs, auto-authenticate by matching with known endpoints. */,
+  "AutoAuthenticateUris": true
+  /* When matching with known endpoints and finding no match, ask for a authetication approach or assume no authentication. */,
+  "AutoAuthenticateAsk": false
+  /* Presets for base addresses for Registries and Repositories. */,
+  "KnownEndpoints": [
+    {
+      "BaseAddress": "https://big.aas-voyager.com/",
+      "AccessInfo": {
+        "Method": "Ask", // None, Ask, Basic, CertificateStore, File, InteractiveEntry, Secret
+        "Username": "Admin",
+        "Password": "",
+        // "Password": "superSafePasswd",
+        // "AuthServer": "",
+        "AuthServer": "https://www.admin-shell-io.com/50001/.well-known/openid-configuration", // for rest of authentication
+        // "AuthServer": "https://credential.aas-voyager.com/token", // for secret based OpenID Connect
+        "CertFile": "",
+        "CertPassword": "",
+        // "CertPick": "GEANT",
+        "CertPick": "",
+        "SecretId": "",
+        // "SecretId": "aorzelski@phoenixcontact.com",
+        "SecretValue": ""
+        // "SecretValue": "aorzelski@phoenixcontact.com-secret"
+      }
+    },
+    {
+      "BaseAddress": "https://registry-of-registry.aas-voyager.com/",
+      "AccessInfo": {
+        "Method": "None" // None, Ask, Basic, CertificateStore, File, InteractiveEntry, Secret
+      }
+    },
+    {
+      "BaseAddress": "https://aasx-server-pcf.dev.pxcio.net/",
+      "AccessInfo": {
+        "Method": "Basic", // None, Ask, Basic, CertificateStore, File, InteractiveEntry, Secret
+        "Username": "Albert",
+        "Password": "Alb"
+      }
     }
-    /* Point to a list of SecureConnectPresets for the respective dialogue */,
-    "IntegratedConnectPresets": [
-    ]
-    /* Contains a list of tuples (filenames, args) of plugins to be loaded. */,
-    "PluginDll": [
-        {
-            "Path": "..\\..\\..\\..\\..\\..\\AasxPluginProductChangeNotifications\\bin\\Debug\\net8.0-windows\\AasxPluginProductChangeNotifications.dll",
-            "Args": [],
-            "Options": null,
-            "DefaultOptions": null
-        },
-        {
-            "Path": "..\\..\\..\\..\\..\\..\\AasxPluginAssetInterfaceDesc\\bin\\Debug\\net8.0-windows\\AasxPluginAssetInterfaceDesc.dll",
-            "Args": [],
-            "Options": null,
-            "DefaultOptions": null
-        },
-        {
-            "Path": "..\\..\\..\\..\\..\\..\\AasxPluginKnownSubmodels\\bin\\Debug\\net8.0-windows\\AasxPluginKnownSubmodels.dll",
-            "Args": [],
-            "Options": null,
-            "DefaultOptions": null
-        },
-        {
-            "Path": "..\\..\\..\\..\\..\\..\\AasxPluginDigitalNameplate\\bin\\Debug\\net8.0-windows\\AasxPluginDigitalNameplate.dll",
-            "Args": [],
-            "Options": null,
-            "DefaultOptions": null
-        },
-        {
-            "Path": "..\\..\\..\\..\\..\\..\\AasxPluginDocumentShelf\\bin\\Debug\\net8.0-windows\\AasxPluginDocumentShelf.dll",
-            "Args": [],
-            "Options": null,
-            "DefaultOptions": null
-        },
-        {
-            "Path": "..\\..\\..\\..\\..\\..\\AasxPluginContactInformation\\bin\\Debug\\net8.0-windows\\AasxPluginContactInformation.dll",
-            "Args": [],
-            "Options": null,
-            "DefaultOptions": null
-        },
-        {
-            "Path": "..\\..\\..\\..\\..\\..\\AasxPluginGenericForms\\bin\\Debug\\net8.0-windows\\AasxPluginGenericForms.dll",
-            "Args": [],
-            "Options": null,
-            "DefaultOptions": null
-        },
-        {
-            "Path": "..\\..\\..\\..\\..\\..\\AasxPluginAdvancedTextEditor\\bin\\Debug\\net8.0-windows\\AasxPluginAdvancedTextEditor.dll",
-            "Args": [],
-            "Options": null,
-            "DefaultOptions": null
-        },
-        {
-            "Path": "..\\..\\..\\..\\..\\..\\AasxPluginTechnicalData\\bin\\Debug\\net8.0-windows\\AasxPluginTechnicalData.dll",
-            "Args": [],
-            "Options": null,
-            "DefaultOptions": null
-        },
-        {
-            "Path": "..\\..\\..\\..\\..\\..\\AasxPluginBomStructure\\bin\\Debug\\net8.0-windows\\AasxPluginBomStructure.dll",
-            "Args": [],
-            "Options": null,
-            "DefaultOptions": null
-        },
-        {
-            "Path": "..\\..\\..\\..\\..\\..\\AasxPluginPlotting\\bin\\Debug\\net8.0-windows\\AasxPluginPlotting.dll",
-            "Args": [],
-            "Options": null,
-            "DefaultOptions": null
-        },
-        {
-            "Path": "..\\..\\..\\..\\..\\..\\AasxPluginImageMap\\bin\\Debug\\net8.0-windows\\AasxPluginImageMap.dll",
-            "Args": [],
-            "Options": null,
-            "DefaultOptions": null
-        },
-        {
-            "Path": "..\\..\\..\\..\\..\\..\\AasxPluginMtpViewer\\bin\\Debug\\net8.0-windows\\AasxPluginMtpViewer.dll",
-            "Args": [],
-            "Options": null,
-            "DefaultOptions": null
-        },
-        {
-            "Path": "..\\..\\..\\..\\..\\..\\AasxPluginExportTable\\bin\\Debug\\net8.0-windows\\AasxPluginExportTable.dll",
-            "Args": [],
-            "Options": null,
-            "DefaultOptions": null
-        },
-        {
-            "Path": "..\\..\\..\\..\\..\\..\\AasxPluginWebBrowser\\bin\\x64\\Debug\\AasxPluginWebBrowser.dll",
-            "Args": [],
-            "Options": null,
-            "DefaultOptions": null
-        }
-    ]
+  ]
+  /* Presets for base addresses for Registries and Repositories. */,
+  "BaseAddresses": [
+    "https://cloudrepo.aas-voyager.com/",
+    "https://eis-data.aas-voyager.com/",
+    "http://smt-repo.admin-shell-io.com/api/v3.0",
+    "https://techday2-registry.admin-shell-io.com/",
+    "http://localhost:5001/",
+    "http://localhost:5001/api/v3.0/",
+    "http://localhost{{\"*\" : \":8081\", \"AAS-REG\" : \":8082\", \"SM-REG\" : \":8083\", \"DIS\" : \":8084\"}}/"
+  ]
+  /* Maximum parallel read operations, such as HTTP downloads. */,
+  "MaxParallelReadOps": 10
+  /* Maximum parallel write operations, such as HTTP uploads. */,
+  "MaxParallelWriteOps": 1
+  /* For connecting to repositories/ registry, default pagination limit. */,
+  "DefaultConnectPageLimit": 20
+  /* If not -1, the left of window | Arg: <pixel> */,
+  "WindowLeft": -1
+  /* If not -1, the top of window | Arg: <pixel> */,
+  "WindowTop": -1
+  /* If not -1, the width of window | Arg: <pixel> */,
+  "WindowWidth": 1440
+  /* If not -1, the height of window | Arg: <pixel> */,
+  "WindowHeight": 584
+  /* If set, then maximize window on application startup */,
+  "WindowMaximized": false
+  /* Template string for the id of an AAS. Could contain up to 16 placeholders of: D = decimal digit, X = hex digit, A = alphanumerical digit | Arg: <string> */,
+  "TemplateIdAas": "www.example.com/ids/aas/DDDD_DDDD_DDDD_DDDD"
+  /* Template string for the id of an aaset. Could contain up to 16 placeholders of: D = decimal digit, X = hex digit, A = alphanumerical digit | Arg: <string> */,
+  "TemplateIdAsset": "www.example.com/ids/asset/DDDD_DDDD_DDDD_DDDD"
+  /* Template string for the id of an submodel of kind instance. Could contain up to 16 placeholders of: D = decimal digit, X = hex digit, A = alphanumerical digit | Arg: <string> */,
+  "TemplateIdSubmodelInstance": "www.example.com/ids/sm/DDDD_DDDD_DDDD_DDDD"
+  /* Template string for the id of an submodel of kind type. Could contain up to 16 placeholders of: D = decimal digit, X = hex digit, A = alphanumerical digit | Arg: <string> */,
+  "TemplateIdSubmodelTemplate": "www.example.com/ids/smt/DDDD_DDDD_DDDD_DDDD"
+  /* Template string for the id of a concept description. Could contain up to 16 placeholders of: D = decimal digit, X = hex digit, A = alphanumerical digit | Arg: <string> */,
+  "TemplateIdConceptDescription": "www.example.com/ids/cd/DDDD_DDDD_DDDD_DDDD"
+  /* Link ConceptDescriptions by ModelReferences. */,
+  "ModelRefCd": false
+  /* Path to ECLASS XML files | Arg: <path> */,
+  "EclassDir": ".\\eclass\\"
+  /* Path to the directory with the default sources for the Dictionary Import feature (see AasxDictionaryImport).  If this option is not set, the current working directory is used. | Arg: <path> */,
+  "DictImportDir": null
+  /* Path to an image to be displayed as logo | Arg: <path> */,
+  "LogoFile": "Logo_IDTA_Custom.png"
+  /* Path to JSON file defining qualifier presets. | Arg: <path> */,
+  "QualifiersFile": "qualifier-presets.json"
+  /* Path to JSON file defining IdentifierKeyValuePair presets. | Arg: <path> */,
+  "IdentifierKeyValuePairsFile": "local-identifier-presets.json"
+  /* Path to JSON file defining Referable.extension presets. | Arg: <path> */,
+  "ExtensionsPresetFile": "extension-presets.json"
+  /* Path to JSON file defining data specification presets. | Arg: <path> */,
+  "DataSpecPresetFile": "data-spec-presets.json"
+  /* Path to JSON file defining query presets. */,
+  "QueryPresetFile": "query-presets.json"
+  /* Home address of the content browser on startup, on change of AASX | Arg: <URL> */,
+  "ContentHome": "https://github.com/eclipse-aaspe/package-explorer/blob/main/README.md"
+  /* If unset, use transparent flyover dialogs, where possible */,
+  "UseFlyovers": true
+  /* If other then -1, then time in ms for the splash window to stay on the screen. | Arg: <milli-secs> */,
+  "SplashTime": 0
+  /* Fraction of main window with dedicated to left column of screen when resizing window. | Arg: Percent 0-100.0 */,
+  "PercentageLeftColumn": 15.0
+  /* Fraction of main window with dedicated to right column of screen (content section) when resizing window. | Arg: Percent 0-100.0 */,
+  "PercentageRightColumn": 60.0
+  /* If true, use always internal browser */,
+  "InternalBrowser": false
+  /* If true, apply second search operation in ECLASS to join multi-language information. */,
+  "EclassTwoPass": true
+  /* If not null, enables backing up XML files of the AAS-ENV in some files under BackupDir, which could be relative | Arg: <path> */,
+  "BackupDir": ".\\backup"
+  /* At max such much different files are used for backing up. */,
+  "BackupFiles": 10
+  /* If true, will answer the HTTP GET requests of selected ressources by internal, fixed responses (see PackageContainerFakeAnswers.json). This allows quick testing of repository functions without internet connection (shoutout to Deutsche Bahn). */,
+  "AllowFakeResponses": true
+  /* Central store to hold supplementary files for File elements. */,
+  "CentralStores": [
+    "file://C:\\AasxStore",
+    "https://store.example.com/client123"
+  ]
+  /* When connecting to Registry/ Repository, add more details to the log messages. */,
+  "ExtendedConnectionDebug": false
+  /* If set, load and store AASX files via temporary package to avoid corruptions. RECOMMENDED! */,
+  "IndirectLoadSave": true
+  /* Hostname for the REST server. If other than "localhost", use of admin rights might be required. | Arg: <host> */,
+  "RestServerHost": "localhost"
+  /* Port for the REST server. Port numbers below 1023 may not work. | Arg: <port> */,
+  "RestServerPort": "1111"
+  /* If not null, will retrieve the (default?) options of all instantiated plugins and will write this large data set into JSON option file. | Arg: <path> */,
+  "WriteDefaultOptionsFN": null
+  /* If not null points to the dir, where per user a directory is provided to load/ save files. */,
+  "UserDir": null
+  /* Designates the user name. Only [A-Za-z0-9_] allowed. Must be not null in order to access user files. */,
+  "UserName": null
+  /* If true, will allow the storage of local files. The server functions might restrict this. */,
+  "AllowLocalFiles": true
+  /* Designates the default language codes in ISO639-1. This will be used for new language strings of uncertain information. Each language separated by comma. First language code is the default one. */,
+  "DefaultLangs": "en"
+  /* List of language/ country codes offered by the UI. Comma-separated tags of two-digit ISO 639-2 and ISO 3166-1 codes, also known (but not equal) to RFC 5464 locales. */,
+  "OfferedLangs": "af-ZA,am-ET,ar-AE,ar-BH,ar-DZ,ar-EG,ar-IQ,ar-JO,ar-KW,ar-LB,ar-LY,ar-MA,ar-OM,ar-QA,ar-SA,ar-SD,ar-SY,ar-TN,ar-YE,as-IN,az-az,ba-RU,be-BY,bg-BG,bn-BD,bn-IN,bo-CN,br-FR,ca-ES,co-FR,cs-CZ,cy-GB,da-DK,de-DE,de-AT,de-CH,de-LI,de-LU,dv-MV,el-CY,el-GR,en-GB,en-AU,en-BZ,en-CA,en-cb,en-IE,en-IN,en-JM,en-MT,en-MY,en-NZ,en-PH,en-SG,en-TT,en-US,en-ZA,en-ZW,es-ES,es-AR,es-BO,es-CL,es-CO,es-CR,es-DO,es-EC,es-GT,es-HN,es-MX,es-NI,es-PA,es-PE,es-PR,es-PY,es-SV,es-US,es-UY,es-VE,et-EE,eu-ES,fa-IR,fi-FI,fo-FO,fr-FR,fr-BE,fr-CA,fr-CH,fr-LU,fr-MC,fy-NL,ga-IE,gd-GB,gd-ie,gl-ES,gu-IN,he-IL,hi-IN,hr-BA,hr-HR,hu-HU,hy-AM,id-ID,ig-NG,ii-CN,in-ID,is-IS,it-CH,it-IT,iw-IL,ja-JP,ka-GE,kk-KZ,kl-GL,km-KH,kn-IN,ko-KR,ky-KG,lb-LU,lo-LA,lt-LT,lv-LV,mi-NZ,mk-MK,ml-IN,mn-MN,mr-IN,ms-BN,ms-MY,mt-MT,nb-NO,ne-NP,nl-BE,nl-NL,nn-NO,no-no,oc-FR,or-IN,pa-IN,pl-PL,ps-AF,pt-BR,pt-PT,rm-CH,ro-mo,ro-RO,ru-mo,ru-RU,rw-RW,sa-IN,se-FI,se-NO,se-SE,si-LK,sk-SK,sl-SI,sq-AL,sr-BA,sr-CS,sr-ME,sr-RS,sr-sp,sv-FI,sv-SE,sw-KE,ta-IN,te-IN,th-TH,tk-TM,tn-ZA,tr-TR,tt-RU,ug-CN,uk-UA,ur-PK,uz-uz,vi-VN,wo-SN,xh-ZA,yo-NG,zh-CN,zh-HK,zh-MO,zh-SG,zh-TW,zu-ZA"
+  /* Designates the default value of the first text value of a newly created multi language list. If left blank, the application will create warnings because violating the AAS specification and some AASX export might not work properly. */,
+  "DefaultEmptyLangText": ""
+  /* Designates the default value of the first key of a newly created AAS Reference. If left blank, the application will create warnings because violating the AAS specification and some AASX export might not work properly. */,
+  "DefaultEmptyReferenceKey": ""
+  /* Path to file to capture all log messages. Will be (re-) created at application startup. */,
+  "LogFile": null
+  /* If not null points to the dir, where plugins are (recursively) searched */,
+  "PluginDir": ".\\plugins"
+  /* Plugin usage prefernces, e.g. WPF or ANYUI */,
+  "PluginPrefer": "ANYUI"
+  /* Sorting order of ConceptDescriptions (ListIndex, IdShort, Id, Submodel, SME, Structured) */,
+  "CdSortOrder": "Structured"
+  /* Only check the value (id) field of keys of semanticId for Submodels. That is, bothGlobalReference and Submodel types match. */,
+  "SubmodelCheckOnlyId": true
+  /* For such operations as query repository, do load a new AASX file without prompting the user. */,
+  "LoadWithoutPrompt": true
+  /* When activated, the UI will check if identifications and other texts are starting with schemes like http:// and will render IRIs for them */,
+  "ShowIdAsIri": false
+  /* When activated, the UI will show verbose information on (secure) connect procedures. When de-activated, default answers to questions within these procedures will be given */,
+  "VerboseConnect": true
+  /* When activated, the UI will initially show the event viewer. The use can hide the  panel, if required. */,
+  "ShowEvents": false
+  /* When activated, the UI will detect SubmodelElements which feature Extension of type "Animate.Args" and will cyclically animate its values. */,
+  "AnimateElements": false
+  /* When activated, the UI will observe AAS events, which are subsequently emited by the editor. AAS events are emited, when "take over" or load/ save is activiated. */,
+  "ObserveEvents": true
+  /* When activated, the UI will compress events, which are emited by the editor. */,
+  "CompressEvents": true
+  /* When activated, the UI will detect presence of SMT attributes and will perform value checks on AAS elements. This might be slow! */,
+  "CheckSmtElements": false
+  /* Default value for the StayConnected options of PackageContainer. That is, a loaded container will automatically try receive events, e.g. for value update. */,
+  "DefaultStayConnected": true
+  /* Default value for the update period in [ms] for StayConnect containers. */,
+  "DefaultUpdatePeriod": 1000
+  /* Preset shown in the file repo connect to AAS repository dialogue */,
+  "DefaultConnectRepositoryLocation": "https://admin-shell-io.com/51711"
+  /* List of tuples (Name, Text) with presets for available scripts. */,
+  "ScriptPresets": [
+    {
+      "Name": "Test1",
+      "Lines": [
+        "Select(\"AAS\", \"First\");",
+        "Sleep(1000);",
+        "Location(\"Push\");",
+        "Sleep(1000);",
+        "Select(\"Submodel\", \"First\");",
+        "Sleep(1000);",
+        "while (true) {",
+        "  rf = Select(\"This\");",
+        "  WriteLine(\"Approaching Referable \" + rf);",
+        "  if (Select(\"Submodel\", \"Next\") == null) break;",
+        "}"
+      ],
+      "Text": "Select(\"AAS\", \"First\");\nSleep(1000);\nLocation(\"Push\");\nSleep(1000);\nSelect(\"Submodel\", \"First\");\nSleep(1000);\nwhile (true) {\n  rf = Select(\"This\");\n  WriteLine(\"Approaching Referable \" + rf);\n  if (Select(\"Submodel\", \"Next\") == null) break;\n}"
+    },
+    {
+      "Name": "Test2",
+      "Lines": [
+        "Select(\"Submodel\", \"First\");",
+        "Sleep(1000);",
+        "Tool(\"ImportTimeSeries\", ",
+        "  \"Format\", \"Excel\", \"File\", \"Test.xlsx\", ",
+        "  \"ColData\", \"3\" );",
+        "Sleep(1000);",
+        "WriteLine(\"Done\");"
+      ],
+      "Text": "Select(\"Submodel\", \"First\");\nSleep(1000);\nTool(\"ImportTimeSeries\", \n  \"Format\", \"Excel\", \"File\", \"Test.xlsx\", \n  \"ColData\", \"3\" );\nSleep(1000);\nWriteLine(\"Done\");"
+    },
+    {
+      "Name": "Select Test 3",
+      "Lines": [
+        "Select(\"AAS\", \"Next\");"
+      ],
+      "Text": "Select(\"AAS\", \"Next\");"
+    },
+    {
+      "Name": "Select Test 4",
+      "Lines": [
+        "Select(\"AAS\", \"Prev\");"
+      ],
+      "Text": "Select(\"AAS\", \"Prev\");"
+    },
+    {
+      "Name": "Test 5",
+      "Lines": [
+        "Tool(\"EditMenu\", \"Mode\", true);",
+        "res = Tool(\"ToolsFindText\", \"FindText\", \"DE\"); ",
+        "num = 0;",
+        "while (res) {",
+        "    x = Select(\"This\"); ",
+        "    WriteLine(num, \":\", x.idShort);",
+        "    num = num + 1;",
+        "    if (num > 18)",
+        "        break;",
+        "    res = Tool(\"ToolsFindForward\");",
+        "    Sleep(200);",
+        "}"
+      ],
+      "Text": "Tool(\"EditMenu\", \"Mode\", true);\nres = Tool(\"ToolsFindText\", \"FindText\", \"DE\"); \nnum = 0;\nwhile (res) {\n    x = Select(\"This\"); \n    WriteLine(num, \":\", x.idShort);\n    num = num + 1;\n    if (num > 18)\n        break;\n    res = Tool(\"ToolsFindForward\");\n    Sleep(200);\n}"
+    },
+    {
+      "Name": "Test 6",
+      "Lines": [
+        "Tool(\"EditMenu\", \"Mode\", true);",
+        "res = Tool(\"ToolsReplaceText\", \"FindText\", \"DE\", \"ReplaceText\", \"GDR\", \"Do\", \"All\"); "
+      ],
+      "Text": "Tool(\"EditMenu\", \"Mode\", true);\nres = Tool(\"ToolsReplaceText\", \"FindText\", \"DE\", \"ReplaceText\", \"GDR\", \"Do\", \"All\"); "
+    },
+    {
+      "Name": "AsciiDoc - Just export (Ctrl+Shift+7)",
+      "Lines": [
+        "Tool(\"LocationPush\");",
+        "Select(\"Submodel\", \"First\");",
+        "Select(\"Submodel\", \"Next\");",
+        "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\Micha\\Desktop\\tmp\\new.zip\");",
+        "Tool(\"LocationPop\");"
+      ],
+      "Text": "Tool(\"LocationPush\");\nSelect(\"Submodel\", \"First\");\nSelect(\"Submodel\", \"Next\");\nTool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\Micha\\Desktop\\tmp\\new.zip\");\nTool(\"LocationPop\");"
+    },
+    {
+      "Name": "AsciiDoc - Export and view  (Ctrl+Shift+8)",
+      "Lines": [
+        "Tool(\"LocationPush\");",
+        "Select(\"Submodel\", \"First\");",
+        "Select(\"Submodel\", \"Next\");",
+        "Tool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\Micha\\Desktop\\tmp\\new.zip\", \"ExportHtml\", \"true\", \"ExportPdf\", \"false\", \"AntoraStyle\", \"false\", \"ViewResult\", \"true\");",
+        "Tool(\"LocationPop\");"
+      ],
+      "Text": "Tool(\"LocationPush\");\nSelect(\"Submodel\", \"First\");\nSelect(\"Submodel\", \"Next\");\nTool(\"ExportSmtAsciiDoc\", \"File\", \"C:\\Users\\homi0002\\Desktop\\tmp\\new.zip\", \"ExportHtml\", \"true\", \"ExportPdf\", \"false\", \"AntoraStyle\", \"false\", \"ViewResult\", \"true\");\nTool(\"LocationPop\");"
+    }
+  ]
+  /* Verbosity level for script execution (0=silent, 2=very verbose). */,
+  "ScriptLoglevel": 2
+  /* Determins if user is prompted before starting a script.. */,
+  "ScriptLaunchWithoutPrompt": true
+  /* Determins if the script is allowed to execute system commands on the shell (CMD.EXE). */,
+  "ScriptExecuteSystem": true
+  /* Filename for scipt to read and execute. */,
+  "ScriptFn": "debug.MIHO.script"
+  /* Rest of command line will by treated as script. Double quotes to be escaped by backslash. In PowerShell, overall command itself to be escaped by single ticks. */,
+  "ScriptCmd": ""
+  /* May contain different string-based options for stay connect, event update mechanisms */,
+  "StayConnectOptions": "REST-QUEUE"
+  /* May contain lines of key/value-pairs for HTTP header attributes, delimited by double quotes. */,
+  "HttpHeaderAttributes": ""
+  /* Point to a list of SecureConnectPresets for the respective dialogue */,
+  "SecureConnectPresets": [
+  ]
+  /* Point to a set of options for MQTT publish */,
+  "MqttPublisherOptions": {
+    "BrokerUrl": "localhost:1883",
+    "MqttRetain": false,
+    "EnableFirstPublish": true,
+    "FirstTopicAAS": "AAS",
+    "FirstTopicSubmodel": "{aas}/Submodel_{sm}",
+    "EnableEventPublish": true,
+    "EventTopic": "Events/aas/{aas}/sm/{sm}/{path}",
+    "SingleValuePublish": true,
+    "SingleValueFirstTime": true,
+    "SingleValueTopic": "Values/aas/{aas}/sm/{sm}/{path}"
+  }
+  /* Point to a list of SecureConnectPresets for the respective dialogue */,
+  "IntegratedConnectPresets": [
+  ]
+  /* Contains a list of tuples (filenames, args) of plugins to be loaded. */,
+  "PluginDll": [
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginProductChangeNotifications\\bin\\Debug\\net8.0-windows\\AasxPluginProductChangeNotifications.dll",
+      "Args": [],
+      "Options": null,
+      "DefaultOptions": null
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginAssetInterfaceDesc\\bin\\Debug\\net8.0-windows\\AasxPluginAssetInterfaceDesc.dll",
+      "Args": [],
+      "Options": null,
+      "DefaultOptions": null
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginKnownSubmodels\\bin\\Debug\\net8.0-windows\\AasxPluginKnownSubmodels.dll",
+      "Args": [],
+      "Options": null,
+      "DefaultOptions": null
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginDigitalNameplate\\bin\\Debug\\net8.0-windows\\AasxPluginDigitalNameplate.dll",
+      "Args": [],
+      "Options": null,
+      "DefaultOptions": null
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginDocumentShelf\\bin\\Debug\\net8.0-windows\\AasxPluginDocumentShelf.dll",
+      "Args": [],
+      "Options": null,
+      "DefaultOptions": null
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginContactInformation\\bin\\Debug\\net8.0-windows\\AasxPluginContactInformation.dll",
+      "Args": [],
+      "Options": null,
+      "DefaultOptions": null
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginGenericForms\\bin\\Debug\\net8.0-windows\\AasxPluginGenericForms.dll",
+      "Args": [],
+      "Options": null,
+      "DefaultOptions": null
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginAdvancedTextEditor\\bin\\Debug\\net8.0-windows\\AasxPluginAdvancedTextEditor.dll",
+      "Args": [],
+      "Options": null,
+      "DefaultOptions": null
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginTechnicalData\\bin\\Debug\\net8.0-windows\\AasxPluginTechnicalData.dll",
+      "Args": [],
+      "Options": null,
+      "DefaultOptions": null
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginBomStructure\\bin\\Debug\\net8.0-windows\\AasxPluginBomStructure.dll",
+      "Args": [],
+      "Options": null,
+      "DefaultOptions": null
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginPlotting\\bin\\Debug\\net8.0-windows\\AasxPluginPlotting.dll",
+      "Args": [],
+      "Options": null,
+      "DefaultOptions": null
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginImageMap\\bin\\Debug\\net8.0-windows\\AasxPluginImageMap.dll",
+      "Args": [],
+      "Options": null,
+      "DefaultOptions": null
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginMtpViewer\\bin\\Debug\\net8.0-windows\\AasxPluginMtpViewer.dll",
+      "Args": [],
+      "Options": null,
+      "DefaultOptions": null
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginExportTable\\bin\\Debug\\net8.0-windows\\AasxPluginExportTable.dll",
+      "Args": [],
+      "Options": null,
+      "DefaultOptions": null
+    },
+    {
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginWebBrowser\\bin\\x64\\Debug\\AasxPluginWebBrowser.dll",
+      "Args": [],
+      "Options": null,
+      "DefaultOptions": null
+    }
+  ]
 }

@@ -952,6 +952,7 @@ namespace AnyUi
 
                             wpf.VerticalScrollBarVisibility = (ScrollBarVisibility)
                                 ((int) cntl.VerticalScrollBarVisibility);
+
                             if (cntl.MaxLines != null)
                                 wpf.MaxLines = cntl.MaxLines.Value;
                             wpf.Text = cntl.Text;
@@ -1153,6 +1154,12 @@ namespace AnyUi
 
                         wpf.Content = cntl.Content;
                         wpf.ToolTip = cntl.ToolTip;
+
+                        if (cntl.ModalDialogStyle)
+                        {
+                            wpf.SetResourceReference(Control.StyleProperty, "TranspRoundCorner");;
+                        }
+
                         // callbacks
                         wpf.Click += async (sender, e) =>
                         {
@@ -2185,7 +2192,8 @@ namespace AnyUi
             string caption,
             string workDir,
             string cmd,
-            string args)
+            string args,
+            string[] ignoreError = null)
         {
             // create dialogue
             var uc = new AnyUiDialogueDataLogMessage(caption);
@@ -2207,7 +2215,6 @@ namespace AnyUi
 
                 // start process??
                 proc = new Process();
-                proc.StartInfo.UseShellExecute = true;
                 proc.StartInfo.FileName = cmd;
                 proc.StartInfo.Arguments = args;
                 proc.StartInfo.RedirectStandardOutput = true;
@@ -2256,8 +2263,21 @@ namespace AnyUi
                     if (msg?.HasContent() == true)
                         lock (logBuffer)
                         {
-                            logError = true;
-                            logBuffer.Add(new StoredPrint(StoredPrint.Color.Red, "" + msg));
+                            // check if to ignore
+                            var ignore = false;
+                            if (ignoreError != null)
+                                foreach (var ign in ignoreError)
+                                    if (msg.IndexOf(ign, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                                        ignore = true;
+
+                            // how to handle?
+                            if (ignore)
+                                logBuffer.Add(new StoredPrint(StoredPrint.Color.Yellow, "" + msg));
+                            else
+                            {
+                                logError = true;
+                                logBuffer.Add(new StoredPrint(StoredPrint.Color.Red, "" + msg));
+                            }
                         };
                 };
 

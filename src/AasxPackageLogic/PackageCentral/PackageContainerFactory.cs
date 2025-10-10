@@ -246,6 +246,10 @@ namespace AasxPackageLogic.PackageCentral
                 {
                     extCntOpt.Record.AutoLoadSubmodels = true;
                     extCntOpt.Record.AutoLoadOnDemand = false;
+
+                    // also, set base type and adress
+                    extCntOpt.Record.BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository;
+                    extCntOpt.Record.BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(location)?.AbsoluteUri;
                 }
 
                 // prepare runtime options

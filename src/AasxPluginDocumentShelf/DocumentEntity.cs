@@ -85,7 +85,7 @@ namespace AasxPluginDocumentShelf
                 MimeType = file?.ContentType;
                 AasId = aasId;
                 SmId = smId;
-                IdShortPath = file?.CollectIdShortByParent(separatorChar: '.', excludeIdentifiable: true);
+                IdShortPath = file?.CollectIdShortPathByParent(separatorChar: '.', excludeIdentifiable: true);
             }
         }
 
