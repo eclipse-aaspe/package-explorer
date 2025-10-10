@@ -30,7 +30,7 @@ using System.Windows;
 using System.Xaml;
 using static AasxPackageLogic.AasSmtQualifiers;
 using static AasxPackageLogic.DispEditHelperMiniModules;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using Samm = AasCore.Samm2_2_0;
 
 

@@ -8,7 +8,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 */
 using System;
 using System.Collections.Generic;
-using static AasCore.Aas3_0.Reporting;
+using static AasCore.Aas3_1.Reporting;
 
 namespace AdminShellNS.Exceptions
 {

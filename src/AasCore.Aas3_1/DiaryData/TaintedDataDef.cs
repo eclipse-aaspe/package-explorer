@@ -1,4 +1,4 @@
-﻿using AasCore.Aas3_0;
+﻿using AasCore.Aas3_1;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;

@@ -15,7 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using AasxIntegrationBase;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 

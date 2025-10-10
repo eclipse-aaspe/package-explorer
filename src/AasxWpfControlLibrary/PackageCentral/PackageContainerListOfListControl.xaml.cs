@@ -14,7 +14,7 @@ using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
 using AasxPackageLogic.PackageCentral.AasxFileServerInterface;
 using AdminShellNS;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AnyUi;
 using System;
 using System.IO;

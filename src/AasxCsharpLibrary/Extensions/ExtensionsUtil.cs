@@ -105,7 +105,7 @@ namespace Extensions
                 MultiLanguageProperty => KeyTypes.MultiLanguageProperty,
                 Property => KeyTypes.Property,
                 Operation => KeyTypes.Operation,
-                AasCore.Aas3_0.Range => KeyTypes.Range,
+                AasCore.Aas3_1.Range => KeyTypes.Range,
                 ReferenceElement => KeyTypes.ReferenceElement,
                 RelationshipElement => KeyTypes.RelationshipElement,
                 AnnotatedRelationshipElement => KeyTypes.AnnotatedRelationshipElement,

@@ -231,7 +231,8 @@ namespace AnyUi
             bool verticalCenter = false,
             bool? fontMono = null,
             bool? readOnly = null,
-            AnyUiScrollBarVisibility? verticalScroll = null)
+            AnyUiScrollBarVisibility? verticalScroll = null,
+            bool isValReadOnly = false)
         {
             var tb = new AnyUiTextBox();
             tb.Margin = margin;
@@ -243,6 +244,7 @@ namespace AnyUi
             if (fontSize != null)
                 tb.FontSize = fontSize;
             tb.Text = text;
+            tb.IsReadOnly = isValReadOnly;
             if (verticalAlignment != null)
                 tb.VerticalAlignment = verticalAlignment;
             if (verticalContentAlignment != null)

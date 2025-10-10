@@ -7,26 +7,20 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
-using AasxIntegrationBase;
 using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using AdminShellNS.DiaryData;
 using AnyUi;
 using Extensions;
-using JetBrains.Annotations;
-using Namotion.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
-using System.IO.Packaging;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Windows;
-using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using Samm = AasCore.Samm2_2_0;
 
 // ReSharper disable VirtualMemberCallInConstructor

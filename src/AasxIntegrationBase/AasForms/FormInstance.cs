@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 /*
  * The Instances are organized in a different schema than the Descriptions!

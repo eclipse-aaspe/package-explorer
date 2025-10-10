@@ -11,7 +11,7 @@ using AasxIntegrationBase;
 using AdminShellNS;
 using Extensions;
 using System.Collections.Generic;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 #nullable enable
 

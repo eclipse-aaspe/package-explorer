@@ -835,7 +835,7 @@ namespace AasxAmlImExport
                                 valueAttr.AttributeDataType)) ?? DataTypeDefXsd.String;
                     }
 
-                    if (sme is AasCore.Aas3_0.Range rng)
+                    if (sme is AasCore.Aas3_1.Range rng)
                     {
                         var min = FindAttributeValueByRefSemantic(ie.Attribute, AmlConst.Attributes.Range_Min);
                         var minAttr = FindAttributeByRefSemantic(ie.Attribute, AmlConst.Attributes.Range_Min);

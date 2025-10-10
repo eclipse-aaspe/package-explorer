@@ -10,7 +10,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 using AasxIntegrationBase;
 using AdminShellNS;
 using AdminShellNS.DiaryData;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using Extensions;
 using System;
 using System.IO;

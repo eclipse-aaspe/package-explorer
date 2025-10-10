@@ -19,7 +19,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using Samm = AasCore.Samm2_2_0;
 
 namespace AasxPackageLogic
@@ -1942,8 +1942,9 @@ namespace AasxPackageLogic
                                 includeValues: includes,
                                 excludeValues: new[] {
                                     Aas.AasSubmodelElements.DataElement,
-                                    Aas.AasSubmodelElements.EventElement
-                                });
+                                    Aas.AasSubmodelElements.EventElement,
+                                    Aas.AasSubmodelElements.ContainerElement
+                                } );
                         }
 
                         // ok?

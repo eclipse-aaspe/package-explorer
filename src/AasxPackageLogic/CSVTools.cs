@@ -10,7 +10,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 using Extensions;
 using System;
 using System.Linq;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic
 {

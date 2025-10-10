@@ -17,7 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 using static AnyUi.AnyUiDialogueDataTextEditor;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic
 {

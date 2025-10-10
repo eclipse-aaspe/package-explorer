@@ -21,7 +21,7 @@ using AdminShellNS;
 using AnyUi;
 using static AasxPackageLogic.DispEditHelperBasics;
 using static AnyUi.AnyUiDisplayContextWpf;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageExplorer
 {
