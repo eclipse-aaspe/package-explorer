@@ -664,12 +664,16 @@ namespace AasxPackageExplorer
                 var secretRequest = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, authConfigUrl);
                 secretRequest.Headers.Add("Accept", "application/json");
 
-                secretRequest.Content = new FormUrlEncodedContent(new[]
+                var reqContent = new List<KeyValuePair<string, string>>(new[]
                 {
                     new KeyValuePair<string, string>("grant_type", "client_credentials"),
                     new KeyValuePair<string, string>("client_id", id),
                     new KeyValuePair<string, string>("client_secret", secret)
                 });
+                if (endpoint.Endpoint.AccessInfo.Scope?.HasContent() == true)
+                    reqContent.Add(new KeyValuePair<string, string>("scope", endpoint.Endpoint.AccessInfo.Scope));
+
+                secretRequest.Content = new FormUrlEncodedContent(reqContent);
 
                 var secretResponse = await client.SendAsync(secretRequest);
                 var secretContentStr = await secretResponse.Content.ReadAsStringAsync();
@@ -990,6 +994,9 @@ namespace AasxPackageExplorer
                 })
             };
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+
+            // Festo?
+            request.Content.Headers.Add("scope", "offline_access basyx-api-access");
 
             // second request to auth-server: get token
             var response = await client.SendAsync(request);

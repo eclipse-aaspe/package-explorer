@@ -375,6 +375,11 @@ namespace AasxPackageLogic.PackageCentral
                 {
                     return new Uri(location.Substring(0, p) + "/");
                 }
+                else
+                {
+                    // no seconds slash -> whole is a base url
+                    return new Uri(location + "/");
+                }
             }
 
             // go to error
@@ -826,49 +831,101 @@ namespace AasxPackageLogic.PackageCentral
 
             foreach (var ep in aasDescriptor.endpoints)
             {
+                // gather informaation
+                AasIdentifiableSideInfo aasSi = null;
+                List<AasIdentifiableSideInfo> smSiReg = null;
+
                 // strictly check IFC
                 var aasIfc = "" + ep["interface"];
-                if (aasIfc != "AAS-1.0")
-                    continue;
-
-                // direct access HREF
-                var aasSi = new AasIdentifiableSideInfo()
+                if (aasIfc == "AAS-1.0")
                 {
-                    IsStub = false,
-                    StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
-                    Id = "" + aasDescriptor.id,
-                    IdShort = "" + aasDescriptor.idShort,
-                    QueriedEndpoint = new Uri("" + ep.protocolInformation.href),
-                    DesignatedEndpoint = new Uri("" + ep.protocolInformation.href)
-                };
 
-                // but in order to operate as registry, a list of Submodel endpoints
-                // is required as well
-                var smRegged = new List<AasIdentifiableSideInfo>();
-                if (AdminShellUtil.DynamicHasProperty(aasDescriptor, "submodelDescriptors"))
-                    foreach (var smdesc in aasDescriptor.submodelDescriptors)
+                    // direct access HREF
+                    aasSi = new AasIdentifiableSideInfo()
                     {
-                        foreach (var smep in smdesc.endpoints)
-                        {
-                            // strictly check IFC
-                            var smIfc = "" + smep["interface"];
-                            if (smIfc != "SUBMODEL-1.0")
-                                continue;
+                        IsStub = false,
+                        StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                        Id = "" + aasDescriptor.id,
+                        IdShort = "" + aasDescriptor.idShort,
+                        QueriedEndpoint = new Uri("" + ep.protocolInformation.href),
+                        DesignatedEndpoint = new Uri("" + ep.protocolInformation.href)
+                    };
 
-                            // ok
-                            string href = smep.protocolInformation.href;
-                            if (href.HasContent() == true)
-                                smRegged.Add(new AasIdentifiableSideInfo()
-                                {
-                                    IsStub = true,
-                                    StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
-                                    Id = smdesc.id,
-                                    IdShort = smdesc.idShort,
-                                    QueriedEndpoint = new Uri(href),
-                                    DesignatedEndpoint = new Uri(href)
-                                });
+                    // but in order to operate as registry, a list of Submodel endpoints
+                    // is required as well
+                    smSiReg = new List<AasIdentifiableSideInfo>();
+                    if (AdminShellUtil.DynamicHasProperty(aasDescriptor, "submodelDescriptors"))
+                        foreach (var smdesc in aasDescriptor.submodelDescriptors)
+                        {
+                            foreach (var smep in smdesc.endpoints)
+                            {
+                                // strictly check IFC
+                                var smIfc = "" + smep["interface"];
+                                if (smIfc != "SUBMODEL-1.0")
+                                    continue;
+
+                                // ok
+                                string href = smep.protocolInformation.href;
+                                if (href.HasContent() == true)
+                                    smSiReg.Add(new AasIdentifiableSideInfo()
+                                    {
+                                        IsStub = true,
+                                        StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                        Id = smdesc.id,
+                                        IdShort = smdesc.idShort,
+                                        QueriedEndpoint = new Uri(href),
+                                        DesignatedEndpoint = new Uri(href)
+                                    });
+                            }
                         }
-                    }
+                }
+                else if (aasIfc == "AAS-3.0")
+                {
+                    // Remark: Suspicously, this will be an exacht copy 1.0 == 3.0   :-(
+                    // direct access HREF
+                    aasSi = new AasIdentifiableSideInfo()
+                    {
+                        IsStub = false,
+                        StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                        Id = "" + aasDescriptor.id,
+                        IdShort = "" + aasDescriptor.idShort,
+                        QueriedEndpoint = new Uri("" + ep.protocolInformation.href),
+                        DesignatedEndpoint = new Uri("" + ep.protocolInformation.href)
+                    };
+
+                    // but in order to operate as registry, a list of Submodel endpoints
+                    // is required as well
+                    smSiReg = new List<AasIdentifiableSideInfo>();
+                    if (AdminShellUtil.DynamicHasProperty(aasDescriptor, "submodelDescriptors"))
+                        foreach (var smdesc in aasDescriptor.submodelDescriptors)
+                        {
+                            foreach (var smep in smdesc.endpoints)
+                            {
+                                // strictly check IFC
+                                var smIfc = "" + smep["interface"];
+                                if (smIfc != "SUBMODEL-3.0")
+                                    continue;
+
+                                // ok
+                                string href = smep.protocolInformation.href;
+                                if (href.HasContent() == true)
+                                    smSiReg.Add(new AasIdentifiableSideInfo()
+                                    {
+                                        IsStub = true,
+                                        StubLevel = AasIdentifiableSideInfoLevel.IdWithEndpoint,
+                                        Id = smdesc.id,
+                                        IdShort = smdesc.idShort,
+                                        QueriedEndpoint = new Uri(href),
+                                        DesignatedEndpoint = new Uri(href)
+                                    });
+                            }
+                        }
+                }
+                else
+                {
+                    // no chance
+                    continue;
+                }
 
                 // ok
                 var aas = await PackageHttpDownloadUtil.DownloadIdentifiableToOK<Aas.IAssetAdministrationShell>(
@@ -892,7 +949,7 @@ namespace AasxPackageLogic.PackageCentral
 
                 // make sure the list of Submodel endpoints is the same (in numbers)
                 // as the AAS expects
-                if (smRegged.Count != uniqSms.Count())
+                if (smSiReg.Count != uniqSms.Count())
                 {
                     Log.Singleton.Info(StoredPrint.Color.Blue,
                         "For downloading AAS at {0}, the number of Submodels " +
@@ -906,7 +963,7 @@ namespace AasxPackageLogic.PackageCentral
                 // makes most sense to "recrate" the AAS.Submodels with the side infos
                 // from the registry
                 aas.Submodels = null;
-                foreach (var smrr in smRegged)
+                foreach (var smrr in smSiReg)
                     aas.AddSubmodelReference(new Aas.Reference(
                         ReferenceTypes.ModelReference,
                         (new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, smrr.Id) }).ToList()));
@@ -923,7 +980,7 @@ namespace AasxPackageLogic.PackageCentral
                     // be prepared to download them
                     var numRes = await PackageHttpDownloadUtil.DownloadListOfIdentifiables<Aas.ISubmodel, AasIdentifiableSideInfo>(
                         null,
-                        smRegged,
+                        smSiReg,
                         lambdaGetLocation: (si) => si.QueriedEndpoint,
                         runtimeOptions: runtimeOptions,
                         allowFakeResponses: allowFakeResponses,
@@ -951,7 +1008,7 @@ namespace AasxPackageLogic.PackageCentral
                 }
                 else
                 {
-                    foreach (var si in smRegged)
+                    foreach (var si in smSiReg)
                     {
                         // valid Id is required
                         if (si?.Id?.HasContent() != true)
@@ -1025,10 +1082,18 @@ namespace AasxPackageLogic.PackageCentral
 
             // translate to a list of AAS-Ids ..
             var uriGetListOfAids = BuildUriForRegistryAasByAssetId(baseUris.GetBaseUriForAasReg(), assetId);
-            if (compatOldAasxServer)
-                uriGetListOfAids = BuildUriForRegistryAasByAssetLinkDeprecated(baseUris.GetBaseUriForAasReg(), assetId);
             var listOfAids = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
                 uriGetListOfAids, runtimeOptions, allowFakeResponses);
+
+            if (compatOldAasxServer
+                && (listOfAids == null || !(listOfAids is JArray) || (listOfAids as JArray).Count < 1))
+            {
+                // repeat with deprecated call
+                uriGetListOfAids = BuildUriForRegistryAasByAssetLinkDeprecated(baseUris.GetBaseUriForAasReg(), assetId);
+
+                listOfAids = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
+                    uriGetListOfAids, runtimeOptions, allowFakeResponses);
+            }
 
             if (listOfAids == null || !(listOfAids is JArray) || (listOfAids as JArray).Count < 1)
             {

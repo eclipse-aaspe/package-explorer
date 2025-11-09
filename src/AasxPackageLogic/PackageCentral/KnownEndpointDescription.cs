@@ -109,6 +109,11 @@ namespace AasxPackageLogic.PackageCentral
         /// Note: Default is rather short because of secure by design
         /// </summary>
         public int RenewPeriodMins = 5;
+
+        /// <summary>
+        /// Scope to be send with the token generation access to be embedded into
+        /// </summary>
+        public string Scope = "";
     }
 
     public class KnownEndpointDescription

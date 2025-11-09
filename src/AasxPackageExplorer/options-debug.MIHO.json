@@ -19,7 +19,10 @@
         "C:\\HOMI\\Develop\\Aasx\\repo\\phoenix-api-key.json",
         "C:\\HOMI\\Develop\\Aasx\\repo\\local-basyx.json",
         "C:\\HOMI\\Develop\\Aasx\\repo\\reg-of-reg-voyager.json",
-        "C:\\HOMI\\Develop\\Aasx\\repo\\phoenix-big.json"
+        "C:\\HOMI\\Develop\\Aasx\\repo\\phoenix-big.json",
+        "C:\\HOMI\\Develop\\Aasx\\repo\\Festo-basyx.json",
+        "C:\\HOMI\\Develop\\Aasx\\repo\\Festo-apigee.json",
+        "C:\\HOMI\\Develop\\Aasx\\repo\\reg-of-reg-plugfest3.json"
     ]
     /* When connecting to given URIs, auto-authenticate by matching with known endpoints. */,
     "AutoAuthenticateUris": true
