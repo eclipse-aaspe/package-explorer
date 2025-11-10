@@ -140,7 +140,8 @@ namespace AasxPackageLogic
             }
 
             // for clarity, have two kind of hints for SML and for other
-            var isIndexed = parentContainer.IsIndexed() == true;
+            var isIndexed = parentContainer.IsIndexed() == true && 
+                           (referable is Aas.ISubmodel || referable is Aas.ISubmodelElement);
             if (!isIndexed)
             {
                 // not SML

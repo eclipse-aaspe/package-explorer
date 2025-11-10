@@ -39,7 +39,8 @@ namespace AasxPredefinedConcepts
                 // Phase (3) export SubModel as JSON without SMEs
                 // Phase (4) export list of IDs used
                 // Phase (5) generate look ups
-
+                // Phase (6) generate attributed C# structures
+                // ---
                 // Phase (1) which ConceptDescriptions need to be exported
 
                 snippets.WriteLine("Phase (1) Check, which ConceptDescriptions need to be exported:");
