@@ -34,7 +34,7 @@ namespace AasxPluginExportTable.Table
         {
             if (_worksheet == null)
                 return null;
-            return _worksheet.Cell(1 + row, 1 + col)?.Value?.ToString();
+            return _worksheet.Cell(1 + row, 1 + col)?.Value.ToString();
         }
 
         //

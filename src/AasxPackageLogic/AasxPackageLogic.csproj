@@ -33,18 +33,18 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="dotNetRdf" Version="3.1.1" />
+    <PackageReference Include="dotNetRdf" Version="3.4.1" />
     <PackageReference Include="IdentityModel" Version="6.0.0" />
-    <PackageReference Include="jose-jwt" Version="4.0.1" />
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.74.0" />
+    <PackageReference Include="jose-jwt" Version="5.2.0" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.78.0" />
     <PackageReference Include="Microsoft.VisualBasic" Version="10.3.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="RestSharp" Version="112.1.0" />
     <PackageReference Include="SSharp.Net" Version="1.0.1" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
-    <PackageReference Include="System.Formats.Asn1" Version="9.0.2" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.1.2" />
-    <PackageReference Include="System.Text.Json" Version="9.0.2" />
+    <PackageReference Include="System.Formats.Asn1" Version="9.0.10" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
+    <PackageReference Include="System.Text.Json" Version="9.0.10" />
   </ItemGroup>
 
   <ItemGroup>

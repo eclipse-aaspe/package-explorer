@@ -26,8 +26,6 @@ using System.Windows.Shapes;
 using AasxIntegrationBase;
 using AdminShellNS;
 using AnyUi;
-using Newtonsoft.Json;
-using NPOI.HPSF;
 
 namespace AasxPackageExplorer
 {

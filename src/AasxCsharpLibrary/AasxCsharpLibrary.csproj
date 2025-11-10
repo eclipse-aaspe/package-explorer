@@ -32,13 +32,13 @@
     <EmbeddedResource Include="Resources\schemaV201\aas.json" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.0.2" />
-    <PackageReference Include="Namotion.Reflection" Version="2.1.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NJsonSchema" Version="10.8.0" />
-    <PackageReference Include="System.ComponentModel.Composition" Version="6.0.0" />
-    <PackageReference Include="System.IO.Packaging" Version="7.0.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.14.0" />
+    <PackageReference Include="Namotion.Reflection" Version="3.4.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="NJsonSchema" Version="11.5.2" />
+    <PackageReference Include="System.ComponentModel.Composition" Version="9.0.10" />
+    <PackageReference Include="System.IO.Packaging" Version="9.0.10" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AasCore.Aas3_0\AasCore.Aas3_0.csproj" />

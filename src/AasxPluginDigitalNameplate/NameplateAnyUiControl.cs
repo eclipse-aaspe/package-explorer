@@ -30,6 +30,7 @@ using System.Windows.Forms;
 using QRCoder;
 using ImageMagick;
 using System.DirectoryServices.ActiveDirectory;
+using ImageMagick.Factories;
 
 
 namespace AasxPluginDigitalNameplate

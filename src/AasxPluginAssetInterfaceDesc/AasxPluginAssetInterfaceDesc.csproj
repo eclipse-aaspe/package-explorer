@@ -42,10 +42,10 @@
     <ProjectReference Include="..\AasxPredefinedConcepts\AasxPredefinedConcepts.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FluentModbus" Version="5.0.3" />
+    <PackageReference Include="FluentModbus" Version="5.3.2" />
     <PackageReference Include="MQTTnet" Version="4.1.1.318" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
-    <PackageReference Include="System.Formats.Asn1" Version="9.0.2" />
+    <PackageReference Include="System.Formats.Asn1" Version="9.0.10" />
   </ItemGroup>
 </Project>

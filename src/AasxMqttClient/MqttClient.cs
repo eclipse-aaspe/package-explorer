@@ -22,6 +22,7 @@ using AnyUi;
 using Extensions;
 using MQTTnet;
 using MQTTnet.Client;
+using MQTTnet.Client.Options;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

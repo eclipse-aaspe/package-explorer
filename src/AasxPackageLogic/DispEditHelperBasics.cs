@@ -2651,7 +2651,8 @@ namespace AasxPackageLogic
                             if (list.Count < 1)
                                 setOutputList?.Invoke(null);
 
-                            await postActionHookAsync?.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
+                            if (postActionHookAsync != null)
+                                await postActionHookAsync.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
 
                             this.AddDiaryEntry(entityRf,
                                 new DiaryEntryStructChange(StructuralChangeReason.Delete),

@@ -20,6 +20,6 @@
     <PackageTags>aas;asset administration shell;iiot;industry internet of things;industrie 4.0;i4.0</PackageTags>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 </Project>
