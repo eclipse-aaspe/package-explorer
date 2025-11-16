@@ -63,7 +63,7 @@
                 "Username": "Albert",
                 "Password": "Alb"
             }
-        }
+        } // 
     ]
     /* Presets for base addresses for Registries and Repositories. */,
     "BaseAddresses": [
