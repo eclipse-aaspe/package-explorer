@@ -7,7 +7,8 @@
     // "AasxToLoad": "http://localhost:8081/shells/aHR0cHM6Ly9hZG1pbi1zaGVsbC1pby9pZHRhL2Fhcy9Qcm9kdWN0Q2hhbmdlTm90aWZpY2F0aW9ucy8xLzA"
     // "AasxToLoad": "http://localhost:8081/shells/aHR1cHM6Ly9hZG1pbi1zaGVsbC1pby9pZHRhL2Fhcy9Qcm9kdWN0Q2hhbmdlTm90aWZpY2F0aW9ucy8xLzA"
     // "AasxToLoad": "C:\\Users\\Micha\\Desktop\\test-smt-on-basyx\\IDTA_02036-1-0_SMT_ProductChangeNotification_Draft_v35_manual_fixes.aasx"
-    "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\SMT\\IDTA 02036-1-0_Submodel_ProductChangeNotification\\IDTA_02036-1-0_SMT_ProductChangeNotification_Draft_v43_FS_workover.aasx"
+    // "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\SMT\\IDTA 02036-1-0_Submodel_ProductChangeNotification\\IDTA_02036-1-0_SMT_ProductChangeNotification_Draft_v43_FS_workover.aasx"
+    "AasxToLoad": "C:\\HOMI\\Develop\\Aasx\\SMT\\IDTA 02036-1-0_Submodel_ProductChangeNotification\\IDTA_02036-1-0_SMT_ProductChangeNotification_Examples_v11_rename_bulk_v04.aasx"
     /* This file shall be loaded as aux package at start of application | Arg: <path> */,
     "AuxToLoad": null
     /* List of pathes to a JSON, defining a set of AasxPackage-Files, which serve as repository. | Arg: <path> */,
@@ -62,6 +63,25 @@
                 "Method": "Basic", // None, Ask, Basic, CertificateStore, File, InteractiveEntry, Secret
                 "Username": "Albert",
                 "Password": "Alb"
+            }
+        },
+        {
+            "BaseAddress": "https://basyx.festo.com/",
+            "AccessInfo": {
+                "Method": "Secret", // None, Ask, Basic, CertificateStore, File, InteractiveEntry, Secret
+                "AuthServer": "https://aas.festo.com/auth/realms/BaSyx/protocol/openid-connect/token", // for rest of authentication
+                "SecretId": "package-explorer-dev",
+                "SecretValue": "48rAt81UnUJ0jarxCmy9RYY3xdgQqr8A"
+            }
+        },
+        {
+            "BaseAddress": "https://dev.api.festo.com/",
+            "AccessInfo": {
+                "Method": "Secret", // None, Ask, Basic, CertificateStore, File, InteractiveEntry, Secret
+                "AuthServer": "https://aas.festo.com/auth/realms/BaSyx/protocol/openid-connect/token", // for rest of authentication
+                "SecretId": "package-explorer-dev",
+                "SecretValue": "48rAt81UnUJ0jarxCmy9RYY3xdgQqr8A",
+                "Scope": "offline_access basyx-api-access"
             }
         }
     ]

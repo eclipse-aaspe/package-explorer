@@ -47,34 +47,46 @@ namespace AasxPredefinedConcepts
                 snippets.WriteLine("===============================================================");
 
                 var usedCds = new Dictionary<string, Aas.IConceptDescription>();
-                foreach (var sme in sm.SubmodelElements?.FindDeep<Aas.ISubmodelElement>())
-                {
-                    // for SME, try to lookup CD
-                    if (sme.SemanticId == null)
-                        continue;
 
-                    var cd = env.FindConceptDescriptionByReference(sme.SemanticId);
+                Action<Aas.IReferable> checkAndAddRef = (rf) =>
+                {
+                    // access
+                    if (rf == null)
+                        return;
+
+                    // find CD?
+                    if (!(rf is Aas.IHasSemantics hsm))
+                        return;
+
+                    var cd = env.FindConceptDescriptionByReference(hsm.SemanticId);
                     if (cd == null)
-                        continue;
+                        return;
 
                     // name?
                     var ids = cd.IdShort;
                     if ((ids == null || ids == "") && cd.GetIEC61360() != null)
                         ids = cd.GetIEC61360().ShortName?.GetDefaultString();
                     if (ids == null || ids == "")
-                        continue;
+                        return;
                     ids = "CD_" + ids;
 
                     // only one in dictionary!
                     if (usedCds.ContainsKey(ids))
                     {
                         snippets.WriteLine($"Information: duplicate evaluated CD idShort {ids} .. skipping!");
-                        continue;
+                        return;
                     }
                     snippets.WriteLine($"Identified {ids} to be exported");
 
                     // add
                     usedCds.Add(ids, cd);
+                };
+
+                // thru the instances
+                checkAndAddRef(sm);
+                foreach (var sme in sm.SubmodelElements?.FindDeep<Aas.ISubmodelElement>())
+                {
+                    checkAndAddRef(sme);              
                 }
                 snippets.WriteLine();
 
