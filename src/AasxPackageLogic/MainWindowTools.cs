@@ -293,44 +293,52 @@ namespace AasxPackageExplorer
                 X509Certificate2Collection fcollection = collection.Find(
                     X509FindType.FindByTimeValid, DateTime.Now, false);
 
-                X509Certificate2Collection scollection = X509Certificate2UI.SelectFromCollection(fcollection,
-                    "Test Certificate Select",
-                    "Select a certificate from the following list to get information on that certificate",
-                    X509SelectionFlag.SingleSelection);
-                if (scollection.Count != 0)
+                if (OperatingSystem.IsWindows())
                 {
-                    var certificate = scollection[0];
-                    subject.Value = certificate.Subject;
 
-                    X509Chain ch = new X509Chain();
-                    ch.Build(certificate);
-
-                    //// string[] X509Base64 = new string[ch.ChainElements.Count];
-
-                    int j = 1;
-                    foreach (X509ChainElement element in ch.ChainElements)
+                    X509Certificate2Collection scollection = X509Certificate2UI.SelectFromCollection(fcollection,
+                        "Test Certificate Select",
+                        "Select a certificate from the following list to get information on that certificate",
+                        X509SelectionFlag.SingleSelection);
+                    if (scollection.Count != 0)
                     {
-                        Aas.Property c = new Aas.Property(Aas.DataTypeDefXsd.String, idShort: "certificate_" + j++);
-                        c.Value = Convert.ToBase64String(element.Certificate.GetRawCertData());
-                        x5c.Add(c);
-                    }
+                        var certificate = scollection[0];
+                        subject.Value = certificate.Subject;
 
-                    try
-                    {
-                        using (RSA rsa = certificate.GetRSAPrivateKey())
+                        X509Chain ch = new X509Chain();
+                        ch.Build(certificate);
+
+                        //// string[] X509Base64 = new string[ch.ChainElements.Count];
+
+                        int j = 1;
+                        foreach (X509ChainElement element in ch.ChainElements)
                         {
-                            algorithm.Value = "RS256";
-                            byte[] data = Encoding.UTF8.GetBytes(result);
-                            byte[] signed = rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-                            signature.Value = Convert.ToBase64String(signed);
-                            sigT.Value = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss");
+                            Aas.Property c = new Aas.Property(Aas.DataTypeDefXsd.String, idShort: "certificate_" + j++);
+                            c.Value = Convert.ToBase64String(element.Certificate.GetRawCertData());
+                            x5c.Add(c);
                         }
+
+                        try
+                        {
+                            using (RSA rsa = certificate.GetRSAPrivateKey())
+                            {
+                                algorithm.Value = "RS256";
+                                byte[] data = Encoding.UTF8.GetBytes(result);
+                                byte[] signed = rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                                signature.Value = Convert.ToBase64String(signed);
+                                sigT.Value = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss");
+                            }
+                        }
+                        // ReSharper disable EmptyGeneralCatchClause
+                        catch
+                        {
+                        }
+                        // ReSharper enable EmptyGeneralCatchClause
                     }
-                    // ReSharper disable EmptyGeneralCatchClause
-                    catch
-                    {
-                    }
-                    // ReSharper enable EmptyGeneralCatchClause
+                } 
+                else
+                {
+                    Log.Singleton.Error("Cannot access Cert-selection on non-windows systems!");
                 }
             }
             else // Verifiable Credential

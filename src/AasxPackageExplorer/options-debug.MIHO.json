@@ -1,4 +1,6 @@
 {
+    /* Try disable VS editor warnings */
+    "$schema": "http://json-schema.org/draft-07/schema#",
     /* If set, start in editor mode instead of browse mode. */
     "EditMode": true
     /* If set, do not start in hinting mode. */,

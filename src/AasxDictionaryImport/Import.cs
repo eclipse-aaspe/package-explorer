@@ -99,22 +99,25 @@ namespace AasxDictionaryImport
         private static bool PerformImport(Window window, ImportMode importMode, string defaultSourceDir,
                 Func<Model.IElement, bool> f)
         {
-            var dialog = new ImportDialog(window, importMode, defaultSourceDir);
-            if (dialog.ShowDialog() != true || dialog.Context == null)
-                return false;
-
-            int imported;
-            try
+            int imported = 0;
+            if (OperatingSystem.IsWindows())
             {
-                Mouse.OverrideCursor = Cursors.Wait;
-                imported = dialog.GetResult().Count(f);
-            }
-            finally
-            {
-                Mouse.OverrideCursor = null;
-            }
+                var dialog = new ImportDialog(window, importMode, defaultSourceDir);
+                if (dialog.ShowDialog() != true || dialog.Context == null)
+                    return false;
 
-            CheckUnresolvedReferences(dialog.Context);
+                try
+                {
+                    Mouse.OverrideCursor = Cursors.Wait;
+                    imported = dialog.GetResult().Count(f);
+                }
+                finally
+                {
+                    Mouse.OverrideCursor = null;
+                }
+
+                CheckUnresolvedReferences(dialog.Context);
+            }
 
             return imported > 0;
         }

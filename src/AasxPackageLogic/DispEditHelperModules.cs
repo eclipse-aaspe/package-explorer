@@ -668,7 +668,7 @@ namespace AasxPackageLogic
 
         //Added this method only to support embeddedDS from ConceptDescriptions
         public void DisplayOrEditEntityHasDataSpecificationReferences(AnyUiStackPanel stack,
-            List<Aas.IEmbeddedDataSpecification>? hasDataSpecification,
+            List<Aas.IEmbeddedDataSpecification> hasDataSpecification,
             Action<List<Aas.IEmbeddedDataSpecification>> setOutput,
             string[] addPresetNames = null, List<Aas.IKey>[] addPresetKeyLists = null,
             bool dataSpecRefsAreUsual = false,

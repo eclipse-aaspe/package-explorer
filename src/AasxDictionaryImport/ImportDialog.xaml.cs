@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -37,6 +38,7 @@ namespace AasxDictionaryImport
     /// adding another button that fetches a data source from the network.
     /// </para>
     /// </summary>
+    [SupportedOSPlatform("windows")]
     internal partial class ImportDialog : Window
     {
         public ISet<Model.IDataProvider> DataProviders = new HashSet<Model.IDataProvider> {
@@ -107,14 +109,17 @@ namespace AasxDictionaryImport
                         {
                             if (cacheEl == null)
                                 continue;
-                            var fileName = cacheEl.Attribute("FileName").Value;
-                            if (File.Exists(fileName) && cacheEl.Attribute("Source").Value.Equals("Online"))
+                            
+                            var fileName = cacheEl.Attribute("FileName")?.Value;
+                            if (fileName != null 
+                                && File.Exists(fileName) 
+                                && true == cacheEl.Attribute("Source")?.Value.Equals("Online"))
                             {
                                 ICollection<Model.IDataProvider> providers =
                                     DataProviders.Where(p => p.IsFetchSupported).ToList();
                                 foreach (var provider in providers)
                                 {
-                                    if (cacheEl.Attribute("Provider").Value.Equals(provider.Name))
+                                    if (true == cacheEl.Attribute("Provider")?.Value.Equals(provider.Name))
                                     {
                                         var source = provider.OpenPath(fileName, Model.DataSourceType.Online);
                                         ComboBoxSource.Items.Add(source);
@@ -148,7 +153,8 @@ namespace AasxDictionaryImport
                     el.SetAttributeValue("FileName", source.Path);
                     el.SetAttributeValue("Source", source.Type.ToString());
                     el.SetAttributeValue("Provider", source.DataProvider.ToString());
-                    rootEl.Add(el);
+                    if (rootEl != null)
+                        rootEl.Add(el);
                 }
             }
             doc.Save(indexFile);
@@ -244,7 +250,7 @@ namespace AasxDictionaryImport
             UpdateImportButton();
         }
 
-        private void ClassWrapper_PropertyChanged(object o, PropertyChangedEventArgs e)
+        private void ClassWrapper_PropertyChanged(object? o, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "IsChecked")
                 UpdateImportButton();

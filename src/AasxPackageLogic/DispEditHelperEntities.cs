@@ -1602,7 +1602,7 @@ namespace AasxPackageLogic
                 }
 
                 // display
-                mainWindow.UiLoadPackageWithNew(packages.MainItem,
+                await mainWindow.UiLoadPackageWithNew(packages.MainItem,
                     takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
                     storeFnToLRU: location.Location.ToString(),
                     preserveEditMode: preserveEditMode,

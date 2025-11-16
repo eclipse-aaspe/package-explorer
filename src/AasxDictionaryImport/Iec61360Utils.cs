@@ -411,10 +411,10 @@ namespace AasxDictionaryImport
         /// <returns>The AAS DataSpecification with the data stored in this element</returns>
         public Aas.DataSpecificationIec61360 ToDataSpecification()
         {
-            var ds = new Aas.DataSpecificationIec61360(null)
+            var ds = new Aas.DataSpecificationIec61360(
+                preferredName: PreferredName.ToLangStringPreferredNameTypeIec61360())
             {
                 Definition = Definition.ToLangStringDefinitionTypeIec61360(),
-                PreferredName = PreferredName.ToLangStringPreferredNameTypeIec61360(),
                 ShortName = ShortName.ToLangStringShortNameTypeIec61360(),
             };
 

@@ -115,7 +115,7 @@ namespace AasxDictionaryImport
                 {
                     if (textBox.Tag is MultiString ms)
                     {
-                        textBox.Text = ms.Get(comboBox.SelectedItem.ToString());
+                        textBox.Text = ms.Get(comboBox.SelectedItem.ToString() ?? "");
                     }
                 }
             }

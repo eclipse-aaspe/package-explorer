@@ -21,7 +21,6 @@
     <None Remove="Resources\BuildDate.txt" />
     <None Remove="Resources\i4AASCS.xml" />
     <None Remove="Resources\PackageContainerFakeAnswers.json" />
-    <Reference Include="System.Security" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="LICENSE.txt">

@@ -2696,7 +2696,9 @@ namespace AasxPackageLogic
                                 else
                                 {
                                     // inner items directly
+                                    #pragma warning disable CS0162 // Unerreichbarer Code wurde entdeckt.
                                     GenerateInnerElementsForSubmodelOrRef(cache, env, package, sm, tiSm);
+                                    #pragma warning restore CS0162 // Unerreichbarer Code wurde entdeckt.
                                 }
                             }
 

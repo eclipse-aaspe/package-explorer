@@ -113,7 +113,11 @@ namespace AasxDictionaryImport.Cdd
                 if (value == "#PROPERTY_ID")
                     columns = ParseHeaders(reader);
                 else if (value.Length == 0)
-                    data.Add(ParseElement<T>(reader, columns));
+                {
+                    var pe = ParseElement<T>(reader, columns);
+                    if (pe != null)
+                        data.Add(pe);
+                }
             }
 
             return data;
@@ -130,20 +134,20 @@ namespace AasxDictionaryImport.Cdd
             return columns;
         }
 
-        private T ParseElement<T>(IExcelDataReader reader, List<string> columns) where T : Element
+        private T? ParseElement<T>(IExcelDataReader reader, List<string> columns) where T : Element
         {
             var elementDict = new Dictionary<string, string>();
             for (int i = 0; i < columns.Count; i++)
             {
                 elementDict.Add(columns[i], GetString(reader, i + 1));
             }
-            return (T)Activator.CreateInstance(typeof(T), elementDict);
+            return (T?)Activator.CreateInstance(typeof(T), elementDict);
         }
 
         private String GetString(IExcelDataReader reader, int index)
         {
             var value = reader.GetValue(index);
-            return (value == null) ? String.Empty : value.ToString();
+            return "" + value?.ToString();
         }
 
         /// <summary>

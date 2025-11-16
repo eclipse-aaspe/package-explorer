@@ -51,11 +51,12 @@ namespace AasxPackageLogic
             }
         }
 
-
+#if OLD_V20_CODE
         static List<UaNode> roots;
         static List<UaNode> nodes;
         static Dictionary<string, UaNode> parentNodes;
         static Dictionary<string, Int16> semanticIDPool;
+#endif
 
         public static void ImportNodeSetToSubModel(
             string inputFn, Aas.IEnvironment env, Aas.ISubmodel sm,

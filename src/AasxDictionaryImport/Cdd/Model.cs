@@ -29,7 +29,7 @@ namespace AasxDictionaryImport.Cdd
         /// <inheritdoc/>
         public override bool IsValidPath(string path)
         {
-            string dir = File.Exists(path) ? Path.GetDirectoryName(path) : path;
+            string dir = File.Exists(path) ? (Path.GetDirectoryName(path) ?? "") : path;
             return Parser.IsValidDirectory(dir);
         }
 
@@ -45,7 +45,7 @@ namespace AasxDictionaryImport.Cdd
         /// <inheritdoc/>
         public override Model.IDataSource OpenPath(string path, Model.DataSourceType type = Model.DataSourceType.Custom)
         {
-            string dir = File.Exists(path) ? Path.GetDirectoryName(path) : path;
+            string dir = File.Exists(path) ? (Path.GetDirectoryName(path) ?? "") : path;
             return new DataSource(this, dir, type);
         }
     }
@@ -133,7 +133,7 @@ namespace AasxDictionaryImport.Cdd
             if (key.Length == 0)
                 return null;
 
-            if (!_elements.TryGetValue(key, out Element element))
+            if (!_elements.TryGetValue(key, out Element? element))
             {
                 UnknownReferences.Add(Model.UnknownReference.Create<T>(key));
                 return null;

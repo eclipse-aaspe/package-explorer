@@ -1157,13 +1157,15 @@ namespace AasxPackageLogic
 					Samm.ModelElement sammInst = null;
 					if (false)
 					{
-						// Note: right now, create fresh instance
-						sammInst = Activator.CreateInstance(sammType, new object[] { }) as Samm.ModelElement;
-						if (sammInst == null)
+                        // Note: right now, create fresh instance
+						#pragma warning disable CS0162 // Unerreichbarer Code wurde entdeckt.
+                        sammInst = Activator.CreateInstance(sammType, new object[] { }) as Samm.ModelElement;
+                        if (sammInst == null)
 						{
 							stack.Add(new AnyUiLabel() { Content = "(unable to create instance data)" });
 							continue;
 						}
+						#pragma warning restore CS0162 // Unerreichbarer Code wurde entdeckt.
 					}
 					else
 					{

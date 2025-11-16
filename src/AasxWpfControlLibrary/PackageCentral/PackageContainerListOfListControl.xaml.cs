@@ -666,8 +666,6 @@ namespace AasxWpfControlLibrary.PackageCentral
 
         private async Task PackageContainerListControl_DataChanged(Control fileCntl, PackageContainerListBase fr)
         {
-            Task.Yield();
-
             await CommandBinding_FileRepoAll(fileCntl, fr, "EventDataChanged");
         }
     }

@@ -452,7 +452,9 @@ namespace AasxPackageExplorer
             if (false)
             {
                 // in the UI-abstract logic, NO Windows UI is possible
+                #pragma warning disable CS0162 // Unerreichbarer Code wurde entdeckt.
                 return null;
+                #pragma warning restore CS0162 // Unerreichbarer Code wurde entdeckt.
             }
             else
             {

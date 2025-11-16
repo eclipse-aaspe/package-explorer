@@ -47,12 +47,15 @@ namespace AasxPackageExplorer
         {
             // Timer for below
             System.Windows.Threading.DispatcherTimer dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
-            dispatcherTimer.Tick += dispatcherTimer_Tick;
+            dispatcherTimer.Tick += async (sender, e) =>
+            {
+                await dispatcherTimer_Tick(sender, e);
+            };
             dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 100);
             dispatcherTimer.Start();
         }
 
-        private void dispatcherTimer_Tick(object sender, EventArgs e)
+        private async Task dispatcherTimer_Tick(object sender, EventArgs e)
         {
             // check for wishes from the modify repo
 
@@ -72,7 +75,7 @@ namespace AasxPackageExplorer
                     {
                         // redraw ourselves?
                         if (_packages != null && _theEntities != null)
-                            DisplayOrEditVisualAasxElement(
+                            await DisplayOrEditVisualAasxElement(
                                 _packages, dcwpf, _theEntities, _helper.editMode, _helper.hintMode,
                                 flyoutProvider: dcwpf?.FlyoutProvider,
                                 appEventProvider: _helper?.appEventsProvider);
@@ -295,6 +298,8 @@ namespace AasxPackageExplorer
             //
             // Start
             //
+
+            await Task.Yield();
 
             // hint mode disable, when not edit
             hintMode = hintMode && editMode;

@@ -132,54 +132,58 @@ namespace AasxPackageExplorer
                 if (g.Children.Count / 2 >= numrow * numcol)
                     break;
 
-                Bitmap bmp = null;
-                if (csi.code.Trim().ToLower() == "dmc")
+                if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
                 {
-                    var barcodeWriter = new BarcodeWriter<Bitmap>()
+
+                    Bitmap bmp = null;
+                    if (csi.code.Trim().ToLower() == "dmc")
                     {
-                        Format = BarcodeFormat.DATA_MATRIX,
-                        Renderer = new ZXing.Windows.Compatibility.BitmapRenderer()
-                    };
+                        var barcodeWriter = new BarcodeWriter<Bitmap>()
+                        {
+                            Format = BarcodeFormat.DATA_MATRIX,
+                            Renderer = new ZXing.Windows.Compatibility.BitmapRenderer()
+                        };
 
-                    //// write text and generate a 2-D barcode as a bitmap
-                    bmp = barcodeWriter.Write(csi.id);
+                        //// write text and generate a 2-D barcode as a bitmap
+                        bmp = barcodeWriter.Write(csi.id);
+                    }
+                    else
+                    {
+                        QRCodeGenerator qrGenerator = new QRCodeGenerator();
+                        QRCodeData qrCodeData = qrGenerator.CreateQrCode(csi.id, QRCodeGenerator.ECCLevel.Q);
+                        QRCode qrCode = new QRCode(qrCodeData);
+                        bmp = qrCode.GetGraphic(20);
+                    }
+
+                    var imgsrc = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
+                            bmp.GetHbitmap(),
+                            IntPtr.Zero,
+                            System.Windows.Int32Rect.Empty,
+                            BitmapSizeOptions.FromWidthAndHeight(bmp.Width, bmp.Height));
+
+                    var img = new System.Windows.Controls.Image();
+                    img.Source = imgsrc;
+                    img.Height = 200 * csi.normSize;
+                    img.Width = 200 * csi.normSize;
+                    img.VerticalAlignment = VerticalAlignment.Bottom;
+                    img.HorizontalAlignment = HorizontalAlignment.Center;
+                    img.Margin = new Thickness(40, 40, 40, 0);
+                    Grid.SetRow(img, 1 + 2 * row);
+                    Grid.SetColumn(img, col);
+                    g.Children.Add(img);
+
+                    var lab = new Label();
+                    lab.Content = csi.description;
+
+                    var labview = new Viewbox();
+                    labview.Child = lab;
+                    labview.Stretch = Stretch.Uniform;
+                    labview.Width = 200;
+                    labview.Height = 40;
+                    Grid.SetRow(labview, 1 + 2 * row + 1);
+                    Grid.SetColumn(labview, col);
+                    g.Children.Add(labview);
                 }
-                else
-                {
-                    QRCodeGenerator qrGenerator = new QRCodeGenerator();
-                    QRCodeData qrCodeData = qrGenerator.CreateQrCode(csi.id, QRCodeGenerator.ECCLevel.Q);
-                    QRCode qrCode = new QRCode(qrCodeData);
-                    bmp = qrCode.GetGraphic(20);
-                }
-
-                var imgsrc = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-                        bmp.GetHbitmap(),
-                        IntPtr.Zero,
-                        System.Windows.Int32Rect.Empty,
-                        BitmapSizeOptions.FromWidthAndHeight(bmp.Width, bmp.Height));
-
-                var img = new System.Windows.Controls.Image();
-                img.Source = imgsrc;
-                img.Height = 200 * csi.normSize;
-                img.Width = 200 * csi.normSize;
-                img.VerticalAlignment = VerticalAlignment.Bottom;
-                img.HorizontalAlignment = HorizontalAlignment.Center;
-                img.Margin = new Thickness(40, 40, 40, 0);
-                Grid.SetRow(img, 1 + 2 * row);
-                Grid.SetColumn(img, col);
-                g.Children.Add(img);
-
-                var lab = new Label();
-                lab.Content = csi.description;
-
-                var labview = new Viewbox();
-                labview.Child = lab;
-                labview.Stretch = Stretch.Uniform;
-                labview.Width = 200;
-                labview.Height = 40;
-                Grid.SetRow(labview, 1 + 2 * row + 1);
-                Grid.SetColumn(labview, col);
-                g.Children.Add(labview);
             }
 
 

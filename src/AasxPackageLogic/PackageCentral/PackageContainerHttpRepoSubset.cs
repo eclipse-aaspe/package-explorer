@@ -796,7 +796,6 @@ namespace AasxPackageLogic.PackageCentral
 
         public static ProfileDescription FindProfileDescription(string input)
         {
-            ProfileDescription pdFound = null;
             foreach (var pd in ProfileDescriptions)
                 if (pd.Id.Equals(input))
                     return pd;
@@ -1732,12 +1731,9 @@ namespace AasxPackageLogic.PackageCentral
                         // Have a list of ids. Decompose into single id.
                         // Note: Parallel makes no sense, ideally only 1 result (is per AssetId)!!
                         // TODO: not parallel!
-                        var noRes = true;
                         int i = 0;
                         foreach (var res in resObj)
                         {
-                            noRes = false;
-
                             // in res, have only an id. Get the AAS itself
                             Uri designEnd = BuildUriForRepoSingleAAS(
                                     baseUri.GetBaseUriForAasRepo(), "" + res, encryptIds: true);
@@ -1771,7 +1767,6 @@ namespace AasxPackageLogic.PackageCentral
                                 if (i >= limitResults.Value)
                                     break;
                         }
-
                     }
                 }
 
@@ -1945,15 +1940,17 @@ namespace AasxPackageLogic.PackageCentral
                     var jsonQuery = "";
                     if (false)
                     {
-
+                        // Andreas' very much outdated server:
                         // but, the query needs to be reformatted as JSON
                         // query = "{ searchSMs(expression: \"\"\"$LOG  \"\"\") { url smId } }";
                         // query = "{ searchSMs(expression: \"\"\"$LOG filter=or(str_contains(sm.IdShort, \"Technical\"), str_contains(sm.IdShort, \"Nameplate\")) \"\"\") { url smId } }";
+                        #pragma warning disable CS0162 // Unerreichbarer Code wurde entdeckt.
                         query = query.Replace("\\", "\\\\");
                         query = query.Replace("\"", "\\\"");
                         query = query.Replace("\r", " ");
                         query = query.Replace("\n", " ");
                         jsonQuery = $"{{ \"query\" : \"{query}\" }} ";
+                        #pragma warning restore CS0162 // Unerreichbarer Code wurde entdeckt.
                     }
                     else
                     {
@@ -2375,12 +2372,14 @@ namespace AasxPackageLogic.PackageCentral
             string targetFilename,
             PackCntRuntimeOptions runtimeOptions = null)
         {
+            await Task.Yield();
             return false;
         }
 
         private async Task UploadToServerAsync(string copyFn, Uri serverUri,
             PackCntRuntimeOptions runtimeOptions = null)
         {
+            await Task.Yield();
         }
 
         public override async Task SaveToSourceAsync(string saveAsNewFileName = null,

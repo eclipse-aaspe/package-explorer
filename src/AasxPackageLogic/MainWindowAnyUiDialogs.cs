@@ -151,12 +151,12 @@ namespace AasxPackageLogic
                 switch (cmd)
                 {
                     case "open":
-                        MainWindow.UiLoadPackageWithNew(
+                        await MainWindow.UiLoadPackageWithNew(
                             PackageCentral.MainItem, null, fn, onlyAuxiliary: false,
                             storeFnToLRU: fn, nextEditMode: Options.Curr.EditMode);
                         break;
                     case "openaux":
-                        MainWindow.UiLoadPackageWithNew(
+                        await MainWindow.UiLoadPackageWithNew(
                             PackageCentral.AuxItem, null, fn, onlyAuxiliary: true);
                         break;
                     default:
@@ -208,7 +208,7 @@ namespace AasxPackageLogic
                     MainWindow.CheckIfToFlushEvents();
 
                     // as saving changes the structure of pending supplementary files, re-display
-                    MainWindow.RedrawAllAasxElementsAsync(keepFocus: true);
+                    await MainWindow.RedrawAllAasxElementsAsync(keepFocus: true);
                 }
                 catch (Exception ex)
                 {
@@ -305,7 +305,7 @@ namespace AasxPackageLogic
                                 PackageContainerBase.BackupType.FullCopy);
 
                     // as saving changes the structure of pending supplementary files, re-display
-                    MainWindow.RedrawAllAasxElementsAsync();
+                    await MainWindow.RedrawAllAasxElementsAsync();
 
                     // LRU?
                     // record in LRU?
@@ -364,7 +364,7 @@ namespace AasxPackageLogic
                 try
                 {
                     PackageCentral.MainItem.Close();
-                    MainWindow.RedrawAllAasxElementsAsync();
+                    await MainWindow.RedrawAllAasxElementsAsync();
                 }
                 catch (Exception ex)
                 {
@@ -395,7 +395,7 @@ namespace AasxPackageLogic
                     await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
                     // update
-                    MainWindow.RedrawAllAasxElementsAsync();
+                    await MainWindow.RedrawAllAasxElementsAsync();
                     await MainWindow.RedrawElementViewAsync();
                     return;
                 }
@@ -883,7 +883,7 @@ namespace AasxPackageLogic
                 // be careful
                 try
                 {
-                    UiCheckIfActivateLoadedNavTo();
+                    await UiCheckIfActivateLoadedNavTo();
                 }
                 catch (Exception ex)
                 {
@@ -1059,7 +1059,7 @@ namespace AasxPackageLogic
                 await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
                 // update
-                MainWindow.RedrawAllAasxElementsAsync();
+                await MainWindow.RedrawAllAasxElementsAsync();
                 await MainWindow.RedrawElementViewAsync();
             }
 
@@ -1081,7 +1081,7 @@ namespace AasxPackageLogic
                 {
                     await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
-                    MainWindow.RedrawAllAasxElementsAsync();
+                    await MainWindow.RedrawAllAasxElementsAsync();
                     await MainWindow.RedrawElementViewAsync();
                 }
                 catch (Exception ex)
@@ -1190,7 +1190,7 @@ namespace AasxPackageLogic
                     await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
                     // redisplay
-                    MainWindow.RedrawAllAasxElementsAsync();
+                    await MainWindow.RedrawAllAasxElementsAsync();
                     await MainWindow.RedrawElementViewAsync();
                 }
                 catch (Exception ex)
@@ -1264,7 +1264,7 @@ namespace AasxPackageLogic
                     await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
                     // redisplay
-                    MainWindow.RedrawAllAasxElementsAsync();
+                    await MainWindow.RedrawAllAasxElementsAsync();
                     await MainWindow.RedrawElementViewAsync();
                 }
                 catch (Exception ex)
@@ -1292,7 +1292,7 @@ namespace AasxPackageLogic
 					await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
 					// redisplay
-					MainWindow.RedrawAllAasxElementsAsync();
+					await MainWindow.RedrawAllAasxElementsAsync();
 					await MainWindow.RedrawElementViewAsync();
 				}
 				catch (Exception ex)
@@ -1322,7 +1322,7 @@ namespace AasxPackageLogic
 					await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
 					// redisplay
-					MainWindow.RedrawAllAasxElementsAsync();
+					await MainWindow.RedrawAllAasxElementsAsync();
 					await MainWindow.RedrawElementViewAsync();
 				}
 				catch (Exception ex)
@@ -1380,7 +1380,7 @@ namespace AasxPackageLogic
                     await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
                     // redisplay
-                    MainWindow.RedrawAllAasxElementsAsync();
+                    await MainWindow.RedrawAllAasxElementsAsync();
                     await MainWindow.RedrawElementViewAsync();
                 }
                 catch (Exception ex)
@@ -1407,7 +1407,7 @@ namespace AasxPackageLogic
 				try
 				{
 					await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
-					MainWindow.RestartUIafterNewPackage();
+					await MainWindow.RestartUIafterNewPackage();
 				}
 				catch (Exception ex)
 				{
@@ -1432,7 +1432,7 @@ namespace AasxPackageLogic
                 try
                 {
                     await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
-                    MainWindow.RestartUIafterNewPackage();
+                    await MainWindow.RestartUIafterNewPackage();
                 }
                 catch (Exception ex)
                 {
@@ -1586,7 +1586,7 @@ namespace AasxPackageLogic
                         && ticket.PostResults["TakeOver"] is AdminShellPackageEnvBase pe)
                         PackageCentral.MainItem.TakeOver(pe);
 
-                    MainWindow.RestartUIafterNewPackage();
+                    await MainWindow.RestartUIafterNewPackage();
                 }
                 catch (Exception ex)
                 {
@@ -2123,7 +2123,7 @@ namespace AasxPackageLogic
                     MainWindow.CheckIfToFlushEvents();
 
                     // as saving changes the structure of pending supplementary files, re-display
-                    MainWindow.RedrawAllAasxElementsAsync(keepFocus: true);
+                    await MainWindow.RedrawAllAasxElementsAsync(keepFocus: true);
                 }
                 catch (Exception ex)
                 {

@@ -21,8 +21,6 @@ namespace AasxPackageLogic.PackageCentral
 {
     public class AasxFileServerInterfaceService
     {
-        private AASXFileServerInterfaceApi _fileApiInstance;
-        private object _aasApiInstace;
         private AasxServerService _aasxServerService;
 
         public AasxFileServerInterfaceService(string basePath)

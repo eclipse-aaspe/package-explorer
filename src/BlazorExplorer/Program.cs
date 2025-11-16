@@ -220,7 +220,7 @@ namespace BlazorExplorer
 
         public static async Task getAasxAsync(BlazorSession bi, string input)
         {
-
+            await Task.Yield();
         }
 
 

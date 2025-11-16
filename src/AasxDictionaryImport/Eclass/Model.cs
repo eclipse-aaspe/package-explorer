@@ -19,6 +19,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.Versioning;
 using System.Security.Cryptography.X509Certificates;
 using System.Xml;
 using System.Xml.Linq;
@@ -153,22 +154,26 @@ namespace AasxDictionaryImport.Eclass
                 }
             }
 
-            X509Certificate2 cert = new X509Certificate2();
+            X509Certificate2? cert = null;
             if (certFound)
             {
                 certFound = false;
-                X509Certificate2Collection scollection = X509Certificate2UI.SelectFromCollection(fcollection2,
+
+                if (OperatingSystem.IsWindows())
+                {
+                    X509Certificate2Collection scollection = X509Certificate2UI.SelectFromCollection(fcollection2,
                     "Test Certificate Select",
                     "Select an ECLASS client certificate which you already imported into your certificate store",
                     X509SelectionFlag.SingleSelection);
-                if (scollection.Count != 0)
-                {
-                    certFound = true;
-                    cert = scollection[0];
+                    if (scollection.Count != 0)
+                    {
+                        certFound = true;
+                        cert = scollection[0];
+                    }
                 }
             }
 
-            if (!certFound)
+            if (!certFound || cert == null)
             {
                 throw new ImportException($"No valid ECLASS certificate selected");
             }
@@ -261,13 +266,18 @@ namespace AasxDictionaryImport.Eclass
         private IEnumerable<string> FindAdditionalFiles()
         {
             var dir = System.IO.Path.GetDirectoryName(Path);
+            if (dir == null)
+                yield break;
             var searchPattern = System.IO.Path.GetFileName(Path).Replace("_EN_", "_??_");
-            return Directory.GetFiles(dir, searchPattern).Where(path => path != Path);
+            foreach (var x in Directory.GetFiles(dir, searchPattern).Where(path => path != Path))
+                yield return x;
         }
 
         private XDocument? FindUnits()
         {
             var dir = System.IO.Path.GetDirectoryName(Path);
+            if (dir == null)
+                return null;
             var dictName = System.IO.Path.GetFileName(Path);
             var i = dictName.IndexOf("BASIC", System.StringComparison.Ordinal);
             if (i < 0)
@@ -363,7 +373,7 @@ namespace AasxDictionaryImport.Eclass
             if (idAttr == null)
                 return;
 
-            if (_elements.TryGetValue(idAttr.Value, out Element oldElement))
+            if (_elements.TryGetValue(idAttr.Value, out Element? oldElement))
                 oldElement.AddTranslation(element);
         }
 
@@ -373,8 +383,8 @@ namespace AasxDictionaryImport.Eclass
             foreach (var property in properties)
             {
                 var unitIrdi = property.UnitIrdi;
-                if (unitIrdi.Length > 0 && units.TryGetValue(unitIrdi, out string unit))
-                    property.Unit = unit;
+                if (unitIrdi.Length > 0 && units.TryGetValue(unitIrdi, out string? unit))
+                    property.Unit = unit ?? "";
             }
         }
 
@@ -387,7 +397,7 @@ namespace AasxDictionaryImport.Eclass
                     .Elements(Namespaces.UnitsML + "CodeListValue")
                     .ToDictionary(e => e.Attributes("codeListName").FirstValue(),
                         e => e.Attributes("unitCodeValue").FirstValue());
-                if (data.TryGetValue("IRDI", out string irdi) && data.TryGetValue("SI code", out string siCode))
+                if (data.TryGetValue("IRDI", out string? irdi) && data.TryGetValue("SI code", out string? siCode))
                 {
                     if (!units.ContainsKey(irdi))
                         // TODO (krahlro-sick, 2021-02-03): HTML-decode SI code
@@ -458,7 +468,7 @@ namespace AasxDictionaryImport.Eclass
 
         public T? GetElement<T>(string id) where T : Element
         {
-            if (_elements.TryGetValue(id, out Element e))
+            if (_elements.TryGetValue(id, out Element? e))
                 if (e is T t)
                     return t;
 

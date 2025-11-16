@@ -307,7 +307,7 @@ namespace AasxDictionaryImport.Model
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object o)
+        public override bool Equals(object? o)
         {
             return Equals(o as UnknownReference);
         }
@@ -568,7 +568,7 @@ namespace AasxDictionaryImport.Model
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object o)
+        public override bool Equals(object? o)
         {
             return Equals(o as IDataSource);
         }

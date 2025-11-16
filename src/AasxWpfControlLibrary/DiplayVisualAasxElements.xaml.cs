@@ -254,9 +254,6 @@ namespace AasxPackageExplorer
 
         private void TreeViewInner_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            if (MultiSelect == 1)
-                return;
-
             if (sender != treeViewInner || preventSelectedItemChanged)
                 return;
 
@@ -717,6 +714,7 @@ namespace AasxPackageExplorer
                 return;
 
             // If clicking on the + of the tree
+            #pragma warning disable CS0162 // Unerreichbarer Code wurde entdeckt.
             if (e.OriginalSource is Shape || e.OriginalSource is Grid || e.OriginalSource is Border)
                 return;
 
@@ -726,6 +724,7 @@ namespace AasxPackageExplorer
             {
                 this.SelectedItemChangedHandler(item);
             }
+            #pragma warning restore CS0162 // Unerreichbarer Code wurde entdeckt.
         }
 
         // Check done to avoid deselecting everything when clicking to drag
@@ -734,6 +733,7 @@ namespace AasxPackageExplorer
             if (MultiSelect != 1)
                 return;
 
+            #pragma warning disable CS0162 // Unerreichbarer Code wurde entdeckt.
             if (_itemToCheck != null)
             {
                 TreeViewItem item = this.GetTreeViewItemClicked((FrameworkElement)e.OriginalSource);
@@ -757,6 +757,7 @@ namespace AasxPackageExplorer
                     }
                 }
             }
+            #pragma warning restore CS0162 // Unerreichbarer Code wurde entdeckt.
         }
 
         // does the real multi select
@@ -765,6 +766,7 @@ namespace AasxPackageExplorer
             if (MultiSelect != 1)
                 return;
 
+            #pragma warning disable CS0162 // Unerreichbarer Code wurde entdeckt.
             ITreeViewSelectable content = (ITreeViewSelectable)item.Header;
 
             _itemToCheck = null;
@@ -801,6 +803,7 @@ namespace AasxPackageExplorer
                     this.treeViewInner.UpdateLayout();
                 }
             }
+            #pragma warning restore CS0162 // Unerreichbarer Code wurde entdeckt.
         }
 
         // allow left + right keys

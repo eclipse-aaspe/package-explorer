@@ -2075,9 +2075,6 @@ namespace AasxPackageLogic
 			if (ownCd == null)
 				return false;
 
-			if (ownCd.IdShort == "Markings")
-				;
-
 			// get or create SMT attributeRecord for the CD
 			var smtRec = DispEditHelperExtensions
 					.CheckReferableForExtensionRecords<SmtAttributeRecord>(ownCd)?.FirstOrDefault();
@@ -2177,8 +2174,6 @@ namespace AasxPackageLogic
 			// if changes, write back
 			if (changes)
 			{
-				if (ownCd.Extensions != null && ownCd.Extensions.Count > 1)
-					;
 				DispEditHelperExtensions.GeneralExtensionHelperAddJsonExtension(
 					ownCd, smtRec.GetType(), smtRec,
 					replaceExistingRecordType: true);

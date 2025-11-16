@@ -32,8 +32,6 @@ namespace AasxPackageLogic.PackageCentral
         // Member
         //
 
-        private PackageConnectorHttpRest _connector;
-
         [JsonIgnore]
         public string ServerStatus { get; private set; } = "Status unknown!";
 
@@ -101,9 +99,6 @@ namespace AasxPackageLogic.PackageCentral
         /// <returns>If a successfull retrieval could be made</returns>
         public async Task<bool> SyncronizeFromServerAsync()
         {
-            if (true != _connector?.IsValid())
-                return false;
-
             await Task.Yield();
 
 #if old_implementation
