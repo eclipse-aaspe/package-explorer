@@ -62,8 +62,6 @@ namespace WpfMtpVisuViewer
             this.labelMessages.Text = st;
         }
 
-        private int opcCounter = 0;
-
         private async void dispatcherTimer_Tick(object sender, EventArgs e)
         {
             if (this.client == null)

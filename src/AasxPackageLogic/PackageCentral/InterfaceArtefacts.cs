@@ -68,12 +68,6 @@ namespace AasxPackageLogic.PackageCentral
             /// </summary>
             [JsonProperty(PropertyName = "subprotocolBodyEncoding")]
             public string SubprotocolBodyEncoding { get; set; }
-
-            /// <summary>
-            /// Gets or Sets SecurityAttributes
-            /// </summary>
-            //[JsonProperty(PropertyName = "securityAttributes")]
-            //public List<ProtocolInformationSecurityAttributes>? SecurityAttributes { get; set; }
         }
 
         public partial class Endpoint

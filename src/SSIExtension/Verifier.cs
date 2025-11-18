@@ -40,7 +40,7 @@ namespace SSIExtension
         {
             var result = new Dictionary<string, string>();
 
-            if (!test.withAgents)
+            if (!Test.withAgents)
             {
                 var _key = "email";
                 var _value = invitation;

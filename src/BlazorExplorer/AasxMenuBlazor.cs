@@ -87,10 +87,6 @@ namespace BlazorUI
             foreach (var mi in _menu.FindAll())
                 if (mi.Name.HasContent() && !_menuItems.Contains1(mi.Name.Trim().ToLower()))
                     _menuItems.AddPair(mi.Name.Trim().ToLower(), mi);
-
-            object kgConv = null; // new KeyGestureConverter();
-
-
         }
 
         public bool IsChecked(string name)

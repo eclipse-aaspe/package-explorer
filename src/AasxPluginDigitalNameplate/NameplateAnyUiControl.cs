@@ -416,7 +416,10 @@ namespace AasxPluginDigitalNameplate
                 var imagePath = Path.Combine(basePath, il);
 
                 // load
-                bitmapInfo = AnyUiGdiHelper.CreateAnyUiBitmapInfo(imagePath);
+                if (OperatingSystem.IsWindows())
+                {
+                    bitmapInfo = AnyUiGdiHelper.CreateAnyUiBitmapInfo(imagePath);
+                }
             }
             catch (Exception ex)
             {
@@ -469,7 +472,10 @@ namespace AasxPluginDigitalNameplate
 
                                 // make intermediate format from it
                                 // absurldy, this will AGAIN create an PNG for the HMTL side ..
-                                bitmapInfo = AnyUiGdiHelper.CreateAnyUiBitmapInfo(img);
+                                if (OperatingSystem.IsWindows())
+                                {
+                                    bitmapInfo = AnyUiGdiHelper.CreateAnyUiBitmapInfo(img);
+                                }
                             }
                         }
                     }
@@ -501,10 +507,13 @@ namespace AasxPluginDigitalNameplate
             AnyUiBitmapInfo bitmapInfo = null;
             try
             {
-                bitmapInfo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(
-                    _package, aasFile.Value, 
-                    secureAccess: _secureAccess,
-                    transparentBackground: true);
+                if (OperatingSystem.IsWindows())
+                {
+                    bitmapInfo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(
+                        _package, aasFile.Value,
+                        secureAccess: _secureAccess,
+                        transparentBackground: true);
+                }
             }
             catch (Exception ex)
             {
@@ -616,6 +625,7 @@ namespace AasxPluginDigitalNameplate
                 if (false)
                 {
                     // screw by border
+                    #pragma warning disable CS0162 // Unerreichbarer Code wurde entdeckt.
                     var brd = uitk.Set(
                         uitk.AddSmallBorderTo(plateGrid, screwPos[2 * i + 0], screwPos[2 * i + 1],
                             margin: new AnyUiThickness(2),
@@ -626,6 +636,7 @@ namespace AasxPluginDigitalNameplate
                         skipForTarget: AnyUiTargetPlatform.Browser);
                     brd.Height = 6;
                     brd.MaxHeight = 12;
+                    #pragma warning restore CS0162 // Unerreichbarer Code wurde entdeckt.
                 }
                 else
                 {
@@ -861,23 +872,14 @@ namespace AasxPluginDigitalNameplate
 
                     // render EITHER image or text
                     AnyUiBitmapInfo markImg = null;
-                    if (_package != null)
-                        markImg = AnyUiGdiHelper.LoadBitmapInfoFromPackage(_package, mark.File?.Value);
+                    if (OperatingSystem.IsWindows())
+                    {
+                        if (_package != null)
+                            markImg = AnyUiGdiHelper.LoadBitmapInfoFromPackage(_package, mark.File?.Value);
+                    }
 
                     if (markImg != null)
                     {
-                        // render IMAGE
-                        // dead-csharp off
-                        //var img = uitk.Set(
-                        //    new AnyUiImage() { Stretch = AnyUiStretch.Uniform, BitmapInfo = markImg },
-                        //    margin: new AnyUiThickness(0, 0, 4, 4),
-                        //    horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
-                        //    verticalAlignment: AnyUiVerticalAlignment.Stretch);
-                        //wrapPanel.Add(img);
-
-                        //img.MaxHeight = 70;
-                        //img.MaxWidth = 100;
-                        // dead-csharp on
                         var img = uitk.Set(
                             uitk.AddSmallImageTo(oneMarkGrid, 0, 0,
                                 margin: new AnyUiThickness(0, 0, 4, 4),
@@ -889,25 +891,6 @@ namespace AasxPluginDigitalNameplate
                     }
                     else
                     {
-                        // dead-csharp off
-                        // render TEXT
-
-                        //var tb = new AnyUiTextBlock()
-                        //{
-                        //    Text = "" + mark.Name,
-                        //    FontSize = 1.4,
-                        //    Margin = new AnyUiThickness(0, 0, 4, 4),
-                        //    Padding = new AnyUiThickness(4),
-                        //    Background = AnyUiBrushes.White,
-                        //    TextWrapping = AnyUiTextWrapping.Wrap,
-                        //    VerticalAlignment = AnyUiVerticalAlignment.Stretch,
-                        //    VerticalContentAlignment = AnyUiVerticalAlignment.Center
-                        //};
-                        //wrapPanel.Add(tb);
-
-                        //tb.MaxHeight = 70;
-                        //tb.MaxWidth = 100;
-                        // dead-csharp on
                         var tb = uitk.Set(
                             uitk.AddSmallBasicLabelTo(oneMarkGrid, 0, 0,
                                 content: "" + mark.Name,

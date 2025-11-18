@@ -204,6 +204,7 @@ namespace AasxPluginExportTable.Uml
                 // see "not_promising"
                 // attempt to produce object / map diagram
 
+                #pragma warning disable CS0162 // Unerreichbarer Code wurde entdeckt.
                 Writeln($"map {FormatAs(visIdShort, classId)} {{");
 
                 if (!_options.Outline)
@@ -222,6 +223,8 @@ namespace AasxPluginExportTable.Uml
 
                 Writeln($"}}");
                 Writeln("");
+                
+                #pragma warning restore CS0162 // Unerreichbarer Code wurde entdeckt.
             }
 
             return new UmlHandle() { Id = classId };

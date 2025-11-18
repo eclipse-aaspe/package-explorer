@@ -35,17 +35,18 @@ namespace IO.Swagger.Model
         /// <param name="max">max.</param>
         /// <param name="min">min.</param>
         /// <param name="valueType">valueType (required).</param>
-        public Range(string max = default(string), string min = default(string), ValueTypeEnum valueType = default(ValueTypeEnum), List<EmbeddedDataSpecification> embeddedDataSpecifications = default(List<EmbeddedDataSpecification>), Reference semanticId = default(Reference), List<Constraint> qualifiers = default(List<Constraint>), ModelingKind kind = default(ModelingKind)) : base(embeddedDataSpecifications, semanticId, qualifiers, kind)
+        public Range(
+            string max = default(string), 
+            string min = default(string), 
+            ValueTypeEnum valueType = default(ValueTypeEnum), 
+            List<EmbeddedDataSpecification> embeddedDataSpecifications = default(List<EmbeddedDataSpecification>), 
+            Reference semanticId = default(Reference), 
+            List<Constraint> qualifiers = default(List<Constraint>), 
+            ModelingKind kind = default(ModelingKind)) 
+            : base(embeddedDataSpecifications, semanticId, qualifiers, kind)
         {
             // to ensure "valueType" is required (not null)
-            if (valueType == null)
-            {
-                throw new InvalidDataException("valueType is a required property for Range and cannot be null");
-            }
-            else
-            {
-                this.ValueType = valueType;
-            }
+            this.ValueType = valueType;
             this.Max = max;
             this.Min = min;
         }
@@ -126,8 +127,7 @@ namespace IO.Swagger.Model
                 ) && base.Equals(input) &&
                 (
                     this.ValueType == input.ValueType ||
-                    (this.ValueType != null &&
-                    this.ValueType.Equals(input.ValueType))
+                    this.ValueType.Equals(input.ValueType)
                 );
         }
 
@@ -144,8 +144,7 @@ namespace IO.Swagger.Model
                     hashCode = hashCode * 59 + this.Max.GetHashCode();
                 if (this.Min != null)
                     hashCode = hashCode * 59 + this.Min.GetHashCode();
-                if (this.ValueType != null)
-                    hashCode = hashCode * 59 + this.ValueType.GetHashCode();
+                hashCode = hashCode * 59 + this.ValueType.GetHashCode();
                 return hashCode;
             }
         }

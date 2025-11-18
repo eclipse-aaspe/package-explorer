@@ -187,7 +187,7 @@ namespace WpfMtpControl
         public static Nullable<double> ComputeRadiusForCenterPointer(Point[] pts, Point cog)
         {
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            if (pts == null || pts.Length < 1 || cog == null)
+            if (pts == null || pts.Length < 1)
                 return null;
 
             var r = 0.0;

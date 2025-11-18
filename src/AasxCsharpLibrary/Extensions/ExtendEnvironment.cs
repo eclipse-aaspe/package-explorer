@@ -1003,7 +1003,7 @@ namespace Extensions
                         yield return new LocatedReference(cd, r);
         }
 
-        // TODO: Integrate into above function
+        // TODO (Jui, 2024-01-01): Integrate into above function
         public static IEnumerable<LocatedReference> FindAllSubmodelReferences(
             this AasCore.Aas3_0.IEnvironment environment,
             bool onlyNotExisting = false)

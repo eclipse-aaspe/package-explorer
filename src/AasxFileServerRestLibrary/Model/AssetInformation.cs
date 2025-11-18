@@ -40,14 +40,7 @@ namespace IO.Swagger.Model
         public AssetInformation(AssetKind assetKind = default(AssetKind), List<Reference> billOfMaterial = default(List<Reference>), Reference globalAssetId = default(Reference), List<IdentifierKeyValuePair> specificAssetIds = default(List<IdentifierKeyValuePair>), System.IO.Stream thumbnail = default(System.IO.Stream))
         {
             // to ensure "assetKind" is required (not null)
-            if (assetKind == null)
-            {
-                throw new InvalidDataException("assetKind is a required property for AssetInformation and cannot be null");
-            }
-            else
-            {
-                this.AssetKind = assetKind;
-            }
+            this.AssetKind = assetKind;
             this.BillOfMaterial = billOfMaterial;
             this.GlobalAssetId = globalAssetId;
             this.SpecificAssetIds = specificAssetIds;
@@ -133,8 +126,7 @@ namespace IO.Swagger.Model
             return
                 (
                     this.AssetKind == input.AssetKind ||
-                    (this.AssetKind != null &&
-                    this.AssetKind.Equals(input.AssetKind))
+                    this.AssetKind.Equals(input.AssetKind)
                 ) &&
                 (
                     this.BillOfMaterial == input.BillOfMaterial ||
@@ -169,8 +161,7 @@ namespace IO.Swagger.Model
             unchecked // Overflow is fine, just wrap
             {
                 int hashCode = 41;
-                if (this.AssetKind != null)
-                    hashCode = hashCode * 59 + this.AssetKind.GetHashCode();
+                hashCode = hashCode * 59 + this.AssetKind.GetHashCode();
                 if (this.BillOfMaterial != null)
                     hashCode = hashCode * 59 + this.BillOfMaterial.GetHashCode();
                 if (this.GlobalAssetId != null)

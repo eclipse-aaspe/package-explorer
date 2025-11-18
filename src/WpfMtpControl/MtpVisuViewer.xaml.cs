@@ -143,7 +143,7 @@ namespace WpfMtpControl
         {
             // trivial
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            if (contentObject == null || center == null)
+            if (contentObject == null)
                 return null;
 
             // rotation in degree, mathematically positive == anti clock wise

@@ -15,19 +15,17 @@ function Main
 
     Set-Location $PSScriptRoot
     Write-Host "Inspecting the TODOs in the code..."
-    Write-Host "DISABLED! There might be a wrong dependency in the NuGet OpinionatedCsharpTodos"
-    Write-Host "towards the NuGet dotnet format, which is now part of the dotnet SDK."
-    # dotnet opinionated-csharp-todos `
-    #     --inputs '**/*.cs' `
-    #     --excludes 'packages/**' '**/obj/**' 'MsaglWpfControl/**' 'AasxCsharpLib_bkp/**'
-    # if($LASTEXITCODE -ne 0)
-    # {
-    #     throw (
-    #         "The opinionated-csharp-todos check failed. " +
-    #         "Please have a close look at the output above, " +
-    #         "in particular the lines prefixed with `"FAILED`"."
-    #     )
-    # }
+    dotnet opinionated-csharp-todos `
+        --inputs '**/*.cs' `
+        --excludes 'packages/**' '**/obj/**' 'MsaglWpfControl/**' 'AasxCsharpLib_bkp/**'
+    if($LASTEXITCODE -ne 0)
+    {
+        throw (
+            "The opinionated-csharp-todos check failed. " +
+            "Please have a close look at the output above, " +
+            "in particular the lines prefixed with `"FAILED`"."
+        )
+    }
 }
 
 $previousLocation = Get-Location; try { Main } finally { Set-Location $previousLocation }

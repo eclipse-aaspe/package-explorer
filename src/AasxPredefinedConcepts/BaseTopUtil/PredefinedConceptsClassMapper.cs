@@ -300,8 +300,10 @@ namespace AasxPredefinedConcepts
 
                 // allow skipping to new line
                 string nl = "";
+#if __only_test
                 if (false)
                     nl = $"{System.Environment.NewLine}{indent}    ";
+#endif
 
                 // if using additional interfaces, for new List<>(), some dynamic casting needs to occur
                 string dynCast = "";
@@ -507,7 +509,6 @@ namespace AasxPredefinedConcepts
             if (rf is Aas.IRange rng)
             {
                 var dt = CSharpTypeFrom(rng.ValueType, specificNetType: true);
-                // snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperRange<{dt}>(other.{idsff}) ;");
                 assignLambda($"AasClassMapperRange<{dt}", false, idsff);
             }
 
@@ -517,7 +518,6 @@ namespace AasxPredefinedConcepts
 
             if (rf is Aas.IFile fl)
             {
-                // snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperFile(other.{idsff}) ;");
                 assignLambda($"AasClassMapperFile", false, idsff);
             }
 
@@ -527,7 +527,6 @@ namespace AasxPredefinedConcepts
 
             if (rf is Aas.IMultiLanguageProperty mlp)
             {
-                // snippets.WriteLine($"{indentPlus}{idsff} = new List<ILangStringTextType>(other.{idsff}) ;");
                 assignLambda($"List<ILangStringTextType>", false, idsff);
             }
 
@@ -537,7 +536,6 @@ namespace AasxPredefinedConcepts
 
             if (rf is Aas.IReferenceElement rfe)
             {
-                // snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperHintedReference(other.{idsff}) ;");
                 assignLambda($"AasClassMapperHintedReference", false, idsff);
             }
 
@@ -547,40 +545,12 @@ namespace AasxPredefinedConcepts
 
             if (rf is Aas.IRelationshipElement rle)
             {
-                // snippets.WriteLine($"{indentPlus}{idsff} = new AasClassMapperHintedRelation(other.{idsff}) ;");
                 assignLambda($"AasClassMapperHintedRelation", false, idsff);
             }
 
             //
             // SMC, SML ..
             //
-
-#if __can_be_replaced
-            if ((rf is Aas.Submodel
-                || rf is Aas.SubmodelElementCollection
-                || rf is Aas.SubmodelElementList)
-                && cdRef?.HasContent() == true)
-            {
-                // use the upgrade constructor!
-                if (card == FormMultiplicity.One)
-                {
-                    snippets.WriteLine($"{indentPlus}{idsff} = new CD_{cdff}(other.{idsff}) ;");
-                }
-                else
-                if (card == FormMultiplicity.ZeroToOne)
-                {
-                    snippets.WriteLine($"{indentPlus}{idsff} = (other.{idsff} == null) ? null : new CD_{cdff}(other.{idsff}) ;");
-                }
-                else
-                if (card == FormMultiplicity.ZeroToMany || card == FormMultiplicity.OneToMany)
-                {
-                    snippets.WriteLine($"if (other.{idsff} != null)");
-                    snippets.WriteLine($"{indentPlusPlus}{idsff} = new List<CD_{cdff}>(other.{idsff}.Select((o) => new CD_{cdff}(o))) ;");
-                }
-                else
-                    throw new NotImplementedException("ExportCSharpMapperSingleItemAssigment(): unknown cardinality!");
-            }
-#endif
 
             if ((rf is Aas.Submodel
                 || rf is Aas.SubmodelElementCollection
@@ -671,7 +641,6 @@ namespace AasxPredefinedConcepts
 
             // add Submodel at last, to be sure it is distinct
             distElems.Add(new ExportCSharpClassDef(env, sm));
-            // distElems.Reverse();
 
             // ok
             return distElems;
@@ -897,8 +866,6 @@ namespace AasxPredefinedConcepts
                 addBaseClass: nsBaseClasses,
                 removeEnumerationTemplate: removeEnumerationTemplate);
 			
-            // ExportCSharpMapperSingleItems("    ", env, sm, snippets);
-
             snippets.WriteLine($"}}");
             snippets.WriteLine($"");
         }
@@ -1269,8 +1236,8 @@ namespace AasxPredefinedConcepts
                 else
                 if ((eai.Attr.Card == AasxPredefinedCardinality.ZeroToMany
                     || eai.Attr.Card == AasxPredefinedCardinality.OneToMany)
-                    // && eai.Obj.GetType().IsGenericType
-                    // && eai.Obj.GetType().GetGenericTypeDefinition() == typeof(List<>))
+                    //// && eai.Obj.GetType().IsGenericType
+                    //// && eai.Obj.GetType().GetGenericTypeDefinition() == typeof(List<>))
                     && eai.FiPi.FiPiType.IsGenericType
                     && eai.FiPi.FiPiType.GetGenericTypeDefinition() == typeof(List<>))
                 {
@@ -1342,7 +1309,7 @@ namespace AasxPredefinedConcepts
 
             // find fields for this object
             var t = obj.GetType();
-            // var lf = t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            //// var lf = t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             var lf = FieldPropertyInfo.GetFieldProperties(t, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             foreach (var fipi in lf)
             {

@@ -525,7 +525,7 @@ namespace BlazorUI.Data
                     superMenu, EditMode, HintMode, CheckSmtMode,
                     tiCds?.CdSortOrder ?? VisualElementEnvironmentItem.ConceptDescSortOrder.None,
                     DisplayElements.SelectedItem,
-                    mainWindow: null); // TODO: fix mainWindow
+                    mainWindow: null); // TODO (MIHO, 2025-01-01): fix mainWindow
 
                 if (common)
                 {
@@ -766,7 +766,7 @@ namespace BlazorUI.Data
                         if (container == null)
                             Log.Singleton.Error($"Failed to load AASX from {location}");
                         else
-                            UiLoadPackageWithNew(PackageCentral.MainItem,
+                            await UiLoadPackageWithNew(PackageCentral.MainItem,
                                 takeOverContainer: container, onlyAuxiliary: false,
                                 storeFnToLRU: location);
 
@@ -811,7 +811,7 @@ namespace BlazorUI.Data
                     if (container == null)
                         Log.Singleton.Error($"Failed to load AASX from {ddof.TargetFileName}");
                     else
-                        UiLoadPackageWithNew(PackageCentral.MainItem,
+                        await UiLoadPackageWithNew(PackageCentral.MainItem,
                             takeOverContainer: container, onlyAuxiliary: false);
 
                     Log.Singleton.Info($"Successfully loaded AASX {ddof.OriginalFileName}");

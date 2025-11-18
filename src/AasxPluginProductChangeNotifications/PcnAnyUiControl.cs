@@ -1188,16 +1188,19 @@ namespace AasxPluginProductChangeNotifications
                 && aas.AssetInformation is Aas.IAssetInformation ai
                 && ai.DefaultThumbnail?.Path != null)
             {
-                var img = AnyUiGdiHelper.LoadBitmapInfoFromPackage(package, ai.DefaultThumbnail.Path);
+                if (OperatingSystem.IsWindows())
+                {
+                    var img = AnyUiGdiHelper.LoadBitmapInfoFromPackage(package, ai.DefaultThumbnail.Path);
 
-                uitk.Set(
-                    uitk.AddSmallImageTo(twoColGrid, 0, 1,
-                        margin: new AnyUiThickness(2, 8, 2, 2),
-                        stretch: AnyUiStretch.Uniform,
-                        bitmap: img),
-                maxHeight: 300, maxWidth: 300,
-                horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
-                verticalAlignment: AnyUiVerticalAlignment.Stretch);
+                    uitk.Set(
+                        uitk.AddSmallImageTo(twoColGrid, 0, 1,
+                            margin: new AnyUiThickness(2, 8, 2, 2),
+                            stretch: AnyUiStretch.Uniform,
+                            bitmap: img),
+                    maxHeight: 300, maxWidth: 300,
+                    horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
+                    verticalAlignment: AnyUiVerticalAlignment.Stretch);
+                }
             }
 
             // identification info

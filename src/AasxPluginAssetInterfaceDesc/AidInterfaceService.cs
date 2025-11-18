@@ -63,8 +63,6 @@ namespace AasxPluginAssetInterfaceDescription
 
 		private bool _inDispatcherTimer = false;
 
-		private int _counter = 0;
-
 		private async void DispatcherTimer_TickAsync(object sender, EventArgs e)
 		{
 			// access
@@ -108,8 +106,8 @@ namespace AasxPluginAssetInterfaceDescription
                 await _allInterfaceStatus.UpdateValuesContinousByTickAsyc();
 			} catch (Exception ex)
 			{
-				;
-			}
+                LogInternally.That.SilentlyIgnoredError(ex);
+            }
 
 			// check if to send an event
 			var potEvt = new AasxPluginResultEventPushSomeEvents();

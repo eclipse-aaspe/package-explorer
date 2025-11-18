@@ -92,13 +92,20 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 var initialContent = args[0] as string;
 
                 // build visual
-                this.theEditControl = new UserControlAdvancedTextEditor();
-                this.theEditControl.Text = initialContent;
+                if (OperatingSystem.IsWindowsVersionAtLeast(7, 0, 0))
+                {
+                    this.theEditControl = new UserControlAdvancedTextEditor();
+                    this.theEditControl.Text = initialContent;
 
-                // give object back
-                var res = new AasxPluginResultBaseObject();
-                res.obj = this.theEditControl;
-                return res;
+                    // give object back
+                    var res = new AasxPluginResultBaseObject();
+                    res.obj = this.theEditControl;
+                    return res;
+                } 
+                else
+                {
+                    return null;
+                }
             }
 
             if (action == "set-content" && args != null && args.Length >= 2
@@ -110,16 +117,26 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 var content = args[1] as string;
 
                 // apply
-                this.theEditControl.MimeType = mimeType;
-                this.theEditControl.Text = content;
+                if (OperatingSystem.IsWindows())
+                {
+                    this.theEditControl.MimeType = mimeType;
+                    this.theEditControl.Text = content;
+                }
             }
 
             if (action == "get-content" && this.theEditControl != null)
             {
                 // give object back
-                var res = new AasxPluginResultBaseObject();
-                res.obj = this.theEditControl.Text;
-                return res;
+                if (OperatingSystem.IsWindows())
+                {
+                    var res = new AasxPluginResultBaseObject();
+                    res.obj = this.theEditControl.Text;
+                    return res;
+                }
+                else
+                {
+                    return null;
+                }
             }
 
             // default

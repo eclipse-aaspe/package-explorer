@@ -9,6 +9,9 @@ using System.Collections.Generic;  // can't alias
 using Aas = AasCore.Aas3_0;  // renamed
 using EnumMemberAttribute = System.Runtime.Serialization.EnumMemberAttribute;
 
+// TODO (MIHO, 2025-11-17): Check how to improve. Because of Parent not null disabled globally :-(
+#pragma warning disable CS8618
+
 namespace AasCore.Aas3_0
 {
     /// <summary>

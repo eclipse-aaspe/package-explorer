@@ -1596,7 +1596,7 @@ namespace Extensions
         /// <remarks>
         /// If <paramref name="that" /> is not a valid literal, return <c>null</c>.
         /// </remarks>
-        public static string? ToString(AasSubmodelElements? that)
+        public static string ToString(AasSubmodelElements? that)
         {
             if (!that.HasValue)
             {
@@ -1604,7 +1604,7 @@ namespace Extensions
             }
             else
             {
-                if (AasSubmodelElementsToAbbrev.TryGetValue(that.Value, out string? value))
+                if (AasSubmodelElementsToAbbrev.TryGetValue(that.Value, out string value))
                 {
                     return value;
                 }

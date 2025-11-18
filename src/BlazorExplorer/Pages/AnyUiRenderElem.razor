@@ -1,7 +1,6 @@
 ﻿@page "/test"
 @using AdminShellNS
 @using Aas = AasCore.Aas3_0
-@using AdminShellNS;
 @using Extensions
 @using AnyUi
 @using BlazorUI.Data
@@ -96,9 +95,6 @@
 
     if (Element is AnyUiGrid grid)
     {
-        if (grid.RowDefinitions.Count == 8 && grid.ColumnDefinitions.Count == 8)
-            ;
-
         <AnyUiRenderGrid DisplayData="@DisplayData"
                          Session="@Session"
                          Parent="@Parent"
@@ -291,9 +287,6 @@
         style.SetFillWidth(Element, AnyUiHtmlFillMode.None, tb.Margin, setMinMaxWidth: true);
         style.SetAlignments(Element);
 
-        if (tb.Text.StartsWith("Edit"))
-            ;
-
         <span style="@style"><MultiLineText InputString="@tb.Text" /></span>
     }
     else
@@ -307,9 +300,6 @@
 
         style.SetFillWidth(Element, AnyUiHtmlFillMode.None, chlb.Margin, setMinMaxWidth: true, setInlineBlock: true);
         style.SetAlignments(Element);
-
-        if (chlb.Content.StartsWith("Edit"))
-            ;
 
         <span style="@style"><MultiLineText InputString="@chlb.Content" /></span>
     }
@@ -372,8 +362,6 @@
         @code {
             private void MyTextInput(AnyUiTextBox chtb, string value, bool takeOver)
             {
-                if (takeOver)
-                    ;
                 Program.EvalSetValueLambdaAndHandleReturn(Session.SessionId, chtb, value, takeOver);
             }
         }
@@ -490,8 +478,8 @@
 
         style.SetMinMaxWidthHeight(Element);
 
-        var country = Country.DE;
-        var size = FlagSize.Small;
+        // var country = Country.DE;
+        // var size = FlagSize.Small;
 
         <!--
         <CountryFlag Country="@country" Size="@size" Class="mx-3"></CountryFlag>

@@ -100,8 +100,8 @@ namespace AasxPackageLogic.PackageCentral
             // new http client
             var client = new HttpClient(handler);
 
-            // TODO/CHECK: Basyx does not like this: 
-            // client.DefaultRequestHeaders.Add("Accept", "application/aas");
+            // TODO (MIHO, 2025-01-01): Check again, Basyx does not like this: 
+            //// client.DefaultRequestHeaders.Add("Accept", "application/aas");
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.BaseAddress = new Uri(baseUri.GetLeftPart(UriPartial.Authority));
 
@@ -480,10 +480,8 @@ namespace AasxPackageLogic.PackageCentral
             }
             else
             {
-                // var data = new ProgressableStreamContent(ms.ToArray(), runtimeOptions);
                 overallContent = new ByteArrayContent(ms.ToArray());
                 overallContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                // var data = new StringContent("1.2345", Encoding.UTF8, "application/json");
             }
 
             // get response?

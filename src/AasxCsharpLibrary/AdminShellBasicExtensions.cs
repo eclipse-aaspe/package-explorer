@@ -82,12 +82,6 @@ namespace AdminShellNS
                 yield return s;
         }
 
-        //public static IEnumerable<T> Times<T>(T value, int num = 1) where T : class
-        //{
-        //    for(int i = 0; i < num; i++)
-        //        yield return value;
-        //}
-
         public static string SubstringMax(this string str, int pos, int len)
         {
             if (!str.HasContent() || str.Length <= pos)

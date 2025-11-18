@@ -321,7 +321,7 @@ namespace AnyUi
         /// </summary>
         public static void htmlDotnetLoop()
         {
-            AnyUiUIElement el;
+            //// AnyUiUIElement el;
 
             while (true)
             {

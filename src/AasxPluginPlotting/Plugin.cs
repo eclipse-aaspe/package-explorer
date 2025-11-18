@@ -130,7 +130,10 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 if (args.Length < 1 || !(args[0] is AasEventMsgEnvelope ev))
                     return null;
 
-                _viewControl?.PushEvent(ev);
+                if (OperatingSystem.IsWindows())
+                {
+                    _viewControl?.PushEvent(ev);
+                }
             }
 
             // can basic helper help to reduce lines of code?
@@ -159,8 +162,11 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
             {
                 // simple delete reference to view control
                 // this shall also stop event notifications!
-                if (_viewControl != null)
-                    _viewControl.Stop();
+                if (OperatingSystem.IsWindows())
+                {
+                    if (_viewControl != null)
+                        _viewControl.Stop();
+                }
                 _viewControl = null;
             }
 
@@ -173,18 +179,26 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 if (package == null || sm == null || master == null)
                     return null;
 
-                // the Submodel elements need to have parents
-                sm.SetAllParents();
+                if (OperatingSystem.IsWindows())
+                {
 
-                // create TOP control
-                _viewControl = new AasxPluginPlotting.PlottingViewControl();
-                _viewControl.Start(package, sm, _options, _eventStack, _log);
-                master.Children.Add(_viewControl);
+                    // the Submodel elements need to have parents
+                    sm.SetAllParents();
 
-                // give object back
-                var res = new AasxPluginResultBaseObject();
-                res.obj = _viewControl;
-                return res;
+                    // create TOP control
+                    _viewControl = new AasxPluginPlotting.PlottingViewControl();
+                    _viewControl.Start(package, sm, _options, _eventStack, _log);
+                    master.Children.Add(_viewControl);
+
+                    // give object back
+                    var res = new AasxPluginResultBaseObject();
+                    res.obj = _viewControl;
+                    return res;
+                }
+                else
+                {
+                    return null;
+                }
             }
 
             // default

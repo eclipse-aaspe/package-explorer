@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO.Packaging;
 using AasxIntegrationBase;
+using System.Runtime.Versioning;
 
 namespace AasxIntegrationBaseGdi
 {
@@ -37,6 +38,7 @@ namespace AasxIntegrationBaseGdi
     /// Only one #define shall be given.
     /// This class understands the term GDI to be "graphics dependent inteface" ;-)
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public static class AnyUiGdiHelper
     {
         public static AnyUiBitmapInfo CreateAnyUiBitmapInfo(MagickImage source, bool doFreeze = true)
@@ -160,32 +162,7 @@ namespace AasxIntegrationBaseGdi
             }
 
             return null;
-        }
-
-        // DEPRECATED
-        //public static AnyUiBitmapInfo LoadBitmapInfoFromStream(Stream stream)
-        //{
-        //    if (stream == null)
-        //        return null;
-
-        //    try
-        //    {
-        //        // load image
-        //        var bi = new MagickImage(stream);
-        //        var binfo = CreateAnyUiBitmapInfo(bi);
-
-        //        // give this back
-        //        return binfo;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
-        //    }
-
-        //    return null;
-        //}
-
-        // TODO (MIHO, 2023-02-23): make the whole thing async!!
+        }        
 
         public static async Task<AnyUiBitmapInfo> MakePreviewFromPackageOrUrlAsync(
             AdminShellPackageEnvBase package, string path,

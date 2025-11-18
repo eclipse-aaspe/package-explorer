@@ -1352,42 +1352,6 @@ namespace AasxPackageLogic
 
                                 // success will trigger redraw independently, therefore always return none
                                 return new AnyUiLambdaActionNone();
-
-                                //var location = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
-                                //if (location == null)
-                                //{
-                                //    MainWindowLogic.LogErrorToTicketStatic(ticket, 
-                                //        new InvalidDataException(),
-                                //        "Error building location from query selection. Aborting.");
-                                //    return new AnyUiLambdaActionNone();
-                                //}
-
-                                //// more details into container options
-                                //var containerOptions = new PackageContainerHttpRepoSubset.
-                                //    PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
-                                //    record);
-
-                                //// load
-                                //Log.Singleton.Info($"For refining extended connect, loading " +
-                                //    $"from {location} into container");
-
-                                //var container = await PackageContainerFactory.GuessAndCreateForAsync(
-                                //    packages,
-                                //    location,
-                                //    location,
-                                //    overrideLoadResident: true,
-                                //    containerOptions: containerOptions,
-                                //    runtimeOptions: packages.CentralRuntimeOptions);
-
-                                //if (container == null)
-                                //    Log.Singleton.Error($"Failed to load from {location}");
-                                //else
-                                //    mainWindow.UiLoadPackageWithNew(packages.MainItem,
-                                //        takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
-                                //        storeFnToLRU: location,
-                                //        nextEditMode: editMode);
-
-                                //Log.Singleton.Info($"Successfully loaded {location}");
                             }
                             return new AnyUiLambdaActionNone();
                         });

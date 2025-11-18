@@ -133,8 +133,7 @@ namespace IO.Swagger.Model
                 ) && base.Equals(input) &&
                 (
                     this.ValueTypeValues == input.ValueTypeValues ||
-                    (this.ValueTypeValues != null &&
-                    this.ValueTypeValues.Equals(input.ValueTypeValues))
+                    this.ValueTypeValues.Equals(input.ValueTypeValues)
                 );
         }
 
@@ -153,8 +152,7 @@ namespace IO.Swagger.Model
                     hashCode = hashCode * 59 + this.SubmodelElementTypeValues.GetHashCode();
                 if (this.Value != null)
                     hashCode = hashCode * 59 + this.Value.GetHashCode();
-                if (this.ValueTypeValues != null)
-                    hashCode = hashCode * 59 + this.ValueTypeValues.GetHashCode();
+                hashCode = hashCode * 59 + this.ValueTypeValues.GetHashCode();
                 return hashCode;
             }
         }

@@ -5,6 +5,7 @@ This script checks the format of the code.
 
 $ErrorActionPreference = "Stop"
 
+
 Import-Module (Join-Path $PSScriptRoot Common.psm1) -Function `
     AssertDotnet,  `
     AssertDotnetFormatVersion,  `
@@ -12,7 +13,8 @@ Import-Module (Join-Path $PSScriptRoot Common.psm1) -Function `
 
 function Main
 {
-    AssertDotnetFormatVersion
+    # dotnet-format is not anymore, it is build in
+    # AssertDotnetFormatVersion
 
     Set-Location $PSScriptRoot
     Write-Host "Inspecting the code format with dotnet-format..."

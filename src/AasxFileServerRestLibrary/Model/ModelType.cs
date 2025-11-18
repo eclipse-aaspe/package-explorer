@@ -36,14 +36,7 @@ namespace IO.Swagger.Model
         public ModelType(ModelTypes name = default(ModelTypes))
         {
             // to ensure "name" is required (not null)
-            if (name == null)
-            {
-                throw new InvalidDataException("name is a required property for ModelType and cannot be null");
-            }
-            else
-            {
-                this.Name = name;
-            }
+            this.Name = name;
         }
 
         /// <summary>
@@ -97,8 +90,7 @@ namespace IO.Swagger.Model
             return
                 (
                     this.Name == input.Name ||
-                    (this.Name != null &&
-                    this.Name.Equals(input.Name))
+                    this.Name.Equals(input.Name)
                 );
         }
 
@@ -111,8 +103,7 @@ namespace IO.Swagger.Model
             unchecked // Overflow is fine, just wrap
             {
                 int hashCode = 41;
-                if (this.Name != null)
-                    hashCode = hashCode * 59 + this.Name.GetHashCode();
+                hashCode = hashCode * 59 + this.Name.GetHashCode();
                 return hashCode;
             }
         }

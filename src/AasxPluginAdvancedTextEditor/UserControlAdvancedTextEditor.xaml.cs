@@ -10,6 +10,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,6 +31,7 @@ namespace AasxPluginAdvancedTextEditor
     /// <summary>
     /// Interaction logic for UserControl1.xaml
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public partial class UserControlAdvancedTextEditor : UserControl
     {
         //

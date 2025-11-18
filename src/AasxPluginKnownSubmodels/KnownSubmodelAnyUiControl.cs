@@ -232,7 +232,10 @@ namespace AasxPluginKnownSubmodels
                 var imagePath = Path.Combine(basePath, il);
 
                 // load
-                bitmapInfo = AnyUiGdiHelper.CreateAnyUiBitmapInfo(imagePath);
+                if (OperatingSystem.IsWindows())
+                {
+                    bitmapInfo = AnyUiGdiHelper.CreateAnyUiBitmapInfo(imagePath);
+                }
             }
             catch {; }
 

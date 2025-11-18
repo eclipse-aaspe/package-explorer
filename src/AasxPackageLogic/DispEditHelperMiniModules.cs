@@ -915,7 +915,7 @@ namespace AasxPackageLogic
                                 // read file contents
                                 var init = System.IO.File.ReadAllText(pfn);
 
-                                // TODO (MIHO, 2024-01-024): refactor this                                
+                                // TODO (MIHO, 2024-01-24): refactor this                                
                                 JsonTextReader reader = new JsonTextReader(new StringReader(init));
                                 JsonSerializer serializer = new JsonSerializer();
                                 serializer.Converters.Add(new AdminShellConverters.AdaptiveAasIClassConverter(
@@ -1064,7 +1064,7 @@ namespace AasxPackageLogic
                     padding: new AnyUiThickness(5, 0, 5, 0));
 
                 // special case: SAMM extension
-                // TODO: enable
+                // TODO (MIHO, 2024-01-01): enable
                 if (false && Samm.Util.HasSammSemanticId(extension))
                 {
                     substack.Add(new AnyUiLabel()

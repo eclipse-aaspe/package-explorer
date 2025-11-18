@@ -47,8 +47,7 @@ namespace AasxPluginTechnicalData
 
         protected AnyUiSmallWidgetToolkit _uitk = new AnyUiSmallWidgetToolkit();
 
-        protected AnyUiGdiHelper.DelayedFileContentLoader _bitmapLoader = 
-                    new AnyUiGdiHelper.DelayedFileContentLoader();
+        protected AnyUiGdiHelper.DelayedFileContentLoader _bitmapLoader = null;
 
         #endregion
 
@@ -68,8 +67,18 @@ namespace AasxPluginTechnicalData
         // ReSharper disable EmptyConstructor
         public TechnicalDataAnyUiControl()
         {
+            // the loader
+            if (OperatingSystem.IsWindows())
+            {
+                _bitmapLoader =
+                        new AnyUiGdiHelper.DelayedFileContentLoader();
+            }
+
             // start a timer
-            AnyUiTimerHelper.CreatePluginTimerAsync(300, lambdaTick: async () => await DispatcherTimer_Tick(null, null));
+            if (OperatingSystem.IsWindowsVersionAtLeast(7, 0, 0))
+            {
+                AnyUiTimerHelper.CreatePluginTimerAsync(300, lambdaTick: async () => await DispatcherTimer_Tick(null, null));
+            }
         }
         // ReSharper enable EmptyConstructor
 
@@ -356,16 +365,19 @@ namespace AasxPluginTechnicalData
                         var fe = smcGeneral.Value.FindFirstSemanticIdAs<Aas.File>(
                             theDefs.CD_ManufacturerLogo.GetSingleKey(), MatchMode.Relaxed);
 
-                        // for now
-                        biManuLogo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(
-                            package, fe?.Value,
-                            secureAccess: _secureAccess);
-
-                        // for later
-                        _bitmapLoader.Add(package, _aas, _submodel, fe, (fcl, bi) =>
+                        if (OperatingSystem.IsWindowsVersionAtLeast(7, 0, 0))
                         {
-                            imageManuLogo.BitmapInfo = bi;
-                        });
+                            // for now
+                            biManuLogo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(
+                                package, fe?.Value,
+                                secureAccess: _secureAccess);
+
+                            // for later
+                            _bitmapLoader.Add(package, _aas, _submodel, fe, (fcl, bi) =>
+                            {
+                                imageManuLogo.BitmapInfo = bi;
+                            });
+                        }
                     }
 #endif
                 }
@@ -434,13 +446,16 @@ namespace AasxPluginTechnicalData
                         thisImage.BitmapInfo = bi;
 #else
                     // for now
-                    imageElem.BitmapInfo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(package, fePI.Value);
-
-                    // for later
-                    _bitmapLoader.Add(package, _aas, _submodel, fePI, (fcl, bi) =>
+                    if (OperatingSystem.IsWindowsVersionAtLeast(7, 0, 0))
                     {
-                        imageElem.BitmapInfo = bi;
-                    });
+                        imageElem.BitmapInfo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(package, fePI.Value);
+
+                        // for later
+                        _bitmapLoader.Add(package, _aas, _submodel, fePI, (fcl, bi) =>
+                        {
+                            imageElem.BitmapInfo = bi;
+                        });
+                    }
 #endif
                 }
                 
@@ -849,14 +864,18 @@ namespace AasxPluginTechnicalData
         {
             try
             {
-                if ((await _bitmapLoader?.TickToLoad(_secureAccess)) == true)
+                await Task.Yield();
+                if (OperatingSystem.IsWindowsVersionAtLeast(7, 0, 0))
                 {
-                    _eventStack?.PushEvent(new AasxPluginEventReturnUpdateAnyUi()
+                    if ((await _bitmapLoader?.TickToLoad(_secureAccess)) == true)
                     {
-                        PluginName = null,
-                        Mode = AnyUiRenderMode.StatusToUi,
-                        UseInnerGrid = true
-                    });
+                        _eventStack?.PushEvent(new AasxPluginEventReturnUpdateAnyUi()
+                        {
+                            PluginName = null,
+                            Mode = AnyUiRenderMode.StatusToUi,
+                            UseInnerGrid = true
+                        });
+                    }
                 }
             } catch (Exception ex)
             {

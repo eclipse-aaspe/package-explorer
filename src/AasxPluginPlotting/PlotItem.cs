@@ -30,10 +30,12 @@ using Aas = AasCore.Aas3_0;
 using AdminShellNS;
 using Extensions;
 using ScottPlot;
+using System.Runtime.Versioning;
 
 namespace AasxPluginPlotting
 {
     // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
+    [SupportedOSPlatform("windows")]
     public class PlotItem : /* IEquatable<DetailItem>, */ INotifyPropertyChanged, IComparable<PlotItem>
     {
         public event PropertyChangedEventHandler PropertyChanged;
@@ -182,6 +184,7 @@ namespace AasxPluginPlotting
         public int Cols { get; set; }
     }
 
+    [SupportedOSPlatform("windows")]
     public class ListOfPlotItem : ObservableCollection<PlotItem>
     {
         public RowColTuple GetMaxRowCol()
@@ -456,8 +459,11 @@ namespace AasxPluginPlotting
                         var signal = wpfPlot.Plot.AddSignal(pb.Ydata, label: label);
                         PlotHelpers.SetPlottableProperties(signal, pi.Args);
                         pb.Plottable = signal;
+
+#pragma warning disable CS0618 // Suppress obsolete warning
                         if (signal.FillColor1.HasValue)
                             pi.ValueForeground = PlotHelpers.BrushFrom(signal.FillColor1.Value);
+#pragma warning restore CS0618 // Re-enable obsolete warning
                     }
                     else
                     {

@@ -44,6 +44,7 @@ namespace AasxPluginAssetInterfaceDescription
                 return true;
             } catch (Exception ex)
             {
+                LogInternally.That.SilentlyIgnoredError(ex);
                 Client = null;
                 return false;
             }
@@ -74,7 +75,6 @@ namespace AasxPluginAssetInterfaceDescription
             if (item?.FormData?.Href?.HasContent() != true
                 || item.FormData.Modv_function?.HasContent() != true)
                 return 0;
-            int res = 0;
 
             // decode address + quantity
             // (assumption: 1 quantity = 2 bytes)
@@ -115,7 +115,7 @@ namespace AasxPluginAssetInterfaceDescription
             byte[] od = id.ToArray();
             if (quantity == 2)
             {
-                if (byteSequence == "" && wordSequence == "") // //byte sequence defined at the local level
+                if (byteSequence == "" && wordSequence == "") // byte sequence defined at the local level
 
                     //byte sequence defined at the global level
                     if ((mostSignificantByte == "" && mostSignificantWord == "") || 

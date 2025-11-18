@@ -149,7 +149,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 // ok, start
                 this._browser = new CefSharp.Wpf.ChromiumWebBrowser();
                 this._browser.DownloadHandler = this;
-                // this._browser.RequestHandler = this;
+                //// this._browser.RequestHandler = this;
                 this._browser.Address = url;
                 this._browser.InvalidateVisual();
 
@@ -222,7 +222,11 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
             return false;
         }
 
-        IResourceRequestHandler IRequestHandler.GetResourceRequestHandler(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling)
+        IResourceRequestHandler IRequestHandler.GetResourceRequestHandler(
+            IWebBrowser chromiumWebBrowser, 
+            IBrowser browser, IFrame frame, 
+            IRequest request, bool isNavigation, bool isDownload, 
+            string requestInitiator, ref bool disableDefaultHandling)
         {
             return null;
         }

@@ -10,6 +10,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -27,6 +28,7 @@ namespace AasxPluginPlotting
     /// <summary>
     /// Interaktionslogik für WpfPlotViewControl.xaml
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public partial class WpfPlotViewControlHorizontal : UserControl, IWpfPlotViewControl
     {
         public ScottPlot.WpfPlot WpfPlot { get { return WpfPlotItself; } }

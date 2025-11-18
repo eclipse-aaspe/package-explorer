@@ -108,7 +108,6 @@ namespace AasxPluginExportTable.Smt
             string dataExt = ".bin";
             if (sme is Aas.IFile smeFile)
             {
-                // old: data = _package?.GetBytesFromPackageOrExternal(smeFile.Value);
                 data = await _package?.GetBytesFromPackageOrExternalAsync(
                     smeFile.Value, aasId: aasId, smId: smId, idShortPath: idShortPath);
 

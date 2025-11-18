@@ -2750,7 +2750,7 @@ namespace AasxPackageLogic
                 byte[] bytes = Encoding.ASCII.GetBytes(uc.Text);
                 try
                 {
-                    // TODO: add IdShortPath !!
+                    // TODO (MIHO, 2024-01-01): add IdShortPath !!
                     env.PutBytesToPackageOrExternal(
                         valuePath, bytes);
                 }

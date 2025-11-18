@@ -77,7 +77,10 @@ namespace AasxPluginImageMap
         public ImageMapAnyUiControl()
         {
             // start a timer
-            AnyUiTimerHelper.CreatePluginTimer(1000, DispatcherTimer_Tick);
+            if (OperatingSystem.IsWindowsVersionAtLeast(7, 0, 0))
+            {
+                AnyUiTimerHelper.CreatePluginTimer(1000, DispatcherTimer_Tick);
+            }
         }
 
         public void Start(
@@ -412,7 +415,10 @@ namespace AasxPluginImageMap
                 var imgBytes = task.Result;
 
                 // convert to image
-                bi = AnyUiGdiHelper.LoadBitmapInfoFromBytes(imgBytes);
+                if (OperatingSystem.IsWindows())
+                {
+                    bi = AnyUiGdiHelper.LoadBitmapInfoFromBytes(imgBytes);
+                }
             }
 
             // BLOB
@@ -420,8 +426,11 @@ namespace AasxPluginImageMap
                 AasxPredefinedConcepts.ImageMap.Static.CD_ImageFile,
                 MatchMode.Relaxed);
             if (be?.Value != null)
-            { 
-                bi = AnyUiGdiHelper.LoadBitmapInfoFromBytes(be.Value);
+            {
+                if (OperatingSystem.IsWindows())
+                {
+                    bi = AnyUiGdiHelper.LoadBitmapInfoFromBytes(be.Value);
+                }
             }
 
             // set

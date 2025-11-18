@@ -82,7 +82,10 @@ namespace AasxPluginContactInformation
             // convert here, as the tick-Thread in STA / UI thread
             try
             {
-                ImgContainerAnyUi.BitmapInfo = AnyUiGdiHelper.CreateAnyUiBitmapInfo(fn);
+                if (OperatingSystem.IsWindows())
+                {
+                    ImgContainerAnyUi.BitmapInfo = AnyUiGdiHelper.CreateAnyUiBitmapInfo(fn);
+                }
             }
             catch (Exception ex)
             {
@@ -99,8 +102,11 @@ namespace AasxPluginContactInformation
             // convert here, as the tick-Thread in STA / UI thread
             try
             {
-                ImgContainerAnyUi.BitmapInfo = AnyUiGdiHelper.CreateAnyUiBitmapFromResource(path,
+                if (OperatingSystem.IsWindows())
+                {
+                    ImgContainerAnyUi.BitmapInfo = AnyUiGdiHelper.CreateAnyUiBitmapFromResource(path,
                     assembly: Assembly.GetExecutingAssembly());
+                }
             }
             catch (Exception ex)
             {

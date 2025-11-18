@@ -216,8 +216,8 @@ namespace AasCore.Samm2_2_0
 		///// times for different languages but only once for a specific language. There should be at 
 		///// least one description defined with an "en" language tag.
 		///// </summary>
-		//[SammPropertyUri("bamm:description")]
-		//public List<LangString>? Description { get; set; } = null;
+		////[SammPropertyUri("bamm:description")]
+		////public List<LangString>? Description { get; set; } = null;
 
 		/// <summary>
 		/// A reference to a related element in an external taxonomy, ontology or other standards document. 

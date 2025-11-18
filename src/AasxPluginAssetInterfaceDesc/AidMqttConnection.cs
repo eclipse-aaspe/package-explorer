@@ -46,7 +46,7 @@ namespace AasxPluginAssetInterfaceDescription
 
                 var options = new MqttClientOptionsBuilder()
                     .WithTcpServer(TargetUri.Host, TargetUri.Port) // MQTT broker address and port
-                    // .WithCredentials(username, password) // Set username and password
+                    //// .WithCredentials(username, password) // Set username and password
                     .WithClientId("AasxPackageExplorer")
                     .WithCleanSession()
                     .Build();
@@ -65,6 +65,7 @@ namespace AasxPluginAssetInterfaceDescription
             }
             catch (Exception ex)
             {
+                LogInternally.That.SilentlyIgnoredError(ex);
                 Client = null;
                 _subscribedTopics.Clear();
                 return false;
@@ -83,7 +84,7 @@ namespace AasxPluginAssetInterfaceDescription
                 return;
 
             // payload?
-            // var payload = Encoding.UTF8.GetString(arg.ApplicationMessage.PayloadSegment);
+            //// var payload = Encoding.UTF8.GetString(arg.ApplicationMessage.PayloadSegment);
             var payload = arg.ApplicationMessage.ConvertPayloadToString();
             if (payload?.HasContent() != true)
                 return;

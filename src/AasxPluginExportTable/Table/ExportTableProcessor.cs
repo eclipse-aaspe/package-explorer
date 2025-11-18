@@ -769,10 +769,6 @@ namespace AasxPluginExportTable.Table
                                 // do the replace
                                 advancedReplace = am.Replace;
 
-                                // debug
-                                if (am.Replace != "")
-                                    ;
-
                                 // now care for regognized groups
                                 for (int i = 1; i < m.Groups.Count; i++)
                                     advancedReplace = advancedReplace
@@ -1305,7 +1301,7 @@ namespace AasxPluginExportTable.Table
             var lines = cr.Text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var l in lines)
             {
-                if (run.ChildElements != null && run.ChildElements.Count > 0)
+                if (run.ChildElements.Count > 0)
                     run.AppendChild(new Break());
                 run.AppendChild(new Text(l));
             }

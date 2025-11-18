@@ -180,8 +180,13 @@ namespace AasxPluginDocumentShelf
 					if (ent?.Package != null && ent.PackageFn != null && ent.SupplFn != null)
 					{
 						// try check if Magick.NET library is available
-						var thumbBI = await AnyUiGdiHelper.MakePreviewFromPackageOrUrlAsync(
-							ent.Package, ent.SupplFn, ent.AasId, ent.SmId, ent.IdShortPath);
+						AnyUiBitmapInfo thumbBI = null;
+						if (OperatingSystem.IsWindows())
+						{
+							await AnyUiGdiHelper.MakePreviewFromPackageOrUrlAsync(
+								ent.Package, ent.SupplFn, ent.AasId, ent.SmId, ent.IdShortPath);
+						}
+
 						if (thumbBI != null)
 						{
 							ent.Bitmap = thumbBI;
@@ -194,7 +199,7 @@ namespace AasxPluginDocumentShelf
 							//
 
 							// makes only sense under Windows
-							if (OperatingSystemHelper.IsWindows())
+							if (OperatingSystem.IsWindows())
 							{
 								// from package?
 								var inputFn = ent.SupplFn;
@@ -231,8 +236,11 @@ namespace AasxPluginDocumentShelf
 
 									// try load
 									try
-									{ 
-										lambdaEntity.Bitmap = AnyUiGdiHelper.CreateAnyUiBitmapInfo(outputFnBuffer);
+									{
+										if (OperatingSystem.IsWindows())
+										{
+											lambdaEntity.Bitmap = AnyUiGdiHelper.CreateAnyUiBitmapInfo(outputFnBuffer);
+										}
 									}
 									catch (Exception ex)
 									{

@@ -123,7 +123,7 @@ namespace WpfMtpControl
                             password: this.Password);
                         await uaClient.DirectConnect();
 
-                        // this.uaClient.Run();
+                        //// this.uaClient.Run();
                         // go on for a checking state
                         nextState = 1;
                     }

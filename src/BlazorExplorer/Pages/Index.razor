@@ -74,7 +74,6 @@
 
                     @if (evs.DialogueData is AnyUiDialogueDataLogMessage)
                     {
-                        int a = 1;
                         <AnyUiFlyoutLogMessage 
                             EventSession="evs"
                             DialogueData="evs.DialogueData" />
@@ -718,8 +717,6 @@
     [Parameter]
     public int CounterRedraw { get; set; }
 
-    ListOfItems Items = null;
-
     protected int _inhibitSelectNodeForPanel = 0;
 
     public string DebugTrash = "";
@@ -967,10 +964,12 @@
                 if (ndm.ExecuteLambdaAction is AnyUiLambdaActionRedrawAllElementsBase larae)
                 {
                     // force the sticky update mode to false, because of total redraw
-                    Session.RedrawAllAasxElementsAsync(
-                        keepFocus: true,
-                        nextFocusMdo: larae.NextFocus,
-                        wishExpanded: larae.IsExpanded ?? true);
+                    InvokeAsync(async () => {
+                        await Session.RedrawAllAasxElementsAsync(
+                            keepFocus: true,
+                            nextFocusMdo: larae.NextFocus,
+                            wishExpanded: larae.IsExpanded ?? true);
+                    });
                     _onlyUpdatePluginUi = false;
                 }
 
@@ -1004,8 +1003,10 @@
                     {
                         // if an index is moved within the tree, both the tree shall be re-drawn
                         // and the panel shall be updated (because of index)
-                        Session.RedrawAllAasxElementsAsync(keepFocus: true);
-                        _onlyUpdatePluginUi = false;
+                        InvokeAsync(async () =>  {
+                            await Session.RedrawAllAasxElementsAsync(keepFocus: true);
+                            _onlyUpdatePluginUi = false;
+                        });
                     }
 
                     if (lapcc.Change?.Reason == PackCntChangeEventReason.Delete)
@@ -1013,9 +1014,11 @@
                         // if an element is deleted within the tree, the tree shall be re-drawn,
                         // the focus shall be shifted to a recommended element
                         // and the panel shall be updated (because of index)
-                        Session.RedrawAllAasxElementsAsync(
-                            keepFocus: true, nextFocusMdo: lapcc.NextFocus, wishExpanded: false);
-                        _onlyUpdatePluginUi = false;
+                        InvokeAsync(async () =>  {
+                            await Session.RedrawAllAasxElementsAsync(
+                                keepFocus: true, nextFocusMdo: lapcc.NextFocus, wishExpanded: false);
+                            _onlyUpdatePluginUi = false;
+                        });
                     }
                 }
 
@@ -1097,8 +1100,6 @@
         // index
         Session.significantElements = new IndexOfSignificantAasElements(Session.env?.AasEnv);   
     }
-
-    bool update = true;
 
     protected void UpdateTreeWithTouchedValues()
     {
@@ -1427,36 +1428,36 @@
             {
                 await Session.UiHandleNavigateTo(evtNavTo.targetReference);
 
-    //            // make a work copy
-    //            var workReference = evtNavTo.targetReference.Copy();
+                //            // make a work copy
+                //            var workReference = evtNavTo.targetReference.Copy();
 
-    //            // plug-in? .. shorten reference
-    //            var srl = workReference.Keys.Last();
-    //            string pluginTag = null;
-    //            if (srl?.Type == Aas.KeyTypes.FragmentReference
-    //                && srl?.Value?.StartsWith("Plugin:") == true)
-    //            {
-    //                pluginTag = srl?.Value.Substring("Plugin:".Length);
-    //                workReference.Keys.Remove(srl);
-    //            }
+                //            // plug-in? .. shorten reference
+                //            var srl = workReference.Keys.Last();
+                //            string pluginTag = null;
+                //            if (srl?.Type == Aas.KeyTypes.FragmentReference
+                //                && srl?.Value?.StartsWith("Plugin:") == true)
+                //            {
+                //                pluginTag = srl?.Value.Substring("Plugin:".Length);
+                //                workReference.Keys.Remove(srl);
+                //            }
 
-    //            // find Referable by reference in open package
-    //            var workRf = Session?.env?.AasEnv?.FindReferableByReference(workReference);
+                //            // find Referable by reference in open package
+                //            var workRf = Session?.env?.AasEnv?.FindReferableByReference(workReference);
 
-    //            // find items
-    //            #if TODO
-    //    var targetItem = Items?.FindReferable(workRf, pluginTag);
+                //            // find items
+                //            #if TODO
+                //    var targetItem = Items?.FindReferable(workRf, pluginTag);
 
-    //// activate this
-    //if (targetItem != null)
-    //{
-    //    _inhibitSelectNodeForPanel = 0;
-    //_onlyUpdatePluginUi = false;
-    //ListOfItems.AddToExpandNodesFor(ExpandedNodes, targetItem);
-    //SelectedNode = targetItem;
-    //InvokeAsync(() => this.StateHasChanged());
-    //}
-    //            #endif
+                //// activate this
+                //if (targetItem != null)
+                //{
+                //    _inhibitSelectNodeForPanel = 0;
+                //_onlyUpdatePluginUi = false;
+                //ListOfItems.AddToExpandNodesFor(ExpandedNodes, targetItem);
+                //SelectedNode = targetItem;
+                //InvokeAsync(() => this.StateHasChanged());
+                //}
+                //            #endif
             }
 
             // Display Content Url
@@ -1514,7 +1515,11 @@
                             Program.DataRedrawMode.ValueChanged, found.SessionId,
                             onlyUpdatePanel: true)); // build new tree
 
-                    while (!found.htmlEventOut) Task.Delay(1) ;
+                    while (!found.htmlEventOut) 
+                    {
+                        // TODO (MIHI, 2025-11-17): switch from Task.Delay(1) to synchronous
+                        Thread.Sleep(1);
+                    }
 
                     // result
                     if (found.htmlEventOutputs.Count == 1
@@ -1563,7 +1568,11 @@
                             Program.DataRedrawMode.ValueChanged, found.SessionId,
                             onlyUpdatePanel: true)); // build new tree
 
-                    while (!found.htmlEventOut) Task.Delay(1) ;
+                    while (!found.htmlEventOut) 
+                    {
+                        // TODO: Check again, switch from Task.Delay(1) to synchronius delay
+                        Thread.Sleep(1);
+                    }
 
                     // result
                     if (found.htmlEventOutputs.Count == 1
@@ -1641,7 +1650,8 @@
                         //Items = SubmodelService.GetTree(bi, selectedNode, ExpandedNodes);
 
                         // trigger redraw
-                        InvokeAsync(() => this.StateHasChanged());
+                        //// InvokeAsync(() => this.StateHasChanged());
+                        this.StateHasChanged();
                     }
                 }
             }
@@ -1958,7 +1968,10 @@
     protected void OnNodeClicked(VisualElementGeneric ve, BlazorInput.KeyboardModifiers modi)
     {
         Session.DisplayElements.NotifyTreeSelectionChanged(ve, modi);
-        Session.DisplayElements_SelectedItemChanged(Session.DisplayElements, null);
+        InvokeAsync(async () =>
+        {
+            await Session.DisplayElements_SelectedItemChanged(Session.DisplayElements, null);
+        });
         Session.DisposeLoadedPlugin();
         this.StateHasChanged();
     }

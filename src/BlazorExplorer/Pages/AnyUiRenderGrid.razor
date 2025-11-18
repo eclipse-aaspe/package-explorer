@@ -1,7 +1,6 @@
 ﻿@page "/test2"
 @using AdminShellNS
 @using Aas = AasCore.Aas3_0
-@using AdminShellNS;
 @using Extensions
 @using AnyUi
 @using BlazorUI.Data
@@ -20,18 +19,10 @@
     if (_grid == null)
         return;
 
-    if (_grid?.Children != null && _grid.Children.Count >= 1
-        && _grid.Children[0] is AnyUiSelectableTextBlock stb
-        && stb.Text == "id:")
-        ;
-
     // because of not working with table, need an outer <div>
     var divOuterStyle = new StylePile();
     divOuterStyle.SetSpecifics(
         margin: _grid.Margin);
-
-    if (_grid?.Children != null && _numRow == 3 && _numCol == 3)
-        ;
 
     //
     // Eval different table attributes
@@ -183,9 +174,6 @@
                         <tr>
                             @for (int ci = 0; ci < _numCol; ci++)
                             {
-                                if (_numCol == 8 && ci == 0)
-                                    ;
-
                                 // this checks exactly for the root coordinates (no span coordinates)
                                 var foundContent = false;
                                 foreach (var ch in GetChildsAt(ri, ci))
@@ -344,6 +332,9 @@
     [Parameter]
     public AnyUiUIElement Parent { get; set; }
 
+    // TOD (MIHO, 2025-11-17): Check, according to ChatGPT it would be better to avoid a non-auto
+    // property, as many side effects may happen. This (below) seems to be last help ..
+#pragma warning disable BL0007
     [Parameter]
     public AnyUiUIElement Element
     {
@@ -418,10 +409,9 @@
                 _colHeadStyles.Add("width:100%;");
                 _colCellStyles.Add(";border: 1px dashed green");
             }
-
-            ;
         }
     }
+    #pragma warning restore BL0007
 
     protected StylePile GetColHeadStyle(int col)
     {

@@ -140,8 +140,7 @@ namespace IO.Swagger.Model
                 ) && base.Equals(input) &&
                 (
                     this.ValueType == input.ValueType ||
-                    (this.ValueType != null &&
-                    this.ValueType.Equals(input.ValueType))
+                    this.ValueType.Equals(input.ValueType)
                 );
         }
 
@@ -160,8 +159,7 @@ namespace IO.Swagger.Model
                     hashCode = hashCode * 59 + this.RefersTo.GetHashCode();
                 if (this.Value != null)
                     hashCode = hashCode * 59 + this.Value.GetHashCode();
-                if (this.ValueType != null)
-                    hashCode = hashCode * 59 + this.ValueType.GetHashCode();
+                hashCode = hashCode * 59 + this.ValueType.GetHashCode();
                 return hashCode;
             }
         }

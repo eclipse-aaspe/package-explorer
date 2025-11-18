@@ -493,25 +493,28 @@ namespace AasxOpenIdClient
                 if (rootCertFound)
                     fcollection = fcollection2;
 
-                X509Certificate2Collection scollection = X509Certificate2UI.SelectFromCollection(fcollection,
-                    "Test Certificate Select",
-                    "Select a certificate from the following list to get information on that certificate",
-                    X509SelectionFlag.SingleSelection);
-                if (scollection.Count != 0)
+                if (OperatingSystem.IsWindows())
                 {
-                    certificate = scollection[0];
-                    X509Chain ch = new X509Chain();
-                    ch.Build(certificate);
-
-                    string[] X509Base64 = new string[ch.ChainElements.Count];
-
-                    int j = 0;
-                    foreach (X509ChainElement element in ch.ChainElements)
+                    X509Certificate2Collection scollection = X509Certificate2UI.SelectFromCollection(fcollection,
+                        "Test Certificate Select",
+                        "Select a certificate from the following list to get information on that certificate",
+                        X509SelectionFlag.SingleSelection);
+                    if (scollection.Count != 0)
                     {
-                        X509Base64[j++] = Convert.ToBase64String(element.Certificate.GetRawCertData());
-                    }
+                        certificate = scollection[0];
+                        X509Chain ch = new X509Chain();
+                        ch.Build(certificate);
 
-                    x5c = X509Base64;
+                        string[] X509Base64 = new string[ch.ChainElements.Count];
+
+                        int j = 0;
+                        foreach (X509ChainElement element in ch.ChainElements)
+                        {
+                            X509Base64[j++] = Convert.ToBase64String(element.Certificate.GetRawCertData());
+                        }
+
+                        x5c = X509Base64;
+                    }
                 }
             }
             else

@@ -61,8 +61,8 @@ namespace AasxPackageLogic
 					Formatting = Formatting.Indented
 				};
 				settings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
-				//settings.Converters.Add(new AdminShellConverters.AdaptiveAasIClassConverter(
-				//	AdminShellConverters.AdaptiveAasIClassConverter.ConversionMode.AasCore));
+				////settings.Converters.Add(new AdminShellConverters.AdaptiveAasIClassConverter(
+				////AdminShellConverters.AdaptiveAasIClassConverter.ConversionMode.AasCore));
 				json = JsonConvert.SerializeObject(recInst, recType, settings);
 			}
 			catch (Exception ex)
@@ -947,9 +947,9 @@ namespace AasxPackageLogic
 				// List of enum?
 
 				// see:https://stackoverflow.com/questions/12617280/how-to-check-if-an-object-is-a-list-enum-type-objects
-				//var testListEnum = pii.PropertyType
-				//		.GetInterface("System.Collections.Generic.IList")?
-				//		.GetGenericArguments()?[0].IsEnum;
+				//// var testListEnum = pii.PropertyType
+				//// 		.GetInterface("System.Collections.Generic.IList")?
+				//// 		.GetGenericArguments()?[0].IsEnum;
 				var testListEnum = pii.PropertyType.IsGenericType
 						&& pii.PropertyType.GetGenericTypeDefinition() != null
 						&& pii.PropertyType.GetGenericTypeDefinition() == typeof(System.Collections.Generic.List<>)

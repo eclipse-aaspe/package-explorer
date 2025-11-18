@@ -143,7 +143,10 @@ namespace AasxPluginDocumentShelf
                 }
                 return bi;
 #else
-                ImgContainerAnyUi.BitmapInfo = AnyUiGdiHelper.CreateAnyUiBitmapInfo(fn);
+                if (OperatingSystem.IsWindows())
+                {
+                    ImgContainerAnyUi.BitmapInfo = AnyUiGdiHelper.CreateAnyUiBitmapInfo(fn);
+                }
 #endif
             }
             catch (Exception ex)
@@ -161,8 +164,11 @@ namespace AasxPluginDocumentShelf
 			// convert here, as the tick-Thread in STA / UI thread
 			try
 			{
-				ImgContainerAnyUi.BitmapInfo = AnyUiGdiHelper.CreateAnyUiBitmapFromResource(path,
-					assembly: Assembly.GetExecutingAssembly());
+                if (OperatingSystem.IsWindows())
+                {
+                    ImgContainerAnyUi.BitmapInfo = AnyUiGdiHelper.CreateAnyUiBitmapFromResource(path,
+                        assembly: Assembly.GetExecutingAssembly());
+                }
 			}
 			catch (Exception ex)
 			{

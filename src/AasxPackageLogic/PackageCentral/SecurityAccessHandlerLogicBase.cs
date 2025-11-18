@@ -618,7 +618,6 @@ namespace AasxPackageExplorer
 
             // connect to auth-server
             // check if the auth-server could be asked for
-            // var authConfigUrl = "https://www.admin-shell-io.com/50001/.well-known/openid-configuration";
             var authConfigUrl = "" + endpoint.Endpoint.AccessInfo.AuthServer;
             if (authConfigUrl?.HasContent() != true)
             {
@@ -893,10 +892,9 @@ namespace AasxPackageExplorer
 
             }
             else if (preferredMethod == SecurityAccessMethod.InteractiveEntry)
-            { 
-              
-                // test tenant for ENTRA id
-                // TODO: configure clientId
+            {
+                // ENTRA id
+                // TODO (MIHO, 2025-01-01): configure clientId
                 var tenant = "common"; // Damit auch externe Konten wie @live.de funktionieren
                 var clientId = "865f6ac0-cdbc-44c6-98cc-3e35c39ecb6e"; // aus der App-Registrierung
                 var scopes = new[] { "openid", "profile", "email" }; // für ID Token im JWT-Format
@@ -965,7 +963,6 @@ namespace AasxPackageExplorer
                 Log.Singleton.Info($"Security access handler: Add X5C token from ENTRA id ..");
                 claims.Add(new("entraid", entraid));
 
-                // var secret = "test-with-entra-id-34zu8934h89ehhghbgeg54tgfbufrbbssdbsbibu4trui45tr";
                 var secret = entraid;
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
                 var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

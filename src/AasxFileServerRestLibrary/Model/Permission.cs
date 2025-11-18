@@ -69,14 +69,8 @@ namespace IO.Swagger.Model
         public Permission(KindOfPermissionEnum kindOfPermission = default(KindOfPermissionEnum), Reference permission = default(Reference))
         {
             // to ensure "kindOfPermission" is required (not null)
-            if (kindOfPermission == null)
-            {
-                throw new InvalidDataException("kindOfPermission is a required property for Permission and cannot be null");
-            }
-            else
-            {
-                this.KindOfPermission = kindOfPermission;
-            }
+            KindOfPermission = kindOfPermission;
+            
             // to ensure "permission" is required (not null)
             if (permission == null)
             {
@@ -141,8 +135,7 @@ namespace IO.Swagger.Model
             return
                 (
                     this.KindOfPermission == input.KindOfPermission ||
-                    (this.KindOfPermission != null &&
-                    this.KindOfPermission.Equals(input.KindOfPermission))
+                    this.KindOfPermission.Equals(input.KindOfPermission)
                 ) &&
                 (
                     this._Permission == input._Permission ||
@@ -160,8 +153,7 @@ namespace IO.Swagger.Model
             unchecked // Overflow is fine, just wrap
             {
                 int hashCode = 41;
-                if (this.KindOfPermission != null)
-                    hashCode = hashCode * 59 + this.KindOfPermission.GetHashCode();
+                hashCode = hashCode * 59 + this.KindOfPermission.GetHashCode();
                 if (this._Permission != null)
                     hashCode = hashCode * 59 + this._Permission.GetHashCode();
                 return hashCode;

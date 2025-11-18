@@ -39,14 +39,7 @@ namespace IO.Swagger.Model
         public Entity(EntityType entityType = default(EntityType), Reference globalAssetId = default(Reference), List<IdentifierKeyValuePair> specificAssetIds = default(List<IdentifierKeyValuePair>), List<SubmodelElement> statements = default(List<SubmodelElement>), List<EmbeddedDataSpecification> embeddedDataSpecifications = default(List<EmbeddedDataSpecification>), Reference semanticId = default(Reference), List<Constraint> qualifiers = default(List<Constraint>), ModelingKind kind = default(ModelingKind)) : base(embeddedDataSpecifications, semanticId, qualifiers, kind)
         {
             // to ensure "entityType" is required (not null)
-            if (entityType == null)
-            {
-                throw new InvalidDataException("entityType is a required property for Entity and cannot be null");
-            }
-            else
-            {
-                this.EntityType = entityType;
-            }
+            this.EntityType = entityType;
             this.GlobalAssetId = globalAssetId;
             this.SpecificAssetIds = specificAssetIds;
             this.Statements = statements;
@@ -125,8 +118,7 @@ namespace IO.Swagger.Model
             return base.Equals(input) &&
                 (
                     this.EntityType == input.EntityType ||
-                    (this.EntityType != null &&
-                    this.EntityType.Equals(input.EntityType))
+                    this.EntityType.Equals(input.EntityType)
                 ) && base.Equals(input) &&
                 (
                     this.GlobalAssetId == input.GlobalAssetId ||
@@ -156,8 +148,7 @@ namespace IO.Swagger.Model
             unchecked // Overflow is fine, just wrap
             {
                 int hashCode = base.GetHashCode();
-                if (this.EntityType != null)
-                    hashCode = hashCode * 59 + this.EntityType.GetHashCode();
+                hashCode = hashCode * 59 + this.EntityType.GetHashCode();
                 if (this.GlobalAssetId != null)
                     hashCode = hashCode * 59 + this.GlobalAssetId.GetHashCode();
                 if (this.SpecificAssetIds != null)

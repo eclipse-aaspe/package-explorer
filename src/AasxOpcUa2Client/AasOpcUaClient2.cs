@@ -134,8 +134,6 @@ namespace AasxOpcUa2Client
             return new NodeId(nodeName, (ushort)index);
         }
 
-        private Dictionary<string, ushort> nsDict = null;
-
         public NodeId CreateNodeId(string nodeName, string ns)
         {
             // access

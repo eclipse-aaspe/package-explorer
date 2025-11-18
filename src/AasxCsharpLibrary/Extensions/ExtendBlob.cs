@@ -13,7 +13,7 @@ namespace Extensions
     public static class ExtendBlob
     {
         public static void Set(this Blob blob,
-            string contentType = "", byte[]? value = null)
+            string contentType = "", byte[] value = null)
         {
             blob.ContentType = contentType;
             blob.Value = value;

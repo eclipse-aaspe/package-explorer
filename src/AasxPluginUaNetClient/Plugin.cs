@@ -47,7 +47,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
             _log.Info("InitPlugin() called with args = {0}", (args == null) ? "" : string.Join(", ", args));
         }
 
-        public AasxPluginActionDescriptionBase[] ListActions()
+        public new AasxPluginActionDescriptionBase[] ListActions()
         {
             var res = ListActionsBasicHelper(
                 enableCheckVisualExt: false,

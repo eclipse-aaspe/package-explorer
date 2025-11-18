@@ -59,9 +59,6 @@ namespace AasxPluginExportTable.Table
                     if (runs != null)
                         foreach (var r in runs)
                         {
-                            if (r.ChildElements == null)
-                                continue;
-
                             foreach (var rc in r.ChildElements)
                             {
                                 if (rc is Text rct)

@@ -143,8 +143,7 @@ namespace IO.Swagger.Model
                 ) && base.Equals(input) &&
                 (
                     this.Kind == input.Kind ||
-                    (this.Kind != null &&
-                    this.Kind.Equals(input.Kind))
+                    this.Kind.Equals(input.Kind)
                 ) && base.Equals(input) &&
                 (
                     this.SubmodelElements == input.SubmodelElements ||
@@ -169,8 +168,7 @@ namespace IO.Swagger.Model
                     hashCode = hashCode * 59 + this.Qualifiers.GetHashCode();
                 if (this.SemanticId != null)
                     hashCode = hashCode * 59 + this.SemanticId.GetHashCode();
-                if (this.Kind != null)
-                    hashCode = hashCode * 59 + this.Kind.GetHashCode();
+                hashCode = hashCode * 59 + this.Kind.GetHashCode();
                 if (this.SubmodelElements != null)
                     hashCode = hashCode * 59 + this.SubmodelElements.GetHashCode();
                 return hashCode;

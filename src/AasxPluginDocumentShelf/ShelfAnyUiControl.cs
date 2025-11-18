@@ -874,6 +874,8 @@ namespace AasxPluginDocumentShelf
             List<Aas.ISubmodelElement> sourceElems,
             Action<FormDescSubmodelElementCollection> lambda)
         {
+            await Task.Yield();
+
             // ask the plugin generic forms for information via event stack
             _eventStack?.PushEvent(new AasxIntegrationBase.AasxPluginResultEventInvokeOtherPlugin()
             {
@@ -1440,10 +1442,6 @@ namespace AasxPluginDocumentShelf
 
         #region Timer
         //===========
-
-        private object mutexDocEntitiesInPreview = new object();
-        private int numDocEntitiesInPreview = 0;
-        private const int maxDocEntitiesInPreview = 3;
 
         private bool _inDispatcherTimer = false;
 

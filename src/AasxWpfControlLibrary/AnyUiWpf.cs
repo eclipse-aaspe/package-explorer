@@ -913,6 +913,7 @@ namespace AnyUi
                    }
                 }),
 
+#if old_diabled
                 /*new RenderRec(typeof(AnyUiCountryFlag), typeof(CountryFlag.Wpf.CountryFlag), (a, b, mode, rd) =>
                 {
                    if (a is AnyUiCountryFlag cntl && b is CountryFlag.Wpf.CountryFlag wpf
@@ -927,6 +928,7 @@ namespace AnyUi
                         wpf.CountryCode = cntl.ISO3166Code;
                    }
                 }),*/
+#endif
 
                 new RenderRec(typeof(AnyUiTextBox), typeof(TextBox), (a, b, mode, rd) =>
                 {

@@ -207,7 +207,6 @@ namespace AdminShellNS
                 foreach (var x in FindAllRelationships(package, relTypesOrigin))
                     if (x.Rel.SourceUri.ToString() == "/")
                     {
-                        //originPart = package.GetPart(x.TargetUri);
                         var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                         if (package.PartExists(absoluteURI))
                         {
@@ -224,7 +223,6 @@ namespace AdminShellNS
                 PackagePart specPart = null;
                 foreach (var x in FindAllRelationships(originPart, relTypesSpec))
                 {
-                    //specPart = package.GetPart(x.TargetUri);
                     var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                     if (package.PartExists(absoluteURI))
                     {
@@ -831,7 +829,6 @@ namespace AdminShellNS
                                 foreach (var x in FindAllRelationships(specPart, relTypesSuppl))
                                     if (x.Rel.TargetUri == psfAdd.Uri)
                                     {
-                                        //filePart = package.GetPart(x.TargetUri);
                                         var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                                         if (package.PartExists(absoluteURI))
                                         {
@@ -853,7 +850,6 @@ namespace AdminShellNS
                                 foreach (var x in FindAllRelationships(package, relTypesThumb))
                                     if (x.Rel.SourceUri.ToString() == "/" && x.Rel.TargetUri == psfAdd.Uri)
                                     {
-                                        //filePart = package.GetPart(x.TargetUri);
                                         var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                                         if (package.PartExists(absoluteURI))
                                         {
@@ -1264,7 +1260,6 @@ namespace AdminShellNS
             foreach (var x in FindAllRelationships(_openPackage, relTypesThumb))
                 if (x.Rel.SourceUri.ToString() == "/")
                 {
-                    //thumbPart = _openPackage.GetPart(x.TargetUri);
                     var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                     if (_openPackage.PartExists(absoluteURI))
                     {
@@ -1308,7 +1303,6 @@ namespace AdminShellNS
                 foreach (var x in FindAllRelationships(_openPackage, relTypesOrigin))
                     if (x.Rel.SourceUri.ToString() == "/")
                     {
-                        //originPart = _openPackage.GetPart(x.TargetUri);
                         var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                         if (_openPackage.PartExists(absoluteURI))
                         {
@@ -1323,7 +1317,6 @@ namespace AdminShellNS
                     PackagePart specPart = null;
                     foreach (var x in FindAllRelationships(originPart, relTypesSpec))
                     {
-                        //specPart = _openPackage.GetPart(x.TargetUri);
                         var absoluteURI = PackUriHelper.ResolvePartUri(x.Rel.SourceUri, x.Rel.TargetUri);
                         if (_openPackage.PartExists(absoluteURI))
                         {

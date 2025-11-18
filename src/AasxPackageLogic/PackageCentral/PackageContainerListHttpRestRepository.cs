@@ -79,10 +79,6 @@ namespace AasxPackageLogic.PackageCentral
 
             // always have a location
             Endpoint = location;
-
-            // directly set endpoint
-            // Note: later
-            // _connector = new PackageConnectorHttpRest(null, Endpoint);
         }
 
         //

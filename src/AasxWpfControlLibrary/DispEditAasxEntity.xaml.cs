@@ -661,7 +661,7 @@ namespace AasxPackageExplorer
                 return;
 
             // no plugin
-            // DisposeLoadedPlugin();
+            //// DisposeLoadedPlugin();
 
             // redisplay
             theMasterPanel.Children.Clear();

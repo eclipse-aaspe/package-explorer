@@ -2305,9 +2305,9 @@ namespace AasxPackageLogic
                     env.AllConceptDescriptions().Cast<Aas.IIdentifiable>().ToList()))
                 {
                     foreach(var idfrec in DispEditHelperExtensions.CheckReferableForExtensionRecords(idf))
-					    if (idfrec is IExtensionStructureModel esm /* && esm.IsTopElement() */)
+					    if (idfrec is IExtensionStructureModel esm /* & & esm.IsTopElement() */)
 					    {
-						    // add && recurse
+						    // add & recurse
 						    // might not be in structure
 						    lambdaAddRecurse(tiStructuredRoot, idf as Aas.IConceptDescription, 0);
 					    }
@@ -2320,7 +2320,7 @@ namespace AasxPackageLogic
 					foreach (var me in DispEditHelperSammModules.CheckReferableForSammElements(cd))
                         if (me is Samm.ISammStructureModel ssm && ssm.IsTopElement())
                         {
-                            // add && recurse
+                            // add & recurse
                             // mark as in structure
                             lambdaAddRecurse(tiStructuredRoot, cd, 0);
                         }
@@ -3358,7 +3358,7 @@ namespace AasxPackageLogic
                             continue;
 
                         // add to parent
-                        // TODO: check if package = null is ok!
+                        // TODO (MIHO, 2025-01-01): check if package = null is ok!
                         GenerateVisualElementsFromShellEnvAddElements(
                             cache, null /* package */, data.Container?.Env?.AasEnv, parentSm, parentVE,
                             data.ParentElem as Aas.IReferable, foundSmw, indexPos++);
@@ -3393,7 +3393,7 @@ namespace AasxPackageLogic
 
                         // add to parent
                         // TODO (MIHO, 2021-06-11): Submodel needs to be set in the long run
-                        // TODO: check if package = null is ok!
+                        // TODO (MIHO, 2025-01-01): check if package = null is ok!
                         var ti = GenerateVisualElementsFromShellEnvAddElements(
                             cache, null /* package */, data.Container?.Env?.AasEnv, null, parentVE,
                             data.ParentElem as Aas.IReferable, foundSmw, indexPos++);

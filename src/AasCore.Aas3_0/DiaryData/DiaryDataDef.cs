@@ -23,7 +23,7 @@ namespace AdminShellNS.DiaryData
         /// Note: Default is <c>Entries = null</c>, as handling of many many AAS elements does not
         /// create additional overhead of creating empty lists. An empty list shall be avoided.
         /// </summary>
-        public List<IAasDiaryEntry> Entries = null;
+        public List<IAasDiaryEntry>? Entries = null;
 
         public static void AddAndSetTimestamps(IReferable element, IAasDiaryEntry de, bool isCreate = false)
         {
@@ -44,7 +44,7 @@ namespace AdminShellNS.DiaryData
             }
 
             // set this timestamp (and for the parents, as well)
-            IDiaryData el = element;
+            IDiaryData? el = element;
             while (el?.DiaryData != null)
             {
                 // itself

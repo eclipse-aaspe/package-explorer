@@ -310,7 +310,6 @@ namespace AasxPredefinedConcepts.AssetInterfacesDescription
     {
         [AasConcept(Cd = "https://www.w3.org/2019/wot/td#PropertyAffordance", Card = AasxPredefinedCardinality.ZeroToOne)]
         public CD_PropertiesAffordance Properties = null;
-        // public CD_Properties Properties = null;
 
         [AasConcept(Cd = "https://www.w3.org/2019/wot/td#ActionAffordance", Card = AasxPredefinedCardinality.ZeroToOne)]
         public CD_Actions Actions = null;

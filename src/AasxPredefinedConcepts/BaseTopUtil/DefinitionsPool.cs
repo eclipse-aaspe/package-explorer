@@ -47,7 +47,7 @@ namespace AasxPredefinedConcepts
             }
         }
 
-        public override string DisplayName { get { return (Ref != null) ? Ref.IdShort : ""; } }
+        public override string DisplayName { get { return (Ref != null) ? (Ref.IdShort ?? "") : ""; } }
 
         public override string DisplayId
         {
@@ -187,7 +187,7 @@ namespace AasxPredefinedConcepts
             {
                 if (ir == null)
                     continue;
-                this.Add(new DefinitionsPoolReferableEntity(ir, Domain, ir.IdShort));
+                this.Add(new DefinitionsPoolReferableEntity(ir, Domain, ir.IdShort ?? ""));
             }
         }
 

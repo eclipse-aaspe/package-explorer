@@ -55,8 +55,7 @@ namespace WpfMtpControl
                 try
                 {
                     var c = (Color)ColorConverter.ConvertFromString(preset);
-                    if (c != null)
-                        color = new SolidColorBrush(c);
+                    color = new SolidColorBrush(c);
                 }
                 catch (Exception ex)
                 {

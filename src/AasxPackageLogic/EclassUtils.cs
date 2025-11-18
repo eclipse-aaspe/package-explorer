@@ -655,10 +655,6 @@ namespace AasxPackageLogic
                                 // set it
                                 ds.ShortName ??= new List<ILangStringShortNameTypeIec61360>();
                                 ds.ShortName.Add(new Aas.LangStringShortNameTypeIec61360(pn.Language, sn));
-                                //ds.ShortName = new List<Aas.ILangStringShortNameTypeIec61360>
-                                //{
-                                //    new Aas.LangStringShortNameTypeIec61360(AdminShellUtil.GetDefaultLngIso639(), sn)
-                                //}; 
                             }
                         }
                     }

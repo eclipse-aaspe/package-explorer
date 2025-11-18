@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.Versioning;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -42,13 +43,22 @@ namespace AasxOpenIdClient
                                     string content, string text, string caption, MessageBoxButtons buttons = 0);
             public ShowMessageDelegate MesssageBox;
 
+            [SupportedOSPlatform("windows")]
             public static DialogResult MesssageBoxShow(
                 UiLambdaSet lambdaSet,
                 string content, string text, string caption, MessageBoxButtons buttons = 0)
             {
                 if (lambdaSet?.MesssageBox != null)
                     return lambdaSet.MesssageBox(content, text, caption, buttons);
-                return System.Windows.Forms.MessageBox.Show(content + text, caption, buttons);
+
+                if (OperatingSystem.IsWindowsVersionAtLeast(6, 1, 0))
+                {
+                    return System.Windows.Forms.MessageBox.Show(content + text, caption, buttons);
+                }
+                else
+                {
+                    return DialogResult.OK;
+                }
             }
         }
 
@@ -111,17 +121,22 @@ namespace AasxOpenIdClient
                 "outputDir: " + outputDir + "\n" +
                 "\nConinue?";
 
-            // Displays the MessageBox.
-            var result = UiLambdaSet.MesssageBoxShow(
-                uiLambda, message, "", caption, MessageBoxButtons.YesNo);
-            if (result != System.Windows.Forms.DialogResult.Yes)
+            // Displays the MessageBox
+            if (OperatingSystem.IsWindows())
             {
-                // Closes the parent form.
-                return;
-            }
+                #pragma warning disable CA1416 // Plattformkompatibilität überprüfen
+                var result = UiLambdaSet.MesssageBoxShow(
+                    uiLambda, message, "", caption, MessageBoxButtons.YesNo);
+                if (result != System.Windows.Forms.DialogResult.Yes)
+                {
+                    // Closes the parent form.
+                    return;
+                }
 
-            UiLambdaSet.MesssageBoxShow(uiLambda, "", "Access Aasx Server at " + dataServer,
-                "Data Server", MessageBoxButtons.OK);
+                UiLambdaSet.MesssageBoxShow(uiLambda, "", "Access Aasx Server at " + dataServer,
+                    "Data Server", MessageBoxButtons.OK);
+                #pragma warning restore CA1416 // Plattformkompatibilität überprüfen
+            }
 
             var handler = new HttpClientHandler();
             handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
@@ -147,8 +162,13 @@ namespace AasxOpenIdClient
 
             while (operation != "")
             {
-                UiLambdaSet.MesssageBoxShow(uiLambda, "", "operation: " + operation + value + "\ntoken: " + token,
-                    "Operation", MessageBoxButtons.OK);
+                if (OperatingSystem.IsWindows())
+                {
+                    #pragma warning disable CA1416 // Plattformkompatibilität überprüfen
+                    UiLambdaSet.MesssageBoxShow(uiLambda, "", "operation: " + operation + value + "\ntoken: " + token,
+                        "Operation", MessageBoxButtons.OK);
+                    #pragma warning restore CA1416 // Plattformkompatibilität überprüfen
+                }
 
                 switch (operation)
                 {
@@ -174,8 +194,14 @@ namespace AasxOpenIdClient
                                     StringSplitOptions.RemoveEmptyEntries);
                                 Console.WriteLine("Redirect to:" + splitResult[0]);
                                 authServer = splitResult[0];
-                                UiLambdaSet.MesssageBoxShow(
-                                    uiLambda, authServer, "", "Redirect to", MessageBoxButtons.OK);
+
+                                if (OperatingSystem.IsWindows())
+                                {
+                                    #pragma warning disable CA1416 // Plattformkompatibilität überprüfen
+                                    UiLambdaSet.MesssageBoxShow(
+                                        uiLambda, authServer, "", "Redirect to", MessageBoxButtons.OK);
+                                    #pragma warning restore CA1416 // Plattformkompatibilität überprüfen
+                                }
                                 lastOperation = operation;
                                 operation = "authenticate";
                                 continue;
@@ -190,9 +216,14 @@ namespace AasxOpenIdClient
                             switch (operation)
                             {
                                 case "/server/listaas/":
-                                    UiLambdaSet.MesssageBoxShow(uiLambda,
+                                    if (OperatingSystem.IsWindows())
+                                    {
+                                        #pragma warning disable CA1416 // Plattformkompatibilität überprüfen
+                                        UiLambdaSet.MesssageBoxShow(uiLambda,
                                         "", "SelectFromListFlyoutItem missing", "SelectFromListFlyoutItem missing",
                                         MessageBoxButtons.OK);
+                                        #pragma warning restore CA1416 // Plattformkompatibilität überprüfen
+                                    }
                                     value = "0";
                                     operation = "/server/getaasx2/";
                                     break;
@@ -247,8 +278,13 @@ namespace AasxOpenIdClient
                             client.SetBearerToken(token);
 
                             response.Show();
-                            UiLambdaSet.MesssageBoxShow(uiLambda, response.AccessToken, "",
+                            if (OperatingSystem.IsWindows())
+                            {
+                                #pragma warning disable CA1416 // Plattformkompatibilität überprüfen
+                                UiLambdaSet.MesssageBoxShow(uiLambda, response.AccessToken, "",
                                 "Access Token", MessageBoxButtons.OK);
+                                #pragma warning restore CA1416 // Plattformkompatibilität überprüfen
+                            }
 
                             operation = lastOperation;
                             lastOperation = "";
@@ -261,8 +297,13 @@ namespace AasxOpenIdClient
                         }
                         break;
                     case "error":
-                        UiLambdaSet.MesssageBoxShow(uiLambda, "", $"Can not perform: {lastOperation}",
+                        if (OperatingSystem.IsWindows())
+                        {
+                            #pragma warning disable CA1416 // Plattformkompatibilität überprüfen
+                            UiLambdaSet.MesssageBoxShow(uiLambda, "", $"Can not perform: {lastOperation}",
                             "Error", MessageBoxButtons.OK);
+                            #pragma warning restore CA1416 // Plattformkompatibilität überprüfen
+                        }
                         operation = "";
                         break;
                 }
@@ -280,7 +321,12 @@ namespace AasxOpenIdClient
             var disco = await client.GetDiscoveryDocumentAsync(authServer);
             if (disco.IsError) throw new Exception(disco.Error);
 
-            UiLambdaSet.MesssageBoxShow(uiLambda, disco.Raw, "", "Discovery JSON", MessageBoxButtons.OK);
+            if (OperatingSystem.IsWindows())
+            {
+                #pragma warning disable CA1416 // Plattformkompatibilität überprüfen
+                UiLambdaSet.MesssageBoxShow(uiLambda, disco.Raw, "", "Discovery JSON", MessageBoxButtons.OK);
+                #pragma warning restore CA1416 // Plattformkompatibilität überprüfen
+            }
 
             List<string> rootCertSubject = new List<string>();
             dynamic discoObject = null;
@@ -301,7 +347,12 @@ namespace AasxOpenIdClient
             Console.ResetColor();
             Console.WriteLine(clientToken + "\n");
 
-            UiLambdaSet.MesssageBoxShow(uiLambda, clientToken, "", "Client Token", MessageBoxButtons.OK);
+            if (OperatingSystem.IsWindows())
+            {
+                #pragma warning disable CA1416 // Plattformkompatibilität überprüfen
+                UiLambdaSet.MesssageBoxShow(uiLambda, clientToken, "", "Client Token", MessageBoxButtons.OK);
+                #pragma warning restore CA1416 // Plattformkompatibilität überprüfen
+            }
 
             var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
             {
@@ -378,12 +429,21 @@ namespace AasxOpenIdClient
 
             if (credential == null)
             {
-                var res = UiLambdaSet.MesssageBoxShow(uiLambda, "",
-                        "Select certificate chain from certificate store? \n" +
-                        "(otherwise use file Andreas_Orzelski_Chain.pfx)",
-                        "Select certificate chain", MessageBoxButtons.YesNo);
+                var fix = true;
 
-                if (res == DialogResult.No)
+                if (OperatingSystem.IsWindows())
+                {
+                    #pragma warning disable CA1416 // Plattformkompatibilität überprüfen
+                    var res = UiLambdaSet.MesssageBoxShow(uiLambda, "",
+                            "Select certificate chain from certificate store? \n" +
+                            "(otherwise use file Andreas_Orzelski_Chain.pfx)",
+                            "Select certificate chain", MessageBoxButtons.YesNo);
+                    #pragma warning restore CA1416 // Plattformkompatibilität überprüfen
+                    if (res != DialogResult.No)
+                        fix = false;
+                }
+
+                if (fix)
                 {
                     certFileName = "Andreas_Orzelski_Chain.pfx";
                     password = "i40";
@@ -418,25 +478,28 @@ namespace AasxOpenIdClient
                 if (rootCertFound)
                     fcollection = fcollection2;
 
-                X509Certificate2Collection scollection = X509Certificate2UI.SelectFromCollection(fcollection,
-                    "Test Certificate Select",
-                    "Select a certificate from the following list to get information on that certificate",
-                    X509SelectionFlag.SingleSelection);
-                if (scollection.Count != 0)
+                if (OperatingSystem.IsWindows())
                 {
-                    certificate = scollection[0];
-                    X509Chain ch = new X509Chain();
-                    ch.Build(certificate);
-
-                    string[] X509Base64 = new string[ch.ChainElements.Count];
-
-                    int j = 0;
-                    foreach (X509ChainElement element in ch.ChainElements)
+                    X509Certificate2Collection scollection = X509Certificate2UI.SelectFromCollection(fcollection,
+                        "Test Certificate Select",
+                        "Select a certificate from the following list to get information on that certificate",
+                        X509SelectionFlag.SingleSelection);
+                    if (scollection.Count != 0)
                     {
-                        X509Base64[j++] = Convert.ToBase64String(element.Certificate.GetRawCertData());
-                    }
+                        certificate = scollection[0];
+                        X509Chain ch = new X509Chain();
+                        ch.Build(certificate);
 
-                    x5c = X509Base64;
+                        string[] X509Base64 = new string[ch.ChainElements.Count];
+
+                        int j = 0;
+                        foreach (X509ChainElement element in ch.ChainElements)
+                        {
+                            X509Base64[j++] = Convert.ToBase64String(element.Certificate.GetRawCertData());
+                        }
+
+                        x5c = X509Base64;
+                    }
                 }
             }
             else
@@ -479,7 +542,10 @@ namespace AasxOpenIdClient
                 Convert.ToBase64String(certificate.RawData, Base64FormattingOptions.InsertLineBreaks));
             builder.AppendLine("-----END CERTIFICATE-----");
 
-            UiLambdaSet.MesssageBoxShow(uiLambda, builder.ToString(), "", "Client Certificate", MessageBoxButtons.OK);
+            if (OperatingSystem.IsWindowsVersionAtLeast(6, 1, 1))
+            {
+                UiLambdaSet.MesssageBoxShow(uiLambda, builder.ToString(), "", "Client Certificate", MessageBoxButtons.OK);
+            }
 
             credential = new X509SigningCredentials(certificate);
             // oz end

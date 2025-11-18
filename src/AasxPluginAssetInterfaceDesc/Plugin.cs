@@ -33,7 +33,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
         private AasxPluginAssetInterfaceDescription.AssetInterfaceOptions _options
             = new AasxPluginAssetInterfaceDescription.AssetInterfaceOptions();
 
-        // TODO: make this multi-session!!
+        // TODO (MIHO, 2024-01-01): make this multi-session!!
         private AidAllInterfaceStatus _allInterfaceStatus = null;
         private AidInterfaceService _interfaceService = null;
 

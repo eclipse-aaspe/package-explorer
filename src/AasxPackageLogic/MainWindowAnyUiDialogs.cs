@@ -797,7 +797,7 @@ namespace AasxPackageLogic
                 ticket.StartExec();
 
                 // edit infos
-                // TODO: adopt from?
+                // TODO (MIHO, 2024-01-01): adopt from?
                 var record = (null) ?? new PackageContainerHttpRepoSubset.ConnectExtendedRecord();
 
                 var uiRes = await PackageContainerHttpRepoSubset.PerformConnectExtendedDialogue(

@@ -39,14 +39,18 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications.Helper
 
             lambda("PDN", "Discontinuation", "Unit is no longer produced by the original manufacturer according to original specification.");
             lambda("MANAQ", "Acquisition", "Transfer of a unit, portfolio or production from one production from one manufacturer to another");
-            lambda("ALERT", "Alarm", "The manufacturer warns of changes and restrictions that he has detected in a product. For example, functional limitations on the units themselves, but also descriptions of unexpected behavior under certain conditions and also temporary interruptions in the production of the units.");
+            lambda("ALERT", "Alarm", "The manufacturer warns of changes and restrictions that he has detected in a product. For example, functional " +
+                "limitations on the units themselves, but also descriptions of unexpected behavior under certain conditions and also " +
+                "temporary interruptions in the production of the units.");
             lambda("SOFTW", "Change of the software", "Change of the software");
             lambda("LABEL", "Labeling", "Change the labeling of the unit and or packing");
-            lambda("CHARA", "Characteristics", "Characteristics such as attribute values of the unit are omitted, are added or changed. They can be electrical, mechanical, thermal or other characteristics kind");
+            lambda("CHARA", "Characteristics", "Characteristics such as attribute values of the unit are omitted, are added or changed. They can be electrical, " +
+                "mechanical, thermal or other characteristics kind");
             lambda("DOCUM", "Documentation", "General summary of changes made to the changes made. It does not change characteristics of the units are changed.");
             lambda("NRND", "Restriction of the Recommendation for use", "Official recommendation to no longer use the unit for new developments");
             lambda("FIT", "Fit", "Describes a change in the units of fit and fit with respect to other units connected in the units connected in the product.");
-            lambda("FORM", "Shape and Appearance", "Describes a change in the outward appearance of the units. This concerns the spatial dimensions and form, but also colors and surface textures.");
+            lambda("FORM", "Shape and Appearance", "Describes a change in the outward appearance of the units. This concerns the spatial dimensions and form, but " +
+                "also colors and surface textures.");
             lambda("FUNCT", "Function", "Changes or effects from operation and performance");
             lambda("INSOL", "Insolvency", "insolvency of the manufacturer");
             lambda("CORR", "Correction", "Correction of documentation without change to the unit");
@@ -57,7 +61,8 @@ namespace AasxPredefinedConcepts.ProductChangeNotifications.Helper
             lambda("PSITE", "Production site", "The production site is changed.");
             lambda("CANCN", "Undo PCN", "A certain previous PCN will be undone reversed");
             lambda("CANDN", "Withdrawal PDN", "Production of the unit is resumed. PDN loses validity.");
-            lambda("RECA", "Recall", "The manufacturer recalls the units from the market and explains the reasons and effects on the units themselves. The reasons can be manifold, from technical malfunctions to patent infringements");
+            lambda("RECA", "Recall", "The manufacturer recalls the units from the market and explains the reasons and effects on the units themselves. " +
+                "The reasons can be manifold, from technical malfunctions to patent infringements");
             lambda("TESTP", "Test process", "Modification of test processes before, during and after production, before delivery");
             lambda("TESTS", "Test location", "Change of the location where the tests are performed are performed");
             lambda("ORCOD", "Type codes", "Accompanying numbers next to the identifying number of the unit are changed - not the identifying number itself.");

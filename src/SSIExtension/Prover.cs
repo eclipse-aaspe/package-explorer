@@ -26,10 +26,11 @@ using System.Threading;
 
 namespace SSIExtension
 {
-    public class test
+    public class Test
     {
         public static bool withAgents = false;
     }
+    
     public class Prover
     {
         public string APIEndpoint { get; }
@@ -47,7 +48,7 @@ namespace SSIExtension
 
         public string CreateInvitation()
         {
-            if (!test.withAgents)
+            if (!Test.withAgents)
                 return "aorzelski@phoenixcontact.com";
 
             HttpResponseMessage result = new HttpClient().PostAsync(

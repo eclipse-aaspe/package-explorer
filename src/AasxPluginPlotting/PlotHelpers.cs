@@ -32,9 +32,11 @@ using Aas = AasCore.Aas3_0;
 using AdminShellNS;
 using Extensions;
 using ScottPlot;
+using System.Runtime.Versioning;
 
 namespace AasxPluginPlotting
 {
+    [SupportedOSPlatform("windows")]
     public static class PlotHelpers
     {
         public static Brush BrushFrom(System.Drawing.Color col)
