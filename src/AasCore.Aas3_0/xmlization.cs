@@ -16838,7 +16838,7 @@ namespace AasCore.Aas3_0
                 //         ?? throw new System.InvalidOperationException(
                 //            "Unexpected null, had to be handled before"));
 
-                // TODO: Suppress, because of least side effects
+                // TODO (Jui, 2024-01-01): Suppress, because of least side effects
 #pragma warning disable CS8604
                 return new EmbeddedDataSpecification(theDataSpecification, theDataSpecificationContent);
 #pragma warning restore CS8604

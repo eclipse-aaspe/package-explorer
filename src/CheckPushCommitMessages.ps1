@@ -33,7 +33,8 @@ function Main
     }
 
     # Get commit hashes not available in the master
-    $hashesText = git log 'origin/master..HEAD' '--format=format:%H'|Out-String
+    # Note: for new repo, seems to switch from master to main?!
+    $hashesText = git log 'origin/main..HEAD' '--format=format:%H'|Out-String
 
     [string[]]$hashes = $()
     foreach($line in ($hashesText -Split "`n"))

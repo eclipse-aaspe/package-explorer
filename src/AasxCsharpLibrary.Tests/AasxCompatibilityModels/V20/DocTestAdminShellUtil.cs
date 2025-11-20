@@ -3,60 +3,60 @@
 
 using NUnit.Framework;
 
-namespace AdminShellNS.Tests
+namespace AdminShell_V20.Tests
 {
-    public class DocTest_AdminShellUtil_cs
+    public class DocTest_AasxCompatibilityModels_V20_AdminShellUtil_cs
     {
         [Test]
-        public void AtLine530AndColumn12()
+        public void AtLine39AndColumn12()
         {
             Assert.AreEqual("someName", AdminShellUtil.FilterFriendlyName("someName"));
         }
 
         [Test]
-        public void AtLine531AndColumn12()
+        public void AtLine40AndColumn12()
         {
             Assert.AreEqual("some__name", AdminShellUtil.FilterFriendlyName("some!;name"));
         }
 
         [Test]
-        public void AtLine577AndColumn12()
+        public void AtLine50AndColumn12()
         {
             Assert.IsFalse(AdminShellUtil.HasWhitespace(""));
         }
 
         [Test]
-        public void AtLine578AndColumn12()
+        public void AtLine51AndColumn12()
         {
             Assert.IsTrue(AdminShellUtil.HasWhitespace(" "));
         }
 
         [Test]
-        public void AtLine579AndColumn12()
+        public void AtLine52AndColumn12()
         {
             Assert.IsTrue(AdminShellUtil.HasWhitespace("aa bb"));
         }
 
         [Test]
-        public void AtLine580AndColumn12()
+        public void AtLine53AndColumn12()
         {
             Assert.IsTrue(AdminShellUtil.HasWhitespace(" aabb"));
         }
 
         [Test]
-        public void AtLine581AndColumn12()
+        public void AtLine54AndColumn12()
         {
             Assert.IsTrue(AdminShellUtil.HasWhitespace("aabb "));
         }
 
         [Test]
-        public void AtLine582AndColumn12()
+        public void AtLine55AndColumn12()
         {
             Assert.IsFalse(AdminShellUtil.HasWhitespace("aabb"));
         }
 
         [Test]
-        public void AtLine594AndColumn12()
+        public void AtLine67AndColumn12()
         {
             Assert.IsTrue(AdminShellUtil.ComplyIdShort(""));
         }
