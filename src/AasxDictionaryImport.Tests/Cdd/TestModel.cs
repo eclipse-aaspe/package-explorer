@@ -242,7 +242,7 @@ namespace AasxDictionaryImport.Cdd.Tests
 
             public Model.DataSourceType Type => throw new System.NotImplementedException();
 
-            public bool Equals(Model.IDataSource other)
+            public bool Equals(Model.IDataSource? other)
             {
                 throw new System.NotImplementedException();
             }

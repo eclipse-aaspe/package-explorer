@@ -67,37 +67,41 @@ namespace AasxDictionaryImport.Cdd.Tests
             SetSelected(c1, true);
             Assert.That(c1.ImportSubmodelInto(env, adminShell));
             Assert.That(adminShell.Submodels, Has.Count.EqualTo(1));
-            var submodel = env.FindSubmodel(adminShell.Submodels[0]);
+            var submodel = env.FindSubmodel(adminShell?.Submodels?[0]);
             Assert.That(submodel.IdShort, Is.EqualTo("MainTestClass"));
             Assert.That(submodel.SubmodelElements, Is.Not.Null);
             Assert.That(submodel.SubmodelElements, Has.Count.EqualTo(2));
 
-            var c2 = submodel.SubmodelElements[0];
+            var c2 = submodel?.SubmodelElements?[0];
+            Assert.That(c2, Is.Not.Null);
             Assert.That(c2, Is.TypeOf<Aas.SubmodelElementCollection>());
-            Assert.That(c2.IdShort, Is.EqualTo("Block1"));
+            Assert.That(c2?.IdShort, Is.EqualTo("Block1"));
             if (!(c2 is Aas.ISubmodelElementCollection c2Coll))
                 return;
             Assert.That(c2Coll.Value, Has.Count.EqualTo(1));
 
-            var p3Element = c2Coll.Value[0];
+            var p3Element = c2Coll?.Value?[0];
+            Assert.That(p3Element, Is.Not.Null);
             Assert.That(p3Element, Is.TypeOf<Aas.IProperty>());
-            Assert.That(p3Element.IdShort, Is.EqualTo("TestProperty1"));
+            Assert.That(p3Element?.IdShort, Is.EqualTo("TestProperty1"));
             // TODO (Robin, 2020-09-03): please check
             // dead-csharp off
             // Assert.That(p3Element.hasDataSpecification, Is.Not.Null);
             // Assert.That(p3Element.hasDataSpecification, Has.Count.EqualTo(1));
             // dead-csharp on
 
-            var c3 = submodel.SubmodelElements[1];
+            var c3 = submodel?.SubmodelElements?[1];
+            Assert.That(c3, Is.Not.Null);
             Assert.That(c3, Is.TypeOf<Aas.SubmodelElementCollection>());
-            Assert.That(c3.IdShort, Is.EqualTo("Block2"));
+            Assert.That(c3?.IdShort, Is.EqualTo("Block2"));
             if (!(c3 is Aas.ISubmodelElementCollection c3Coll))
                 return;
             Assert.That(c3Coll.Value, Has.Count.EqualTo(1));
 
-            var p4Element = c3Coll.Value[0];
+            var p4Element = c3Coll?.Value?[0];
+            Assert.That(p4Element, Is.Not.Null);
             Assert.That(p4Element, Is.TypeOf<Aas.Property>());
-            Assert.That(p4Element.IdShort, Is.EqualTo("TestProperty2"));
+            Assert.That(p4Element?.IdShort, Is.EqualTo("TestProperty2"));
             // TODO (Robin, 2020-09-03): please check
             // dead-csharp off
             // Assert.That(p4Element.hasDataSpecification, Is.Not.Null);

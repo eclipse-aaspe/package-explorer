@@ -12,7 +12,6 @@
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="System.IO.Packaging" Version="9.0.10" />
   </ItemGroup>
 
   <ItemGroup>
