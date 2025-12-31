@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView x:Name="Root" 
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiTestTree.NavIconButton">
+    <Border
+        StrokeThickness="0"
+        BackgroundColor="Transparent"
+        Padding="2"
+        StrokeShape="RoundRectangle 3">
+
+        <Border.GestureRecognizers>
+            <PointerGestureRecognizer
+                PointerEntered="OnEnter"
+                PointerExited="OnExit" />
+            <TapGestureRecognizer
+                Tapped="OnTapped" />
+        </Border.GestureRecognizers>
+
+        <Image Aspect="AspectFit">
+            <Image.Source>
+                <FontImageSource
+                    FontFamily="MaterialOutlined"
+                    Glyph="{Binding Glyph, Source={x:Reference Root}}"
+                    Size="24">
+                    <FontImageSource.Color>
+                        <AppThemeBinding
+                            Light="{StaticResource ToolbarIconColorLight}"
+                            Dark="{StaticResource ToolbarIconColorDark}" />
+                    </FontImageSource.Color>
+                </FontImageSource>
+            </Image.Source>
+        </Image>
+    </Border>
+</ContentView>

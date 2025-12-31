@@ -52,7 +52,6 @@
     <ProjectReference Include="..\AasxBammRdfImExport\AasxBammRdfImExport.csproj" />
     <ProjectReference Include="..\AasxCore.Samm2_2_0\AasxCore.Samm2_2_0.csproj" />
     <ProjectReference Include="..\AasxFileServerRestLibrary\AasxFileServerRestLibrary.csproj" />
-    <ProjectReference Include="..\AasxIntegrationBaseWpf\AasxIntegrationBaseWpf.csproj" />
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
     <ProjectReference Include="..\AasxOpenidClient\AasxOpenidClient.csproj" />
     <ProjectReference Include="..\AasxPredefinedConcepts\AasxPredefinedConcepts.csproj" />

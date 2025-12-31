@@ -680,6 +680,14 @@ namespace AasxIntegrationBase
             }).FirstOrDefault();
         }
 
+        public AasxMenuItemBase FindHeader(string name)
+        {
+            return FindAll<AasxMenuItem>((i) =>
+            {
+                return i?.Header?.Trim().ToLower() == name?.Trim().ToLower();
+            }).FirstOrDefault();
+        }
+
         //
         // Special functions
         //

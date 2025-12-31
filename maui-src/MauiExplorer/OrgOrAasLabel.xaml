@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiTestTree.OrgOrAasLabel"      
+             Padding="0">
+    <Grid x:Name="Container"
+          Margin="0" Padding="0">
+
+        <Grid x:Name="OrgGrid" IsVisible="True"
+              Margin="0" Padding="0">
+
+            <Grid.BackgroundColor>
+                <AppThemeBinding
+                    Light="Transparent"
+                    Dark="{StaticResource Primary}" />
+            </Grid.BackgroundColor>
+
+            <Image HorizontalOptions="Start"
+                   VerticalOptions="Center"
+                   MaximumHeightRequest="32"
+                   Margin="0,8,0,8">
+
+                <Image.Source>
+                    <AppThemeBinding>
+                        <AppThemeBinding.Light>
+                            logo_idta_200x60_light.png
+                        </AppThemeBinding.Light>
+                        <AppThemeBinding.Dark>
+                            logo_idta_188_dark.png
+                        </AppThemeBinding.Dark>
+                    </AppThemeBinding>
+                </Image.Source>
+
+            </Image>
+
+        </Grid>
+
+        <Grid x:Name="AasGrid" IsVisible="False"
+              ColumnDefinitions="1*, 3*"
+              RowDefinitions="*, *"
+              Margin="0" Padding="0">
+
+            <Image Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
+                MaximumWidthRequest="48" MinimumWidthRequest="24"
+                HorizontalOptions="Start"
+                VerticalOptions="Center">
+                <Image.Source>
+                    <AppThemeBinding>
+                        <AppThemeBinding.Light>
+                            idta_aas_asset_logo_small_rgb.png
+                        </AppThemeBinding.Light>
+                        <AppThemeBinding.Dark>
+                            idta_aas_asset_logo_small_invert_rgb.png
+                        </AppThemeBinding.Dark>
+                    </AppThemeBinding>
+                </Image.Source>
+            </Image>
+
+            <Border Grid.Column="1" Grid.Row="0" 
+                    Margin="2,2,0,1" Padding="2,0,2,0"
+                    StrokeThickness="1.5"
+                    StrokeShape="RoundRectangle 8">
+                <Border.Stroke>
+                    <AppThemeBinding
+                        Light="{StaticResource Primary}"
+                        Dark="White" />
+                </Border.Stroke>
+
+                <Label x:Name="AasIdLabel"
+                    HorizontalTextAlignment="Center"
+                    VerticalTextAlignment="Center"
+                    HorizontalOptions="Center"           
+                    VerticalOptions="Center"
+                    LineBreakMode="CharacterWrap"
+                    FontSize="8"
+                    Margin="0" Padding="0">
+                    <Label.TextColor>
+                        <AppThemeBinding
+                            Light="Black"
+                            Dark="White" />
+                    </Label.TextColor>
+                </Label>
+
+            </Border>
+
+            <Border Grid.Column="1" Grid.Row="1" 
+                    Margin="2,2,0,1" Padding="2,0,2,0"
+                    StrokeThickness="1.5"
+                    StrokeShape="RoundRectangle 8">
+                <Border.Stroke>
+                    <AppThemeBinding
+                        Light="Black"
+                        Dark="White" />
+                </Border.Stroke>
+                <Border.Background>
+                    <AppThemeBinding
+                        Light="Transparent"
+                        Dark="#828282" />
+                </Border.Background>
+
+                <Label x:Name="AssetIdLabel"
+                       HorizontalTextAlignment="Center"
+                       VerticalTextAlignment="Center"
+                       HorizontalOptions="Center"           
+                       VerticalOptions="Center"
+                       LineBreakMode="CharacterWrap"
+                       FontSize="8"
+                       Margin="0" Padding="0">
+                    <Label.TextColor>
+                        <AppThemeBinding
+                        Light="Black"
+                        Dark="White" />
+                    </Label.TextColor>
+                </Label>
+
+            </Border>
+
+        </Grid>
+
+    </Grid>
+</ContentView>

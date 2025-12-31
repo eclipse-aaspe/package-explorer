@@ -106,6 +106,16 @@ namespace AnyUi
     {
         public AnyUiGridLength Width;
         public double? MinWidth, MaxWidth;
+
+        public AnyUiColumnDefinition() { }
+
+        public AnyUiColumnDefinition(
+            double value, AnyUiGridUnitType type = AnyUiGridUnitType.Auto,
+            double? minWidth = null)
+        {
+            Width = new AnyUiGridLength(value, type);
+            MinWidth = minWidth;
+        }
     }
 
     public class AnyUiRowDefinition

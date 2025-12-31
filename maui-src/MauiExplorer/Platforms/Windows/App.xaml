@@ -1,0 +1,19 @@
+﻿<maui:MauiWinUIApplication
+    x:Class="MauiTestTree.WinUI.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:maui="using:Microsoft.Maui"
+    xmlns:local="using:MauiTestTree.WinUI">
+
+    <!-- Enable better scrollbars -->
+    <!-- see: https://github.com/dotnet/maui/issues/18101 -->
+    <maui:MauiWinUIApplication.Resources>
+        <ResourceDictionary>
+            <Style TargetType="ScrollBar">
+                <Setter Property="Background" Value="#60000000" />
+                <Setter Property="Foreground" Value="Green" />
+            </Style>
+        </ResourceDictionary>
+    </maui:MauiWinUIApplication.Resources>
+
+</maui:MauiWinUIApplication>
