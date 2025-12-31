@@ -80,43 +80,43 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="MenuCheckableOptions.xaml.cs">
+	  <Compile Update="ModalPages\MenuCheckableOptions.xaml.cs">
 	    <DependentUpon>MenuCheckableOptions.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="OrgOrAasLabel.xaml.cs">
+	  <Compile Update="CustomControls\OrgOrAasLabel.xaml.cs">
 	    <DependentUpon>OrgOrAasLabel.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="AutoFitLabel.xaml.cs">
+	  <Compile Update="CustomControls\AutoFitLabel.xaml.cs">
 	    <DependentUpon>AutoFitLabel.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="TreeElemChevron.xaml.cs">
+	  <Compile Update="CustomControls\TreeElemChevron.xaml.cs">
 	    <DependentUpon>TreeElemChevron.xaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="DispEditAasxEntityMaui.xaml">
+	  <MauiXaml Update="MainWindow\DispEditAasxEntityMaui.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="LabelledCheckBox.xaml">
+	  <MauiXaml Update="CustomControls\LabelledCheckBox.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MenuCheckableOptions.xaml">
+	  <MauiXaml Update="ModalPages\MenuCheckableOptions.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="MenuPickerPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="NavIconButton.xaml">
+	  <MauiXaml Update="CustomControls\NavIconButton.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="OrgOrAasLabel.xaml">
+	  <MauiXaml Update="CustomControls\OrgOrAasLabel.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="AutoFitLabel.xaml">
+	  <MauiXaml Update="CustomControls\AutoFitLabel.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="TreeElemChevron.xaml">
+	  <MauiXaml Update="CustomControls\TreeElemChevron.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

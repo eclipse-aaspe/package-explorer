@@ -59,10 +59,6 @@ namespace MauiTestTree
         public string AasId { get; set; } = "www.example.com/ids/aas/4045_9021_2042_4546";
         public string AssetId { get; set; } = "www.example.com/ids/asset/1345_9021_2042_9492";
         
-        public TreeElemNode RootNode { get; set; } = new();
-
-        public List<Person> ListData { get; } = new List<Person>();
-
         public AasxMenu MainMenu = AasxPackageExplorer.ExplorerMenuFactory.CreateMainMenu();
 
         public string LogLine { get; set; } = "Ready.";
@@ -73,42 +69,10 @@ namespace MauiTestTree
         //
         //
 
-        protected object? _selectedItem = null;
-        public object? SelectedItem { get => _selectedItem; 
-            set 
-            {
-                _selectedItem = value;
-                if (_selectedItem is TreeNodeContainer<object> tnc && tnc.Data is TreeElemNode tn)
-                    Trace.WriteLine("" + tn.Caption);
-            } 
-        }
         public ObservableCollection<object> SelectedItems = new();
 
         public MainViewModel()
         {
-            ListData.Add(new Person() { Name = "Micha", Title = "Nobody" });
-            ListData.Add(new Person() { Name = "Paule", Title = "Profi" });
-
-            RootNode.Caption = "Hallo";
-
-            var root1 = new TreeElemNode { Tag = "AAS", Caption = "SMT PCN", Info = "SMT for Product Change Notification" };
-            root1.Children.Add(new TreeElemNode { Tag = "SMC", Caption = "Section 1", Info = "Basics" });
-            root1.Children.Add(new TreeElemNode { Tag = "SMC", Caption = "Section 2" });
-
-            var root2 = new TreeElemNode { Tag = "Asset", Caption = "Asset", Info = "Asset description" };
-            root2.Children.Add(new TreeElemNode { Tag = "SMC", Caption = "Child 3" });
-
-            var root3 = new TreeElemNode { Tag = "SMC", Caption = "Root3" };
-            root3.Children.Add(new TreeElemNode { Tag = "SMC", Caption = "Child 4" });
-
-            RootNode.Children.Add(root1);
-            RootNode.Children.Add(root2);
-            RootNode.Children.Add(root3);
-
-            SelectedItems.CollectionChanged += (s, e) =>
-            {
-                Trace.WriteLine("" + s);
-            };
         }
     }
 }
