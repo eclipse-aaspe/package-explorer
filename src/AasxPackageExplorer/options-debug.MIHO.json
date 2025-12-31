@@ -411,12 +411,12 @@
       "Args": [],
       "Options": null,
       "DefaultOptions": null
-    },
+    } /*,
     {
       "Path": "..\\..\\..\\..\\..\\..\\AasxPluginWebBrowser\\bin\\x64\\Debug\\AasxPluginWebBrowser.dll",
       "Args": [],
       "Options": null,
       "DefaultOptions": null
-    }
+    }*/
   ]
 }

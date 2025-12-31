@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiTestTree.LabelledCheckBox">
+    <HorizontalStackLayout x:Name="MainLayout"
+                           Spacing="{Binding Padding, Source={x:Reference Name=This}}"
+                           VerticalOptions="Center"
+                           BackgroundColor="{Binding Background, Source={x:Reference Name=This}}">
+
+        <CheckBox x:Name="CheckBoxControl"
+                  IsChecked="{Binding IsChecked, Source={x:Reference Name=This}}"
+                  CheckedChanged="CheckBoxControl_CheckedChanged"
+                  VerticalOptions="Center"/>
+
+        <!--
+        <Label x:Name="LabelControl"
+               Text="{Binding Text, Source={x:Reference Name=This}}"
+               TextColor="{Binding Foreground, Source={x:Reference Name=This}}"
+               VerticalOptions="Center"/>
+        -->
+
+        <Label x:Name="LabelControl"
+           Text="{Binding Text, Source={x:Reference This}}"
+           TextColor="{Binding Foreground, Source={x:Reference This}}"
+           FontSize="{Binding FontSize, Source={x:Reference This}}"
+           FontFamily="{Binding FontFamily, Source={x:Reference This}}"
+           FontAttributes="{Binding FontAttributes, Source={x:Reference This}}"
+           VerticalTextAlignment="{Binding VerticalTextAlignment, Source={x:Reference This}}"
+           HorizontalTextAlignment="{Binding HorizontalTextAlignment, Source={x:Reference This}}"
+           VerticalOptions="Center" />
+
+    </HorizontalStackLayout>
+</ContentView>

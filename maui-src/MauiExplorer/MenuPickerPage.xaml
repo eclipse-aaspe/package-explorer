@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:cz="clr-namespace:FunctionZero.Maui.Controls;assembly=FunctionZero.Maui.Controls"
+             x:Class="MauiTestTree.MenuPickerPage"
+             xmlns:local="clr-namespace:MauiTestTree"
+             Title="Pick an option"
+             Background="{DynamicResource Primary}">
+
+    <ContentPage.Resources>
+        <local:BoolToColorConverter
+            x:Key="HighlightConverter"
+            TrueColor="{StaticResource Secondary}"
+            FalseColor="{StaticResource PrimaryLightLight}" />
+
+        <local:InverseBoolConverter
+            x:Key="MyInverseBoolConverter" />
+
+        <ControlTemplate x:Key="MenuPickerItemControlTemplate">
+            <Grid ColumnDefinitions="Auto, *" >
+                <cz:TreeNodeSpacer />
+                <local:TreeElemChevron Grid.Column="0"
+                    Margin="10"
+                    Glyph="&#xf04b;|FASolid|#000000"
+                    IsExpanded="{TemplateBinding BindingContext.IsExpanded, Mode=TwoWay}" 
+                    ShowChevron="{TemplateBinding BindingContext.ShowChevron, Mode=TwoWay}" />
+                <cz:TreeContentPresenter  Grid.Column="1"
+                    VerticalOptions="Fill" 
+                    HorizontalOptions="Fill"   
+                    BindingContext="{TemplateBinding BindingContext.Data, Mode=OneWay}" />
+            </Grid>
+        </ControlTemplate>
+
+        <Style x:Key="MenuPickerItemStyle" TargetType="cz:ListItemZero">
+            <Setter Property="VisualStateManager.VisualStateGroups" >
+                <VisualStateGroupList>
+                    <VisualStateGroup x:Name="CommonStates">
+
+                        <!-- BackgroundColor must have a value set or the other states cannot 'put back' the original color -->
+                        <!-- I *think* this is due to a bug in MAUI because unappyling a Setter ought to revert to the original value or default -->
+                        <VisualState x:Name="Normal" >
+                            <VisualState.Setters>
+                                <Setter Property="BackgroundColor" Value="Transparent" />
+                            </VisualState.Setters>
+                        </VisualState>
+
+                        <VisualState x:Name="ItemFocused">
+                            <VisualState.Setters>
+                                <Setter Property="BackgroundColor" Value="DarkGray" />
+                            </VisualState.Setters>
+                        </VisualState>
+
+                        <VisualState x:Name="Selected">
+                            <VisualState.Setters>
+                                <Setter Property="BackgroundColor" Value="AliceBlue" />
+                            </VisualState.Setters>
+                        </VisualState>
+
+                    </VisualStateGroup>
+                </VisualStateGroupList>
+            </Setter>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="1*,8*, 1*" ColumnDefinitions="*">
+        
+        <!-- Top row-->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+            <!-- Close -->
+            <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="1"
+                VerticalOptions="Center" Margin="8"
+                Padding="0" BackgroundColor="Transparent" CornerRadius="8"
+                Clicked="OnCancelClicked">
+
+                <Button.ImageSource>
+                    <FontImageSource
+                        FontFamily="MaterialOutlined"
+                        Glyph="{x:Static m:MaterialOutlined.Close}"
+                        Size="36"
+                        Color="White" />
+                </Button.ImageSource>
+
+            </Button>
+        </Grid>
+
+        <Label Grid.Row="0" Grid.Column="0"
+               Text="{Binding DialogHeader}"
+               VerticalOptions="Center"
+               HorizontalOptions="Center"
+               TextColor="White" FontSize="18"/>
+        
+        <!-- Middle row: Grid -->
+        <!--
+        <cz:TreeViewZero x:Name="MyTree" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+            ItemsSource="{Binding RootItem}" 
+            ItemHeight="40" 
+            Background="White" 
+            IsRootVisible="False"
+            SelectionMode="Single"
+            SelectedItem="{Binding SelectedItem}"                                  
+            TreeItemControlTemplate="{StaticResource MenuPickerItemControlTemplate}"
+            ItemContainerStyle="{StaticResource MenuPickerItemStyle}">
+            <cz:TreeViewZero.TreeItemTemplate>
+                <cz:TreeItemDataTemplate ChildrenPropertyName="Children" IsExpandedPropertyName="IsExpanded">
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="*">
+
+                            <Grid Grid.Row="0" Grid.Column="0"
+                                  IsVisible="True"
+                                  Margin="8,8,8,8"
+                                  RowDefinitions="Auto, Auto"
+                                  HorizontalOptions="Start">
+                                <Label Grid.Row="0" 
+                                       Text="{Binding Header}" FontSize="16" TextColor="Black" 
+                                       Margin="0,0,0,4"
+                                       HorizontalOptions="Start"/>
+                                <Label Grid.Row="1" 
+                                       Text="{Binding HelpText}" FontSize="12" FontAttributes="Italic" TextColor="DarkGray" 
+                                       LineBreakMode="WordWrap" 
+                                       Margin="0,0,0,4"
+                                       HorizontalOptions="Center"/>
+                            </Grid>
+
+                            <Label Grid.Row="0" Grid.Column="0" 
+                                IsVisible="False"
+                                Margin="0" 
+                                Text="{Binding Header}" 
+                                TextColor="Black" 
+                                VerticalTextAlignment="Center" />
+
+                            <Label Grid.Column="1" Margin="4,0,0,0" Text="{Binding HelpText}" TextColor="Red" VerticalTextAlignment="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </cz:TreeItemDataTemplate>
+            </cz:TreeViewZero.TreeItemTemplate>
+        </cz:TreeViewZero>
+        -->
+
+        <CollectionView x:Name="ItemsView"
+            Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+            ItemsSource="{Binding Items}"
+            VerticalScrollBarVisibility="Always"
+            SelectionMode="None">
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <!-- Full card -->
+                        <Grid
+                            RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*"
+                            IsVisible="{Binding IsSubMenu, Converter={StaticResource MyInverseBoolConverter}}"
+                            Padding="12"
+                            Margin="8"
+                            BackgroundColor="{Binding IsSelected, Converter={StaticResource HighlightConverter}}">
+
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="ItemsView_ItemTapped"/>
+                            </Grid.GestureRecognizers>
+
+                            <Image 
+                                Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"                                
+                                IsVisible="{Binding DisplayCheckOn}"
+                                Margin="0,0,12,0">
+                                <Image.Source>
+                                    <FontImageSource
+                                        FontFamily="MaterialOutlined"
+                                        Glyph="{x:Static m:MaterialOutlined.Check_box}"
+                                        Size="36"
+                                        Color="Black" />
+                                </Image.Source>
+                            </Image>
+
+                            <Image 
+                                Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
+                                IsVisible="{Binding DisplayCheckOff}"
+                                Margin="0,0,12,0">
+                                <Image.Source>
+                                    <FontImageSource
+                                        FontFamily="MaterialOutlined"
+                                        Glyph="{x:Static m:MaterialOutlined.Check_box_outline_blank}"
+                                        Size="36"
+                                        Color="Black" />
+                                </Image.Source>
+                            </Image>
+
+                            <Label
+                                Grid.Row="0" Grid.Column="1"
+                                Text="{Binding Header}"
+                                TextColor="{DynamicResource Primary}"
+                                FontSize="16"
+                                FontAttributes="Bold" />
+
+                            <Label
+                                Grid.Row="1" Grid.Column="1"
+                                Text="{Binding HelpText}"
+                                FontSize="13"
+                                TextColor="{DynamicResource Gray600}" />
+
+                        </Grid>
+                    
+                        <!-- Else: Sub section header -->
+                        <Grid IsVisible="{Binding IsSubMenu}">
+                            <Label Text="{Binding Header}"
+                                   FontSize="16" FontAttributes="Bold"
+                                   TextColor="White"
+                                   LineBreakMode="WordWrap"
+                                   HorizontalOptions="Start"
+                                   VerticalOptions="Center" 
+                                   Margin="8, 10, 0, 4" />
+                        </Grid>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+        </CollectionView>
+
+        <!-- Bottom row-->
+        <Grid Grid.Row="2" ColumnDefinitions="*">
+            <!-- Select -->
+            <Button x:Name="SelectButton" Grid.Row="0" Grid.Column="0"
+                IsEnabled="False"
+                VerticalOptions="Center" Margin="8"
+                Padding="0" BackgroundColor="Transparent" CornerRadius="8"
+                Clicked="OnCancelClicked" BorderColor="White" BorderWidth="2"
+                Text="Activate"
+                TextColor="White"
+                FontSize="18">
+                
+                <Button.ImageSource>
+                    <FontImageSource
+                        FontFamily="MaterialOutlined"
+                        Glyph="{x:Static m:MaterialOutlined.Check}"
+                        Size="36"
+                        Color="White" />
+                </Button.ImageSource>
+            </Button>
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

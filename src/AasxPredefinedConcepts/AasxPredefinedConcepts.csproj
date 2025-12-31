@@ -19,6 +19,7 @@
     <None Remove="Resources\ZveiTimeSeriesDataV10.json" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AasCore.Aas3_1\AasCore.Aas3_1.csproj" />
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
   </ItemGroup>
   <ItemGroup>

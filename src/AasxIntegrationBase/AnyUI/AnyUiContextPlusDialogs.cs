@@ -86,6 +86,13 @@ namespace AnyUi
         Blazor,
 
         /// <summary>
+        /// Display is a MAUI application. 
+        /// Allows hardcoded behaviour. It is recommended to use
+        /// other capablities instead.
+        /// </summary>
+        MAUI,
+
+        /// <summary>
         /// Display can perform open/save dialogs and further without
         /// utilizing the singleton modal flyover.
         /// Note: display context allows only for one level of
