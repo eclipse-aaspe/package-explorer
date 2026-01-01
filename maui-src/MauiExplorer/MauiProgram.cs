@@ -2,6 +2,7 @@
 using System.Reflection;
 using Microsoft.Extensions.Logging;
 using UraniumUI;
+using CommunityToolkit.Maui;
 
 namespace MauiTestTree
 {
@@ -33,6 +34,7 @@ namespace MauiTestTree
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .UseUraniumUI()
                 .UseUraniumUIMaterial() // important!
                 .ConfigureFonts(fonts =>
