@@ -99,6 +99,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="MainWindow\DiplayVisualAasxElements.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="MainWindow\DispEditAasxEntityMaui.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

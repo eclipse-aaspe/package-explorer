@@ -26,10 +26,8 @@ using System.Threading.Tasks;
 using System.IO;
 using static System.Net.Mime.MediaTypeNames;
 using System.Numerics;
-using System.Windows.Forms;
 using QRCoder;
 using ImageMagick;
-using System.DirectoryServices.ActiveDirectory;
 
 
 namespace AasxPluginDigitalNameplate

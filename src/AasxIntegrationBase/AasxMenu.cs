@@ -742,6 +742,21 @@ namespace AasxIntegrationBase
             }
             return res;
         }
+
+        //
+        // back-ported from AasxMenuWpf
+        //
+
+        public bool IsChecked(string name)
+        {
+            //1//
+            return false;
+        }
+
+        public void SetChecked(string name, bool state)
+        {
+            //1//
+        }
     }
 
     /// <summary>
