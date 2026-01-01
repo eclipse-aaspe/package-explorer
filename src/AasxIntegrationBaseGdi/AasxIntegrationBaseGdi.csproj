@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+	  <TargetFrameworks>net9.0</TargetFrameworks>
+	  
   
     <!-- force NuGet / Build to put required.dll and more to bin folder -->
     <!-- Drawback: puts all other *.dll as well :-( -->

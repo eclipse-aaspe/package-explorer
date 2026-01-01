@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:cz="clr-namespace:FunctionZero.Maui.Controls;assembly=FunctionZero.Maui.Controls"
+             x:Class="MauiTestTree.ContextMenuSubstitute"
+             xmlns:local="clr-namespace:MauiTestTree"
+             Title="Pick an option"
+             Background="{DynamicResource Primary}">
+
+    <ContentPage.Resources>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*" ColumnDefinitions="*">
+        
+        <!-- Top row-->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+            <!-- Close -->
+            <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="1"
+                VerticalOptions="Center" Margin="8"
+                Padding="0" BackgroundColor="Transparent" CornerRadius="8"
+                Clicked="OnCancelClicked">
+
+                <Button.ImageSource>
+                    <FontImageSource
+                        FontFamily="MaterialOutlined"
+                        Glyph="{x:Static m:MaterialOutlined.Exit_to_app}"
+                        Size="36"
+                        Color="White" />
+                </Button.ImageSource>
+
+            </Button>
+        </Grid>
+
+        <Label Grid.Row="0" Grid.Column="0"
+               Text="{Binding DialogHeader}"
+               VerticalOptions="Center"
+               HorizontalOptions="Center"
+               Margin="8,8,8,16"
+               TextColor="White" FontSize="18"/>
+
+        <CollectionView x:Name="ItemsView"
+            Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+            ItemsSource="{Binding Items}"
+            VerticalScrollBarVisibility="Always"
+            SelectionMode="None">
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <!-- Full card -->
+                        <Grid
+                            RowDefinitions="Auto" ColumnDefinitions="Auto,*"
+                            Padding="12"
+                            Margin="8"
+                            BackgroundColor="{StaticResource PrimaryLightLight}">
+
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="ItemsView_ItemTapped"/>
+                            </Grid.GestureRecognizers>
+
+                                <!--IsVisible="{Binding ShowIcon}"
+                            <Image 
+                                Grid.Row="0" Grid.Column="0"                                
+                                Margin="0,0,12,0">
+                                <Image.Source>
+                                        FontFamily="{Binding IconFontAlias}"
+                                        Glyph="{Binding IconGlyph}"
+                                        Size="{Binding IconFontSize}"
+                                    <FontImageSource
+                                        FontFamily="OpenSansSemibold"
+                                        Glyph="A"
+                                        Size="32"
+                                        Color="Black" />
+                                </Image.Source>
+                            </Image>
+                            -->
+                    
+                            <Label
+                                Grid.Row="0" Grid.Column="0"
+                                IsVisible="{Binding ShowIcon}"
+                                Margin="0,0,12,0"
+                                Text="{Binding IconGlyph}"
+                                FontFamily="{Binding IconFontAlias}"
+                                FontSize="{Binding IconFontSize}"
+                                TextColor="Black"
+                                VerticalTextAlignment="Center"
+                                HorizontalTextAlignment="Center" />
+                            
+                            <!-- Display one or two lines -->
+                            <Grid RowDefinitions="Auto, Auto"
+                                Grid.Row="0" Grid.Column="1"
+                                VerticalOptions="Center">
+                                <Label
+                                    Grid.Row="0" Grid.Column="0"
+                                    Text="{Binding Header}"
+                                    TextColor="{DynamicResource Primary}"
+                                    FontSize="16"
+                                    FontAttributes="Bold" />
+
+                                <Label
+                                    Grid.Row="1" Grid.Column="0"
+                                    IsVisible="{Binding ShowHelpText}"
+                                    Text="{Binding HelpText}"
+                                    FontSize="13"
+                                    TextColor="{DynamicResource Gray600}" />
+                            </Grid>
+
+
+                        </Grid>
+                        
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+        </CollectionView>
+
+    </Grid>
+
+</ContentPage>

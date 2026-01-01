@@ -14,7 +14,6 @@ using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 /*
 Copyright (c) 2020 see https://github.com/IdentityServer/IdentityServer4
@@ -23,6 +22,8 @@ We adapted the code marginally and removed the parts that we do not use.
 */
 
 // ReSharper disable All .. as this is code from others (adapted from IdentityServer4).
+
+#if OLD_WIN_CODE
 
 namespace AasxOpenIdClient
 {
@@ -520,3 +521,27 @@ namespace AasxOpenIdClient
         }
     }
 }
+
+#else
+
+    // TODO (MIHO/OZ, 2026-01-01): Nix there is no static info available without Windows
+
+    public class OpenIDClient
+    {
+        public static string ssiURL = "";
+        public static string keycloak = "";
+        public static string email = "";
+        public static bool auth = false;
+        public static string token = "";
+        public static string authServer = "";
+
+        public static async Task<TokenResponse> RequestTokenAsync(
+                SigningCredentials credential,
+                object uiLambda = null)
+        {
+            await Task.Yield();
+            return null;
+        }
+    }
+
+#endif

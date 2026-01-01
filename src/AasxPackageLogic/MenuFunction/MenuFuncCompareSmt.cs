@@ -15,36 +15,20 @@ using AasCore.Aas3_1;
 using AasxIntegrationBase;
 using AasxPackageLogic;
 using AdminShellNS;
-using Aml.Engine.CAEX;
-using AngleSharp.Text;
 using AnyUi;
 using Extensions;
 using Jose;
-using Microsoft.VisualBasic.ApplicationServices;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Org.Webpki.JsonCanonicalizer;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.ConstrainedExecution;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using static AasxPredefinedConcepts.ConceptModel.ConceptModelZveiTechnicalData;
-using System.Windows.Forms;
-using VDS.RDF.Ontology;
-using VDS.RDF.Query.Paths;
-using static System.Net.Mime.MediaTypeNames;
 using Aas = AasCore.Aas3_1;
-using VDS.RDF.Query.Algebra;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace AasxPackageExplorer
 {

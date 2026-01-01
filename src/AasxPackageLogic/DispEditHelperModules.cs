@@ -7,8 +7,6 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
-using AasCore.Samm2_2_0;
-using AasxAmlImExport;
 using AasxCompatibilityModels;
 using AasxIntegrationBase;
 using AdminShellNS;
@@ -21,23 +19,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Windows.Media;
-using System.Xaml;
-using VDS.RDF.Parsing;
-using VDS.RDF;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 using Aas = AasCore.Aas3_1;
-using Samm = AasCore.Samm2_2_0;
-using System.Text.RegularExpressions;
-using System.Runtime.Intrinsics.X86;
-using System.Runtime.Serialization;
 using System.Text;
 using AasxPackageLogic.PackageCentral;
 using System.Threading.Tasks;
-using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
-using System.Security.Cryptography;
-using System.Collections;
 
 namespace AasxPackageLogic
 {

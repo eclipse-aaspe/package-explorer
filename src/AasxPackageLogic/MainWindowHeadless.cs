@@ -15,7 +15,6 @@ using AasxPackageExplorer;
 using AasxPackageLogic.PackageCentral;
 using AasxPredefinedConcepts;
 using AasxPredefinedConcepts.Convert;
-using AasxSignature;
 using AdminShellNS;
 using AnyUi;
 using Extensions;
@@ -25,12 +24,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using VDS.RDF.Parsing;
-using VDS.RDF;
 using Aas = AasCore.Aas3_1;
 using static AasxPackageLogic.DispEditHelperBasics;
-using System.Drawing;
-using System.IO.Packaging;
 
 // ReSharper disable MethodHasAsyncOverload
 
@@ -230,6 +225,7 @@ namespace AasxPackageLogic
                     return;
                 }
 
+                // AASPE Deprecated
                 // Porting (MIHO): this seems to be executed, if above functions are not engaged
                 // suspecting: for whole AAS/ package or so ..
 
@@ -244,10 +240,12 @@ namespace AasxPackageLogic
                     }
 
                     // do
+#if WINDOWS
                     PackageHelper.SignAll(
                         sourceFn, certFn,
                         invokeMessage: (ticket.InvokeMessage == null)
                             ? StandardInvokeMessageDelegate : ticket.InvokeMessage);
+#endif
                 }
 
                 if (cmd == "validatecertificate")
@@ -260,9 +258,11 @@ namespace AasxPackageLogic
                     }
 
                     // do
+#if WINDOWS
                     PackageHelper.Validate(sourceFn,
                         invokeMessage: (ticket.InvokeMessage == null)
                             ? StandardInvokeMessageDelegate : ticket.InvokeMessage);
+#endif
                 }
 
                 if (cmd == "encrypt")
