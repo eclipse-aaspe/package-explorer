@@ -89,12 +89,10 @@ namespace MauiTestTree
         }
 
         public AnyUiDisplayContextMaui(
-            /* IFlyoutProvider flyoutProvider, PackageCentral packages */)
+            IFlyoutProvider flyoutProvider, PackageCentral packages)
         {
-#if TODO
             FlyoutProvider = flyoutProvider;
             Packages = packages;
-#endif
             InitRenderRecs();
         }
 
@@ -1922,6 +1920,8 @@ namespace MauiTestTree
             // access
             if (dc == null || cntl == null || mauiCntl == null || cntlcm.MenuItemHeaders.Length < 2)
                 return null;
+
+            await Task.Yield();
 
             //
             // Android -> Custom dialogue
