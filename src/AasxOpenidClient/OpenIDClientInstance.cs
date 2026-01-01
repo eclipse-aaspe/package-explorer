@@ -493,6 +493,9 @@ namespace AasxOpenIdClient
                 if (rootCertFound)
                     fcollection = fcollection2;
 
+                // TODO (MIHO, 2026-01-01): Needs to be explanted or converted to AnyUI code
+                // (see new security implementation)
+#if WINDOWS
                 X509Certificate2Collection scollection = X509Certificate2UI.SelectFromCollection(fcollection,
                     "Test Certificate Select",
                     "Select a certificate from the following list to get information on that certificate",
@@ -513,6 +516,7 @@ namespace AasxOpenIdClient
 
                     x5c = X509Base64;
                 }
+#endif
             }
             else
             {

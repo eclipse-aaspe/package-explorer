@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<!-- <TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks> -->
-		 <!--<TargetFrameworks>net9.0-android</TargetFrameworks>--> 
+		 <TargetFrameworks>net9.0-android</TargetFrameworks> 
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net9.0-tizen</TargetFrameworks> -->
@@ -80,6 +80,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="ModalPages\ContextMenuSubstitute.xaml.cs">
+	    <DependentUpon>ContextMenuSubstitute.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="ModalPages\MenuCheckableOptions.xaml.cs">
 	    <DependentUpon>MenuCheckableOptions.xaml</DependentUpon>
 	  </Compile>
@@ -101,10 +104,13 @@
 	  <MauiXaml Update="CustomControls\LabelledCheckBox.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="ModalPages\ContextMenuSubstitute.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="ModalPages\MenuCheckableOptions.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MenuPickerPage.xaml">
+	  <MauiXaml Update="ModalPages\MenuPickerPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="CustomControls\NavIconButton.xaml">

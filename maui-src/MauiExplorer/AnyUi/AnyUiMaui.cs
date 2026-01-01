@@ -8,10 +8,15 @@ using System.Threading.Tasks;
 using AasxIntegrationBase;
 using AasxPackageLogic.PackageCentral;
 using AnyUi;
+using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Layouts;
 using Newtonsoft.Json;
+
+#if IOS || MACCATALYST
+using UIKit;
+#endif
 
 namespace MauiTestTree
 {
@@ -1892,7 +1897,7 @@ namespace MauiTestTree
         }
 #endif
 
-        protected void ShowContextMenuForControl(
+        protected async Task ShowContextMenuForControl(
             AnyUiDisplayContextMaui? dc,
             AnyUiControl? cntl, 
             View? mauiCntl,
@@ -1903,7 +1908,21 @@ namespace MauiTestTree
             if (dc == null || cntl == null || mauiCntl == null || cntlcm.MenuItemHeaders.Length < 2)
                 return;
 
+            //
+            // Android -> Custom dialogue
+            //
+
+            // generate modal page and start
+            var pickerPage = new ContextMenuSubstitute(
+                ContextMenuSubstituteViewModel.GetFromPairsOfString(cntlcm.MenuItemHeaders, dc, scaleFontSize: 2.0));
+            await Application.Current!.Windows[0]!.Navigation.PushModalAsync(pickerPage);
+
+            return;
+
 #if WINDOWS
+            //
+            // Windows
+            //
             if (mauiCntl is not Button mauiButton)
                 return;
 
@@ -1934,6 +1953,25 @@ namespace MauiTestTree
 
             flyout.ShowAt(winButton);
 #endif        
+
+#if IOS || MACCATALYST
+
+            var handler = myView.Handler;
+            if (handler?.PlatformView is not UIView uiView)
+                return;
+
+            var actions = MyDataEntries.Select(entry =>
+                UIAction.Create(
+                    entry.Text,
+                    entry.Image,   // optional UIImage
+                    _ => HandleMenuClick(entry)
+                )
+            ).ToArray();
+
+            var menu = UIMenu.Create(actions);
+
+            uiView.ShowMenu(menu);
+#endif
         }
 
         //

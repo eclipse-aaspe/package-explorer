@@ -67,7 +67,7 @@ namespace AasxPackageLogic
         private bool _isExpandedTouched = false;
         private bool _isSelected = false;
         public string TagString { get; set; }
-        public FontWeight TagWeight { get; set; } = FontWeights.Bold;
+        public AnyUiFontWeight TagWeight { get; set; } = AnyUiFontWeight.Bold;
 
         private string _caption = "";
         public string Caption
@@ -643,7 +643,7 @@ namespace AasxPackageLogic
                 if (thePackage is AdminShellPackageDynamicFetchEnv dynPack)
                 {
                     TagString = " \U0001f517 ";
-                    TagWeight = FontWeights.Normal;
+                    TagWeight = AnyUiFontWeight.Normal;
 
                     // add knowledge from record
                     if (dynPack.GetContext() is PackageContainerHttpRepoSubsetFetchContext fetchContext
@@ -662,7 +662,7 @@ namespace AasxPackageLogic
                 else
                 {
                     TagString = "Env";
-                    TagWeight = FontWeights.Bold;
+                    TagWeight = AnyUiFontWeight.Bold;
                     if (thePackageSourceFn != null)
                         this.Info += "" + thePackageSourceFn;
                     else
@@ -673,13 +673,13 @@ namespace AasxPackageLogic
             if (theItemType == ItemType.FetchPrev)
             {
                 TagString = " \u21c8 ";
-                TagWeight = FontWeights.Normal;
+                TagWeight = AnyUiFontWeight.Normal;
             }
 
             if (theItemType == ItemType.FetchNext)
             {
                 TagString = " \u21ca ";
-                TagWeight = FontWeights.Normal;
+                TagWeight = AnyUiFontWeight.Normal;
             }
             RestoreFromCache();
         }

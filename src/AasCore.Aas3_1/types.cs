@@ -1955,7 +1955,7 @@ namespace AasCore.Aas3_1
     /// Resource represents an address to a file (a locator). The value is an URI that
     /// can represent an absolute or relative path
     /// </summary>
-    public class Resource : IResource
+    public partial class Resource : IResource
     {
         /// <summary>
         /// Path and name of the resource (with file extension).

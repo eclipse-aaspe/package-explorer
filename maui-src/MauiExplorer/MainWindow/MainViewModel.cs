@@ -66,13 +66,46 @@ namespace MauiTestTree
         public Color LogBg { get; set; } = XamlHelpers.GetDynamicRessource("Gray100", defValue: Colors.LightGray);
 
         //
-        //
+        // To be modified
         //
 
+        public TreeElemNode RootNode { get; set; } = new();
+
+        protected object? _selectedItem = null;
+        public object? SelectedItem
+        {
+            get => _selectedItem;
+            set
+            {
+                _selectedItem = value;
+                if (_selectedItem is TreeNodeContainer<object> tnc && tnc.Data is TreeElemNode tn)
+                    Trace.WriteLine("" + tn.Caption);
+            }
+        }
         public ObservableCollection<object> SelectedItems = new();
 
         public MainViewModel()
         {
+            RootNode.Caption = "Hallo";
+
+            var root1 = new TreeElemNode { Tag = "AAS", Caption = "SMT PCN", Info = "SMT for Product Change Notification" };
+            root1.Children.Add(new TreeElemNode { Tag = "SMC", Caption = "Section 1", Info = "Basics" });
+            root1.Children.Add(new TreeElemNode { Tag = "SMC", Caption = "Section 2" });
+
+            var root2 = new TreeElemNode { Tag = "Asset", Caption = "Asset", Info = "Asset description" };
+            root2.Children.Add(new TreeElemNode { Tag = "SMC", Caption = "Child 3" });
+
+            var root3 = new TreeElemNode { Tag = "SMC", Caption = "Root3" };
+            root3.Children.Add(new TreeElemNode { Tag = "SMC", Caption = "Child 4" });
+
+            RootNode.Children.Add(root1);
+            RootNode.Children.Add(root2);
+            RootNode.Children.Add(root3);
+
+            SelectedItems.CollectionChanged += (s, e) =>
+            {
+                Trace.WriteLine("" + s);
+            };
         }
     }
 }

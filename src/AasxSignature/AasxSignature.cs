@@ -31,6 +31,8 @@ namespace AasxSignature
         // TODO (Andreas Orzelski, 2020-08-01): The signature file and [Content_Types].xml can be tampered? 
         // Is this an issue?
 
+#if WINDOWS
+
         /// <summary>
         /// Will sign all parts and relationships in the package (any modification will invalidate the signature)
         /// Will prompt the user to select a certificate to sign with.
@@ -113,7 +115,7 @@ namespace AasxSignature
                 {
                     // TODO (MIHO, 2022-12-16): check if this code is required 
                     // might been converted due to AasxScript refactoring
-#if UNCLEAR
+// #if UNCLEAR
                     //var dlg = new OpenFileDialog();
                     //try
                     //{
@@ -125,7 +127,7 @@ namespace AasxSignature
                     //}
                     //dlg.Filter = ".pfx files (*.pfx)|*.pfx";
                     //dlg.ShowDialog();
-#endif
+// #endif
                     X509Certificate2 x509 = new X509Certificate2(certFn, "i40");
                     X509Certificate2Collection scollection = new X509Certificate2Collection(x509);
                     dsm.Sign(toSign, scollection[0], relationshipSelectors);
@@ -243,5 +245,8 @@ namespace AasxSignature
 
             return true;
         }
+
+#endif
+
     }
 }

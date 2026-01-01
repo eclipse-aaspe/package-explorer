@@ -127,6 +127,7 @@ namespace AasxPackageExplorer
 
                 // inner
                 object res = 0;
+#if WINDOWS
                 if (Application.Current != null)
                 {
                     // WPF case
@@ -160,6 +161,7 @@ namespace AasxPackageExplorer
                     // Blazor?? case
                     res = _script.Remote?.Select(args);
                 }
+#endif
 
                 // debug
                 if (_script._logLevel >= 2)
@@ -169,6 +171,57 @@ namespace AasxPackageExplorer
                 return res;
             }
         }
+
+#if ChatGPT
+
+            //The correct replacement (pure .NET)
+            //✅ Use SynchronizationContext
+
+            //This is the canonical, cross-platform abstraction.
+
+            //Capture it once (UI layer)
+
+            //In MAUI / WPF / WinUI startup:
+
+            //public static class UiThread
+            //{
+            //    public static SynchronizationContext? Context { get; private set; }
+
+            //    public static void Initialize()
+            //    {
+            //        Context = SynchronizationContext.Current;
+            //    }
+            //}
+
+
+            //Call this on the UI thread:
+
+            //MAUI: App() constructor
+
+            //WPF: OnStartup
+
+            //Use it in your net9.0 library
+            //public static void Invoke(Action action)
+            //{
+            //    var ctx = UiThread.Context;
+
+            //    if (ctx == null || SynchronizationContext.Current == ctx)
+            //    {
+            //        action();
+            //    }
+            //    else
+            //    {
+            //        ctx.Send(_ => action(), null);
+            //    }
+            //}
+
+
+            //✔ No WPF
+            //✔ No MAUI reference
+            //✔ Works on Android, Windows, iOS
+            //✔ Works in unit tests
+
+#endif
 
         public class Script_WriteLine : ScriptInvokableBaseAsync
         {

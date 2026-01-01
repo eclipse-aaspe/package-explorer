@@ -8,7 +8,6 @@ This source code may use other Open Source software components (see LICENSE.txt)
 */
 
 using AasCore.Samm2_2_0;
-using AasxAmlImExport;
 using AasxCompatibilityModels;
 using AasxIntegrationBase;
 using AdminShellNS;
@@ -21,17 +20,14 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Windows.Media;
-using System.Xaml;
-using VDS.RDF.Parsing;
-using VDS.RDF;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 using Aas = AasCore.Aas3_1;
 using Samm = AasCore.Samm2_2_0;
 using System.Text.RegularExpressions;
 using System.Runtime.Serialization;
-using VDS.RDF.Writing;
 using AngleSharp.Text;
+using VDS.RDF;
+using VDS.RDF.Writing;
+using VDS.RDF.Parsing;
 
 namespace AasxPackageLogic
 {
@@ -1220,7 +1216,7 @@ namespace AasxPackageLogic
 				return "";
 			if (node is LiteralNode ln)
 				return ln.Value;
-			return node.ToSafeString();
+			return node.ToString();
 		}
 
 		public static INode SafeCreateLiteralNode(IGraph g, string text, string language)
@@ -1266,11 +1262,11 @@ namespace AasxPackageLogic
 			else
 			{
 				// try to recover somehow
-				var objStr = node.ToSafeString();
+				var objStr = node.ToString();
 				var m = Regex.Match(objStr, @"(.*?)@([A-Za-z_-]+)");
 				return (!m.Success)
 					? new Aas.LangStringTextType("en?", "" + objStr)
-					: new Aas.LangStringTextType(m.Groups[2].ToSafeString(), m.Groups[1].ToSafeString());
+					: new Aas.LangStringTextType(m.Groups[2].ToString(), m.Groups[1].ToString());
 			}
 		}
 	}
@@ -1345,7 +1341,7 @@ namespace AasxPackageLogic
 						|| firstRel.Object.NodeType == NodeType.Literal)
 					{
 						// first.object is something tangible
-						lsr.Add(createInstance?.Invoke(firstRel.Object.ToSafeString(), false));
+						lsr.Add(createInstance?.Invoke(firstRel.Object.ToString(), false));
 					}
 					else
 					if (contentRelationshipUri?.HasContent() == true)
@@ -1358,10 +1354,10 @@ namespace AasxPackageLogic
 						{
 							if (x3.Predicate.Equals(new UriNode(
 									new Uri(contentRelationshipUri))))
-								propElem = x3.Object.ToSafeString();
+								propElem = x3.Object.ToString();
 							if (x3.Predicate.Equals(
 									new UriNode(new Uri(idSet.RdfCollOptional))))
-								optional = x3.Object.ToSafeString() ==
+								optional = x3.Object.ToString() ==
 									"true^^http://www.w3.org/2001/XMLSchema#boolean";
 						}
 
@@ -1742,7 +1738,7 @@ namespace AasxPackageLogic
 					var prefix = pf.Trim();
 					if (!prefix.EndsWith(':'))
 						prefix += ":";
-					globalNamespaces.AddOrIgnore(prefix, g.NamespaceMap.GetNamespaceUri(pf).ToSafeString());
+					globalNamespaces.AddOrIgnore(prefix, g.NamespaceMap.GetNamespaceUri(pf).ToString());
 				}
 
 			// figure out, which idSet to be used
@@ -2021,7 +2017,7 @@ namespace AasxPackageLogic
 							g.Assert(new Triple(
 								g.CreateUriNode(asp.Namespaces.PrefixUri(cd.Id)),
 								g.CreateUriNode(propUri),
-								RdfHelper.CreateUriOrLiteralNode(g, idSet, s.ToSafeString(), isUri)));
+								RdfHelper.CreateUriOrLiteralNode(g, idSet, s.ToString(), isUri)));
 						}
 					}
 
@@ -2035,7 +2031,7 @@ namespace AasxPackageLogic
 							g.Assert(new Triple(
 								g.CreateUriNode(asp.Namespaces.PrefixUri(cd.Id)),
 								g.CreateUriNode(propUri),
-								g.CreateLiteralNode(ui.Value.ToSafeString(),
+								g.CreateLiteralNode(ui.Value.ToString(),
 									datatype: new Uri(idSet.XsdNonNegInt))));
 						}
 					}
@@ -2085,7 +2081,7 @@ namespace AasxPackageLogic
 								g.Assert(new Triple(
 									g.CreateUriNode(asp.Namespaces.PrefixUri(cd.Id)),
 									g.CreateUriNode(propUri),
-									RdfHelper.CreateUriOrLiteralNode(g, idSet, ls.ToSafeString(), isUri)));
+									RdfHelper.CreateUriOrLiteralNode(g, idSet, ls.ToString(), isUri)));
 							}
 					}
 
@@ -2141,7 +2137,7 @@ namespace AasxPackageLogic
 								if (osr.Optional == false)
 									// direct content
 									return g.CreateUriNode(
-										asp.Namespaces.PrefixUri(osr?.Value.ToSafeString()));
+										asp.Namespaces.PrefixUri(osr?.Value.ToString()));
 								else
 									// anonymous node
 									return ExportSammOptionalReference(env, g, idSet, asp, osr,
@@ -2167,7 +2163,7 @@ namespace AasxPackageLogic
 							var collNode = ExportRdfCollection(env, g, idSet, asp, lsr, (sr) =>
 							{
 								return g.CreateUriNode(
-									asp.Namespaces.PrefixUri(sr?.Value.ToSafeString()));
+									asp.Namespaces.PrefixUri(sr?.Value.ToString()));
 							});
 							if (collNode != null)
 							{
