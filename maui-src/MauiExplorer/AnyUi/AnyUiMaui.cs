@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AasxIntegrationBase;
 using AasxPackageLogic.PackageCentral;
 using AnyUi;
+using CommunityToolkit.Maui.Extensions;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Handlers;
@@ -1671,9 +1672,22 @@ namespace MauiTestTree
                                 && cntlcm.MenuItemHeaders != null
                                 && sender is View mauiSender)
                             {
-                                ShowContextMenuForControl(
+                                // this looks funny, but was the only way to realize in short
+                                var res = await ShowContextMenuForControlAsync(
                                     (cntl.DisplayData as AnyUiDisplayDataMaui)?.Context,
                                     cntl, mauiSender, cntlcm);
+                                if (!res.HasValue)
+                                    res = await ShowContextMenuForControlSync(
+                                    (cntl.DisplayData as AnyUiDisplayDataMaui)?.Context,
+                                    cntl, mauiSender, cntlcm);
+
+                                if (res.HasValue)
+                                {
+                                    var action2 = cntlcm.MenuItemLambda?.Invoke(res.Value);
+                                    if (action2 == null && cntlcm.MenuItemLambdaAsync != null)
+                                        action2 = await cntlcm.MenuItemLambdaAsync(res.Value);
+                                    EmitOutsideAction(action2);
+                                }
 
 #if TODO_IMPORTANT
                                 var nmi = cntlcm.MenuItemHeaders.Length / 2;
@@ -1897,38 +1911,75 @@ namespace MauiTestTree
         }
 #endif
 
-        protected async Task ShowContextMenuForControl(
+        // Note: Some of the code needs async, some not ..
+
+        protected static async Task<int?> ShowContextMenuForControlAsync(
+            AnyUiDisplayContextMaui? dc,
+            AnyUiControl? cntl,
+            View? mauiCntl,
+            AnyUiSpecialActionContextMenu cntlcm)
+        {
+            // access
+            if (dc == null || cntl == null || mauiCntl == null || cntlcm.MenuItemHeaders.Length < 2)
+                return null;
+
+            //
+            // Android -> Custom dialogue
+            //
+
+#if ANDROID
+
+            // generate modal page and start
+            //var pickerPage = new ContextMenuSubstitute(
+            //    ContextMenuSubstituteViewModel.GetFromPairsOfString(cntlcm.MenuItemHeaders, dc, scaleFontSize: 2.0));
+            //await Application.Current!.Windows[0]!.Navigation.PushModalAsync(pickerPage);
+
+            var vm = ContextMenuSubstituteViewModel.GetFromPairsOfString(cntlcm.MenuItemHeaders, dc, scaleFontSize: 1.2);
+            var uc = new ContextMenuPopup(vm);
+
+            await Shell.Current.ShowPopupAsync(uc);
+            return uc.Result?.Index;
+
+#endif
+
+            return null;
+        }
+
+        protected Task<int?> ShowContextMenuForControlSync(
             AnyUiDisplayContextMaui? dc,
             AnyUiControl? cntl, 
             View? mauiCntl,
             AnyUiSpecialActionContextMenu cntlcm
             )
         {
+            // awaitable task completion
+            var tcs = new TaskCompletionSource<int?>();
+
             // access
             if (dc == null || cntl == null || mauiCntl == null || cntlcm.MenuItemHeaders.Length < 2)
-                return;
-
-            //
-            // Android -> Custom dialogue
-            //
-
-            // generate modal page and start
-            var pickerPage = new ContextMenuSubstitute(
-                ContextMenuSubstituteViewModel.GetFromPairsOfString(cntlcm.MenuItemHeaders, dc, scaleFontSize: 2.0));
-            await Application.Current!.Windows[0]!.Navigation.PushModalAsync(pickerPage);
-
-            return;
+            {
+                tcs.SetResult(null);
+                return tcs.Task;
+            }
 
 #if WINDOWS
             //
             // Windows
             //
+
             if (mauiCntl is not Button mauiButton)
-                return;
+            {
+                tcs.SetResult(null);
+                return tcs.Task;
+            }
+
 
             var handler = mauiButton.Handler;
             if (handler?.PlatformView is not Microsoft.UI.Xaml.Controls.Button winButton)
-                return;
+            {
+                tcs.SetResult(null);
+                return tcs.Task;
+            }
 
             var flyout = new Microsoft.UI.Xaml.Controls.MenuFlyout();
 
@@ -1943,16 +1994,24 @@ namespace MauiTestTree
                     Tag = i
                 };
 
+                var thisI = i;
                 menuItem.Click += (_, _) =>
                 {
-                    ;
+                    tcs.TrySetResult(thisI);
                 };
 
                 flyout.Items.Add(menuItem);
             }
 
+            flyout.Closed += (_, _) =>
+            {
+                tcs.TrySetResult(null); // dismissed
+            };
+
             flyout.ShowAt(winButton);
-#endif        
+
+            return tcs.Task;
+#endif
 
 #if IOS || MACCATALYST
 
@@ -1972,6 +2031,10 @@ namespace MauiTestTree
 
             uiView.ShowMenu(menu);
 #endif
+
+            // no?
+            return null;
+        
         }
 
         //
