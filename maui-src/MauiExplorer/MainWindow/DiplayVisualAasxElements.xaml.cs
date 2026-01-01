@@ -58,6 +58,18 @@ public partial class DiplayVisualAasxElements : ContentView
         return false;
     }
 
+    public bool TrySelectMainDataObject(
+        object dataObject, bool? wishExpanded,
+        bool alsoDereferenceObjects = false)
+    {
+        return false;
+    }
+
+    public bool Contains(VisualElementGeneric ve)
+    {
+        return false;
+    }
+
     public void Refresh()
     {
     }
@@ -92,4 +104,12 @@ public partial class DiplayVisualAasxElements : ContentView
     {
     }
 
+    //
+    // Further
+    //
+
+    public VisualElementGeneric? TrySynchronizeToInternalTreeState()
+    {
+        return null;
+    }
 }

@@ -64,6 +64,7 @@ namespace MauiTestTree
         public string LogLine { get; set; } = "Ready.";
         public Color LogFg { get; set; } = Colors.Black;
         public Color LogBg { get; set; } = XamlHelpers.GetDynamicRessource("Gray100", defValue: Colors.LightGray);
+        public FontWeight LogFontWeight { get; set; } = FontWeight.Regular;
 
         //
         // To be modified

@@ -12,6 +12,7 @@ using FunctionZero.TreeListItemsSourceZero;
 using Microsoft.Maui.Devices;
 using Extensions;
 using Aas = AasCore.Aas3_1;
+using System.Text;
 
 namespace MauiTestTree
 {
@@ -564,15 +565,14 @@ namespace MauiTestTree
         /// <summary>
         /// The top-most display data required for WPF to render elements.
         /// </summary>
-        protected AnyUiDisplayContextMaui? DisplayContext = null;
+        protected AnyUiDisplayContextMaui DisplayContext;
 
         /// <summary>
         /// This symbol is only a link to the abstract main-windows class.
         /// </summary>
-        public PackageCentral? PackageCentral
+        public PackageCentral PackageCentral
         {
-            get => Logic?.PackageCentral;
-
+            get => Logic.PackageCentral;
         }
 
         //1// public AasxMenuWpf MainMenu = new AasxMenuWpf();
@@ -691,9 +691,9 @@ namespace MauiTestTree
 
             var t = "AASX Package Explorer V3.1";
             //TODO (jtikekar, 0000-00-00): remove V3RC02
-            if (PackageCentral?.MainAvailable == true)
+            if (PackageCentral.MainAvailable == true)
                 t += " - " + PackageCentral.MainItem.ToString();
-            if (PackageCentral?.AuxAvailable == true)
+            if (PackageCentral.AuxAvailable == true)
                 t += " (auxiliary AASX: " + PackageCentral.AuxItem.ToString() + ")";
             this.Title = t;
 
@@ -1008,7 +1008,7 @@ namespace MauiTestTree
 
             // establish parents (only for main)
             if (!onlyAuxiliary)
-                foreach (var sm in PackageCentral?.Main?.AasEnv?.OverSubmodelsOrEmpty())
+                foreach (var sm in PackageCentral.Main?.AasEnv?.OverSubmodelsOrEmpty())
                     sm?.SetAllParents();
 
             // displaying
@@ -1016,7 +1016,7 @@ namespace MauiTestTree
             {
                 await RestartUIafterNewPackage(onlyAuxiliary, nextEditMode);
 
-                if (autoFocusFirstRelevant && PackageCentral?.Main?.AasEnv is Aas.IEnvironment menv)
+                if (autoFocusFirstRelevant && PackageCentral.Main?.AasEnv is Aas.IEnvironment menv)
                 {
                     VisualElementEnvironmentItem.ItemType? eit = null;
                     var nextLevelExpand = false;
@@ -1084,7 +1084,7 @@ namespace MauiTestTree
             // record in LRU?
             try
             {
-                var lru = PackageCentral?.Repositories?.FindLRU();
+                var lru = PackageCentral.Repositories?.FindLRU();
                 if (lru != null && storeFnToLRU.HasContent())
                     lru.Push(packItem?.Container as PackageContainerRepoItem, storeFnToLRU);
             }
@@ -1228,7 +1228,7 @@ namespace MauiTestTree
 
             // the AAS will cause some more visual effects
             var tvlaas = DisplayElements.SelectedItem as VisualElementAdminShell;
-            if (PackageCentral?.MainAvailable == true 
+            if (PackageCentral.MainAvailable == true 
                 && tvlaas != null && tvlaas.theAas != null && tvlaas.theEnv != null)
             {
                 // AAS
@@ -1321,7 +1321,7 @@ namespace MauiTestTree
 
             // for all, prepare the display
             await PrepareDispEditEntity(
-                PackageCentral?.Main,
+                PackageCentral.Main,
                 DisplayElements.SelectedItems,
                  _viewModel.MainMenu?.IsChecked("EditMenu") == true,
                  _viewModel.MainMenu?.IsChecked("HintsMenu") == true,
@@ -1447,7 +1447,7 @@ namespace MauiTestTree
                 if (System.IO.File.Exists(lruFn))
                 {
                     var lru = PackageContainerListLastRecentlyUsed.Load<PackageContainerListLastRecentlyUsed>(lruFn);
-                    PackageCentral?.Repositories.Add(lru);
+                    PackageCentral.Repositories.Add(lru);
                 }
             }
             catch (Exception ex)
@@ -1467,7 +1467,7 @@ namespace MauiTestTree
                     if (fr2 != null)
                     {
                         this.UiShowRepositories(visible: true);
-                        PackageCentral?.Repositories.AddAtTop(fr2);
+                        PackageCentral.Repositories.AddAtTop(fr2);
                         Log.Singleton.Info("Added file repository {0} from: {1}.",
                             fr2.Header, arf);
                     }
@@ -1721,7 +1721,7 @@ namespace MauiTestTree
             Log.Singleton.Info("Application started ..");
 
             // start with a new file
-            PackageCentral?.MainItem.New();
+            PackageCentral.MainItem.New();
             await RedrawAllAasxElementsAsync();
 
             // pump all pending log messages (from plugins) into the
@@ -1744,7 +1744,7 @@ namespace MauiTestTree
                         overrideLoadResident: true,
                         autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                         containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr),
-                        runtimeOptions: PackageCentral?.CentralRuntimeOptions);
+                        runtimeOptions: PackageCentral.CentralRuntimeOptions);
 
                     if (container == null)
                         Log.Singleton.Error($"Failed to auto-load AASX from {location}");
@@ -1810,7 +1810,7 @@ namespace MauiTestTree
                 try
                 {
                     Log.Singleton.Info("Opening and executing '{0}' for script commands.", Options.Curr.ScriptFn);
-                    Logic?.StartScriptFile(Options.Curr.ScriptFn, MainMenu?.Menu, Logic);
+                    Logic?.StartScriptFile(Options.Curr.ScriptFn, _viewModel.MainMenu, Logic);
                 }
                 catch (Exception ex)
                 {
@@ -1824,7 +1824,7 @@ namespace MauiTestTree
                 try
                 {
                     Log.Singleton.Info("Executing '{0}' as direct script commands.", Options.Curr.ScriptCmd);
-                    Logic?.StartScriptCommand(Options.Curr.ScriptCmd, MainMenu?.Menu, Logic);
+                    Logic?.StartScriptCommand(Options.Curr.ScriptCmd, _viewModel.MainMenu, Logic);
                 }
                 catch (Exception ex)
                 {
@@ -1832,7 +1832,7 @@ namespace MauiTestTree
                 }
             }
 
-            AasxIntegrationBaseWpf.CountryFlagWpf.LoadImage();
+            //1// AasxIntegrationBaseWpf.CountryFlagWpf.LoadImage();
         }
 
         //
@@ -1874,9 +1874,9 @@ namespace MauiTestTree
                 return;
 
             // for valid display, app needs to be in edit mode
-            if (MainMenu.IsChecked("EditMenu") != true)
+            if (_viewModel.MainMenu.IsChecked("EditMenu") != true)
             {
-                this.MessageBoxFlyoutShow(
+                MessageBoxFlyoutShow(
                     "The application needs to be in edit mode to show found entities correctly. Aborting.",
                     "Find and Replace",
                     AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Hand);
@@ -1899,14 +1899,14 @@ namespace MauiTestTree
         private void MainTimer_HandleLogMessages()
         {
             // pop log messages from the plug-ins into the Stored Prints in Log
-            Plugins.PumpPluginLogsIntoLog(this.FlyoutLoggingPush);
+            Plugins.PumpPluginLogsIntoLog(FlyoutLoggingPush);
 
             // check for Stored Prints in Log
             StoredPrint sp;
             while ((sp = Log.Singleton.PopLastShortTermPrint()) != null)
             {
                 // pop
-                Message.Content = "" + sp.msg;
+                _viewModel.LogLine = "" + sp.msg;
 
                 // display
                 switch (sp.color)
@@ -1915,39 +1915,39 @@ namespace MauiTestTree
                         throw ExhaustiveMatch.Failed(sp.color);
                     case StoredPrint.Color.Black:
                         {
-                            Message.Background = Brushes.White;
-                            Message.Foreground = Brushes.Black;
-                            Message.FontWeight = FontWeights.Normal;
+                            _viewModel.LogBg = Colors.White;
+                            _viewModel.LogFg = Colors.Black;
+                            //1// Message.FontWeight = FontWeights.Normal;
                             break;
                         }
                     case StoredPrint.Color.Blue:
                         {
                             _lastMessageBlue = "" + sp.msg;
-                            Message.Background = Brushes.LightBlue;
-                            Message.Foreground = Brushes.Black;
-                            Message.FontWeight = FontWeights.Normal;
+                            _viewModel.LogBg = Colors.LightBlue;
+                            _viewModel.LogFg = Colors.Black;
+                            //1// Message.FontWeight = FontWeights.Normal;
                             break;
                         }
                     case StoredPrint.Color.Yellow:
                         {
                             _lastMessageBlue = "" + sp.msg;
-                            Message.Background = Brushes.Yellow;
-                            Message.Foreground = Brushes.Black;
-                            Message.FontWeight = FontWeights.Bold;
+                            _viewModel.LogBg = Colors.Yellow;
+                            _viewModel.LogFg = Colors.Black;
+                            //1// Message.FontWeight = FontWeights.Bold;
                             break;
                         }
                     case StoredPrint.Color.Red:
                         {
                             _lastMessageError = "" + sp.msg;
-                            Message.Background = new SolidColorBrush(Color.FromRgb(0xd4, 0x20, 0x44)); // #D42044
-                            Message.Foreground = Brushes.White;
-                            Message.FontWeight = FontWeights.Bold;
+                            _viewModel.LogBg = Color.FromRgb(0xd4, 0x20, 0x44); // #D42044
+                            _viewModel.LogFg = Colors.White;
+                            //1// Message.FontWeight = FontWeights.Bold;
                             break;
                         }
                 }
 
                 // message window
-                _messageReportWindow?.AddStoredPrint(sp);
+                //1// _messageReportWindow?.AddStoredPrint(sp);
 
                 // log?
                 if (_logWriter != null)
@@ -1967,20 +1967,1473 @@ namespace MauiTestTree
             var nb = Log.Singleton.NumberBlues;
             if (ne > 0)
             {
-                LabelNumberErrors.Content = "Errors: " + ne;
-                LabelNumberErrors.Background = new SolidColorBrush(Color.FromRgb(0xd4, 0x20, 0x44)); // #D42044
+                //1// LabelNumberErrors.Content = "Errors: " + ne;
+                //1// LabelNumberErrors.Background = new SolidColorBrush(Color.FromRgb(0xd4, 0x20, 0x44)); // #D42044
             }
             else
             if (nb > 0)
             {
-                LabelNumberErrors.Content = "Major: " + nb;
-                LabelNumberErrors.Background = Brushes.LightBlue;
+                //1// LabelNumberErrors.Content = "Major: " + nb;
+                //1// LabelNumberErrors.Background = Brushes.LightBlue;
             }
             else
             {
-                LabelNumberErrors.Content = "No attention";
-                LabelNumberErrors.Background = Brushes.White;
+                //1// LabelNumberErrors.Content = "No attention";
+                //1// LabelNumberErrors.Background = Brushes.White;
             }
         }
+
+        public void TriggerPendingReIndexElements()
+        {
+            _mainTimer_LastCheckForReIndexElements = DateTime.Now;
+            _mainTimer_PendingReIndexElements = true;
+        }
+
+        //
+        // Progress
+        //
+
+        private void SetProgressOverallIsEnabled(bool active)
+        {
+            //1// BorderDisplayElements.IsEnabled = active;
+            //1// BorderEditElements.IsEnabled = active;
+            //1// BorderContainerList.IsEnabled = active;
+            //1// MenuMain.IsEnabled = active;
+        }
+
+        protected bool _progressOverallActive = false;
+
+        private void SetProgressOverall(bool active, string message)
+        {
+            _progressOverallActive = active;
+
+            //1// ProgressBarDownload.Dispatcher.BeginInvoke(
+            //1//     System.Windows.Threading.DispatcherPriority.Background,
+            //1//     new Action(() => {
+            //1//         TextBlockProgressOverall.Background = (active) ? Brushes.DarkGreen : Brushes.White;
+            //1//         TextBlockProgressOverall.Text = "" + message;
+            //1//         ButtonProgressOverallClear.Visibility = (active) ? Visibility.Visible : Visibility.Collapsed;
+            //1//         // an active == true will set all controls to isEnabled == false!! and vice versa
+            //1//         SetProgressOverallIsEnabled(!active);
+            //1//     }));
+        }
+
+        private void ButtonProgressOverallClear_Click(object sender, EventArgs e)
+        {
+            SetProgressOverall(false, "");
+            if (PackageCentral.CentralRuntimeOptions?.CancellationTokenSource != null)
+                PackageCentral.CentralRuntimeOptions.CancellationTokenSource.Cancel();
+        }
+
+        private void SetProgressDownload()
+        {
+            SetProgressDownload(0.0, "");
+        }
+
+        private void SetProgressDownload(double? percent, string message = null)
+        {
+            //1// if (percent.HasValue && percent.Value.IsFinite())
+            //1//     ProgressBarDownload.Dispatcher.BeginInvoke(
+            //1//                 System.Windows.Threading.DispatcherPriority.Background,
+            //1//                 new Action(() => ProgressBarDownload.Value = percent.Value));
+            //1// 
+            //1// if (message != null)
+            //1//     LabelProgressBarDownload.Dispatcher.BeginInvoke(
+            //1//         System.Windows.Threading.DispatcherPriority.Background,
+            //1//         new Action(() => LabelProgressBarDownload.Content = message));
+        }
+
+        //
+        // ButtonHistory
+        //
+
+        private async Task ButtonHistory_ObjectRequested(object sender, VisualElementHistoryItem hi)
+        {
+            // be careful
+            try
+            {
+                // try access visual element directly?
+                var ve = hi?.VisualElement;
+                if (ve != null && DisplayElements.Contains(ve))
+                {
+                    // is directly contain in actual tree
+                    // show it
+                    if (DisplayElements.TrySelectVisualElement(ve, wishExpanded: true))
+                    {
+                        // fake selection
+                        await RedrawElementViewAsync();
+                        DisplayElements.Refresh();
+                        TakeOverContentEnable(false);
+
+                        // done
+                        return;
+                    }
+                }
+
+                // no? Try to find the business object
+                var bo = hi?.VisualElement?.GetMainDataObject();
+                if (bo != null)
+                {
+                    if (DisplayElements.TrySelectMainDataObject(bo, wishExpanded: true, alsoDereferenceObjects: true))
+                    {
+                        // fake selection
+                        await RedrawElementViewAsync();
+                        DisplayElements.Refresh();
+                        TakeOverContentEnable(false);
+
+                        // done
+                        return;
+                    }
+                }
+
+                // no? .. is there a way to another file?
+                if (PackageCentral.Repositories != null && hi?.ReferableAasId != null
+                    && hi.ReferableReference != null)
+                {
+                    // try lookup file in file repository
+                    var fi = await PackageCentral.Repositories.FindByAasId(hi.ReferableAasId.Trim());
+                    if (fi == null)
+                    {
+                        Log.Singleton.Info(
+                            $"History: Cannot lookup aas id {hi.ReferableAasId} in file repository.");
+                        return;
+                    }
+
+                    // remember some further supplementary search information
+                    var sri = ListOfVisualElement.StripSupplementaryReferenceInformation(hi.ReferableReference);
+
+                    // load it (safe)
+                    bo = null;
+                    try
+                    {
+                        var boInfo = await LoadFromFileRepository(fi, sri.CleanReference);
+                        bo = boInfo?.BusinessObject;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Singleton.Error(
+                            ex, $"While retrieving file for {hi.ReferableAasId} from file repository");
+                    }
+
+                    // still proceed?
+                    VisualElementGeneric? veFocus = null;
+                    if (bo != null && this.DisplayElements != null)
+                    {
+                        veFocus = this.DisplayElements.SearchVisualElementOnMainDataObject(bo,
+                            alsoDereferenceObjects: true, sri: sri);
+                        if (veFocus == null)
+                        {
+                            Log.Singleton.Error(
+                                $"Cannot lookup requested element within loaded file from repository.");
+                            return;
+                        }
+                    }
+
+                    // if successful, try to display it
+                    try
+                    {
+                        // show ve
+                        DisplayElements?.TrySelectVisualElement(veFocus!, wishExpanded: true);
+                        // remember in history
+                        //TODO (MIHO, 0000-00-00): this was a bug??
+                        // ButtonHistory.Push(veFocus);
+                        // fake selection
+                        await RedrawElementViewAsync();
+                        DisplayElements!.Refresh();
+                        TakeOverContentEnable(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Singleton.Error(
+                            ex, "While displaying element requested by back button.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(ex, "While displaying element requested by plug-in");
+            }
+        }
+
+        // <summary>
+        /// Clears the status line and pending errors.
+        /// </summary>
+        public void StatusLineClear()
+        {
+            _lastMessageBlue = "";
+            _lastMessageError = "";
+            Log.Singleton.ClearNumberErrors();
+            _viewModel.LogLine = "";
+            _viewModel.LogBg = Colors.White;
+            _viewModel.LogFg = Colors.Black;
+            _viewModel.LogFontWeight = FontWeight.Regular;
+            SetProgressDownload();
+        }
+
+        public void ShowLastMessage(StoredPrint.Color showColor)
+        {
+            switch (showColor)
+            {
+                case StoredPrint.Color.Blue:
+                    {
+                        _viewModel.LogLine = "" + _lastMessageBlue;
+                        _viewModel.LogBg = Colors.LightBlue;
+                        _viewModel.LogFg = Colors.Black;
+                        _viewModel.LogFontWeight = FontWeight.Regular;
+                        break;
+                    }
+                case StoredPrint.Color.Red:
+                    {
+                        _viewModel.LogLine = "" + _lastMessageError;
+                        _viewModel.LogBg = Color.FromRgb(0xd4, 0x20, 0x44); // #D42044
+                        _viewModel.LogFg = Colors.White;
+                        _viewModel.LogFontWeight = FontWeight.Bold;
+                        break;
+                    }
+            }
+        }
+
+        /// <summary>
+        /// Show log in a window / list perceivable for the user.
+        /// </summary>
+        public void LogShow()
+        {
+            //1// // show only if not present
+            //1// if (_messageReportWindow != null)
+            //1// {
+            //1//     // this is ridiculous, but this seems to make the trick
+            //1//     // https://stackoverflow.com/questions/257587/bring-a-window-to-the-front-in-wpf
+            //1//     _messageReportWindow.Activate();
+            //1//     _messageReportWindow.Topmost = true;  // important
+            //1//     _messageReportWindow.Topmost = false; // important
+            //1//     _messageReportWindow.Focus();         // important
+            //1//     return;
+            //1// }
+            //1// 
+            //1// // Collect all the stored log prints
+            //1// IEnumerable<StoredPrint> Prints()
+            //1// {
+            //1//     var prints = Log.Singleton.GetStoredLongTermPrints();
+            //1//     if (prints != null)
+            //1//     {
+            //1//         foreach (var sp in prints)
+            //1//         {
+            //1//             yield return sp;
+            //1//             if (sp.stackTrace != null)
+            //1//                 yield return new StoredPrint("    Stacktrace: " + sp.stackTrace);
+            //1//         }
+            //1//     }
+            //1// }
+            //1// 
+            //1// // show (non modal)
+            //1// _messageReportWindow = new MessageReportWindow(Prints());
+            //1// _messageReportWindow.Closed += (s2, e2) =>
+            //1// {
+            //1//     _messageReportWindow = null;
+            //1// };
+            //1// _messageReportWindow.Show();
+        }
+
+        protected TextWriter _logWriter = new StringWriter();
+
+        //1// protected MessageReportWindow _messageReportWindow = null;
+
+        private void ButtonReport_Click(object sender, EventArgs e)
+        {
+            //1// if (sender == ButtonClear)
+            //1// {
+            //1//     StatusLineClear();
+            //1// }
+            //1// 
+            //1// if (sender == ButtonLogShow)
+            //1// {
+            //1//     LogShow();
+            //1// }
+        }
+
+        private void LabelNumberErrors_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            //1// // something important
+            //1// if (Log.Singleton.NumberErrors > 0 && _lastMessageError?.HasContent() == true)
+            //1//     ShowLastMessage(StoredPrint.Color.Red);
+            //1// else
+            //1//     if (Log.Singleton.NumberBlues > 0 && _lastMessageBlue?.HasContent() == true)
+            //1//     ShowLastMessage(StoredPrint.Color.Blue);
+        }
+
+        /// <summary>
+        /// Take a screenshot and save to file
+        /// </summary>
+        public void SaveScreenshot(string filename = "noname")
+        {
+            //1// important for scripting use cases!
+        }
+
+        private async void DisplayElements_SelectedItemChanged(object sender, EventArgs e)
+        {
+            // access
+            if (DisplayElements == null || sender != DisplayElements)
+                return;
+
+            // try identify the business object
+            if (DisplayElements.SelectedItem != null)
+            {
+                Logic?.LocationHistory?.Push(DisplayElements.SelectedItem);
+            }
+
+            // may be flush events
+            CheckIfToFlushEvents();
+
+            // redraw view
+            await RedrawElementViewAsync();
+        }
+
+        private async void DisplayElements_MouseDoubleClick(object sender, EventArgs e)
+        {
+            // we're assuming, that SelectedItem point to the right business object
+            var si = DisplayElements.SelectedItem;
+            if (si == null)
+                return;
+
+            // act depending on selectedItem
+            if (si is VisualElementEnvironmentItem siei
+                && (siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev
+                    || siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext))
+            {
+                // want to refetch elements
+                // check all pre-requisites
+                if (!(siei.thePackage is AdminShellPackageDynamicFetchEnv dynPack
+                     && dynPack.GetContext() is PackageContainerHttpRepoSubsetFetchContext fetchContext
+                     && fetchContext.Record != null))
+                {
+                    Log.Singleton.Error("Fetch next within dynamic environment: " +
+                        "Not enough data to provide dynamic fetch operations.");
+                    return;
+                }
+
+                // at the start or end?
+                var goPrev = siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev;
+                var goNext = siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext;
+                var goNextFake = false;
+                if (goNext && fetchContext.Cursor?.HasContent() != true)
+                {
+                    Log.Singleton.Info(StoredPrint.Color.Blue, "No cursor for fetch operation available " +
+                            "(at the end of the selected subset of elements or no server support).");
+                    goNext = false;
+                    goNextFake = true;
+                }
+
+                // refer to (static) function
+                var res = await DispEditHelperEntities.ExecuteUiForFetchOfElements(
+                    PackageCentral, DisplayContext, new AasxMenuActionTicket(), this /* MainWindow */, fetchContext,
+                    preserveEditMode: true,
+                    doEditNewRecord: false,
+                    doCheckTainted: true,
+                    doFetchGoPrev: goPrev,
+                    doFetchGoNext: goNext,
+                    doFakeGoNext: goNextFake,
+                    doFetchExec: true);
+
+                // success will trigger redraw independently, therefore always do nothing
+            }
+            else
+            if (si is VisualElementSubmodelElement)
+            {
+                // redraw view
+                await RedrawElementViewAsync();
+
+                // "simulate" click on "ShowContents"
+                //1// ShowContent_Click(this.ShowContent, null);
+            }
+        }
+
+        private void Window_Closing(object sender, EventArgs e)
+        {
+            //1// if (this.IsInFlyout())
+            //1// {
+            //1//     e.Cancel = true;
+            //1//     return;
+            //1// }
+            //1// 
+            //1// var positiveQuestion = ScriptModeShutdown ||
+            //1//     (Options.Curr.UseFlyovers &&
+            //1//     AnyUiMessageBoxResult.Yes == MessageBoxFlyoutShow(
+            //1//         "Do you want to proceed closing the application? Make sure, that you have saved your data before.",
+            //1//         "Exit application?",
+            //1//         AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Question));
+            //1// 
+            //1// if (!positiveQuestion)
+            //1// {
+            //1//     e.Cancel = true;
+            //1//     return;
+            //1// }
+
+            // ok
+            Log.Singleton.Info("Application closing ..");
+
+            // package
+            Log.Singleton.Info("Closing main and aux package ..");
+            try
+            {
+                PackageCentral?.MainItem?.Close();
+                PackageCentral?.AuxItem?.Close();
+            }
+            catch (Exception ex)
+            {
+                AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
+            }
+
+            // LRU
+            try
+            {
+                // save LRU
+                var lru = PackageCentral?.Repositories?.FindLRU();
+                if (lru != null)
+                {
+                    Log.Singleton.Info("Saving LRU ..");
+                    var lruFn = PackageContainerListLastRecentlyUsed.BuildDefaultFilename();
+                    lru.SaveAsLocalFile(lruFn);
+                }
+
+                // also close log silently
+                //1// if (_messageReportWindow != null)
+                //1//     _messageReportWindow.Close();
+            }
+            catch (Exception ex)
+            {
+                AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
+            }
+
+            // Log
+            if (_logWriter != null)
+                try
+                {
+                    _logWriter.Close();
+                    _logWriter = null;
+                }
+                catch (Exception ex)
+                {
+                    LogInternally.That.SilentlyIgnoredError(ex);
+                }
+
+            // done
+            //1// e.Cancel = false;
+        }
+
+        private void Window_SizeChanged(object sender, EventArgs e)
+        {
+            //1// if (this.ActualWidth > 1)
+            //1// {
+            //1//     if (MainSpaceGrid != null && MainSpaceGrid.ColumnDefinitions.Count >= 3)
+            //1//     {
+            //1//         var w0 = 0.2;
+            //1//         if (Options.Curr.PercentageLeftColumn >= 0 && Options.Curr.PercentageLeftColumn <= 100.0)
+            //1//             w0 = Options.Curr.PercentageLeftColumn / 100.0;
+            //1// 
+            //1//         var w4 = 0.4;
+            //1//         if (Options.Curr.PercentageRightColumn >= 0 && Options.Curr.PercentageRightColumn <= 100.0)
+            //1//             w4 = Options.Curr.PercentageRightColumn / 100.0;
+            //1// 
+            //1//         MainSpaceGrid.ColumnDefinitions[0].Width = new GridLength(this.ActualWidth * w0);
+            //1//         MainSpaceGrid.ColumnDefinitions[4].Width = new GridLength(this.ActualWidth * w4);
+            //1//     }
+            //1// }
+        }
+
+        private async void ShowContent_Click(object sender, EventArgs e)
+        {
+            await Task.Yield();
+
+            if (sender as string == "1234"  && _showContentElement != null && PackageCentral.MainAvailable
+                && _showContentElement is VisualElementSubmodelElement veSme)
+            {
+                //
+                // Text edit of BLOB?
+                //
+
+                if (veSme?.theWrapper is Aas.IBlob blb
+                    && _viewModel.MainMenu?.IsChecked("EditMenu") == true
+                    && AdminShellUtil.CheckForTextContentType(blb.ContentType))
+                {
+                    Log.Singleton.Info("Trying edit multiline content from {0} ..", blb.IdShort);
+                    try
+                    {
+                        var uc = new AnyUiDialogueDataTextEditor(
+                                        caption: $"Edit Blob '{"" + blb.IdShort}'",
+                                        mimeType: blb.ContentType,
+                                        text: Encoding.Default.GetString(blb.Value ?? new byte[0]));
+                        if (DisplayContext.StartFlyoverModal(uc))
+                        {
+                            blb.Value = Encoding.Default.GetBytes(uc.Text);
+                            DispEditEntityPanel.AddDiaryStructuralChange(blb);
+                            await RedrawElementViewAsync();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Singleton.Error(
+                            ex, $"When editing content from {blb.IdShort}, an error occurred");
+                        return;
+                    }
+                    Log.Singleton.Info("Content from {0} edited.", blb.IdShort);
+                    return;
+                }
+
+                if (veSme?.theWrapper is Aas.IFile file
+                    && _viewModel.MainMenu?.IsChecked("EditMenu") == true
+                    && AdminShellUtil.CheckForTextContentType(file.ContentType))
+                {
+                    Log.Singleton.Info("Trying edit multiline content from {0} ..", file.IdShort);
+
+                    DispEditHelperModules.DisplayOrEditEntityFileResource_EditTextFile(
+                        DisplayContext, PackageCentral.Main,
+                        file.ContentType,
+                        file.Value);
+
+                    Log.Singleton.Info("Content from {0} edited.", file.IdShort);
+                    return;
+                }
+
+                //
+                // Display?
+                //
+
+                Tuple<object?, string?> contentFound = null;
+                if (veSme?.theWrapper is Aas.IFile scFile)
+                    contentFound = new Tuple<object?, string?>(scFile.Value, scFile.ContentType);
+                if (veSme?.theWrapper is Aas.IBlob scBlob && _viewModel.MainMenu?.IsChecked("EditMenu") == false)
+                    contentFound = new Tuple<object?, string?>(scBlob.Value, scBlob.ContentType);
+
+                if (contentFound != null)
+                {
+                    Log.Singleton.Info("Trying display content {0} ..", contentFound.Item1);
+                    try
+                    {
+                        if (contentFound.Item1 is string contentUri)
+                        {
+                            // if local in the package, then make a tempfile
+                            if (!contentUri.ToLower().Trim().StartsWith("http://")
+                                && !contentUri.ToLower().Trim().StartsWith("https://"))
+                            {
+                                // make it a file?
+                                // more info for Registry/ Repo available?
+                                var x = veSme!.FindAasSubmodelIdShortPath();
+                                contentUri = await PackageCentral.Main.MakePackageFileAvailableAsTempFileAsync(contentUri,
+                                    aasId: x?.Item1?.Id,
+                                    smId: x?.Item2?.Id,
+                                    idShortPath: x?.Item3,
+                                    secureAccess: null /* //1// _securityAccessHandler */);
+                            }
+
+                            BrowserDisplayLocalFile(contentUri, contentFound.Item2);
+                        }
+                        else
+                        if (contentFound.Item1 is byte[] ba)
+                        {
+                            try
+                            {
+                                // generate tempfile name
+                                string tempext = AdminShellUtil.GuessExtension(
+                                    contentType: contentFound.Item2,
+                                    contents: ba);
+                                string temppath = System.IO.Path.GetTempFileName().Replace(".tmp", tempext);
+
+                                // write it
+                                System.IO.File.WriteAllBytes(temppath, ba);
+
+                                // display
+                                BrowserDisplayLocalFile(temppath, contentFound.Item2);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Singleton.Error(ex, "when preparing BLOB contents to be displayed as file.");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Singleton.Error(
+                            ex, $"When displaying content {contentFound.Item1}, an error occurred");
+                        return;
+                    }
+                    Log.Singleton.Info("Content {0} displayed.", contentFound.Item1);
+                }
+            }
+        }
+
+        private void UpdateContent_Click(object sender, EventArgs e)
+        {
+            // have a online connection?
+            if (this.theOnlineConnection != null && this.theOnlineConnection.IsValid() &&
+                this.theOnlineConnection.IsConnected())
+            {
+                // current entity is a property
+                if (this.currentEntityForUpdate != null && this.currentEntityForUpdate is VisualElementSubmodelElement)
+                {
+                    var viselem = this.currentEntityForUpdate as VisualElementSubmodelElement;
+                    if (viselem != null && viselem.theEnv != null &&
+                        viselem.theContainer != null && viselem.theContainer is Aas.Submodel &&
+                        viselem.theWrapper != null && viselem.theWrapper != null &&
+                        viselem.theWrapper is Aas.Property)
+                    {
+                        // access a valid property
+                        var p = viselem.theWrapper as Aas.Property;
+                        if (p != null)
+                        {
+                            // use online connection
+                            var x = this.theOnlineConnection.UpdatePropertyValue(
+                                viselem.theEnv, viselem.theContainer as Aas.Submodel, p);
+                            p.Value = x;
+
+                            // refresh
+                            var y = DisplayElements.SelectedItem;
+                            y?.RefreshFromMainData();
+                            DisplayElements.Refresh();
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ContentUndo_Click(object sender, EventArgs e)
+        {
+            DispEditEntityPanel.CallUndo();
+        }
+
+        /// <summary>
+        /// Check for menu switch and flush events, if required.
+        /// </summary>
+        public void CheckIfToFlushEvents()
+        {
+            if (_viewModel.MainMenu?.IsChecked("CompressEvents") == true)
+            {
+                var evs = _eventCompressor?.Flush();
+                if (evs != null)
+                    foreach (var ev in evs)
+                        PackageCentral?.PushEvent(ev);
+            }
+        }
+
+        private async void ContentTakeOver_Click(object sender, EventArgs e)
+        {
+            // some more "OK, good to go" 
+            CheckIfToFlushEvents();
+
+            // refresh display of the tree
+            var x = DisplayElements.SelectedItem;
+            if (x == null)
+            {
+                // TODO (MIHO, 2021-06-08): find the root cause instead of doing a quick-fix
+                // some copy/paste operation seems to leave the DisplayElements-sate in the wrong state
+                x = DisplayElements.TrySynchronizeToInternalTreeState();
+            }
+            x?.RefreshFromMainData();
+            DisplayElements.Refresh();
+
+            // new (MIHO, 2024-05-23): testwise redisplay also element panel
+            // (MIHO, 2024-07-02): redisplay (full re-render) only, if not currently
+            // a plugin is display, which might have internal state!
+            if (!(DisplayElements?.SelectedItem is VisualElementPluginExtension))
+                await RedrawElementViewAsync();
+
+            // re-enable
+            TakeOverContentEnable(false);
+        }
+
+        // left out: raw key handler!
+
+        #region Modal Flyovers
+        //====================
+
+        //1// private List<StoredPrint> flyoutLogMessages = null;
+
+        public void FlyoutLoggingStart()
+        {
+            //1// if (flyoutLogMessages == null)
+            //1// {
+            //1//     flyoutLogMessages = new List<StoredPrint>();
+            //1//     return;
+            //1// }
+            //1// 
+            //1// lock (flyoutLogMessages)
+            //1// {
+            //1//     flyoutLogMessages = new List<StoredPrint>();
+            //1// }
+        }
+
+        public void FlyoutLoggingStop()
+        {
+            //1// if (flyoutLogMessages == null)
+            //1//     return;
+            //1// 
+            //1// lock (flyoutLogMessages)
+            //1// {
+            //1//     flyoutLogMessages = null;
+            //1// }
+        }
+
+        public void FlyoutLoggingPush(StoredPrint msg)
+        {
+            //1// if (flyoutLogMessages == null)
+            //1//     return;
+            //1// 
+            //1// lock (flyoutLogMessages)
+            //1// {
+            //1//     flyoutLogMessages.Add(msg);
+            //1// }
+        }
+
+        public StoredPrint? FlyoutLoggingPop()
+        {
+            //1// if (flyoutLogMessages != null)
+            //1//     lock (flyoutLogMessages)
+            //1//     {
+            //1//         if (flyoutLogMessages.Count > 0)
+            //1//         {
+            //1//             var msg = flyoutLogMessages[0];
+            //1//             flyoutLogMessages.RemoveAt(0);
+            //1//             return msg;
+            //1//         }
+            //1//     }
+            return null;
+        }
+
+        public bool IsInFlyout()
+        {
+            //1// if (this.GridFlyover.Children.Count > 0)
+            //1//     return true;
+            return false;
+        }
+
+        public void StartFlyover(/* UserControl */ object uc)
+        {
+            //1// // uc needs to implement IFlyoverControl
+            //1// var ucfoc = uc as IFlyoutControl;
+            //1// if (ucfoc == null)
+            //1//     return;
+            //1// 
+            //1// // blur the normal grid
+            //1// this.InnerGrid.IsEnabled = false;
+            //1// var blur = new BlurEffect();
+            //1// blur.Radius = 5;
+            //1// this.InnerGrid.Opacity = 0.5;
+            //1// this.InnerGrid.Effect = blur;
+            //1// 
+            //1// // populate the flyover grid
+            //1// this.GridFlyover.Visibility = Visibility.Visible;
+            //1// this.GridFlyover.Children.Clear();
+            //1// this.GridFlyover.Children.Add(uc);
+            //1// 
+            //1// // register the event
+            //1// ucfoc.ControlClosed += Ucfoc_ControlClosed;
+            //1// currentFlyoutControl = ucfoc;
+            //1// 
+            //1// // start (focus)
+            //1// ucfoc.ControlStart();
+        }
+
+        private void Ucfoc_ControlClosed()
+        {
+            //1// CloseFlyover();
+        }
+
+        public void CloseFlyover(bool threadSafe = false)
+        {
+            //1// Action lambda = () =>
+            //1// {
+            //1//     // blur the normal grid
+            //1//     this.InnerGrid.Opacity = 1.0;
+            //1//     this.InnerGrid.Effect = null;
+            //1//     this.InnerGrid.IsEnabled = true;
+            //1// 
+            //1//     // un-populate the flyover grid
+            //1//     this.GridFlyover.Children.Clear();
+            //1//     this.GridFlyover.Visibility = Visibility.Hidden;
+            //1// 
+            //1//     // unregister
+            //1//     currentFlyoutControl = null;
+            //1// };
+            //1// 
+            //1// if (!threadSafe)
+            //1//     lambda.Invoke();
+            //1// else
+            //1//     Dispatcher.BeginInvoke(lambda);
+        }
+
+        //
+        // SYNCRONOUS
+        //
+
+        public void StartFlyoverModal(/* UserControl */ object uc, Action? closingAction = null)
+        {
+            //1// // uc needs to implement IFlyoverControl
+            //1// var ucfoc = uc as IFlyoutControl;
+            //1// if (ucfoc == null)
+            //1//     return;
+            //1// 
+            //1// // blur the normal grid
+            //1// this.InnerGrid.IsEnabled = false;
+            //1// var blur = new BlurEffect();
+            //1// blur.Radius = 5;
+            //1// this.InnerGrid.Opacity = 0.5;
+            //1// this.InnerGrid.Effect = blur;
+            //1// 
+            //1// // populate the flyover grid
+            //1// this.GridFlyover.Visibility = Visibility.Visible;
+            //1// this.GridFlyover.Children.Clear();
+            //1// this.GridFlyover.Children.Add(uc);
+            //1// 
+            //1// // register the frame
+            //1// var frame = new DispatcherFrame();
+            //1// ucfoc.ControlClosed += () =>
+            //1// {
+            //1//     frame.Continue = false; // stops the frame
+            //1// };
+            //1// 
+            //1// // main application needs to know
+            //1// currentFlyoutControl = ucfoc;
+            //1// 
+            //1// // agent behaviour
+            //1// var preventClosingAction = false;
+            //1// 
+            //1// if (uc is IFlyoutAgent ucag)
+            //1// {
+            //1//     // register for minimize
+            //1//     ucag.ControlMinimize += () =>
+            //1//     {
+            //1//         // only execute if preconditions are well
+            //1//         if (ucag.GetAgent() != null && ucag.GetAgent().GenerateFlyoutMini != null)
+            //1//         {
+            //1//             // do not execute directly
+            //1//             preventClosingAction = true;
+            //1// 
+            //1//             // make a mini
+            //1//             var mini = ucag.GetAgent().GenerateFlyoutMini.Invoke();
+            //1// 
+            //1//             // be careful
+            //1//             if (mini is UserControl miniUc)
+            //1//             {
+            //1//                 // push the agent
+            //1//                 UserControlAgentsView.Add(miniUc);
+            //1// 
+            //1//                 // wrap provided closing action in own closing action
+            //1//                 if (ucag.GetAgent() != null)
+            //1//                     ucag.GetAgent().ClosingAction = () =>
+            //1//                     {
+            //1//                         // 1st delete agent
+            //1//                         UserControlAgentsView.Remove(miniUc);
+            //1// 
+            //1//                         // finally, call user provided closing action
+            //1//                         closingAction?.Invoke();
+            //1//                     };
+            //1// 
+            //1//                 // show the panel
+            //1//                 PanelConcurrentSetVisibleIfRequired(true, targetAgents: true);
+            //1// 
+            //1//                 // remove the flyover
+            //1//                 frame.Continue = false; // stops the frame
+            //1//             }
+            //1//         }
+            //1//     };
+            //1// }
+            //1// 
+            //1// // start (focus)
+            //1// ucfoc.ControlStart();
+            //1// 
+            //1// // This will "block" execution of the current dispatcher frame
+            //1// // and run our frame until the dialog is closed.
+            //1// Dispatcher.PushFrame(frame);
+            //1// 
+            //1// // call the closing action (before releasing!)
+            //1// // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            //1// if (closingAction != null && !preventClosingAction)
+            //1//     closingAction();
+            //1// 
+            //1// // blur the normal grid
+            //1// this.InnerGrid.Opacity = 1.0;
+            //1// this.InnerGrid.Effect = null;
+            //1// this.InnerGrid.IsEnabled = true;
+            //1// 
+            //1// // un-populate the flyover grid
+            //1// this.GridFlyover.Children.Clear();
+            //1// this.GridFlyover.Visibility = Visibility.Hidden;
+            //1// 
+            //1// // unregister
+            //1// currentFlyoutControl = null;
+        }
+
+        public AnyUiMessageBoxResult MessageBoxFlyoutShow(
+            string message, string caption, AnyUiMessageBoxButton buttons, AnyUiMessageBoxImage image)
+        {
+            //1// if (!Options.Curr.UseFlyovers)
+            //1// {
+            //1//     return AnyUiMessageBoxResult.Cancel;
+            //1// }
+            //1// 
+            //1// var uc = new MessageBoxFlyout(message, caption, buttons, image);
+            //1// StartFlyoverModal(uc);
+            //1// return uc.Result;
+
+            return AnyUiMessageBoxResult.None;
+        }
+
+        public AnyUiMessageBoxResult MessageBoxFlyoutLogOrShow(
+            bool log, StoredPrint.Color logColor,
+            string message, string caption, AnyUiMessageBoxButton buttons, AnyUiMessageBoxImage image)
+        {
+            if (log)
+            {
+                if (logColor == StoredPrint.Color.Red)
+                    Log.Singleton.Error(caption + ": " + message);
+                else
+                    Log.Singleton.Info(logColor, caption + ": " + message);
+                return AnyUiMessageBoxResult.OK;
+            }
+            else
+                return MessageBoxFlyoutShow(message, caption, buttons, image);
+        }
+
+        //
+        // ASYNC (are async versions of the WPF modals required)
+        //
+
+        public async Task StartFlyoverModalAsync(/* UserControl */ object uc, Action? closingAction = null)
+        {
+            //1// // uc needs to implement IFlyoverControl
+            //1// var ucfoc = uc as IFlyoutControl;
+            //1// if (ucfoc == null)
+            //1//     return;
+            //1// 
+            //1// // blur the normal grid
+            //1// this.InnerGrid.IsEnabled = false;
+            //1// var blur = new BlurEffect();
+            //1// blur.Radius = 5;
+            //1// this.InnerGrid.Opacity = 0.5;
+            //1// this.InnerGrid.Effect = blur;
+            //1// 
+            //1// // populate the flyover grid
+            //1// this.GridFlyover.Visibility = Visibility.Visible;
+            //1// this.GridFlyover.Children.Clear();
+            //1// this.GridFlyover.Children.Add(uc);
+            //1// 
+            //1// // register the frame
+            //1// var frame = new DispatcherFrame();
+            //1// ucfoc.ControlClosed += () =>
+            //1// {
+            //1//     frame.Continue = false; // stops the frame
+            //1// };
+            //1// 
+            //1// // main application needs to know
+            //1// currentFlyoutControl = ucfoc;
+            //1// 
+            //1// // agent behaviour
+            //1// var preventClosingAction = false;
+            //1// ucfoc.ControlStart();
+            //1// 
+            //1// // This will "block" execution of the current dispatcher frame
+            //1// // and run our frame until the dialog is closed.
+            //1// Dispatcher.PushFrame(frame);
+            //1// 
+            //1// // call the closing action (before releasing!)
+            //1// // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            //1// if (closingAction != null && !preventClosingAction)
+            //1//     closingAction();
+            //1// 
+            //1// // blur the normal grid
+            //1// this.InnerGrid.Opacity = 1.0;
+            //1// this.InnerGrid.Effect = null;
+            //1// this.InnerGrid.IsEnabled = true;
+            //1// 
+            //1// // un-populate the flyover grid
+            //1// this.GridFlyover.Children.Clear();
+            //1// this.GridFlyover.Visibility = Visibility.Hidden;
+            //1// 
+            //1// // unregister
+            //1// currentFlyoutControl = null;
+            //1// 
+            //1// // relieve task
+            //1// await Task.Yield();
+            await Task.Yield();
+            return null;
+        }
+
+        public async Task<AnyUiMessageBoxResult> MessageBoxFlyoutShowAsync(
+            string message, string caption, AnyUiMessageBoxButton buttons, AnyUiMessageBoxImage image)
+        {
+            //1// if (!Options.Curr.UseFlyovers)
+            //1// {
+            //1//     return AnyUiMessageBoxResult.Cancel;
+            //1// }
+            //1// 
+            //1// var uc = new MessageBoxFlyout(message, caption, buttons, image);
+            //1// await StartFlyoverModalAsync(uc);
+            //1// return uc.Result;
+            return AnyUiMessageBoxResult.None;
+        }
+
+        public Window GetWin32Window()
+        {
+            return Application.Current!.Windows[0];
+        }
+
+        public AnyUiContextBase GetDisplayContext()
+        {
+            return DisplayContext;
+        }
+
+        #endregion
+
+        #region Drag&Drop
+        //===============
+
+        // see Cross-platform MAUI way (recommended)
+        // Use DropGestureRecognizer
+
+        private void Window_DragEnter(object sender, DragEventArgs e)
+        {
+            //1// if (!e.Data.GetDataPresent("myFormat") || sender == e.Source)
+            //1// {
+            //1//     e.Effects = DragDropEffects.None;
+            //1// }
+        }
+
+        private async void Window_Drop(object sender, DragEventArgs e)
+        {
+            await Task.Yield();
+            //1// // Appearantly you need to figure out if OriginalSource would have handled the Drop?
+            //1// if (!e.Handled && e.Data.GetDataPresent(DataFormats.FileDrop, true))
+            //1// {
+            //1//     // Note that you can have more than one file.
+            //1//     string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            //1// 
+            //1//     // Assuming you have one file that you care about, pass it off to whatever
+            //1//     // handling code you have defined.
+            //1//     if (files != null && files.Length > 0)
+            //1//     {
+            //1//         string fn = files[0];
+            //1//         try
+            //1//         {
+            //1//             await UiLoadPackageWithNew(
+            //1//                 PackageCentral.MainItem, null, loadLocalFilename: fn, onlyAuxiliary: false,
+            //1//                 nextEditMode: Options.Curr.EditMode);
+            //1//         }
+            //1//         catch (Exception ex)
+            //1//         {
+            //1//             Log.Singleton.Error(ex, $"while receiving file drop to window");
+            //1//         }
+            //1//     }
+            //1// }
+        }
+
+        private bool isDragging = false;
+        private Point dragStartPoint = new Point(0, 0);
+
+        private void DragSource_PreviewMouseMove(object sender, EventArgs e)
+        {
+            //1// // MIHO 2020-09-14: removed this from the check below
+            //1// //// && (Math.Abs(dragStartPoint.X) < 0.001 && Math.Abs(dragStartPoint.Y) < 0.001)
+            //1// if (e.LeftButton == MouseButtonState.Pressed && !isDragging
+            //1//     && PackageCentral.MainAvailable
+            //1//     && this._showContentElement is Aas.IFile scFile)
+            //1// {
+            //1//     Point position = e.GetPosition(null);
+            //1//     if (Math.Abs(position.X - dragStartPoint.X) > SystemParameters.MinimumHorizontalDragDistance ||
+            //1//         Math.Abs(position.Y - dragStartPoint.Y) > SystemParameters.MinimumVerticalDragDistance)
+            //1//     {
+            //1//         // check if it an address in the package only
+            //1//         if (!scFile.Value.Trim().StartsWith("/"))
+            //1//             return;
+            //1// 
+            //1//         // lock
+            //1//         isDragging = true;
+            //1// 
+            //1//         // fail safe
+            //1//         try
+            //1//         {
+            //1//             // hastily prepare temp file ..
+            //1//             var tempfile = PackageCentral.Main.MakePackageFileAvailableAsTempFile(
+            //1//                 scFile.Value, keepFilename: true);
+            //1// 
+            //1//             // Package the data.
+            //1//             DataObject data = new DataObject();
+            //1//             data.SetFileDropList(new System.Collections.Specialized.StringCollection() { tempfile });
+            //1// 
+            //1//             // Inititate the drag-and-drop operation.
+            //1//             DragDrop.DoDragDrop(this, data, DragDropEffects.Copy | DragDropEffects.Move);
+            //1//         }
+            //1//         catch (Exception ex)
+            //1//         {
+            //1//             Log.Singleton.Error(
+            //1//                 ex, $"When dragging content {scFile.Value}, an error occurred");
+            //1//             return;
+            //1//         }
+            //1// 
+            //1//         // unlock
+            //1//         isDragging = false;
+            //1//     }
+            //1// }
+        }
+
+        private void DragSource_PreviewMouseLeftButtonDown(object sender, EventArgs e)
+        {
+            //1// dragStartPoint = e.GetPosition(null);
+        }
+
+        #endregion
+
+        #region Find & Replace
+        ----------------------
+
+        /// <summary>
+        /// Tools are find & replace
+        /// </summary>
+        private void ButtonTools_Click(object sender, EventArgs e)
+        {
+            //1// if (sender == ButtonToolsClose)
+            //1// {
+            //1//     ToolsGrid.Visibility = Visibility.Collapsed;
+            //1//     if (DispEditEntityPanel != null)
+            //1//         DispEditEntityPanel.ClearHighlight();
+            //1// }
+        }
+
+        #endregion
+
+        #region Keyboard shortcut HTML
+        // ---------------------------
+
+        // TODO (MIHO, 2026-01-01): Refactor between AASPE apps
+
+        public string CreateTempFileForKeyboardShortcuts()
+        {
+            try
+            {
+                //
+                // HTML statr
+                //
+
+                // create a temp HTML file
+                var tmpfn = System.IO.Path.GetTempFileName();
+
+                // rename to html file
+                var htmlfn = tmpfn.Replace(".tmp", ".html");
+                System.IO.File.Move(tmpfn, htmlfn);
+
+                // create html content as string
+                var htmlHeader = AdminShellUtil.CleanHereStringWithNewlines(
+                    @"<!doctype html>
+                        <html lang=en>
+                        <head>
+                        <style>
+                        body {
+                          background-color: #FFFFE0;
+                          font-size: small;
+                          font-family: Arial, Helvetica, sans-serif;
+                        }
+                        table {
+                          font-family: arial, sans-serif;
+                          border-collapse: collapse;
+                          width: 100%;
+                        }
+                        td, th {
+                          border: 1px solid #dddddd;
+                          text-align: left;
+                          padding: 8px;
+                        }
+                        </style>
+                        <meta charset=utf-8>
+                        <title>blah</title>
+                        </head>
+                        <body>");
+
+                var htmlFooter = AdminShellUtil.CleanHereStringWithNewlines(
+                    @"</body>
+                        </html>");
+
+                var html = new StringBuilder();
+
+                html.Append(htmlHeader);
+
+                var color = false;
+
+                //
+                // Keyboard shortcuts
+                //
+
+                html.AppendLine("<h3>Keyboard shortcuts</h3>");
+
+                html.Append(AdminShellUtil.CleanHereStringWithNewlines(
+                    @"<table style=""width:100%"">
+                        <tr>
+                        <th>Modifiers & Keys</th>
+                        <th>Function</th>
+                        <th>Description</th>
+                        </tr>"));
+
+                var rowfmt = AdminShellUtil.CleanHereStringWithNewlines(
+                    @"<tr style=""background-color: {0}"">
+                        <td>{1}</th>
+                        <td>{2}</th>
+                        <td>{3}</th>
+                        </tr>");
+
+                foreach (var sc in DispEditEntityPanel.EnumerateShortcuts())
+                {
+                    // Function
+                    var fnct = "";
+                    if (sc.Element is AnyUiButton btn)
+                        fnct = "" + btn.Content;
+
+                    // fill
+                    html.Append(String.Format(rowfmt,
+                        (color) ? "#ffffe0" : "#fffff0",
+                        "" + sc.GestureToString(fmt: 0),
+                        "" + fnct,
+                        "" + sc.Info));
+
+                    // color change
+                    color = !color;
+                }
+
+                html.Append(AdminShellUtil.CleanHereStringWithNewlines(
+                    @"</table>"));
+
+                //
+                // Menu command
+                //
+
+                // ReSharper disable AccessToModifiedClosure
+
+                Action<AasxMenu> lambdaMenu = (menu) =>
+                {
+
+                    html.Append(AdminShellUtil.CleanHereStringWithNewlines(
+                        @"<table style=""width:100%"">
+                        <tr>
+                        <th>Keyboard</th>
+                        <th>Menu header</th>
+                        <th>ToolCmd / <br><i>Argument</i></th>
+                        <th>Description</th>
+                        </tr>"));
+
+                    var rowfmtTC = AdminShellUtil.CleanHereStringWithNewlines(
+                        @"<tr style=""background-color: {0}"">
+                        <td>{1}</td>
+                        <td>{2}</td>
+                        <td>{3}</td>
+                        <td>{4}</td>
+                        </tr>");
+
+                    var rowfmtTCAD = AdminShellUtil.CleanHereStringWithNewlines(
+                        @"<tr style=""background-color: {0}"">
+                        <td colspan=""2"" 
+                         style=""border-top:none;border-bottom:none;border-left:none;background-color:#FFFFE0"">
+                        </td>
+                        <td><i>{1}</i></td>
+                        <td><i>{2}</i></td>
+                        </tr>");
+
+                    foreach (var mib in menu.FindAll((x) => x is AasxMenuItem))
+                    {
+                        // access
+                        if (!(mib is AasxMenuItem mi) || mi.Name?.HasContent() != true)
+                            continue;
+
+                        // filter header
+                        var header = mi.Header.Replace("_", "");
+
+                        // fill
+                        html.Append(String.Format(rowfmtTC,
+                            (color) ? "#ffffe0" : "#fffff0",
+                            "" + mi.InputGesture,
+                            "" + header,
+                            "" + mi.Name,
+                            "" + mi.HelpText));
+
+                        // arguments
+                        if (mi.ArgDefs != null)
+                            foreach (var ad in mi.ArgDefs)
+                            {
+                                if (ad.Hidden)
+                                    continue;
+                                html.Append(String.Format(rowfmtTCAD,
+                                    (color) ? "#ffffe0" : "#fffff0",
+                                    "" + ad.Name,
+                                    "" + ad.Help));
+                            }
+
+                        // color change
+                        color = !color;
+                    }
+
+                    html.Append(AdminShellUtil.CleanHereStringWithNewlines(
+                        @"</table>"));
+                };
+
+                // ReSharper enable AccessToModifiedClosure
+
+                html.AppendLine("<h3>Menu and script commands</h3>");
+                lambdaMenu(MainMenu.Menu);
+
+                html.AppendLine("<h3>Displayed entity and script commands</h3>");
+                lambdaMenu(DynamicMenu.Menu);
+
+                //
+                // Script command
+                //
+
+                var script = new AasxScript();
+                script.PrepareHelp();
+
+                html.AppendLine("<h3>Script built-in commands</h3>");
+
+                html.Append(AdminShellUtil.CleanHereStringWithNewlines(
+                    @"<table style=""width:100%"">
+                        <tr>
+                        <th>Keyword</th>
+                        <th>Argument</th>
+                        <th>Description</th>
+                        </tr>"));
+
+                var rowfmtSC = AdminShellUtil.CleanHereStringWithNewlines(
+                    @"<tr style=""background-color: {0}"">
+                        <td>{1}</td>
+                        <td colspan=""2"">{2}</td>
+                        </tr>");
+
+                var rowfmtSCAD = AdminShellUtil.CleanHereStringWithNewlines(
+                    @"<tr style=""background-color: {0}"">
+                        <td  
+                         style=""border-top:none;border-bottom:none;border-left:none;background-color:#FFFFE0"">
+                        </td>
+                        <td><i>{1}</i></td>
+                        <td><i>{2}</i></td>
+                        </tr>");
+
+                foreach (var hr in script.ListOfHelp)
+                {
+                    // fill
+                    html.Append(String.Format(rowfmtSC,
+                        (color) ? "#ffffe0" : "#fffff0",
+                        "" + hr.Keyword,
+                        "" + hr.Description));
+
+                    // arguments
+                    if (hr.ArgDefs != null)
+                        foreach (var ad in hr.ArgDefs)
+                        {
+                            if (ad.Hidden)
+                                continue;
+                            html.Append(String.Format(rowfmtSCAD,
+                                (color) ? "#ffffe0" : "#fffff0",
+                                "" + HttpUtility.HtmlEncode(ad.Name),
+                                "" + ad.Help));
+                        }
+
+                    // color change
+                    color = !color;
+                }
+
+                //
+                // HTMLend
+                //
+
+                html.Append(htmlFooter);
+
+                // write
+                System.IO.File.WriteAllText(htmlfn, html.ToString());
+                return htmlfn;
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(ex, "Creating HTML file for keyboard shortcuts");
+            }
+            return null;
+        }
+
+        #endregion
+
+        #region Furhter interface methods
+        // ------------------------------
+
+        // REFACTOR: for later refactoring
+        public void RedrawRepositories()
+        {
+            // nothing here required
+            ;
+        }
+
+        // REFACTOR: for later refactoring
+        public void RedrawAllElementsAndFocus(object? nextFocus = null, bool isExpanded = true)
+        {
+            // WPF: inject
+            DispEditEntityPanel.AddWishForOutsideAction(
+                new AnyUiLambdaActionRedrawAllElements(nextFocus: nextFocus, isExpanded: isExpanded));
+        }
+
+        /// <summary>
+        /// Gets the interface to the components which manages the AAS tree elements (middle section)
+        /// </summary>
+        public IDisplayElements GetDisplayElements() => DisplayElements;
+
+        /// <summary>
+        /// Returns the <c>AasxMenu</c> of the main menu of the application.
+        /// Purpose: script automation
+        /// </summary>
+        public AasxMenu GetMainMenu()
+        {
+            return _viewModel.MainMenu;
+        }
+
+        /// <summary>
+        /// Returns the <c>AasxMenu</c> of the dynmaically built menu of the application.
+        /// Purpose: script automation
+        /// </summary>
+        public AasxMenu GetDynamicMenu()
+        {
+            return DynamicMenu.Menu;
+        }
+
+        /// <summary>
+        /// Returns the quite concise script interface of the application
+        /// to allow script automation.
+        /// </summary>
+        public IAasxScriptRemoteInterface GetRemoteInterface()
+        {
+            return Logic;
+        }
+
+        /// <summary>
+        /// Allows an other class to inject a lambda action.
+        /// This will be perceived by the main window, most likely.
+        /// </summary>
+        public void AddWishForToplevelAction(AnyUiLambdaActionBase action)
+        {
+            DispEditEntityPanel.AddWishForOutsideAction(action);
+        }
+
+        private async void Button_Click(object sender, EventArgs e)
+        {
+            await Task.Yield();
+
+            //1// if (sender == ButtonKeyboard)
+            //1// {
+            //1//     var htmlfn = CreateTempFileForKeyboardShortcuts();
+            //1//     BrowserDisplayLocalFile(htmlfn, System.Net.Mime.MediaTypeNames.Text.Html,
+            //1//                             preferInternal: true);
+            //1// }
+            //1// 
+            //1// if (sender == ButtonHomeLocation)
+            //1// {
+            //1//     await CommandBinding_GeneralDispatch("navigatehome", null, new AasxMenuActionTicket());
+            //1// }
+            //1// 
+            //1// if (sender == ButtonHistoryBack)
+            //1// {
+            //1//     Logic?.LocationHistory?.Pop();
+            //1// }
+        }
+
+        #endregion
     }
 }

@@ -106,6 +106,12 @@ public partial class DispEditAasxEntityMaui : ContentView
         }
     }
 
+    public void AddWishForOutsideAction(AnyUiLambdaActionBase action)
+    {
+        //1// if (action != null && WishForOutsideAction != null)
+        //1//     WishForOutsideAction.Add(action);
+    }
+
     //
     // Members
     //
@@ -189,6 +195,17 @@ public partial class DispEditAasxEntityMaui : ContentView
     // 
     // Main function: Maintain an place to attach editing controls
     //
+
+    public IEnumerable<KeyShortcutRecord> EnumerateShortcuts()
+    {
+        // access
+        if (!(_helper?.context is AnyUiDisplayContextMaui dcmaui))
+            yield break;
+
+        if (dcmaui.KeyShortcuts != null)
+            foreach (var sc in dcmaui.KeyShortcuts)
+                yield return sc;
+    }
 
     public StackBase ClearDisplayDefaultStack()
     {
@@ -436,6 +453,6 @@ public partial class DispEditAasxEntityMaui : ContentView
 
         // return render hints
         return renderHints;
-    }
+    }    
 
 }
