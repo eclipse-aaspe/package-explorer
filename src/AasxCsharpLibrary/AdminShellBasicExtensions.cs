@@ -36,7 +36,7 @@ namespace AdminShellNS
             return str != null && str.Trim() != "";
         }
 
-        public static IEnumerable<T> ForEachSafe<T>(this List<T> list)
+        public static IEnumerable<T> ForEachSafe<T>(this IEnumerable<T> list)
         {
             if (list == null)
                 yield break;

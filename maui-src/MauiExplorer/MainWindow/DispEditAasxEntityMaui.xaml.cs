@@ -67,6 +67,8 @@ public partial class DispEditAasxEntityMaui : ContentView
         }
     }
 
+    public List<AnyUiLambdaActionBase> WishForOutsideAction = new List<AnyUiLambdaActionBase>();
+
     public event EventHandler<OutsideActionEventArgs>? OutsideAction;
 
     protected void StopTimer()
@@ -221,7 +223,7 @@ public partial class DispEditAasxEntityMaui : ContentView
     public ContentView GetMasterPanel()
     {
         return MasterPanel;
-    }
+    }    
 
     public void SetDisplayExternalControl(View fe)
     {
@@ -453,6 +455,54 @@ public partial class DispEditAasxEntityMaui : ContentView
 
         // return render hints
         return renderHints;
-    }    
+    }
+
+    public Tuple<AnyUiDisplayContextMaui, AnyUiUIElement?>? GetLastRenderedRoot()
+    {
+        if (!(_helper?.context is AnyUiDisplayContextMaui dcmaui))
+            return null;
+
+        return new Tuple<AnyUiDisplayContextMaui, AnyUiUIElement?>(
+            dcmaui, _lastRenderedRootElement);
+    }
+
+    public void RedisplayRenderedRoot(
+            AnyUiUIElement root,
+            AnyUiRenderMode mode,
+            bool useInnerGrid = false,
+            Dictionary<AnyUiUIElement, bool>? updateElemsOnly = null)
+    {
+        // safe
+        _lastRenderedRootElement = root;
+        if (!(_helper?.context is AnyUiDisplayContextMaui dcmaui))
+            return;
+
+        // no plugin
+        //// DisposeLoadedPlugin();
+
+        // redisplay
+        MasterPanel.Content = null;
+        VisualElement? spmaui = null;
+
+        var allowReUse = mode == AnyUiRenderMode.StatusToUi;
+
+        if (useInnerGrid
+            && root is AnyUiStackPanel stack
+            && stack?.Children != null
+            && stack.Children.Count == 1
+            && stack.Children[0] is AnyUiGrid grid)
+        {
+            spmaui = dcmaui.GetOrCreateMauiElement(grid, allowReUse: allowReUse, mode: mode,
+                updateElemsOnly: updateElemsOnly);
+        }
+        else
+        {
+            spmaui = dcmaui.GetOrCreateMauiElement(root, allowReUse: allowReUse, mode: mode,
+                updateElemsOnly: updateElemsOnly);
+        }
+
+        _helper.ShowLastHighlights();
+        MasterPanel.Content = spmaui as View;
+    }
 
 }
