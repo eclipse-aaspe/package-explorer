@@ -798,7 +798,9 @@ namespace AnyUi
 
         public void AddGroup(AnyUiStackPanel view, string name, AnyUiBrush background, AnyUiBrush foreground,
             bool requestContextMenu,
-            string contextMenuText, string[] menuHeaders, Func<object, AnyUiLambdaActionBase> menuItemLambda,
+            string contextMenuText, string[] menuHeaders, 
+            Func<object, AnyUiLambdaActionBase> menuItemLambda = null,
+            Func<object, Task<AnyUiLambdaActionBase>> menuItemLambdaAsync = null,
             AnyUiThickness margin = null, AnyUiThickness padding = null)
         {
             var g = new AnyUiGrid();
@@ -833,8 +835,10 @@ namespace AnyUi
             {
                 AddSmallContextMenuItemTo(
                     g, 0, 1,
-                    contextMenuText, menuHeaders, menuItemLambda,
-                    margin: margin, padding: padding);
+                    contextMenuText, menuHeaders, 
+                    menuItemLambda,
+                    margin: margin, padding: padding,
+                    menuItemLambdaAsync: menuItemLambdaAsync);
             }
         }
 

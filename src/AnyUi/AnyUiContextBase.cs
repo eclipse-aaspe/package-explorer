@@ -68,7 +68,7 @@ namespace AnyUi
         /// If supported by implementation technology, will set Clipboard (copy/ paste buffer)
         /// of the main application computer.
         /// </summary>
-        public virtual void ClipboardSet(AnyUiClipboardData cb)
+        public virtual async Task ClipboardSetAsync(AnyUiClipboardData cb)
         {
         }
 
@@ -76,7 +76,7 @@ namespace AnyUi
         /// If supported by implementation technology, will get Clipboard (copy/ paste buffer)
         /// of the main application computer.
         /// </summary>
-        public virtual AnyUiClipboardData ClipboardGet()
+        public virtual async Task<AnyUiClipboardData> ClipboardGetAsync()
         {
             return null;
         }

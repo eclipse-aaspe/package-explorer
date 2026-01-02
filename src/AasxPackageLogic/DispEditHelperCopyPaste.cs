@@ -15,6 +15,7 @@ using Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic
@@ -315,7 +316,7 @@ namespace AasxPackageLogic
                 return json;
             }
 
-            public void CopyToClipboard(AnyUiContextBase context, string watermark = null)
+            public async Task CopyToClipboardAsync(AnyUiContextBase context, string watermark = null)
             {
                 // access
                 if (context == null)
@@ -327,7 +328,7 @@ namespace AasxPackageLogic
                     return;
 
                 // prepare clipboard data
-                context.ClipboardSet(new AnyUiClipboardData()
+                await context.ClipboardSetAsync(new AnyUiClipboardData()
                 {
                     Watermark = watermark,
                     Text = s
@@ -510,7 +511,7 @@ namespace AasxPackageLogic
                     .AddAction("aas-elem-paste-into", "Paste into",
                         "Adds the content of the paste buffer into the currently selected collection-like element.",
                         inputGesture: "Ctrl+Shift+Alt+V"),
-                ticketAction: (buttonNdx, ticket) =>
+                ticketActionAsync: async (buttonNdx, ticket) =>
                 {
                     if (buttonNdx == 0 || buttonNdx == 1)
                     {
@@ -522,7 +523,7 @@ namespace AasxPackageLogic
                         placement = parentContainer.GetChildrenPlacement(sme);
                         cpbInternal.Items = new ListOfCopyPasteItem(
                             new CopyPasteItemSME(env, parentContainer, wrapper, sme, placement));
-                        cpbInternal.CopyToClipboard(context, cpbInternal.Watermark);
+                        await cpbInternal.CopyToClipboardAsync(context, cpbInternal.Watermark);
 
                         // special case?
 
@@ -539,7 +540,7 @@ namespace AasxPackageLogic
                     if (buttonNdx == 2 || buttonNdx == 3 || buttonNdx == 4)
                     {
                         // which buffer?
-                        var cbdata = context?.ClipboardGet();
+                        var cbdata = await context.ClipboardGetAsync();
                         var cpb = cpbInternal.CheckIfUseExternalCopyPasteBuffer(cbdata);
 
                         // content?
@@ -781,7 +782,7 @@ namespace AasxPackageLogic
                     .AddAction("aas-elem-paste-into", "Paste into",
                         "Adds the content of the paste buffer into the currently selected collection-like element.",
                         inputGesture: "Ctrl+Shift+Alt+V"),
-                ticketAction: (buttonNdx, ticket) =>
+                ticketActionAsync: async (buttonNdx, ticket) =>
                 {
                     if (buttonNdx == 0 || buttonNdx == 1)
                     {
@@ -791,7 +792,7 @@ namespace AasxPackageLogic
                         cpbInternal.Duplicate = buttonNdx == 1;
                         cpbInternal.Items = new ListOfCopyPasteItem(
                             new CopyPasteItemSubmodel(parentContainer, entity, smref, sm));
-                        cpbInternal.CopyToClipboard(context, cpbInternal.Watermark);
+                        await cpbInternal.CopyToClipboardAsync(context, cpbInternal.Watermark);
 
                         // user feedback
                         Log.Singleton.Info(
@@ -805,7 +806,7 @@ namespace AasxPackageLogic
                     if (buttonNdx == 2 || buttonNdx == 3)
                     {
                         // which buffer?
-                        var cbdata = context?.ClipboardGet();
+                        var cbdata = await context.ClipboardGetAsync();
                         var cpb = cpbInternal.CheckIfUseExternalCopyPasteBuffer(cbdata);
 
                         // content?
@@ -913,7 +914,7 @@ namespace AasxPackageLogic
                     if (buttonNdx == 4)
                     {
                         // which buffer?
-                        var cbdata = context?.ClipboardGet();
+                        var cbdata = await context.ClipboardGetAsync();
                         var cpb = cpbInternal.CheckIfUseExternalCopyPasteBuffer(cbdata);
 
                         // content?
@@ -1022,7 +1023,7 @@ namespace AasxPackageLogic
                     .AddAction("aas-elem-paste-into", "Paste into",
                         "Adds the content of the paste buffer into the currently selected collection-like element.",
                         inputGesture: "Ctrl+Shift+Alt+V"),
-                ticketAction: (buttonNdx, ticket) =>
+                ticketActionAsync: async (buttonNdx, ticket) =>
                 {
                     if (buttonNdx == 0 || buttonNdx == 1)
                     {
@@ -1032,7 +1033,7 @@ namespace AasxPackageLogic
                         cpbInternal.Duplicate = buttonNdx == 1;
                         cpbInternal.Items = new ListOfCopyPasteItem(
                             new CopyPasteItemIdentifiable(parentContainer, entity));
-                        cpbInternal.CopyToClipboard(context, cpbInternal.Watermark);
+                        await cpbInternal.CopyToClipboardAsync(context, cpbInternal.Watermark);
 
                         // user feedback
                         Log.Singleton.Info(
@@ -1048,7 +1049,7 @@ namespace AasxPackageLogic
                     if (buttonNdx == 2 || buttonNdx == 3)
                     {
                         // which buffer?
-                        var cbdata = context?.ClipboardGet();
+                        var cbdata = await context.ClipboardGetAsync();
                         var cpb = cpbInternal.CheckIfUseExternalCopyPasteBuffer(cbdata);
                         if (!cpb.ContentAvailable)
                         {
@@ -1125,7 +1126,7 @@ namespace AasxPackageLogic
                     if (buttonNdx == 4)
                     {
                         // which buffer?
-                        var cbdata = context?.ClipboardGet();
+                        var cbdata = await context.ClipboardGetAsync();
                         var cpb = cpbInternal.CheckIfUseExternalCopyPasteBuffer(cbdata);
                         if (cpb == null)
                         {
@@ -1205,12 +1206,12 @@ namespace AasxPackageLogic
                     .AddAction("aas-elem-paste-into", "Paste into",
                         "Adds the content of the paste buffer into the currently selected collection-like element.",
                         inputGesture: "Ctrl+Alt+V"),
-                ticketAction: (buttonNdx, ticket) =>
+                ticketActionAsync: async (buttonNdx, ticket) =>
                 {
                     if (buttonNdx == 0)
                     {
                         // which buffer
-                        var cbdata = context?.ClipboardGet();
+                        var cbdata = await context.ClipboardGetAsync();
                         var cpb = cpbInternal.CheckIfUseExternalCopyPasteBuffer(cbdata);
                         if (!cpb.ContentAvailable)
                         {

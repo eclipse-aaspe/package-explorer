@@ -6,7 +6,10 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AasxIntegrationBase;
+using AasxPackageExplorer;
+using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
+using AdminShellNS;
 using AnyUi;
 using CommunityToolkit.Maui.Extensions;
 using Microsoft.Maui.Controls;
@@ -2041,25 +2044,24 @@ namespace MauiTestTree
         // Shortcut handling
         //
 
-#if TODO_IMPORTANT
         public class KeyShortcutRecord
         {
-            public AnyUiUIElement Element;
-            public System.Windows.Input.ModifierKeys Modifiers;
-            public System.Windows.Input.Key Key;
+            public AnyUiUIElement? Element;
+            public KeyboardAcceleratorModifiers Modifiers;
+            public string? Key;
             public bool Preview = true;
-            public string Info;
+            public string Info = "";
 
             public string GestureToString(int fmt)
             {
                 if (fmt == 1)
                 {
                     var res = "";
-                    if (Modifiers.HasFlag(ModifierKeys.Shift))
+                    if (Modifiers.HasFlag(KeyboardAcceleratorModifiers.Shift))
                         res += "[Shift] ";
-                    if (Modifiers.HasFlag(ModifierKeys.Control))
+                    if (Modifiers.HasFlag(KeyboardAcceleratorModifiers.Ctrl))
                         res += "[Control] ";
-                    if (Modifiers.HasFlag(ModifierKeys.Alt))
+                    if (Modifiers.HasFlag(KeyboardAcceleratorModifiers.Alt))
                         res += "[Alt] ";
 
                     res += "[" + Key.ToString() + "]";
@@ -2068,11 +2070,11 @@ namespace MauiTestTree
                 else
                 {
                     var l = new List<string>();
-                    if (Modifiers.HasFlag(ModifierKeys.Shift))
+                    if (Modifiers.HasFlag(KeyboardAcceleratorModifiers.Shift))
                         l.Add("Shift");
-                    if (Modifiers.HasFlag(ModifierKeys.Control))
+                    if (Modifiers.HasFlag(KeyboardAcceleratorModifiers.Ctrl))
                         l.Add("Ctrl");
-                    if (Modifiers.HasFlag(ModifierKeys.Alt))
+                    if (Modifiers.HasFlag(KeyboardAcceleratorModifiers.Alt))
                         l.Add("Alt");
                     l.Add(Key.ToString());
                     return String.Join("+", l);
@@ -2086,8 +2088,8 @@ namespace MauiTestTree
 
         public bool RegisterKeyShortcut(
             string name,
-            System.Windows.Input.ModifierKeys modifiers,
-            System.Windows.Input.Key key,
+            KeyboardAcceleratorModifiers modifiers,
+            string key,
             string info)
         {
             var el = FindFirstNamedElement(name);
@@ -2104,8 +2106,8 @@ namespace MauiTestTree
         }
 
         public int TriggerKeyShortcut(
-            System.Windows.Input.Key key,
-            System.Windows.Input.ModifierKeys modifiers,
+            string key,
+            KeyboardAcceleratorModifiers modifiers,
             bool preview)
         {
             var res = 0;
@@ -2124,7 +2126,6 @@ namespace MauiTestTree
                 }
             return res;
         }
-#endif
 
         //
         // Utilities
@@ -2193,39 +2194,35 @@ namespace MauiTestTree
         /// If supported by implementation technology, will set Clipboard (copy/ paste buffer)
         /// of the main application computer.
         /// </summary>
-        public override void ClipboardSet(AnyUiClipboardData cb)
+        public override async Task ClipboardSetAsync(AnyUiClipboardData cb)
         {
-#if TODO_IMPORTANT
+            // Note: Watermark not migrated to MAUI
+
             if (cb == null)
                 return;
 
-            if (cb.Watermark != null)
-                Clipboard.SetData("AASXPE", cb.Watermark);
-
             if (cb.Text != null)
-                Clipboard.SetText(cb.Text);
-#endif
+                await Clipboard.Default.SetTextAsync(cb.Text);
         }
 
         /// <summary>
         /// If supported by implementation technology, will get Clipboard (copy/ paste buffer)
         /// of the main application computer.
         /// </summary>
-        public override AnyUiClipboardData ClipboardGet()
+        public override async Task<AnyUiClipboardData> ClipboardGetAsync()
         {
-#if TODO_IMPORTANT
+            // Note: Watermark not migrated to MAUI
+
             var res = new AnyUiClipboardData();
-
-            // get watermark?
-            res.Watermark = (string)Clipboard.GetData("AASXPE");
-
-            // get text?
-            res.Text = Clipboard.GetText();
-
-            // ok
+            if (Clipboard.Default.HasText)
+            {
+                var text = await Clipboard.Default.GetTextAsync();
+                if (text != null)
+                {
+                    res.Text = text;
+                }
+            }
             return res;
-#endif
-            return new AnyUiClipboardData();
         }
 
         /// <summary>
@@ -2278,14 +2275,15 @@ namespace MauiTestTree
             return AnyUiMessageBoxResult.None;
         }
 
-#if TODO_IMPORTANT
-        private UserControl DispatchFlyout(AnyUiDialogueDataBase dialogueData)
+        private VisualElement? DispatchFlyout(AnyUiDialogueDataBase dialogueData)
         {
             // access
             if (dialogueData == null)
                 return null;
-            UserControl res = null;
+            
+            VisualElement? res = null;
 
+#if TODO_IMPORTANT
             // dispatch
             // TODO (MIHO, 2020-12-21): can be realized without tedious central dispatch?
             if (dialogueData is AnyUiDialogueDataEmpty ddem)
@@ -2402,7 +2400,7 @@ namespace MauiTestTree
                 uc.DiaData = ddpr;
                 res = uc;
             }
-
+#endif
             return res;
         }
 
@@ -2410,6 +2408,7 @@ namespace MauiTestTree
         {
             if (modal && dialogueData is AnyUiDialogueDataOpenFile ddof)
             {
+#if TODO_IMPORTANT
                 var dlg = new Microsoft.Win32.OpenFileDialog();
 
                 if (ddof.Filter != null)
@@ -2443,10 +2442,12 @@ namespace MauiTestTree
                     if (ddof.Multiselect && dlg.FileNames != null)
                         ddof.Filenames = dlg.FileNames.ToList();
                 }
+#endif
             }
 
             if (modal && dialogueData is AnyUiDialogueDataSaveFile ddsf)
             {
+#if TODO_IMPORTANT
                 var dlg = new Microsoft.Win32.SaveFileDialog();
 
                 if (ddsf.Filter != null)
@@ -2470,9 +2471,9 @@ namespace MauiTestTree
                     ddsf.Location = AnyUiDialogueDataSaveFile.LocationKind.Local;
                     ddsf.TargetFileName = dlg.FileName;
                 }
+#endif
             }
         }
-#endif
 
         /// <summary>
         /// Shows specified dialogue hardware-independent. The technology implementation will show the
@@ -2541,6 +2542,7 @@ namespace MauiTestTree
         /// <returns>If the dialogue was end with "OK" or similar success.</returns>
         public override async Task<bool> StartFlyoverModalAsync(AnyUiDialogueDataBase dialogueData, Action rerender = null)
         {
+            await Task.Yield();
 #if TODO_IMPORTANT
             // note: rerender not required in this UI platform
             // access
@@ -2644,8 +2646,6 @@ namespace MauiTestTree
         //
 
         // REFACTOR: the SAME as for HTML!!
-
-#if TODO_IMPORTANT
 
         /// <summary>
         /// Selects a filename to read either from user or from ticket.
@@ -2856,7 +2856,7 @@ namespace MauiTestTree
         /// Selects a text either from user or from ticket.
         /// </summary>
         /// <returns>Success</returns>
-        public async override Task<AnyUiDialogueDataTextBox> MenuSelectTextAsync(
+        public async override Task<AnyUiDialogueDataTextBox?> MenuSelectTextAsync(
             AasxMenuActionTicket ticket,
             string argName,
             string caption,
@@ -2916,13 +2916,13 @@ namespace MauiTestTree
             string workDir,
             string cmd,
             string args,
-            string[] ignoreError = null)
+            string[]? ignoreError = null)
         {
             // create dialogue
             var uc = new AnyUiDialogueDataLogMessage(caption);
 
             // create logger
-            Process proc = null;
+            Process? proc = null;
             var logError = false;
             var logBuffer = new List<StoredPrint>();
 
@@ -2956,7 +2956,7 @@ namespace MauiTestTree
 
                 uc.CheckForLogAndEnd = () =>
                 {
-                    StoredPrint[] msgs = null;
+                    StoredPrint[]? msgs = null;
                     lock (logBuffer)
                     {
                         if (logBuffer.Count > 0)
@@ -2969,7 +2969,7 @@ namespace MauiTestTree
                         }
                     }
                     ;
-                    return new Tuple<object[], bool>(msgs, !logError && proc != null && proc.HasExited);
+                    return new Tuple<object[]?, bool>(msgs, !logError && proc != null && proc.HasExited);
                 };
 
                 proc.OutputDataReceived += (s1, e1) =>
@@ -3038,8 +3038,7 @@ namespace MauiTestTree
             return uc;
         }
 
-#endif
-        }
+        
     }
 
 #if TODO_IMPORTANT
@@ -3114,5 +3113,5 @@ namespace MauiTestTree
             return AnyUiVisibility.Hidden;
         }
     }
-}
 #endif
+}

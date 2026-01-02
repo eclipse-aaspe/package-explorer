@@ -1,10 +1,11 @@
+using AasxPackageExplorer;
 using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
 using AnyUi;
 
 namespace MauiTestTree;
 
-public partial class DiplayVisualAasxElements : ContentView
+public partial class DiplayVisualAasxElements : ContentView, IDisplayElements
 {
     public DiplayVisualAasxElements()
     {
@@ -157,5 +158,40 @@ public partial class DiplayVisualAasxElements : ContentView
     public VisualElementGeneric? TrySynchronizeToInternalTreeState()
     {
         return null;
+    }
+
+    VisualElementGeneric IDisplayElements.GetSelectedItem()
+    {
+        throw new NotImplementedException();
+    }
+
+    void IDisplayElements.ClearSelection()
+    {
+        throw new NotImplementedException();
+    }
+
+    void IDisplayElements.ExpandAllItems()
+    {
+        throw new NotImplementedException();
+    }
+
+    void IDisplayElements.Refresh()
+    {
+        throw new NotImplementedException();
+    }
+
+    VisualElementGeneric IDisplayElements.SearchVisualElementOnMainDataObject(object dataObject, bool alsoDereferenceObjects, ListOfVisualElement.SupplementaryReferenceInformation sri)
+    {
+        throw new NotImplementedException();
+    }
+
+    bool IDisplayElements.TrySelectVisualElement(VisualElementGeneric ve, bool? wishExpanded)
+    {
+        throw new NotImplementedException();
+    }
+
+    bool IDisplayElements.TrySelectMainDataObject(object dataObject, bool? wishExpanded, bool alsoDereferenceObjects)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -356,8 +356,8 @@ namespace AasxPackageLogic
 
             AddKeyValue(stack, "Id endpoint", "" + si.Id, repo: null,
                 auxButtonTitle: "Copy",
-                auxButtonLambda: (i) => {
-                    this.context?.ClipboardSet(new AnyUiClipboardData(
+                auxButtonLambdaAsync: async (i) => {
+                    await context?.ClipboardSetAsync(new AnyUiClipboardData(
                         text: si.Id)
                         { });
                     Log.Singleton.Info(StoredPrint.Color.Blue, "Id copied to clipboard.");
@@ -367,14 +367,14 @@ namespace AasxPackageLogic
 
             AddKeyValue(stack, "Queried endpoint", "" + si.QueriedEndpoint?.ToString(), repo: null,
                 auxButtonTitle: "Copy",
-                auxButtonLambda: (i) => {
+                auxButtonLambdaAsync: async (i) => {
                     if (si.QueriedEndpoint == null)
                     {
                         Log.Singleton.Error("No endpoint data available");
                     }
                     else
                     {
-                        this.context?.ClipboardSet(new AnyUiClipboardData(
+                        await context.ClipboardSetAsync(new AnyUiClipboardData(
                             text: si.QueriedEndpoint.ToString())
                             { });
                         Log.Singleton.Info(StoredPrint.Color.Blue, "Queried endpoint copied to clipboard.");
@@ -385,14 +385,14 @@ namespace AasxPackageLogic
 
             AddKeyValue(stack, "Designated endpoint", "" + si.DesignatedEndpoint?.ToString(), repo: null,
                 auxButtonTitle: "Copy",
-                auxButtonLambda: (i) => {
+                auxButtonLambdaAsync: async (i) => {
                     if (si.DesignatedEndpoint == null)
                     {
                         Log.Singleton.Error("No endpoint data available");
                     }
                     else
                     {
-                        this.context?.ClipboardSet(new AnyUiClipboardData(
+                        await context.ClipboardSetAsync(new AnyUiClipboardData(
                             text: si.DesignatedEndpoint.ToString())
                             { });
                         Log.Singleton.Info(StoredPrint.Color.Blue, "Designated endpoint copied to clipboard.");

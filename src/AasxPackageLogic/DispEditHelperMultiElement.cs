@@ -105,7 +105,7 @@ namespace AasxPackageLogic
                         }
 
                         // prepare clipboard
-                        cpb.CopyToClipboard(context, cpb.Watermark);
+                        cpb.CopyToClipboardAsync(context, cpb.Watermark);
 
                         // user feedback
                         Log.Singleton.Info(

@@ -198,7 +198,7 @@ public partial class DispEditAasxEntityMaui : ContentView
     // Main function: Maintain an place to attach editing controls
     //
 
-    public IEnumerable<KeyShortcutRecord> EnumerateShortcuts()
+    public IEnumerable<AnyUiDisplayContextMaui.KeyShortcutRecord> EnumerateShortcuts()
     {
         // access
         if (!(_helper?.context is AnyUiDisplayContextMaui dcmaui))

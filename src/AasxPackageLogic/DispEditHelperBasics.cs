@@ -704,6 +704,7 @@ namespace AasxPackageLogic
             bool[] addWoEdit = null,
             AasxMenu superMenu = null,
             AasxMenu ticketMenu = null,
+            Func<int, Task<AnyUiLambdaActionBase>> actionAsync = null,
             Func<int, AasxMenuActionTicket, AnyUiLambdaActionBase> ticketAction = null,
 			Func<int, AasxMenuActionTicket, Task<AnyUiLambdaActionBase>> ticketActionAsync = null,
 			FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard)
@@ -801,7 +802,7 @@ namespace AasxPackageLogic
                 wp.Children.Add(b);
 
                 // register callback
-                if (ticketActionAsync == null)
+                if (action != null || ticketAction != null)
 					AnyUiUIElement.RegisterControl(b,
 						setValue: (o) =>
 						{
@@ -811,7 +812,8 @@ namespace AasxPackageLogic
 							else
 								return action?.Invoke(currentI);
 						});
-                else
+                
+                if (actionAsync != null || ticketActionAsync != null)
 				    AnyUiUIElement.RegisterControl(b,
                         setValueAsync: async (o) =>
                         {
@@ -1260,503 +1262,12 @@ namespace AasxPackageLogic
             return null;
         }
 
-// TODO (MIHO, 2024-06-02): remove, if not anymore required? Seems so!
-#if __SEEMS_OBSOLETE
-
-        // see below
-        public void AddKeyListOfIdentifier(
-            AnyUiStackPanel view, string key,
-            List<string> keys,
-            ModifyRepo repo = null,
-            PackageCentral.PackageCentral packages = null,
-            PackageCentral.PackageCentral.Selector selector = PackageCentral.PackageCentral.Selector.Main,
-            string addExistingEntities = null,
-            bool addEclassIrdi = false,
-            bool addFromPool = false,
-            string[] addPresetNames = null, List<string>[] addPresetKeyLists = null,
-            Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
-            string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
-            Func<List<string>, AnyUiLambdaActionBase> jumpLambda = null,
-            AnyUiLambdaActionBase takeOverLambdaAction = null,
-            Func<List<string>, AnyUiLambdaActionBase> noEditJumpLambda = null,
-            Aas.IReferable relatedReferable = null,
-            Action<Aas.IReferable> emitCustomEvent = null)
-        {
-            AddKeyListGeneric<string, List<string>>(
-                view, key, keys, repo, packages, selector,
-                addExistingEntities: addExistingEntities,
-                addEclassIrdi: addEclassIrdi,
-                addFromPool: addFromPool,
-                addPresetNames: addPresetNames,
-                addPresetKeyLists: addPresetKeyLists,
-                auxButtonLambda: auxButtonLambda,
-                auxButtonTitles: auxButtonTitles, auxButtonToolTips: auxButtonToolTips,
-                jumpLambda: jumpLambda,
-                takeOverLambdaAction: takeOverLambdaAction,
-                noEditJumpLambda: noEditJumpLambda,
-                relatedReferable: relatedReferable,
-                emitCustomEvent: emitCustomEvent,
-                addElemLambda: (o) =>
-                {
-                    // dead-csharp off
-                    //if (o is Aas.IIdentifiable id)
-                    //    keys.Add(new Identifier(id.Id));
-                    //if (o is Key k)
-                    //    keys.Add(k.Value);
-                    // dead-csharp on
-                    //TODO (jtikekar, 0000-00-00): Test
-                    if (o is Aas.IIdentifiable id)
-                        keys.Add(id.Id);
-                    if (o is Aas.Key k)
-                        keys.Add(k.Value);
-                },
-                getItem1Lambda: null,
-                getItem2Lambda: (k) => k,
-                setItem1Lambda: null,
-                setItem2Lambda: (k, o) => { k = (string)o; },
-                elemsToStringLambda: (list) => string.Join("\r\n", list.Select((x) => x))
-            );
-        }
-
-        // GENERIC version
-
-        public void AddKeyListGeneric<T, LIST>(
-            AnyUiStackPanel view, string key,
-            LIST elems,
-            ModifyRepo repo = null,
-            PackageCentral.PackageCentral packages = null,
-            PackageCentral.PackageCentral.Selector selector = PackageCentral.PackageCentral.Selector.Main,
-            string addExistingEntities = null,
-            bool addEclassIrdi = false,
-            bool addFromPool = false,
-            string[] addPresetNames = null, LIST[] addPresetKeyLists = null,
-            Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
-            string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
-            Func<LIST, AnyUiLambdaActionBase> jumpLambda = null,
-            AnyUiLambdaActionBase takeOverLambdaAction = null,
-            Func<LIST, AnyUiLambdaActionBase> noEditJumpLambda = null,
-            Aas.IReferable relatedReferable = null,
-            Action<Aas.IReferable> emitCustomEvent = null,
-            Action<object> addElemLambda = null,
-            Func<T, object> getItem1Lambda = null,
-            Func<T, object> getItem2Lambda = null,
-            Action<T, object> setItem1Lambda = null,
-            Action<T, object> setItem2Lambda = null,
-            Func<LIST, string> elemsToStringLambda = null)
-            where LIST : List<T>
-            //where T : new()
-        {
-            // sometimes needless to show
-            if (repo == null && (elems == null || elems.Count < 1))
-                return;
-            int rows = 1; // default!
-            if (elems != null && elems.Count > 1)
-                rows = elems.Count;
-            int rowOfs = 0;
-            if (repo != null)
-                rowOfs = 1;
-            if (jumpLambda != null)
-                rowOfs = 1;
-
-            // default
-            if (emitCustomEvent == null)
-                emitCustomEvent = (rf) => { this.AddDiaryEntry(rf, new DiaryEntryStructChange()); };
-
-            // Grid
-            var g = new AnyUiGrid();
-            g.Margin = new AnyUiThickness(0, 0, 0, 0);
-
-            // 0 key
-            var gc = new AnyUiColumnDefinition();
-            gc.Width = AnyUiGridLength.Auto;
-            gc.MinWidth = GetWidth(FirstColumnWidth.Standard);
-            g.ColumnDefinitions.Add(gc);
-
-            // 1 type
-            gc = new AnyUiColumnDefinition();
-            gc.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Auto);
-            g.ColumnDefinitions.Add(gc);
-
-            // 2 local
-            gc = new AnyUiColumnDefinition();
-            gc.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Auto);
-            g.ColumnDefinitions.Add(gc);
-
-            // 3 id type
-            gc = new AnyUiColumnDefinition();
-            gc.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Auto);
-            g.ColumnDefinitions.Add(gc);
-
-            // 4 value
-            gc = new AnyUiColumnDefinition();
-            gc.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Star);
-            g.ColumnDefinitions.Add(gc);
-
-            // 5 .. buttons behind it
-            gc = new AnyUiColumnDefinition();
-            gc.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Auto);
-            g.ColumnDefinitions.Add(gc);
-
-            // rows
-            for (int r = 0; r < rows + rowOfs; r++)
-            {
-                var gr = new AnyUiRowDefinition();
-                gr.Height = new AnyUiGridLength(1.0, AnyUiGridUnitType.Auto);
-                g.RowDefinitions.Add(gr);
-            }
-
-            // populate key
-            AddSmallLabelTo(g, 0, 0, margin: new AnyUiThickness(5, 0, 0, 0), content: "" + key + ":");
-
-            // presets?
-            var presetNo = 0;
-            if (addPresetNames != null && addPresetKeyLists != null
-                && addPresetNames.Length == addPresetKeyLists.Length)
-                presetNo = addPresetNames.Length;
-
-            if (repo == null)
-            {
-                // TODO (Michael Hoffmeister, 2020-08-01): possibly [Jump] button??
-            }
-            else
-            if (elems != null)
-            {
-                // basic scheme: populate [+], [Select], [ECLASS], [Copy] buttons
-                var colDescs = new List<string>(new[] { "*", "#", "#", "#", "#", "#", "#" });
-
-                // extend by variable # of items
-                var addColNum = presetNo;
-                if (auxButtonLambda != null && auxButtonTitles != null)
-                    addColNum += auxButtonTitles.Length;
-                for (int i = 0; i < addColNum; i++)
-                    colDescs.Add("#");
-
-                // create such Grid
-                var g2 = AddSmallGrid(1, 7 + addColNum, colDescs.ToArray());
-                AnyUiGrid.SetRow(g2, 0);
-                AnyUiGrid.SetColumn(g2, 1);
-                AnyUiGrid.SetColumnSpan(g2, 7);
-                g.Children.Add(g2);
-
-                // add the different widgets
-
-                if (addFromPool)
-                    AnyUiUIElement.RegisterControl(
-                        AddSmallButtonTo(
-                            g2, 0, 1,
-                            margin: new AnyUiThickness(2, 2, 2, 2),
-                            padding: new AnyUiThickness(5, 0, 5, 0),
-                            content: "Add known"),
-                        (o) =>
-                        {
-                            var uc = new AnyUiDialogueDataSelectReferableFromPool(
-                                caption: "Select known entity");
-                            this.context.StartFlyoverModal(uc);
-
-                            if (uc.Result &&
-                                uc.ResultItem is AasxPredefinedConcepts.DefinitionsPoolReferableEntity pe
-                                && pe.Ref is Aas.IIdentifiable id
-                                && id.Id != null)
-                                addElemLambda?.Invoke(id);
-
-                            emitCustomEvent?.Invoke(relatedReferable);
-
-                            if (takeOverLambdaAction != null)
-                                return takeOverLambdaAction;
-                            else
-                                return new AnyUiLambdaActionRedrawEntity();
-                        });
-
-                if (addEclassIrdi)
-                    AnyUiUIElement.RegisterControl(
-                        AddSmallButtonTo(
-                            g2, 0, 2,
-                            margin: new AnyUiThickness(2, 2, 2, 2),
-                            padding: new AnyUiThickness(5, 0, 5, 0),
-                            content: "Add ECLASS"),
-                        (o) =>
-                        {
-                            string resIRDI = null;
-                            Aas.ConceptDescription resCD = null;
-                            if (this.SmartSelectEclassEntity(
-                                    AnyUiDialogueDataSelectEclassEntity.SelectMode.IRDI, ref resIRDI, ref resCD))
-                            {
-                                addElemLambda?.Invoke(new Aas.Key(Aas.KeyTypes.GlobalReference, resIRDI));
-                            }
-
-                            emitCustomEvent?.Invoke(relatedReferable);
-
-                            if (takeOverLambdaAction != null)
-                                return takeOverLambdaAction;
-                            else
-                                return new AnyUiLambdaActionRedrawEntity();
-                        });
-
-                if (addExistingEntities != null && packages.MainAvailable)
-                    AnyUiUIElement.RegisterControl(
-                        AddSmallButtonTo(
-                            g2, 0, 3,
-                            margin: new AnyUiThickness(2, 2, 2, 2),
-                            padding: new AnyUiThickness(5, 0, 5, 0),
-                            content: "Add existing"),
-                        (o) =>
-                        {
-                            var k2 = SmartSelectAasEntityKeys(packages, selector, addExistingEntities);
-                            if (k2 != null)
-                                foreach (var k in k2)
-                                    addElemLambda?.Invoke(k);
-
-                            emitCustomEvent?.Invoke(relatedReferable);
-
-                            if (takeOverLambdaAction != null)
-                                return takeOverLambdaAction;
-                            else
-                                return new AnyUiLambdaActionRedrawEntity();
-                        });
-
-                AnyUiUIElement.RegisterControl(
-                    AddSmallButtonTo(
-                        g2, 0, 4,
-                        margin: new AnyUiThickness(2, 2, 2, 2),
-                        padding: new AnyUiThickness(5, 0, 5, 0),
-                        content: "Add blank"),
-                    (o) =>
-                    {
-                        var k = new Aas.Key(Aas.KeyTypes.FragmentReference, ""); //Default
-                        addElemLambda?.Invoke(k);
-
-                        emitCustomEvent?.Invoke(relatedReferable);
-
-                        if (takeOverLambdaAction != null)
-                            return takeOverLambdaAction;
-                        else
-                            return new AnyUiLambdaActionRedrawEntity();
-                    });
-
-                if (jumpLambda != null)
-                    AnyUiUIElement.RegisterControl(
-                        AddSmallButtonTo(
-                            g2, 0, 5,
-                            margin: new AnyUiThickness(2, 2, 2, 2),
-                            padding: new AnyUiThickness(5, 0, 5, 0),
-                            content: "Jump"),
-                        (o) =>
-                        {
-                            return jumpLambda(elems);
-                        });
-
-                AnyUiUIElement.RegisterControl(
-                    AddSmallButtonTo(
-                        g2, 0, 6,
-                        margin: new AnyUiThickness(2, 2, 2, 2),
-                        padding: new AnyUiThickness(5, 0, 5, 0),
-                        content: "Clipboard"),
-                    (o) =>
-                    {
-                        var st = "" + elemsToStringLambda?.Invoke(elems);
-                        this.context?.ClipboardSet(new AnyUiClipboardData(st));
-                        Log.Singleton.Info("Keys written to clipboard.");
-                        return new AnyUiLambdaActionNone();
-                    });
-
-                if (addColNum > 0)
-                {
-                    // variable number of items
-                    int currCol = 7;
-
-                    for (int i = 0; i < presetNo; i++)
-                    {
-                        var closureKey = addPresetKeyLists[i];
-                        AnyUiUIElement.RegisterControl(
-                            AddSmallButtonTo(
-                                g2, 0, currCol++,
-                                margin: new AnyUiThickness(2, 2, 2, 2),
-                                padding: new AnyUiThickness(5, 0, 5, 0),
-                                content: "" + addPresetNames[i]),
-                            (o) =>
-                            {
-                                elems.AddRange(closureKey);
-                                emitCustomEvent?.Invoke(relatedReferable);
-                                return new AnyUiLambdaActionRedrawEntity();
-                            });
-                    }
-
-                    if (auxButtonTitles != null)
-                        for (int i = 0; i < auxButtonTitles.Length; i++)
-                        {
-                            Func<object, AnyUiLambdaActionBase> lmb = null;
-                            int closureI = i;
-                            if (auxButtonLambda != null)
-                                lmb = (o) =>
-                                {
-                                    return auxButtonLambda(closureI); // exchange o with i !!
-                                };
-                            var b = AnyUiUIElement.RegisterControl(
-                                AddSmallButtonTo(
-                                    g2, 0, currCol++,
-                                    margin: new AnyUiThickness(2, 2, 2, 2),
-                                    padding: new AnyUiThickness(5, 0, 5, 0),
-                                    content: auxButtonTitles[i]),
-                                lmb) as AnyUiButton;
-                            if (auxButtonToolTips != null && i < auxButtonToolTips.Length)
-                                b.ToolTip = auxButtonToolTips[i];
-                        }
-                }
-            }
-
-            // contents?
-            if (elems != null)
-                for (int i = 0; i < elems.Count; i++)
-                    if (repo == null)
-                    {
-                        // lang
-                        if (getItem1Lambda != null)
-                            AddSmallLabelTo(
-                                g, 0 + i + rowOfs, 1,
-                                padding: new AnyUiThickness(2, 0, 0, 0),
-                                content: "" + getItem1Lambda?.Invoke(elems[i]));
-
-                        // value
-                        if (getItem2Lambda != null)
-                            AddSmallLabelTo(
-                                g, 0 + i + rowOfs, 4,
-                                padding: new AnyUiThickness(2, 0, 0, 0),
-                                content: "" + getItem2Lambda?.Invoke(elems[i]));
-
-                        // jump
-                        /* TODO (MIHO, 2021-02-16): this mechanism is ugly and only intended to be temporary!
-                           It shall be replaced (after intergrating AnyUI) by a better repo handling */
-                        if (noEditJumpLambda != null && i == 0)
-                        {
-                            AnyUiUIElement.RegisterControl(
-                                AddSmallButtonTo(
-                                    g, 0 + +rowOfs, 5,
-                                    margin: new AnyUiThickness(2, 2, 2, 2),
-                                    padding: new AnyUiThickness(5, 0, 5, 0),
-                                    content: "Jump"),
-                                    (o) =>
-                                    {
-                                        return noEditJumpLambda(elems);
-                                    });
-                        }
-                    }
-                    else
-                    {
-                        // save in current context
-                        var currentI = 0 + i;
-
-                        // TODO (Michael Hoffmeister, 2020-08-01): Needs to be revisited
-
-                        // type
-                        if (getItem1Lambda != null)
-                        {
-                            var item = getItem1Lambda?.Invoke(elems[i]);
-                            var cbType = AnyUiUIElement.RegisterControl(
-                                AddSmallComboBoxTo(
-                                    g, 0 + i + rowOfs, 1,
-                                    margin: new AnyUiThickness(2, 2, 2, 2),
-                                    text: "" + item,
-                                    minWidth: 100,
-                                    items: Enum.GetNames(typeof(Aas.KeyTypes)),
-                                    isEditable: false,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                (o) =>
-                                {
-                                    setItem1Lambda?.Invoke(elems[currentI], o);
-                                    emitCustomEvent?.Invoke(relatedReferable);
-                                    return new AnyUiLambdaActionNone();
-                                },
-                                takeOverLambda: takeOverLambdaAction) as AnyUiComboBox;
-                            SmallComboBoxSelectNearestItem(cbType, cbType.Text);
-
-                            // check here, if to hightlight
-                            if (cbType != null && this.highlightField != null && item != null &&
-                                    this.highlightField.fieldHash == item.GetHashCode() &&
-                                    (object)elems[currentI] == this.highlightField.containingObject)
-                                this.HighligtStateElement(cbType, true);
-                        }
-
-                        // value
-                        if (getItem2Lambda != null)
-                        {
-                            var item = getItem2Lambda?.Invoke(elems[i]);
-                            var tbValue = AddSmallTextBoxTo(
-                                g, 0 + i + rowOfs, 4,
-                                margin: new AnyUiThickness(2, 2, 2, 2),
-                                text: "" + item,
-                                verticalContentAlignment: AnyUiVerticalAlignment.Center);
-                            AnyUiUIElement.RegisterControl(
-                                tbValue,
-                                (o) =>
-                                {
-                                    setItem2Lambda?.Invoke(elems[currentI], o);
-                                    emitCustomEvent?.Invoke(relatedReferable);
-                                    return new AnyUiLambdaActionNone();
-                                }, takeOverLambda: takeOverLambdaAction);
-
-                            // check here, if to hightlight
-                            if (tbValue != null && this.highlightField != null && item != null &&
-                                    this.highlightField.fieldHash == item.GetHashCode() &&
-                                    (object)elems[currentI] == this.highlightField.containingObject)
-                                this.HighligtStateElement(tbValue, true);
-                        }
-
-                        // button [hamburger]
-                        AddSmallContextMenuItemTo(
-                                g, 0 + i + rowOfs, 5,
-                                "\u22ee",
-                                repo, new[] {
-                                    "\u2702", "Delete",
-                                    "\u25b2", "Move Up",
-                                    "\u25bc", "Move Down",
-                                },
-                                margin: new AnyUiThickness(2, 2, 2, 2),
-                                padding: new AnyUiThickness(5, 0, 5, 0),
-                                menuItemLambda: (o) =>
-                                {
-                                    var action = false;
-
-                                    if (o is int ti)
-                                        switch (ti)
-                                        {
-                                            case 0:
-                                                elems.RemoveAt(currentI);
-                                                action = true;
-                                                break;
-                                            case 1:
-                                                MoveElementInListUpwards<T>(elems, elems[currentI]);
-                                                action = true;
-                                                break;
-                                            case 2:
-                                                MoveElementInListDownwards<T>(elems, elems[currentI]);
-                                                action = true;
-                                                break;
-                                        }
-
-                                    emitCustomEvent?.Invoke(relatedReferable);
-
-                                    if (action)
-                                        if (takeOverLambdaAction != null)
-                                            return takeOverLambdaAction;
-                                        else
-                                            return new AnyUiLambdaActionRedrawEntity();
-                                    return new AnyUiLambdaActionNone();
-                                });
-
-                    }
-
-            // in total
-            view.Children.Add(g);
-        }
-
-#endif
-
         public AnyUiButton AddSmallContextMenuItemTo(
             AnyUiGrid g, int row, int col,
             string content,
             ModifyRepo repo,
             string[] menuHeaders,
-            Func<object, AnyUiLambdaActionBase> menuItemLambda,
+            Func<object, AnyUiLambdaActionBase> menuItemLambda = null,
             AnyUiThickness margin = null, AnyUiThickness padding = null,
             AnyUiBrush foreground = null, AnyUiBrush background = null,
             Func<object, Task<AnyUiLambdaActionBase>> menuItemLambdaAsync = null)
@@ -1899,10 +1410,10 @@ namespace AasxPackageLogic
                         return new AnyUiLambdaActionRedrawEntity();
                 };
 
-                Func<object, AnyUiLambdaActionBase> lambdaClipboard = (o) =>
+                Func<object, Task<AnyUiLambdaActionBase>> lambdaClipboardAsync = async (o) =>
                 {
                     var st = keys.ToStringExtended(delimiter: "\r\n");
-                    this.context?.ClipboardSet(new AnyUiClipboardData(st));
+                    await context.ClipboardSetAsync(new AnyUiClipboardData(st));
                     Log.Singleton.Info("Keys written to clipboard.");
                     return new AnyUiLambdaActionNone();
                 };
@@ -2035,7 +1546,7 @@ namespace AasxPackageLogic
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             content: "Clipboard"),
-                        lambdaClipboard);
+                        setValueAsync: lambdaClipboardAsync);
 
                 //
                 // Presets
@@ -2114,7 +1625,8 @@ namespace AasxPackageLogic
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),
                         verticalAlignment: AnyUiVerticalAlignment.Center,
-                        menuItemLambda: (o) =>
+                        menuItemLambda: null,
+                        menuItemLambdaAsync: async (o) =>
                         {
                             if (o is int oi && oi >= 0 && (2 * oi + 1) < contextHeaders.Count)
                             {
@@ -2128,7 +1640,7 @@ namespace AasxPackageLogic
                                     return jumpLambda(keys);
 
                                 if (contextHeaders[2 * oi + 1].Contains("clipboard"))
-                                    return lambdaClipboard(o);
+                                    return await lambdaClipboardAsync(o);
 
                                 if (contextHeaders[2 * oi + 1].Contains("Set all")
                                     || (contextHeaders[2 * oi + 1].Contains("Delete")))
