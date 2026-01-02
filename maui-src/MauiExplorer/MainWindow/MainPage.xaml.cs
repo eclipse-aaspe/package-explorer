@@ -4921,5 +4921,18 @@ namespace MauiTestTree
         }
 
         #endregion
-    }
+
+        #region General commands
+        // ---------------------
+
+        private async Task CommandBinding_GeneralDispatch(
+            string cmd,
+            AasxMenuItemBase menuItem,
+            AasxMenuActionTicket ticket)
+        {
+            await Task.Yield();
+        }
+
+            #endregion
+        }
 }
