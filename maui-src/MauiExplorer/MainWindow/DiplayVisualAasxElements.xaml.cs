@@ -32,6 +32,14 @@ public partial class DiplayVisualAasxElements : ContentView
         return SelectedItems;
     }
 
+    //
+    // Element View Drawing
+    //
+
+    public void Clear()
+    {
+    }
+
     public void RebuildAasxElements(
             PackageCentral packages,
             PackageCentral.Selector selector,
@@ -46,7 +54,19 @@ public partial class DiplayVisualAasxElements : ContentView
     {
     }
 
-    public VisualElementGeneric? SearchVisualElementOnMainDataObject(object dataObject,
+    /// <summary>
+    /// This function cares, that all PARENT ABOVE the visual elements are expanded!!
+    /// </summary>
+    public void TryExpandMainDataObjects(IEnumerable<object> mainObjects, bool preventFireItem = false)
+    {
+    }
+
+    public VisualElementGeneric? GetDefaultVisualElement()
+    {
+        return null;
+    }
+
+    public VisualElementGeneric? SearchVisualElementOnMainDataObject(object? dataObject,
             bool alsoDereferenceObjects = false,
             ListOfVisualElement.SupplementaryReferenceInformation? sri = null)
     {
@@ -65,6 +85,10 @@ public partial class DiplayVisualAasxElements : ContentView
         return false;
     }
 
+    public void TrySelectMainDataObjects(IEnumerable<object> mainObjects, bool preventFireItem = false)
+    {
+    }
+
     public bool Contains(VisualElementGeneric ve)
     {
         return false;
@@ -73,6 +97,13 @@ public partial class DiplayVisualAasxElements : ContentView
     public void Refresh()
     {
     }
+
+    public int RefreshAllChildsFromMainData(VisualElementGeneric? root)
+    {
+        return 0;
+    }
+
+
 
     public bool IsAnyTaintedIdentifiable()
     {
@@ -89,6 +120,17 @@ public partial class DiplayVisualAasxElements : ContentView
     }
 
     /// <summary>
+    /// Identifies visual elements, which are *directly* superordinate to Identifiable.
+    /// Note: Could contain duplicates.
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerable<VisualElementGeneric> FindAllVisualElementTopToIdentifiable()
+    {
+        yield break;
+    }
+
+
+    /// <summary>
     /// Activates the caching of the "expanded" states of the tree, even if the tree is multiple
     /// times rebuilt via <code>RebuildAasxElements</code>.
     /// </summary>
@@ -101,6 +143,10 @@ public partial class DiplayVisualAasxElements : ContentView
     //
 
     public void PushEvent(AnyUiLambdaActionBase la)
+    {
+    }
+
+    public void UpdateFromQueuedEvents()
     {
     }
 

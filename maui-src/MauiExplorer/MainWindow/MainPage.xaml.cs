@@ -13,6 +13,10 @@ using Microsoft.Maui.Devices;
 using Extensions;
 using Aas = AasCore.Aas3_1;
 using System.Text;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
+using AdminShellNS.DiaryData;
+using ExhaustiveMatch = ExhaustiveMatching.ExhaustiveMatch;
+using System.Web;
 
 namespace MauiTestTree
 {
@@ -148,7 +152,7 @@ namespace MauiTestTree
 
             if (mode < 80)
             {
-                var dc = new AnyUiDisplayContextMaui();
+                var dc = new AnyUiDisplayContextMaui(this, new PackageCentral());
                 var ve = dc.GetOrCreateMauiElement(stack, null, allowReUse: false);
 
                 var dbg = new VisualTreeDebugger();
@@ -173,7 +177,7 @@ namespace MauiTestTree
                 entities.Add(new VisualElementSubmodelElement(
                     parent: null, cache: null, env, parentContainer: parentContainer, wrap: sme, 0));
 
-                await RightDispEditEntity.DisplayOrEditVisualAasxElement(
+                await DispEditEntityPanel.DisplayOrEditVisualAasxElement(
                     packages: new AasxPackageLogic.PackageCentral.PackageCentral(),
                     displayContext: dc,
                     entities: entities,
@@ -707,7 +711,7 @@ namespace MauiTestTree
 
             // rebuild middle section
             DisplayElements.RebuildAasxElements(
-                PackageCentral, PackageCentral.Selector.Main, MainMenu?.IsChecked("EditMenu") == true,
+                PackageCentral, PackageCentral.Selector.Main, _viewModel.MainMenu?.IsChecked("EditMenu") == true,
                 lazyLoadingFirst: true);
 
             // ok .. try re-focus!!
@@ -757,7 +761,7 @@ namespace MauiTestTree
                 // visually a new content
                 // switch off edit mode -> will will cause the browser to show the AAS as selected element
                 // and -> this will update the left side of the screen correctly!
-                MainMenu?.SetChecked("EditMenu", nextEditMode.HasValue ? nextEditMode.Value : false);
+                _viewModel.MainMenu?.SetChecked("EditMenu", nextEditMode.HasValue ? nextEditMode.Value : false);
                 ClearAllViews();
                 await RedrawAllAasxElementsAsync();
                 await RedrawElementViewAsync();
@@ -969,7 +973,7 @@ namespace MauiTestTree
 
             // do a bit logic for easy calling via IMainWindow
             if (preserveEditMode)
-                nextEditMode = MainMenu?.IsChecked("EditMenu") == true;
+                nextEditMode = _viewModel.MainMenu?.IsChecked("EditMenu") == true;
 
             // start loading new stuff
             if (loadLocalFilename != null)
@@ -1219,7 +1223,7 @@ namespace MauiTestTree
         /// Based on save information, will redraw the AAS entity (element) view (right).
         /// </summary>
         /// <param name="hightlightField">Highlight field (for find/ replace)</param>
-        public async Task RedrawElementViewAsync(DispEditHighlight.HighlightFieldInfo hightlightField = null)
+        public async Task RedrawElementViewAsync(DispEditHighlight.HighlightFieldInfo? hightlightField = null)
         {
             await Task.Yield();
 
@@ -1411,14 +1415,7 @@ namespace MauiTestTree
             //1// if (Options.Curr.WindowMaximized)
             //1//     this.WindowState = WindowState.Maximized;
 
-            // Timer for below
-            System.Windows.Threading.DispatcherTimer MainTimer = new System.Windows.Threading.DispatcherTimer();
-            MainTimer.Tick += async (s, a) =>
-            {
-                
-            };
-            MainTimer.Interval = new TimeSpan(0, 0, 0, 0, 100);
-            MainTimer.Start();
+            // Timer
             StartTimer();
 
             // attach result search
@@ -1798,8 +1795,8 @@ namespace MauiTestTree
             }
 
             // open last UI elements
-            if (Options.Curr.ShowEvents)
-                PanelConcurrentSetVisibleIfRequired(true, targetEvents: true);
+            //1// if (Options.Curr.ShowEvents)
+            //1//     PanelConcurrentSetVisibleIfRequired(true, targetEvents: true);
 
             // trigger re-index
             TriggerPendingReIndexElements();
@@ -1989,9 +1986,1485 @@ namespace MauiTestTree
             _mainTimer_PendingReIndexElements = true;
         }
 
-        //
-        // Progress
-        //
+        private async Task MainTimer_HandleLambdaAction(AnyUiLambdaActionBase lab)
+        {
+            // nothing
+            if (lab == null)
+                return;
+
+            // recurse??
+            if (lab is AnyUiLambdaActionList list && list.Actions != null)
+                foreach (var ac in list.Actions)
+                    await MainTimer_HandleLambdaAction(ac);
+
+            // what to do?
+            if (lab is AnyUiLambdaActionRedrawAllElementsBase wish)
+            {
+                // 2022-02-28: Try to kee focus
+                if (wish.RedrawCurrentEntity && wish.NextFocus == null)
+                {
+                    // figure out the current business object
+                    if (DisplayElements != null && DisplayElements.SelectedItem != null &&
+                        DisplayElements.SelectedItem != null)
+                        wish.NextFocus = DisplayElements.SelectedItem.GetMainDataObject();
+                }
+
+                // edit mode affects the total element view
+                if (!wish.OnlyReFocus)
+                    await RedrawAllAasxElementsAsync();
+
+                // the selection will be shifted ..
+                if (wish.NextFocus != null && DisplayElements != null)
+                {
+                    // for later search in visual elements, expand them all in order to be absolutely 
+                    // sure to find business object
+                    DisplayElements.ExpandAllItems();
+
+                    // now: search
+                    // MIHO 24-06-09: add dereferenced object to find operation vars, submodelrefs?
+                    DisplayElements.TrySelectMainDataObject(
+                        wish.NextFocus, wish.IsExpanded,
+                        alsoDereferenceObjects: true);
+                }
+
+                // fake selection
+                DispEditHighlight.HighlightFieldInfo? hfi = null;
+                if (lab is AnyUiLambdaActionRedrawAllElements wishhl)
+                    hfi = wishhl.HighlightField;
+                await RedrawElementViewAsync(hightlightField: hfi);
+
+                // ok
+                DisplayElements.Refresh();
+                TakeOverContentEnable(false);
+            }
+
+            if (lab is AnyUiLambdaActionContentsChanged)
+            {
+                // enable button
+                TakeOverContentEnable(true);
+            }
+
+            if (lab is AnyUiLambdaActionContentsTakeOver)
+            {
+                // rework list
+                ContentTakeOver_Click("null", new EventArgs());
+            }
+
+            if (lab is AnyUiLambdaActionNavigateTo tempNavTo)
+            {
+                // do some more adoptions
+                // MIHO: I think this "adopitons" were made for resident AAS environments directly
+                // staying in the RAM of the PackageCentral
+                // This is not the usual case of activation of "file repository"
+                var rf = tempNavTo.targetReference.Copy();
+
+                if (tempNavTo.translateAssetToAAS
+                    && rf?.IsValid() == true
+                    && rf.Keys.Count == 1
+                    && rf.Keys.First().Type == Aas.KeyTypes.GlobalReference)
+                //TODO (jtikekar, 0000-00-00): KeyType.AssetInformation
+                {
+                    // try to find possible environments containing the asset and try making
+                    // replacement
+                    foreach (var pe in PackageCentral.GetAllPackageEnv())
+                    {
+                        if (pe?.AasEnv?.AssetAdministrationShells == null)
+                            continue;
+
+                        foreach (var aas in pe.AasEnv.AllAssetAdministrationShells())
+                            if (rf.GetAsExactlyOneKey().Value.Equals(aas.AssetInformation.GlobalAssetId))
+                            {
+                                rf = aas.GetReference();
+                                break;
+                            }
+                    }
+                }
+
+                // handle it by UI (may include repo lookup)
+                await UiHandleNavigateTo(rf, alsoDereferenceObjects: tempNavTo.alsoDereferenceObjects);
+            }
+
+            if (lab is AnyUiLambdaActionDisplayContentFile tempDispCont)
+            {
+                try
+                {
+                    BrowserDisplayLocalFile(tempDispCont.fn, tempDispCont.mimeType,
+                        preferInternal: tempDispCont.preferInternalDisplay);
+                }
+                catch (Exception ex)
+                {
+                    Log.Singleton.Error(
+                        ex, $"While displaying content file {tempDispCont.fn} requested by lambda");
+                }
+            }
+
+            if (lab is AnyUiLambdaActionPackCntChange
+                || lab is AnyUiLambdaActionSelectMainObjects)
+            {
+                DisplayElements.PushEvent(lab);
+            }
+
+            if (lab is AnyUiLambdaActionPluginUpdateAnyUi update)
+            {
+                // A plugin asks to re-render an exisiting panel.
+                // Can get this information?
+                var renderedInfo = DispEditEntityPanel.GetLastRenderedRoot();
+
+                if (renderedInfo != null
+                    && renderedInfo.Item2 is AnyUiPanel renderedPanel
+                    && renderedPanel.Children != null
+                    && renderedPanel.Children.Count > 0)
+                {
+                    // first step: invoke plugin?
+                    var plugin = Plugins.FindPluginInstance(update.PluginName);
+                    if (plugin != null && plugin.HasAction("update-anyui-visual-extension"))
+                    {
+                        try
+                        {
+                            plugin.InvokeAction(
+                                "update-anyui-visual-extension", renderedPanel, renderedInfo.Item1,
+                                AnyUiDisplayContextMaui.SessionSingletonMaui);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Singleton.Error(ex,
+                                $"update AnyUI based visual extension for plugin {update.PluginName}");
+                        }
+                    }
+
+                    // 2nd step: redisplay                                                          
+                    DispEditEntityPanel.RedisplayRenderedRoot(
+                        renderedPanel,
+                        update.UpdateMode,
+                        useInnerGrid: update.UseInnerGrid);
+                }
+                else
+                {
+                    // hard re-display
+                    throw new NotImplementedException();
+                }
+            }
+
+            if (lab is AnyUiLambdaActionModalPanelReRender lamprr)
+            {
+                if (currentFlyoutControl != null)
+                    currentFlyoutControl.LambdaActionAvailable(lamprr);
+            }
+
+            if (lab is AnyUiLambdaActionEntityPanelReRender larrep)
+            {
+                UiHandleReRenderAnyUiInEntityPanel("", larrep.Mode, larrep.UseInnerGrid,
+                    updateElemsOnly: larrep.UpdateElemsOnly);
+            }
+
+            if (lab is AnyUiLambdaActionReIndexIdentifiables lareii)
+            {
+                TriggerPendingReIndexElements();
+            }
+        }
+
+        private async Task MainTimer_HandleEntityPanel()
+        {
+            // check if Display/ Edit Control has some work to do ..
+            try
+            {
+                if (DispEditEntityPanel != null && DispEditEntityPanel.WishForOutsideAction != null)
+                {
+                    while (DispEditEntityPanel.WishForOutsideAction.Count > 0)
+                    {
+                        var temp = DispEditEntityPanel.WishForOutsideAction[0];
+                        DispEditEntityPanel.WishForOutsideAction.RemoveAt(0);
+
+                        await MainTimer_HandleLambdaAction(temp);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(ex, "While responding to a user interaction");
+            }
+        }
+
+        #region Load from Repository
+        // -------------------------
+
+        protected class LoadFromFileRepositoryInfo
+        {
+            public Aas.IReferable? Referable;
+            public object? BusinessObject;
+        }
+
+        private async Task<LoadFromFileRepositoryInfo?> LoadFromFileRepository(PackageContainerRepoItem? fi,
+            Aas.IReference? requireReferable = null)
+        {
+            // access single file repo
+            var fileRepo = PackageCentral.Repositories.FindRepository(fi);
+            if (fileRepo == null)
+                return null;
+
+            // which file?
+            var location = fileRepo.GetFullItemLocation(fi?.Location);
+            if (location == null)
+                return null;
+
+            // try load (in the background/ RAM) first..
+            PackageContainerBase? container = null;
+            try
+            {
+                Log.Singleton.Info($"Auto-load file from repository {location} into container");
+                container = await PackageContainerFactory.GuessAndCreateForAsync(
+                    PackageCentral,
+                    location,
+                    location,
+                    overrideLoadResident: true,
+                    autoAuthenticate: Options.Curr.AutoAuthenticateUris,
+                    null, null,
+                    PackageContainerOptionsBase.CreateDefault(Options.Curr),
+                    runtimeOptions: PackageCentral.CentralRuntimeOptions);
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(ex, $"When auto-loading {location}");
+            }
+
+            // if successfull ..
+            if (container != null)
+            {
+                // .. try find business object!
+                LoadFromFileRepositoryInfo res = new LoadFromFileRepositoryInfo();
+                if (requireReferable != null)
+                {
+                    var rri = new ExtendEnvironment.ReferableRootInfo();
+                    res.Referable = container.Env?.AasEnv.FindReferableByReference(requireReferable, rootInfo: rri);
+                    res.BusinessObject = res.Referable;
+
+                    // do some special decoding because auf Meta Model V3
+                    if (rri.Asset != null)
+                        res.BusinessObject = rri.Asset;
+                }
+
+                // only proceed, if business object was found .. else: close directly
+                if (requireReferable != null && res.Referable == null)
+                    container.Close();
+                else
+                {
+                    // make sure the user wants to change
+                    if (_viewModel.MainMenu?.IsChecked("FileRepoLoadWoPrompt") != true)
+                    {
+                        // ask double question
+                        if (AnyUiMessageBoxResult.OK != MessageBoxFlyoutShow(
+                                "Load file from AASX file repository?",
+                                "AASX File Repository",
+                                AnyUiMessageBoxButton.OKCancel, AnyUiMessageBoxImage.Hand))
+                            return null;
+                    }
+
+                    // start animation
+                    fileRepo.StartAnimation(fi, PackageContainerRepoItem.VisualStateEnum.ReadFrom);
+
+                    // activate
+                    await UiLoadPackageWithNew(PackageCentral.MainItem,
+                        takeOverContainer: container, onlyAuxiliary: false);
+
+                    Log.Singleton.Info($"Successfully loaded AASX {location}");
+                }
+
+                // return bo to focus
+                return res;
+            }
+
+            return null;
+        }
+
+        #endregion
+
+        #region Rendering of elements
+        // --------------------------
+
+        private void UiHandleReRenderAnyUiInEntityPanel(
+            string pluginName, AnyUiRenderMode mode, bool useInnerGrid = false,
+            Dictionary<AnyUiUIElement, bool>? updateElemsOnly = null)
+        {
+            // A plugin asks to re-render an existing panel.
+            // Can get this information?
+            var renderedInfo = DispEditEntityPanel.GetLastRenderedRoot();
+
+            if (renderedInfo != null
+                && renderedInfo.Item2 is AnyUiPanel renderedPanel
+                && renderedPanel.Children != null
+                && renderedPanel.Children.Count > 0)
+            {
+                // first step: invoke plugin?
+                // Note: is OK to have plugin name to null in order to disable calling plugin
+                var plugin = Plugins.FindPluginInstance(pluginName);
+                if (plugin != null && plugin.HasAction("update-anyui-visual-extension"))
+                {
+                    try
+                    {
+                        plugin.InvokeAction(
+                            "update-anyui-visual-extension", renderedPanel, DisplayContext,
+                            AnyUiDisplayContextMaui.SessionSingletonMaui);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Singleton.Error(ex,
+                            $"update AnyUI based visual extension for plugin {pluginName}");
+                    }
+                }
+
+                // 2nd step: redisplay
+                DispEditEntityPanel.RedisplayRenderedRoot(
+                    renderedPanel,
+                    mode: mode,
+                    useInnerGrid: useInnerGrid,
+                    updateElemsOnly: updateElemsOnly);
+            }
+            else
+            {
+                // hard re-display
+                throw new NotImplementedException();
+            }
+        }
+
+        #endregion
+
+        #region Loading from Repos ..
+        // --------------------------
+
+        public async Task<Aas.IIdentifiable?> UiSearchRepoAndExtendEnvironmentAsync(
+            AdminShellPackageEnvBase packEnv,
+            Aas.IReference? workRef = null,
+            string? fullItemLocation = null,
+            bool trySelect = false)
+        {
+            await Task.Yield();
+
+            // access
+            if (packEnv == null || (workRef?.IsValid() != true && fullItemLocation?.HasContent() != true))
+                return null;
+
+            // check if env is dynamic fetch
+            if (packEnv is not AdminShellPackageDynamicFetchEnv dynPack)
+                return null;
+
+            // try get a copy of the fetch record
+            var context = (dynPack.GetContext() as PackageContainerHttpRepoSubsetFetchContext);
+            var record = (context?.Record as ConnectExtendedRecord)?.Copy();
+            if (record == null)
+                return null;
+
+            // make sure there is a base
+            if (record.BaseAddress?.HasContent() != true)
+                return null;
+
+            // search for AAS?
+            BaseUriDict? baseUris = null;
+            var searches = new List<Tuple<ConnectExtendedRecord, BaseUriDict, string>>();
+            if (workRef?.IsValid() == true)
+            {
+                // search for AAS?
+                if (workRef.Count() >= 1 && workRef.Keys[0].Type == Aas.KeyTypes.AssetAdministrationShell)
+                {
+                    // want to search for an AAS
+                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleAas);
+                    record.AasId = workRef.Keys[0].Value;
+                    var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    baseUris = basedLoc.BaseUris;
+                    fullItemLocation = basedLoc.Location.ToString();
+                    searches.Add(
+                        new Tuple<ConnectExtendedRecord, BaseUriDict, string>(record, baseUris, fullItemLocation));
+                }
+
+                // search for Asset?
+                if (workRef.Count() >= 1 && workRef.Keys[0].Type == Aas.KeyTypes.GlobalReference)
+                {
+                    // want to search for an Asset?
+                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AasByAssetLink);
+                    record.AssetId = workRef.Keys[0].Value;
+                    var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    baseUris = basedLoc.BaseUris;
+                    fullItemLocation = basedLoc.Location.ToString();
+                    searches.Add(
+                        new Tuple<ConnectExtendedRecord, BaseUriDict, string>(record, baseUris, fullItemLocation));
+                }
+
+                // search for Submodel?
+                if (workRef.Count() >= 1 && (workRef.Keys[0].Type == Aas.KeyTypes.GlobalReference
+                                          || workRef.Keys[0].Type == Aas.KeyTypes.Submodel))
+                {
+                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleSM);
+                    record.SmId = workRef.Keys[0].Value;
+                    var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    baseUris = basedLoc.BaseUris;
+                    fullItemLocation = basedLoc.Location.ToString();
+                    searches.Add(
+                        new Tuple<ConnectExtendedRecord, BaseUriDict, string>(record, baseUris, fullItemLocation));
+                }
+
+                // search for CD?
+                if (workRef.Count() >= 1 && (workRef.Keys[0].Type == Aas.KeyTypes.GlobalReference
+                                          || workRef.Keys[0].Type == Aas.KeyTypes.ConceptDescription))
+                {
+                    // want to search for an CD?
+                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleCD);
+                    record.CdId = workRef.Keys[0].Value;
+                    var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    baseUris = basedLoc.BaseUris;
+                    fullItemLocation = basedLoc.Location.ToString();
+                    searches.Add(
+                        new Tuple<ConnectExtendedRecord, BaseUriDict, string>(record, baseUris, fullItemLocation));
+                }
+            }
+
+            // any searches?
+            if (searches.Count < 1)
+                return null;
+
+            // try to load in sequence, until new Identifiable is found
+            // TODO (MIHO, 2024-01-01): take over those options from existing container
+            var foundIdfs = new List<Aas.IIdentifiable>();
+            foreach (var search in searches)
+            {
+                var containerOptions = new PackageContainerHttpRepoSubset.
+                    PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
+                    search.Item1);
+                containerOptions.BaseUris = search.Item2;
+
+                var newIdfs = new List<Aas.IIdentifiable>();
+                var loadedIdfs = new List<Aas.IIdentifiable>();
+
+                var loadRes = await PackageContainerHttpRepoSubset.LoadFromSourceToTargetAsync(
+                    fullItemLocation: search.Item3,
+                    targetEnv: packEnv,
+                    loadNew: false,
+                    trackNewIdentifiables: newIdfs,
+                    trackLoadedIdentifiables: loadedIdfs,
+                    containerOptions: containerOptions,
+                    runtimeOptions: PackageCentral.CentralRuntimeOptions);
+
+                if (loadRes != null && newIdfs.Count >= 1)
+                {
+                    foundIdfs.AddRange(newIdfs);
+                    // may be in the future, we want also NOT to break here?
+                    break;
+                }
+            }
+
+            if (foundIdfs.Count < 1)
+                return null;
+
+            // rebuild display elements
+            DisplayElements.RebuildAasxElements(
+                PackageCentral, PackageCentral.Selector.Main, _viewModel.MainMenu?.IsChecked("EditMenu") == true,
+                lazyLoadingFirst: true);
+
+            var newIdf = foundIdfs.FirstOrDefault();
+
+            // display
+            if (trySelect)
+            {
+                var veFound = DisplayElements.SearchVisualElementOnMainDataObject(newIdf, alsoDereferenceObjects: true);
+                if (veFound != null)
+                {
+                    // show ve
+                    DisplayElements.ExpandAllItems();
+                    DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true);
+                    // remember in history
+                    Logic?.LocationHistory?.Push(veFound);
+                    // fake selection
+                    await RedrawElementViewAsync();
+                    DisplayElements.Refresh();
+                    TakeOverContentEnable(false);
+                }
+            }
+
+            // the end
+            return newIdf;
+        }
+
+        private async Task UiHandleNavigateTo(
+            Aas.IReference targetReference,
+            bool alsoDereferenceObjects = true)
+        {
+            // access
+            if (targetReference == null || targetReference.Keys.Count < 1)
+                return;
+
+            // make a copy of the Reference for searching
+            VisualElementGeneric? veFound = null;
+            var work = targetReference.Copy();
+
+            try
+            {
+                // remember some further supplementary search information
+                var sri = ListOfVisualElement.StripSupplementaryReferenceInformation(work);
+                work = sri.CleanReference;
+
+                // for later search in visual elements, expand them all in order to be absolutely 
+                // sure to find business object
+                this.DisplayElements.ExpandAllItems();
+
+                // incrementally make it unprecise
+                bool firstTime = true;
+                while (work.Keys.Count > 0)
+                {
+                    // try to find a business object in the package
+                    object? bo = null;
+                    if (PackageCentral.MainAvailable && PackageCentral.Main.AasEnv != null)
+                        bo = PackageCentral.Main.AasEnv.FindReferableByReference(work);
+
+                    // Prio 2: check for connected repositories
+                    // (An actual "up-to-date" hit in repo in more valuable than a stored container on file space)
+                    if (firstTime && bo == null)
+                    {
+                        bo = await UiSearchRepoAndExtendEnvironmentAsync(PackageCentral.Main, work);
+                        firstTime = false;
+                    }
+
+                    // if not, may be in aux package (not sure, if this works)
+                    if (bo == null && PackageCentral.Aux != null && PackageCentral.Aux.AasEnv != null)
+                        bo = PackageCentral.Aux.AasEnv.FindReferableByReference(work);
+
+                    // if not, may look into the AASX file repo
+                    if (bo == null && PackageCentral.Repositories != null)
+                    {
+                        // find?
+                        PackageContainerRepoItem? fi = null;
+                        if (work.Keys[0].Type == Aas.KeyTypes.GlobalReference)
+                            //TODO (jtikekar, 0000-00-00): KeyTypes.AssetInformation
+                            fi = await PackageCentral.Repositories.FindByAssetId(work.Keys[0].Value.Trim());
+                        if (work.Keys[0].Type == Aas.KeyTypes.AssetAdministrationShell)
+                            fi = await PackageCentral.Repositories.FindByAasId(work.Keys[0].Value.Trim());
+
+                        var boInfo = await LoadFromFileRepository(fi, work);
+                        bo = boInfo?.BusinessObject;
+                    }
+
+                    // anything found?
+                    if (bo != null)
+                    {
+                        // try to look up in visual elements
+                        if (this.DisplayElements != null)
+                        {
+                            DisplayElements.ExpandAllItems();
+                            var ve = this.DisplayElements.SearchVisualElementOnMainDataObject(bo,
+                                alsoDereferenceObjects: alsoDereferenceObjects, sri: sri);
+                            if (ve != null)
+                            {
+                                veFound = ve;
+                                break;
+                            }
+                        }
+                    }
+
+                    // make it more unprecice
+                    work.Keys.RemoveAt(work.Keys.Count - 1);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(ex, "While retrieving element requested for navigate to");
+            }
+
+            // if successful, try to display it
+            try
+            {
+                if (veFound != null)
+                {
+                    // show ve
+                    DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true);
+                    // remember in history
+                    Logic?.LocationHistory?.Push(veFound);
+                    // fake selection
+                    await RedrawElementViewAsync();
+                    DisplayElements.Refresh();
+                    TakeOverContentEnable(false);
+                }
+                else
+                {
+                    // everything is in default state, push adequate button history
+                    var veTop = DisplayElements.GetDefaultVisualElement();
+                    Logic?.LocationHistory?.Push(veTop);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(ex, "While displaying element requested for navigate to");
+            }
+        }
+
+        #endregion
+
+        #region Handle application events
+        // ------------------------------
+
+        private async Task HandleApplicationEvent(
+            AasxIntegrationBase.AasxPluginResultEventBase evt,
+            Plugins.PluginInstance? pluginInstance)
+        {
+            try
+            {
+                // Navigate To
+                //============
+
+                if (evt is AasxIntegrationBase.AasxPluginResultEventNavigateToReference evtNavTo
+                    && evtNavTo.targetReference != null && evtNavTo.targetReference.Keys.Count > 0)
+                {
+                    Log.Singleton.Info("Plugin requested to naviagte to: " + evtNavTo.targetReference.ToStringExtended(1));
+
+                    await UiHandleNavigateTo(evtNavTo.targetReference);
+                }
+
+                // Visually select referables in the tree
+                //=======================================
+
+                if (evt is AasxIntegrationBase.AasxPluginResultEventVisualSelectEntities evtVisSel
+                    && evtVisSel.Referables != null && evtVisSel.Referables.Count > 0)
+                {
+                    // quite EXPERIMENTAL!
+                    // info
+                    Log.Singleton.Info($"Plugin request to select {evtVisSel.Referables.Count} Referables.");
+
+                    // set all parents required?
+                    foreach (var sm in PackageCentral.Main?.AasEnv?.OverSubmodelsOrEmpty().ForEachSafe())
+                        sm?.SetAllParents();
+
+                    // ugly 3 step approach
+
+                    // step 1 : expand all nodes in order to search them ..
+                    DisplayElements.ExpandAllItems();
+                    await Task.Delay(1000);
+
+                    // step 2 : wait for expand events to be internally digested by treeview
+                    DisplayElements.TryExpandMainDataObjects(evtVisSel.Referables);
+                    await Task.Delay(1000);
+
+                    // step 3 : now select
+                    DisplayElements.TrySelectMainDataObjects(evtVisSel.Referables);
+                }
+
+                // Display Content Url
+                //====================
+
+                if (evt is AasxIntegrationBase.AasxPluginResultEventDisplayContentFile evtDispCont
+                    && evtDispCont.fn != null)
+                    try
+                    {
+                        if (evtDispCont.SaveInsteadDisplay)
+                        {
+                            var proposeFn = System.IO.Path.GetFileName(evtDispCont.fn);
+                            if (evtDispCont.ProposeFn?.HasContent() == true)
+                                proposeFn = System.IO.Path.GetFileName(evtDispCont.ProposeFn);
+
+                            var uc = await DisplayContext.MenuSelectSaveFilenameAsync(
+                                null, "File", "Save file ..", proposeFn, "All files (*.*)|*.*", "No access", requireNoFlyout: true);
+
+                            if (uc?.Result == true)
+                            {
+                                System.IO.File.Copy(evtDispCont.fn, uc.TargetFileName);
+                                Log.Singleton.Info("Provided file copied to: " + uc.TargetFileName);
+                            }
+                        }
+                        else
+                        {
+                            BrowserDisplayLocalFile(evtDispCont.fn, evtDispCont.mimeType,
+                                preferInternal: evtDispCont.preferInternalDisplay);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Singleton.Error(
+                            ex, $"While displaying/ saving content file {evtDispCont.fn} requested by plug-in");
+                    }
+
+                // Redraw All
+                //===========
+
+                if (evt is AasxIntegrationBase.AasxPluginResultEventRedrawAllElements)
+                {
+                    if (DispEditEntityPanel != null)
+                    {
+                        // figure out the current business object
+                        object? nextFocus = null;
+                        if (DisplayElements != null && DisplayElements.SelectedItem != null &&
+                            DisplayElements.SelectedItem != null)
+                            nextFocus = DisplayElements.SelectedItem.GetMainDataObject();
+
+                        // add to "normal" event quoue
+                        DispEditEntityPanel.AddWishForOutsideAction(
+                            new AnyUiLambdaActionRedrawAllElements(nextFocus));
+                    }
+                }
+
+                // Select AAS entity
+                //=======================
+
+                var evSelectEntity = evt as AasxIntegrationBase.AasxPluginResultEventSelectAasEntity;
+                if (evSelectEntity != null)
+                {
+                    var uc = new SelectAasEntityFlyout(
+                        PackageCentral, PackageCentral.Selector.MainAuxFileRepo,
+                        evSelectEntity.filterEntities);
+                    this.StartFlyoverModal(uc);
+                    if (uc.DiaData.ResultKeys != null)
+                    {
+                        // formulate return event
+                        var retev = new AasxIntegrationBase.AasxPluginEventReturnSelectAasEntity();
+                        retev.sourceEvent = evt;
+                        retev.resultKeys = uc.DiaData.ResultKeys;
+
+                        // fire back
+                        pluginInstance?.InvokeAction("event-return", retev,
+                            AnyUiDisplayContextMaui.SessionSingletonMaui);
+                    }
+                }
+
+                // Select File
+                //============
+
+                if (evt is AasxIntegrationBase.AasxPluginResultEventSelectFile fileSel)
+                {
+                    // ask
+
+                    // 2 The MAUI equivalent: FilePicker
+                    // ✅ This is the correct replacement
+
+                    //1// if (Options.Curr.UseFlyovers) this.StartFlyover(new EmptyFlyout());
+                    //1// FileDialog dlg = null;
+                    //1// if (fileSel.SaveDialogue)
+                    //1//     dlg = new Microsoft.Win32.SaveFileDialog();
+                    //1// else
+                    //1//     dlg = new Microsoft.Win32.OpenFileDialog();
+                    //1// dlg.InitialDirectory = DetermineInitialDirectory(PackageCentral.MainItem.Filename);
+                    //1// if (fileSel.Title != null)
+                    //1//     dlg.Title = fileSel.Title;
+                    //1// if (fileSel.FileName != null)
+                    //1//     dlg.FileName = fileSel.FileName;
+                    //1// if (fileSel.DefaultExt != null)
+                    //1//     dlg.DefaultExt = fileSel.DefaultExt;
+                    //1// if (fileSel.Filter != null)
+                    //1//     dlg.Filter = fileSel.Filter;
+                    //1// if (dlg is Microsoft.Win32.OpenFileDialog ofd)
+                    //1//     ofd.Multiselect = fileSel.MultiSelect;
+                    //1// var res = dlg.ShowDialog();
+                    //1// if (Options.Curr.UseFlyovers) this.CloseFlyover();
+                    //1// 
+                    //1// // act
+                    //1// if (res == true)
+                    //1// {
+                    //1//     // formulate return event
+                    //1//     var retev = new AasxIntegrationBase.AasxPluginEventReturnSelectFile();
+                    //1//     retev.sourceEvent = evt;
+                    //1//     retev.FileNames = dlg.FileNames;
+                    //1// 
+                    //1//     // fire back
+                    //1//     pluginInstance?.InvokeAction("event-return", retev,
+                    //1//         AnyUiDisplayContextWpf.SessionSingletonWpf);
+                    //1// }
+                }
+
+                // Message Box
+                //============
+
+                if (evt is AasxIntegrationBase.AasxPluginResultEventMessageBox evMsgBox)
+                {
+                    //1// // modal
+                    //1// var uc = new MessageBoxFlyout(evMsgBox.Message, evMsgBox.Caption,
+                    //1//                 evMsgBox.Buttons, evMsgBox.Image);
+                    //1// this.StartFlyoverModal(uc);
+                    //1// 
+                    //1// // fire back
+                    //1// pluginInstance?.InvokeAction("event-return",
+                    //1//     new AasxIntegrationBase.AasxPluginEventReturnMessageBox()
+                    //1//     {
+                    //1//         sourceEvent = evt,
+                    //1//         Result = uc.Result
+                    //1//     },
+                    //1//     AnyUiDisplayContextWpf.SessionSingletonWpf);
+                }
+
+                // Invoke other plugin
+                //====================
+
+                if (evt is AasxIntegrationBase.AasxPluginResultEventInvokeOtherPlugin evInvOth)
+                {
+                    // result
+                    object? res = null;
+
+                    // find plugin
+                    var pi = Plugins.FindPluginInstance(evInvOth.PluginName);
+
+                    // invoke?
+                    if (pi != null && pi.HasAction(evInvOth.Action, evInvOth.UseAsync))
+                    {
+                        if (evInvOth.UseAsync)
+                            res = await pi.InvokeActionAsync(evInvOth.Action, evInvOth.Args);
+                        else
+                            res = pi.InvokeAction(evInvOth.Action, evInvOth.Args);
+                    }
+
+                    // fire back
+                    pluginInstance?.InvokeAction("event-return",
+                        new AasxIntegrationBase.AasxPluginEventReturnInvokeOther()
+                        {
+                            sourceEvent = evt,
+                            ResultData = res
+                        },
+                        AnyUiDisplayContextMaui.SessionSingletonMaui);
+                }
+
+                // Re-render Any UI Panels
+                //========================
+
+                if (evt is AasxIntegrationBase.AasxPluginEventReturnUpdateAnyUi update)
+                {
+                    UiHandleReRenderAnyUiInEntityPanel(update.PluginName, update.Mode, useInnerGrid: true);
+                }
+
+                // Push AAS events coming from the plugins into the package central
+                //=================================================================
+
+                if (evt is AasxIntegrationBase.AasxPluginResultEventPushSomeEvents someEvt)
+                {
+                    if (someEvt.AasEvents != null)
+                        foreach (var aevt in someEvt.AasEvents)
+                        {
+                            PackageCentral?.PushEvent(aevt);
+                        }
+
+                    var animated = false;
+                    if (someEvt.AnimateSingleEvents != null)
+                        foreach (var ase in someEvt.AnimateSingleEvents)
+                        {
+                            DisplayElements.PushEvent(new AnyUiLambdaActionPackCntChange()
+                            {
+                                Change = new PackCntChangeEventData()
+                                {
+                                    Container = PackageCentral.MainItem.Container,
+                                    Reason = PackCntChangeEventReason.ValueUpdateSingle,
+                                    ThisElem = ase,
+                                    ParentElem = ase?.Parent,
+                                    Info = "Plugin value update"
+                                }
+                            });
+                            animated = true;
+                        }
+
+                    if (animated)
+                        CheckIfToFlushEvents();
+                }
+
+                #endregion
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(
+                    ex, $"While responding to a event; may be from plug-in {"" + pluginInstance?.name}");
+            }
+        }
+
+        private List<AasxIntegrationBase.AasxPluginResultEventBase> _applicationEvents
+            = new List<AasxPluginResultEventBase>();
+
+        public void PushApplicationEvent(AasxIntegrationBase.AasxPluginResultEventBase evt)
+        {
+            if (evt == null)
+                return;
+            _applicationEvents.Add(evt);
+        }
+
+        private async Task MainTimer_HandleApplicationEvents()
+        {
+            // check if a plug-in has some work to do ..
+            foreach (var lpi in Plugins.LoadedPlugins.Values)
+            {
+                var evt = lpi.InvokeAction("get-events") as AasxIntegrationBase.AasxPluginResultEventBase;
+                if (evt != null)
+                    await HandleApplicationEvent(evt, lpi);
+            }
+
+            // check for application events from main app
+            while (_applicationEvents.Count > 0)
+            {
+                var evt = _applicationEvents[0];
+                _applicationEvents.RemoveAt(0);
+                await HandleApplicationEvent(evt, null);
+            }
+        }
+
+        public class EventHandlingStatus
+        {
+            public DateTime LastQueuedEventRequest = DateTime.Now;
+            public DateTime LastReceivedEventTimeStamp = DateTime.MinValue;
+            public bool UpdateValuePending = false;
+            public bool GetEventsPending = false;
+            public int UserErrorsIndicated = 0;
+            public bool UserErrorsSuppress = false;
+
+            public void Reset()
+            {
+                LastQueuedEventRequest = DateTime.Now;
+                UpdateValuePending = false;
+                GetEventsPending = false;
+                UserErrorsIndicated = 0;
+                UserErrorsSuppress = false;
+            }
+        }
+
+        private AnimateDemoValues _mainTimer_AnimateDemoValues = new AnimateDemoValues();
+
+        private void MainTimer_CheckAnimationElements(
+            double deltaSecs,
+            Aas.IEnvironment? env,
+            IndexOfSignificantAasElements significantElems)
+        {
+            // trivial
+            if (env == null || significantElems == null || _viewModel.MainMenu?.IsChecked("AnimateElements") != true)
+                return;
+
+            var animated = false;
+
+            // find elements?
+            foreach (var rec in significantElems.Retrieve(env, SignificantAasElement.ValueAnimation))
+            {
+                // valid?
+                if (rec?.Reference == null || rec.Reference.Keys.Count < 1 || rec.LiveObject == null)
+                    continue;
+
+                // which SME?
+                if (rec.LiveObject is Aas.Property prop)
+                {
+                    _mainTimer_AnimateDemoValues.Animate(prop,
+                        emitEvent: (prop2, evi2) =>
+                        {
+                            // Animate the event visually; create a change event for this.
+                            // Note: this might by not ideal, final state
+                            /* TODO (MIHO, 2021-10-28): Check, if a better solution exists 
+                             * to instrument event updates in a way that they're automatically
+                             * visualized */
+                            DisplayElements.PushEvent(new AnyUiLambdaActionPackCntChange()
+                            {
+                                Change = new PackCntChangeEventData()
+                                {
+                                    Container = PackageCentral.MainItem.Container,
+                                    Reason = PackCntChangeEventReason.ValueUpdateSingle,
+                                    ThisElem = prop2,
+                                    ParentElem = prop2?.Parent,
+                                    Info = "Animated value update"
+                                }
+                            });
+                            animated = true;
+                        });
+                }
+            }
+
+            // if any ..
+            if (animated)
+                CheckIfToFlushEvents();
+        }
+
+        private void MainTimer_CheckDiaryDateToEmitEvents(
+            DateTime lastTime,
+            Aas.IEnvironment? env,
+            IndexOfSignificantAasElements significantElems,
+            bool emitCompressed)
+        {
+            // trivial
+            if (env == null || significantElems == null || _viewModel.MainMenu?.IsChecked("ObserveEvents") != true)
+                return;
+
+            // do this twice
+            for (int i = 0; i < 2; i++)
+            {
+                // divider
+                var see = (new[] {
+                    SignificantAasElement.EventStructureChangeOutwards,
+                    SignificantAasElement.EventUpdateValueOutwards})[i];
+
+                // update events?
+                foreach (var rec in significantElems.Retrieve(env, see))
+                {
+                    // valid?
+                    if (rec?.Reference == null || rec.Reference.Keys.Count < 1 || rec.LiveObject == null)
+                        continue;
+                    var refEv = rec.LiveObject as Aas.BasicEventElement;
+                    if (refEv == null)
+                        continue;
+
+                    // now, find the observable (with timestamping!)
+                    var observable = (IDiaryData)env.FindReferableByReference(refEv.Observed);
+
+                    // some special cases
+                    if (true == refEv.Observed?.Matches(
+                            Aas.KeyTypes.GlobalReference, "AASENV",
+                            MatchMode.Relaxed))
+                    {
+                        observable = env;
+                    }
+
+                    // diary data available
+                    if (observable?.DiaryData == null)
+                        continue;
+
+                    // get the flags
+                    var newCreate = observable.DiaryData
+                        .TimeStamp[(int)DiaryDataDef.TimeStampKind.Create] >= lastTime;
+
+                    var newUpdate = observable.DiaryData
+                        .TimeStamp[(int)DiaryDataDef.TimeStampKind.Update] >= lastTime;
+
+                    // first check
+                    if (!newCreate && !newUpdate)
+                        continue;
+
+                    // prepare event payloads
+                    var plStruct = new AasPayloadStructuralChange();
+                    var plUpdate = new AasPayloadUpdateValue();
+
+                    // for the overall change check, we rely on the timestamping
+                    if ((i == 0) || ((i == 1) && newUpdate))
+                    {
+                        // closure logic
+                        var storedI = i;
+
+                        if (observable is Aas.IReferable referable)
+                            referable.RecurseOnReferables(null,
+                                includeThis: true,
+                                lambda: (o, parents, rf) =>
+                                {
+                                    // further interest?
+                                    if (rf == null || rf.DiaryData == null ||
+                                    ((rf.DiaryData.TimeStamp[(int)DiaryDataDef.TimeStampKind.Create]
+                                       < lastTime)
+                                      &&
+                                      (rf.DiaryData.TimeStamp[(int)DiaryDataDef.TimeStampKind.Update]
+                                       < lastTime)))
+                                        return false;
+
+                                    // yes, inspect further and also go deeper
+                                    if (rf.DiaryData.Entries != null)
+                                    {
+                                        var todel = new List<IAasDiaryEntry>();
+                                        foreach (var de in rf.DiaryData.Entries)
+                                        {
+                                            if (storedI == 0 && de is AasPayloadStructuralChangeItem sci)
+                                            {
+                                                // TODO (MIHO, 2021-10-09): prepare path to be relative
+
+                                                // queue event
+                                                plStruct.Changes.Add(sci);
+
+                                                // delete
+                                                todel.Add(de);
+                                            }
+
+                                            if (storedI == 1 && de is AasPayloadUpdateValueItem uvi)
+                                            {
+                                                // TODO (MIHO, 2021-10-09): prepare path to be relative
+
+                                                // queue event
+                                                plUpdate.Values.Add(uvi);
+
+                                                // delete
+                                                todel.Add(de);
+                                            }
+                                        }
+                                        foreach (var de in todel)
+                                            rf.DiaryData.Entries.Remove(de);
+                                    }
+
+                                    // deeper
+                                    return true;
+                                });
+                        if (observable is Aas.Environment environment)
+                            environment.RecurseOnReferables(null,
+                                includeThis: true,
+                                lambda: (o, parents, rf) =>
+                                {
+                                    // further interest?
+                                    if (rf == null || rf.DiaryData == null ||
+                                    ((rf.DiaryData.TimeStamp[(int)DiaryDataDef.TimeStampKind.Create]
+                                       < lastTime)
+                                      &&
+                                      (rf.DiaryData.TimeStamp[(int)DiaryDataDef.TimeStampKind.Update]
+                                       < lastTime)))
+                                        return false;
+
+                                    // yes, inspect further and also go deeper
+                                    if (rf.DiaryData.Entries != null)
+                                    {
+                                        var todel = new List<IAasDiaryEntry>();
+                                        foreach (var de in rf.DiaryData.Entries)
+                                        {
+                                            if (storedI == 0 && de is AasPayloadStructuralChangeItem sci)
+                                            {
+                                                // TODO (MIHO, 2021-10-09): prepare path to be relative
+
+                                                // queue event
+                                                plStruct.Changes.Add(sci);
+
+                                                // delete
+                                                todel.Add(de);
+                                            }
+
+                                            if (storedI == 1 && de is AasPayloadUpdateValueItem uvi)
+                                            {
+                                                // TODO (MIHO, 2021-10-09): prepare path to be relative
+
+                                                // queue event
+                                                plUpdate.Values.Add(uvi);
+
+                                                // delete
+                                                todel.Add(de);
+                                            }
+                                        }
+                                        foreach (var de in todel)
+                                            rf.DiaryData.Entries.Remove(de);
+                                    }
+
+                                    // deeper
+                                    return true;
+                                });
+                    }
+
+                    // send event?
+                    if (plStruct.Changes.Count < 1 && plUpdate.Values.Count < 1)
+                        continue;
+
+                    // send event
+                    var ev = new AasEventMsgEnvelope(
+                        DateTime.UtcNow,
+                        source: refEv.GetReference(),
+                        sourceSemanticId: refEv.SemanticId,
+                        observableReference: refEv.Observed,
+                        // dead-csharp off
+                        //observableSemanticId: (observable as IGetSemanticId)?.GetSemanticId());
+                        // dead-csharp on
+                        // TODO (jtikekar, 0000-00-00): IDiaryData support
+                        observableSemanticId: (observable as Aas.IHasSemantics)?.SemanticId);
+
+                    if (plStruct.Changes.Count >= 1)
+                        ev.PayloadItems.Add(plStruct);
+
+                    if (plUpdate.Values.Count >= 1)
+                        ev.PayloadItems.Add(plUpdate);
+
+                    // emit it to PackageCentral or to buffer?
+                    if (emitCompressed)
+                        _eventCompressor?.Push(ev);
+                    else
+                        PackageCentral?.PushEvent(ev);
+                }
+            }
+        }
+
+        private void MainTimer_CheckTaintedIdentifiables(
+            DateTime lastTime,
+            Aas.IEnvironment? env)
+        {
+            // trivial
+            if (env == null || DisplayElements == null)
+                return;
+
+            // find visual elements for Identifiables and check for tainted state
+            foreach (var ve in DisplayElements.FindAllVisualElementTopToIdentifiable())
+                if (ve is ITaintableIdentifiable ttidf)
+                {
+                    var tt = ttidf.GetTaintedTime();
+                    if (tt == null || tt < lastTime)
+                        continue;
+
+                    // kick off redisplay
+                    ve.RefreshFromMainData();
+                }
+        }
+
+        protected EventHandlingStatus _eventHandling = new EventHandlingStatus();
+
+        private void MainTimer_PeriodicalTaskForSelectedEntity()
+        {
+            // some container options are required
+            var copts = PackageCentral?.MainItem?.Container?.ContainerOptions;
+
+            //
+            // Investigate on Update Value Events
+            // Note: for the time being, Events will be only valid, if Event and observed entity are 
+            // within the SAME Submodel
+            //
+            var veSelected = DisplayElements.SelectedItem;
+
+            if (veSelected != null
+                && true == copts?.StayConnected
+                && Options.Curr.StayConnectOptions.HasContent()
+                && Options.Curr.StayConnectOptions.ToUpper().Contains("SIM")
+                && !_eventHandling.UpdateValuePending
+                && (DateTime.Now - _eventHandling.LastQueuedEventRequest).TotalMilliseconds > copts.UpdatePeriod)
+            {
+                _eventHandling.LastQueuedEventRequest = DateTime.Now;
+
+                try
+                {
+                    // for update values, do not concern about plugins, but use superior Submodel,
+                    // as they will relate to this
+                    var veSubject = veSelected;
+                    if (veSelected is VisualElementPluginExtension)
+                        veSubject = veSelected.Parent;
+
+                    // now, filter for know applications
+                    if (!(veSubject is VisualElementSubmodelRef || veSubject is VisualElementSubmodelElement))
+                        return;
+
+                    // will always require a root Submodel
+                    var smrSel = veSelected.FindFirstParent((ve) => (ve is VisualElementSubmodelRef), includeThis: true)
+                        as VisualElementSubmodelRef;
+                    if (smrSel != null && smrSel.theSubmodel != null)
+                    {
+                        // parents need to be set
+                        var rootSm = smrSel.theSubmodel;
+                        rootSm.SetAllParents();
+
+                        // check, if the Submodel has interesting events
+                        foreach (var ev in smrSel.theSubmodel.SubmodelElements.FindDeep<Aas.BasicEventElement>((x) =>
+                            (true == x?.SemanticId?.Matches(
+                                AasxPredefinedConcepts.AasEvents.Static.CD_UpdateValueOutwards.Id
+                                ))))
+                        {
+                            // Submodel defines an events for outgoing value updates -> does the observed scope
+                            // lie in the selection?
+                            var klObserved = ev.Observed?.Keys;
+                            var klSelected = veSubject.BuildKeyListToTop(includeAas: false);
+                            // no, klSelected shall lie in klObserved
+                            if (klObserved != null && klSelected != null &&
+                                klSelected.StartsWith(klObserved,
+                                emptyIsTrue: false, matchMode: MatchMode.Relaxed))
+                            {
+                                // take a shortcut
+                                if (PackageCentral?.MainItem?.Container is PackageContainerNetworkHttpFile cntHttp
+                                    && cntHttp.ConnectorPrimary is PackageConnectorHttpRest connRest)
+                                {
+                                    Task.Run(async () =>
+                                    {
+                                        try
+                                        {
+                                            var evSnd = await
+                                                connRest.SimulateUpdateValuesEventByGetAsync(
+                                                    smrSel.theSubmodel,
+                                                    ev,
+                                                    veSubject.GetDereferencedMainDataObject() as Aas.IReferable,
+                                                    timestamp: DateTime.Now,
+                                                    topic: "MY-TOPIC",
+                                                    subject: "ANY-SUBJECT");
+                                            if (evSnd)
+                                            {
+                                                _eventHandling.UpdateValuePending = true;
+                                                _eventHandling.UserErrorsSuppress = false;
+                                                _eventHandling.UserErrorsIndicated = 0;
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            if (!_eventHandling.UserErrorsSuppress)
+                                            {
+                                                Log.Singleton.Error(ex,
+                                                    "periodically triggering event for simulated update (time-out)");
+                                                _eventHandling.UserErrorsIndicated++;
+
+                                                if (_eventHandling.UserErrorsIndicated > 3)
+                                                {
+                                                    Log.Singleton.Info("Too many repetitive time-outs. Disabling!");
+                                                    _eventHandling.UserErrorsSuppress = true;
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Singleton.Error(ex, "periodically checking for triggering events");
+                }
+            }
+
+            // Kick off all event updates?
+            if (copts != null
+                && Options.Curr.StayConnectOptions.HasContent()
+                && Options.Curr.StayConnectOptions.ToUpper().Contains("REST-QUEUE")
+                && !_eventHandling.GetEventsPending
+                && PackageCentral?.MainItem?.Container is PackageContainerNetworkHttpFile cntHttp2
+                && cntHttp2.ConnectorPrimary is PackageConnectorHttpRest connRest2
+                && (DateTime.Now - _eventHandling.LastQueuedEventRequest).TotalMilliseconds > copts.UpdatePeriod)
+            {
+                // mutex!
+                _eventHandling.GetEventsPending = true;
+                _eventHandling.LastQueuedEventRequest = DateTime.Now;
+
+                // async
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        // prepare query
+                        var qst = "/geteventmessages";
+                        if (_eventHandling.LastReceivedEventTimeStamp != DateTime.MinValue)
+                            qst += "/time/"
+                                   + AasEventMsgEnvelope.TimeToString(_eventHandling.LastReceivedEventTimeStamp);
+
+                        // execute and digest results
+                        var lastTS = await
+                            connRest2.PullEvents(qst);
+
+                        // remember for next time
+                        if (lastTS != DateTime.MinValue)
+                            _eventHandling.LastReceivedEventTimeStamp = lastTS;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Singleton.Error(ex,
+                            "pulling events from REST (time-out?)");
+                    }
+                    finally
+                    {
+                        // unlock mutex
+                        _eventHandling.GetEventsPending = false;
+                    }
+                });
+            }
+        }
+
+        public async Task MainTaimer_HandleIncomingAasEvents()
+        {
+            int nEvent = 0;
+            while (true)
+            {
+                // try handle a reasonable number of events ..
+                nEvent += 1;
+                if (nEvent > 100)
+                    break;
+
+                // access
+                var ev = PackageCentral?.EventBufferEditor?.PopEvent();
+                if (ev == null)
+                    break;
+
+                // log viewer
+                //1// UserContrlEventCollection.PushEvent(ev);
+
+                //1// // inform current Flyover?
+                //1// if (currentFlyoutControl is IFlyoutAgent fosc)
+                //1//     fosc.GetAgent()?.PushEvent(ev);
+                //1// // dead-csharp off
+                //1// // inform agents?
+                //1// foreach (var fa in UserControlAgentsView.Children)
+                //1//     fa.GetAgent()?.PushEvent(ev);
+
+                // push into plugins
+                Plugins.PushEventIntoPlugins(ev);
+
+                // to be applicable, the event message Observable has to relate into Main's environment
+                var foundObservable = PackageCentral?.Main?.AasEnv?.FindReferableByReference(ev?.ObservableReference);
+                if (foundObservable == null)
+                    return;
+
+                //
+                // Update values?
+                //
+                var changedSomething = false;
+                if (foundObservable is Aas.Submodel || foundObservable is Aas.ISubmodelElement)
+                    foreach (var pluv in ev!.GetPayloads<AasPayloadUpdateValue>())
+                    {
+                        changedSomething = changedSomething || (pluv.Values != null && pluv.Values.Count > 0);
+
+                        // update value received
+                        _eventHandling.UpdateValuePending = false;
+                    }
+
+                // stupid
+                if (Options.Curr.StayConnectOptions.ToUpper().Contains("SIM")
+                    && changedSomething)
+                {
+                    // just for test
+                    DisplayElements.RefreshAllChildsFromMainData(DisplayElements.SelectedItem);
+                    DisplayElements.Refresh();
+
+                    // apply white list for automatic redisplay
+                    // Note: do not re-display plugins!!
+                    var ves = DisplayElements.SelectedItem;
+                    if (ves != null && (ves is VisualElementSubmodelRef || ves is VisualElementSubmodelElement))
+                        await RedrawElementViewAsync();
+                }
+            }
+        }
+
+        private DateTime _mainTimer_LastCheckForDiaryEvents;
+        private DateTime _mainTimer_LastCheckForTaintedIdentifiables;
+        private DateTime _mainTimer_LastCheckForAnimationElements = DateTime.Now;
+
+        private bool _mainTimer_PendingReIndexElements = false;
+        private DateTime _mainTimer_LastCheckForReIndexElements = DateTime.Now;
+
+        private async Task MainTimer_Tick(object sender, EventArgs e)
+        {
+            // different functions
+            MainTimer_HandleLogMessages();
+            await MainTimer_HandleEntityPanel();
+            await MainTimer_HandleApplicationEvents();
+
+            // diary dates -> events, animation
+            if (PackageCentral?.MainItem?.Container?.SignificantElements != null)
+            {
+                MainTimer_CheckDiaryDateToEmitEvents(
+                    _mainTimer_LastCheckForDiaryEvents,
+                    PackageCentral.MainItem.Container.Env?.AasEnv,
+                    PackageCentral.MainItem.Container.SignificantElements,
+                    emitCompressed: _viewModel.MainMenu?.IsChecked("CompressEvents") == true);
+                _mainTimer_LastCheckForDiaryEvents = DateTime.UtcNow;
+
+                // do animation?
+                var deltaSecs = (DateTime.Now - _mainTimer_LastCheckForAnimationElements).TotalSeconds;
+
+                if (deltaSecs >= 0.1)
+                {
+                    MainTimer_CheckAnimationElements(
+                        deltaSecs,
+                        PackageCentral.MainItem.Container.Env?.AasEnv,
+                        PackageCentral.MainItem.Container.SignificantElements);
+                    _mainTimer_LastCheckForAnimationElements = DateTime.Now;
+                }
+            }
+
+            // flags for tainted Identifiables
+            MainTimer_CheckTaintedIdentifiables(
+                _mainTimer_LastCheckForTaintedIdentifiables,
+                PackageCentral.MainItem.Container?.Env?.AasEnv);
+            _mainTimer_LastCheckForTaintedIdentifiables = DateTime.UtcNow;
+
+            // pending re-index?
+            var deltaSecs2 = (DateTime.Now - _mainTimer_LastCheckForReIndexElements).TotalSeconds;
+            if (deltaSecs2 >= 1.0 && _mainTimer_PendingReIndexElements)
+            {
+                // dis-engage
+                _mainTimer_PendingReIndexElements = false;
+
+                // be modest for the time being
+                PackageCentral.ReIndexIdentifiables();
+
+                // Info
+                Log.Singleton.Info("Re-indexing Identifiables for faster access.");
+            }
+
+            // normal stuff
+            MainTimer_PeriodicalTaskForSelectedEntity();
+            await MainTaimer_HandleIncomingAasEvents();
+            DisplayElements.UpdateFromQueuedEvents();
+        }
+
+        #endregion
+
+        #region Progress
+        // --------------
 
         private void SetProgressOverallIsEnabled(bool active)
         {
@@ -2043,9 +3516,10 @@ namespace MauiTestTree
             //1//         new Action(() => LabelProgressBarDownload.Content = message));
         }
 
-        //
-        // ButtonHistory
-        //
+        #endregion
+
+        #region ButtonHistory
+        // ------------------
 
         private async Task ButtonHistory_ObjectRequested(object sender, VisualElementHistoryItem hi)
         {
@@ -2155,7 +3629,12 @@ namespace MauiTestTree
             }
         }
 
-        // <summary>
+        #endregion
+
+        #region Status line
+        // ----------------
+
+        /// <summary>
         /// Clears the status line and pending errors.
         /// </summary>
         public void StatusLineClear()
@@ -2234,7 +3713,7 @@ namespace MauiTestTree
             //1// _messageReportWindow.Show();
         }
 
-        protected TextWriter _logWriter = new StringWriter();
+        protected TextWriter? _logWriter = null;
 
         //1// protected MessageReportWindow _messageReportWindow = null;
 
@@ -2251,7 +3730,7 @@ namespace MauiTestTree
             //1// }
         }
 
-        private void LabelNumberErrors_MouseDown(object sender, MouseButtonEventArgs e)
+        private void LabelNumberErrors_MouseDown(object sender, EventArgs e)
         {
             //1// // something important
             //1// if (Log.Singleton.NumberErrors > 0 && _lastMessageError?.HasContent() == true)
@@ -2268,6 +3747,11 @@ namespace MauiTestTree
         {
             //1// important for scripting use cases!
         }
+
+        #endregion
+
+        #region Window handling
+        // --------------------
 
         private async void DisplayElements_SelectedItemChanged(object sender, EventArgs e)
         {
@@ -2642,6 +4126,8 @@ namespace MauiTestTree
 
         // left out: raw key handler!
 
+        #endregion
+
         #region Modal Flyovers
         //====================
 
@@ -2705,7 +4191,7 @@ namespace MauiTestTree
             return false;
         }
 
-        public void StartFlyover(/* UserControl */ object uc)
+        public void StartFlyover(VisualElement uc)
         {
             //1// // uc needs to implement IFlyoverControl
             //1// var ucfoc = uc as IFlyoutControl;
@@ -2764,7 +4250,7 @@ namespace MauiTestTree
         // SYNCRONOUS
         //
 
-        public void StartFlyoverModal(/* UserControl */ object uc, Action? closingAction = null)
+        public void StartFlyoverModal(VisualElement uc, Action? closingAction = null)
         {
             //1// // uc needs to implement IFlyoverControl
             //1// var ucfoc = uc as IFlyoutControl;
@@ -2897,7 +4383,7 @@ namespace MauiTestTree
         // ASYNC (are async versions of the WPF modals required)
         //
 
-        public async Task StartFlyoverModalAsync(/* UserControl */ object uc, Action? closingAction = null)
+        public async Task StartFlyoverModalAsync(VisualElement uc, Action? closingAction = null)
         {
             //1// // uc needs to implement IFlyoverControl
             //1// var ucfoc = uc as IFlyoutControl;
@@ -3082,7 +4568,7 @@ namespace MauiTestTree
         #endregion
 
         #region Find & Replace
-        ----------------------
+        // -------------------
 
         /// <summary>
         /// Tools are find & replace
@@ -3273,7 +4759,7 @@ namespace MauiTestTree
                 // ReSharper enable AccessToModifiedClosure
 
                 html.AppendLine("<h3>Menu and script commands</h3>");
-                lambdaMenu(MainMenu.Menu);
+                lambdaMenu(_viewModel.MainMenu);
 
                 html.AppendLine("<h3>Displayed entity and script commands</h3>");
                 lambdaMenu(DynamicMenu.Menu);
