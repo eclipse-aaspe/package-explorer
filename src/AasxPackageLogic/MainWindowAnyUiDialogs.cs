@@ -1637,7 +1637,7 @@ namespace AasxPackageLogic
                 // copy to clipboard
                 if (jsonStr != "")
                 {
-                    DisplayContext.ClipboardSet(new AnyUiClipboardData(jsonStr));
+                    await DisplayContext.ClipboardSetAsync(new AnyUiClipboardData(jsonStr));
                     Log.Singleton.Info("Copied selected element to clipboard.");
                 }
                 else
@@ -1981,7 +1981,7 @@ namespace AasxPackageLogic
                             }
                         sb.AppendLine("]");
                         var jsonStr = sb.ToString();
-                        DisplayContext.ClipboardSet(new AnyUiClipboardData(jsonStr));
+                        DisplayContext.ClipboardSetAsync(new AnyUiClipboardData(jsonStr));
                         Log.Singleton.Info("Copied JSON to clipboard.");
                     }
                 };

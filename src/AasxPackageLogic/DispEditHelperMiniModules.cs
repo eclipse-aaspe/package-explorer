@@ -182,7 +182,7 @@ namespace AasxPackageLogic
                             "Adds an qualifier from parsed clipboard data (JSON).")
                         .AddAction("qualifier-del", "Delete last",
                             "Deletes last qualifier in the list."),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
                         {
@@ -235,7 +235,7 @@ namespace AasxPackageLogic
                             try
                             {
                                 var qNew = new Aas.Qualifier("", Aas.DataTypeDefXsd.String);
-                                var jsonInput = this.context?.ClipboardGet()?.Text;
+                                var jsonInput = (await context.ClipboardGetAsync())?.Text;
                                 if (jsonInput?.HasContent() == true)
                                 {
                                     if (PasteQualifierTextIntoExisting(jsonInput, qNew))
@@ -284,7 +284,7 @@ namespace AasxPackageLogic
                         "\u29c9", "Copy to clipboard",
                         "\u2398", "Paste from clipboard",
                     },
-                    menuItemLambda: (o) =>
+                    menuItemLambdaAsync: async (o) =>
                     {
                         var action = false;
 
@@ -323,13 +323,13 @@ namespace AasxPackageLogic
                                                 WriteIndented = true
                                             });
 
-                                    this.context?.ClipboardSet(new AnyUiClipboardData(jsonStr));
+                                    await context.ClipboardSetAsync(new AnyUiClipboardData(jsonStr));
                                     Log.Singleton.Info("Qualified serialized to clipboard.");
                                     break;
                                 case 4:
                                     try
                                     {
-                                        var jsonInput = this.context?.ClipboardGet()?.Text;
+                                        var jsonInput = (await context.ClipboardGetAsync())?.Text;
                                         if (jsonInput?.HasContent() == true)
                                         {
                                             action = PasteQualifierTextIntoExisting(jsonInput, qualifiers[storedI]);
@@ -653,7 +653,7 @@ namespace AasxPackageLogic
                     stack, $"{key}:",
                     new[] { "Add blank", "Add preset", "Add from clipboard", "Delete last" },
                     repo,
-                    (buttonNdx) =>
+                    actionAsync: async (buttonNdx) =>
                     {
                         if (buttonNdx == 0 && (!constrainToOne || pairs.Count < 1))
                         {
@@ -702,7 +702,7 @@ namespace AasxPackageLogic
                             try
                             {
                                 var pNew = new Aas.SpecificAssetId("", "", null);
-                                var jsonInput = this.context?.ClipboardGet()?.Text;
+                                var jsonInput = ( await context.ClipboardGetAsync())?.Text;
                                 if (jsonInput?.HasContent() == true)
                                 {
                                     if (PasteIKVPTextIntoExisting(jsonInput, pNew))
@@ -746,7 +746,7 @@ namespace AasxPackageLogic
                         "\u29c9", "Copy to clipboard",
                         "\u2398", "Paste from clipboard",
                     },
-                    menuItemLambda: (o) =>
+                    menuItemLambdaAsync: async (o) =>
                     {
                         var action = false;
 
@@ -775,13 +775,13 @@ namespace AasxPackageLogic
                                     break;
                                 case 3:
                                     var jsonStr = JsonConvert.SerializeObject(pairs[storedI], Formatting.Indented);
-                                    this.context?.ClipboardSet(new AnyUiClipboardData(jsonStr));
+                                    await context.ClipboardSetAsync(new AnyUiClipboardData(jsonStr));
                                     Log.Singleton.Info("SpecificAssetId serialized to clipboard.");
                                     break;
                                 case 4:
                                     try
                                     {
-                                        var jsonInput = this.context?.ClipboardGet()?.Text;
+                                        var jsonInput = (await context.ClipboardGetAsync())?.Text;
                                         if (jsonInput?.HasContent() == true)
                                         {
                                             action = PasteIKVPTextIntoExisting(jsonInput, pairs[storedI]);
@@ -893,7 +893,7 @@ namespace AasxPackageLogic
                             "Adds an extension from parsed clipboard data (JSON).")
                         .AddAction("extension-del", "Delete last",
                             "Deletes last extension in the list."),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
                         {
@@ -953,7 +953,7 @@ namespace AasxPackageLogic
                             try
                             {
                                 var eNew = new Aas.Extension("");
-                                var jsonInput = this.context?.ClipboardGet()?.Text;
+                                var jsonInput = (await context.ClipboardGetAsync())?.Text;
                                 if (PasteExtensionTextIntoExisting(jsonInput, eNew))
                                 {
                                     extensions.Add(eNew);
@@ -995,7 +995,7 @@ namespace AasxPackageLogic
                         "\u29c9", "Copy to clipboard",
                         "\u2398", "Paste from clipboard",
                     },
-                    menuItemLambda: (o) =>
+                    menuItemLambdaAsync: async (o) =>
                     {
                         var action = false;
 
@@ -1034,13 +1034,13 @@ namespace AasxPackageLogic
                                                 WriteIndented = true
                                             });
 
-                                    this.context?.ClipboardSet(new AnyUiClipboardData(jsonStr));
+                                    await context.ClipboardSetAsync(new AnyUiClipboardData(jsonStr));
                                     Log.Singleton.Info("Extension serialized to clipboard.");
                                     break;
                                 case 4:
                                     try
                                     {
-                                        var jsonInput = this.context?.ClipboardGet()?.Text;
+                                        var jsonInput = (await context.ClipboardGetAsync())?.Text;
                                         action = PasteExtensionTextIntoExisting(jsonInput, extensions[storedI]);
                                         if (action)
                                             Log.Singleton.Info("Extension taken from clipboard.");
@@ -1497,7 +1497,7 @@ namespace AasxPackageLogic
                     stack, $"{key}:",
                     new[] { "Add blank", "Add from clipboard", "Add multiple from clipboard", "Delete last" },
                     repo,
-                    (buttonNdx) =>
+                    actionAsync: async (buttonNdx) =>
                     {
                         if (buttonNdx == 0)
                         {
@@ -1511,7 +1511,7 @@ namespace AasxPackageLogic
                             try
                             {
                                 var pNew = new Aas.ValueReferencePair("", null);
-                                var jsonInput = this.context?.ClipboardGet()?.Text;
+                                var jsonInput = (await context.ClipboardGetAsync())?.Text;
                                 if (PasteValueReferencePairTextIntoExisting(jsonInput, pNew))
                                 {
                                     valuePairs.Add(pNew);
@@ -1528,7 +1528,7 @@ namespace AasxPackageLogic
                         {
                             try
                             {
-                                var pNew = PasteValueReferencePairsTextToList(this.context?.ClipboardGet()?.Text);
+                                var pNew = PasteValueReferencePairsTextToList((await context.ClipboardGetAsync())?.Text);
                                 if (pNew != null && pNew.Count() > 0)
                                 {
                                     valuePairs.AddRange(pNew);
@@ -1624,7 +1624,8 @@ namespace AasxPackageLogic
                         "\u29c9", "Copy to clipboard",
                         "\u2398", "Paste from clipboard",
                     },
-                    menuItemLambda: (o) =>
+                    menuItemLambda: null,
+                    menuItemLambdaAsync: async (o) =>
                     {
                         var action = false;
 
@@ -1661,13 +1662,13 @@ namespace AasxPackageLogic
                                                 WriteIndented = true
                                             });
 
-                                    this.context?.ClipboardSet(new AnyUiClipboardData(jsonStr));
+                                    await context.ClipboardSetAsync(new AnyUiClipboardData(jsonStr));
                                     Log.Singleton.Info("Value pair serialized to clipboard.");
                                     break;
                                 case 4:
                                     try
                                     {
-                                        var jsonInput = this.context?.ClipboardGet()?.Text;
+                                        var jsonInput = (await context.ClipboardGetAsync())?.Text;
                                         action = PasteValueReferencePairTextIntoExisting(jsonInput, valuePairs[storedI]);
                                         if (action)
                                             Log.Singleton.Info("Value pair taken from clipboard.");

@@ -20,7 +20,7 @@ using System.Web;
 
 namespace MauiTestTree
 {
-    public partial class MainPage : ContentPage, IFlyoutProvider, IPushApplicationEvent, IMainWindow
+    public partial class MainPage : ContentPage, IFlyoutProvider, IPushApplicationEvent, IMainWindow, IExecuteMainCommand
     {
         protected MainViewModel _viewModel = new MainViewModel();
 
@@ -164,7 +164,7 @@ namespace MauiTestTree
             else
             if (mode == 81)
             {
-                var dc = new AnyUiDisplayContextMaui();
+                var dc = new AnyUiDisplayContextMaui(this, new PackageCentral());
 
                 dc.TryRegisterIconFont("uc", "OpenSansRegular", 16);
                 dc.TryRegisterIconFont("awe", "FontAwesome", 16);
@@ -2702,21 +2702,21 @@ namespace MauiTestTree
                 var evSelectEntity = evt as AasxIntegrationBase.AasxPluginResultEventSelectAasEntity;
                 if (evSelectEntity != null)
                 {
-                    var uc = new SelectAasEntityFlyout(
-                        PackageCentral, PackageCentral.Selector.MainAuxFileRepo,
-                        evSelectEntity.filterEntities);
-                    this.StartFlyoverModal(uc);
-                    if (uc.DiaData.ResultKeys != null)
-                    {
-                        // formulate return event
-                        var retev = new AasxIntegrationBase.AasxPluginEventReturnSelectAasEntity();
-                        retev.sourceEvent = evt;
-                        retev.resultKeys = uc.DiaData.ResultKeys;
-
-                        // fire back
-                        pluginInstance?.InvokeAction("event-return", retev,
-                            AnyUiDisplayContextMaui.SessionSingletonMaui);
-                    }
+                    //1// var uc = new SelectAasEntityFlyout(
+                    //1//     PackageCentral, PackageCentral.Selector.MainAuxFileRepo,
+                    //1//     evSelectEntity.filterEntities);
+                    //1// this.StartFlyoverModal(uc);
+                    //1// if (uc.DiaData.ResultKeys != null)
+                    //1// {
+                    //1//     // formulate return event
+                    //1//     var retev = new AasxIntegrationBase.AasxPluginEventReturnSelectAasEntity();
+                    //1//     retev.sourceEvent = evt;
+                    //1//     retev.resultKeys = uc.DiaData.ResultKeys;
+                    //1// 
+                    //1//     // fire back
+                    //1//     pluginInstance?.InvokeAction("event-return", retev,
+                    //1//         AnyUiDisplayContextMaui.SessionSingletonMaui);
+                    //1// }
                 }
 
                 // Select File
@@ -4440,7 +4440,7 @@ namespace MauiTestTree
             //1// // relieve task
             //1// await Task.Yield();
             await Task.Yield();
-            return null;
+            return;
         }
 
         public async Task<AnyUiMessageBoxResult> MessageBoxFlyoutShowAsync(
@@ -4925,6 +4925,16 @@ namespace MauiTestTree
         #region General commands
         // ---------------------
 
+        /// <summary>
+        /// Redraw tree elements (middle), AAS entitty (right side)
+        /// </summary>
+        public async Task CommandExecution_RedrawAllAsync()
+        {
+            // redraw everything
+            await RedrawAllAasxElementsAsync();
+            await RedrawElementViewAsync();
+        }
+
         private async Task CommandBinding_GeneralDispatch(
             string cmd,
             AasxMenuItemBase menuItem,
@@ -4933,6 +4943,11 @@ namespace MauiTestTree
             await Task.Yield();
         }
 
-            #endregion
+        public Task<int> ExecuteMainMenuCommand(string menuItemName, bool scriptMode, params object[] args)
+        {
+            throw new NotImplementedException();
         }
+
+        #endregion
+    }
 }
