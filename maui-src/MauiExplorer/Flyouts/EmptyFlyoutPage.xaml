@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:cz="clr-namespace:FunctionZero.Maui.Controls;assembly=FunctionZero.Maui.Controls"
+             x:Class="MauiTestTree.EmptyFlyoutPage"
+             xmlns:local="clr-namespace:MauiTestTree"
+             Title="Pick an option"
+             Background="{DynamicResource Primary}">
+
+    <ContentPage.Resources>
+        <!-- Please always check, which converter instances are particularily required in this page. -->
+        <local:BoolToColorConverter
+            x:Key="HighlightConverter"
+            TrueColor="{StaticResource Secondary}"
+            FalseColor="{StaticResource PrimaryLightLight}" />
+
+        <local:InverseBoolConverter
+            x:Key="MyInverseBoolConverter" />
+
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto, *, Auto" ColumnDefinitions="60,*, 60">
+        
+        <!-- Top row-->
+        
+        <!-- Caption -->
+        <Label x:Name="CaptionLabel" Grid.Row="0" Grid.Column="1"
+               Text="{Binding Caption}"
+               VerticalOptions="Center"
+               HorizontalOptions="Center"
+               TextColor="White" FontSize="18"/>
+        
+        <!-- Close -->
+        <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="2"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            Padding="0" BackgroundColor="Transparent" CornerRadius="8"
+            Clicked="OnOuterButtonClicked">
+
+            <Button.ImageSource>
+                <FontImageSource
+                    FontFamily="MaterialOutlined"
+                    Glyph="{x:Static m:MaterialOutlined.Close}"
+                    Size="24"
+                    Color="White" />        
+            </Button.ImageSource>
+        </Button>
+        
+        <!-- Middle row: Main Content -->
+
+        <!-- Bottom row-->
+        <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*">
+            <!-- OK -->
+            <Button x:Name="OkButton" Grid.Row="0" Grid.Column="0"
+                IsEnabled="False"
+                VerticalOptions="Center" Margin="2,4,2,4"
+                Padding="0" BackgroundColor="Transparent" CornerRadius="8"
+                Clicked="OnOuterButtonClicked" BorderColor="White" BorderWidth="2"
+                Text="OK"
+                TextColor="White"
+                FontSize="14">
+                
+                <Button.ImageSource>
+                    <FontImageSource
+                        FontFamily="MaterialOutlined"
+                        Glyph="{x:Static m:MaterialOutlined.Check}"
+                        Size="18"
+                        Color="White" />
+                </Button.ImageSource>
+            </Button>
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

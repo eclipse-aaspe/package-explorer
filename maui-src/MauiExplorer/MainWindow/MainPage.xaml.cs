@@ -48,6 +48,9 @@ namespace MauiTestTree
             // display view model
             BindingContext = _viewModel;
 
+            // many things when loaded
+            Loaded += Window_Loaded;
+
             // TestAnyUI(2);
 
             //Loaded += async (s, e) =>
@@ -711,7 +714,8 @@ namespace MauiTestTree
 
             // rebuild middle section
             DisplayElements.RebuildAasxElements(
-                PackageCentral, PackageCentral.Selector.Main, _viewModel.MainMenu?.IsChecked("EditMenu") == true,
+                //                                            TODO!!
+                PackageCentral, PackageCentral.Selector.Main, true || _viewModel.MainMenu?.IsChecked("EditMenu") == true,
                 lazyLoadingFirst: true);
 
             // ok .. try re-focus!!
@@ -1339,7 +1343,7 @@ namespace MauiTestTree
         #region Callbacks
         //===============
 
-        private async void Window_Loaded(object sender, EventArgs e)
+        private async void Window_Loaded(object? sender, EventArgs e)
         {
             // create a log file?
             if (Options.Curr.LogFile?.HasContent() == true)
@@ -1830,6 +1834,24 @@ namespace MauiTestTree
             }
 
             //1// AasxIntegrationBaseWpf.CountryFlagWpf.LoadImage();
+
+            // TEST
+            if (true)
+            {
+                var uc = new AnyUiDialogueDataTextEditor(
+                                            caption: $"Hallo hallo",
+                                            mimeType: "application/json",
+                                            text: "{ }");
+
+                uc.Presets = new();
+                uc.Presets.Add(new AnyUiDialogueDataTextEditor.Preset() { Name = "Aaaaaa", Lines = new[] { "A1", "A2", "A3" } });
+                uc.Presets.Add(new AnyUiDialogueDataTextEditor.Preset() { Name = "Bbbbbb", Lines = new[] { "B1", "B2", "B3" } });
+
+                if (await DisplayContext.StartFlyoverModalAsync(uc))
+                {
+                    await RedrawElementViewAsync();
+                }
+            }
         }
 
         //
@@ -4385,6 +4407,21 @@ namespace MauiTestTree
 
         public async Task StartFlyoverModalAsync(VisualElement uc, Action? closingAction = null)
         {
+            // uc needs to implement IFlyoverControl
+            var ucfoc = uc as IFlyoutControl;
+            if (ucfoc == null || !(uc is Page page))
+                return;
+
+            // before starting, care for closing the dialog
+            ucfoc.ControlClosed += async () =>
+            {
+                await Navigation.PopModalAsync();
+            };
+
+            // start the page
+            await Navigation.PushModalAsync(page);
+
+
             //1// // uc needs to implement IFlyoverControl
             //1// var ucfoc = uc as IFlyoutControl;
             //1// if (ucfoc == null)

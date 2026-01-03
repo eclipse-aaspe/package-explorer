@@ -4,15 +4,48 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using AasxIntegrationBase;
+using AasxPackageLogic;
 using FunctionZero.TreeListItemsSourceZero;
+using Aas = AasCore.Aas3_1;
 
 namespace MauiTestTree
 {
+    /// <summary>
+    /// As the MAUI uses tree component needs a root element with Members to be
+    /// displayed as first, crete this artificial root elmennt
+    /// </summary>
+    public class RootOfListOfVisualElement : INotifyPropertyChanged
+    {
+        // INotifyPropertyChanged
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        void OnPropertyChanged([CallerMemberName] string? name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        // members (name is important <-> XAML !)
+        public ListOfVisualElement Members { get => _members; set { _members = value; OnPropertyChanged(); } }
+        protected ListOfVisualElement _members = new();
+
+        // is expanded is always true to allow tree display
+        public bool IsExpanded { get => true; set {; } }
+    }
+
+    /// <summary>
+    /// This view model is shared by the main window and its most important 
+    /// components, such as the tree and the element edit panel.
+    /// </summary>
     public class MainViewModel : INotifyPropertyChanged
     {
+        // INotifyPropertyChanged
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        void OnPropertyChanged([CallerMemberName] string? name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
         /// <summary>
         /// For responsive UI design, this app distinguishes different screen device types.
         /// </summary>
@@ -54,8 +87,6 @@ namespace MauiTestTree
         /// </summary>
         public IEnumerable<string> MobileContextRootMenuHandles { get => (ScreenIdiom == ScreenIdiomEnum.Phone) ? RootMenuHandles : new string[] { }; }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-
         public string AasId { get; set; } = "www.example.com/ids/aas/4045_9021_2042_4546";
         public string AssetId { get; set; } = "www.example.com/ids/asset/1345_9021_2042_9492";
         
@@ -70,23 +101,33 @@ namespace MauiTestTree
         // To be modified
         //
 
-        public TreeElemNode RootNode { get; set; } = new();
+        // public TreeElemNode RootNode { get; set; } = new();
 
-        protected object? _selectedItem = null;
+        /// <summary>
+        /// Note: One Root, then all the members to be displayed as list.
+        /// Note: Therefore one level more than with AASPE-WPF!!
+        /// </summary>
+        // public VisualElementEnvironmentItem RootNode { get; set; } = new VisualElementEnvironmentItem(null, null, null, null, VisualElementEnvironmentItem.ItemType.Env);
+        public RootOfListOfVisualElement RootNode { get; set; } = new();
+
         public object? SelectedItem
         {
             get => _selectedItem;
             set
             {
+                if (_selectedItem == value)
+                    return;
                 _selectedItem = value;
-                if (_selectedItem is TreeNodeContainer<object> tnc && tnc.Data is TreeElemNode tn)
-                    Trace.WriteLine("" + tn.Caption);
+                OnPropertyChanged();
             }
         }
+        protected object? _selectedItem = null;
+        
         public ObservableCollection<object> SelectedItems = new();
 
         public MainViewModel()
         {
+#if old
             RootNode.Caption = "Hallo";
 
             var root1 = new TreeElemNode { Tag = "AAS", Caption = "SMT PCN", Info = "SMT for Product Change Notification" };
@@ -107,6 +148,15 @@ namespace MauiTestTree
             {
                 Trace.WriteLine("" + s);
             };
+#else
+            //RootNode.IsExpanded = true;
+            //RootNode.Members.Add(new VisualElementSubmodel(null, null, null, null, new Aas.Submodel("12344333", idShort: "sxsaxssa")));
+            //RootNode.Members.Add(new VisualElementSubmodel(null, null, null, null, new Aas.Submodel("43554354", idShort: "dewdweddew")));
+
+
+            RootNode.Members.Add(new VisualElementSubmodel(null, null, null, null, new Aas.Submodel("12344333", idShort: "sxsaxssa")));
+            RootNode.Members.Add(new VisualElementSubmodel(null, null, null, null, new Aas.Submodel("43554354", idShort: "dewdweddew")));
+#endif
         }
     }
 }

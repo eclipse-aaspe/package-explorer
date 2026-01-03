@@ -2336,14 +2336,14 @@ namespace MauiTestTree
                 uc.DiaData = ddec;
                 res = uc;
             }
+#endif
 
             if (dialogueData is AnyUiDialogueDataTextEditor ddte)
             {
-                var uc = new TextEditorFlyout();
-                uc.DiaData = ddte;
-                res = uc;
+                res = new TextEditorFlyoutPage(ddte);
             }
 
+#if TODO_IMPORTANT
             if (dialogueData is AnyUiDialogueDataLogMessage ddsc)
             {
                 var uc = new LogMessageFlyout(ddsc.Caption, "");
@@ -2484,7 +2484,6 @@ namespace MauiTestTree
         /// <returns>If the dialogue was end with "OK" or similar success.</returns>
         public override bool StartFlyoverModal(AnyUiDialogueDataBase dialogueData)
         {
-#if TODO_IMPORTANT
             // access
             if (dialogueData == null || FlyoutProvider == null)
                 return false;
@@ -2507,10 +2506,10 @@ namespace MauiTestTree
                         FlyoutProvider?.StartFlyoverModal(uc);
 
                         // special fix
-                        if (uc is ModalPanelFlyout mpf && mpf.DiaData != dialogueData)
-                        {
-                            dialogueData.Result = mpf.DiaData.Result;
-                        }
+                        //1// if (uc is ModalPanelFlyout mpf && mpf.DiaData != dialogueData)
+                        //1// {
+                        //1//     dialogueData.Result = mpf.DiaData.Result;
+                        //1// }
                     }
                 }
 
@@ -2529,8 +2528,6 @@ namespace MauiTestTree
 
             // result
             return dialogueData.Result;
-#endif
-            return false;
         }
 
         /// <summary>
@@ -2540,10 +2537,8 @@ namespace MauiTestTree
         /// </summary>
         /// <param name="dialogueData"></param>
         /// <returns>If the dialogue was end with "OK" or similar success.</returns>
-        public override async Task<bool> StartFlyoverModalAsync(AnyUiDialogueDataBase dialogueData, Action rerender = null)
+        public override async Task<bool> StartFlyoverModalAsync(AnyUiDialogueDataBase dialogueData, Action? rerender = null)
         {
-            await Task.Yield();
-#if TODO_IMPORTANT
             // note: rerender not required in this UI platform
             // access
             if (dialogueData == null || FlyoutProvider == null)
@@ -2562,7 +2557,7 @@ namespace MauiTestTree
                         // start WITHOUT modal
                         FlyoutProvider?.StartFlyover(uc);
                     else
-                        await FlyoutProvider?.StartFlyoverModalAsync(uc);
+                        await FlyoutProvider!.StartFlyoverModalAsync(uc);
                 }
 
                 // now, in case
@@ -2580,8 +2575,6 @@ namespace MauiTestTree
 
             // result
             return dialogueData.Result;
-#endif
-            return false;
         }
 
         /// <summary>
@@ -3041,28 +3034,29 @@ namespace MauiTestTree
         
     }
 
-#if TODO_IMPORTANT
 
     public class AnyUiColorToWpfBrushConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter,
+        public object Convert(object? value, Type targetType, object? parameter,
             System.Globalization.CultureInfo culture)
         {
             if (value is AnyUiColor col)
-                return AnyUiDisplayContextWpf.GetMauiBrush(col);
-            return Brushes.Transparent;
+                return AnyUiDisplayContextMaui.GetMauiBrush(col);
+            return Brush.Transparent;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter,
+        public object ConvertBack(object? value, Type targetType, object? parameter,
             System.Globalization.CultureInfo culture)
         {
             if (value is SolidColorBrush br)
             {
-                return AnyUiDisplayContextWpf.GetAnyUiColor(br);
+                return AnyUiDisplayContextMaui.GetAnyUiColor(br);
             }
             return AnyUiColors.Default;
         }
     }
+
+#if TODO_IMPORTANT
 
     public class AnyUiBrushToWpfBrushConverter : IValueConverter
     {

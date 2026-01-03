@@ -164,64 +164,6 @@
             x:Name="LeftContent"
             Grid.Row="0" Grid.Column="0">
 
-            <Grid.Resources>
-                <ControlTemplate x:Key="ElementChevronControlTemplate">
-
-                    <HorizontalStackLayout >
-                        <!--
-                            The ControlTemplate sets the TreeNodeSpacer BindingContext to "{Binding Source={RelativeSource TemplatedParent}}" for us,
-                            i.e. a ListItemZero.
-                            The TreeNodeSpacer walks up the visual-tree to find the containing TreeViewZero, to get the IndentMultiplier.
-                            It then sets its WidthRequest to the IndentMultiplier * (ListItemZero.BindingContext.Indent - 1)
-                        -->
-                        <cz:TreeNodeSpacer />
-
-                        <local:TreeElemChevron
-                            Margin="10"
-                            Glyph="&#xf04b;|FASolid|#000000"
-                            IsExpanded="{TemplateBinding BindingContext.IsExpanded, Mode=TwoWay}" 
-                            ShowChevron="{TemplateBinding BindingContext.ShowChevron, Mode=TwoWay}" 
-                        />
-                        <!--This is-a ContentPresenter that allows us to specify a BindingContext for the Content-->
-                        <cz:TreeContentPresenter 
-                            VerticalOptions="Fill" 
-                            HorizontalOptions="Fill"   
-                            BindingContext="{TemplateBinding BindingContext.Data, Mode=OneWay}"
-                        />
-                    </HorizontalStackLayout>
-                </ControlTemplate>
-
-                <Style x:Key="ElementTreeStyle" TargetType="cz:ListItemZero">
-                    <Setter Property="VisualStateManager.VisualStateGroups" >
-                        <VisualStateGroupList>
-                            <VisualStateGroup x:Name="CommonStates">
-
-                                <!-- BackgroundColor must have a value set or the other states cannot 'put back' the original color -->
-                                <!-- I *think* this is due to a bug in MAUI because unappyling a Setter ought to revert to the original value or default -->
-                                <VisualState x:Name="Normal" >
-                                    <VisualState.Setters>
-                                        <Setter Property="BackgroundColor" Value="Transparent" />
-                                    </VisualState.Setters>
-                                </VisualState>
-
-                                <VisualState x:Name="ItemFocused">
-                                    <VisualState.Setters>
-                                        <Setter Property="BackgroundColor" Value="DarkGray" />
-                                    </VisualState.Setters>
-                                </VisualState>
-
-                                <VisualState x:Name="Selected">
-                                    <VisualState.Setters>
-                                        <Setter Property="BackgroundColor" Value="AliceBlue" />
-                                    </VisualState.Setters>
-                                </VisualState>
-
-                            </VisualStateGroup>
-                        </VisualStateGroupList>
-                    </Setter>
-                </Style>
-            </Grid.Resources>
-
             <local:OrgOrAasLabel 
                 Grid.Row="0" Grid.Column="0" 
                 MaximumHeightRequest="72"
@@ -229,38 +171,8 @@
                 IsVisible="{Binding IsScreenIdiomDesktop}"
                 AasId="{Binding AasId}" AssetId="{Binding AssetId}"/>
 
-            <local:DiplayVisualAasxElements x:Name="DisplayElements" />
-
-            <cz:TreeViewZero x:Name="MyTree"
-                    Grid.Row="1" Grid.Column="0" 
-                    ItemsSource="{Binding RootNode}" 
-                    ItemHeight="40" 
-                    Background="White" 
-                    IsRootVisible="False"
-                    SelectionMode="Single"
-                    SelectedItem="{Binding SelectedItem}"                                  
-                    TreeItemControlTemplate="{StaticResource ElementChevronControlTemplate}"
-                    ItemContainerStyle="{StaticResource ElementTreeStyle}"
-                    >
-                <cz:TreeViewZero.TreeItemTemplate>
-                    <cz:TreeItemDataTemplate ChildrenPropertyName="Children" IsExpandedPropertyName="IsExpanded">
-                        <DataTemplate>
-                            <Grid ColumnDefinitions="40, 2000">
-                                <local:AutoFitLabel 
-                                        Text="{Binding Tag}"
-                                        HeightRequest="24" Background="{Binding ColorTagBg}" TextColor="{Binding ColorTagFg}" 
-                                        Padding="0"/>
-                                <Grid Grid.Column="1" ColumnDefinitions="*,*"
-                                            HeightRequest="24" Background="{Binding ColorElemBg}">
-                                    <Label Grid.Column="0" Margin="4,0,0,0" Text="{Binding Caption}" TextColor="{Binding ColorElemFg}" VerticalTextAlignment="Center" FontAttributes="Bold" />
-                                    <Label Grid.Column="1" Margin="4,0,0,0" Text="{Binding Info}" TextColor="{Binding ColorElemFg}" VerticalTextAlignment="Center" />
-                                </Grid>
-                            </Grid>
-
-                        </DataTemplate>
-                    </cz:TreeItemDataTemplate>
-                </cz:TreeViewZero.TreeItemTemplate>
-            </cz:TreeViewZero>
+            <local:DiplayVisualAasxElements 
+                x:Name="DisplayElements"/>
         </Grid>
 
         <!-- Divider -->

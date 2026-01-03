@@ -463,6 +463,10 @@ namespace AasxPackageLogic
     /// </summary>
     public class ListOfVisualElementBasic : List<VisualElementGeneric>
     {
+        public ListOfVisualElementBasic() : base() { }
+        
+        public ListOfVisualElementBasic(IEnumerable<VisualElementGeneric> collection) : base(collection) { }
+
         public bool ExactlyOne { get { return this.Count == 1; } }
 
         /// <summary>

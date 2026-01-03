@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<!-- <TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks> -->
-		 <TargetFrameworks>net9.0-android</TargetFrameworks> 
+		 <!--<TargetFrameworks>net9.0-android</TargetFrameworks>--> 
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net9.0-tizen</TargetFrameworks> -->
@@ -82,6 +82,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Flyouts\EmptyFlyoutPage.xaml.cs">
+	    <DependentUpon>EmptyFlyoutPage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Flyouts\TextEditorFlyoutPage.xaml.cs">
+	    <DependentUpon>TextEditorFlyoutPage.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="ModalPages\ContextMenuSubstitute.xaml.cs">
 	    <DependentUpon>ContextMenuSubstitute.xaml</DependentUpon>
 	  </Compile>
@@ -100,6 +106,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="CustomControls\TransparentPicker.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Flyouts\EmptyFlyoutPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Flyouts\TextEditorFlyoutPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="MainWindow\DiplayVisualAasxElements.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

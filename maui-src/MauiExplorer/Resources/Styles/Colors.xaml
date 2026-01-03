@@ -36,6 +36,11 @@
     <Color x:Key="Gray900">#212121</Color>
     <Color x:Key="Gray950">#141414</Color>
 
+    <Color x:Key="Backstage_Background">#0035D5</Color>
+    <Color x:Key="Backstage_Labels">#FFFFFF</Color>
+    <Color x:Key="Backstage_ControlBackground">#E1E1E1</Color>
+    <Color x:Key="Backstage_Frame">#C8C8C8</Color>
+    
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
     <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>
