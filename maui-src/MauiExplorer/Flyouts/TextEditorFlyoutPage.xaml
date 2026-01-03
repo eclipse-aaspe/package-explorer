@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:cz="clr-namespace:FunctionZero.Maui.Controls;assembly=FunctionZero.Maui.Controls"
+             x:Class="MauiTestTree.TextEditorFlyoutPage"
+             xmlns:local="clr-namespace:MauiTestTree"
+             Title="Pick an option"
+             Background="{StaticResource Backstage_Background}">
+
+    <ContentPage.Resources>
+        <!-- Please always check, which converter instances are particularily required in this page. -->
+        <local:BoolToColorConverter
+            x:Key="HighlightConverter"
+            TrueColor="{StaticResource Secondary}"
+            FalseColor="{StaticResource PrimaryLightLight}" />
+
+        <local:InverseBoolConverter
+            x:Key="MyInverseBoolConverter" />
+
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto, *, Auto" ColumnDefinitions="60,*, 60">
+        
+        <!-- Top row-->
+        
+        <!-- Caption -->
+        <Label x:Name="CaptionLabel" Grid.Row="0" Grid.Column="1"
+               Text="{Binding Caption}"
+               VerticalOptions="Center"
+               HorizontalOptions="Center"
+               TextColor="{StaticResource Backstage_Labels}" FontSize="18"/>
+        
+        <!-- Close -->
+        <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="2"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            Padding="0" BackgroundColor="Transparent" CornerRadius="8"
+            Clicked="OnOuterButtonClicked">
+
+            <Button.ImageSource>
+                <FontImageSource
+                    FontFamily="MaterialOutlined"
+                    Glyph="{x:Static m:MaterialOutlined.Close}"
+                    Size="24"
+                    Color="{StaticResource Backstage_Labels}" />        
+            </Button.ImageSource>
+        </Button>
+        
+        <!-- Middle row: Main Content -->
+        <ContentView Grid.Row="1" Grid.Column="1">
+            
+            <!-- By default, first a text editor -->
+            <Editor x:Name="DefaultEditor"
+                    Text="{Binding Text}"
+                    Background="{StaticResource Backstage_ControlBackground}"
+                    />
+
+        </ContentView>
+        
+        <!-- Bottom row-->
+        <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="1*,4*,Auto" Margin="0,10,0,10">
+            <!-- Combo box: Preset -->
+            <!--
+            <Grid ColumnDefinitions="*,40">
+                <Border Grid.Column="1"
+                    Margin="6"
+                    Background="{StaticResource Backstage_Frame}" StrokeThickness="0" 
+                    StrokeShape="RoundRectangle 6"/>
+
+                <Border Grid.Column="0" Grid.ColumnSpan="2"
+                    Stroke="{StaticResource Gray200}" StrokeThickness="1.5" 
+                    StrokeShape="RoundRectangle 6">
+                    <Picker
+                        x:Name="ComboBoxPreset"
+                        ItemsSource="{Binding Presets}"
+                        ItemDisplayBinding="{Binding Name}"
+                        SelectedIndexChanged="ComboBoxPreset_SelectedIndexChanged"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource Backstage_Labels}"/>
+                </Border>
+            </Grid>
+            -->
+            <local:TransparentPicker
+                x:Name="ComboBoxPreset"
+                    ItemsSource="{Binding Presets}"
+                    DisplayMemberPath="Name"                    
+                    SelectedIndexChanged="ComboBoxPreset_SelectedIndexChanged"/>
+
+            <!-- OK -->
+            <Button x:Name="OkButton" Grid.Row="0" Grid.Column="1"
+                IsEnabled="False"
+                VerticalOptions="Center" Margin="10,0,0,0"
+                Padding="0" BackgroundColor="Transparent" CornerRadius="6"
+                Clicked="OnOuterButtonClicked" BorderColor="{StaticResource Backstage_Frame}" BorderWidth="1.2"
+                Text="OK"
+                TextColor="{StaticResource Backstage_Labels}"
+                FontSize="14">
+                
+                <Button.ImageSource>
+                    <FontImageSource
+                        FontFamily="MaterialOutlined"
+                        Glyph="{x:Static m:MaterialOutlined.Check}"
+                        Size="18"
+                        Color="{StaticResource Backstage_Labels}" />
+                </Button.ImageSource>
+            </Button>
+            
+            <!-- Hamburger menu -->
+            <Button x:Name="ContextMenuButton" Grid.Row="0" Grid.Column="2"
+                VerticalOptions="Center" Margin="10,0,0,0"
+                Padding="0" BackgroundColor="Transparent" CornerRadius="6"
+                Clicked="OnInnerButtonClicked" BorderColor="{StaticResource Backstage_Frame}" BorderWidth="1.2"
+                FontFamily="MaterialOutlined"
+                Text="{x:Static m:MaterialOutlined.More_vert}"
+                TextColor="{StaticResource Backstage_Labels}"
+                FontSize="18">
+            </Button>
+            
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

@@ -12,8 +12,10 @@ using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
@@ -66,13 +68,19 @@ namespace AnyUi
     /// <returns>On of AnyUiMessageBoxResult</returns>
     public delegate Task<AnyUiMessageBoxResult> AnyUiMinimalInvokeMessageDelegate(bool error, string message);
 
-    public class AnyUiDialogueDataBase
+    public class AnyUiDialogueDataBase : INotifyPropertyChanged
     {
+        // INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string? name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
         // flags
         public bool HasModalSpecialOperation = false;
 
         // In
-        public string Caption;
+        public string Caption { get; set; }
         public double? MaxWidth;
 
         // Out
@@ -425,15 +433,18 @@ namespace AnyUi
     {
         public class Preset
         {
-            public string Name;
+            public string Name { get; set; }
             public string[] Lines;
 
             public string Text { get => string.Join("\n", Lines); }
         }
 
-        public string MimeType = "application/text";
-        public string Text = "";
-        public List<Preset> Presets;
+        public string MimeType { get; set; } = "application/text";
+        
+        public string Text { get => _text; set { _text = value; OnPropertyChanged(); } }
+        protected string _text = "";
+        
+        public List<Preset> Presets { get; set; }
         public bool ReadOnly = false;
 
         public AnyUiDialogueDataTextEditor(
