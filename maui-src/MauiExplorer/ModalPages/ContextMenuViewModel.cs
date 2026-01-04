@@ -78,7 +78,7 @@ namespace MauiTestTree
         /// </summary>
         /// <param name="pairs">Pairs of strings</param>
         /// <param name="dc">MAUI display context with icon fonts</param>
-        public static ContextMenuSubstituteViewModel GetFromPairsOfString(
+        public static ContextMenuSubstituteViewModel CreateNew(
             IEnumerable<string> pairs,
             AnyUiDisplayContextMaui? dc = null,
             double? scaleFontSize = null)
@@ -125,6 +125,82 @@ namespace MauiTestTree
 
                 // add
                 res.Items.Add(menuItem);
+            }
+
+            // ok
+            return res;
+        }
+
+        /// <summary>
+        /// Creates and initializes a context menu from a list of pair of strings.
+        /// First of pair is the icon (or empty), second is the textual header of the menu item.
+        /// Format of icon could be e.g. "{awe}\uef50", then the AwesomeFont is being used.
+        /// For these preset, the display context must be given.
+        /// </summary>
+        /// <param name="pairs">Pairs of strings</param>
+        /// <param name="dc">MAUI display context with icon fonts</param>
+        public static ContextMenuSubstituteViewModel CreateNew(
+            AasxMenu root,
+            AnyUiDisplayContextMaui? dc = null,
+            double? scaleFontSize = null)
+        {
+            // start
+            var res = new ContextMenuSubstituteViewModel();
+
+            // do it on one level
+            for (int i=0; i<root.Count; i++)
+            {
+                var item = root[i];
+                if (item == null)
+                    continue;
+
+                if (item is AasxMenuSeparator sep)
+                {
+                    // nothing yet
+                }
+
+                if (item is AasxMenuTextBox mitb)
+                {
+                    // nothing yet
+                }
+
+                if (item is AasxMenuItem mi)
+                {
+                    // basics
+                    var menuItem = new ContextMenuSubstituteMenuItem
+                    {
+                        Index = i,
+                        Header = "" + mi.Header
+                    };
+
+                    // icon
+                    if (mi.Icon is string input)
+                    {
+                        // try find icon font
+                        AnyUiIconFont? fo = null;
+                        string? glyph = null;
+                        if (input.StartsWith("{") && input.Contains("}"))
+                        {
+                            var p = input.IndexOf('}');
+                            fo = dc?.FindIconFont(input.Substring(1, p - 1));
+                            glyph = input.Substring(p + 1);
+                        }
+                        else
+                        {
+                            fo = dc?.FindIconFont("uc");
+                            glyph = input;
+                        }
+
+                        // fill icon info?
+                        if (fo?.FontAlias != null)
+                        {
+                            menuItem.IconGlyph = glyph;
+                            menuItem.IconFontAlias = fo.FontAlias;
+                            menuItem.IconFontSize = (!scaleFontSize.HasValue) ? fo.FontSize
+                                : (int)(1.0 * scaleFontSize.Value * fo.FontSize);
+                        }
+                    }
+                }
             }
 
             // ok
