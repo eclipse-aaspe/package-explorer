@@ -1671,16 +1671,10 @@ namespace MauiTestTree
                             // special case
                             if (cntl.SpecialAction is AnyUiSpecialActionContextMenu cntlcm
                                 && cntlcm.MenuItemHeaders != null
-                                && sender is View mauiSender)
+                                && sender is View mauiSender
+                                && (cntl?.DisplayData is AnyUiDisplayDataMaui ddmaui) && ddmaui.Context != null)
                             {
-                                // this looks funny, but was the only way to realize in short
-                                var res = await ShowContextMenuForControlAsync(
-                                    (cntl.DisplayData as AnyUiDisplayDataMaui)?.Context,
-                                    cntl, mauiSender, cntlcm);
-                                if (!res.HasValue)
-                                    res = await ShowContextMenuForControlSync(
-                                    (cntl.DisplayData as AnyUiDisplayDataMaui)?.Context,
-                                    cntl, mauiSender, cntlcm);
+                                var res = await ddmaui.Context.MauiShowContextMenuForControlWrapper(cntl, mauiSender, cntlcm);
 
                                 if (res.HasValue)
                                 {
@@ -1880,8 +1874,25 @@ namespace MauiTestTree
         // Show of context menues on MAUI (involves platform specific code)
         //
 
+        /// <summary>
+        /// This wrapper bundles the calling convention for the async / sync platform specific
+        /// implementations of showing a context menu.
+        /// </summary>
+        public async Task<int?> MauiShowContextMenuForControlWrapper(
+            AnyUiControl? cntl,
+            View? mauiCntl,
+            AnyUiSpecialActionContextMenu cntlcm)
+        {
+
+            var res = await ShowContextMenuForControlAsync(this, cntl, mauiCntl, cntlcm);
+            if (!res.HasValue)
+                res = await ShowContextMenuForControlSync(this, cntl, mauiCntl, cntlcm);
+
+            return res;
+        }
+
 #if WINDOWS
-        protected Microsoft.UI.Xaml.Controls.IconElement? ContextMenu_CreateIcon(AnyUiDisplayContextMaui dc, string input)
+        protected static Microsoft.UI.Xaml.Controls.IconElement? ContextMenu_CreateIcon(AnyUiDisplayContextMaui dc, string input)
         {
             // recognize icon font
             AnyUiIconFont? fo = null;
@@ -1948,7 +1959,7 @@ namespace MauiTestTree
             return null;
         }
 
-        protected Task<int?> ShowContextMenuForControlSync(
+        protected static Task<int?> ShowContextMenuForControlSync(
             AnyUiDisplayContextMaui? dc,
             AnyUiControl? cntl, 
             View? mauiCntl,

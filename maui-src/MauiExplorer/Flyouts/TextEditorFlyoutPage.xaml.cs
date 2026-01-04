@@ -19,6 +19,10 @@ public partial class TextEditorFlyoutPage : ContentPage, IFlyoutControl
 
     public AnyUiDialogueDataTextEditor DiaData { get; set; } = new AnyUiDialogueDataTextEditor();
 
+    // for defining a context menu directly attached to the Flyout
+    public Func<ContextMenuSubstituteViewModel>? ContextMenuCreate = null;
+    public AasxMenuActionDelegate? ContextMenuAction = null;
+
     //
     // Integration logic for Outer
     //
@@ -143,5 +147,34 @@ public partial class TextEditorFlyoutPage : ContentPage, IFlyoutControl
     private async void OnInnerButtonClicked(object sender, EventArgs e)
     {
         await Task.Yield();
+
+        if (sender == ContextMenuButton)
+        {
+            // first attempt: directly attached to the flyout
+            var cm = ContextMenuCreate?.Invoke();
+            var cma = ContextMenuAction;
+
+            // 2nd attempt: within the dia data?
+            if (DiaData is AnyUiDialogueDataTextEditorWithContextMenu ddcm)
+            {
+                var am = ddcm.ContextMenuCreate?.Invoke();
+                if (am != null)
+                {
+                    cm = ContextMenuSubstituteViewModel.CreateNew(am);
+                    cma = ddcm.ContextMenuAction;
+                }
+            }
+
+            // still not?
+            if (cm == null)
+                return;
+
+            // update data
+            PrepareResult();
+
+            // show
+            AnyUiDisplayContextMaui.MauiShowContextMenuForControlWrapper(ContextMenuButton, )
+            cm.Start(sender as Button, cma);
+        }
     }
 }
