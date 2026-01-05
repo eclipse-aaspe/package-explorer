@@ -13,8 +13,8 @@
         <local:InverseBoolConverter
             x:Key="MyInverseBoolConverter" />
 
-        <local:EnumToIntConverter
-            x:Key="MyEnumToIntConverter" />
+        <local:EnumToIntParamterizedConverter
+            x:Key="MyEnumToIntParamterizedConverter" />
     </ContentPage.Resources>
 
     <!-- Navbar in IDTA blue, if dark theme -->
@@ -50,7 +50,7 @@
             <local:OrgOrAasLabel 
                 Grid.Row="0" Grid.Column="0" 
                 IsVisible="{Binding IsScreenIdiomDesktop, Converter={StaticResource MyInverseBoolConverter}}"
-                WidthRequest="{Binding ScreenIdiom, Converter={StaticResource MyEnumToIntConverter}, ConverterParameter=220|180|140}" 
+                WidthRequest="{Binding ScreenIdiom, Converter={StaticResource MyEnumToIntParamterizedConverter}, ConverterParameter=220|180|140}" 
                 AasId="{Binding AasId}" AssetId="{Binding AssetId}"/>
 
             <!-- Just a foreach-loop over the given items -->

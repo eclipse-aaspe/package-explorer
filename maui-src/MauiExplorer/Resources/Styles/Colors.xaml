@@ -39,6 +39,7 @@
     <Color x:Key="Backstage_Background">#0035D5</Color>
     <Color x:Key="Backstage_Labels">#FFFFFF</Color>
     <Color x:Key="Backstage_ControlBackground">#E1E1E1</Color>
+    <Color x:Key="Backstage_PrimaryButtonBackground">#6F80B3</Color>
     <Color x:Key="Backstage_Frame">#C8C8C8</Color>
     
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>

@@ -200,6 +200,9 @@ namespace MauiTestTree
                                 : (int)(1.0 * scaleFontSize.Value * fo.FontSize);
                         }
                     }
+
+                    // add
+                    res.Items.Add(menuItem);
                 }
             }
 

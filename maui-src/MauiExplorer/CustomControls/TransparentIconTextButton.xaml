@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:local="clr-namespace:MauiTestTree"
+             x:Class="MauiTestTree.TransparentIconTextButton"
+             x:Name="Root">
+    <Button
+        x:Name="InnerButton"
+        BackgroundColor="Transparent"
+        CornerRadius="6"
+        VerticalOptions="Center"
+        Clicked="OnInnerButtonClicked"
+        Text="{Binding Text, Source={x:Reference Root}}"
+        FontSize="{Binding FontSize, Source={x:Reference Root}}"
+        FontFamily="{Binding FontFamily, Source={x:Reference Root}}"
+        IsEnabled="{Binding IsEnabled, Source={x:Reference Root}}"
+        TextColor="{Binding TextColor, Source={x:Reference Root}}"
+        BorderColor="{Binding BorderColor, Source={x:Reference Root}}"
+        BorderWidth="{Binding BorderWidth, Source={x:Reference Root}}">
+
+        <Button.ImageSource>
+            <FontImageSource
+                FontFamily="{Binding IconFontFamily, Source={x:Reference Root}}"
+                Glyph="{Binding IconGlyph, Source={x:Reference Root}}"
+                Size="{Binding IconSize, Source={x:Reference Root}}"
+                Color="{StaticResource Backstage_Labels}" />
+        </Button.ImageSource>
+    </Button>
+</ContentView>

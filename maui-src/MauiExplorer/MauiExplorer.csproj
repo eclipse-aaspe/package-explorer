@@ -85,6 +85,12 @@
 	  <Compile Update="Flyouts\EmptyFlyoutPage.xaml.cs">
 	    <DependentUpon>EmptyFlyoutPage.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Flyouts\MessageBoxFlyoutPage.xaml.cs">
+	    <DependentUpon>MessageBoxFlyoutPage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Flyouts\TextBoxFlyoutPage.xaml.cs">
+	    <DependentUpon>TextBoxFlyoutPage.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Flyouts\TextEditorFlyoutPage.xaml.cs">
 	    <DependentUpon>TextEditorFlyoutPage.xaml</DependentUpon>
 	  </Compile>
@@ -106,10 +112,19 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="CustomControls\TransparentIconTextButton.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="CustomControls\TransparentPicker.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Flyouts\EmptyFlyoutPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Flyouts\MessageBoxFlyoutPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Flyouts\TextBoxFlyoutPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Flyouts\TextEditorFlyoutPage.xaml">

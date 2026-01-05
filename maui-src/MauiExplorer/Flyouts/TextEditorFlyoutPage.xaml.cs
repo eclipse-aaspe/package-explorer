@@ -17,18 +17,21 @@ public partial class TextEditorFlyoutPage : ContentPage, IFlyoutControl
     // Members
     //
 
+    protected AnyUiDisplayContextMaui _dcMaui;
+
     public AnyUiDialogueDataTextEditor DiaData { get; set; } = new AnyUiDialogueDataTextEditor();
 
     // for defining a context menu directly attached to the Flyout
-    public Func<ContextMenuSubstituteViewModel>? ContextMenuCreate = null;
+    public Func<AasxMenu>? ContextMenuCreate = null;
     public AasxMenuActionDelegate? ContextMenuAction = null;
 
     //
     // Integration logic for Outer
     //
 
-    public TextEditorFlyoutPage(AnyUiDialogueDataTextEditor? preset = null)
+    public TextEditorFlyoutPage(AnyUiDisplayContextMaui displayContextMaui, AnyUiDialogueDataTextEditor? preset = null)
     {
+        _dcMaui = displayContextMaui;
         InitializeComponent();
         if (preset != null)
             DiaData = preset;
@@ -151,30 +154,36 @@ public partial class TextEditorFlyoutPage : ContentPage, IFlyoutControl
         if (sender == ContextMenuButton)
         {
             // first attempt: directly attached to the flyout
-            var cm = ContextMenuCreate?.Invoke();
+            var am = ContextMenuCreate?.Invoke();
             var cma = ContextMenuAction;
 
             // 2nd attempt: within the dia data?
             if (DiaData is AnyUiDialogueDataTextEditorWithContextMenu ddcm)
             {
-                var am = ddcm.ContextMenuCreate?.Invoke();
+                am = ddcm.ContextMenuCreate?.Invoke();
                 if (am != null)
                 {
-                    cm = ContextMenuSubstituteViewModel.CreateNew(am);
                     cma = ddcm.ContextMenuAction;
                 }
             }
 
-            // still not?
-            if (cm == null)
+            // not?
+            if (am == null)
                 return;
+
+            // create dedicated view model out of AasxMenu
+            var cm = ContextMenuSubstituteViewModel.CreateNew(am);
 
             // update data
             PrepareResult();
 
             // show
-            AnyUiDisplayContextMaui.MauiShowContextMenuForControlWrapper(ContextMenuButton, )
-            cm.Start(sender as Button, cma);
+            var selNdx = await _dcMaui.MauiShowContextMenuForControlWrapper(ContextMenuButton, cm);
+            if (selNdx.HasValue && selNdx.Value >= 0 && selNdx.Value < am.Count)
+            {
+                var mi = am[selNdx.Value];
+                cma?.Invoke(mi.Name?.ToLower(), mi, null);
+            }
         }
     }
 }

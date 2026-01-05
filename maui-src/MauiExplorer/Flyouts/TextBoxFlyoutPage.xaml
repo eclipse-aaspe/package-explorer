@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:cz="clr-namespace:FunctionZero.Maui.Controls;assembly=FunctionZero.Maui.Controls"
+             x:Class="MauiTestTree.TextBoxFlyoutPage"
+             xmlns:local="clr-namespace:MauiTestTree"
+             Title="Pick an option"
+             Background="{StaticResource Backstage_Background}">
+
+    <ContentPage.Resources>
+        <!-- Please always check, which converter instances are particularily required in this page. -->
+        <local:AnyUiMessageBoxImageToFontImageSourceConverter
+            x:Key="MyMessageBoxImageToFontImageSourceConverter" />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto, *, Auto" ColumnDefinitions="60,*, 60">
+        
+        <!-- Top row-->
+        
+        <!-- Caption moved to the text box .. -->
+        
+        <!-- Close -->
+        <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="2"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            Padding="0" BackgroundColor="Transparent" CornerRadius="8"
+            Clicked="OnOuterButtonClicked">
+
+            <Button.ImageSource>
+                <FontImageSource
+                    FontFamily="MaterialOutlined"
+                    Glyph="{x:Static m:MaterialOutlined.Close}"
+                    Size="24"
+                    Color="{StaticResource Backstage_Labels}" />        
+            </Button.ImageSource>
+        </Button>
+        
+        <!-- Middle row: Main Content -->
+        <Grid Grid.Row="1" Grid.Column="1" RowDefinitions="Auto" ColumnDefinitions="3*,7*"
+              VerticalOptions="Center">
+            
+            <!-- Left: Image -->
+            <Image x:Name="IconImage" Grid.Row="0" Grid.Column="0"
+                   MaximumWidthRequest="128" MaximumHeightRequest="128"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   Source="{Binding Symbol, Converter={StaticResource MyMessageBoxImageToFontImageSourceConverter}}"/>
+
+            <!-- Right: Grid with TextBox-->
+            <Grid Grid.Row="0" Grid.Column="1" RowDefinitions="Auto, Auto" ColumnDefinitions="*" VerticalOptions="Center">
+                
+                <!-- First row: Label -->
+                <Label x:Name="CaptionLabel" Grid.Row="0" Grid.Column="0"
+                   Text="{Binding Caption}"                   
+                   HorizontalOptions="Start"
+                   VerticalOptions="Center"
+                   TextColor="{StaticResource Backstage_Labels}" FontSize="14"/>
+
+                <Entry x:Name="TextEntry" Grid.Row="1" Grid.Column="0"
+                       Margin="0,10,0,0"
+                       Background="{StaticResource Backstage_ControlBackground}"
+                       Text="{Binding Text, Mode=TwoWay}" />
+
+            </Grid>
+            
+        </Grid>
+        
+        <!-- Bottom row-->
+        <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*" Margin="0,10,0,10">
+            <local:TransparentIconTextButton x:Name="OkButton" Grid.Row="0" Grid.Column="0"
+                IsEnabled="False"
+                VerticalOptions="Center" Margin="2,4,2,4"
+                Clicked="OnOuterButtonClicked"
+                Text="OK"
+                IconFontFamily="MaterialOutlined"
+                BorderWidth="1.2"
+                IconGlyph="{x:Static m:MaterialOutlined.Check}"
+                IconSize="18" />
+        </Grid>
+
+    </Grid>
+
+</ContentPage>
