@@ -334,6 +334,23 @@ namespace MauiTestTree
             return normalSize * rel;
         }
 
+        public double GetFontSizeFromRelative(
+            RenderDefaults? rd, 
+            params double?[] relFactor)
+        {
+            // TODO
+            var res = Device.GetNamedSize(NamedSize.Medium, typeof(Label));
+
+            if (rd?.FontSizeRel != null)
+                res *= rd.FontSizeRel.Value;
+
+            foreach (var rf in relFactor)
+                if (rf.HasValue)
+                    res *= rf.Value;
+
+            return res;
+        }
+
         //
         // Handling of outside actions
         //
@@ -356,6 +373,11 @@ namespace MauiTestTree
         //
         // Render records: mapping AnyUi-Widgets to MAUI controls
         //
+
+        /// <summary>
+        /// Different tool set, e.g. with transparent backgrounds, can be used
+        /// </summary>
+        public enum RenderWidgetToolSet { Normal, Transparent }
 
         /// <summary>
         /// This class holds information how rendered elements are initailized
@@ -381,6 +403,12 @@ namespace MauiTestTree
             /// (relative) font size.
             /// </summary>
             public float? FontSizeRel;
+
+            /// <summary>
+            /// For e.g. modal pages, a secondary toolset with partly transparent frames
+            /// can beu used.
+            /// </summary>
+            public RenderWidgetToolSet WidgetToolSet = RenderWidgetToolSet.Normal;
         }
 
         private class RenderRec
@@ -976,12 +1004,7 @@ namespace MauiTestTree
                             if (cntl.Padding != null)
                                 maui.Padding = GetMauiTickness(cntl.Padding);
 
-                            if (rd?.FontSizeRel != null)
-                                maui.FontSize = GetFontSizeFromRelative(rd.FontSizeRel.Value);
-                            if (cntl.FontSize.HasValue)
-                                maui.FontSize = GetFontSizeFromRelative(
-                                    (rd?.FontSizeRel != null ? rd.FontSizeRel.Value : 1.0f)
-                                    * cntl.FontSize.Value);
+                            maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
 
                             if (cntl.VerticalContentAlignment.HasValue)
                                 maui.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
@@ -1025,12 +1048,7 @@ namespace MauiTestTree
                             if (cntl.TextWrapping.HasValue)
                                 maui.LineBreakMode = GetLineBreakMode(cntl.TextWrapping.Value);
 
-                            if (rd?.FontSizeRel != null)
-                                maui.FontSize = GetFontSizeFromRelative(rd.FontSizeRel.Value);
-                            if (cntl.FontSize.HasValue)
-                                maui.FontSize = GetFontSizeFromRelative(
-                                    (rd?.FontSizeRel != null ? rd.FontSizeRel.Value : 1.0f)
-                                    * cntl.FontSize.Value);
+                            maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
 
                             if (cntl.VerticalContentAlignment.HasValue)
                                 maui.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
@@ -1072,12 +1090,7 @@ namespace MauiTestTree
                             if (cntl.TextWrapping.HasValue)
                                 maui.LineBreakMode = GetLineBreakMode(cntl.TextWrapping.Value);
 
-                            if (rd?.FontSizeRel != null)
-                                maui.FontSize = GetFontSizeFromRelative(rd.FontSizeRel.Value);
-                            if (cntl.FontSize.HasValue)
-                                maui.FontSize = GetFontSizeFromRelative(
-                                    (rd?.FontSizeRel != null ? rd.FontSizeRel.Value : 1.0f)
-                                    * cntl.FontSize.Value);
+                            maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
 
                             if (cntl.VerticalContentAlignment.HasValue)
                                 maui.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
@@ -1115,12 +1128,7 @@ namespace MauiTestTree
 
                             maui.LineBreakMode = LineBreakMode.WordWrap;
 
-                            if (rd?.FontSizeRel != null)
-                                maui.FontSize = GetFontSizeFromRelative(rd.FontSizeRel.Value);
-                            if (cntl.FontSize.HasValue)
-                                maui.FontSize = GetFontSizeFromRelative(
-                                    (rd?.FontSizeRel != null ? rd.FontSizeRel.Value : 1.0f)
-                                    * cntl.FontSize.Value);
+                            maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
 
                             if (cntl.VerticalContentAlignment.HasValue)
                                 maui.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
@@ -1263,12 +1271,7 @@ namespace MauiTestTree
                             if (cntl.IsReadOnly)
                                 maui.IsReadOnly = cntl.IsReadOnly;
 
-                            if (rd?.FontSizeRel != null)
-                                maui.FontSize = GetFontSizeFromRelative(rd.FontSizeRel.Value);
-                            if (cntl.FontSize.HasValue)
-                                maui.FontSize = GetFontSizeFromRelative(
-                                    (rd?.FontSizeRel != null ? rd.FontSizeRel.Value : 1.0f)
-                                    * cntl.FontSize.Value);
+                            maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
 
                             if (cntl.VerticalContentAlignment.HasValue)
                                 maui.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
@@ -1350,12 +1353,7 @@ namespace MauiTestTree
                             if (cntl.IsReadOnly)
                                 maui.IsReadOnly = cntl.IsReadOnly;
 
-                            if (rd?.FontSizeRel != null)
-                                maui.FontSize = GetFontSizeFromRelative(rd.FontSizeRel.Value);
-                            if (cntl.FontSize.HasValue)
-                                maui.FontSize = GetFontSizeFromRelative(
-                                    (rd?.FontSizeRel != null ? rd.FontSizeRel.Value : 1.0f)
-                                    * cntl.FontSize.Value);
+                            maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
 
                             if (cntl.VerticalContentAlignment.HasValue)
                                 maui.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
@@ -1425,12 +1423,7 @@ namespace MauiTestTree
                             maui.IsEditable = cntl.IsEditable.Value;
 #endif
 
-                        if (rd?.FontSizeRel != null)
-                            maui.FontSize = GetFontSizeFromRelative(rd.FontSizeRel.Value);
-                        if (cntl.FontSize.HasValue)
-                            maui.FontSize = GetFontSizeFromRelative(
-                                (rd?.FontSizeRel != null ? rd.FontSizeRel.Value : 1.0f)
-                                * cntl.FontSize.Value);
+                        maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
 
                         if (cntl.VerticalContentAlignment.HasValue)
                             maui.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
@@ -1569,12 +1562,7 @@ namespace MauiTestTree
                             maui.Padding = GetMauiTickness(cntl.Padding);
 #endif
 
-                        if (rd?.FontSizeRel != null)
-                            maui.FontSize = GetFontSizeFromRelative(rd.FontSizeRel.Value);
-                        if (cntl.FontSize.HasValue)
-                            maui.FontSize = GetFontSizeFromRelative(
-                                (rd?.FontSizeRel != null ? rd.FontSizeRel.Value : 1.0f)
-                                * cntl.FontSize.Value);
+                        maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
 
                         if (cntl.VerticalContentAlignment.HasValue)
                             maui.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
@@ -1620,12 +1608,7 @@ namespace MauiTestTree
                         if (cntl.Padding != null)
                             maui.Padding = GetMauiTickness(cntl.Padding);
 
-                        if (rd?.FontSizeRel != null)
-                            maui.FontSize = GetFontSizeFromRelative(rd.FontSizeRel.Value);
-                        if (cntl.FontSize.HasValue)
-                            maui.FontSize = GetFontSizeFromRelative(
-                                (rd?.FontSizeRel != null ? rd.FontSizeRel.Value : 1.0f)
-                                * cntl.FontSize.Value);
+                        maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
 
                         if (cntl.FontMono)
                             maui.FontFamily = "Consolas";
@@ -2326,15 +2309,13 @@ namespace MauiTestTree
                 uc.DiaData = ddem;
                 res = uc;
             }
-#if TODO_IMPORTANT
 
             if (dialogueData is AnyUiDialogueDataModalPanel ddmp)
             {
-                var uc = new ModalPanelFlyout(this);
-                uc.DiaData = ddmp;
-                res = uc;
+                return new ModalPanelFlyoutPage(this, ddmp);
             }
 
+#if TODO_IMPORTANT
             if (dialogueData is AnyUiDialogueDataOpenFile ddof)
             {
                 // see below: PerformSpecialOps()

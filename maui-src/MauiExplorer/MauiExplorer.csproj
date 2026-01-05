@@ -88,6 +88,9 @@
 	  <Compile Update="Flyouts\MessageBoxFlyoutPage.xaml.cs">
 	    <DependentUpon>MessageBoxFlyoutPage.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Flyouts\ModalPanelFlyoutPage.xaml.cs">
+	    <DependentUpon>ModalPanelFlyoutPage.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Flyouts\SelectFromRepositoryFlyoutPage.xaml.cs">
 	    <DependentUpon>SelectFromRepositoryFlyoutPage.xaml</DependentUpon>
 	  </Compile>
@@ -125,6 +128,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Flyouts\MessageBoxFlyoutPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Flyouts\ModalPanelFlyoutPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Flyouts\SelectFromRepositoryFlyoutPage.xaml">
