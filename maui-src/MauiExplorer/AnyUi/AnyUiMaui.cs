@@ -2413,14 +2413,14 @@ namespace MauiTestTree
                 uc.DiaData = ddrf;
                 res = uc;
             }
+#endif
 
             if (dialogueData is AnyUiDialogueDataSelectFromRepository ddfr)
             {
-                var uc = new SelectFromRepositoryFlyout();
-                uc.DiaData = ddfr;
-                res = uc;
+                return new SelectFromRepositoryFlyoutPage(ddfr);
             }
 
+#if TODO_IMPORTANT
             if (dialogueData is AnyUiDialogueDataSelectQualifierPreset ddsq)
             {
                 var fullfn = System.IO.Path.GetFullPath(Options.Curr.QualifiersFile);

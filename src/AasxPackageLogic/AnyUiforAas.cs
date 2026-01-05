@@ -276,9 +276,9 @@ namespace AasxPackageLogic
         /// </summary>
         public static int MaxButtonsToShow = 20;
 
-        public IList<PackageContainerRepoItem> Items = null;
-        public PackageContainerRepoItem ResultItem = null;
-        public string ResultId = null;
+        public IList<PackageContainerRepoItem> Items { get; set; } = null;
+        public PackageContainerRepoItem ResultItem { get; set; } = null;
+        public string ResultId { get; set; } = "";
 
         public AnyUiDialogueDataSelectFromRepository(
             string caption = "",

@@ -1838,7 +1838,7 @@ namespace MauiTestTree
             // TEST
             if (true)
             {
-                await MauiTestTree.Flyouts.MauiFlyoutTestCases.ExecuteMauiFlyoutTestCase(this, this, 3);
+                await MauiTestTree.Flyouts.MauiFlyoutTestCases.ExecuteMauiFlyoutTestCase(this, this, 4);
             }
         }
 
