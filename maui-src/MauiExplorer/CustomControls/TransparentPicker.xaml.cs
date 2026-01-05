@@ -51,6 +51,23 @@ public partial class TransparentPicker : ContentView
     }
 
     // ----------------------------
+    // FontSize
+    // ----------------------------
+
+    public static readonly BindableProperty FontSizeProperty =
+        BindableProperty.Create(
+            nameof(FontSize),
+            typeof(double),
+            typeof(TransparentIconTextButton),
+            14d);
+
+    public double FontSize
+    {
+        get => (double)GetValue(FontSizeProperty);
+        set => SetValue(FontSizeProperty, value);
+    }
+
+    // ----------------------------
     // SelectedIndex
     // ----------------------------
     public static readonly BindableProperty SelectedIndexProperty =

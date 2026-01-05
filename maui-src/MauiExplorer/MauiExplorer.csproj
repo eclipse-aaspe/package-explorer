@@ -118,6 +118,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="CustomControls\TransparentEntry.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="CustomControls\TransparentIconTextButton.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

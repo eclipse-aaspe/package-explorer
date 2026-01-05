@@ -23,6 +23,7 @@
                 BackgroundColor="Transparent"
                 TextColor="{StaticResource Backstage_Labels}"
 
+                FontSize="{Binding FontSize, Source={RelativeSource AncestorType={x:Type local:TransparentPicker}}}"
                 ItemsSource="{Binding ItemsSource, Source={RelativeSource AncestorType={x:Type local:TransparentPicker}}}"
                 SelectedIndex="{Binding SelectedIndex, Source={RelativeSource AncestorType={x:Type local:TransparentPicker}}, Mode=TwoWay}"
                 SelectedItem="{Binding SelectedItem, Source={RelativeSource AncestorType={x:Type local:TransparentPicker}}, Mode=TwoWay}"
