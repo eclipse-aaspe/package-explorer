@@ -4,7 +4,10 @@ using System.Runtime.CompilerServices;
 using AasxIntegrationBase;
 using AnyUi;
 using System.Diagnostics;
+
+#if WINDOWS
 using Windows.System;
+#endif
 
 namespace MauiTestTree;
 
