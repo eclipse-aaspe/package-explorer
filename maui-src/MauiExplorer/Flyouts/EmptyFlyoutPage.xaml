@@ -20,7 +20,7 @@
 
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto, *, Auto" ColumnDefinitions="60,*, 60">
+    <Grid RowDefinitions="Auto, *, Auto" ColumnDefinitions="60,*,60">
         
         <!-- Top row-->
         
@@ -29,7 +29,7 @@
                Text="{Binding Caption}"
                VerticalOptions="Center"
                HorizontalOptions="Center"
-               TextColor="White" FontSize="18"/>
+               TextColor="{StaticResource Backstage_Labels}" FontSize="18"/>
         
         <!-- Close -->
         <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="2"
@@ -49,9 +49,10 @@
         
         <!-- Middle row: Main Content -->
 
-        <!-- Bottom row-->
+        <!-- Bottom row-->        
         <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*">
             <!-- OK -->
+            <!--
             <Button x:Name="OkButton" Grid.Row="0" Grid.Column="0"
                 IsEnabled="False"
                 VerticalOptions="Center" Margin="2,4,2,4"
@@ -69,6 +70,16 @@
                         Color="White" />
                 </Button.ImageSource>
             </Button>
+            -->
+            <local:TransparentIconTextButton x:Name="OkButton" Grid.Row="0" Grid.Column="0"
+                IsEnabled="False"
+                VerticalOptions="Center" Margin="2,4,2,4"
+                Clicked="OnOuterButtonClicked"
+                Text="OK"
+                IconFontFamily="MaterialOutlined"
+                BorderWidth="1.2"
+                IconGlyph="{x:Static m:MaterialOutlined.Check}"
+                IconSize="18" />
         </Grid>
 
     </Grid>

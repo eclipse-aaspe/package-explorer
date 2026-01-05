@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:cz="clr-namespace:FunctionZero.Maui.Controls;assembly=FunctionZero.Maui.Controls"
+             x:Class="MauiTestTree.MessageBoxFlyoutPage"
+             xmlns:local="clr-namespace:MauiTestTree"
+             Title="Pick an option"
+             Background="{StaticResource Backstage_Background}">
+
+    <ContentPage.Resources>
+        <!-- Please always check, which converter instances are particularily required in this page. -->
+        <local:AnyUiMessageBoxImageToFontImageSourceConverter
+            x:Key="MyMessageBoxImageToFontImageSourceConverter" />
+        <local:BoolEnumToColorParamterizedConverter
+            x:Key="MyBoolEnumToColorParamterizedConverter" />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto, *, *" ColumnDefinitions="30,*, 60">
+        
+        <!-- Top row-->
+        
+        <!-- Caption moved to the text box .. -->
+        
+        <!-- Close -->
+        <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="2"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            Padding="0" BackgroundColor="Transparent" CornerRadius="8"
+            Clicked="OnOuterButtonClicked">
+
+            <Button.ImageSource>
+                <FontImageSource
+                    FontFamily="MaterialOutlined"
+                    Glyph="{x:Static m:MaterialOutlined.Close}"
+                    Size="24"
+                    Color="{StaticResource Backstage_Labels}" />        
+            </Button.ImageSource>
+        </Button>
+        
+        <!-- Upper Middle row: Titles -->
+        <Grid Grid.Row="1" Grid.Column="1" 
+              RowDefinitions="*" ColumnDefinitions="*" VerticalOptions="End">
+
+            <Grid Grid.Row="0" Grid.Column="0" 
+                  RowDefinitions="Auto" ColumnDefinitions="5*, 5*">
+
+                <!-- Left: Image -->
+                <Image x:Name="IconImage" Grid.Row="0" Grid.Column="0"
+                       Margin="0,0,20,0"
+                       WidthRequest="200"
+                       MaximumWidthRequest="64" MaximumHeightRequest="128"
+                       HorizontalOptions="End"
+                       VerticalOptions="Center"
+                       Source="{Binding Symbol, Converter={StaticResource MyMessageBoxImageToFontImageSourceConverter}}"/>
+
+                <!-- Right: Grid with TextBoxes -->
+                <Grid Grid.Row="0" Grid.Column="1" 
+                      RowDefinitions="Auto, Auto" ColumnDefinitions="*"
+                      VerticalOptions="Center">
+
+                    <!-- First row: Label -->
+                    <Label x:Name="CaptionLabel" Grid.Row="0" Grid.Column="0"
+                       Text="{Binding Caption}"                   
+                       HorizontalOptions="Start"
+                       VerticalOptions="Center"
+                       TextColor="{StaticResource Backstage_Labels}" 
+                       FontSize="16" FontAttributes="Bold"/>
+
+                    <Label x:Name="MessageLabel" Grid.Row="1" Grid.Column="0"
+                       Margin="0,10,0,0"
+                       Text="{Binding Message}"                   
+                       HorizontalOptions="Start"
+                       VerticalOptions="Center"
+                       TextColor="{StaticResource Backstage_Labels}" 
+                       FontSize="12" FontAttributes="None"/>
+                </Grid>
+
+            </Grid>
+
+        </Grid>
+        
+        <!-- Under Middle row: Main Content -->
+        <FlexLayout x:Name="ButtonLayout" Grid.Row="2" Grid.Column="1" 
+            VerticalOptions="Start" Margin="0,20,0,20"
+            HorizontalOptions="Center"
+            BindableLayout.ItemsSource="{Binding Layout}"            
+            Wrap="Wrap"
+            Direction="Row">
+            <BindableLayout.ItemTemplate>
+                <DataTemplate>
+                    <!-- Content view, because else right margin of Button is clipped ! -->
+                    <ContentView Padding="4"> 
+                        <Button Margin="2" Padding="8" 
+                                MaximumHeightRequest="48"
+                                VerticalOptions="Start"
+                                CornerRadius="6" 
+                                BorderWidth="1.5" 
+                                BorderColor="{StaticResource Backstage_Frame}"
+                                BackgroundColor="{Binding Primary, Converter={StaticResource MyBoolEnumToColorParamterizedConverter}, ConverterParameter=Transparent|Backstage_PrimaryButtonBackground}"
+                                TextColor="{StaticResource Backstage_Labels}"
+                                Text="{Binding Title}"
+                                Clicked="OnInnerButtonClicked">
+                        </Button>
+                    </ContentView>
+                </DataTemplate>
+            </BindableLayout.ItemTemplate>
+        </FlexLayout>
+
+    </Grid>
+
+</ContentPage>

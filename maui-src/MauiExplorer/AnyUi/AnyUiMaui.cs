@@ -1674,7 +1674,7 @@ namespace MauiTestTree
                                 && sender is View mauiSender
                                 && (cntl?.DisplayData is AnyUiDisplayDataMaui ddmaui) && ddmaui.Context != null)
                             {
-                                var res = await ddmaui.Context.MauiShowContextMenuForControlWrapper(cntl, mauiSender, cntlcm);
+                                var res = await ddmaui.Context.MauiShowContextMenuForControlWrapper(mauiSender, cntlcm);
 
                                 if (res.HasValue)
                                 {
@@ -1877,36 +1877,62 @@ namespace MauiTestTree
         /// <summary>
         /// This wrapper bundles the calling convention for the async / sync platform specific
         /// implementations of showing a context menu.
+        /// Note: This overloaded variant is mostly for internal use when rendering controls.
         /// </summary>
         public async Task<int?> MauiShowContextMenuForControlWrapper(
-            AnyUiControl? cntl,
             View? mauiCntl,
             AnyUiSpecialActionContextMenu cntlcm)
         {
+            // make a independent view model for the context menu
+            var vm = ContextMenuSubstituteViewModel.CreateNew(cntlcm.MenuItemHeaders, this, scaleFontSize: 1.2);
 
-            var res = await ShowContextMenuForControlAsync(this, cntl, mauiCntl, cntlcm);
+            var res = await ShowContextMenuForControlAsync(this, vm, mauiCntl);
             if (!res.HasValue)
-                res = await ShowContextMenuForControlSync(this, cntl, mauiCntl, cntlcm);
+                res = await ShowContextMenuForControlSync(this, vm, mauiCntl);
+
+            return res;
+        }
+
+        /// <summary>
+        /// This wrapper bundles the calling convention for the async / sync platform specific
+        /// implementations of showing a context menu.
+        /// Note: External use
+        /// </summary>
+        public async Task<int?> MauiShowContextMenuForControlWrapper(
+            View? mauiCntl,
+            ContextMenuSubstituteViewModel? vm)
+        {
+            // access
+            if (vm == null || mauiCntl == null)
+                return null;
+
+            var res = await ShowContextMenuForControlAsync(this, vm, mauiCntl);
+            if (!res.HasValue)
+                res = await ShowContextMenuForControlSync(this, vm, mauiCntl);
 
             return res;
         }
 
 #if WINDOWS
-        protected static Microsoft.UI.Xaml.Controls.IconElement? ContextMenu_CreateIcon(AnyUiDisplayContextMaui dc, string input)
+        protected static Microsoft.UI.Xaml.Controls.IconElement? ContextMenu_CreateIcon(
+            AnyUiDisplayContextMaui dc, string? iconText, string? fontFamily = null)
         {
+            // access
+            if (iconText == null)
+                return null;
+
             // recognize icon font
             AnyUiIconFont? fo = null;
             string? glyph = null;
-            if (input.StartsWith("{") && input.Contains("}"))
+            if (fontFamily != null)
             {
-                var p = input.IndexOf('}');
-                fo = dc.FindIconFont(input.Substring(1, p - 1));
-                glyph = input.Substring(p + 1);
+                fo = dc.FindIconFont(fontFamily);
+                glyph = iconText;
             }
             else
             {
                 fo = dc.FindIconFont("uc");
-                glyph = input;
+                glyph = iconText;
             }
                 
             if (fo?.FontFamily != null && glyph != null)
@@ -1927,12 +1953,11 @@ namespace MauiTestTree
 
         protected static async Task<int?> ShowContextMenuForControlAsync(
             AnyUiDisplayContextMaui? dc,
-            AnyUiControl? cntl,
-            View? mauiCntl,
-            AnyUiSpecialActionContextMenu cntlcm)
+            ContextMenuSubstituteViewModel vm,
+            View? mauiCntl)
         {
             // access
-            if (dc == null || cntl == null || mauiCntl == null || cntlcm.MenuItemHeaders.Length < 2)
+            if (vm?.Items == null || vm.Items.Count < 1)
                 return null;
 
             await Task.Yield();
@@ -1948,7 +1973,7 @@ namespace MauiTestTree
             //    ContextMenuSubstituteViewModel.GetFromPairsOfString(cntlcm.MenuItemHeaders, dc, scaleFontSize: 2.0));
             //await Application.Current!.Windows[0]!.Navigation.PushModalAsync(pickerPage);
 
-            var vm = ContextMenuSubstituteViewModel.GetFromPairsOfString(cntlcm.MenuItemHeaders, dc, scaleFontSize: 1.2);
+            // var vm = ContextMenuSubstituteViewModel.GetFromPairsOfString(cntlcm.MenuItemHeaders, dc, scaleFontSize: 1.2);
             var uc = new ContextMenuPopup(vm);
 
             await Shell.Current.ShowPopupAsync(uc);
@@ -1961,16 +1986,14 @@ namespace MauiTestTree
 
         protected static Task<int?> ShowContextMenuForControlSync(
             AnyUiDisplayContextMaui? dc,
-            AnyUiControl? cntl, 
-            View? mauiCntl,
-            AnyUiSpecialActionContextMenu cntlcm
-            )
+            ContextMenuSubstituteViewModel vm,
+            View? mauiCntl)
         {
             // awaitable task completion
             var tcs = new TaskCompletionSource<int?>();
 
             // access
-            if (dc == null || cntl == null || mauiCntl == null || cntlcm.MenuItemHeaders.Length < 2)
+            if (dc == null || mauiCntl == null)
             {
                 tcs.SetResult(null);
                 return tcs.Task;
@@ -1997,14 +2020,18 @@ namespace MauiTestTree
 
             var flyout = new Microsoft.UI.Xaml.Controls.MenuFlyout();
 
-            var nmi = cntlcm.MenuItemHeaders.Length / 2;
-            for (int i = 0; i < nmi; i++)
+            for (int i=0; i<vm.Items.Count; i++)
             {
+                // independent menu item
+                var mi = vm.Items[i];
+                if (mi == null)
+                    continue;
+
                 // menu item itself
                 var menuItem = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem
                 {
-                    Text = "" + cntlcm.MenuItemHeaders[2 * i + 1],
-                    Icon = ContextMenu_CreateIcon(dc, cntlcm.MenuItemHeaders[2 * i + 0]),
+                    Text = "" + mi.Header,
+                    Icon = ContextMenu_CreateIcon(dc, mi.IconGlyph, mi.IconFontAlias),
                     Tag = i
                 };
 
@@ -2278,12 +2305,9 @@ namespace MauiTestTree
             string message, string caption, AnyUiMessageBoxButton buttons, AnyUiMessageBoxImage image)
         {
             await Task.Yield();
-#if TODO_IMPORTANT
             if (FlyoutProvider == null)
                 return AnyUiMessageBoxResult.Cancel;
             return await FlyoutProvider.MessageBoxFlyoutShowAsync(message, caption, buttons, image);
-#endif
-            return AnyUiMessageBoxResult.None;
         }
 
         private VisualElement? DispatchFlyout(AnyUiDialogueDataBase dialogueData)
@@ -2294,15 +2318,15 @@ namespace MauiTestTree
             
             VisualElement? res = null;
 
-#if TODO_IMPORTANT
             // dispatch
             // TODO (MIHO, 2020-12-21): can be realized without tedious central dispatch?
             if (dialogueData is AnyUiDialogueDataEmpty ddem)
             {
-                var uc = new EmptyFlyout();
+                var uc = new EmptyFlyoutPage();
                 uc.DiaData = ddem;
                 res = uc;
             }
+#if TODO_IMPORTANT
 
             if (dialogueData is AnyUiDialogueDataModalPanel ddmp)
             {
@@ -2326,14 +2350,14 @@ namespace MauiTestTree
                 uc.DiaData = ddsf;
                 res = uc;
             }
+#endif
 
             if (dialogueData is AnyUiDialogueDataTextBox ddtb)
             {
-                var uc = new TextBoxFlyout();
-                uc.DiaData = ddtb;
-                res = uc;
+                res = new TextBoxFlyoutPage(ddtb);
             }
 
+#if TODO_IMPORTANT
             if (dialogueData is AnyUiDialogueDataChangeElementAttributes ddcea)
             {
                 var uc = new ModalPanelFlyout(this);
@@ -2351,7 +2375,7 @@ namespace MauiTestTree
 
             if (dialogueData is AnyUiDialogueDataTextEditor ddte)
             {
-                res = new TextEditorFlyoutPage(ddte);
+                res = new TextEditorFlyoutPage(this, ddte);
             }
 
 #if TODO_IMPORTANT
@@ -3045,7 +3069,6 @@ namespace MauiTestTree
         
     }
 
-
     public class AnyUiColorToWpfBrushConverter : IValueConverter
     {
         public object Convert(object? value, Type targetType, object? parameter,
@@ -3064,6 +3087,53 @@ namespace MauiTestTree
                 return AnyUiDisplayContextMaui.GetAnyUiColor(br);
             }
             return AnyUiColors.Default;
+        }
+    }
+
+    public class AnyUiMessageBoxImageToFontImageSourceConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter,
+            System.Globalization.CultureInfo culture)
+        {
+            if (value is AnyUiMessageBoxImage mbi)
+            {
+                string? glyph = null;
+
+                if (mbi == AnyUiMessageBoxImage.Error) 
+                    glyph = UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Error;
+                if (mbi == AnyUiMessageBoxImage.Question) 
+                    glyph = UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Help;
+                if (mbi == AnyUiMessageBoxImage.Hand) 
+                    glyph = UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Back_hand;
+                if (mbi == AnyUiMessageBoxImage.Asterisk) 
+                    glyph = UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Star;
+                if (mbi == AnyUiMessageBoxImage.Exclamation) 
+                    glyph = UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Report;
+                if (mbi == AnyUiMessageBoxImage.Stop) 
+                    glyph = UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Cancel;
+
+                if (glyph != null)
+                {
+                    var fis = new FontImageSource()
+                    {
+                        Glyph = UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Error,
+                        FontFamily = "MaterialOutlined",
+                        Color = XamlHelpers.GetDynamicRessource("Backstage_Frame", Colors.LightGray),
+                        Size = 128
+                    };
+
+                    return fis;
+                }
+
+                return null;
+            }
+            return Brush.Transparent;
+        }
+
+        public object ConvertBack(object? value, Type targetType, object? parameter,
+            System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException("AnyUiMessageBoxImageToFontImageSourceConverter:ConvertBack");
         }
     }
 

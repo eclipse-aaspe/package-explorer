@@ -1838,19 +1838,7 @@ namespace MauiTestTree
             // TEST
             if (true)
             {
-                var uc = new AnyUiDialogueDataTextEditor(
-                                            caption: $"Hallo hallo",
-                                            mimeType: "application/json",
-                                            text: "{ }");
-
-                uc.Presets = new();
-                uc.Presets.Add(new AnyUiDialogueDataTextEditor.Preset() { Name = "Aaaaaa", Lines = new[] { "A1", "A2", "A3" } });
-                uc.Presets.Add(new AnyUiDialogueDataTextEditor.Preset() { Name = "Bbbbbb", Lines = new[] { "B1", "B2", "B3" } });
-
-                if (await DisplayContext.StartFlyoverModalAsync(uc))
-                {
-                    await RedrawElementViewAsync();
-                }
+                await MauiTestTree.Flyouts.MauiFlyoutTestCases.ExecuteMauiFlyoutTestCase(this, this, 3);
             }
         }
 
@@ -4483,15 +4471,9 @@ namespace MauiTestTree
         public async Task<AnyUiMessageBoxResult> MessageBoxFlyoutShowAsync(
             string message, string caption, AnyUiMessageBoxButton buttons, AnyUiMessageBoxImage image)
         {
-            //1// if (!Options.Curr.UseFlyovers)
-            //1// {
-            //1//     return AnyUiMessageBoxResult.Cancel;
-            //1// }
-            //1// 
-            //1// var uc = new MessageBoxFlyout(message, caption, buttons, image);
-            //1// await StartFlyoverModalAsync(uc);
-            //1// return uc.Result;
-            return AnyUiMessageBoxResult.None;
+            var uc = new MessageBoxFlyoutPage(message, caption, buttons, image);
+            await StartFlyoverModalAsync(uc);
+            return uc.Result;
         }
 
         public Window GetWin32Window()

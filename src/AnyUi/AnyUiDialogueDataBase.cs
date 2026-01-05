@@ -370,9 +370,9 @@ namespace AnyUi
     {
         public enum DialogueOptions { None, FilterAllControlKeys };
 
-        public AnyUiMessageBoxImage Symbol;
-        public DialogueOptions Options;
-        public string Text = "";
+        public AnyUiMessageBoxImage Symbol { get; set; }
+        public DialogueOptions Options { get; set; }
+        public string Text { get; set; } = "";
 
         public AnyUiDialogueDataTextBox(
             string caption = "",
