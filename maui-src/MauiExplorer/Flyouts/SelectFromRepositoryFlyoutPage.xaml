@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:cz="clr-namespace:FunctionZero.Maui.Controls;assembly=FunctionZero.Maui.Controls"
+             x:Class="MauiTestTree.SelectFromRepositoryFlyoutPage"
+             xmlns:local="clr-namespace:MauiTestTree"
+             Title="Pick an option"
+             Background="{StaticResource Backstage_Background}">
+
+    <ContentPage.Resources>
+        <!-- Please always check, which converter instances are particularily required in this page. -->
+        <local:AnyUiMessageBoxImageToFontImageSourceConverter
+            x:Key="MyMessageBoxImageToFontImageSourceConverter" />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto, *, 3*, Auto" ColumnDefinitions="60,*, 60">
+        
+        <!-- Top row-->
+        
+        <!-- Caption moved to the text box .. -->
+        
+        <!-- Close -->
+        <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="2"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            Padding="0" BackgroundColor="Transparent" CornerRadius="8"
+            Clicked="OnOuterButtonClicked">
+
+            <Button.ImageSource>
+                <FontImageSource
+                    FontFamily="MaterialOutlined"
+                    Glyph="{x:Static m:MaterialOutlined.Close}"
+                    Size="24"
+                    Color="{StaticResource Backstage_Labels}" />        
+            </Button.ImageSource>
+        </Button>
+        
+        <!-- Upper Middle row: Main Content -->
+        <Grid Grid.Row="1" Grid.Column="1" RowDefinitions="Auto, Auto" ColumnDefinitions="*" VerticalOptions="Center">
+            
+            <!-- First row: Label -->
+            <Label x:Name="CaptionLabel" Grid.Row="0" Grid.Column="0"
+                Text="{Binding Caption}"                   
+                HorizontalOptions="Start"
+                VerticalOptions="Center"
+                TextColor="{StaticResource Backstage_Labels}" FontSize="12"/>
+
+            <Entry x:Name="TextEntry" Grid.Row="1" Grid.Column="0"
+                    Margin="0,10,0,0"
+                    Background="{StaticResource Backstage_ControlBackground}"
+                    Text="{Binding ResultId, Mode=TwoWay}"
+                    TextChanged="TextEntry_TextChanged"/>
+
+        </Grid>
+        
+        <!-- Lower middle row: Items -->
+        <Grid Grid.Row="2" Grid.Column="1" RowDefinitions="Auto, *">
+            <Label Grid.Row="0" Grid.Column="0"
+                Text="(available Assets)"                   
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                TextColor="#40ffffff" FontSize="12"/>
+
+            <Border Grid.Row="1" Grid.Column="0"
+                    StrokeShape="RoundRectangle 6"
+                    Margin="2,10,2,0"
+                    Stroke="#40ffffff">
+                <ScrollView VerticalScrollBarVisibility="Default">
+                    <FlexLayout x:Name="ButtonLayout" 
+                        VerticalOptions="Start" Margin="0,20,0,20"
+                        BindableLayout.ItemsSource="{Binding Items}"            
+                        Wrap="Wrap"
+                        Direction="Row">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <!-- Content view, because else right margin of Button is clipped ! -->
+                                <ContentView Padding="4"> 
+                                    <Button Margin="2" Padding="8"
+                                            MaximumHeightRequest="64"
+                                            VerticalOptions="Start"
+                                            CornerRadius="6" 
+                                            BorderWidth="1.5" 
+                                            BorderColor="{StaticResource Backstage_Frame}"
+                                            TextColor="{StaticResource Backstage_Labels}"
+                                            Text="{Binding Tag}"
+                                            Clicked="OnInnerButtonClicked">
+                                    </Button>
+                                </ContentView>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+                </ScrollView>
+            </Border>
+        </Grid>
+
+        <!-- Bottom row-->
+        <Grid Grid.Row="3" Grid.Column="1" ColumnDefinitions="*" Margin="0,10,0,10">
+            <local:TransparentIconTextButton x:Name="OkButton" Grid.Row="0" Grid.Column="0"
+                IsEnabled="False"
+                VerticalOptions="Center" Margin="2,4,2,4"
+                Clicked="OnOuterButtonClicked"
+                Text="OK"
+                IconFontFamily="MaterialOutlined"
+                BorderWidth="1.2"
+                IconGlyph="{x:Static m:MaterialOutlined.Check}"
+                IconSize="18" />
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

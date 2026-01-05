@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using AasxIntegrationBase;
 using AasxPackageExplorer;
+using AasxPackageLogic;
+using AasxPackageLogic.PackageCentral;
 using AnyUi;
 
 namespace MauiTestTree.Flyouts
@@ -82,6 +84,21 @@ namespace MauiTestTree.Flyouts
                     AnyUiMessageBoxButton.YesNoCancel,
                     AnyUiMessageBoxImage.Question);
                 Trace.WriteLine($"Answer: {res.ToString()}");
+            }
+
+            if (ndx == 4)
+            {
+                var uc = new AnyUiDialogueDataSelectFromRepository($"Enter Asset id:");
+
+                uc.Items = new List<PackageContainerRepoItem>();
+                uc.Items.Add(new PackageContainerRepoItem("https://example.com/assetIds/001", tag: "A", fn: null));
+                uc.Items.Add(new PackageContainerRepoItem("https://example.com/assetIds/002", tag: "BBB bbb", fn: null));
+                uc.Items.Add(new PackageContainerRepoItem("https://example.com/assetIds/003", tag: "CC C CCC CC", fn: null));
+
+                if (await dcMaui.StartFlyoverModalAsync(uc))
+                {
+                    await main.RedrawElementViewAsync();
+                }
             }
 
         }
