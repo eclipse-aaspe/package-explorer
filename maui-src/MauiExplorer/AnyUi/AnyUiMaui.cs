@@ -181,18 +181,18 @@ namespace MauiTestTree
             return GridUnitType.Auto;
         }
 
-        public GridLength GetMauiGridLength(AnyUiGridLength gl)
+        public GridLength GetMauiGridLength(AnyUiGridLength gl, RenderDefaults? rd = null)
         {
             if (gl == null)
                 return GridLength.Auto;
-            return new GridLength(gl.Value, GetGridUnitType(gl.Type));
+            return new GridLength(GetLengthFromRelative(rd, gl.Value), GetGridUnitType(gl.Type));
         }
 
-        public ColumnDefinition GetMauiColumnDefinition(AnyUiColumnDefinition cd)
+        public ColumnDefinition GetMauiColumnDefinition(AnyUiColumnDefinition cd, RenderDefaults? rd = null)
         {
             var res = new ColumnDefinition();
             if (cd?.Width != null)
-                res.Width = GetMauiGridLength(cd.Width);
+                res.Width = GetMauiGridLength(cd.Width, rd);
 #if TODO_IMPORTANT
             if (cd?.MinWidth.HasValue == true)
                 res.MinWidth = cd.MinWidth.Value;
@@ -202,11 +202,11 @@ namespace MauiTestTree
             return res;
         }
 
-        public RowDefinition GetMauiRowDefinition(AnyUiRowDefinition rd)
+        public RowDefinition GetMauiRowDefinition(AnyUiRowDefinition rwd, RenderDefaults? rd = null)
         {
             var res = new RowDefinition();
-            if (rd?.Height != null)
-                res.Height = GetMauiGridLength(rd.Height);
+            if (rwd?.Height != null)
+                res.Height = GetMauiGridLength(rwd.Height, rd);
 #if TODO_IMPORTANT
             if (rd?.MinHeight.HasValue == true)
                 res.MinHeight = rd.MinHeight.Value;
@@ -338,8 +338,10 @@ namespace MauiTestTree
             RenderDefaults? rd, 
             params double?[] relFactor)
         {
-            // TODO
-            var res = Device.GetNamedSize(NamedSize.Medium, typeof(Label));
+            // access, start of chain
+            if (rd == null)
+                return -1;
+            var res = rd.FontSizeNormal;
 
             if (rd?.FontSizeRel != null)
                 res *= rd.FontSizeRel.Value;
@@ -350,6 +352,19 @@ namespace MauiTestTree
 
             return res;
         }
+
+        public double GetLengthFromRelative(
+            RenderDefaults? rd,
+            double input)
+        {
+            // access
+            if (rd?.FontSizeRel == null)
+                return input;
+
+            // ok
+            return rd.FontSizeRel.Value * input;
+        }
+            
 
         //
         // Handling of outside actions
@@ -398,23 +413,38 @@ namespace MauiTestTree
             public AnyUiBrush? ForegroundControl;
 
             /// <summary>
+            /// Supposed to be the 'normal' font size of a Label on the specific platform
+            /// </summary>
+            public double FontSizeNormal = 14.0;
+
+            /// <summary>
             /// Relative font size (to make fonts relatively larger/ smaller) to the 
             /// default control theme. Multiplied by default font size and widgets own
             /// (relative) font size.
             /// </summary>
-            public float? FontSizeRel;
+            public double? FontSizeRel = 1.0;
 
             /// <summary>
             /// For e.g. modal pages, a secondary toolset with partly transparent frames
             /// can beu used.
             /// </summary>
             public RenderWidgetToolSet WidgetToolSet = RenderWidgetToolSet.Normal;
+
+            //
+            // Constructor
+            //
+
+            public RenderDefaults()
+            {
+                var lab = new Label();
+                FontSizeNormal = lab.FontSize;
+            }
         }
 
         private class RenderRec
         {
             public Type CntlType;
-            public Type MauiType;
+            public Func<RenderWidgetToolSet, Type> GetMauiType;
             [JsonIgnore]
             public Action<AnyUiUIElement, VisualElement, AnyUiRenderMode, RenderDefaults?>? InitLambda;
             [JsonIgnore]
@@ -422,13 +452,13 @@ namespace MauiTestTree
 
             public Func<AnyUiUIElement, int>? CheckSuitability;
 
-            public RenderRec(Type cntlType, Type mauiType,
+            public RenderRec(Type cntlType, Func<RenderWidgetToolSet, Type> getMauiType,
                 Func<AnyUiUIElement, int>? checkSuitability = null,
                 Action<AnyUiUIElement, VisualElement, AnyUiRenderMode, RenderDefaults?>? initLambda = null,
                 Action<AnyUiUIElement, VisualElement, bool>? highlightLambda = null)
             {
                 CntlType = cntlType;
-                MauiType = mauiType;
+                GetMauiType = getMauiType;
                 CheckSuitability = checkSuitability;
                 InitLambda = initLambda;
                 HighlightLambda = highlightLambda;
@@ -461,7 +491,7 @@ namespace MauiTestTree
             RenderRecs.Clear();
             RenderRecs.AddRange(new[]
             {
-                new RenderRec(typeof(AnyUiUIElement), typeof(VisualElement), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiUIElement), (wts) => typeof(VisualElement), null, (a, b, mode, rd) =>
                 {
                     // ReSharper disable UnusedVariable
                     if (a is AnyUiUIElement cntl && b is VisualElement maui
@@ -471,7 +501,7 @@ namespace MauiTestTree
                     // ReSharper enable UnusedVariable
                 }),
 
-                new RenderRec(typeof(AnyUiFrameworkElement), typeof(View), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiFrameworkElement), (wts) => typeof(View), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiFrameworkElement cntl && b is View maui
                         && mode == AnyUiRenderMode.All)
@@ -486,13 +516,13 @@ namespace MauiTestTree
                         if (cntl.HorizontalAlignment.HasValue)
                             maui.HorizontalOptions = GetLayoutOptions(cntl.HorizontalAlignment.Value);
                         if (cntl.MinHeight.HasValue)
-                            maui.MinimumHeightRequest = cntl.MinHeight.Value;
+                            maui.MinimumHeightRequest = GetLengthFromRelative(rd, cntl.MinHeight.Value);
                         if (cntl.MinWidth.HasValue)
-                            maui.MinimumWidthRequest = cntl.MinWidth.Value;
+                            maui.MinimumWidthRequest = GetLengthFromRelative(rd, cntl.MinWidth.Value);
                         if (cntl.MaxHeight.HasValue)
-                            maui.MaximumHeightRequest = cntl.MaxHeight.Value;
+                            maui.MaximumHeightRequest = GetLengthFromRelative(rd, cntl.MaxHeight.Value);
                         if (cntl.MaxWidth.HasValue)
-                            maui.MaximumWidthRequest = cntl.MaxWidth.Value;
+                            maui.MaximumWidthRequest = GetLengthFromRelative(rd, cntl.MaxWidth.Value);
                         maui.BindingContext = cntl.Tag;
 
                         if (cntl.DisplayData is AnyUiDisplayDataMaui ddmaui
@@ -563,7 +593,7 @@ namespace MauiTestTree
 
                 // Do the  render record (basetype initialization) for AnyUiControl, even if there is no
                 // directly equivalent on MAUI side
-                new RenderRec(typeof(AnyUiControl), typeof(View), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiControl), (wts) => typeof(View), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiControl cntl && b is View wpf
                        && mode == AnyUiRenderMode.All)
@@ -583,7 +613,7 @@ namespace MauiTestTree
 
                 // Do the  render record (basetype initialization) for AnyUiControl, even if there is no
                 // directly equivalent on MAUI side
-                new RenderRec(typeof(AnyUiContentControl), typeof(View), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiContentControl), (wts) => typeof(View), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiContentControl && b is View
                        && mode == AnyUiRenderMode.All)
@@ -593,7 +623,7 @@ namespace MauiTestTree
 
                 // Do the  render record (basetype initialization) for AnyUiControl, even if there is no
                 // directly equivalent on MAUI side
-                new RenderRec(typeof(AnyUiDecorator), typeof(ContentView), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiDecorator), (wts) => typeof(ContentView), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiDecorator cntl && b is ContentView maui
                         && mode == AnyUiRenderMode.All)
@@ -603,7 +633,7 @@ namespace MauiTestTree
                     }
                 }),
 
-                new RenderRec(typeof(AnyUiViewbox), typeof(Viewbox), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiViewbox), (wts) => typeof(Viewbox), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiViewbox cntl && b is Viewbox maui
                        && mode == AnyUiRenderMode.All)
@@ -614,7 +644,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiPanel), typeof(Layout), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiPanel), (wts) => typeof(Layout), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiPanel cntl && b is Layout maui)
                    {
@@ -653,18 +683,18 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiGrid), typeof(Grid), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiGrid), (wts) => typeof(Grid), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiGrid cntl && b is Grid maui
                        && mode == AnyUiRenderMode.All)
                    {
                        if (cntl.RowDefinitions != null)
                            foreach (var rds in cntl.RowDefinitions)
-                               maui.RowDefinitions.Add(GetMauiRowDefinition(rds));
+                               maui.RowDefinitions.Add(GetMauiRowDefinition(rds, rd));
 
                        if (cntl.ColumnDefinitions != null)
                            foreach (var cd in cntl.ColumnDefinitions)
-                               maui.ColumnDefinitions.Add(GetMauiColumnDefinition(cd));
+                               maui.ColumnDefinitions.Add(GetMauiColumnDefinition(cd, rd));
 
                        // make sure to target only already realized children
                        foreach (var cel in cntl.Children)
@@ -692,15 +722,15 @@ namespace MauiTestTree
                                     if (cntl.ColumnDefinitions != null && col >= 0 && col < cntl.ColumnDefinitions.Count())
                                     {
                                         if (cntl.ColumnDefinitions[col].MinWidth.HasValue && !celFe.MinWidth.HasValue)
-                                            celMaui.MinimumWidthRequest = cntl.ColumnDefinitions[col].MinWidth!.Value;
+                                            celMaui.MinimumWidthRequest = GetLengthFromRelative(rd, cntl.ColumnDefinitions[col].MinWidth!.Value);
                                         if (cntl.ColumnDefinitions[col].MaxWidth.HasValue && !celFe.MaxWidth.HasValue)
-                                            celMaui.MaximumWidthRequest = cntl.ColumnDefinitions[col].MaxWidth!.Value;
+                                            celMaui.MaximumWidthRequest = GetLengthFromRelative(rd, cntl.ColumnDefinitions[col].MaxWidth!.Value);
                                     }
 
                                     if (cntl.RowDefinitions != null && row >= 0 && row < cntl.RowDefinitions.Count())
                                     {
                                         if (cntl.RowDefinitions[row].MinHeight.HasValue && !celFe.MinHeight.HasValue)
-                                            celMaui.MinimumHeightRequest = cntl.RowDefinitions[row].MinHeight!.Value;
+                                            celMaui.MinimumHeightRequest = GetLengthFromRelative(rd, cntl.RowDefinitions[row].MinHeight!.Value);
                                     }
                                 }
                            }
@@ -708,7 +738,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiStackPanel), typeof(VerticalStackLayout),
+                new RenderRec(typeof(AnyUiStackPanel), (wts) => typeof(VerticalStackLayout),
                 (anyelem) => (anyelem is AnyUiStackPanel cntl 
                               && (cntl.Orientation == null || cntl.Orientation == AnyUiOrientation.Vertical)) ? 1 : 0,
                 (a, b, mode, rd) =>
@@ -723,7 +753,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiStackPanel), typeof(HorizontalStackLayout),
+                new RenderRec(typeof(AnyUiStackPanel), (wts) => typeof(HorizontalStackLayout),
                 (anyelem) => (anyelem is AnyUiStackPanel cntl && cntl.Orientation == AnyUiOrientation.Horizontal) ? 1 : 0,
                 (a, b, mode, rd) =>
                 {
@@ -737,7 +767,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiWrapPanel), typeof(FlexLayout), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiWrapPanel), (wts) => typeof(FlexLayout), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiWrapPanel cntl && b is FlexLayout maui
                        && mode == AnyUiRenderMode.All)
@@ -752,7 +782,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiShape), typeof(Shape), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiShape), (wts) => typeof(Shape), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiShape cntl && b is Shape maui
                         && mode == AnyUiRenderMode.All)
@@ -767,7 +797,7 @@ namespace MauiTestTree
                     }
                 }),
 
-                new RenderRec(typeof(AnyUiRectangle), typeof(Rectangle), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiRectangle), (wts) => typeof(Rectangle), null, (a, b, mode, rd) =>
                 {
                     // ReSharper disable UnusedVariable
                     if (a is AnyUiRectangle cntl && b is Rectangle maui
@@ -777,7 +807,7 @@ namespace MauiTestTree
                     // ReSharper enable UnusedVariable
                 }),
 
-                new RenderRec(typeof(AnyUiEllipse), typeof(Ellipse), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiEllipse), (wts) => typeof(Ellipse), null, (a, b, mode, rd) =>
                 {
                     // ReSharper disable UnusedVariable
                     if (a is AnyUiEllipse cntl && b is Ellipse maui
@@ -787,7 +817,7 @@ namespace MauiTestTree
                     // ReSharper enable UnusedVariable
                 }),
 
-                new RenderRec(typeof(AnyUiPolygon), typeof(Polygon), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiPolygon), (wts) => typeof(Polygon), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiPolygon cntl && b is Polygon maui
                         && (mode == AnyUiRenderMode.All || mode == AnyUiRenderMode.StatusToUi))
@@ -799,7 +829,7 @@ namespace MauiTestTree
                     }
                 }),
 
-                new RenderRec(typeof(AnyUiCanvas), typeof(AbsoluteLayout), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiCanvas), (wts) => typeof(AbsoluteLayout), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiCanvas cntl && b is AbsoluteLayout maui)
                    {
@@ -850,7 +880,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiScrollViewer), typeof(ScrollView), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiScrollViewer), (wts) => typeof(ScrollView), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiScrollViewer cntl && b is ScrollView maui
                        && mode == AnyUiRenderMode.All)
@@ -885,7 +915,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiBorder), typeof(Border), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiBorder), (wts) => typeof(Border), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiBorder cntl && b is Border maui)
                     {
@@ -989,7 +1019,7 @@ namespace MauiTestTree
                     }
                 }),
 
-                new RenderRec(typeof(AnyUiLabel), typeof(Label), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiLabel), (wts) => typeof(Label), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiLabel cntl && b is Label maui)
                     {
@@ -1029,7 +1059,7 @@ namespace MauiTestTree
                     }
                 }),
 
-                new RenderRec(typeof(AnyUiTextBlock), typeof(Label), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiTextBlock), (wts) => typeof(Label), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiTextBlock cntl && b is Label maui)
                    {
@@ -1070,7 +1100,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiSelectableTextBlock), typeof(Label), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiSelectableTextBlock), (wts) => typeof(Label), null, (a, b, mode, rd) =>
                 {
                    // TODO IMPORTANT: For now, only NON-SELECTABLE LABEL, change!!
                    if (a is AnyUiTextBlock cntl && b is Label maui)
@@ -1112,7 +1142,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiHintBubble), typeof(Label), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiHintBubble), (wts) => typeof(Label), null, (a, b, mode, rd) =>
                 {
                    // TODO IMPORTANT: For now, only LABEL, change!!
                    if (a is AnyUiHintBubble cntl && b is Label maui)
@@ -1150,7 +1180,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiImage), typeof(Image), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiImage), (wts) => typeof(Image), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiImage cntl && b is Image maui)
                    {
@@ -1211,7 +1241,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiCountryFlag), typeof(Image), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiCountryFlag), (wts) => typeof(Image), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiCountryFlag cntl && b is Image maui)
                    {
@@ -1246,63 +1276,125 @@ namespace MauiTestTree
 #endif
 
                 // TextBox -> Entry for SINGLE LINE
-                new RenderRec(typeof(AnyUiTextBox), typeof(Entry),
+                new RenderRec(typeof(AnyUiTextBox),
+                (wts) => (wts == RenderWidgetToolSet.Transparent) ? typeof(TransparentEntry) : typeof(Entry),
                 (anyElem) => (anyElem is AnyUiTextBox tb && tb.MultiLine == false) ? 1 : 0,
                 (a, b, mode, rd) =>
                 {
                     // TODO: Border in outside control!!
-                    if (a is AnyUiTextBox cntl && b is Entry maui)
                     {
-                        if (mode == AnyUiRenderMode.All)
+                        // protect names
+                        if (a is AnyUiTextBox cntl && b is Entry maui)
                         {
-                            // members  
-                            if (cntl.Background != null)
-                                maui.Background = GetMauiBrush(cntl.Background);
-
-                            if (rd?.ForegroundControl != null)
-                                maui.TextColor = GetMauiColor(rd.ForegroundControl.Color);
-                            if (cntl.Foreground != null)
-                                maui.TextColor = GetMauiColor(cntl.Foreground?.Color);
-
-#if TODO_IMPORTANT
-                            if (cntl.Padding != null)
-                                maui.Padding = GetMauiTickness(cntl.Padding);
-#endif
-                            if (cntl.IsReadOnly)
-                                maui.IsReadOnly = cntl.IsReadOnly;
-
-                            maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
-
-                            if (cntl.VerticalContentAlignment.HasValue)
-                                maui.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
-                            if (cntl.HorizontalContentAlignment.HasValue)
-                                maui.HorizontalTextAlignment = GetTextAlignment(cntl.HorizontalContentAlignment.Value);
-
-                            if (cntl.FontMono)
-                                maui.FontFamily = "Consolas";
-
-                            if (cntl.FontWeight.HasValue)
-                                maui.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);
-
-                            maui.Text = cntl.Text;
-                        
-                            // callbacks
-                            cntl.originalValue = "" + cntl.Text;
-                            maui.TextChanged += (sender, e) => {
-                                var la = cntl.setValueLambda?.Invoke(maui.Text);
-                                EmitOutsideAction(la);
-                                EmitOutsideAction(new AnyUiLambdaActionContentsChanged());
-                            };
-                            maui.Completed += (sender, e) =>
+                            if (mode == AnyUiRenderMode.All)
                             {
-                                EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
-                                EmitOutsideAction(cntl.takeOverLambda);
-                            };
-                        }
+                                // members  
+                                if (cntl.Background != null)
+                                    maui.Background = GetMauiBrush(cntl.Background);
 
-                        if (mode == AnyUiRenderMode.All || mode == AnyUiRenderMode.StatusToUi)
+                                if (rd?.ForegroundControl != null)
+                                    maui.TextColor = GetMauiColor(rd.ForegroundControl.Color);
+                                if (cntl.Foreground != null)
+                                    maui.TextColor = GetMauiColor(cntl.Foreground?.Color);
+
+    #if TODO_IMPORTANT
+                                if (cntl.Padding != null)
+                                    maui.Padding = GetMauiTickness(cntl.Padding);
+    #endif
+                                if (cntl.IsReadOnly)
+                                    maui.IsReadOnly = cntl.IsReadOnly;
+
+                                maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
+
+                                if (cntl.VerticalContentAlignment.HasValue)
+                                    maui.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
+                                if (cntl.HorizontalContentAlignment.HasValue)
+                                    maui.HorizontalTextAlignment = GetTextAlignment(cntl.HorizontalContentAlignment.Value);
+
+                                if (cntl.FontMono)
+                                    maui.FontFamily = "Consolas";
+
+                                if (cntl.FontWeight.HasValue)
+                                    maui.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);
+
+                                maui.Text = cntl.Text;
+                        
+                                // callbacks
+                                cntl.originalValue = "" + cntl.Text;
+                                maui.TextChanged += (sender, e) => {
+                                    var la = cntl.setValueLambda?.Invoke(maui.Text);
+                                    EmitOutsideAction(la);
+                                    EmitOutsideAction(new AnyUiLambdaActionContentsChanged());
+                                };
+                                maui.Completed += (sender, e) =>
+                                {
+                                    EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
+                                    EmitOutsideAction(cntl.takeOverLambda);
+                                };
+                            }
+
+                            if (mode == AnyUiRenderMode.All || mode == AnyUiRenderMode.StatusToUi)
+                            {
+                                maui.Text = cntl.Text;
+                            }
+                        }
+                    }
+
+                    {
+                        // protect names
+                        if (a is AnyUiTextBox cntl && b is TransparentEntry maui)
                         {
-                            maui.Text = cntl.Text;
+                            if (mode == AnyUiRenderMode.All)
+                            {
+                                // members  
+                                if (cntl.Background != null)
+                                    maui.Background = GetMauiBrush(cntl.Background);
+
+                                if (rd?.ForegroundControl != null)
+                                    maui.TextColor = GetMauiColor(rd.ForegroundControl.Color);
+                                if (cntl.Foreground != null)
+                                    maui.TextColor = GetMauiColor(cntl.Foreground?.Color);
+
+    #if TODO_IMPORTANT
+                                if (cntl.Padding != null)
+                                    maui.Padding = GetMauiTickness(cntl.Padding);
+    #endif
+                                if (cntl.IsReadOnly)
+                                    maui.IsReadOnly = cntl.IsReadOnly;
+
+                                maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
+
+                                if (cntl.VerticalContentAlignment.HasValue)
+                                    maui.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
+                                if (cntl.HorizontalContentAlignment.HasValue)
+                                    maui.HorizontalTextAlignment = GetTextAlignment(cntl.HorizontalContentAlignment.Value);
+
+                                if (cntl.FontMono)
+                                    maui.FontFamily = "Consolas";
+
+                                if (cntl.FontWeight.HasValue)
+                                    maui.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);
+
+                                maui.Text = cntl.Text;
+                        
+                                // callbacks
+                                cntl.originalValue = "" + cntl.Text;
+                                maui.TextChanged += (sender, e) => {
+                                    var la = cntl.setValueLambda?.Invoke(maui.Text);
+                                    EmitOutsideAction(la);
+                                    EmitOutsideAction(new AnyUiLambdaActionContentsChanged());
+                                };
+                                maui.Completed += (sender, e) =>
+                                {
+                                    EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
+                                    EmitOutsideAction(cntl.takeOverLambda);
+                                };
+                            }
+
+                            if (mode == AnyUiRenderMode.All || mode == AnyUiRenderMode.StatusToUi)
+                            {
+                                maui.Text = cntl.Text;
+                            }
                         }
                     }
                 }, highlightLambda: (a,b,highlighted) => {
@@ -1327,7 +1419,7 @@ namespace MauiTestTree
                 }),
 
                 // TextBox -> Editor for MULTI LINE
-                new RenderRec(typeof(AnyUiTextBox), typeof(Editor),
+                new RenderRec(typeof(AnyUiTextBox), (wts) => typeof(Editor),
                 (anyElem) => (anyElem is AnyUiTextBox tb && tb.MultiLine == true) ? 1 : 0,
                 (a, b, mode, rd) =>
                 {
@@ -1403,94 +1495,167 @@ namespace MauiTestTree
 #endif
                 }),
 
-                new RenderRec(typeof(AnyUiComboBox), typeof(Picker), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiComboBox), 
+                (wts) => (wts == RenderWidgetToolSet.Transparent) ? typeof(TransparentPicker) : typeof(Picker), 
+                null, (a, b, mode, rd) =>
                 {
                     // members
-                    if (a is AnyUiComboBox cntl && b is Picker maui
-                        && mode == AnyUiRenderMode.All)
+                    if (a is AnyUiComboBox cntl && mode == AnyUiRenderMode.All)
                     {
-                        if (cntl.Background != null)
-                            maui.Background = GetMauiBrush(cntl.Background);
-                        if (rd?.ForegroundControl != null)
-                            maui.TextColor = GetMauiColor(rd.ForegroundControl?.Color);
-                        if (cntl.Foreground != null)
-                            maui.TextColor = GetMauiColor(cntl.Foreground?.Color);
-
-#if TODO_IMPORTANT
-                        if (cntl.Padding != null)
-                            maui.Padding = GetMauiTickness(cntl.Padding);
-                        if (cntl.IsEditable.HasValue)
-                            maui.IsEditable = cntl.IsEditable.Value;
-#endif
-
-                        maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
-
-                        if (cntl.VerticalContentAlignment.HasValue)
-                            maui.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
-                        if (cntl.HorizontalContentAlignment.HasValue)
-                            maui.HorizontalTextAlignment = GetTextAlignment(cntl.HorizontalContentAlignment.Value);
-
-                        if (cntl.FontMono)
-                            maui.FontFamily = "Consolas";
-
-                        if (cntl.FontWeight.HasValue)
-                            maui.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);
-
-                        if (cntl.Items != null)
+                        if (b is Picker maui)
                         {
-                            foreach (var i in cntl.Items)
-                                maui.Items.Add(i?.ToString());
-                        }
+                            if (cntl.Background != null)
+                                maui.Background = GetMauiBrush(cntl.Background);
+                            if (rd?.ForegroundControl != null)
+                                maui.TextColor = GetMauiColor(rd.ForegroundControl?.Color);
+                            if (cntl.Foreground != null)
+                                maui.TextColor = GetMauiColor(cntl.Foreground?.Color);
 
-#if TODO_IMPORTANT
-                        maui.Text = cntl.Text;
-#endif
-                        
-                        if (cntl.Text != null && cntl.Text.Length > 0 && !cntl.SelectedIndex.HasValue
-                            && cntl.Items != null)
-                        {
-                            // use the existing text to set the combo box value via SelectedIndex
-                            int ndx = -1;
-                            for (int i=0; i<cntl.Items.Count; i++)
-                                if (cntl.Text.Trim().Equals(cntl.Items[i].ToString()?.Trim(),
-                                    StringComparison.InvariantCultureIgnoreCase))
-                                    ndx = i;
-                            if (ndx >= 0)
-                                cntl.SelectedIndex = ndx;
-                        }
-                        
-                        if (cntl.SelectedIndex.HasValue)
-                            maui.SelectedIndex = cntl.SelectedIndex.Value;
+    #if TODO_IMPORTANT
+                            if (cntl.Padding != null)
+                                maui.Padding = GetMauiTickness(cntl.Padding);
+                            if (cntl.IsEditable.HasValue)
+                                maui.IsEditable = cntl.IsEditable.Value;
+    #endif
 
-                        // callbacks
-                        cntl.originalValue = "" + cntl.Text;
-                        if (cntl.IsEditable != true)
-                        {
-                            // we need this event
-                            maui.SelectedIndexChanged += (s, e) =>
+                            maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
+
+                            if (cntl.VerticalContentAlignment.HasValue)
+                                maui.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
+                            if (cntl.HorizontalContentAlignment.HasValue)
+                                maui.HorizontalTextAlignment = GetTextAlignment(cntl.HorizontalContentAlignment.Value);
+
+                            if (cntl.FontMono)
+                                maui.FontFamily = "Consolas";
+
+                            if (cntl.FontWeight.HasValue)
+                                maui.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);
+
+                            if (cntl.Items != null)
                             {
-                                cntl.SelectedIndex = maui.SelectedIndex;
-                                cntl.Text = maui.SelectedItem as string;
-                                EmitOutsideAction(cntl.setValueLambda?.Invoke((string) maui.SelectedItem));
-                                EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
-                                // Note for MIHO: this was the dangerous outside event loop!
-                                EmitOutsideAction(cntl.takeOverLambda);
-                            };
-                        }
-                        else
-                        {
-#if TODO_IMPORTANT
-                            // if editable, add this for comfort
-                            maui.KeyUp += (sender, e) =>
+                                foreach (var i in cntl.Items)
+                                    maui.Items.Add(i?.ToString());
+                            }
+
+    #if TODO_IMPORTANT
+                            maui.Text = cntl.Text;
+    #endif
+                        
+                            if (cntl.Text != null && cntl.Text.Length > 0 && !cntl.SelectedIndex.HasValue
+                                && cntl.Items != null)
                             {
-                                if (e.Key == Key.Enter)
+                                // use the existing text to set the combo box value via SelectedIndex
+                                int ndx = -1;
+                                for (int i=0; i<cntl.Items.Count; i++)
+                                    if (cntl.Text.Trim().Equals(cntl.Items[i].ToString()?.Trim(),
+                                        StringComparison.InvariantCultureIgnoreCase))
+                                        ndx = i;
+                                if (ndx >= 0)
+                                    cntl.SelectedIndex = ndx;
+                            }
+
+                            if (cntl.SelectedIndex.HasValue)
+                                maui.SelectedIndex = cntl.SelectedIndex.Value;
+
+                            // callbacks
+                            cntl.originalValue = "" + cntl.Text;
+                            if (cntl.IsEditable != true)
+                            {
+                                // we need this event
+                                maui.SelectedIndexChanged += (s, e) =>
                                 {
-                                    e.Handled = true;
+                                    cntl.SelectedIndex = maui.SelectedIndex;
+                                    cntl.Text = maui.SelectedItem as string;
+                                    EmitOutsideAction(cntl.setValueLambda?.Invoke((string) maui.SelectedItem));
                                     EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
+                                    // Note for MIHO: this was the dangerous outside event loop!
                                     EmitOutsideAction(cntl.takeOverLambda);
-                                }
-                            };
-#endif
+                                };
+                            }
+                            else
+                            {
+    #if TODO_IMPORTANT
+                                // if editable, add this for comfort
+                                maui.KeyUp += (sender, e) =>
+                                {
+                                    if (e.Key == Key.Enter)
+                                    {
+                                        e.Handled = true;
+                                        EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
+                                        EmitOutsideAction(cntl.takeOverLambda);
+                                    }
+                                };
+    #endif
+                            }
+                        }
+
+                        if (b is TransparentPicker mauiTP)
+                        {
+
+                            mauiTP.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
+
+    #if TODO_IMPORTANT
+                            if (cntl.Padding != null)
+                                maui.Padding = GetMauiTickness(cntl.Padding);
+                            if (cntl.IsEditable.HasValue)
+                                maui.IsEditable = cntl.IsEditable.Value;
+    #endif
+
+                            if (cntl.Items != null)
+                            {
+                                mauiTP.ItemsSource = cntl.Items;
+                            }
+
+    #if TODO_IMPORTANT
+                            maui.Text = cntl.Text;
+    #endif
+                        
+                            if (cntl.Text != null && cntl.Text.Length > 0 && !cntl.SelectedIndex.HasValue
+                                && cntl.Items != null)
+                            {
+                                // use the existing text to set the combo box value via SelectedIndex
+                                int ndx = -1;
+                                for (int i=0; i<cntl.Items.Count; i++)
+                                    if (cntl.Text.Trim().Equals(cntl.Items[i].ToString()?.Trim(),
+                                        StringComparison.InvariantCultureIgnoreCase))
+                                        ndx = i;
+                                if (ndx >= 0)
+                                    cntl.SelectedIndex = ndx;
+                            }
+
+                            if (cntl.SelectedIndex.HasValue)
+                                mauiTP.SelectedIndex = cntl.SelectedIndex.Value;
+
+                            // callbacks
+                            cntl.originalValue = "" + cntl.Text;
+                            if (cntl.IsEditable != true)
+                            {
+                                // we need this event
+                                mauiTP.SelectedIndexChanged += (s, e) =>
+                                {
+                                    cntl.SelectedIndex = mauiTP.SelectedIndex;
+                                    cntl.Text = mauiTP.SelectedItem as string;
+                                    EmitOutsideAction(cntl.setValueLambda?.Invoke((string) mauiTP.SelectedItem));
+                                    EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
+                                    // Note for MIHO: this was the dangerous outside event loop!
+                                    EmitOutsideAction(cntl.takeOverLambda);
+                                };
+                            }
+                            else
+                            {
+    #if TODO_IMPORTANT
+                                // if editable, add this for comfort
+                                maui.KeyUp += (sender, e) =>
+                                {
+                                    if (e.Key == Key.Enter)
+                                    {
+                                        e.Handled = true;
+                                        EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
+                                        EmitOutsideAction(cntl.takeOverLambda);
+                                    }
+                                };
+    #endif
+                            }
                         }
                     }
                 }, highlightLambda: (a,b,highlighted) => {
@@ -1543,7 +1708,7 @@ namespace MauiTestTree
                     }
                 }),
 
-                new RenderRec(typeof(AnyUiCheckBox), typeof(LabelledCheckBox), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiCheckBox), (wts) => typeof(LabelledCheckBox), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiCheckBox cntl && b is LabelledCheckBox maui
                         && mode == AnyUiRenderMode.All)
@@ -1593,7 +1758,7 @@ namespace MauiTestTree
                     }
                 }),
 
-                new RenderRec(typeof(AnyUiButton), typeof(Button), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiButton), (wts) => typeof(Button), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiButton cntl && b is Button maui
                         && mode == AnyUiRenderMode.All)
@@ -1730,7 +1895,7 @@ namespace MauiTestTree
 
             // TODO: Multiple possibilities with a check lambda .. vert|hor
             var foundRR = RenderRecs.FindAnyUiCntl(searchType, el);
-            if (foundRR == null || foundRR.MauiType == null)
+            if (foundRR == null || foundRR.GetMauiType == null)
                 return null;
 
             // special case: update status only
@@ -1773,8 +1938,11 @@ namespace MauiTestTree
 
             // create MauiElement accordingly?
             //// Note: excluded from condition: dd.WpfElement == null
+            var mauiType = foundRR.GetMauiType?.Invoke(renderDefaults?.WidgetToolSet == null ? RenderWidgetToolSet.Normal : renderDefaults.WidgetToolSet);
+            if (mauiType == null)
+                return null;
             if (topClass)
-                dd.MauiElement = (VisualElement?)Activator.CreateInstance(foundRR.MauiType);
+                dd.MauiElement = (VisualElement?)Activator.CreateInstance(mauiType);
             if (dd.MauiElement == null)
                 return null;
 

@@ -9,11 +9,17 @@ using AasxPackageExplorer;
 using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
 using AnyUi;
+using JetBrains.Annotations;
 
 namespace MauiTestTree.Flyouts
-{
+{ 
     public static class MauiFlyoutTestCases
     {
+        protected class DataModel1 : AnyUiDialogueDataChangeElementAttributes
+        {
+            public string BlaBla1 = "BlaBla";
+        }
+
         public static async Task ExecuteMauiFlyoutTestCase(IFlyoutProvider ifo, IMainWindow main, int ndx)
         {
             var dcMaui = ifo?.GetDisplayContext() as AnyUiDisplayContextMaui;
@@ -102,8 +108,8 @@ namespace MauiTestTree.Flyouts
             }
 
             if (ndx == 5)
-            {
-                var innerDiaData = new AnyUiDialogueDataChangeElementAttributes()
+            {               
+                var innerDiaData = new DataModel1()
                 {
 
                 };
@@ -153,6 +159,17 @@ namespace MauiTestTree.Flyouts
                                 minWidth: 600,
                                 colSpan: 3),
                             (s) => { innerDiaData.Pattern = s; });
+
+                        // additional
+                        helper.AddSmallLabelTo(g, 3, 0, content: "Test:", verticalCenter: true);
+                        AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g, 3, 1,
+                                    text: $"{innerDiaData.BlaBla1}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                            (s) => { innerDiaData.BlaBla1 = s; });
 
                         // Row 4 : Help
                         helper.AddSmallLabelTo(g, 4, 0, content: "Help:");

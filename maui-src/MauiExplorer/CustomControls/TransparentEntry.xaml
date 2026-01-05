@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:MauiTestTree"
+             x:Class="MauiTestTree.TransparentEntry">
+    <Border
+        Stroke="{Binding BorderColor, Source={RelativeSource AncestorType={x:Type local:TransparentEntry}}}"
+        StrokeThickness="1.5"
+        StrokeShape="RoundRectangle 6"
+        BackgroundColor="Transparent"
+        Padding="4,0,4,0">
+
+        <Entry
+            x:Name="InnerEntry"
+            BackgroundColor="Transparent"
+
+            Text="{Binding Text, Source={RelativeSource AncestorType={x:Type local:TransparentEntry}}, Mode=TwoWay}"
+            FontSize="{Binding FontSize, Source={RelativeSource AncestorType={x:Type local:TransparentEntry}}}"
+            FontFamily="{Binding FontFamily, Source={RelativeSource AncestorType={x:Type local:TransparentEntry}}}"
+            FontAttributes="{Binding FontAttributes, Source={RelativeSource AncestorType={x:Type local:TransparentEntry}}}"
+
+            TextColor="{Binding TextColor, Source={RelativeSource AncestorType={x:Type local:TransparentEntry}}}"
+            IsReadOnly="{Binding IsReadOnly, Source={RelativeSource AncestorType={x:Type local:TransparentEntry}}}"
+
+            HorizontalTextAlignment="{Binding HorizontalTextAlignment, Source={RelativeSource AncestorType={x:Type local:TransparentEntry}}}"
+            VerticalTextAlignment="{Binding VerticalTextAlignment, Source={RelativeSource AncestorType={x:Type local:TransparentEntry}}}"
+
+            TextChanged="OnInnerTextChanged"
+            Completed="OnInnerCompleted" />
+    </Border>
+</ContentView>

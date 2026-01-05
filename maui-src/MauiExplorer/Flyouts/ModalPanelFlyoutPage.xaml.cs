@@ -175,7 +175,7 @@ public partial class ModalPanelFlyoutPage : ContentPage, IFlyoutControl
         // create some render defaults matching the visual style of the flyout
         var rd = new AnyUiDisplayContextMaui.RenderDefaults()
         {
-            FontSizeRel = 0.9f,
+            FontSizeRel = 0.9,
             ForegroundSelfStand = AnyUiBrushes.White,
             ForegroundControl = null, // leave untouched                
             WidgetToolSet = AnyUiDisplayContextMaui.RenderWidgetToolSet.Transparent
