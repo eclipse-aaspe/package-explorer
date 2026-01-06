@@ -282,10 +282,12 @@ namespace AasxPackageExplorer
                 childs: (new AasxMenu())
                 .AddWpfBlazor(name: "EditMenu", header: "_Edit", inputGesture: "Ctrl+E",
                     onlyDisplay: true, isCheckable: true,
+                    help: "Allows all attributes of the meta model to be edited, added, deleted.",
                     args: new AasxMenuListOfArgDefs()
                             .Add("Mode", "'True' to activate edit mode, 'False' to turn off."))
                 .AddWpfBlazor(name: "HintsMenu", header: "_Hints", inputGesture: "Ctrl+H",
                     onlyDisplay: true, isCheckable: true, isChecked: true,
+                    help: "Checks all attributes on helpful hints and violation of design rules of the AAS.",
                     args: new AasxMenuListOfArgDefs()
                         .Add("Mode", "'True' to activate hints mode, 'False' to turn off."))
                 .AddWpfBlazor(name: "Test", header: "Test")
@@ -357,7 +359,8 @@ namespace AasxPackageExplorer
                 .AddSeparator(filter: AasxMenuFilter.NotBlazor)
                 .AddMenu(header: "Events …", childs: (new AasxMenu())
                     .AddWpf(name: "EventsShowLogMenu", header: "_Event log", inputGesture: "Ctrl+L",
-                        onlyDisplay: true, isCheckable: true)
+                        onlyDisplay: true, isCheckable: true,
+                        help: "Shows a information panel for received and emitted AAS events in the user interface.")
                     .AddWpf(name: "EventsResetLocks", header: "Reset interlocking"))
                 .AddMenu(header: "Scripts …", filter: AasxMenuFilter.WpfBlazor, childs: (new AasxMenu())
                     .AddWpfBlazor(name: "ScriptEditLaunch", header: "Edit & launch …", inputGesture: "Ctrl+Shift+L")));
@@ -368,13 +371,20 @@ namespace AasxPackageExplorer
 
             menu.AddMenu(header: "Option",
                 childs: (new AasxMenu())
-                .AddWpfBlazor(name: "ShowIriMenu", header: "Show id as IRI", inputGesture: "Ctrl+I", isCheckable: true)
-                .AddWpfBlazor(name: "VerboseConnect", header: "Verbose connect", isCheckable: true)
-                .AddWpfBlazor(name: "FileRepoLoadWoPrompt", header: "Load without prompt", isCheckable: true)
-                .AddWpfBlazor(name: "AnimateElements", header: "Animate elements", isCheckable: true)
-                .AddWpfBlazor(name: "ObserveEvents", header: "ObserveEvents", isCheckable: true)
-                .AddWpfBlazor(name: "CompressEvents", header: "Compress events", isCheckable: true)
-				.AddWpfBlazor(name: "CheckSmtElements", header: "Check SMT elements (slow!)", isCheckable: true));
+                .AddWpfBlazor(name: "ShowIriMenu", header: "Show id as IRI", inputGesture: "Ctrl+I", isCheckable: true,
+                    help: "Format identifiers to be active IRIs/ URIs instead of plain text.")
+                .AddWpfBlazor(name: "VerboseConnect", header: "Verbose connect", isCheckable: true,
+                    help: "Enable more verbose connect dialog (deprecated).")
+                .AddWpfBlazor(name: "FileRepoLoadWoPrompt", header: "Load without prompt", isCheckable: true,
+                    help: "Load new AASX files in Repositories without prompting for allowance.")
+                .AddWpfBlazor(name: "AnimateElements", header: "Animate elements", isCheckable: true,
+                    help: "Show updates and updated values when element values are changed by incoming events.")
+                .AddWpfBlazor(name: "ObserveEvents", header: "ObserveEvents", isCheckable: true,
+                    help: "Activate observation of observable elements in order to generate and emit change events.")
+                .AddWpfBlazor(name: "CompressEvents", header: "Compress events", isCheckable: true,
+                    help: "Compress multiple value changes (e.g. character by character) to one event.")
+				.AddWpfBlazor(name: "CheckSmtElements", header: "Check SMT elements (slow!)", isCheckable: true,
+                    help: "Check for semanticIds for being known SMT elements and show further options."));
 
             //
             // Help

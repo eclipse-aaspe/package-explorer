@@ -16,9 +16,11 @@ public partial class DiplayVisualAasxElements : ContentView, IDisplayElements
     {
         InitializeComponent();
 
+        // wait till Loaded(), until the BindingContext is ready to provide the correct view model!
         Loaded += (_,_) => {
-            var x = _viewModel;
-            Trace.WriteLine("");
+            // as working with binding, subscribing to the view model
+            // Trace.WriteLine($"VM hash: {_viewModel.GetHashCode()}");
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
         };
     }
 
@@ -57,7 +59,17 @@ public partial class DiplayVisualAasxElements : ContentView, IDisplayElements
     /// All selected items in the tree.
     /// Generates on the fly the required types from the view model.
     /// </summary>
-    public ListOfVisualElementBasic? SelectedItems { get => new(_viewModel.SelectedItems?.Cast<VisualElementGeneric>()); }
+    public ListOfVisualElementBasic? SelectedItems {
+        get {
+            ListOfVisualElementBasic res = new();
+            if (_viewModel.SelectedItems != null)
+                foreach (var si in _viewModel.SelectedItems)
+                    if (si is FunctionZero.TreeListItemsSourceZero.TreeNodeContainer<object> tnc
+                        && tnc.Data is VisualElementGeneric veg)
+                        res.Add(veg);
+            return res;
+        }
+    }
 
     /// <summary>
     /// All selected items in the tree.
@@ -92,6 +104,13 @@ public partial class DiplayVisualAasxElements : ContentView, IDisplayElements
         // WPF version needed it
         lambda.Invoke();
     }
+
+    private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainViewModel.SelectedItem))
+            FireSelectedItem();
+    }
+
 
     //
     // Element View Drawing

@@ -302,6 +302,14 @@ namespace MauiTestTree
                 {
                     await EditMainMenuCheckableOptionsAsync();
                 }
+
+                // regular way
+                // Note: Different than WPF / Blazor approaches
+                if (mfi.BindingContext is AasxMenuItemBase mib)
+                {
+                    var ticket = new AasxMenuActionTicket() { MenuItem = mib };
+                    await _viewModel.MainMenu.ActivateAction(mib, ticket);
+                }
             }
         }
 
@@ -1134,7 +1142,7 @@ namespace MauiTestTree
         }
 
         public async Task PrepareDispEditEntity(
-            AdminShellPackageEnvBase package, ListOfVisualElementBasic entities,
+            AdminShellPackageEnvBase package, ListOfVisualElementBasic? entities,
             bool editMode, bool hintMode, bool showIriMode, bool checkSmt,
             DispEditHighlight.HighlightFieldInfo? hightlightField = null)
         {
@@ -1149,13 +1157,13 @@ namespace MauiTestTree
             // update element view?
             DynamicMenu.Menu.Clear();
             var renderHints = await DispEditEntityPanel.DisplayOrEditVisualAasxElement(
-                PackageCentral, DisplayContext,
-                entities, editMode, hintMode, showIriMode, checkSmt, tiCds?.CdSortOrder,
-                flyoutProvider: this,
-                mainWindow: this,
-                appEventProvider: this,
-                hightlightField: hightlightField,
-                superMenu: DynamicMenu.Menu);
+                    PackageCentral, DisplayContext,
+                    entities, editMode, hintMode, showIriMode, checkSmt, tiCds?.CdSortOrder,
+                    flyoutProvider: this,
+                    mainWindow: this,
+                    appEventProvider: this,
+                    hightlightField: hightlightField,
+                    superMenu: DynamicMenu.Menu);
 
             // panels
             var panelHeight = 48;
@@ -1181,6 +1189,7 @@ namespace MauiTestTree
                     //ContentPanelEdit.Visibility = Visibility.Visible;
                 }
             }
+            // Reload elements, Drag, Show elements visible or not
             //1// RowContentPanels.Height = new GridLength(panelHeight);
 
             // scroll or not
@@ -1330,7 +1339,7 @@ namespace MauiTestTree
             // for all, prepare the display
             await PrepareDispEditEntity(
                 PackageCentral.Main,
-                DisplayElements.SelectedItems,
+                DisplayElements?.SelectedItems,
                  _viewModel.MainMenu?.IsChecked("EditMenu") == true,
                  _viewModel.MainMenu?.IsChecked("HintsMenu") == true,
                  _viewModel.MainMenu?.IsChecked("ShowIriMenu") == true,
@@ -1371,14 +1380,14 @@ namespace MauiTestTree
             _viewModel.AssetId = "<id unknown!>";
 
             // logical main menu
-            var logicalMainMenu = ExplorerMenuFactory.CreateMainMenu();
-            logicalMainMenu.DefaultActionAsync = CommandBinding_GeneralDispatch;
+            // 1 // var logicalMainMenu = ExplorerMenuFactory.CreateMainMenu();
+            _viewModel.MainMenu.DefaultActionAsync = CommandBinding_GeneralDispatch;
 
             // top level children have other color
-            logicalMainMenu.DefaultForeground = AnyUiColors.Black;
-            foreach (var mi in logicalMainMenu)
-                if (mi is AasxMenuItem mii)
-                    mii.Foreground = AnyUiColors.White;
+            // 1 // logicalMainMenu.DefaultForeground = AnyUiColors.Black;
+            // 1 // foreach (var mi in logicalMainMenu)
+            // 1 //     if (mi is AasxMenuItem mii)
+            // 1 //         mii.Foreground = AnyUiColors.White;
 
             // WPF main menu
             //1// MainMenu = new AasxMenuWpf();
@@ -1836,7 +1845,7 @@ namespace MauiTestTree
             //1// AasxIntegrationBaseWpf.CountryFlagWpf.LoadImage();
 
             // TEST
-            if (true)
+            if (false)
             {
                 await MauiTestTree.Flyouts.MauiFlyoutTestCases.ExecuteMauiFlyoutTestCase(this, this, 5);
             }
@@ -2735,6 +2744,52 @@ namespace MauiTestTree
                 if (evt is AasxIntegrationBase.AasxPluginResultEventSelectFile fileSel)
                 {
                     // ask
+                    if (!fileSel.SaveDialogue)
+                    {
+                        //
+                        // Open
+                        //
+
+                        var options = new PickOptions
+                        {
+                            PickerTitle = fileSel.Title,
+                            FileTypes = AnyUiDisplayContextMaui.GetMauiFilePickerFileTypeFromWpfFilter(fileSel.Filter)
+                        };
+
+                        if (!fileSel.MultiSelect)
+                        {
+                            var result = await FilePicker.Default.PickAsync(options);
+
+                            if (result != null)
+                            {
+                                // formulate return event
+                                var retev = new AasxIntegrationBase.AasxPluginEventReturnSelectFile();
+                                retev.sourceEvent = evt;
+                                retev.FileNames = new[] { result.FullPath };
+                                
+                                // fire back
+                                pluginInstance?.InvokeAction("event-return", retev,
+                                    AnyUiDisplayContextMaui.SessionSingletonMaui);
+                            }
+                        }
+                        else
+                        {
+                            var result = await FilePicker.Default.PickMultipleAsync(options);
+
+                            if (result != null && result.Count() > 0)
+                            {
+                                // formulate return event
+                                var retev = new AasxIntegrationBase.AasxPluginEventReturnSelectFile();
+                                retev.sourceEvent = evt;
+                                retev.FileNames = result.Select((r) => r.FullPath).ToArray();
+
+                                // fire back
+                                pluginInstance?.InvokeAction("event-return", retev,
+                                    AnyUiDisplayContextMaui.SessionSingletonMaui);
+                            }
+                        }
+                    }
+
 
                     // 2 The MAUI equivalent: FilePicker
                     // ✅ This is the correct replacement
@@ -4201,8 +4256,16 @@ namespace MauiTestTree
             return false;
         }
 
-        public void StartFlyover(VisualElement uc)
+        public async Task StartFlyoverAsync(VisualElement uc)
         {
+            // uc needs to implement IFlyoverControl (to be sure that it is valid)
+            var ucfoc = uc as IFlyoutControl;
+            if (ucfoc == null || !(uc is Page page))
+                return;
+
+            // start the page
+            await Navigation.PushAsync(page);
+
             //1// // uc needs to implement IFlyoverControl
             //1// var ucfoc = uc as IFlyoutControl;
             //1// if (ucfoc == null)
@@ -4233,8 +4296,10 @@ namespace MauiTestTree
             //1// CloseFlyover();
         }
 
-        public void CloseFlyover(bool threadSafe = false)
+        public async Task CloseFlyoverAsync(bool threadSafe = false)
         {
+            await Navigation.PopAsync();
+
             //1// Action lambda = () =>
             //1// {
             //1//     // blur the normal grid
@@ -4941,9 +5006,10 @@ namespace MauiTestTree
 
         #endregion
 
-        #region General commands
-        // ---------------------
+#region General commands
+// ---------------------
 
+#if _not_anymore_needed
         /// <summary>
         /// Redraw tree elements (middle), AAS entitty (right side)
         /// </summary>
@@ -4966,7 +5032,7 @@ namespace MauiTestTree
         {
             throw new NotImplementedException();
         }
-
-        #endregion
+#endif
+#endregion
     }
 }

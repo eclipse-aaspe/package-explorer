@@ -267,7 +267,7 @@ public partial class DispEditAasxEntityMaui : ContentView
     public async Task<DisplayRenderHints> DisplayOrEditVisualAasxElement(
         PackageCentral packages,
         AnyUiDisplayContextMaui displayContext,
-        ListOfVisualElementBasic entities,
+        ListOfVisualElementBasic? entities,
         bool editMode, bool hintMode = false, bool showIriMode = false, bool checkSmt = false,
         VisualElementEnvironmentItem.ConceptDescSortOrder? cdSortOrder = null,
         IFlyoutProvider? flyoutProvider = null,

@@ -12,6 +12,7 @@ using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using AnyUi;
 using CommunityToolkit.Maui.Extensions;
+using Microsoft.Maui.Storage;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Handlers;
@@ -2483,11 +2484,10 @@ namespace MauiTestTree
                 return new ModalPanelFlyoutPage(this, ddmp);
             }
 
-#if TODO_IMPORTANT
             if (dialogueData is AnyUiDialogueDataOpenFile ddof)
             {
                 // see below: PerformSpecialOps()
-                var uc = new EmptyFlyout();
+                var uc = new EmptyFlyoutPage();
                 uc.DiaData = ddof;
                 res = uc;
             }
@@ -2495,11 +2495,10 @@ namespace MauiTestTree
             if (dialogueData is AnyUiDialogueDataSaveFile ddsf)
             {
                 // see below: PerformSpecialOps()
-                var uc = new EmptyFlyout();
+                var uc = new EmptyFlyoutPage();
                 uc.DiaData = ddsf;
                 res = uc;
             }
-#endif
 
             if (dialogueData is AnyUiDialogueDataTextBox ddtb)
             {
@@ -2588,49 +2587,162 @@ namespace MauiTestTree
             return res;
         }
 
-        private void PerformSpecialOps(bool modal, AnyUiDialogueDataBase dialogueData)
+        public static FilePickerFileType? GetMauiFilePickerFileTypeFromWpfFilter(string? filter)
         {
+            // access
+            if (filter == null)
+                return null;
+
+            // we shall have 4 plattform specific lists (nott kidding)
+            var listWinUI = new List<string>();
+            var listAndroid = new List<string>();
+            var listIosMac = new List<string>();
+
+            // we need some dictionaries
+            var dictAndroid = new Dictionary<string, string[]>() {
+                { "txt", new [] { "text/plain" }},
+                { "text", new [] { "text/plain" }},
+                { "json", new [] { "application/json" }},
+                { "xml", new [] { "text/xml" }},
+                { "png", new [] { "image/png" }},
+                { "jpg", new [] { "image/jpeg" }},
+                { "jpeg", new [] { "image/jpeg" }},
+                { "bmp", new [] { "image/bmp" }},
+                { "md", new [] { "text/markdown", "text/plain" }}
+            };
+
+            var dictIos = new Dictionary<string, string[]>() {
+                { "txt", new [] { "public.plain-text" }},
+                { "text", new [] { "public.plain-text" }},
+                { "json", new [] { "public.json" }},
+                { "xml", new [] { "public.xml" }},
+                { "png", new [] { "public.image" }},
+                { "jpg", new [] { "public.image" }},
+                { "jpeg", new [] { "public.image" }},
+                { "bmp", new [] { "public.image" }},
+                { "md", new [] { "net.daringfireball.markdown", "public.plain-text" }}
+            };
+
+            // try decompose the filter into pairs of 2 strings
+            var parts = filter.Split('|', StringSplitOptions.TrimEntries);
+            for (int i=0; i<parts.Length / 2; i++)
+            {
+                // real filter?
+                var p = parts[2 * i + 1];
+                if (!p.StartsWith("*."))
+                    continue;
+
+                // ok, WinUI is simple, e.g. ".json", ".xml"
+                var work = p.Substring(1);
+                if (work != ".*")
+                    listWinUI.Add(work);
+
+                // ok, iOS is simple but weird, e.g. "public.json", "public.xml" or any: "public.data"
+                // some for MAC
+                // Note: Apple defines a large set of system UTTypes, and most of them live in the public namespace
+                if (p.Length > 2)
+                {
+                    work = p.Substring(2).ToLowerInvariant();
+                    
+                    if (dictIos.ContainsKey(work))
+                        foreach (var x in dictIos[work])
+                            listIosMac.Add(x);
+                    else
+                        if (!listIosMac.Contains("public.data"))
+                            listIosMac.Add("public.data");
+                }
+
+                // same principle for Android
+                if (p.Length > 2)
+                {
+                    work = p.Substring(2).ToLowerInvariant();
+                    
+                    if (dictAndroid.ContainsKey(work))
+                        foreach (var x in dictAndroid[work])
+                            listAndroid.Add(x);
+                    else
+                        if (!listAndroid.Contains("*/*"))
+                            listAndroid.Add("*/*");
+                }
+            }
+
+            // now produce it
+            return new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+            {
+                { DevicePlatform.WinUI, listWinUI },
+                { DevicePlatform.Android, listAndroid },
+                { DevicePlatform.iOS, listIosMac.ToList() },
+                { DevicePlatform.MacCatalyst, listIosMac.ToList() }
+            });
+        }
+
+        private async Task PerformSpecialOpsAsync(bool modal, AnyUiDialogueDataBase dialogueData)
+        {
+            await Task.Yield();
+
             if (modal && dialogueData is AnyUiDialogueDataOpenFile ddof)
             {
-#if TODO_IMPORTANT
-                var dlg = new Microsoft.Win32.OpenFileDialog();
-
-                if (ddof.Filter != null)
-                    dlg.Filter = ddof.Filter;
-                if (ddof.ProposeFileName != null)
-                    dlg.FileName = ddof.ProposeFileName;
-                if (ddof.TargetFileName != null)
-                    dlg.FileName = ddof.TargetFileName;
-
-                dlg.Multiselect = ddof.Multiselect;
-
-                var idir = System.IO.Path.GetDirectoryName(dlg.FileName);
-                if (idir.HasContent())
+                // try to derive a options
+                var options = new PickOptions
                 {
-                    dlg.InitialDirectory = idir;
-                    dlg.FileName = System.IO.Path.GetFileName(dlg.FileName);
+                    PickerTitle = ddof.Caption,
+                    FileTypes = GetMauiFilePickerFileTypeFromWpfFilter(ddof.Filter)
+                };
+
+                if (!ddof.Multiselect)
+                {
+                    var result = await FilePicker.Default.PickAsync(options);
+
+                    if (result != null)
+                    {
+                        ddof.Result = true;
+                        ddof.ResultUserFile = false;
+                        ddof.OriginalFileName = result.FullPath;
+                        ddof.TargetFileName = result.FullPath;
+                    }
                 }
                 else
                 {
-                    dlg.InitialDirectory = System.IO.Path.GetDirectoryName(lastFnForInitialDirectory);
-                }
+                    var result = await FilePicker.Default.PickMultipleAsync(options);
 
-                var res = dlg.ShowDialog();
-                if (res == true)
-                {
-                    ddof.Result = true;
-                    ddof.ResultUserFile = false;
-                    ddof.OriginalFileName = dlg.FileName;
-                    ddof.TargetFileName = dlg.FileName;
-
-                    if (ddof.Multiselect && dlg.FileNames != null)
-                        ddof.Filenames = dlg.FileNames.ToList();
+                    if (result != null && result.Count() > 0)
+                    {
+                        ddof.Result = true;
+                        ddof.ResultUserFile = false;
+                        ddof.Filenames = result.Select((r) => r.FullPath).ToList();
+                    }
                 }
-#endif
             }
 
             if (modal && dialogueData is AnyUiDialogueDataSaveFile ddsf)
             {
+
+                ;
+
+                //var result = await CommunityToolkit.Maui.Storage.FileSaver.SaveAsync .Default.SaveAsync(
+                //                "data.json",
+                //                stream,
+                //                new CancellationToken());
+
+                //if (result.IsSuccessful)
+                //{
+
+
+                //    var options = new PickOptions
+                //{
+                //    PickerTitle = ddsf.Caption,
+                //    FileTypes = GetMauiFilePickerFileTypeFromWpfFilter(ddsf.Filter)
+                //};
+
+                //var result = await FilePicker.Default. (options);
+
+                //if (result != null)
+                //{
+                //    ddsf.Result = true;
+                //    ddsf.Location = AnyUiDialogueDataSaveFile.LocationKind.Local;
+                //    ddsf.TargetFileName = result.FullPath;
+                //}
+
 #if TODO_IMPORTANT
                 var dlg = new Microsoft.Win32.SaveFileDialog();
 
@@ -2683,7 +2795,7 @@ namespace MauiTestTree
                 {
                     if (dialogueData.HasModalSpecialOperation)
                         // start WITHOUT modal
-                        FlyoutProvider?.StartFlyover(uc);
+                        FlyoutProvider?.StartFlyoverAsync(uc);
                     else
                     {
                         // perform modal
@@ -2698,12 +2810,14 @@ namespace MauiTestTree
                 }
 
                 // now, in case
+#if TODO
                 PerformSpecialOps(modal: true, dialogueData: dialogueData);
+#endif
 
                 // may be close?
                 if (dialogueData.HasModalSpecialOperation)
                     // start WITHOUT modal
-                    FlyoutProvider?.CloseFlyover();
+                    FlyoutProvider?.CloseFlyoverAsync();
             }
             catch (Exception ex)
             {
@@ -2739,18 +2853,18 @@ namespace MauiTestTree
                 {
                     if (dialogueData.HasModalSpecialOperation)
                         // start WITHOUT modal
-                        FlyoutProvider?.StartFlyover(uc);
+                        await FlyoutProvider!.StartFlyoverAsync(uc);
                     else
                         await FlyoutProvider!.StartFlyoverModalAsync(uc);
                 }
 
                 // now, in case
-                PerformSpecialOps(modal: true, dialogueData: dialogueData);
+                await PerformSpecialOpsAsync(modal: true, dialogueData: dialogueData);
 
                 // may be close?
                 if (dialogueData.HasModalSpecialOperation)
                     // start WITHOUT modal
-                    FlyoutProvider?.CloseFlyover();
+                    await FlyoutProvider!.CloseFlyoverAsync();
             }
             catch (Exception ex)
             {
@@ -2859,7 +2973,7 @@ namespace MauiTestTree
             if (sourceFn?.HasContent() != true && requireNoFlyout)
             {
                 // do not perform further with show "new" (overlapping!) flyout ..
-                PerformSpecialOps(modal: true, dialogueData: uc);
+                await PerformSpecialOpsAsync(modal: true, dialogueData: uc);
                 return uc;
             }
 
@@ -2956,7 +3070,7 @@ namespace MauiTestTree
             if (targetFn?.HasContent() != true && requireNoFlyout)
             {
                 // do not perform further with show "new" (overlapping!) flyout ..
-                PerformSpecialOps(modal: true, dialogueData: uc);
+                await PerformSpecialOpsAsync(modal: true, dialogueData: uc);
                 if (!uc.Result)
                     return uc;
 
