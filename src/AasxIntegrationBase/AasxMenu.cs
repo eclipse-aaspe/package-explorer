@@ -11,8 +11,10 @@ using AdminShellNS;
 using AnyUi;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Aas = AasCore.Aas3_1;
 
@@ -241,8 +243,18 @@ namespace AasxIntegrationBase
     /// <summary>
     /// Base class for menu items with a possible action.
     /// </summary>
-    public abstract class AasxMenuItemBase
+    public abstract class AasxMenuItemBase : INotifyPropertyChanged
     {
+        // 
+        // INotify interface
+        //
+
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
         /// <summary>
         /// Name of the menu item. Relevant. Will be used to differentiate
         /// in actions.
@@ -334,7 +346,7 @@ namespace AasxIntegrationBase
         /// <summary>
         /// Displayed header in GUI based applications.
         /// </summary>
-        public string Header = "";
+        public string Header { get; set; } = "";
 
         /// <summary>
         /// Foreground color of the menu item.
@@ -345,7 +357,7 @@ namespace AasxIntegrationBase
         /// Icon to be place aside the header in GUI based applications.
         /// Might contain unicode symbil, text or bitmap.
         /// </summary>
-        public object Icon = null;
+        public object Icon { get; set; } = null;
 
         /// <summary>
         /// If true, not shown in menu.
@@ -355,12 +367,17 @@ namespace AasxIntegrationBase
         /// <summary>
         /// Can be switched to checked or not
         /// </summary>
-        public bool IsCheckable = false;
+        public bool IsCheckable { get; set; } = false;
 
         /// <summary>
         /// Switch   state to initailize with.
         /// </summary>
-        public bool IsChecked = false;
+        public bool IsChecked
+        {
+            get => _isChecked;
+            set { _isChecked = value; OnPropertyChanged(); }
+        }
+        bool _isChecked = false;
 
         /// <summary>
         /// Command name in command line based applications. Typically lower case with
@@ -371,7 +388,7 @@ namespace AasxIntegrationBase
         /// <summary>
         /// Help text or description in command line applications.
         /// </summary>
-        public string HelpText = null;
+        public string HelpText { get; set; } = null;
 
         /// <summary>
         /// Sub menues
@@ -412,6 +429,9 @@ namespace AasxIntegrationBase
         //
         // Members
         //
+
+        public AasxMenu() : base() { }
+        public AasxMenu(IEnumerable<AasxMenuItemBase> mbi) : base(mbi) { }
 
         /// <summary>
         /// The action to be activated, if no action is set by single items.
@@ -749,13 +769,18 @@ namespace AasxIntegrationBase
 
         public bool IsChecked(string name)
         {
-            //1//
-            return false;
+            var mi = FindName(name) as AasxMenuItem;
+            if (mi == null)
+                return false;
+            return mi.IsChecked;
         }
 
         public void SetChecked(string name, bool state)
         {
-            //1//
+            var mi = FindName(name) as AasxMenuItem;
+            if (mi == null)
+                return;
+            mi.IsChecked = state;
         }
     }
 

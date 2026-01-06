@@ -21,12 +21,12 @@ namespace AasxIntegrationBase
         /// the interface IFlyoutControl
         /// </summary>
         /// <param name="uc"></param>
-        void StartFlyover(VisualElement uc);
+        Task StartFlyoverAsync(VisualElement uc);
 
         /// <summary>
         /// Initiate closing an existing flyout
         /// </summary>
-        void CloseFlyover(bool threadSafe = false);
+        Task CloseFlyoverAsync(bool threadSafe = false);
 
         /// <summary>
         /// Start UserControl as modal flyout. The UserControl has to implement

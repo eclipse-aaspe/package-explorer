@@ -118,12 +118,13 @@ namespace MauiTestTree
                 if (_selectedItem == value)
                     return;
                 _selectedItem = value;
+                // Trace.WriteLine($"Setter VM hash: {GetHashCode()}");
                 OnPropertyChanged();
             }
         }
         protected object? _selectedItem = null;
         
-        public ObservableCollection<object> SelectedItems = new();
+        public ObservableCollection<object> SelectedItems { get; set; } = new();
 
         public MainViewModel()
         {

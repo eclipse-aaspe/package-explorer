@@ -24,7 +24,15 @@
     <Grid RowDefinitions="Auto,*" ColumnDefinitions="*">
         
         <!-- Top row-->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+        <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="*,Auto">
+            <!-- Caption -->
+            <Label Grid.Row="0" Grid.Column="0"
+                   Text="{Binding DialogHeader}"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Center"
+                   Margin="8,8,8,16"
+                   TextColor="White" FontSize="18"/>
+
             <!-- Close -->
             <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="1"
                 VerticalOptions="Center" Margin="8"
@@ -42,15 +50,10 @@
             </Button>
         </Grid>
 
-        <Label Grid.Row="0" Grid.Column="0"
-               Text="{Binding DialogHeader}"
-               VerticalOptions="Center"
-               HorizontalOptions="Center"
-               Margin="8,8,8,16"
-               TextColor="White" FontSize="18"/>
-                
+
+        <!-- List -->
         <CollectionView x:Name="ItemsView"
-            Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+            Grid.Row="1" Grid.Column="0"
             ItemsSource="{Binding Items}"
             VerticalScrollBarVisibility="Always"
             SelectionMode="None">

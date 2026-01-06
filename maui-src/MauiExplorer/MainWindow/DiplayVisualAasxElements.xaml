@@ -80,7 +80,9 @@
         Background="White" 
         IsRootVisible="False"
         SelectionMode="Single"
-        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"                                  
+        ItemContainerStyle="{StaticResource ElementTreeStyle}"
+        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"  
+        SelectedItems="{Binding SelectedItems, Mode=TwoWay}"
         TreeItemControlTemplate="{StaticResource ElementChevronControlTemplate}"
         >
         <cz:TreeViewZero.TreeItemTemplate>

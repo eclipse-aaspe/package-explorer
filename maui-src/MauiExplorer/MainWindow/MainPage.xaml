@@ -172,6 +172,8 @@
                 AasId="{Binding AasId}" AssetId="{Binding AssetId}"/>
 
             <local:DiplayVisualAasxElements 
+                Grid.Row="1" Grid.Column="0" 
+                SelectedItemChanged="DisplayElements_SelectedItemChanged"
                 x:Name="DisplayElements"/>
         </Grid>
 
