@@ -290,6 +290,20 @@ namespace AasxPackageLogic
                     mem.ForAllDescendents(lambda);
         }
 
+        public void ForAllExpandableNotes(Action<VisualElementGeneric> lambda)
+        {
+            if (this.Members != null)
+            {
+                // only execute lambda when there are members -> isExpandable
+                if (lambda != null)
+                    lambda(this);
+
+                // .. the also recurse
+                foreach (var mem in this.Members)
+                    mem.ForAllExpandableNotes(lambda);
+            }
+        }
+
         public void CollectListOfTopLevelNodes(List<VisualElementGeneric> list)
         {
             if (list == null)

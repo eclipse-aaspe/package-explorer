@@ -3,6 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiTestTree.OrgOrAasLabel"      
              Padding="0">
+    
+    <!-- Use as drop target -->
+    <ContentView.GestureRecognizers>
+        <DropGestureRecognizer
+            AllowDrop="True"
+            DragOver="OnDragOver"
+            Drop="OnDrop" />
+    </ContentView.GestureRecognizers>
+    
     <Grid x:Name="Container"
           Margin="0" Padding="0">
 

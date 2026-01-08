@@ -4,7 +4,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+    xmlns:local="clr-namespace:MauiTestTree"
     x:Class="MauiTestTree.ContextMenuPopup"
+    x:DataType="local:ContextMenuSubstituteViewModel"
     CanBeDismissedByTappingOutsideOfPopup="True">
     
     <toolkit:Popup.BackgroundColor>

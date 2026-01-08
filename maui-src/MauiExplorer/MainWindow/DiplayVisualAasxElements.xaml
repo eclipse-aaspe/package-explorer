@@ -12,8 +12,14 @@
             x:Key="MyAnyUiColorToWpfBrushConverter" />
 
         <ControlTemplate x:Key="ElementChevronControlTemplate">
-
+            
             <HorizontalStackLayout >
+
+                <!-- Give a margin on the right side because of scroll bar ugly, else -->
+                <HorizontalStackLayout.Margin>
+                    0,0,18,0
+                </HorizontalStackLayout.Margin>
+                
                 <!--
                     The ControlTemplate sets the TreeNodeSpacer BindingContext to "{Binding Source={RelativeSource TemplatedParent}}" for us,
                     i.e. a ListItemZero.
@@ -58,7 +64,7 @@
 
                         <VisualState x:Name="Selected">
                             <VisualState.Setters>
-                                <Setter Property="BackgroundColor" Value="AliceBlue" />
+                                <Setter Property="BackgroundColor" Value="LightBlue" />
                             </VisualState.Setters>
                         </VisualState>
 
@@ -75,11 +81,11 @@
     
     <cz:TreeViewZero x:Name="MyTree"
         Grid.Row="1" Grid.Column="0" 
+        Margin="0,0,0,0"
         ItemsSource="{Binding RootNode}" 
         ItemHeight="40"     
-        Background="White" 
         IsRootVisible="False"
-        SelectionMode="Single"
+        SelectionMode="{Binding MultiSelectMode}"
         ItemContainerStyle="{StaticResource ElementTreeStyle}"
         SelectedItem="{Binding SelectedItem, Mode=TwoWay}"  
         SelectedItems="{Binding SelectedItems, Mode=TwoWay}"
@@ -105,7 +111,6 @@
                             </Grid>
                         </Grid>
                     </Border>
-
                 </DataTemplate>
             </cz:TreeItemDataTemplate>
         </cz:TreeViewZero.TreeItemTemplate>

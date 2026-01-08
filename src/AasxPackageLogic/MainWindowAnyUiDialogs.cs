@@ -151,12 +151,12 @@ namespace AasxPackageLogic
                 switch (cmd)
                 {
                     case "open":
-                        MainWindow.UiLoadPackageWithNew(
+                        await MainWindow.UiLoadPackageWithNew(
                             PackageCentral.MainItem, null, fn, onlyAuxiliary: false,
                             storeFnToLRU: fn, nextEditMode: Options.Curr.EditMode);
                         break;
                     case "openaux":
-                        MainWindow.UiLoadPackageWithNew(
+                        await MainWindow.UiLoadPackageWithNew(
                             PackageCentral.AuxItem, null, fn, onlyAuxiliary: true);
                         break;
                     default:

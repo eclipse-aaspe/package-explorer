@@ -8,8 +8,6 @@ using AasxPackageLogic;
 using AdminShellNS;
 using AasxPackageLogic.PackageCentral;
 
-
-
 #if WINDOWS
 using Windows.System;
 using Microsoft.UI.Input;

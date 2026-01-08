@@ -331,7 +331,9 @@ namespace MauiTestTree
         public double GetFontSizeFromRelative(double rel)
         {
             // TODO
+#pragma warning disable CS0612 // Typ oder Element ist veraltet
             var normalSize = Device.GetNamedSize(NamedSize.Medium, typeof(Label));
+#pragma warning restore CS0612 // Typ oder Element ist veraltet
             return normalSize * rel;
         }
 
@@ -1946,9 +1948,6 @@ namespace MauiTestTree
                 dd.MauiElement = (VisualElement?)Activator.CreateInstance(mauiType);
             if (dd.MauiElement == null)
                 return null;
-
-            if (el?.GetType() == typeof(AnyUiButton))
-                Trace.WriteLine("*");
 
             // recurse (first) in the base types ..
             var bt = searchType!.BaseType;

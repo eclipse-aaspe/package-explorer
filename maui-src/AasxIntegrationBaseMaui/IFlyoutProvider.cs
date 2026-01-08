@@ -71,5 +71,6 @@ namespace AasxIntegrationBase
         /// Gets the display context, e.g. to use UI-abstracted forms of dialogues
         /// </summary>
         AnyUiContextBase GetDisplayContext();
+
     }
 }
