@@ -92,10 +92,31 @@ namespace MauiTestTree
         
         public AasxMenu MainMenu = AasxPackageExplorer.ExplorerMenuFactory.CreateMainMenu();
 
-        public string LogLine { get; set; } = "Ready.";
-        public Color LogFg { get; set; } = Colors.Black;
-        public Color LogBg { get; set; } = XamlHelpers.GetDynamicRessource("Gray100", defValue: Colors.LightGray);
-        public FontWeight LogFontWeight { get; set; } = FontWeight.Regular;
+        public string LogLine { 
+            get => _logline; 
+            set { if (_logline == value) return; _logline = value; OnPropertyChanged(); }
+        } 
+        protected string _logline = "Ready.";
+
+        public Color LogFg
+        {
+            get => _logFg;
+            set { if (_logFg == value) return; _logFg = value; OnPropertyChanged(); }
+        }
+        protected Color _logFg = Colors.Black;
+        
+        public Color LogBg
+        {
+            get => _logBg;
+            set { if (_logBg == value) return; _logBg = value; OnPropertyChanged(); }
+        }
+        protected Color _logBg = XamlHelpers.GetDynamicRessource("Gray100", defValue: Colors.LightGray);
+        
+        public FontWeight LogFontWeight { 
+            get => _logFontWeight;
+            set { if (_logFontWeight == value) return; _logFontWeight = value; OnPropertyChanged(); }
+        }
+        protected FontWeight _logFontWeight = FontWeight.Regular;
 
         //
         // To be modified

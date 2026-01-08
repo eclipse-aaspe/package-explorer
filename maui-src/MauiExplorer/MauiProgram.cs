@@ -3,6 +3,7 @@ using System.Reflection;
 using Microsoft.Extensions.Logging;
 using UraniumUI;
 using CommunityToolkit.Maui;
+using AasxPackageLogic;
 
 namespace MauiTestTree
 {
@@ -49,7 +50,60 @@ namespace MauiTestTree
     		builder.Logging.AddDebug();
 #endif
 
+            // catch global exceptions
+            SetupExceptionHandling();
+
             return builder.Build();
+        }
+
+        //
+        // utility code
+        //
+
+        // see: https://stackoverflow.com/questions/793100/globally-catch-exceptions-in-a-wpf-application
+        // modified with ChatGPT. In a nutshell: will not catch all, e.g. UI excpetions. Need to be handled
+        // more locally.
+
+        private static void SetupExceptionHandling()
+        {
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            {
+                if (e.ExceptionObject is Exception ex)
+                    LogUnhandledException(ex, "AppDomain");
+            };
+
+            TaskScheduler.UnobservedTaskException += (s, e) =>
+            {
+                LogUnhandledException(e.Exception, "TaskScheduler");
+                e.SetObserved();
+            };
+
+#if WINDOWS
+            Microsoft.UI.Xaml.Application.Current.UnhandledException += (s, e) =>
+            {
+                LogUnhandledException(e.Exception, "WinUI");
+                e.Handled = true;
+            };
+#endif
+        }
+
+        private static void LogUnhandledException(Exception exception, string source)
+        {
+            string message = $"Unhandled exception ({source})";
+            try
+            {
+                System.Reflection.AssemblyName assemblyName =
+                    System.Reflection.Assembly.GetExecutingAssembly().GetName();
+                message = string.Format("Unhandled exception in {0} v{1}", assemblyName.Name, assemblyName.Version);
+            }
+            catch (Exception ex)
+            {
+                AasxPackageLogic.Log.Singleton.Error(ex, "Exception in LogUnhandledException");
+            }
+            finally
+            {
+                Log.Singleton.Error(exception, message);
+            }
         }
     }
 }

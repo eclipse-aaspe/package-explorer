@@ -89,7 +89,7 @@
             Wrap="Wrap"
             Direction="Row">
             <BindableLayout.ItemTemplate>
-                <DataTemplate x:DataType="local:MessageBoxFlyoutViewModel.ModalFooterButton">
+                <DataTemplate x:DataType="local:ModalFooterButton">
                     <!-- Content view, because else right margin of Button is clipped ! -->
                     <ContentView Padding="4"> 
                         <Button Margin="2" Padding="8" 

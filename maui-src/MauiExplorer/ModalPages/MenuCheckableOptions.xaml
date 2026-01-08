@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
              xmlns:cz="clr-namespace:FunctionZero.Maui.Controls;assembly=FunctionZero.Maui.Controls"
+             xmlns:ibase="clr-namespace:AasxIntegrationBase;assembly=AasxIntegrationBase"
              xmlns:local="clr-namespace:MauiTestTree"
              x:Class="MauiTestTree.MenuCheckableOptions"
              x:DataType="local:MenuCheckableOptionsViewModel"
@@ -60,7 +61,7 @@
             SelectionMode="None">
 
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="ibase:AasxMenuItem">
                     <Grid>
                         <!-- Full card -->
                         <Grid
