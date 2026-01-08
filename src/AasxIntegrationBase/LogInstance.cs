@@ -9,6 +9,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -61,10 +62,10 @@ namespace AasxIntegrationBase
             Status
         }
 
-        public MessageTypeEnum MessageType;
-        public Color color = Color.Black;
-        public bool isError = false;
-        public string msg = "";
+        public MessageTypeEnum MessageType { get; set; }
+        public Color color { get; set; } = Color.Black;
+        public bool isError { get; set; } = false;
+        public string msg { get; set; } = "";
         public string linkTxt = null;
         public string linkUri = null;
         public string stackTrace = null;
@@ -136,7 +137,7 @@ namespace AasxIntegrationBase
     public class StoredPrintsMinimalStore
     {
         // private members
-        private List<StoredPrint> StoredPrints = new List<StoredPrint>();
+        private ObservableCollection<StoredPrint> StoredPrints = new();
 
         /// <summary>
         /// Pop the oldest messages as string.
@@ -153,6 +154,8 @@ namespace AasxIntegrationBase
                 return sp;
             }
         }
+
+        public ObservableCollection<StoredPrint> GetDirectLink() => StoredPrints;
 
         /// <summary>
         /// Get all stored prints. Does not clear the buffer.
@@ -217,6 +220,15 @@ namespace AasxIntegrationBase
         public StoredPrint PopLastShortTermPrint()
         {
             return shortTermStore?.PopLastStoredPrint();
+        }
+
+        /// <summary>
+        /// Get direct link to the observable collection of the prints
+        /// </summary>
+        /// <returns></returns>
+        public ObservableCollection<StoredPrint> GetDirectLongTermPrints()
+        {
+            return longTermStore?.GetDirectLink();
         }
 
         /// <summary>

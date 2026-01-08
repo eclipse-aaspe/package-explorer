@@ -18,51 +18,6 @@
 
         <local:InverseBoolConverter
             x:Key="MyInverseBoolConverter" />
-
-        <ControlTemplate x:Key="MenuPickerItemControlTemplate">
-            <Grid ColumnDefinitions="Auto, *" x:DataType="{x:Null}" >
-                <cz:TreeNodeSpacer />
-                <local:TreeElemChevron Grid.Column="0"
-                    Margin="10"
-                    Glyph="&#xf04b;|FASolid|#000000"
-                    IsExpanded="{TemplateBinding BindingContext.IsExpanded, Mode=TwoWay}" 
-                    ShowChevron="{TemplateBinding BindingContext.ShowChevron, Mode=TwoWay}" />
-                <cz:TreeContentPresenter  Grid.Column="1"
-                    VerticalOptions="Fill" 
-                    HorizontalOptions="Fill"   
-                    BindingContext="{TemplateBinding BindingContext.Data, Mode=OneWay}" />
-            </Grid>
-        </ControlTemplate>
-
-        <Style x:Key="MenuPickerItemStyle" TargetType="cz:ListItemZero">
-            <Setter Property="VisualStateManager.VisualStateGroups" >
-                <VisualStateGroupList>
-                    <VisualStateGroup x:Name="CommonStates">
-
-                        <!-- BackgroundColor must have a value set or the other states cannot 'put back' the original color -->
-                        <!-- I *think* this is due to a bug in MAUI because unappyling a Setter ought to revert to the original value or default -->
-                        <VisualState x:Name="Normal" >
-                            <VisualState.Setters>
-                                <Setter Property="BackgroundColor" Value="Transparent" />
-                            </VisualState.Setters>
-                        </VisualState>
-
-                        <VisualState x:Name="ItemFocused">
-                            <VisualState.Setters>
-                                <Setter Property="BackgroundColor" Value="DarkGray" />
-                            </VisualState.Setters>
-                        </VisualState>
-
-                        <VisualState x:Name="Selected">
-                            <VisualState.Setters>
-                                <Setter Property="BackgroundColor" Value="AliceBlue" />
-                            </VisualState.Setters>
-                        </VisualState>
-
-                    </VisualStateGroup>
-                </VisualStateGroupList>
-            </Setter>
-        </Style>
     </ContentPage.Resources>
 
     <Grid RowDefinitions="1*,8*, 1*" ColumnDefinitions="*">
@@ -91,53 +46,6 @@
                VerticalOptions="Center"
                HorizontalOptions="Center"
                TextColor="White" FontSize="18"/>
-        
-        <!-- Middle row: Grid -->
-        <!--
-        <cz:TreeViewZero x:Name="MyTree" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
-            ItemsSource="{Binding RootItem}" 
-            ItemHeight="40" 
-            Background="White" 
-            IsRootVisible="False"
-            SelectionMode="Single"
-            SelectedItem="{Binding SelectedItem}"                                  
-            TreeItemControlTemplate="{StaticResource MenuPickerItemControlTemplate}"
-            ItemContainerStyle="{StaticResource MenuPickerItemStyle}">
-            <cz:TreeViewZero.TreeItemTemplate>
-                <cz:TreeItemDataTemplate ChildrenPropertyName="Children" IsExpandedPropertyName="IsExpanded">
-                    <DataTemplate>
-                        <Grid ColumnDefinitions="*">
-
-                            <Grid Grid.Row="0" Grid.Column="0"
-                                  IsVisible="True"
-                                  Margin="8,8,8,8"
-                                  RowDefinitions="Auto, Auto"
-                                  HorizontalOptions="Start">
-                                <Label Grid.Row="0" 
-                                       Text="{Binding Header}" FontSize="16" TextColor="Black" 
-                                       Margin="0,0,0,4"
-                                       HorizontalOptions="Start"/>
-                                <Label Grid.Row="1" 
-                                       Text="{Binding HelpText}" FontSize="12" FontAttributes="Italic" TextColor="DarkGray" 
-                                       LineBreakMode="WordWrap" 
-                                       Margin="0,0,0,4"
-                                       HorizontalOptions="Center"/>
-                            </Grid>
-
-                            <Label Grid.Row="0" Grid.Column="0" 
-                                IsVisible="False"
-                                Margin="0" 
-                                Text="{Binding Header}" 
-                                TextColor="Black" 
-                                VerticalTextAlignment="Center" />
-
-                            <Label Grid.Column="1" Margin="4,0,0,0" Text="{Binding HelpText}" TextColor="Red" VerticalTextAlignment="Center" />
-                        </Grid>
-                    </DataTemplate>
-                </cz:TreeItemDataTemplate>
-            </cz:TreeViewZero.TreeItemTemplate>
-        </cz:TreeViewZero>
-        -->
 
         <CollectionView x:Name="ItemsView"
             Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"

@@ -238,9 +238,11 @@
                 Glyph="{x:Static m:MaterialOutlined.Ink_eraser}" />
 
             <local:NavIconButton
+                x:Name="ReportButton"
                 Grid.Row="0" Grid.Column="2"
                 Margin="2"
-                Glyph="{x:Static m:MaterialOutlined.Notes}" />
+                Glyph="{x:Static m:MaterialOutlined.Notes}"
+                Clicked="ReportControls_Click"/>
         </Grid>
     </Grid>
 

@@ -115,6 +115,9 @@
 	  <Compile Update="CustomControls\TreeElemChevron.xaml.cs">
 	    <DependentUpon>TreeElemChevron.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="ModalPages\MessageReportPage.xaml.cs">
+	    <DependentUpon>MessageReportPage.xaml</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -160,7 +163,13 @@
 	  <MauiXaml Update="ModalPages\ContextMenuSubstitute.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="ModalPages\LoadingPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="ModalPages\MenuCheckableOptions.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="ModalPages\MessageReportPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="ModalPages\MenuPickerPage.xaml">
