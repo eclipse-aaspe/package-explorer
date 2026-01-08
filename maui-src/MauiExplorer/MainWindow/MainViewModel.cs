@@ -126,6 +126,22 @@ namespace MauiTestTree
         
         public ObservableCollection<object> SelectedItems { get; set; } = new();
 
+        public bool MultiSelectOn
+        {
+            get => _multiSelectOn;
+            set
+            {
+                if (_multiSelectOn == value)
+                    return;
+                _multiSelectOn = value;
+                OnPropertyChanged();
+                OnPropertyChanged(name: nameof(MultiSelectMode));
+            }
+        }
+        protected bool _multiSelectOn = false;
+
+        public SelectionMode MultiSelectMode { get => _multiSelectOn ? SelectionMode.Multiple : SelectionMode.Single; }
+
         public MainViewModel()
         {
 #if old

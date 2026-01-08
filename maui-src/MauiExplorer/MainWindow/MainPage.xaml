@@ -6,6 +6,7 @@
              xmlns:cz="clr-namespace:FunctionZero.Maui.Controls;assembly=FunctionZero.Maui.Controls"
              xmlns:local="clr-namespace:MauiTestTree"
              x:Class="MauiTestTree.MainPage"
+             x:DataType="local:MainViewModel"
              x:Name="RootOfPage"
              Title="My2App">
 
@@ -51,7 +52,8 @@
                 Grid.Row="0" Grid.Column="0" 
                 IsVisible="{Binding IsScreenIdiomDesktop, Converter={StaticResource MyInverseBoolConverter}}"
                 WidthRequest="{Binding ScreenIdiom, Converter={StaticResource MyEnumToIntParamterizedConverter}, ConverterParameter=220|180|140}" 
-                AasId="{Binding AasId}" AssetId="{Binding AssetId}"/>
+                AasId="{Binding AasId}" AssetId="{Binding AssetId}"
+                FileDropReceived="Window_Drop"/>
 
             <!-- Just a foreach-loop over the given items -->
             <!-- Note: For phones this should be empty! -->
@@ -160,19 +162,38 @@
          and a divider (between). -->
     <Grid x:Name="MainGrid" ColumnDefinitions="300,8,*" RowDefinitions="*,24">
         <!-- Left Panel -->
-        <Grid RowDefinitions="Auto, *"
-            x:Name="LeftContent"
+        <Grid RowDefinitions="Auto, Auto, *" ColumnDefinitions="*"
+            x:Name="LeftContent" 
             Grid.Row="0" Grid.Column="0">
 
+            <!-- Right margin rage because of scrollbor of tree -->
             <local:OrgOrAasLabel 
                 Grid.Row="0" Grid.Column="0" 
                 MaximumHeightRequest="72"
-                Margin="8,8,8,8"
+                Margin="8,8,18,8"
                 IsVisible="{Binding IsScreenIdiomDesktop}"
-                AasId="{Binding AasId}" AssetId="{Binding AssetId}"/>
+                AasId="{Binding AasId}" AssetId="{Binding AssetId}"
+                FileDropReceived="Window_Drop"/>
+
+            <Grid Grid.Row="1" Grid.Column="0" 
+                  ColumnDefinitions="Auto, Auto">
+
+                <Switch Grid.Row="0" Grid.Column="0" 
+                        Margin="10,0,0,0"
+                        HorizontalOptions="Start" WidthRequest="56" MaximumWidthRequest="56"
+                        OnColor="{StaticResource PrimaryLight}"
+                        ThumbColor="{StaticResource Primary}"
+                        IsToggled="{Binding MultiSelectOn}"/>
+
+                <Label Grid.Row="0" Grid.Column="1" 
+                       VerticalOptions="Center"
+                       Margin="-100,0,0,0"
+                       Text="Multi select" />
+
+            </Grid>
 
             <local:DiplayVisualAasxElements 
-                Grid.Row="1" Grid.Column="0" 
+                Grid.Row="2" Grid.Column="0" 
                 SelectedItemChanged="DisplayElements_SelectedItemChanged"
                 x:Name="DisplayElements"/>
         </Grid>

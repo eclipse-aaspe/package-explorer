@@ -20,7 +20,31 @@ public partial class DiplayVisualAasxElements : ContentView, IDisplayElements
         Loaded += (_,_) => {
             // as working with binding, subscribing to the view model
             // Trace.WriteLine($"VM hash: {_viewModel.GetHashCode()}");
-            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+            // _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+
+            _viewModel.SelectedItems.CollectionChanged += (s,e) =>
+            {
+                _cts?.Cancel();
+                _cts = new CancellationTokenSource();
+                var token = _cts.Token;
+
+                Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(10), () =>
+                {
+                    if (token.IsCancellationRequested)
+                        return;
+
+                    // HandleSelection(_viewModel.SelectedItems.ToList());
+
+                    _stabilizedSelectedItems = new();
+                    if (_viewModel.SelectedItems != null)
+                        foreach (var si in _viewModel.SelectedItems)
+                            if (si is FunctionZero.TreeListItemsSourceZero.TreeNodeContainer<object> tnc
+                                && tnc.Data is VisualElementGeneric veg)
+                                _stabilizedSelectedItems.Add(veg);
+
+                    FireSelectedItem();
+                });
+            };
         };
     }
 
@@ -37,6 +61,9 @@ public partial class DiplayVisualAasxElements : ContentView, IDisplayElements
     private bool _lastEditMode = false;
 
     protected MainViewModel _viewModel { get => BindingContext as MainViewModel ?? new MainViewModel();  }
+
+    protected CancellationTokenSource? _cts;
+    protected ListOfVisualElementBasic _stabilizedSelectedItems = new();
 
     /// <summary>
     /// Peeks through the view model and the (artificial) root elements directly to the members representing
@@ -59,17 +86,32 @@ public partial class DiplayVisualAasxElements : ContentView, IDisplayElements
     /// All selected items in the tree.
     /// Generates on the fly the required types from the view model.
     /// </summary>
-    public ListOfVisualElementBasic? SelectedItems {
-        get {
-            ListOfVisualElementBasic res = new();
-            if (_viewModel.SelectedItems != null)
-                foreach (var si in _viewModel.SelectedItems)
-                    if (si is FunctionZero.TreeListItemsSourceZero.TreeNodeContainer<object> tnc
-                        && tnc.Data is VisualElementGeneric veg)
-                        res.Add(veg);
-            return res;
-        }
+    public ListOfVisualElementBasic? SelectedItems
+    {
+        get => _stabilizedSelectedItems;
     }
+
+    /// <summary>
+    /// All selected items in the tree.
+    /// Generates on the fly the required types from the view model.
+    /// </summary>
+    //public ListOfVisualElementBasic? SelectedItems {
+    //    get {
+    //        // first look at the list of all selected items
+    //        ListOfVisualElementBasic res = new();
+    //        if (_viewModel.SelectedItems != null)
+    //            foreach (var si in _viewModel.SelectedItems)
+    //                if (si is FunctionZero.TreeListItemsSourceZero.TreeNodeContainer<object> tnc
+    //                    && tnc.Data is VisualElementGeneric veg)
+    //                    res.Add(veg);
+
+    //        // the currently selected items may or may not add to it
+    //        // or (if selection mode = single), may be the only item
+    //        if (!res.Contains(SelectedItem))
+    //            res.Add(SelectedItem);
+    //        return res;
+    //    }
+    //}
 
     /// <summary>
     /// All selected items in the tree.
@@ -105,12 +147,73 @@ public partial class DiplayVisualAasxElements : ContentView, IDisplayElements
         lambda.Invoke();
     }
 
-    private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    //private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    //{
+    //    if (e.PropertyName == nameof(MainViewModel.SelectedItem))
+    //        FireSelectedItem();
+    //}
+
+
+    //
+    // Expansion management
+    //
+
+    private void TreeViewInner_Expanded(VisualElementGeneric ve)
     {
-        if (e.PropertyName == nameof(MainViewModel.SelectedItem))
-            FireSelectedItem();
+        // access and check
+        if (ve == null)
+            return;
+
+        // select (but no callback!)
+        SelectSingleVisualElement(ve, preventFireItem: true);
+
+        // need lazy loading?
+        if (!ve.NeedsLazyLoading)
+            return;
+
+        // try execute, may take some time
+        // TODO (MIHO, 2ß26-01-08): Check change the mouse cursor here
+        try
+        {
+            displayedTreeViewLines?.ExecuteLazyLoading(ve, forceExpanded: true);
+        }
+        finally
+        {
+            // potentially change mouse cursor back
+        }
     }
 
+    /// <summary>
+    /// Tries to expand all items, which aren't currently yet, e.g. because of lazy loading.
+    /// Is found to be a valid pre-requisite in case of lazy loading for 
+    /// <c>SearchVisualElementOnMainDataObject</c>.
+    /// Potentially a expensive operation.
+    /// </summary>
+    public void ExpandAllItems()
+    {
+        if (displayedTreeViewLines == null)
+            return;
+
+        // try execute, may take some time
+        // TODO (MIHO, 2ß26-01-08): Check change the mouse cursor here
+        try
+        {
+            // search (materialized)
+            var candidates = FindAllVisualElement((ve) => ve.NeedsLazyLoading).ToList();
+
+            // susequently approach
+            foreach (var ve in candidates)
+                displayedTreeViewLines.ExecuteLazyLoading(ve);
+        }
+        catch (Exception ex)
+        {
+            Log.Singleton.Error(ex, "when expanding all visual AASX elements");
+        }
+        finally
+        {
+            // potentially change mouse cursor back
+        }
+    }
 
     //
     // Element View Drawing
@@ -133,6 +236,48 @@ public partial class DiplayVisualAasxElements : ContentView, IDisplayElements
         // Last resort (kinda OK, because only small number of top-most nodes)
         while (_viewModel.RootNode.Members.Count > 0)
             _viewModel.RootNode.Members.RemoveAt(_viewModel.RootNode.Members.Count - 1);
+    }
+
+    protected VisualElementGeneric? _lastExpandedChangedElem = null;
+    protected DateTime _lastExpandedChangedTime = default(DateTime);
+
+    protected void MonitorAllExpandableNodes()
+    {
+        if (displayedTreeViewLines != null)
+            foreach (var ve in displayedTreeViewLines.FindAllVisualElementTop())
+                ve.ForAllExpandableNotes((veg) => {
+                    veg.PropertyChanged += (s, e) =>
+                    {
+                        if (e.PropertyName == nameof(VisualElementGeneric.IsExpanded))
+                        {
+                            var item = (VisualElementGeneric)s!;
+
+                            Dispatcher.Dispatch(() =>
+                            {
+                                var node = item;
+
+                                if (node == _lastExpandedChangedElem 
+                                    && (DateTime.UtcNow - _lastExpandedChangedTime).TotalMilliseconds < 50)
+                                {
+                                    return;
+                                }
+
+                                // ok, register new
+                                _lastExpandedChangedElem = node;
+                                _lastExpandedChangedTime = DateTime.UtcNow;
+
+                                // 'emulate' evend
+                                if (ve.IsExpanded)
+                                    TreeViewInner_Expanded(node);
+
+                                // Trace.WriteLine("NOW!");
+                                // OnNodeExpandedChanged(node, node.IsExpanded);
+                            });
+
+                            // OnNodeExpandedChanged(item, item.IsExpanded);
+                        }
+                    };
+                });
     }
 
     public void RebuildAasxElements(
@@ -208,24 +353,9 @@ public partial class DiplayVisualAasxElements : ContentView, IDisplayElements
 
             // SelectSingleVisualElement(displayedTreeViewLines[0]);
         }
-    }
 
-    public void ExpandAllItems()
-    {
-        // try execute, may take some time
-        try
-        {
-            // search (materialized)
-            var candidates = FindAllVisualElement((ve) => ve.NeedsLazyLoading).ToList();
-
-            // susequently approach
-            foreach (var ve in candidates)
-                displayedTreeViewLines.ExecuteLazyLoading(ve);
-        }
-        catch (Exception ex)
-        {
-            Log.Singleton.Error(ex, "when expanding all visual AASX elements");
-        }
+        // start monitoring expansions
+        MonitorAllExpandableNodes();
     }
 
     protected ListOfVisualElementBasic TranslateMainDataObjectsToVisualElements(IEnumerable<object> mainObjects)

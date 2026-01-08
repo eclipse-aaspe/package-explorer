@@ -3,8 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
              xmlns:cz="clr-namespace:FunctionZero.Maui.Controls;assembly=FunctionZero.Maui.Controls"
-             x:Class="MauiTestTree.MessageBoxFlyoutPage"
              xmlns:local="clr-namespace:MauiTestTree"
+             x:Class="MauiTestTree.MessageBoxFlyoutPage"
+             x:DataType="local:MessageBoxFlyoutViewModel"
              Title="Pick an option"
              Background="{StaticResource Backstage_Background}">
 
@@ -88,7 +89,7 @@
             Wrap="Wrap"
             Direction="Row">
             <BindableLayout.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="local:MessageBoxFlyoutViewModel.ModalFooterButton">
                     <!-- Content view, because else right margin of Button is clipped ! -->
                     <ContentView Padding="4"> 
                         <Button Margin="2" Padding="8" 

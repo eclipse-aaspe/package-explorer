@@ -86,5 +86,52 @@ namespace MauiTestTree
             }
         }
 
+        //
+        // Drop handling
+        //
+
+        // Forwarded drop event (containing only file pathes)
+        public event EventHandler<IReadOnlyList<string>>? FileDropReceived;
+
+        protected List<string> _draggedFilePathes = new();
+
+        private async void OnDragOver(object sender, DragEventArgs e)
+        {
+            // see: https://www.youtube.com/watch?v=x6ku0V44GFc
+            // https://github.com/YBTopaz8/DragAndDropMAUISample
+
+            _draggedFilePathes = new();
+
+#if WINDOWS
+            var WindowsDragEventArgs = e.PlatformArgs?.DragEventArgs;
+
+            if (WindowsDragEventArgs == null)
+                return;
+
+            var DraggedOverItems = await WindowsDragEventArgs.DataView.GetStorageItemsAsync();
+            e.AcceptedOperation = DataPackageOperation.None;
+
+            if (DraggedOverItems.Count > 0)
+            {
+                foreach (var item in DraggedOverItems)
+                {
+                    if (item is Windows.Storage.StorageFile file)
+                    {
+                        _draggedFilePathes.Add(file.Path);
+                    }
+                }
+            }
+#endif
+
+            // Accept only files: not possible in .NET MAUI 9
+            e.AcceptedOperation = DataPackageOperation.Copy;
+        }
+
+        private async void OnDrop(object sender, DropEventArgs e)
+        {
+            await Task.Yield();
+
+            FileDropReceived?.Invoke(this, _draggedFilePathes);
+        }
     }
 }

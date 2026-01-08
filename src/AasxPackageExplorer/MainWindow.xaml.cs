@@ -729,6 +729,14 @@ namespace AasxPackageExplorer
                 hightlightField: hightlightField,
                 superMenu: DynamicMenu.Menu);
 
+            // TODO (MIHO, 2026-01-07): check, if clearing the display would make sense for WPF, as well
+            if (renderHints == null || renderHints.showDataPanel == false)
+            {
+#if TO_CHECK
+                DispEditEntityPanel.ClearDisplayDefaultStack();
+#endif
+            }
+
             // panels
             var panelHeight = 48;
             if (renderHints != null && renderHints.showDataPanel == false)

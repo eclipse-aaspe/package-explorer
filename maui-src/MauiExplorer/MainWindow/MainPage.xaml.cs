@@ -724,7 +724,7 @@ namespace MauiTestTree
             DisplayElements.RebuildAasxElements(
                 //                                            TODO!!
                 PackageCentral, PackageCentral.Selector.Main, true || _viewModel.MainMenu?.IsChecked("EditMenu") == true,
-                lazyLoadingFirst: true);
+                lazyLoadingFirst: false /* TODO */);
 
             // ok .. try re-focus!!
             if (keepFocus)
@@ -1164,6 +1164,12 @@ namespace MauiTestTree
                     appEventProvider: this,
                     hightlightField: hightlightField,
                     superMenu: DynamicMenu.Menu);
+
+            // especially in MAUI: keep the display panel clean, if no rendering was done
+            if (renderHints == null || renderHints.showDataPanel == false)
+            {
+                DispEditEntityPanel.ClearDisplayDefaultStack();
+            }
 
             // panels
             var panelHeight = 48;
@@ -2475,7 +2481,7 @@ namespace MauiTestTree
             // rebuild display elements
             DisplayElements.RebuildAasxElements(
                 PackageCentral, PackageCentral.Selector.Main, _viewModel.MainMenu?.IsChecked("EditMenu") == true,
-                lazyLoadingFirst: true);
+                lazyLoadingFirst: false /* TODO */);
 
             var newIdf = foundIdfs.FirstOrDefault();
 
@@ -3821,6 +3827,9 @@ namespace MauiTestTree
         private async void DisplayElements_SelectedItemChanged(object sender, EventArgs e)
         {
             // access
+            //var x = DisplayElements.SelectedItems?.ToList();
+            //return;
+
             if (DisplayElements == null || sender != DisplayElements)
                 return;
 
@@ -4567,32 +4576,26 @@ namespace MauiTestTree
             //1// }
         }
 
-        private async void Window_Drop(object sender, DragEventArgs e)
+        protected async void Window_Drop(object sender, IReadOnlyList<string> files)
         {
             await Task.Yield();
-            //1// // Appearantly you need to figure out if OriginalSource would have handled the Drop?
-            //1// if (!e.Handled && e.Data.GetDataPresent(DataFormats.FileDrop, true))
-            //1// {
-            //1//     // Note that you can have more than one file.
-            //1//     string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            //1// 
-            //1//     // Assuming you have one file that you care about, pass it off to whatever
-            //1//     // handling code you have defined.
-            //1//     if (files != null && files.Length > 0)
-            //1//     {
-            //1//         string fn = files[0];
-            //1//         try
-            //1//         {
-            //1//             await UiLoadPackageWithNew(
-            //1//                 PackageCentral.MainItem, null, loadLocalFilename: fn, onlyAuxiliary: false,
-            //1//                 nextEditMode: Options.Curr.EditMode);
-            //1//         }
-            //1//         catch (Exception ex)
-            //1//         {
-            //1//             Log.Singleton.Error(ex, $"while receiving file drop to window");
-            //1//         }
-            //1//     }
-            //1// }
+
+            // access
+            if (files == null || files.Count < 1)
+                return;
+
+            // simply try load
+            string fn = files[0];
+            try
+            {
+                await UiLoadPackageWithNew(
+                    PackageCentral.MainItem, null, loadLocalFilename: fn, onlyAuxiliary: false,
+                    nextEditMode: Options.Curr.EditMode);
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(ex, $"while receiving file drop to window");
+            }                       
         }
 
         private bool isDragging = false;
@@ -4980,7 +4983,7 @@ namespace MauiTestTree
         public void AddWishForToplevelAction(AnyUiLambdaActionBase action)
         {
             DispEditEntityPanel.AddWishForOutsideAction(action);
-        }
+        }        
 
         private async void Button_Click(object sender, EventArgs e)
         {
