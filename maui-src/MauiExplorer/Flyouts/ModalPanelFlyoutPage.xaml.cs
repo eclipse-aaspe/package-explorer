@@ -85,7 +85,7 @@ public partial class ModalPanelFlyoutPage : ContentPage, IFlyoutControl
                 {
                     if (mauiButton.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.Button nativeButton)
                     {
-                        if (mauiButton.BindingContext is MessageBoxFlyoutViewModel.ModalFooterButton mfb)
+                        if (mauiButton.BindingContext is ModalFooterButton mfb)
                         {
                             // Ok or Yes
                             if (mfb.FinalResult == AnyUiMessageBoxResult.OK || mfb.FinalResult == AnyUiMessageBoxResult.Yes)
@@ -154,7 +154,7 @@ public partial class ModalPanelFlyoutPage : ContentPage, IFlyoutControl
     private async void OnInnerButtonClicked(object sender, EventArgs e)
     {
         await Task.Yield();
-        if (sender is Button btn && btn.BindingContext is MessageBoxFlyoutViewModel.ModalFooterButton mfb)
+        if (sender is Button btn && btn.BindingContext is ModalFooterButton mfb)
         {
             DiaData.Result = true;
             DiaData.ResultButton = mfb.FinalResult;

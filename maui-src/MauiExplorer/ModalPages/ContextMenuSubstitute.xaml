@@ -47,7 +47,7 @@
             SelectionMode="None">
 
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="local:ContextMenuSubstituteMenuItem">
                     <Grid>
                         <!-- Full card -->
                         <Grid

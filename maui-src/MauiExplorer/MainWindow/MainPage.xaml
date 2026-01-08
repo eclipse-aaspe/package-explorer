@@ -64,7 +64,7 @@
                 Margin="20,0,0,0" Spacing="8"
                 BindableLayout.ItemsSource="{Binding MobileTopRootMenuHandles}">
                 <BindableLayout.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="{x:Null}">
                         <Button Clicked="OnTitleViewButton_Clicked"
                                 Text="{Binding .}" 
                                 Margin="0"

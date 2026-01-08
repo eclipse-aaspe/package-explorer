@@ -11,6 +11,36 @@ using Windows.System;
 
 namespace MauiTestTree;
 
+/// <summary>
+/// Single description of a button in a modal dialogue
+/// </summary>
+public class ModalFooterButton
+{
+    /// <summary>
+    /// Title of the button to display
+    /// </summary>
+    public string Title { get; set; } = "";
+
+    /// <summary>
+    /// Indicate the "hero" button
+    /// </summary>
+    public bool Primary { get; set; } = false;
+
+    /// <summary>
+    /// Result this very button shall trigger
+    /// </summary>
+    public AnyUiMessageBoxResult FinalResult = new AnyUiMessageBoxResult();
+
+    public ModalFooterButton() { }
+
+    public ModalFooterButton(string title, AnyUiMessageBoxResult result, bool primary = false)
+    {
+        Title = title;
+        FinalResult = result;
+        Primary = primary;
+    }
+}
+
 public class MessageBoxFlyoutViewModel
 {
     public AnyUiMessageBoxImage Symbol { get; set; }
@@ -19,35 +49,6 @@ public class MessageBoxFlyoutViewModel
 
     public ModalFooterButtonLayout Layout { get; set; } = new();
 
-    /// <summary>
-    /// Single description of a button in a modal dialogue
-    /// </summary>
-    public class ModalFooterButton
-    {
-        /// <summary>
-        /// Title of the button to display
-        /// </summary>
-        public string Title { get; set; } = "";
-
-        /// <summary>
-        /// Indicate the "hero" button
-        /// </summary>
-        public bool Primary { get; set; } = false;
-
-        /// <summary>
-        /// Result this very button shall trigger
-        /// </summary>
-        public AnyUiMessageBoxResult FinalResult = new AnyUiMessageBoxResult();
-
-        public ModalFooterButton() { }
-
-        public ModalFooterButton(string title, AnyUiMessageBoxResult result, bool primary = false)
-        {
-            Title = title;
-            FinalResult = result;
-            Primary = primary;
-        }
-    }
 
     /// <summary>
     /// Layout of all buttons in a modal dialogue
@@ -150,7 +151,7 @@ public partial class MessageBoxFlyoutPage : ContentPage, IFlyoutControl
                     {
                         Windows.System.VirtualKey? vk = null;
 
-                        if (mauiButton.BindingContext is MessageBoxFlyoutViewModel.ModalFooterButton mfb)
+                        if (mauiButton.BindingContext is ModalFooterButton mfb)
                         {
                             if (mfb.FinalResult == AnyUiMessageBoxResult.OK)
                                 vk = VirtualKey.O;
@@ -219,7 +220,7 @@ public partial class MessageBoxFlyoutPage : ContentPage, IFlyoutControl
     private async void OnInnerButtonClicked(object sender, EventArgs e)
     {
         await Task.Yield();
-        if (sender is Button btn && btn.BindingContext is MessageBoxFlyoutViewModel.ModalFooterButton mfb)
+        if (sender is Button btn && btn.BindingContext is ModalFooterButton mfb)
         {
             Result = mfb.FinalResult;
             ControlClosed?.Invoke();

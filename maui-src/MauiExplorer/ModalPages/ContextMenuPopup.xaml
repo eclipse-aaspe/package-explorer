@@ -67,7 +67,7 @@
             VerticalOptions="Fill">
 
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="local:ContextMenuSubstituteMenuItem">
                     <Grid HorizontalOptions="Fill" ColumnDefinitions="*">
                         <!-- Full card -->
                         <Grid

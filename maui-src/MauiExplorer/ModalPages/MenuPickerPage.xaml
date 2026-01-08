@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
              xmlns:cz="clr-namespace:FunctionZero.Maui.Controls;assembly=FunctionZero.Maui.Controls"
+             xmlns:tlz="clr-namespace:FunctionZero.TreeListItemsSourceZero;assembly=FunctionZero.TreeListItemsSourceZero"
              xmlns:local="clr-namespace:MauiTestTree"
              x:Class="MauiTestTree.MenuPickerPage"
              x:DataType="local:MenuPickerViewModel"
@@ -19,7 +20,7 @@
             x:Key="MyInverseBoolConverter" />
 
         <ControlTemplate x:Key="MenuPickerItemControlTemplate">
-            <Grid ColumnDefinitions="Auto, *" >
+            <Grid ColumnDefinitions="Auto, *" x:DataType="{x:Null}" >
                 <cz:TreeNodeSpacer />
                 <local:TreeElemChevron Grid.Column="0"
                     Margin="10"
@@ -145,7 +146,7 @@
             SelectionMode="None">
 
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="local:MenuPickerItem">
                     <Grid>
                         <!-- Full card -->
                         <Grid
