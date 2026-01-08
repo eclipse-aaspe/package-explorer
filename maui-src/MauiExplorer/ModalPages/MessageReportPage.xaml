@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:ibase="clr-namespace:AasxIntegrationBase;assembly=AasxIntegrationBase"
+             xmlns:local="clr-namespace:MauiTestTree"
+             x:Class="MauiTestTree.MessageReportPage"
+             x:DataType="local:MessageReportViewModel"
+             Title="Log messages"
+             Background="{DynamicResource Primary}">
+
+    <ContentPage.Resources>
+        <local:LogColorToColorConverter
+            x:Key="MyLogColorToColorConverter" />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto, Auto, *" ColumnDefinitions="*">
+        
+        <!-- Top row-->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+            <!-- Close -->
+            <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="1"
+                VerticalOptions="Center" Margin="8"
+                Padding="0" BackgroundColor="Transparent" CornerRadius="8"
+                Clicked="OnCancelClicked">
+
+                <Button.ImageSource>
+                    <FontImageSource
+                        FontFamily="MaterialOutlined"
+                        Glyph="{x:Static m:MaterialOutlined.Close}"
+                        Size="36"
+                        Color="{StaticResource Backstage_Labels}" />
+                </Button.ImageSource>
+
+            </Button>
+
+            <Label Grid.Row="0" Grid.Column="0"
+                   Margin="8,0,8,0"
+                   Text="{Binding Caption}"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Start"
+                   TextColor="{StaticResource Backstage_Labels}" FontSize="18"/>
+        </Grid>
+        
+        <!-- 2nd row: Options -->
+        <Grid Grid.Row="1" Grid.Column="0"
+              ColumnDefinitions="Auto, Auto, *">
+
+            <Switch x:Name="WrapSwitch" Grid.Row="0" Grid.Column="0" 
+                    Margin="8,0,0,0"
+                    IsToggled="{Binding WrapLinesOn, Mode=TwoWay}"
+                    ThumbColor="{StaticResource Backstage_Frame}"
+                    OnColor="{StaticResource PrimaryLight}"/>
+
+            <Label Grid.Row="0" Grid.Column="1" 
+                   Margin="-100,0,0,0" Text="Wrap lines" FontSize="11"
+                   TextColor="{StaticResource Backstage_Labels}"
+                   VerticalOptions="Center"/>
+
+        </Grid>
+        
+        <!-- Log view -->
+        <CollectionView
+            Grid.Row="2" Grid.Column="0"
+            ItemsSource="{Binding Prints}"
+            ItemsLayout="VerticalList"
+            ItemSizingStrategy="MeasureFirstItem"
+            Background="{StaticResource Backstage_ControlBackground}">
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="ibase:StoredPrint">
+                    <Label
+                        Text="{Binding msg}"
+                        TextColor="{Binding color, Converter={StaticResource MyLogColorToColorConverter}}"
+                        Background="#10000000"
+                        Margin="0,0,0,2"
+                        Padding="4,0,4,0"
+                        FontFamily="Consolas"
+                        FontSize="10"
+                        LineBreakMode="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}},
+                                                Path=BindingContext.WrapLinesMode}" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+        </CollectionView>
+
+    </Grid>
+
+</ContentPage>

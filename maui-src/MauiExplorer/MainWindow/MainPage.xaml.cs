@@ -3788,8 +3788,15 @@ namespace MauiTestTree
 
         //1// protected MessageReportWindow _messageReportWindow = null;
 
-        private void ButtonReport_Click(object sender, EventArgs e)
+        private async void ReportControls_Click(object sender, EventArgs e)
         {
+            if (sender == ReportButton)
+            {
+                // start the page
+                var page = new MessageReportPage(Log.Singleton.GetDirectLongTermPrints());
+                await Navigation.PushModalAsync(page);
+            }
+
             //1// if (sender == ButtonClear)
             //1// {
             //1//     StatusLineClear();
