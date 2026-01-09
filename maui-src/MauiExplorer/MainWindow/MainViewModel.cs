@@ -129,6 +129,13 @@ namespace MauiTestTree
         }
         protected string _attentionText = "";
 
+        public Color AttentionFg
+        {
+            get => _attentionFg;
+            set { if (_attentionFg == value) return; _attentionFg = value; OnPropertyChanged(); }
+        }
+        protected Color _attentionFg = Colors.Black;
+
         public Color AttentionBg
         {
             get => _attentionBg;

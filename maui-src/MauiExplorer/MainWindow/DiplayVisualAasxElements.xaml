@@ -30,10 +30,17 @@
 
                 <local:TreeElemChevron
                     Margin="10"
-                    Glyph="&#xf04b;|FASolid|#000000"
+                    Glyph="&#xf04b;|FASolid|#000000"                    
                     IsExpanded="{TemplateBinding BindingContext.IsExpanded, Mode=TwoWay}" 
-                    ShowChevron="{TemplateBinding BindingContext.ShowChevron, Mode=TwoWay}" 
-                />
+                    ShowChevron="{TemplateBinding BindingContext.ShowChevron, Mode=TwoWay}">
+                    
+                        <local:TreeElemChevron.TextColor>
+                            <AppThemeBinding
+                                Light="{StaticResource Gray900}"
+                                Dark="{StaticResource Gray100}" />
+                        </local:TreeElemChevron.TextColor>
+                </local:TreeElemChevron>
+
                 <!--This is-a ContentPresenter that allows us to specify a BindingContext for the Content-->
                 <cz:TreeContentPresenter 
                     VerticalOptions="Fill" 

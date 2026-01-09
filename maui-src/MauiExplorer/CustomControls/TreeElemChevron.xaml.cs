@@ -13,9 +13,7 @@ public partial class TreeElemChevron : ContentView
         // TheImage.Source = new FontImageSource() { Glyph = "\uf04b", FontFamily = "FASolid", Color = Colors.Red, Size = 40 };
     }
 
-    // 
-    // Semi-Properties for constructor
-    //
+    // Glyph property
 
     public static readonly BindableProperty GlyphProperty = BindableProperty.Create(nameof(Glyph), typeof(string), typeof(TreeElemChevron), default(string), BindingMode.TwoWay, null, GlyphChanged);
 
@@ -24,6 +22,23 @@ public partial class TreeElemChevron : ContentView
         get { return (string)GetValue(GlyphProperty); }
         set { SetValue(GlyphProperty, value); }
     }
+
+    // TextColor property
+
+    public static readonly BindableProperty TextColorProperty =
+        BindableProperty.Create(
+            nameof(TextColor),
+            typeof(Color),
+            typeof(TransparentEntry),
+            Colors.White);
+
+    public Color TextColor
+    {
+        get => (Color)GetValue(TextColorProperty);
+        set => SetValue(TextColorProperty, value);
+    }
+
+    // Events
 
     private static void GlyphChanged(BindableObject bindable, object oldvalue, object newvalue)
     {
@@ -34,10 +49,15 @@ public partial class TreeElemChevron : ContentView
         if (glyphTuple.Length != 3)
             return;
 
-        if (!Color.TryParse(glyphTuple[2], out var color))
-            return;
+        //if (!Color.TryParse(glyphTuple[2], out var color))
+        //    return;
 
-        self.TheImage.Source = new FontImageSource() { Glyph = glyphTuple[0], FontFamily = glyphTuple[1], Color = color, Size = 40 };
+        self.TheImage.Source = new FontImageSource() { 
+            Glyph = glyphTuple[0], 
+            FontFamily = glyphTuple[1], 
+            Color = self.TextColor, 
+            Size = 40 
+        };
     }
 
     // 
@@ -55,11 +75,6 @@ public partial class TreeElemChevron : ContentView
     private static void IsExpandedChanged(BindableObject bindable, object oldvalue, object newvalue)
     {
         var self = (TreeElemChevron)bindable;
-
-        //if (self.IsExpanded)
-        //    self.RotateTo(90);
-        //else
-        //    self.RotateTo(0);
 
         self.Rotation = self.IsExpanded ? 90 : 0;
     }
