@@ -1928,7 +1928,7 @@ namespace MauiTestTree
             while ((sp = Log.Singleton.PopLastShortTermPrint()) != null)
             {
                 // pop
-                _viewModel.LogLine = "" + sp.msg;
+                _viewModel.LogLine = "" + sp.msg.Replace("\r", "").Replace("\n", "");
 
                 // display
                 switch (sp.color)
@@ -1945,7 +1945,7 @@ namespace MauiTestTree
                     case StoredPrint.Color.Blue:
                         {
                             _lastMessageBlue = "" + sp.msg;
-                            _viewModel.LogBg = Colors.LightBlue;
+                            _viewModel.LogBg = XamlHelpers.GetDynamicRessource("PrimaryLight", Colors.LightBlue);
                             _viewModel.LogFg = Colors.Black;
                             //1// Message.FontWeight = FontWeights.Normal;
                             break;
@@ -1953,7 +1953,7 @@ namespace MauiTestTree
                     case StoredPrint.Color.Yellow:
                         {
                             _lastMessageBlue = "" + sp.msg;
-                            _viewModel.LogBg = Colors.Yellow;
+                            _viewModel.LogBg = XamlHelpers.GetDynamicRessource("WarningLight", Colors.Orange);
                             _viewModel.LogFg = Colors.Black;
                             //1// Message.FontWeight = FontWeights.Bold;
                             break;
@@ -1961,7 +1961,7 @@ namespace MauiTestTree
                     case StoredPrint.Color.Red:
                         {
                             _lastMessageError = "" + sp.msg;
-                            _viewModel.LogBg = Color.FromRgb(0xd4, 0x20, 0x44); // #D42044
+                            _viewModel.LogBg = XamlHelpers.GetDynamicRessource("ErrorDark", Color.FromRgb(0xd4, 0x20, 0x44));
                             _viewModel.LogFg = Colors.White;
                             //1// Message.FontWeight = FontWeights.Bold;
                             break;
@@ -1989,19 +1989,19 @@ namespace MauiTestTree
             var nb = Log.Singleton.NumberBlues;
             if (ne > 0)
             {
-                //1// LabelNumberErrors.Content = "Errors: " + ne;
-                //1// LabelNumberErrors.Background = new SolidColorBrush(Color.FromRgb(0xd4, 0x20, 0x44)); // #D42044
+                _viewModel.AttentionText = "Errors: " + ne;
+                _viewModel.AttentionBg = XamlHelpers.GetDynamicRessource("ErrorLight", Colors.LightPink);
             }
             else
             if (nb > 0)
             {
-                //1// LabelNumberErrors.Content = "Major: " + nb;
-                //1// LabelNumberErrors.Background = Brushes.LightBlue;
+                _viewModel.AttentionText = "Major: " + nb;
+                _viewModel.AttentionBg = XamlHelpers.GetDynamicRessource("E0D663", Colors.Orange);
             }
             else
             {
-                //1// LabelNumberErrors.Content = "No attention";
-                //1// LabelNumberErrors.Background = Brushes.White;
+                _viewModel.AttentionText = "";
+                _viewModel.AttentionBg = Colors.Transparent;
             }
         }
 
@@ -3727,7 +3727,7 @@ namespace MauiTestTree
                 case StoredPrint.Color.Blue:
                     {
                         _viewModel.LogLine = "" + _lastMessageBlue;
-                        _viewModel.LogBg = Colors.LightBlue;
+                        _viewModel.LogBg = XamlHelpers.GetDynamicRessource("PrimaryLight", Colors.LightBlue);
                         _viewModel.LogFg = Colors.Black;
                         _viewModel.LogFontWeight = FontWeight.Regular;
                         break;
@@ -3735,7 +3735,7 @@ namespace MauiTestTree
                 case StoredPrint.Color.Red:
                     {
                         _viewModel.LogLine = "" + _lastMessageError;
-                        _viewModel.LogBg = Color.FromRgb(0xd4, 0x20, 0x44); // #D42044
+                        _viewModel.LogBg = XamlHelpers.GetDynamicRessource("ErrorDark", Color.FromRgb(0xd4, 0x20, 0x44));
                         _viewModel.LogFg = Colors.White;
                         _viewModel.LogFontWeight = FontWeight.Bold;
                         break;
@@ -3795,6 +3795,12 @@ namespace MauiTestTree
                 // start the page
                 var page = new MessageReportPage(Log.Singleton.GetDirectLongTermPrints());
                 await Navigation.PushModalAsync(page);
+            }
+
+            if (sender == StatusLineClearButton)
+            {
+                // let look all fresh
+                StatusLineClear();
             }
 
             //1// if (sender == ButtonClear)

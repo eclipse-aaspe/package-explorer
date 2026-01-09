@@ -92,6 +92,8 @@ namespace MauiTestTree
         
         public AasxMenu MainMenu = AasxPackageExplorer.ExplorerMenuFactory.CreateMainMenu();
 
+        // the log line is the line at the very bottom left, quite long
+
         public string LogLine { 
             get => _logline; 
             set { if (_logline == value) return; _logline = value; OnPropertyChanged(); }
@@ -117,6 +119,22 @@ namespace MauiTestTree
             set { if (_logFontWeight == value) return; _logFontWeight = value; OnPropertyChanged(); }
         }
         protected FontWeight _logFontWeight = FontWeight.Regular;
+
+        // the attention indicator sums up important warnings/ errors
+
+        public string AttentionText
+        {
+            get => _attentionText;
+            set { if (_attentionText == value) return; _attentionText = value; OnPropertyChanged(); }
+        }
+        protected string _attentionText = "";
+
+        public Color AttentionBg
+        {
+            get => _attentionBg;
+            set { if (_attentionBg == value) return; _attentionBg = value; OnPropertyChanged(); }
+        }
+        protected Color _attentionBg = Colors.Transparent;
 
         //
         // To be modified

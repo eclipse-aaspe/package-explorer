@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:MauiTestTree"
              x:Class="MauiTestTree.LabelledCheckBox">
     <HorizontalStackLayout x:Name="MainLayout"
-                           Spacing="{Binding Padding, Source={x:Reference Name=This}}"
+                           Spacing="{Binding Padding, Source={RelativeSource AncestorType={x:Type local:LabelledCheckBox}}}"
                            VerticalOptions="Center"
-                           BackgroundColor="{Binding Background, Source={x:Reference Name=This}}">
+                           BackgroundColor="{Binding Background, Source={RelativeSource AncestorType={x:Type local:LabelledCheckBox}}}">
 
         <CheckBox x:Name="CheckBoxControl"
-                  IsChecked="{Binding IsChecked, Source={x:Reference Name=This}}"
+                  IsChecked="{Binding IsChecked, Source={RelativeSource AncestorType={x:Type local:LabelledCheckBox}}}"
                   CheckedChanged="CheckBoxControl_CheckedChanged"
                   VerticalOptions="Center"/>
 
@@ -20,13 +21,13 @@
         -->
 
         <Label x:Name="LabelControl"
-           Text="{Binding Text, Source={x:Reference This}}"
-           TextColor="{Binding Foreground, Source={x:Reference This}}"
-           FontSize="{Binding FontSize, Source={x:Reference This}}"
-           FontFamily="{Binding FontFamily, Source={x:Reference This}}"
-           FontAttributes="{Binding FontAttributes, Source={x:Reference This}}"
-           VerticalTextAlignment="{Binding VerticalTextAlignment, Source={x:Reference This}}"
-           HorizontalTextAlignment="{Binding HorizontalTextAlignment, Source={x:Reference This}}"
+           Text="{Binding Text, Source={RelativeSource AncestorType={x:Type local:LabelledCheckBox}}}"
+           TextColor="{Binding Foreground, Source={RelativeSource AncestorType={x:Type local:LabelledCheckBox}}}"
+           FontSize="{Binding FontSize, Source={RelativeSource AncestorType={x:Type local:LabelledCheckBox}}}"
+           FontFamily="{Binding FontFamily, Source={RelativeSource AncestorType={x:Type local:LabelledCheckBox}}}"
+           FontAttributes="{Binding FontAttributes, Source={RelativeSource AncestorType={x:Type local:LabelledCheckBox}}}"
+           VerticalTextAlignment="{Binding VerticalTextAlignment, Source={RelativeSource AncestorType={x:Type local:LabelledCheckBox}}}"
+           HorizontalTextAlignment="{Binding HorizontalTextAlignment, Source={RelativeSource AncestorType={x:Type local:LabelledCheckBox}}}"
            VerticalOptions="Center" />
 
     </HorizontalStackLayout>
