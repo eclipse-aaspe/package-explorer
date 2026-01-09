@@ -221,7 +221,7 @@
         <!-- Log line -->
         <Grid x:Name="LogGrid"
               Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
-              ColumnDefinitions="*,Auto, Auto"
+              ColumnDefinitions="*, Auto, Auto, Auto"
               Padding="16,2,16,2"
               Background="{Binding LogBg}">
 
@@ -232,15 +232,28 @@
                 FontSize="11"
                 TextColor="{Binding LogFg}"/>
 
-            <local:NavIconButton
+            <Label x:Name="AttentionLabel"
                 Grid.Row="0" Grid.Column="1"
-                Margin="2"
-                Glyph="{x:Static m:MaterialOutlined.Ink_eraser}" />
+                Padding="4,1,4,1"
+                WidthRequest="80"
+                HorizontalOptions="End"
+                VerticalOptions="Center" VerticalTextAlignment="Center"
+                HorizontalTextAlignment="Center"
+                Text="{Binding AttentionText}"
+                FontSize="11"
+                Background="{Binding AttentionBg}"/>
+
+            <local:NavIconButton
+                x:Name="StatusLineClearButton"
+                Grid.Row="0" Grid.Column="2"
+                Margin="4,0,4,0"
+                Glyph="{x:Static m:MaterialOutlined.Ink_eraser}"
+                Clicked="ReportControls_Click"/>
 
             <local:NavIconButton
                 x:Name="ReportButton"
-                Grid.Row="0" Grid.Column="2"
-                Margin="2"
+                Grid.Row="0" Grid.Column="3"
+                Margin="4,0,4,0"
                 Glyph="{x:Static m:MaterialOutlined.Notes}"
                 Clicked="ReportControls_Click"/>
         </Grid>

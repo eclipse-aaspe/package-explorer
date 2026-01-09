@@ -329,6 +329,8 @@ namespace MauiTestTree
                 ticket.StartExec();
 
                 // do
+                Log.Singleton.Info(StoredPrint.Color.Red, "Red");
+
 #if TODO_IMPORTANT
                 DisplayElements.Test();
 #endif

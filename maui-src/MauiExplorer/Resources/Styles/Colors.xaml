@@ -20,6 +20,12 @@
     <Color x:Key="Tertiary">#918e7c</Color>
     <Color x:Key="Quartary">#9290a6</Color>
     <Color x:Key="Quintary">#484566</Color>
+    
+    <Color x:Key="WarningDark">#D1C000</Color>
+    <Color x:Key="WarningLight">#E0D663</Color>
+    <Color x:Key="ErrorDark">#D62B00</Color>
+    <Color x:Key="ErrorLight">#D6735A</Color>
+    
 
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>
