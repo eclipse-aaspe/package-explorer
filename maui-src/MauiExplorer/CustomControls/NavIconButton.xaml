@@ -22,12 +22,8 @@
                 <FontImageSource
                     FontFamily="MaterialOutlined"
                     Glyph="{Binding Glyph, Source={x:Reference Root}}"
+                    Color="{Binding TextColor, Source={x:Reference Root}}"
                     Size="24">
-                    <FontImageSource.Color>
-                        <AppThemeBinding
-                            Light="{StaticResource ToolbarIconColorLight}"
-                            Dark="{StaticResource ToolbarIconColorDark}" />
-                    </FontImageSource.Color>
                 </FontImageSource>
             </Image.Source>
         </Image>

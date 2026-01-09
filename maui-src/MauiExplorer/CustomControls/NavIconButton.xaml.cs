@@ -22,8 +22,23 @@ public partial class NavIconButton : ContentView
         set => SetValue(GlyphProperty, value);
     }
 
+    // TextColor 
+
+    public static readonly BindableProperty TextColorProperty =
+        BindableProperty.Create(
+            nameof(TextColor),
+            typeof(Color),
+            typeof(TransparentEntry),
+            Colors.White);
+
+    public Color TextColor
+    {
+        get => (Color)GetValue(TextColorProperty);
+        set => SetValue(TextColorProperty, value);
+    }
+
     // Clicked event (Button-like)
-    
+
     public event EventHandler? Clicked;
 
     private void OnTapped(object? sender, EventArgs e)

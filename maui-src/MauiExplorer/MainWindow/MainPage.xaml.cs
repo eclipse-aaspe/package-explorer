@@ -1915,6 +1915,65 @@ namespace MauiTestTree
                     onlyReFocus: true));
         }
 
+        public static string? GetLogLineClearText(string? input)
+        {
+            return input?.Replace("\r", "").Replace("\n", "");
+        }
+
+        public static Color GetLogLineColor(bool isBackground, StoredPrint.Color color)
+        {
+            if (Application.Current?.RequestedTheme == AppTheme.Light)
+            {
+                // Light
+                switch (color)
+                {
+                    default:
+                        throw ExhaustiveMatch.Failed(color);
+                    case StoredPrint.Color.Black:
+                        return isBackground
+                            ? XamlHelpers.GetDynamicRessource("White", Colors.White)
+                            : Colors.Black;
+                    case StoredPrint.Color.Blue:
+                        return isBackground
+                            ? XamlHelpers.GetDynamicRessource("PrimaryLight", Colors.LightBlue)
+                            : Colors.Black;
+                    case StoredPrint.Color.Yellow:
+                        return isBackground
+                            ? XamlHelpers.GetDynamicRessource("WarningLight", Colors.Orange)
+                            : Colors.Black;
+                    case StoredPrint.Color.Red:
+                        return isBackground
+                            ? XamlHelpers.GetDynamicRessource("ErrorDark", Color.FromRgb(0xd4, 0x20, 0x44))
+                            : Colors.White;
+                }
+            }
+            else
+            {
+                // Dark
+                switch (color)
+                {
+                    default:
+                        throw ExhaustiveMatch.Failed(color);
+                    case StoredPrint.Color.Black:
+                        return isBackground
+                            ? XamlHelpers.GetDynamicRessource("Gray900", Colors.DarkGray)
+                            : Colors.White;
+                    case StoredPrint.Color.Blue:
+                        return isBackground
+                            ? XamlHelpers.GetDynamicRessource("Primary", Colors.DarkBlue)
+                            : Colors.White;
+                    case StoredPrint.Color.Yellow:
+                        return isBackground
+                            ? XamlHelpers.GetDynamicRessource("WarningDark", Colors.DarkOrange)
+                            : Colors.White;
+                    case StoredPrint.Color.Red:
+                        return isBackground
+                            ? XamlHelpers.GetDynamicRessource("ErrorLight", Colors.OrangeRed)
+                            : Colors.Black;
+                }
+            }
+        }
+
         private string _lastMessageBlue = "";
         private string _lastMessageError = "";
 
@@ -1928,44 +1987,22 @@ namespace MauiTestTree
             while ((sp = Log.Singleton.PopLastShortTermPrint()) != null)
             {
                 // pop
-                _viewModel.LogLine = "" + sp.msg.Replace("\r", "").Replace("\n", "");
+                _viewModel.LogLine = "" + GetLogLineClearText(sp.msg);
+                _viewModel.LogBg = GetLogLineColor(isBackground: true, sp.color);
+                _viewModel.LogFg = GetLogLineColor(isBackground: false, sp.color);
 
-                // display
+                // last messages?
                 switch (sp.color)
                 {
-                    default:
-                        throw ExhaustiveMatch.Failed(sp.color);
-                    case StoredPrint.Color.Black:
-                        {
-                            _viewModel.LogBg = Colors.White;
-                            _viewModel.LogFg = Colors.Black;
-                            //1// Message.FontWeight = FontWeights.Normal;
-                            break;
-                        }
                     case StoredPrint.Color.Blue:
-                        {
-                            _lastMessageBlue = "" + sp.msg;
-                            _viewModel.LogBg = XamlHelpers.GetDynamicRessource("PrimaryLight", Colors.LightBlue);
-                            _viewModel.LogFg = Colors.Black;
-                            //1// Message.FontWeight = FontWeights.Normal;
-                            break;
-                        }
+                        _lastMessageBlue = _viewModel.LogLine;
+                        break;
                     case StoredPrint.Color.Yellow:
-                        {
-                            _lastMessageBlue = "" + sp.msg;
-                            _viewModel.LogBg = XamlHelpers.GetDynamicRessource("WarningLight", Colors.Orange);
-                            _viewModel.LogFg = Colors.Black;
-                            //1// Message.FontWeight = FontWeights.Bold;
-                            break;
-                        }
+                        _lastMessageBlue = _viewModel.LogLine;
+                        break;
                     case StoredPrint.Color.Red:
-                        {
-                            _lastMessageError = "" + sp.msg;
-                            _viewModel.LogBg = XamlHelpers.GetDynamicRessource("ErrorDark", Color.FromRgb(0xd4, 0x20, 0x44));
-                            _viewModel.LogFg = Colors.White;
-                            //1// Message.FontWeight = FontWeights.Bold;
-                            break;
-                        }
+                        _lastMessageError = _viewModel.LogLine;
+                        break;
                 }
 
                 // message window
@@ -1990,18 +2027,21 @@ namespace MauiTestTree
             if (ne > 0)
             {
                 _viewModel.AttentionText = "Errors: " + ne;
-                _viewModel.AttentionBg = XamlHelpers.GetDynamicRessource("ErrorLight", Colors.LightPink);
+                _viewModel.AttentionBg = GetLogLineColor(isBackground: true, StoredPrint.Color.Red);
+                _viewModel.AttentionFg = GetLogLineColor(isBackground: false, StoredPrint.Color.Red);
             }
             else
             if (nb > 0)
             {
                 _viewModel.AttentionText = "Major: " + nb;
-                _viewModel.AttentionBg = XamlHelpers.GetDynamicRessource("E0D663", Colors.Orange);
+                _viewModel.AttentionBg = GetLogLineColor(isBackground: true, StoredPrint.Color.Yellow);
+                _viewModel.AttentionFg = GetLogLineColor(isBackground: false, StoredPrint.Color.Yellow);
             }
             else
             {
-                _viewModel.AttentionText = "";
-                _viewModel.AttentionBg = Colors.Transparent;
+                _viewModel.AttentionText = "-";
+                _viewModel.AttentionBg = GetLogLineColor(isBackground: true, StoredPrint.Color.Black);
+                _viewModel.AttentionFg = GetLogLineColor(isBackground: false, StoredPrint.Color.Black);
             }
         }
 
@@ -3714,33 +3754,30 @@ namespace MauiTestTree
             _lastMessageError = "";
             Log.Singleton.ClearNumberErrors();
             _viewModel.LogLine = "";
-            _viewModel.LogBg = Colors.White;
-            _viewModel.LogFg = Colors.Black;
+            _viewModel.LogBg = GetLogLineColor(isBackground: true, StoredPrint.Color.Black);
+            _viewModel.LogFg = GetLogLineColor(isBackground: false, StoredPrint.Color.Black);
             _viewModel.LogFontWeight = FontWeight.Regular;
             SetProgressDownload();
         }
 
         public void ShowLastMessage(StoredPrint.Color showColor)
         {
+            // text
             switch (showColor)
             {
                 case StoredPrint.Color.Blue:
-                    {
-                        _viewModel.LogLine = "" + _lastMessageBlue;
-                        _viewModel.LogBg = XamlHelpers.GetDynamicRessource("PrimaryLight", Colors.LightBlue);
-                        _viewModel.LogFg = Colors.Black;
-                        _viewModel.LogFontWeight = FontWeight.Regular;
-                        break;
-                    }
+                    _viewModel.LogLine = "" + _lastMessageBlue;
+                    break;
+
                 case StoredPrint.Color.Red:
-                    {
-                        _viewModel.LogLine = "" + _lastMessageError;
-                        _viewModel.LogBg = XamlHelpers.GetDynamicRessource("ErrorDark", Color.FromRgb(0xd4, 0x20, 0x44));
-                        _viewModel.LogFg = Colors.White;
-                        _viewModel.LogFontWeight = FontWeight.Bold;
-                        break;
-                    }
+                    _viewModel.LogLine = "" + _lastMessageError;
+                    break;
             }
+
+            // colors
+            _viewModel.LogBg = GetLogLineColor(isBackground: true, showColor);
+            _viewModel.LogFg = GetLogLineColor(isBackground: false, showColor);
+            _viewModel.LogFontWeight = FontWeight.Regular;
         }
 
         /// <summary>
@@ -3788,6 +3825,19 @@ namespace MauiTestTree
 
         //1// protected MessageReportWindow _messageReportWindow = null;
 
+        private void ReportControls_Tapped(object sender, TappedEventArgs e)
+        {
+            if (sender == AttentionLabel)
+            {
+                // something important
+                if (Log.Singleton.NumberErrors > 0 && _lastMessageError?.HasContent() == true)
+                    ShowLastMessage(StoredPrint.Color.Red);
+                else
+                    if (Log.Singleton.NumberBlues > 0 && _lastMessageBlue?.HasContent() == true)
+                    ShowLastMessage(StoredPrint.Color.Blue);
+            }
+        }
+
         private async void ReportControls_Click(object sender, EventArgs e)
         {
             if (sender == ReportButton)
@@ -3812,16 +3862,6 @@ namespace MauiTestTree
             //1// {
             //1//     LogShow();
             //1// }
-        }
-
-        private void LabelNumberErrors_MouseDown(object sender, EventArgs e)
-        {
-            //1// // something important
-            //1// if (Log.Singleton.NumberErrors > 0 && _lastMessageError?.HasContent() == true)
-            //1//     ShowLastMessage(StoredPrint.Color.Red);
-            //1// else
-            //1//     if (Log.Singleton.NumberBlues > 0 && _lastMessageBlue?.HasContent() == true)
-            //1//     ShowLastMessage(StoredPrint.Color.Blue);
         }
 
         /// <summary>
@@ -4996,7 +5036,8 @@ namespace MauiTestTree
         public void AddWishForToplevelAction(AnyUiLambdaActionBase action)
         {
             DispEditEntityPanel.AddWishForOutsideAction(action);
-        }        
+        }
+
 
         private async void Button_Click(object sender, EventArgs e)
         {

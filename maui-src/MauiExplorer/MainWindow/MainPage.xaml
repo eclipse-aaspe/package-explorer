@@ -18,12 +18,20 @@
             x:Key="MyEnumToIntParamterizedConverter" />
     </ContentPage.Resources>
 
+    <!-- Window background -->
+    <ContentPage.Background>
+        <AppThemeBinding
+            Light="{StaticResource White}"
+            Dark="{StaticResource Gray900}" />
+    </ContentPage.Background>
+
     <!-- Navbar in IDTA blue, if dark theme -->
     <Shell.BackgroundColor>
         <AppThemeBinding
             Light="{StaticResource Gray100}"
             Dark="{StaticResource Primary}" />
     </Shell.BackgroundColor>
+   
 
     <!-- For menues to work, it has to be a navigation page; per default this is given by
          having the shell for the application. -->
@@ -227,27 +235,44 @@
 
             <Label x:Name="LogLine"
                 Grid.Row="0" Grid.Column="0"
+                Margin="0,0,8,0"
                 VerticalOptions="Center" VerticalTextAlignment="Center"
                 Text="{Binding LogLine}"
+                LineBreakMode="NoWrap"
                 FontSize="11"
                 TextColor="{Binding LogFg}"/>
 
-            <Label x:Name="AttentionLabel"
-                Grid.Row="0" Grid.Column="1"
-                Padding="4,1,4,1"
-                WidthRequest="80"
-                HorizontalOptions="End"
-                VerticalOptions="Center" VerticalTextAlignment="Center"
-                HorizontalTextAlignment="Center"
-                Text="{Binding AttentionText}"
-                FontSize="11"
-                Background="{Binding AttentionBg}"/>
+            <Border Grid.Row="0" Grid.Column="1"
+                    StrokeThickness="1.0"
+                    Padding="4,1,4,1"
+                    StrokeShape="RoundRectangle 4"
+                    Background="{Binding AttentionBg}">
+                <Border.Stroke>
+                    <AppThemeBinding
+                        Light="{StaticResource White}"
+                        Dark="{StaticResource Gray900}" />
+                </Border.Stroke>
+
+                <Label x:Name="AttentionLabel"
+                    WidthRequest="80"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center" VerticalTextAlignment="Center"
+                    HorizontalTextAlignment="Center"
+                    Text="{Binding AttentionText}"
+                    FontSize="11"
+                    TextColor="{Binding AttentionFg}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="ReportControls_Tapped"/>
+                    </Label.GestureRecognizers>
+                </Label>
+            </Border>
 
             <local:NavIconButton
                 x:Name="StatusLineClearButton"
                 Grid.Row="0" Grid.Column="2"
                 Margin="4,0,4,0"
-                Glyph="{x:Static m:MaterialOutlined.Ink_eraser}"
+                Glyph="{x:Static m:MaterialOutlined.Mop}"
+                TextColor="{Binding LogFg}"
                 Clicked="ReportControls_Click"/>
 
             <local:NavIconButton
@@ -255,6 +280,7 @@
                 Grid.Row="0" Grid.Column="3"
                 Margin="4,0,4,0"
                 Glyph="{x:Static m:MaterialOutlined.Notes}"
+                TextColor="{Binding LogFg}"
                 Clicked="ReportControls_Click"/>
         </Grid>
     </Grid>
