@@ -2437,27 +2437,6 @@ namespace MauiTestTree
             return null;
         }
 
-#if TO_DELETE
-        /// <summary>
-        /// Show MessageBoxFlyout with contents
-        /// </summary>
-        /// <param name="message">Message on the main screen</param>
-        /// <param name="caption">Caption string (title)</param>
-        /// <param name="buttons">Buttons according to WPF standard messagebox</param>
-        /// <param name="image">Image according to WPF standard messagebox</param>
-        /// <returns></returns>
-        public override AnyUiMessageBoxResult MessageBoxFlyoutShow(
-            string message, string caption, AnyUiMessageBoxButton buttons, AnyUiMessageBoxImage image)
-        {
-#if TODO_IMPORTANT
-            if (FlyoutProvider == null)
-                return AnyUiMessageBoxResult.Cancel;
-            return FlyoutProvider.MessageBoxFlyoutShow(message, caption, buttons, image);
-#endif
-            return AnyUiMessageBoxResult.None;
-        }
-#endif
-
         /// <summary>
         /// Show MessageBoxFlyout with contents
         /// </summary>
