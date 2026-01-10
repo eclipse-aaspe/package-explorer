@@ -1,12 +1,25 @@
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using AasxPackageLogic;
 
 namespace MauiTestTree;
 
 public partial class LoadingPage : ContentPage
 {
-	public LoadingPage()
+    protected LoadingPageViewModel _viewModel = new();
+
+    //
+    // Start of component
+    //
+
+	public LoadingPage(LoadingPageViewModel? preset = null)
 	{
 		InitializeComponent();
+        if (preset != null)
+            _viewModel = preset;
+        BindingContext = _viewModel;
+        StartTimer();
 	}
 
     protected override async void OnAppearing()
@@ -14,8 +27,44 @@ public partial class LoadingPage : ContentPage
         base.OnAppearing();
 
         await AppStartup();
+    }
 
+    protected void DismissPage()
+    {
+        StopTimer();
         Application.Current.MainPage = new AppShell();
+    }
+
+    private void CancelButton_Clicked(object sender, EventArgs e)
+    {
+        DismissPage();
+    }
+
+    //
+    // Timer + Events to the outside
+    //
+
+    protected DateTime _timerStartTime;
+    protected bool _timerRunning = false;
+
+    protected void StartTimer()
+    {
+        _timerStartTime = DateTime.UtcNow;
+        _timerRunning = true;
+        Dispatcher.StartTimer(TimeSpan.FromMilliseconds(100), () =>
+        {
+            // check
+            if ((DateTime.UtcNow - _timerStartTime).TotalMilliseconds >= 1000.0 * _viewModel.SplashTimeSecs)
+                DismissPage();
+
+            // else, keep runnding
+            return _timerRunning; // true = keep running, false = stop
+        });
+    }
+
+    protected void StopTimer()
+    {
+        _timerRunning = false;
     }
 
     //
@@ -235,4 +284,50 @@ public partial class LoadingPage : ContentPage
 #endif
     }
 
+}
+
+//
+// View model
+//
+
+public class LoadingPageViewModel : INotifyPropertyChanged
+{
+    //
+    // INotifyPropertyChanged
+    // 
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    void OnPropertyChanged([CallerMemberName] string? name = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+    // 
+    // Members
+    //
+
+    public string Authors { get; set; } = "dscdscsdcdscdscdscdscdscds";
+    public string Version { get; set; } = "cdscdscdscds";
+    public string BuildDate { get; set; } = "cdscdscds";
+    public string Licenses { get; set; } = "cdscsdcdscdscdscdscdscddscdcd";
+
+    /// <summary>
+    /// Splash time in seconds
+    /// </summary>
+    public double SplashTimeSecs = 5.0;
+
+    //
+    // Constructor
+    //
+
+    public LoadingPageViewModel()
+    {
+        var pref = Pref.Read();
+
+        Authors = pref.Authors;
+        Version = pref.Version;
+        BuildDate = pref.BuildDate;
+        Licenses = "[AASX Package Explorer]" + System.Environment.NewLine +
+                   pref.LicenseShort + System.Environment.NewLine +
+                   pref.LicenseLong;
+    }
 }
