@@ -1434,6 +1434,15 @@ namespace MauiTestTree
             //1// if (Options.Curr.WindowMaximized)
             //1//     this.WindowState = WindowState.Maximized;
 
+            var win = App.Current?.Windows.FirstOrDefault();
+            if (win != null)
+            {
+                if (Options.Curr.WindowLeft > 0) win.X = Options.Curr.WindowLeft;
+                if (Options.Curr.WindowTop > 0)win.Y = Options.Curr.WindowTop;
+                if (Options.Curr.WindowWidth > 0) win.Width = Options.Curr.WindowWidth;
+                if (Options.Curr.WindowHeight > 0) win.Height = Options.Curr.WindowHeight;
+            }
+
             // Timer
             StartTimer();
 
