@@ -28,20 +28,11 @@ namespace AasxIntegrationBase
         /// </summary>
         Task CloseFlyoverAsync(bool threadSafe = false);
 
-#if TO_DELETE
-        /// <summary>
-        /// Start UserControl as modal flyout. The UserControl has to implement
-        /// the interface IFlyoutControl
-        /// </summary>
-        void StartFlyoverModal(VisualElement uc, Action? closingAction = null);
-#endif
-
         /// <summary>
         /// Start UserControl as modal flyout. The UserControl has to implement
         /// the interface IFlyoutControl
         /// </summary>
         Task StartFlyoverModalAsync(VisualElement uc, Action? closingAction = null);
-
 
         /// <summary>
         /// Show MessageBoxFlyout with contents

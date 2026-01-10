@@ -1874,7 +1874,7 @@ namespace MauiTestTree
                 //}
 
 
-                await MauiTestTree.Flyouts.MauiFlyoutTestCases.ExecuteMauiFlyoutTestCase(this, this, 1);
+                // await MauiTestTree.Flyouts.MauiFlyoutTestCases.ExecuteMauiFlyoutTestCase(this, this, 1);
             }
         }
 
@@ -4424,110 +4424,6 @@ namespace MauiTestTree
         }
 
         //
-        // SYNCRONOUS
-        //
-
-#if TO_DELETE
-        public void StartFlyoverModal(VisualElement uc, Action? closingAction = null)
-        {
-            //1// // uc needs to implement IFlyoverControl
-            //1// var ucfoc = uc as IFlyoutControl;
-            //1// if (ucfoc == null)
-            //1//     return;
-            //1// 
-            //1// // blur the normal grid
-            //1// this.InnerGrid.IsEnabled = false;
-            //1// var blur = new BlurEffect();
-            //1// blur.Radius = 5;
-            //1// this.InnerGrid.Opacity = 0.5;
-            //1// this.InnerGrid.Effect = blur;
-            //1// 
-            //1// // populate the flyover grid
-            //1// this.GridFlyover.Visibility = Visibility.Visible;
-            //1// this.GridFlyover.Children.Clear();
-            //1// this.GridFlyover.Children.Add(uc);
-            //1// 
-            //1// // register the frame
-            //1// var frame = new DispatcherFrame();
-            //1// ucfoc.ControlClosed += () =>
-            //1// {
-            //1//     frame.Continue = false; // stops the frame
-            //1// };
-            //1// 
-            //1// // main application needs to know
-            //1// currentFlyoutControl = ucfoc;
-            //1// 
-            //1// // agent behaviour
-            //1// var preventClosingAction = false;
-            //1// 
-            //1// if (uc is IFlyoutAgent ucag)
-            //1// {
-            //1//     // register for minimize
-            //1//     ucag.ControlMinimize += () =>
-            //1//     {
-            //1//         // only execute if preconditions are well
-            //1//         if (ucag.GetAgent() != null && ucag.GetAgent().GenerateFlyoutMini != null)
-            //1//         {
-            //1//             // do not execute directly
-            //1//             preventClosingAction = true;
-            //1// 
-            //1//             // make a mini
-            //1//             var mini = ucag.GetAgent().GenerateFlyoutMini.Invoke();
-            //1// 
-            //1//             // be careful
-            //1//             if (mini is UserControl miniUc)
-            //1//             {
-            //1//                 // push the agent
-            //1//                 UserControlAgentsView.Add(miniUc);
-            //1// 
-            //1//                 // wrap provided closing action in own closing action
-            //1//                 if (ucag.GetAgent() != null)
-            //1//                     ucag.GetAgent().ClosingAction = () =>
-            //1//                     {
-            //1//                         // 1st delete agent
-            //1//                         UserControlAgentsView.Remove(miniUc);
-            //1// 
-            //1//                         // finally, call user provided closing action
-            //1//                         closingAction?.Invoke();
-            //1//                     };
-            //1// 
-            //1//                 // show the panel
-            //1//                 PanelConcurrentSetVisibleIfRequired(true, targetAgents: true);
-            //1// 
-            //1//                 // remove the flyover
-            //1//                 frame.Continue = false; // stops the frame
-            //1//             }
-            //1//         }
-            //1//     };
-            //1// }
-            //1// 
-            //1// // start (focus)
-            //1// ucfoc.ControlStart();
-            //1// 
-            //1// // This will "block" execution of the current dispatcher frame
-            //1// // and run our frame until the dialog is closed.
-            //1// Dispatcher.PushFrame(frame);
-            //1// 
-            //1// // call the closing action (before releasing!)
-            //1// // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            //1// if (closingAction != null && !preventClosingAction)
-            //1//     closingAction();
-            //1// 
-            //1// // blur the normal grid
-            //1// this.InnerGrid.Opacity = 1.0;
-            //1// this.InnerGrid.Effect = null;
-            //1// this.InnerGrid.IsEnabled = true;
-            //1// 
-            //1// // un-populate the flyover grid
-            //1// this.GridFlyover.Children.Clear();
-            //1// this.GridFlyover.Visibility = Visibility.Hidden;
-            //1// 
-            //1// // unregister
-            //1// currentFlyoutControl = null;
-        }
-#endif
-
-        //
         // ASYNC (are async versions of the WPF modals required)
         //
 
@@ -4546,64 +4442,9 @@ namespace MauiTestTree
             };
 
             // start the page
-            // await Navigation.PushModalAsync(page);
-            bool result = await ucfoc.MauiShowPageAsync(Navigation);
+            _ = await ucfoc.MauiShowPageAsync(Navigation);
 
-            //1// // uc needs to implement IFlyoverControl
-            //1// var ucfoc = uc as IFlyoutControl;
-            //1// if (ucfoc == null)
-            //1//     return;
-            //1// 
-            //1// // blur the normal grid
-            //1// this.InnerGrid.IsEnabled = false;
-            //1// var blur = new BlurEffect();
-            //1// blur.Radius = 5;
-            //1// this.InnerGrid.Opacity = 0.5;
-            //1// this.InnerGrid.Effect = blur;
-            //1// 
-            //1// // populate the flyover grid
-            //1// this.GridFlyover.Visibility = Visibility.Visible;
-            //1// this.GridFlyover.Children.Clear();
-            //1// this.GridFlyover.Children.Add(uc);
-            //1// 
-            //1// // register the frame
-            //1// var frame = new DispatcherFrame();
-            //1// ucfoc.ControlClosed += () =>
-            //1// {
-            //1//     frame.Continue = false; // stops the frame
-            //1// };
-            //1// 
-            //1// // main application needs to know
-            //1// currentFlyoutControl = ucfoc;
-            //1// 
-            //1// // agent behaviour
-            //1// var preventClosingAction = false;
-            //1// ucfoc.ControlStart();
-            //1// 
-            //1// // This will "block" execution of the current dispatcher frame
-            //1// // and run our frame until the dialog is closed.
-            //1// Dispatcher.PushFrame(frame);
-            //1// 
-            //1// // call the closing action (before releasing!)
-            //1// // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            //1// if (closingAction != null && !preventClosingAction)
-            //1//     closingAction();
-            //1// 
-            //1// // blur the normal grid
-            //1// this.InnerGrid.Opacity = 1.0;
-            //1// this.InnerGrid.Effect = null;
-            //1// this.InnerGrid.IsEnabled = true;
-            //1// 
-            //1// // un-populate the flyover grid
-            //1// this.GridFlyover.Children.Clear();
-            //1// this.GridFlyover.Visibility = Visibility.Hidden;
-            //1// 
-            //1// // unregister
-            //1// currentFlyoutControl = null;
-            //1// 
-            //1// // relieve task
-            //1// await Task.Yield();
-            await Task.Yield();
+            // result available
             return;
         }
 
