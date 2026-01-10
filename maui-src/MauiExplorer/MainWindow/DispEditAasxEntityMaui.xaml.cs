@@ -57,19 +57,9 @@ public partial class DispEditAasxEntityMaui : ContentView
         });
     }
 
-    public class OutsideActionEventArgs
-    {
-        public AnyUiLambdaActionBase Action = new AnyUiLambdaActionNone();
-
-        public OutsideActionEventArgs(AnyUiLambdaActionBase la)
-        {
-            Action = la;
-        }
-    }
-
     public List<AnyUiLambdaActionBase> WishForOutsideAction = new List<AnyUiLambdaActionBase>();
 
-    public event EventHandler<OutsideActionEventArgs>? OutsideAction;
+    public event Func<AnyUiLambdaActionBase, Task> OutsideAction;
 
     protected void StopTimer()
     {
@@ -100,10 +90,13 @@ public partial class DispEditAasxEntityMaui : ContentView
                             _packages, dcmaui, _theEntities, _helper.editMode, _helper.hintMode,
                             flyoutProvider: dcmaui?.FlyoutProvider,
                             appEventProvider: _helper?.appEventsProvider);
+
+                    return;
                 }
 
                 // all other elements refer to superior functionality
-                OutsideAction?.Invoke(this, new OutsideActionEventArgs(temp));
+                if (OutsideAction != null)
+                    await OutsideAction.Invoke(temp);
             }
         }
     }

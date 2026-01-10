@@ -37,6 +37,15 @@ public partial class TextBoxFlyoutPage : ContentPage, IFlyoutControl
         PlatformSpecificHandleTabKey();
     }
 
+    private TaskCompletionSource<bool>? _tcs;
+
+    public Task<bool> MauiShowPageAsync(INavigation navigation)
+    {
+        _tcs = new TaskCompletionSource<bool>();
+        navigation.PushModalAsync(this);
+        return _tcs.Task;
+    }
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
@@ -71,6 +80,7 @@ public partial class TextBoxFlyoutPage : ContentPage, IFlyoutControl
 
                         PrepareResult();
                         DiaData.Result = true;
+                        _tcs?.TrySetResult(true);
                         ControlClosed?.Invoke();
                     }
 
@@ -81,6 +91,7 @@ public partial class TextBoxFlyoutPage : ContentPage, IFlyoutControl
                         Trace.WriteLine("Escape!");
 
                         DiaData.Result = false;
+                        _tcs?.TrySetResult(false);
                         ControlClosed?.Invoke();
                     }
                 };
@@ -110,6 +121,7 @@ public partial class TextBoxFlyoutPage : ContentPage, IFlyoutControl
         if (sender == CancelButton)
         {
             DiaData.Result = false;
+            _tcs?.TrySetResult(false);
             ControlClosed?.Invoke();
         }
 
@@ -117,6 +129,7 @@ public partial class TextBoxFlyoutPage : ContentPage, IFlyoutControl
         {
             PrepareResult();
             DiaData.Result = true;
+            _tcs?.TrySetResult(true);
             ControlClosed?.Invoke();
         }
     }

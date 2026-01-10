@@ -40,6 +40,15 @@ public partial class SelectFromRepositoryFlyoutPage : ContentPage, IFlyoutContro
         PlatformSpecificHandleKey();
     }
 
+    private TaskCompletionSource<bool>? _tcs;
+
+    public Task<bool> MauiShowPageAsync(INavigation navigation)
+    {
+        _tcs = new TaskCompletionSource<bool>();
+        navigation.PushModalAsync(this);
+        return _tcs.Task;
+    }
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
@@ -115,6 +124,7 @@ public partial class SelectFromRepositoryFlyoutPage : ContentPage, IFlyoutContro
             DiaData.Result = false;
             DiaData.ResultId = null;
             DiaData.ResultItem = null;
+            _tcs?.TrySetResult(false);
             ControlClosed?.Invoke();
         }
 
@@ -123,6 +133,7 @@ public partial class SelectFromRepositoryFlyoutPage : ContentPage, IFlyoutContro
             PrepareResult();
             DiaData.Result = true;
             DiaData.ResultItem = null;
+            _tcs?.TrySetResult(true);
             ControlClosed?.Invoke();
         }
     }

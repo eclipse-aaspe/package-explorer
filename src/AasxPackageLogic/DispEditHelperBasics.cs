@@ -1029,14 +1029,14 @@ namespace AasxPackageLogic
                                 padding: new AnyUiThickness(5, 0, 5, 0),
                                 verticalAlignment: AnyUiVerticalAlignment.Top,
                                 content: "\u2261"), 
-                            (o) =>
+                            setValueAsync: async (o) =>
                             {
                                 var uc = new AnyUiDialogueDataTextEditor(
                                     caption: $"Edit Text @ {langStr[currentI].Language} ...",
                                     mimeType: "text/markdown",
                                     text: langStr[currentI].Text);
 
-                                if (this.context.StartFlyoverModal(uc))
+                                if (await this.context.StartFlyoverModalAsync(uc))
                                 {
                                     langStr[currentI].Text = uc.Text;
                                     emitCustomEvent?.Invoke(relatedReferable);

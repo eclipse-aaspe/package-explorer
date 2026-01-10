@@ -62,10 +62,13 @@ namespace MauiTestTree.Flyouts
                     }
                 };
 
-                if (await dcMaui.StartFlyoverModalAsync(uc))
+                var res = await dcMaui.StartFlyoverModalAsync(uc);
+                if (res)
                 {
                     await main.RedrawElementViewAsync();
                 }
+
+                ;
             }
 
             if (ndx == 2)

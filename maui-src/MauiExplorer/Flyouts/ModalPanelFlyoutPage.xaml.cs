@@ -59,6 +59,15 @@ public partial class ModalPanelFlyoutPage : ContentPage, IFlyoutControl
         AttachPlatformSpecificHandleKeys();
     }
 
+    private TaskCompletionSource<bool>? _tcs;
+
+    public Task<bool> MauiShowPageAsync(INavigation navigation)
+    {
+        _tcs = new TaskCompletionSource<bool>();
+        navigation.PushModalAsync(this);
+        return _tcs.Task;
+    }
+
     // a little bit later
     protected override void OnAppearing()
     {
@@ -118,6 +127,7 @@ public partial class ModalPanelFlyoutPage : ContentPage, IFlyoutControl
         {
             DiaData.Result = false;
             DiaData.ResultButton = AnyUiMessageBoxResult.None;
+            _tcs?.TrySetResult(false);
             ControlClosed?.Invoke();
         }
     }
@@ -158,6 +168,7 @@ public partial class ModalPanelFlyoutPage : ContentPage, IFlyoutControl
         {
             DiaData.Result = true;
             DiaData.ResultButton = mfb.FinalResult;
+            _tcs?.TrySetResult(true);
             ControlClosed?.Invoke();
         }
     }

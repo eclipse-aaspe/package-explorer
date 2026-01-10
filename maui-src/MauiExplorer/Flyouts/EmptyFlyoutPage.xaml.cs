@@ -27,6 +27,15 @@ public partial class EmptyFlyoutPage : ContentPage, IFlyoutControl
         SetSelectEnabled(true);
     }
 
+    private TaskCompletionSource<bool>? _tcs;
+
+    public Task<bool> MauiShowPageAsync(INavigation navigation)
+    {
+        _tcs = new TaskCompletionSource<bool>();
+        navigation.PushModalAsync(this);
+        return _tcs.Task;
+    }
+
     private void SetSelectEnabled(bool enable)
     {
         if (!enable)
@@ -48,6 +57,7 @@ public partial class EmptyFlyoutPage : ContentPage, IFlyoutControl
         if (sender == CancelButton)
         {
             DiaData.Result = false;
+            _tcs?.TrySetResult(false);
             ControlClosed?.Invoke();
         }
 
@@ -55,6 +65,7 @@ public partial class EmptyFlyoutPage : ContentPage, IFlyoutControl
         {
             PrepareResult();
             DiaData.Result = true;
+            _tcs?.TrySetResult(true);
             ControlClosed?.Invoke();
         }
     }
