@@ -4525,23 +4525,6 @@ namespace MauiTestTree
             //1// currentFlyoutControl = null;
         }
 
-#if TO_DELETE
-        public AnyUiMessageBoxResult MessageBoxFlyoutShow(
-            string message, string caption, AnyUiMessageBoxButton buttons, AnyUiMessageBoxImage image)
-        {
-            //1// if (!Options.Curr.UseFlyovers)
-            //1// {
-            //1//     return AnyUiMessageBoxResult.Cancel;
-            //1// }
-            //1// 
-            //1// var uc = new MessageBoxFlyout(message, caption, buttons, image);
-            //1// StartFlyoverModal(uc);
-            //1// return uc.Result;
-
-            return AnyUiMessageBoxResult.None;
-        }
-#endif
-
         //
         // ASYNC (are async versions of the WPF modals required)
         //

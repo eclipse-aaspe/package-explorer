@@ -91,22 +91,6 @@ namespace AnyUi
         {
         }
 
-#if TO_DELETE
-        /// <summary>
-        /// Show MessageBoxFlyout with contents
-        /// </summary>
-        /// <param name="message">Message on the main screen</param>
-        /// <param name="caption">Caption string (title)</param>
-        /// <param name="buttons">Buttons according to WPF standard messagebox</param>
-        /// <param name="image">Image according to WPF standard messagebox</param>
-        /// <returns></returns>
-        public virtual AnyUiMessageBoxResult MessageBoxFlyoutShow(
-            string message, string caption, AnyUiMessageBoxButton buttons, AnyUiMessageBoxImage image)
-        {
-            return AnyUiMessageBoxResult.Cancel;
-        }
-#endif
-
         /// <summary>
         /// Show MessageBoxFlyout with contents
         /// </summary>
