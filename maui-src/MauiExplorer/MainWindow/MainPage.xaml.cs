@@ -155,7 +155,7 @@ namespace MauiTestTree
 
             if (mode < 80)
             {
-                var dc = new AnyUiDisplayContextMaui(this, new PackageCentral());
+                var dc = new AnyUiDisplayContextMaui(this, this, new PackageCentral());
                 var ve = dc.GetOrCreateMauiElement(stack, null, allowReUse: false);
 
                 var dbg = new VisualTreeDebugger();
@@ -167,7 +167,7 @@ namespace MauiTestTree
             else
             if (mode == 81)
             {
-                var dc = new AnyUiDisplayContextMaui(this, new PackageCentral());
+                var dc = new AnyUiDisplayContextMaui(this, this, new PackageCentral());
 
                 dc.TryRegisterIconFont("uc", "OpenSansRegular", 16);
                 dc.TryRegisterIconFont("awe", "FontAwesome", 16);
@@ -1373,9 +1373,12 @@ namespace MauiTestTree
                 }
 
             // basic AnyUI handling
-            DisplayContext = new AnyUiDisplayContextMaui(this, PackageCentral);
+            DisplayContext = new AnyUiDisplayContextMaui(this, this, PackageCentral);
             Logic.DisplayContext = DisplayContext;
             Logic.MainWindow = this;
+
+            // more straight approach in MAUI to handle actions from the enity panel
+            DispEditEntityPanel.OutsideAction += HandleEntityPanelOustideAction ;
 
             // re-load known endpoints
             //1//_securityAccessHandler = new WinGdiSecurityAccessHandler(DisplayContext,
@@ -1754,7 +1757,7 @@ namespace MauiTestTree
             MainTimer_HandleLogMessages();
 
             // Try to load?            
-            if (Options.Curr.AasxToLoad != null)
+            if (Options.Curr.AasxToLoad?.HasContent() == true)
             {
                 var location = Options.Curr.AasxToLoad;
                 try
@@ -1791,7 +1794,7 @@ namespace MauiTestTree
                 }
             }
 
-            if (Options.Curr.AuxToLoad != null)
+            if (Options.Curr.AuxToLoad?.HasContent() == true)
             {
                 var location = Options.Curr.AuxToLoad;
                 try
@@ -1860,9 +1863,18 @@ namespace MauiTestTree
             //1// AasxIntegrationBaseWpf.CountryFlagWpf.LoadImage();
 
             // TEST
-            if (false)
+            if (true)
             {
-                await MauiTestTree.Flyouts.MauiFlyoutTestCases.ExecuteMauiFlyoutTestCase(this, this, 5);
+                //var page = new TextEditorFlyoutPage(DisplayContext);
+                //bool result = await page.ShowAsync(Navigation);
+
+                //if (result)
+                //{
+                //    ;
+                //}
+
+
+                await MauiTestTree.Flyouts.MauiFlyoutTestCases.ExecuteMauiFlyoutTestCase(this, this, 1);
             }
         }
 
@@ -2237,6 +2249,7 @@ namespace MauiTestTree
             }
         }
 
+#if NOT_ANYMORE
         private async Task MainTimer_HandleEntityPanel()
         {
             // check if Display/ Edit Control has some work to do ..
@@ -2258,6 +2271,22 @@ namespace MauiTestTree
                 Log.Singleton.Error(ex, "While responding to a user interaction");
             }
         }
+#else
+
+        protected async Task HandleEntityPanelOustideAction(AnyUiLambdaActionBase action)
+        {
+            // check if Display/ Edit Control has some work to do ..
+            try
+            {
+                await MainTimer_HandleLambdaAction(action);
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(ex, "While responding to a action requested by the entity panel");
+            }
+        }
+
+#endif
 
         #region Load from Repository
         // -------------------------
@@ -3529,7 +3558,9 @@ namespace MauiTestTree
         {
             // different functions
             MainTimer_HandleLogMessages();
+#if NOT_ANYMORE
             await MainTimer_HandleEntityPanel();
+#endif
             await MainTimer_HandleApplicationEvents();
 
             // diary dates -> events, animation
@@ -3581,7 +3612,7 @@ namespace MauiTestTree
             DisplayElements.UpdateFromQueuedEvents();
         }
 
-        #endregion
+#endregion
 
         #region Progress
         // --------------
@@ -4529,6 +4560,7 @@ namespace MauiTestTree
         // ASYNC (are async versions of the WPF modals required)
         //
 
+
         public async Task StartFlyoverModalAsync(VisualElement uc, Action? closingAction = null)
         {
             // uc needs to implement IFlyoverControl
@@ -4543,8 +4575,8 @@ namespace MauiTestTree
             };
 
             // start the page
-            await Navigation.PushModalAsync(page);
-
+            // await Navigation.PushModalAsync(page);
+            bool result = await ucfoc.MauiShowPageAsync(Navigation);
 
             //1// // uc needs to implement IFlyoverControl
             //1// var ucfoc = uc as IFlyoutControl;

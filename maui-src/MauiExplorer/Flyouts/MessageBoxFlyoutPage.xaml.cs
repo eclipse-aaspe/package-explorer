@@ -134,6 +134,15 @@ public partial class MessageBoxFlyoutPage : ContentPage, IFlyoutControl
         AttachPlatformSpecificHandleKeys();
     }
 
+    private TaskCompletionSource<bool>? _tcs;
+
+    public Task<bool> MauiShowPageAsync(INavigation navigation)
+    {
+        _tcs = new TaskCompletionSource<bool>();
+        navigation.PushModalAsync(this);
+        return _tcs.Task;
+    }
+
     protected void AttachPlatformSpecificHandleKeys()
     {
         // access
@@ -184,6 +193,7 @@ public partial class MessageBoxFlyoutPage : ContentPage, IFlyoutControl
         if (sender == CancelButton)
         {
             Result = AnyUiMessageBoxResult.None;
+            _tcs?.TrySetResult(false);
             ControlClosed?.Invoke();
         }
     }
@@ -223,6 +233,7 @@ public partial class MessageBoxFlyoutPage : ContentPage, IFlyoutControl
         if (sender is Button btn && btn.BindingContext is ModalFooterButton mfb)
         {
             Result = mfb.FinalResult;
+            _tcs?.TrySetResult(true);
             ControlClosed?.Invoke();
         }
     }

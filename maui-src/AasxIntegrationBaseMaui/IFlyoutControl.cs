@@ -36,5 +36,13 @@ namespace AasxIntegrationBase
         /// of lambda actions.
         /// </summary>
         void LambdaActionAvailable(AnyUiLambdaActionBase la);
+
+        /// <summary>
+        /// Returns a TaskCompletionSource to be waited for.
+        /// </summary>
+        /// <param name="navigation"></param>
+        /// <returns></returns>
+        Task<bool> MauiShowPageAsync(INavigation navigation);
+
     }
 }

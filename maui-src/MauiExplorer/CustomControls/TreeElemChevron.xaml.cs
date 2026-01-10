@@ -29,7 +29,7 @@ public partial class TreeElemChevron : ContentView
         BindableProperty.Create(
             nameof(TextColor),
             typeof(Color),
-            typeof(TransparentEntry),
+            typeof(TreeElemChevron),
             Colors.White);
 
     public Color TextColor
@@ -46,16 +46,18 @@ public partial class TreeElemChevron : ContentView
 
         var glyphSpec = self.Glyph;
         var glyphTuple = glyphSpec.Split('|');
-        if (glyphTuple.Length != 3)
+        if (glyphTuple.Length != 4)
             return;
 
-        //if (!Color.TryParse(glyphTuple[2], out var color))
-        //    return;
+        var ndx = (Application.Current?.RequestedTheme == AppTheme.Light) ? 2 : 3;
+
+        if (!Color.TryParse(glyphTuple[ndx], out var color))
+            return;
 
         self.TheImage.Source = new FontImageSource() { 
             Glyph = glyphTuple[0], 
             FontFamily = glyphTuple[1], 
-            Color = self.TextColor, 
+            Color = color, 
             Size = 40 
         };
     }

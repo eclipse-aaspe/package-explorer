@@ -29,7 +29,9 @@ public partial class TextEditorFlyoutPage : ContentPage, IFlyoutControl
     // Integration logic for Outer
     //
 
-    public TextEditorFlyoutPage(AnyUiDisplayContextMaui displayContextMaui, AnyUiDialogueDataTextEditor? preset = null)
+    public TextEditorFlyoutPage(
+            AnyUiDisplayContextMaui displayContextMaui,
+            AnyUiDialogueDataTextEditor? preset = null)
     {
         _dcMaui = displayContextMaui;
         InitializeComponent();
@@ -39,6 +41,15 @@ public partial class TextEditorFlyoutPage : ContentPage, IFlyoutControl
         SetSelectEnabled(true);
 
         PlatformSpecificHandleTabKey();
+    }
+
+    private TaskCompletionSource<bool>? _tcs;
+
+    public Task<bool> MauiShowPageAsync(INavigation navigation)
+    {
+        _tcs = new TaskCompletionSource<bool>();
+        navigation.PushModalAsync(this);
+        return _tcs.Task;
     }
 
     private void PlatformSpecificHandleTabKey()
@@ -87,6 +98,7 @@ public partial class TextEditorFlyoutPage : ContentPage, IFlyoutControl
         if (sender == CancelButton)
         {
             DiaData.Result = false;
+            _tcs?.TrySetResult(false);
             ControlClosed?.Invoke();
         }
 
@@ -94,6 +106,7 @@ public partial class TextEditorFlyoutPage : ContentPage, IFlyoutControl
         {
             PrepareResult();
             DiaData.Result = true;
+            _tcs?.TrySetResult(true);
             ControlClosed?.Invoke();
         }
     }
@@ -125,6 +138,7 @@ public partial class TextEditorFlyoutPage : ContentPage, IFlyoutControl
 
     protected void PrepareResult()
     {
+        ;
     }
 
     private void SetMimeTypeAndText()

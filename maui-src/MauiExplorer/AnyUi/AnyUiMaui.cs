@@ -79,8 +79,19 @@ namespace MauiTestTree
 
     public class AnyUiDisplayContextMaui : AnyUiContextPlusDialogs
     {
+        /// <summary>
+        /// Object which is able to open, close flyover panels
+        /// </summary>
         [JsonIgnore]
         public IFlyoutProvider FlyoutProvider;
+
+        /// <summary>
+        /// Object which carries a UI dispatched. Used to convert sync to async method invocations
+        /// for UI handline.
+        /// </summary>
+        [JsonIgnore]
+        public BindableObject DispatchObject;
+
         [JsonIgnore]
         public PackageCentral Packages;
 
@@ -93,9 +104,10 @@ namespace MauiTestTree
         }
 
         public AnyUiDisplayContextMaui(
-            IFlyoutProvider flyoutProvider, PackageCentral packages)
+            IFlyoutProvider flyoutProvider, BindableObject dispatchObject, PackageCentral packages)
         {
             FlyoutProvider = flyoutProvider;
+            DispatchObject = dispatchObject;
             Packages = packages;
             InitRenderRecs();
         }
@@ -2779,6 +2791,8 @@ namespace MauiTestTree
         /// <returns>If the dialogue was end with "OK" or similar success.</returns>
         public override bool StartFlyoverModal(AnyUiDialogueDataBase dialogueData)
         {
+            throw new NotImplementedException("StartFlyoverModal w/o Async not possible!");
+
             // access
             if (dialogueData == null || FlyoutProvider == null)
                 return false;
@@ -2793,12 +2807,19 @@ namespace MauiTestTree
                 if (uc != null)
                 {
                     if (dialogueData.HasModalSpecialOperation)
+                    {
                         // start WITHOUT modal
-                        FlyoutProvider?.StartFlyoverAsync(uc);
+                        if (DispatchObject?.Dispatcher != null && FlyoutProvider != null)
+                            DispatchObject.Dispatcher.Dispatch(async () =>
+                            {
+                                await FlyoutProvider.StartFlyoverAsync(uc);
+                            });
+                    }
                     else
                     {
-                        // perform modal
-                        FlyoutProvider?.StartFlyoverModal(uc);
+                        // perform modal. Use provided dispatch object
+                        if (DispatchObject?.Dispatcher != null && FlyoutProvider != null)
+                            _ = FlyoutProvider.StartFlyoverModalAsync(uc);
 
                         // special fix
                         //1// if (uc is ModalPanelFlyout mpf && mpf.DiaData != dialogueData)
@@ -2883,6 +2904,8 @@ namespace MauiTestTree
         /// <returns>If the dialogue was end with "OK" or similar success.</returns>
         public override void StartFlyover(AnyUiDialogueDataBase dialogueData)
         {
+            throw new NotImplementedException("StartFlyover w/o Async not possible!");
+
 #if TODO_IMPORTANT
             // access
             if (dialogueData == null || FlyoutProvider == null)
