@@ -2786,12 +2786,12 @@ namespace AasxPackageLogic
                 },
                 auxButtonTitles: new[] { "Choose supplemental file", },
                 auxButtonToolTips: new[] { "Select existing supplemental file" },
-                auxButtonLambda: (bi) =>
+                auxButtonLambdaAsync: async (bi) =>
                 {
                     if (bi == 0)
                     {
                         // Select
-                        var ve = this.SmartSelectAasEntityVisualElement(
+                        var ve = await SmartSelectAasEntityVisualElementAsync(
                                     packages, PackageCentral.PackageCentral.Selector.Main, "SupplementalFile");
                         if (ve != null)
                         {
