@@ -59,6 +59,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSIExtension", "..\src\SSIE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AasxIntegrationBaseMaui", "AasxIntegrationBaseMaui\AasxIntegrationBaseMaui.csproj", "{085D2990-9AF7-45E7-837D-5C21EE176829}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AasxSoftwareInfo", "..\src\AasxSoftwareInfo\AasxSoftwareInfo.csproj", "{1E1F5087-866B-89AB-3FA7-88D240120FB9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -153,6 +155,10 @@ Global
 		{085D2990-9AF7-45E7-837D-5C21EE176829}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{085D2990-9AF7-45E7-837D-5C21EE176829}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{085D2990-9AF7-45E7-837D-5C21EE176829}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E1F5087-866B-89AB-3FA7-88D240120FB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E1F5087-866B-89AB-3FA7-88D240120FB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E1F5087-866B-89AB-3FA7-88D240120FB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E1F5087-866B-89AB-3FA7-88D240120FB9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -180,6 +186,7 @@ Global
 		{A17889C6-64BB-35F8-AB70-FE38A6B0F7D0} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{0D31DD7F-850C-4DE9-6898-FD8DB94A08FF} = {5EB84C47-8AE3-4AA3-A3C9-42AB645F36B1}
 		{085D2990-9AF7-45E7-837D-5C21EE176829} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{1E1F5087-866B-89AB-3FA7-88D240120FB9} = {B99C50F9-8627-42A7-817B-6C3E91A32B84}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2862EFC5-FE1A-4AF7-AAF1-C2F89D306AAD}

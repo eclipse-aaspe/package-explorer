@@ -5,6 +5,14 @@ using AasxPackageLogic;
 
 namespace MauiTestTree;
 
+/// <summary>
+/// The loading page shows first some logo / information about autors and
+/// licenses, which are necessary anyway for legalr reasons.
+/// After a short period of time, it starts the rest of the application up
+/// (that lengthy class loading of PackageLogic and DataStore can occur when
+/// visuals are already present).
+/// It then substitutes itself with the 'real' main page.
+/// </summary>
 public partial class LoadingPage : ContentPage
 {
     protected LoadingPageViewModel _viewModel = new();
@@ -26,7 +34,14 @@ public partial class LoadingPage : ContentPage
     {
         base.OnAppearing();
 
-        await AppStartup();
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(200), async () =>
+        {
+            // load
+            await AppStartup();
+
+            // then: reach necessary state to close
+            _timerState = 1;
+        });
     }
 
     protected void DismissPage()
@@ -37,7 +52,8 @@ public partial class LoadingPage : ContentPage
 
     private void CancelButton_Clicked(object sender, EventArgs e)
     {
-        DismissPage();
+        if (_timerState >= 1)
+            DismissPage();
     }
 
     //
@@ -46,6 +62,7 @@ public partial class LoadingPage : ContentPage
 
     protected DateTime _timerStartTime;
     protected bool _timerRunning = false;
+    protected int _timerState = 0;
 
     protected void StartTimer()
     {
@@ -53,11 +70,12 @@ public partial class LoadingPage : ContentPage
         _timerRunning = true;
         Dispatcher.StartTimer(TimeSpan.FromMilliseconds(100), () =>
         {
-            // check
-            if ((DateTime.UtcNow - _timerStartTime).TotalMilliseconds >= 1000.0 * _viewModel.SplashTimeSecs)
+            // dismiss
+            if (_timerState == 1 
+                && (DateTime.UtcNow - _timerStartTime).TotalMilliseconds >= 1000.0 * _viewModel.SplashTimeSecs)
                 DismissPage();
 
-            // else, keep runnding
+            // else, keep running
             return _timerRunning; // true = keep running, false = stop
         });
     }
@@ -305,15 +323,15 @@ public class LoadingPageViewModel : INotifyPropertyChanged
     // Members
     //
 
-    public string Authors { get; set; } = "dscdscsdcdscdscdscdscdscds";
-    public string Version { get; set; } = "cdscdscdscds";
-    public string BuildDate { get; set; } = "cdscdscds";
-    public string Licenses { get; set; } = "cdscsdcdscdscdscdscdscddscdcd";
+    public string Authors { get; set; } = "";
+    public string Version { get; set; } = "";
+    public string BuildDate { get; set; } = "";
+    public string Licenses { get; set; } = "";
 
     /// <summary>
     /// Splash time in seconds
     /// </summary>
-    public double SplashTimeSecs = 5.0;
+    public double SplashTimeSecs = 10.0;
 
     //
     // Constructor
@@ -321,10 +339,10 @@ public class LoadingPageViewModel : INotifyPropertyChanged
 
     public LoadingPageViewModel()
     {
-        var pref = Pref.Read();
+        var pref = AasxSoftwareInfo.SoftwareInfoBase.Read();
 
         Authors = pref.Authors;
-        Version = pref.Version;
+        Version = pref.GitDescribe;
         BuildDate = pref.BuildDate;
         Licenses = "[AASX Package Explorer]" + System.Environment.NewLine +
                    pref.LicenseShort + System.Environment.NewLine +

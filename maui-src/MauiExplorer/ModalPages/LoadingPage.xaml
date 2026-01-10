@@ -59,37 +59,18 @@
                    Text="(c) 2018-2023 Festo SE &amp; Co. KG &#10;(c) 2023-2025 Hochschule Karlsruhe and further" >
             </Label>
 
-            <Label Grid.Row="2" Grid.Column="0" 
-                   Margin="0,0,8,8"
-                   HorizontalOptions="End"
-                   VerticalOptions="Start"
-                   FontSize="11"
-                   Text="Authors:" />
             <Label Grid.Row="2" Grid.Column="1" 
                    Margin="0,0,0,8"
                    VerticalOptions="Start"
                    FontSize="11"
                    Text="{Binding Authors}" />
 
-            <Label Grid.Row="3" Grid.Column="0" 
-                   Margin="0,0,8,8"
-                   HorizontalOptions="End"
-                   VerticalOptions="Start"
-                   FontSize="11"
-                   Text="Version:" />
             <Label Grid.Row="3" Grid.Column="1" 
                    Margin="0,0,8,8"
-                   HorizontalOptions="End"
                    VerticalOptions="Start"
                    FontSize="11"
                    Text="{Binding Version}" />
 
-            <Label Grid.Row="4" Grid.Column="0" 
-                   Margin="0,0,8,8"
-                   HorizontalOptions="End"
-                   VerticalOptions="Start"
-                   FontSize="11"
-                   Text="Build date:" />
             <Label Grid.Row="4" Grid.Column="1" 
                    Margin="0,0,0,8"
                    VerticalOptions="Start"
@@ -102,6 +83,7 @@
         
         <!-- Forth row: Licenses -->
         <Grid Grid.Row="3" Grid.Column="0"
+              MaximumWidthRequest="800"
               RowDefinitions="Auto, *"
               ColumnDefinitions="*">
 
