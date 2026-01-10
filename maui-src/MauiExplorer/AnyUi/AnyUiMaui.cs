@@ -2763,6 +2763,7 @@ namespace MauiTestTree
             }
         }
 
+#if TO_DELETE
         /// <summary>
         /// Shows specified dialogue hardware-independent. The technology implementation will show the
         /// dialogue based on the type of provided <c>dialogueData</c>. 
@@ -2811,9 +2812,9 @@ namespace MauiTestTree
                 }
 
                 // now, in case
-#if TODO
+// #if TODO
                 PerformSpecialOps(modal: true, dialogueData: dialogueData);
-#endif
+// #endif
 
                 // may be close?
                 if (dialogueData.HasModalSpecialOperation)
@@ -2828,6 +2829,7 @@ namespace MauiTestTree
             // result
             return dialogueData.Result;
         }
+#endif
 
         /// <summary>
         /// Shows specified dialogue hardware-independent. The technology implementation will show the

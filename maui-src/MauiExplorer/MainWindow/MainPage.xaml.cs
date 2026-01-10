@@ -4427,6 +4427,7 @@ namespace MauiTestTree
         // SYNCRONOUS
         //
 
+#if TO_DELETE
         public void StartFlyoverModal(VisualElement uc, Action? closingAction = null)
         {
             //1// // uc needs to implement IFlyoverControl
@@ -4524,6 +4525,7 @@ namespace MauiTestTree
             //1// // unregister
             //1// currentFlyoutControl = null;
         }
+#endif
 
         //
         // ASYNC (are async versions of the WPF modals required)
