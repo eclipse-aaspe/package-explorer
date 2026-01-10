@@ -28,6 +28,7 @@ using AngleSharp.Text;
 using VDS.RDF;
 using VDS.RDF.Writing;
 using VDS.RDF.Parsing;
+using System.Threading.Tasks;
 
 namespace AasxPackageLogic
 {
@@ -37,7 +38,7 @@ namespace AasxPackageLogic
 	/// </summary>
 	public class DispEditHelperSammModules : DispEditHelperModules
 	{
-		public SammIdSet SammExtensionHelperSelectSammVersion(IEnumerable<SammIdSet> idsets)
+		public async Task<SammIdSet> SammExtensionHelperSelectSammVersionAsync(IEnumerable<SammIdSet> idsets)
 		{
 			// create choices
 			var fol = new AnyUiDialogueListItemList();
@@ -48,14 +49,14 @@ namespace AasxPackageLogic
 			var uc = new AnyUiDialogueDataSelectFromList(
 				caption: "Select SAMM version to use ..");
 			uc.ListOfItems = fol;
-			this.context.StartFlyoverModal(uc);
+			await context.StartFlyoverModalAsync(uc);
 			if (uc.Result && uc.ResultItem != null && uc.ResultItem.Tag != null &&
 				uc.ResultItem.Tag.GetType().IsAssignableTo(typeof(Samm.SammIdSet)))
 				return (SammIdSet)uc.ResultItem.Tag;
 			return null;
 		}
 
-		public Type SammExtensionHelperSelectSammType(Type[] addableElements)
+		public async Task<Type> SammExtensionHelperSelectSammType(Type[] addableElements)
 		{
 			// create choices
 			var fol = new AnyUiDialogueListItemList();
@@ -66,7 +67,7 @@ namespace AasxPackageLogic
 			var uc = new AnyUiDialogueDataSelectFromList(
 				caption: "Select SAMM element type to add ..");
 			uc.ListOfItems = fol;
-			this.context.StartFlyoverModal(uc);
+			await context.StartFlyoverModalAsync(uc);
 			if (uc.Result && uc.ResultItem != null && uc.ResultItem.Tag != null &&
 				((Type)uc.ResultItem.Tag).IsAssignableTo(typeof(Samm.ModelElement)))
 				return (Type)uc.ResultItem.Tag;
@@ -106,7 +107,7 @@ namespace AasxPackageLogic
 			se.ValueType = DataTypeDefXsd.String;
 		}
 
-		public AnyUiLambdaActionBase SammExtensionHelperSammReferenceAction<T>(
+		public async Task<AnyUiLambdaActionBase> SammExtensionHelperSammReferenceActionAsync<T>(
 			Aas.IEnvironment env,
 			SammIdSet idSet,
 			Aas.IReferable relatedReferable,
@@ -123,7 +124,7 @@ namespace AasxPackageLogic
 				var uc = new AnyUiDialogueDataSelectFromList(
 					caption: "Select preset value to add ..");
 				uc.ListOfItems = new AnyUiDialogueListItemList(presetList.Select((st) => new AnyUiDialogueListItem("" + st, st)));
-				this.context.StartFlyoverModal(uc);
+				await context.StartFlyoverModalAsync(uc);
 				if (uc.Result && uc.ResultItem != null && uc.ResultItem.Tag != null &&
 					uc.ResultItem.Tag is string prs)
 				{
@@ -134,7 +135,7 @@ namespace AasxPackageLogic
 
 			if (actionIndex == 1)
 			{
-				var k2 = SmartSelectAasEntityKeys(
+				var k2 = await SmartSelectAasEntityKeysAsync(
 					packages,
 					PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
 					"ConceptDescription");
@@ -148,7 +149,7 @@ namespace AasxPackageLogic
 			if (actionIndex == 2)
 			{
 				// select type
-				var sammTypeToCreate = SammExtensionHelperSelectSammType(
+				var sammTypeToCreate = await SammExtensionHelperSelectSammType(
 						addableElements: (addableElements != null)
 							? addableElements : Samm.Constants.AddableElements);
 				if (sammTypeToCreate == null)
@@ -162,7 +163,7 @@ namespace AasxPackageLogic
 					symbol: AnyUiMessageBoxImage.Question,
 					maxWidth: 1400,
 					text: "" + newUri);
-				if (!this.context.StartFlyoverModal(uc))
+				if (!(await this.context.StartFlyoverModalAsync(uc)))
 					return new AnyUiLambdaActionNone();
 				newUri = uc.Text;
 
@@ -173,7 +174,7 @@ namespace AasxPackageLogic
 					symbol: AnyUiMessageBoxImage.Question,
 					maxWidth: 1400,
 					text: "" + newIdShort);
-				if (!this.context.StartFlyoverModal(uc2))
+				if (!(await context.StartFlyoverModalAsync(uc2)))
 					return new AnyUiLambdaActionNone();
 				newIdShort = uc2.Text;
 				if (newIdShort.HasContent() != true)
@@ -272,9 +273,9 @@ namespace AasxPackageLogic
 					"Create a new ConceptDescription for SAMM use.",
 					"Jump to ConceptDescription with given Id."
 				},
-				auxButtonLambda: (i) =>
+				auxButtonLambdaAsync: async (i) =>
 				{
-					return SammExtensionHelperSammReferenceAction<T>(
+					return await SammExtensionHelperSammReferenceActionAsync<T>(
 						env, idSet, 
 						relatedReferable,
 						i,
@@ -380,7 +381,7 @@ namespace AasxPackageLogic
 						},
 						margin: new AnyUiThickness(2, 2, 2, 2),
 						padding: new AnyUiThickness(5, 0, 5, 0),
-						menuItemLambda: (o) =>
+						menuItemLambdaAsync: async (o) =>
 						{
 							var action = false;
 
@@ -405,7 +406,7 @@ namespace AasxPackageLogic
 									case 4:
 									case 5:
 									case 6:
-										return SammExtensionHelperSammReferenceAction<T>(
+										return await SammExtensionHelperSammReferenceActionAsync<T>(
 											env, idSet, relatedReferable,
 											sr: value[theLsri],
 											actionIndex: ti - 3,
@@ -782,7 +783,7 @@ namespace AasxPackageLogic
 							maxLines: isMultiLineAttr.MaxLines.Value,
 							auxButtonTitles: new[] { "\u2261" },
 							auxButtonToolTips: new[] { "Edit in multiline editor" },
-							auxButtonLambda: (buttonNdx) =>
+							auxButtonLambdaAsync: async (buttonNdx) =>
 							{
 								if (buttonNdx == 0)
 								{
@@ -790,7 +791,7 @@ namespace AasxPackageLogic
 										caption: $"Edit " + pii.Name,
 										mimeType: System.Net.Mime.MediaTypeNames.Text.Plain,
 										text: (string)pii.GetValue(sammInst));
-									if (this.context.StartFlyoverModal(uc))
+									if (await context.StartFlyoverModalAsync(uc))
 									{
 										pii.SetValue(sammInst, uc.Text);
 										setValue?.Invoke(sammInst);
@@ -1013,7 +1014,7 @@ namespace AasxPackageLogic
 							"Adds an other Characteristic by selecting from a list.")
 						.AddAction("delete-last", "Delete last extension",
 							"Deletes last extension."),
-					ticketAction: (buttonNdx, ticket) =>
+					ticketActionAsync: async (buttonNdx, ticket) =>
 					{
 						Samm.ModelElement newChar = null;
 						switch (buttonNdx)
@@ -1035,7 +1036,7 @@ namespace AasxPackageLogic
 						if (buttonNdx == 4)
 						{							
 							// select
-							var sammTypeToCreate = SammExtensionHelperSelectSammType(
+							var sammTypeToCreate = await SammExtensionHelperSelectSammType(
 								Samm.Constants.AddableElements);
 
 							if (sammTypeToCreate != null)
@@ -1051,7 +1052,7 @@ namespace AasxPackageLogic
 						{
 							// which id set to use
 							if (detectedIdSet == null)
-								detectedIdSet = SammExtensionHelperSelectSammVersion(
+								detectedIdSet = await SammExtensionHelperSelectSammVersionAsync(
 									Samm.SammIdSets.IdSets.Values);
 							if (detectedIdSet == null)
 								return new AnyUiLambdaActionNone();

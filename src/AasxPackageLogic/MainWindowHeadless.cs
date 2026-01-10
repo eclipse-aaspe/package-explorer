@@ -1287,7 +1287,7 @@ namespace AasxPackageLogic
 
                 // ask
                 if (ticket?.ScriptMode != true
-                    && AnyUiMessageBoxResult.Yes != DisplayContext.MessageBoxFlyoutShow(
+                    && AnyUiMessageBoxResult.Yes != await DisplayContext.MessageBoxFlyoutShowAsync(
                         "This operation will move data in particular Qualifiers to Extensions of " +
                         "the Submodel and all of its SubmodelElements. Do you want to proceed?",
                         "Convert SMT qualifiers to SMT extension",
@@ -1345,7 +1345,7 @@ namespace AasxPackageLogic
 
                 // ask 1
                 if (ticket?.ScriptMode != true
-                    && AnyUiMessageBoxResult.Yes != DisplayContext.MessageBoxFlyoutShow(
+                    && AnyUiMessageBoxResult.Yes != await DisplayContext.MessageBoxFlyoutShowAsync(
                         "This operation analyzes the element relatioships in the Submodel " +
                         "and will take over these as organize references into SMT attribute " +
                         "records of associated ConceptDescriptions. Do you want to proceed?",
@@ -1356,7 +1356,7 @@ namespace AasxPackageLogic
                 // ask 2
                 var eachElemDetails = true;
                 if (ticket?.ScriptMode != true)
-                    eachElemDetails = AnyUiMessageBoxResult.Yes == DisplayContext.MessageBoxFlyoutShow(
+                    eachElemDetails = AnyUiMessageBoxResult.Yes == await DisplayContext.MessageBoxFlyoutShowAsync(
                         "Create detailed SMT attributes for each relevant ConceptDescription, " +
                         "include SubmodelElement type list?",
                         "Take over SM element relationships to CDs",
@@ -1642,7 +1642,7 @@ namespace AasxPackageLogic
                     var uc = new AnyUiDialogueDataSelectFromRepository();
                     uc.Caption = "Select in repository";
                     uc.Items = repoItems;
-                    if (DisplayContext.StartFlyoverModal(uc))
+                    if (await DisplayContext.StartFlyoverModalAsync(uc))
                     {
                         // try the main window for remote repos
                         if (uc.ResultId != null)

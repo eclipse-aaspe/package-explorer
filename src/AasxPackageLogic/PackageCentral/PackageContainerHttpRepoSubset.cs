@@ -4703,7 +4703,7 @@ namespace AasxPackageLogic.PackageCentral
             }
 
             // ask to proceed?
-            if (AnyUiMessageBoxResult.Yes != displayContext.MessageBoxFlyoutShow(
+            if (AnyUiMessageBoxResult.Yes != await displayContext.MessageBoxFlyoutShowAsync(
                 $"After checking individual ids, {idfExist.Count} {elemKindName}s seem to " +
                 $"exist on the server. Proceed with deleting these?",
                 $"Delete {elemKindName}",

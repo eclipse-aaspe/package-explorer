@@ -15,6 +15,7 @@ using Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
 using static AnyUi.AnyUiDialogueDataTextEditor;
 using Aas = AasCore.Aas3_1;
@@ -156,14 +157,14 @@ namespace AasxPackageLogic
                     .AddAction("aas-multi-elem-delete", "Delete",
                         "Deletes the currently selected element.",
                         inputGesture: "Ctrl+Shift+Delete"),
-                ticketAction: (buttonNdx, ticket) =>
+                ticketActionAsync: async (buttonNdx, ticket) =>
                 {
                     if (buttonNdx >= 0 && buttonNdx <= 3)
                     {
                         // special sort order
                         if (preventMove)
                         {
-                            this.context.MessageBoxFlyoutShow(
+                            await context.MessageBoxFlyoutShowAsync(
                                 "Moving within list is not possible, as list of entities has dynamic " +
                                 "sort order.",
                                 "Move entities", AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Warning);
@@ -212,7 +213,7 @@ namespace AasxPackageLogic
                     if (buttonNdx == 4)
 
                         if (this.context.ActualShiftState
-                            || AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
+                            || AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
                                 "Delete selected entities? This operation can not be reverted!", "AAS-ENV",
                                 AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
                         {
@@ -354,11 +355,11 @@ namespace AasxPackageLogic
             }
         }
 
-        public void DispEditMultiElemsRemoveExtensions(IEnumerable<Aas.IReferable> bosObjs)
+        public async Task DispEditMultiElemsRemoveExtensions(IEnumerable<Aas.IReferable> bosObjs)
         {
             // idShort or semId?
             var useSemId = AnyUiMessageBoxResult.Yes ==
-                this.context.MessageBoxFlyoutShow(
+                await context.MessageBoxFlyoutShowAsync(
                     "Do you want to select extension based on name (No) or based on" +
                     "semanticId (Yes)?", "Remove extensions",
                     AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Question);
@@ -392,7 +393,7 @@ namespace AasxPackageLogic
                         Tag = dict[dictKey].ToList()
                     }));
 
-            this.context.StartFlyoverModal(uc);
+            await context.StartFlyoverModalAsync(uc);
             if (uc.Result && uc.ResultItem?.Tag is List<Tuple<Aas.IReferable, Aas.IExtension>> tuples)
             {
                 int numRemove = 0;
@@ -432,12 +433,12 @@ namespace AasxPackageLogic
                     .AddAction("aas-multi-elem-del", "Delete",
                         "Deletes currently selected element(s).",
                         inputGesture: "Ctrl+Shift+Delete"),
-                ticketAction: (buttonNdx, ticket) =>
+                ticketActionAsync: async (buttonNdx, ticket) =>
                 {
                     if (buttonNdx == 0)
 
                         if (this.context.ActualShiftState
-                            || AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
+                            || AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
                                 "Delete selected entities? This operation can not be reverted and may directly " +
                                 "affect the loaded package!", "AAS-ENV",
                                 AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
@@ -656,13 +657,13 @@ namespace AasxPackageLogic
                         ticketMenu: new AasxMenu()
                             .AddAction("auto-detect", "Auto detect content",
                                 "Auto dectects known data specification contents and sets valid references."),
-                        ticketAction: (buttonNdx, ticket) =>
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx == 0)
                             {
                                 var fix = 0;
 
-                                if (AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                                if (AnyUiMessageBoxResult.Yes != await context.MessageBoxFlyoutShowAsync(
                                     "Auto-detect data specification contents and set data specification references " +
                                     "accordingly? This operation cannot be reverted!", "Selected ConceptDescriptions",
                                     AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
@@ -799,12 +800,12 @@ namespace AasxPackageLogic
                                     "Changes common attributes of multiple selected elements.")
 								.AddAction("remove-extension", "Remove extensions ..",
 									"Removes a specific selected extension from elements."),
-                            ticketAction: (buttonNdx, ticket) =>
+                            ticketActionAsync: async (buttonNdx, ticket) =>
                             {
                                 if (buttonNdx == 0)
                                 {
                                     var uc = new AnyUiDialogueDataChangeElementAttributes();
-                                    if (this.context.StartFlyoverModal(uc))
+                                    if (await context.StartFlyoverModalAsync(uc))
                                     {
                                         object nf = null;
                                         foreach (var bo in bos)

@@ -91,6 +91,7 @@ namespace AnyUi
         {
         }
 
+#if TO_DELETE
         /// <summary>
         /// Show MessageBoxFlyout with contents
         /// </summary>
@@ -104,6 +105,7 @@ namespace AnyUi
         {
             return AnyUiMessageBoxResult.Cancel;
         }
+#endif
 
         /// <summary>
         /// Show MessageBoxFlyout with contents
@@ -169,8 +171,9 @@ namespace AnyUi
         /// </summary>
         /// <param name="dialogueData"></param>
         /// <returns>If the dialogue was end with "OK" or similar success.</returns>
-        public virtual void StartFlyover(AnyUiDialogueDataBase dialogueData)
+        public virtual async Task StartFlyoverAsync(AnyUiDialogueDataBase dialogueData)
         {
+            await Task.Yield();
         }
 
         /// <summary>

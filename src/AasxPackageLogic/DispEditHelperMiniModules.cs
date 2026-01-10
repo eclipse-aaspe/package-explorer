@@ -210,7 +210,7 @@ namespace AasxPackageLogic
                                         => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }));
 
                                 // perform dialogue
-                                this.context.StartFlyoverModal(uc);
+                                await context.StartFlyoverModalAsync(uc);
                                 if (uc.Result && uc.ResultItem?.Tag is QualifierPreset preset
                                     && preset.qualifier != null)
                                 {
@@ -465,7 +465,7 @@ namespace AasxPackageLogic
                     limitToOneRowForNoEdit: true,
                     auxButtonTitles: new[] { "\u2261" },
                     auxButtonToolTips: new[] { "Edit in multiline editor" },
-                    auxButtonLambda: (buttonNdx) =>
+                    auxButtonLambdaAsync: async (buttonNdx) =>
                     {
                         if (buttonNdx == 0)
                         {
@@ -474,7 +474,7 @@ namespace AasxPackageLogic
                                 caption: $"Edit Extension '{qInfo}'",
                                 mimeType: Aas.Stringification.ToString(qual.ValueType),
                                 text: qual.Value);
-                            if (this.context.StartFlyoverModal(uc))
+                            if (await context.StartFlyoverModalAsync(uc))
                             {
                                 qual.Value = uc.Text;
                                 this.AddDiaryEntry(relatedReferable, new DiaryEntryUpdateValue());
@@ -682,7 +682,7 @@ namespace AasxPackageLogic
                                         => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }));
 
                                 // perform dialogue
-                                this.context.StartFlyoverModal(uc);
+                                await context.StartFlyoverModalAsync(uc);
                                 if (uc.Result && uc.ResultItem?.Tag is IdentifierKeyValuePairPreset preset
                                     && preset.pair != null)
                                 {
@@ -928,7 +928,7 @@ namespace AasxPackageLogic
                                         => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }));
 
                                 // perform dialogue
-                                this.context.StartFlyoverModal(uc);
+                                await context.StartFlyoverModalAsync(uc);
                                 if (uc.Result && uc.ResultItem?.Tag is ExtensionPreset preset
                                     && preset.extension != null)
                                 {
@@ -1158,7 +1158,7 @@ namespace AasxPackageLogic
                         limitToOneRowForNoEdit: true,
                         auxButtonTitles: new[] { "\u2261" },
                         auxButtonToolTips: new[] { "Edit in multiline editor" },
-                        auxButtonLambda: (buttonNdx) =>
+                        auxButtonLambdaAsync: async (buttonNdx) =>
                         {
                             if (buttonNdx == 0)
                             {
@@ -1166,7 +1166,7 @@ namespace AasxPackageLogic
                                                     caption: $"Edit Extension '{"" + extension.Name}'",
                                                     mimeType: Aas.Stringification.ToString(extension.ValueType),
                                                     text: extension.Value);
-                                if (this.context.StartFlyoverModal(uc))
+                                if (await context.StartFlyoverModalAsync(uc))
                                 {
                                     extension.Value = uc.Text;
                                     this.AddDiaryEntry(relatedReferable, new DiaryEntryUpdateValue());
@@ -1559,12 +1559,12 @@ namespace AasxPackageLogic
                     ticketMenu: new AasxMenu()
                         .AddAction("create-cds", "CDs \U0001f844 pairs",
                             "For each Value /Reference pair, create a separate ConceptDescription."),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
                         {
                             // make sure
-                            if (AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                            if (AnyUiMessageBoxResult.Yes != await context.MessageBoxFlyoutShowAsync(
                                     "This operation will create additional ConceptDescriptions for each " +
                                     "pair of Value and Reference. Do you want to proceed?",
                                     "Create CDs",

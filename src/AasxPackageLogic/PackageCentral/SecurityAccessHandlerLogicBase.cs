@@ -485,7 +485,7 @@ namespace AasxPackageExplorer
                         caption: "Certificate file",
                         message: $"Select a certificate file for access to {baseAddress} ..",
                         proposeFn: certFn);
-            _displayContext.StartFlyoverModal(uc);
+            await _displayContext.StartFlyoverModalAsync(uc);
             if (!(uc.Result && uc.TargetFileName != null))
                 return null;
 

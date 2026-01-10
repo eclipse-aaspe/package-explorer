@@ -2437,6 +2437,7 @@ namespace MauiTestTree
             return null;
         }
 
+#if TO_DELETE
         /// <summary>
         /// Show MessageBoxFlyout with contents
         /// </summary>
@@ -2455,6 +2456,7 @@ namespace MauiTestTree
 #endif
             return AnyUiMessageBoxResult.None;
         }
+#endif
 
         /// <summary>
         /// Show MessageBoxFlyout with contents
@@ -2902,9 +2904,11 @@ namespace MauiTestTree
         /// </summary>
         /// <param name="dialogueData"></param>
         /// <returns>If the dialogue was end with "OK" or similar success.</returns>
-        public override void StartFlyover(AnyUiDialogueDataBase dialogueData)
+        public async override Task StartFlyoverAsync(AnyUiDialogueDataBase dialogueData)
         {
-            throw new NotImplementedException("StartFlyover w/o Async not possible!");
+            await Task.Yield();
+
+            throw new NotImplementedException("StartFlyover w/o Async not implemented, yet!");
 
 #if TODO_IMPORTANT
             // access

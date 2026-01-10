@@ -24,6 +24,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Xaml;
 using static AasxPackageLogic.AasSmtQualifiers;
@@ -307,7 +308,7 @@ namespace AasxPackageLogic
 				});
 		}
 
-		public AnyUiLambdaActionBase ExtensionHelperIdfReferenceAction<T>(
+		public async Task<AnyUiLambdaActionBase> ExtensionHelperIdfReferenceActionAsync<T>(
 			Aas.IEnvironment env,
 			Aas.IReferable relatedReferable,
 			int actionIndex,
@@ -317,7 +318,7 @@ namespace AasxPackageLogic
 		{
 			if (actionIndex == 0)
 			{
-				var k2 = SmartSelectAasEntityKeys(
+				var k2 = await SmartSelectAasEntityKeysAsync(
 					packages,
 					PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
 					"ConceptDescription");
@@ -373,9 +374,9 @@ namespace AasxPackageLogic
 					"Create a new ConceptDescription for this known extension use.",
 					"Jump to ConceptDescription with given Id."
 				},
-				auxButtonLambda: (i) =>
+				auxButtonLambdaAsync: async (i) =>
 				{
-					return ExtensionHelperIdfReferenceAction(
+					return await ExtensionHelperIdfReferenceActionAsync(
 						env,
 						relatedReferable,
 						i,
@@ -485,7 +486,7 @@ namespace AasxPackageLogic
 						},
 						margin: new AnyUiThickness(2, 2, 2, 2),
 						padding: new AnyUiThickness(5, 0, 5, 0),
-						menuItemLambda: (o) =>
+						menuItemLambdaAsync: async (o) =>
 						{
 							var action = false;
 
@@ -509,7 +510,7 @@ namespace AasxPackageLogic
 									case 3:
 									case 4:
 									case 5:
-										return ExtensionHelperIdfReferenceAction(
+										return await ExtensionHelperIdfReferenceActionAsync(
 											env, relatedReferable,
 											sr: value[theLsri],
 											actionIndex: ti - 3,
@@ -807,7 +808,7 @@ namespace AasxPackageLogic
 							maxLines: isMultiLineAttr.MaxLines.Value,
 							auxButtonTitles: new[] { "\u2261" },
 							auxButtonToolTips: new[] { "Edit in multiline editor" },
-							auxButtonLambda: (buttonNdx) =>
+							auxButtonLambdaAsync: async (buttonNdx) =>
 							{
 								if (buttonNdx == 0)
 								{
@@ -815,7 +816,7 @@ namespace AasxPackageLogic
 										caption: $"Edit " + pii.Name,
 										mimeType: System.Net.Mime.MediaTypeNames.Text.Plain,
 										text: (string)pii.GetValue(recInst));
-									if (this.context.StartFlyoverModal(uc))
+									if (await context.StartFlyoverModalAsync(uc))
 									{
 										pii.SetValue(recInst, uc.Text);
 										setValue?.Invoke(recInst);

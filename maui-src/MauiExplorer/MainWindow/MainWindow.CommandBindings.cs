@@ -207,7 +207,7 @@ namespace MauiTestTree
             }
 
             if (cmd == "connectopcua")
-                MessageBoxFlyoutShow(
+                await MessageBoxFlyoutShowAsync(
                     "In future versions, this feature will allow connecting to an online Administration Shell " +
                     "via OPC UA or similar.",
                     "Connect", AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Hand);
@@ -399,12 +399,12 @@ namespace MauiTestTree
             // dead-csharp on
             // REFACTOR: STAYS HERE
             if (cmd == "serverpluginemptysample")
-                CommandBinding_ExecutePluginServer(
+                CommandBinding_ExecutePluginServerAsync(
                     "EmptySample", "server-start", "server-stop", "Empty sample plug-in.");
 
             // REFACTOR: STAYS HERE
             if (cmd == "serverpluginmqtt")
-                CommandBinding_ExecutePluginServer(
+                CommandBinding_ExecutePluginServerAsync(
                     "AasxPluginMqttServer", "MQTTServer-start", "server-stop", "Plug-in for MQTT Server for AASX.");
 
             // REFACTOR: STAYS
@@ -494,7 +494,7 @@ namespace MauiTestTree
             var env = PackageCentral.Main?.AasEnv;
             if (env == null)
             {
-                MessageBoxFlyoutShow(
+                await MessageBoxFlyoutShowAsync(
                     "No package/ environment open. Aborting.", msgBoxHeadline,
                     AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Error);
                 return;
@@ -528,7 +528,7 @@ namespace MauiTestTree
             catch (Exception ex)
             {
                 Log.Singleton.Error(ex, "Checking model contents");
-                MessageBoxFlyoutShow(
+                await MessageBoxFlyoutShowAsync(
                     "Error while checking model contents. Aborting.", msgBoxHeadline,
                     AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Error);
                 return;
@@ -537,7 +537,7 @@ namespace MauiTestTree
             // could be nothing
             if (recs.Count < 1)
             {
-                MessageBoxFlyoutShow(
+                await MessageBoxFlyoutShowAsync(
                    "No issues found. Done.", msgBoxHeadline,
                    AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Information);
                 return;
@@ -568,14 +568,14 @@ namespace MauiTestTree
                 catch (Exception ex)
                 {
                     Log.Singleton.Error(ex, "Fixing model contents");
-                    MessageBoxFlyoutShow(
+                    await MessageBoxFlyoutShowAsync(
                         "Error while fixing issues. Aborting.", msgBoxHeadline,
                         AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Error);
                     return;
                 }
 
                 // info
-                MessageBoxFlyoutShow(
+                await MessageBoxFlyoutShowAsync(
                    $"Corresponding {done} issues were fixed. Please check the changes and consider saving " +
                    "with a new filename.", msgBoxHeadline,
                    AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Information);
@@ -1125,7 +1125,7 @@ namespace MauiTestTree
 
         }
 
-        private void CommandBinding_ExecutePluginServer(
+        private async Task CommandBinding_ExecutePluginServerAsync(
             string pluginName, string actionName, string stopName, string caption, string[] additionalArgs = null)
         {
 #if TODO_IMPORTANT
@@ -1133,7 +1133,7 @@ namespace MauiTestTree
             var pi = Plugins.FindPluginInstance(pluginName);
             if (pi == null || !pi.HasAction(actionName) || !pi.HasAction(stopName))
             {
-                var res = MessageBoxFlyoutShow(
+                var res = await MessageBoxFlyoutShowAsync(
                         $"This function requires a binary plug-in file named '{pluginName}', " +
                         $"which needs to be added to the command line, with an action named '{actionName}'. " +
                         "Press 'OK' to show help page on GitHub.",
