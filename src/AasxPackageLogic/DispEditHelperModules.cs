@@ -712,7 +712,7 @@ namespace AasxPackageLogic
                                 "Adds a reference to a data specification given by preset file.")
                             .AddAction("delete-reference", "Delete last reference",
                                 "Deletes the last reference in the list."),
-                        ticketAction: (buttonNdx, ticket) =>
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx == 0)
                                 hasDataSpecification.Add(
@@ -741,7 +741,7 @@ namespace AasxPackageLogic
                                             => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }));
 
                                     // perform dialogue
-                                    this.context.StartFlyoverModal(uc);
+                                    await context.StartFlyoverModalAsync(uc);
                                     if (uc.Result && uc.ResultItem?.Tag is DataSpecPreset preset
                                         && preset.value != null)
                                     {
@@ -1424,11 +1424,11 @@ namespace AasxPackageLogic
             this.AddGroup(stack, "Qualifiable:", levelColors.SubSection,
                 requestAuxButton: repo != null,
                 auxContextHeader: new[] { "\u27f4", "Migrate to Extensions" },
-                auxContextLambda: (o) =>
+                auxContextLambdaAsync: async (o) =>
                 {
                     if (o is int i && i == 0 && relatedReferable != null)
                     {
-                        if (AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                        if (AnyUiMessageBoxResult.Yes != await context.MessageBoxFlyoutShowAsync(
                                 "Migrate particular Qualifiers (V2.0) to Extensions (V3.0) " +
                                 "for this element and all child elements? " +
                                 "This operation cannot be reverted!", "Qualifiers",
@@ -2690,7 +2690,7 @@ namespace AasxPackageLogic
             return true;
         }
 
-        public static bool DisplayOrEditEntityFileResource_EditTextFile(
+        public async static Task<bool> DisplayOrEditEntityFileResource_EditTextFileAsync(
             AnyUiContextBase context,
             AdminShellPackageEnvBase env,
             string valueContent,
@@ -2733,7 +2733,7 @@ namespace AasxPackageLogic
                             caption: $"Edit text-file '{valuePath}'",
                             mimeType: valueContent,
                             text: contents);
-                if (!context.StartFlyoverModal(uc))
+                if (! await context.StartFlyoverModalAsync(uc))
                     return false;
 
                 // save
@@ -2875,7 +2875,7 @@ namespace AasxPackageLogic
                     {
                         if (buttonNdx == 0 && valuePath.HasContent())
                         {
-                            if (AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
+                            if (AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
                                 "Delete selected entity? This operation can not be reverted!", "AAS-ENV",
                                 AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
                             {
@@ -2925,7 +2925,7 @@ namespace AasxPackageLogic
                                 symbol: AnyUiMessageBoxImage.Question,
                                 maxWidth: 1400,
                                 text: "Textfile_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
-                            this.context?.StartFlyoverModal(uc);
+                            await context?.StartFlyoverModalAsync(uc);
                             if (!uc.Result)
                             {
                                 return new AnyUiLambdaActionNone();
@@ -2940,7 +2940,7 @@ namespace AasxPackageLogic
                             var psf = psfs?.FindByUri(ptd + ptfn);
                             if (psf != null)
                             {
-                                this.context?.MessageBoxFlyoutShow(
+                                await context?.MessageBoxFlyoutShowAsync(
                                     $"The supplemental file {ptd + ptfn} is already existing in the " +
                                     "package. Please re-try with a different file name.", "Create text file",
                                     AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Warning);
@@ -2989,7 +2989,7 @@ namespace AasxPackageLogic
 
                         if (buttonNdx == 2)
                         {
-                            if (DisplayOrEditEntityFileResource_EditTextFile(
+                            if (await DisplayOrEditEntityFileResource_EditTextFileAsync(
                                 context, packages.Main,
                                 valueContent: valueContent,
                                 valuePath: valuePath))
@@ -3059,13 +3059,13 @@ namespace AasxPackageLogic
                             "Select a filename to be added later.")
                         .AddAction("add-to-aasx", "Add or update to AASX",
                             "Add or update file given by selected filename to the AAS environment."),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx == 0)
                             {
                                 var uc = new AnyUiDialogueDataOpenFile(
                                 message: "Select a supplemental file to add..");
-                                this.context?.StartFlyoverModal(uc);
+                                await context?.StartFlyoverModalAsync(uc);
                                 if (uc.Result && uc.TargetFileName != null)
                                 {
                                     this.uploadAssistance.SourcePath = uc.TargetFileName;

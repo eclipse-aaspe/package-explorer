@@ -727,18 +727,26 @@ namespace AnyUi
 
         public void AddGroup(AnyUiStackPanel view, string name, AnyUiBrushTuple colors,
             bool requestAuxButton = false,
-            string auxButtonTitle = null, Func<object, AnyUiLambdaActionBase> auxButtonLambda = null,
-            string[] auxContextHeader = null, Func<object, AnyUiLambdaActionBase> auxContextLambda = null)
+            string auxButtonTitle = null, 
+            Func<object, AnyUiLambdaActionBase> auxButtonLambda = null,
+            Func<object, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
+            string[] auxContextHeader = null, 
+            Func<object, AnyUiLambdaActionBase> auxContextLambda = null,
+            Func<object, Task<AnyUiLambdaActionBase>> auxContextLambdaAsync = null)
         {
             AddGroup(view, name, colors?.Bg, colors?.Fg, requestAuxButton,
-                auxButtonTitle, auxButtonLambda,
-                auxContextHeader, auxContextLambda);
+                auxButtonTitle, auxButtonLambda,auxButtonLambdaAsync,
+                auxContextHeader, auxContextLambda, auxButtonLambdaAsync);
         }
 
         public void AddGroup(AnyUiStackPanel view, string name, AnyUiBrush background, AnyUiBrush foreground,
             bool requestAuxButton = false,
-            string auxButtonTitle = null, Func<object, AnyUiLambdaActionBase> auxButtonLambda = null,
-            string[] auxContextHeader = null, Func<object, AnyUiLambdaActionBase> auxContextLambda = null,
+            string auxButtonTitle = null, 
+            Func<object, AnyUiLambdaActionBase> auxButtonLambda = null,
+            Func<object, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
+            string[] auxContextHeader = null, 
+            Func<object, AnyUiLambdaActionBase> auxContextLambda = null,
+            Func<object, Task<AnyUiLambdaActionBase>> auxContextLambdaAsync = null,
             AnyUiFrameworkElement iconElement = null)
         {
             var g = AddSmallGrid(1, 4, new[] { "#", "*", "#", "#" }, margin: new AnyUiThickness(0, 13, 0, 0));
@@ -771,7 +779,7 @@ namespace AnyUi
             }
 
             // auxButton
-            if (requestAuxButton && auxButtonTitle != null && auxButtonLambda != null)
+            if (requestAuxButton && auxButtonTitle != null && (auxButtonLambda != null || auxButtonLambdaAsync != null))
             {
                 AnyUiUIElement.RegisterControl(
                     AddSmallButtonTo(
@@ -779,11 +787,12 @@ namespace AnyUi
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),
                         content: auxButtonTitle),
-                    auxButtonLambda);
+                    auxButtonLambda,
+                    setValueAsync: auxButtonLambdaAsync);
             }
 
             // context menu
-            if (requestAuxButton && auxContextHeader != null && auxContextLambda != null)
+            if (requestAuxButton && auxContextHeader != null && (auxContextLambda != null || auxContextLambdaAsync != null))
             {
                 AddSmallContextMenuItemTo(
                         g, 0, 3,
@@ -792,7 +801,8 @@ namespace AnyUi
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),
                         verticalAlignment: AnyUiVerticalAlignment.Center,
-                        menuItemLambda: auxContextLambda);
+                        menuItemLambda: auxContextLambda,
+                        menuItemLambdaAsync: auxContextLambdaAsync);
             }
         }
 

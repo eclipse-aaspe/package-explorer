@@ -40,6 +40,7 @@ namespace AasxIntegrationBase
         /// </summary>
         Task StartFlyoverModalAsync(VisualElement uc, Action? closingAction = null);
 
+#if TO_DELETE
         /// <summary>
         /// Show MessageBoxFlyout with contents
         /// </summary>
@@ -50,6 +51,7 @@ namespace AasxIntegrationBase
         /// <returns></returns>
         AnyUiMessageBoxResult MessageBoxFlyoutShow(
             string message, string caption, AnyUiMessageBoxButton buttons, AnyUiMessageBoxImage image);
+#endif
 
         /// <summary>
         /// Show MessageBoxFlyout with contents

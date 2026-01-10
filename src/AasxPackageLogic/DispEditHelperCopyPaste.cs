@@ -546,7 +546,7 @@ namespace AasxPackageLogic
                         // content?
                         if (!cpb.ContentAvailable)
                         {
-                            this.context?.MessageBoxFlyoutShow(
+                            await context?.MessageBoxFlyoutShowAsync(
                                 "No sufficient infomation in internal paste buffer or external clipboard.",
                                 "Copy & Paste",
                                 AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Error);
@@ -556,7 +556,7 @@ namespace AasxPackageLogic
                         // uniform?
                         if (!cpb.Items.AllOfElementType<CopyPasteItemSME>())
                         {
-                            this.context?.MessageBoxFlyoutShow(
+                            await context?.MessageBoxFlyoutShowAsync(
                                     "No (valid) information for SubmodelElements in copy/paste buffer.",
                                     "Copy & Paste",
                                     AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Information);
@@ -812,7 +812,7 @@ namespace AasxPackageLogic
                         // content?
                         if (!cpb.ContentAvailable)
                         {
-                            this.context?.MessageBoxFlyoutShow(
+                            await context?.MessageBoxFlyoutShowAsync(
                                 "No sufficient infomation in internal paste buffer or external clipboard.",
                                 "Copy & Paste",
                                 AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Error);
@@ -822,7 +822,7 @@ namespace AasxPackageLogic
                         // pasting above/ below means: Submodels
                         if (!cpb.Items.AllOfElementType<CopyPasteItemSubmodel>())
                         {
-                            this.context?.MessageBoxFlyoutShow(
+                            await context?.MessageBoxFlyoutShowAsync(
                                     "No (valid) information for Submodels in copy/paste buffer.",
                                     "Copy & Paste",
                                     AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Information);
@@ -920,7 +920,7 @@ namespace AasxPackageLogic
                         // content?
                         if (!cpb.ContentAvailable)
                         {
-                            this.context?.MessageBoxFlyoutShow(
+                            await context?.MessageBoxFlyoutShowAsync(
                                 "No sufficient infomation in internal paste buffer or external clipboard.",
                                 "Copy & Paste",
                                 AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Error);
@@ -930,7 +930,7 @@ namespace AasxPackageLogic
                         // pasting above/ below means: Submodels
                         if (!cpb.Items.AllOfElementType<CopyPasteItemSME>())
                         {
-                            this.context?.MessageBoxFlyoutShow(
+                            await context?.MessageBoxFlyoutShowAsync(
                                     "No (valid) information for SubmodelsElements in copy/paste buffer.",
                                     "Copy & Paste",
                                     AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Information);
@@ -1053,7 +1053,7 @@ namespace AasxPackageLogic
                         var cpb = cpbInternal.CheckIfUseExternalCopyPasteBuffer(cbdata);
                         if (!cpb.ContentAvailable)
                         {
-                            this.context?.MessageBoxFlyoutShow(
+                            await context?.MessageBoxFlyoutShowAsync(
                                 "No sufficient infomation in internal paste buffer or external clipboard.",
                                 "Copy & Paste",
                                 AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Error);
@@ -1063,7 +1063,7 @@ namespace AasxPackageLogic
                         // pasting above/ below means: Submodels
                         if (!cpb.Items.AllOfElementType<CopyPasteItemIdentifiable>())
                         {
-                            this.context?.MessageBoxFlyoutShow(
+                            await context?.MessageBoxFlyoutShowAsync(
                                     "No (valid) information for Identifiables in copy/paste buffer.",
                                     "Copy & Paste",
                                     AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Information);
@@ -1136,7 +1136,7 @@ namespace AasxPackageLogic
 
                         if (!cpb.ContentAvailable)
                         {
-                            this.context?.MessageBoxFlyoutShow(
+                            await context?.MessageBoxFlyoutShowAsync(
                                 "No sufficient infomation in internal paste buffer or external clipboard.",
                                 "Copy & Paste",
                                 AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Error);
@@ -1146,7 +1146,7 @@ namespace AasxPackageLogic
                         // pasting above/ below means: Submodels
                         if (checkPasteInfo != null && !checkPasteInfo(cpb))
                         {
-                            this.context?.MessageBoxFlyoutShow(
+                            await context?.MessageBoxFlyoutShowAsync(
                                     "No (valid) information for Identifiables in copy/paste buffer.",
                                     "Copy & Paste",
                                     AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Information);
@@ -1215,7 +1215,7 @@ namespace AasxPackageLogic
                         var cpb = cpbInternal.CheckIfUseExternalCopyPasteBuffer(cbdata);
                         if (!cpb.ContentAvailable)
                         {
-                            this.context?.MessageBoxFlyoutShow(
+                            await context?.MessageBoxFlyoutShowAsync(
                                 "No sufficient infomation in internal paste buffer or external clipboard.",
                                 "Copy & Paste",
                                 AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Error);

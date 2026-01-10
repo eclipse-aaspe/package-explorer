@@ -1910,7 +1910,7 @@ namespace MauiTestTree
             _timerRunning = false;
         }
 
-        private void ToolFindReplace_ResultSelected(AasxSearchUtil.SearchResultItem resultItem)
+        private async void ToolFindReplace_ResultSelected(AasxSearchUtil.SearchResultItem resultItem)
         {
             // have a result?
             if (resultItem == null || resultItem.businessObject == null)
@@ -1919,7 +1919,7 @@ namespace MauiTestTree
             // for valid display, app needs to be in edit mode
             if (_viewModel.MainMenu.IsChecked("EditMenu") != true)
             {
-                MessageBoxFlyoutShow(
+                await MessageBoxFlyoutShowAsync(
                     "The application needs to be in edit mode to show found entities correctly. Aborting.",
                     "Find and Replace",
                     AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Hand);
@@ -2355,7 +2355,7 @@ namespace MauiTestTree
                     if (_viewModel.MainMenu?.IsChecked("FileRepoLoadWoPrompt") != true)
                     {
                         // ask double question
-                        if (AnyUiMessageBoxResult.OK != MessageBoxFlyoutShow(
+                        if (AnyUiMessageBoxResult.OK != await MessageBoxFlyoutShowAsync(
                                 "Load file from AASX file repository?",
                                 "AASX File Repository",
                                 AnyUiMessageBoxButton.OKCancel, AnyUiMessageBoxImage.Hand))
@@ -4113,7 +4113,7 @@ namespace MauiTestTree
                                         caption: $"Edit Blob '{"" + blb.IdShort}'",
                                         mimeType: blb.ContentType,
                                         text: Encoding.Default.GetString(blb.Value ?? new byte[0]));
-                        if (DisplayContext.StartFlyoverModal(uc))
+                        if (await DisplayContext.StartFlyoverModalAsync(uc))
                         {
                             blb.Value = Encoding.Default.GetBytes(uc.Text);
                             DispEditEntityPanel.AddDiaryStructuralChange(blb);
@@ -4136,7 +4136,7 @@ namespace MauiTestTree
                 {
                     Log.Singleton.Info("Trying edit multiline content from {0} ..", file.IdShort);
 
-                    DispEditHelperModules.DisplayOrEditEntityFileResource_EditTextFile(
+                    DispEditHelperModules.DisplayOrEditEntityFileResource_EditTextFileAsync(
                         DisplayContext, PackageCentral.Main,
                         file.ContentType,
                         file.Value);
@@ -4525,6 +4525,7 @@ namespace MauiTestTree
             //1// currentFlyoutControl = null;
         }
 
+#if TO_DELETE
         public AnyUiMessageBoxResult MessageBoxFlyoutShow(
             string message, string caption, AnyUiMessageBoxButton buttons, AnyUiMessageBoxImage image)
         {
@@ -4539,22 +4540,7 @@ namespace MauiTestTree
 
             return AnyUiMessageBoxResult.None;
         }
-
-        public AnyUiMessageBoxResult MessageBoxFlyoutLogOrShow(
-            bool log, StoredPrint.Color logColor,
-            string message, string caption, AnyUiMessageBoxButton buttons, AnyUiMessageBoxImage image)
-        {
-            if (log)
-            {
-                if (logColor == StoredPrint.Color.Red)
-                    Log.Singleton.Error(caption + ": " + message);
-                else
-                    Log.Singleton.Info(logColor, caption + ": " + message);
-                return AnyUiMessageBoxResult.OK;
-            }
-            else
-                return MessageBoxFlyoutShow(message, caption, buttons, image);
-        }
+#endif
 
         //
         // ASYNC (are async versions of the WPF modals required)
@@ -4654,7 +4640,7 @@ namespace MauiTestTree
             return DisplayContext;
         }
 
-        #endregion
+#endregion
 
         #region Drag&Drop
         //===============

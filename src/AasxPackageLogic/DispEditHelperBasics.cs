@@ -1109,6 +1109,20 @@ namespace AasxPackageLogic
             return null;
         }
 
+        public async Task<List<Aas.IKey>> SmartSelectAasEntityKeysAsync(
+            PackageCentral.PackageCentral packages,
+            PackageCentral.PackageCentral.Selector selector, string filter = null)
+        {
+            var uc = new AnyUiDialogueDataSelectAasEntity(
+                caption: "Select entity of AAS ..",
+                selector: selector, filter: filter);
+            await context.StartFlyoverModalAsync(uc);
+            if (uc.Result && uc.ResultKeys != null)
+                return uc.ResultKeys;
+
+            return null;
+        }
+
         public VisualElementGeneric SmartSelectAasEntityVisualElement(
             PackageCentral.PackageCentral packages,
             PackageCentral.PackageCentral.Selector selector,
@@ -1429,11 +1443,11 @@ namespace AasxPackageLogic
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             content: "Add known"),
-                        (o) =>
+                        setValueAsync: async (o) =>
                         {
                             var uc = new AnyUiDialogueDataSelectReferableFromPool(
                                 caption: "Select known entity");
-                            this.context.StartFlyoverModal(uc);
+                            await context.StartFlyoverModalAsync(uc);
 
                             if (uc.Result &&
                                 uc.ResultItem is AasxPredefinedConcepts.DefinitionsPoolReferableEntity pe)
@@ -2113,7 +2127,7 @@ namespace AasxPackageLogic
                     {
                         if (preventMove)
                         {
-                            this.context.MessageBoxFlyoutShow(
+                            await context.MessageBoxFlyoutShowAsync(
                                 "Moving within list is not possible, as list of entities has dynamic " +
                                 "sort order.",
                                 "Move entities", AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Warning);
@@ -2153,7 +2167,7 @@ namespace AasxPackageLogic
 
                         if (this.context.ActualShiftState
                             || ticket?.ScriptMode == true
-                            || AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
+                            || AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
                                 "Delete selected entity? This operation can not be reverted!", "AAS-ENV",
                                 AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
                         {
@@ -2225,7 +2239,7 @@ namespace AasxPackageLogic
             }
         }
 
-        public bool ImportEclassCDsForTargets(Aas.IEnvironment env, object startMainDataElement,
+        public async Task<bool> ImportEclassCDsForTargetsAsync(Aas.IEnvironment env, object startMainDataElement,
                 List<Aas.ISubmodelElement> targets)
         {
             // need dialogue and data
@@ -2249,7 +2263,7 @@ namespace AasxPackageLogic
             uc.Progress = 0.0;
             
             // show this
-            this.context.StartFlyover(uc);
+            await context.StartFlyoverAsync(uc);
 
             // setup worker
             var worker = new BackgroundWorker();

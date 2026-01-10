@@ -110,7 +110,7 @@ namespace AasxPackageLogic
                         "Add id from existing element in main/ aux packages",
                         "Delete this entity"
                     },
-                    auxButtonLambda: (i) =>
+                    auxButtonLambdaAsync: async (i) =>
                     {
                         if (i == 0)
                         {
@@ -128,7 +128,7 @@ namespace AasxPackageLogic
                                 symbol: AnyUiMessageBoxImage.Question,
                                 options: AnyUiDialogueDataTextBox.DialogueOptions.FilterAllControlKeys,
                                 text: "" + asset.GlobalAssetId);
-                            if (this.context.StartFlyoverModal(uc))
+                            if (await context.StartFlyoverModalAsync(uc))
                             {
                                 asset.GlobalAssetId = "" + uc.Text;
                                 this.AddDiaryEntry(aas, new DiaryEntryStructChange());
@@ -143,7 +143,7 @@ namespace AasxPackageLogic
                                 symbol: AnyUiMessageBoxImage.Question,
                                 maxWidth: 1400,
                                 text: "" + asset.GlobalAssetId);
-                            if (this.context.StartFlyoverModal(uc))
+                            if (await context.StartFlyoverModalAsync(uc))
                             {
                                 var res = false;
 
@@ -172,7 +172,7 @@ namespace AasxPackageLogic
                                 }
 
                                 if (!res)
-                                    this.context.MessageBoxFlyoutShow(
+                                    await context.MessageBoxFlyoutShowAsync(
                                         "The renaming of the Submodel or some referring elements " +
                                         "has not performed successfully! Please review your inputs and " +
                                         "the AAS structure for any inconsistencies.",
@@ -185,7 +185,7 @@ namespace AasxPackageLogic
 
                         if (i == 3)
                         {
-                            var k2 = SmartSelectAasEntityKeys(packages,
+                            var k2 = await SmartSelectAasEntityKeysAsync(packages,
                                 PackageCentral.PackageCentral.Selector.MainAuxFileRepo, "All");
 
                             if (k2 != null && k2.Count >= 1)
@@ -198,7 +198,7 @@ namespace AasxPackageLogic
 
                         if (i == 4)
                         {
-                            if (AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
+                            if (AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
                                "Delete globalAssetId?",
                                "AssetInformation",
                                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
@@ -211,100 +211,14 @@ namespace AasxPackageLogic
 
                         return new AnyUiLambdaActionNone();
                     });
-                // dead-csharp off
-                //this.AddKeyReference(
-                //    stack, "globalAssetId", asset.GlobalAssetId, repo,
-                //    packages, PackageCentral.PackageCentral.Selector.MainAux,
-                //    showRefSemId: false,
-                //    auxButtonTitles: new[] { "Generate", "Input", "Rename" },
-                //    auxButtonToolTips: new[] {
-                //        "Generate an id based on the customizable template option for asset ids.",
-                //        "Input the id, may be by the aid of barcode scanner",
-                //        "Rename the id and all occurences of the id in the AAS"
-                //    },
-                //    auxButtonLambda: (i) =>
-                //    {
-                //        if (i == 0)
-                //        {
-                //            asset.GlobalAssetId = "" + AdminShellUtil.GenerateIdAccordingTemplate(
-                //                Options.Curr.TemplateIdAsset);
-                //            this.AddDiaryEntry(aas, new DiaryEntryStructChange());
-                //            return new AnyUiLambdaActionRedrawAllElements(nextFocus: preferredNextFocus);
-                //        }
 
-                //        if (i == 1)
-                //        {
-                //            var uc = new AnyUiDialogueDataTextBox(
-                //                "Global Asset ID:",
-                //                maxWidth: 1400,
-                //                symbol: AnyUiMessageBoxImage.Question,
-                //                options: AnyUiDialogueDataTextBox.DialogueOptions.FilterAllControlKeys,
-                //                text: "" + asset.GlobalAssetId);
-                //            if (this.context.StartFlyoverModal(uc))
-                //            {
-                //                asset.GlobalAssetId = "" + uc.Text;
-                //                this.AddDiaryEntry(aas, new DiaryEntryStructChange());
-                //                return new AnyUiLambdaActionRedrawAllElements(nextFocus: asset);
-                //            }
-                //        }
-
-                //        if (i == 2 && env != null)
-                //        {
-                //            var uc = new AnyUiDialogueDataTextBox(
-                //                "New Global Asset ID:",
-                //                symbol: AnyUiMessageBoxImage.Question,
-                //                maxWidth: 1400,
-                //                text: "" + asset.GlobalAssetId);
-                //            if (this.context.StartFlyoverModal(uc))
-                //            {
-                //                var res = false;
-
-                //                try
-                //                {
-                //                    // rename
-                //                    var lrf = env.RenameIdentifiable<Aas.AssetInformation>(
-                //                        asset.GlobalAssetId,
-                //                        uc.Text);
-
-                //                    // use this information to emit events
-                //                    if (lrf != null)
-                //                    {
-                //                        res = true;
-                //                        foreach (var rf in lrf)
-                //                        {
-                //                            var rfi = rf.FindParentFirstIdentifiable();
-                //                            if (rfi != null)
-                //                                this.AddDiaryEntry(rfi, new DiaryEntryStructChange());
-                //                        }
-                //                    }
-                //                }
-                //                catch (Exception ex)
-                //                {
-                //                    AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
-                //                }
-
-                //                if (!res)
-                //                    this.context.MessageBoxFlyoutShow(
-                //                        "The renaming of the Submodel or some referring elements " +
-                //                        "has not performed successfully! Please review your inputs and " +
-                //                        "the AAS structure for any inconsistencies.",
-                //                        "Warning",
-                //                        AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Warning);
-
-                //                return new AnyUiLambdaActionRedrawAllElements(asset);
-                //            }
-                //        }
-                //        return new AnyUiLambdaActionNone();
-                //    });
-                // dead-csharp on
-                // print code sheet
                 AddActionPanel(stack, "Actions:",
                 repo: repo,
                 superMenu: superMenu,
                 ticketMenu: new AasxMenu()
                     .AddAction("print-code-sheet", "Print asset code sheet ..",
                         "Prints an sheet with 2D codes for the asset id."),
-                ticketAction: (buttonNdx, ticket) =>
+                ticketActionAsync: async (buttonNdx, ticket) =>
                 {
                     if (buttonNdx == 0)
                     {
@@ -312,7 +226,7 @@ namespace AasxPackageLogic
                             && cpd.HasCapability(AnyUiContextCapability.WPF))
                         {
                             var uc = new AnyUiDialogueDataEmpty();
-                            this.context?.StartFlyover(uc);
+                            await context?.StartFlyoverAsync(uc);
                             try
                             {
                                 if (string.IsNullOrEmpty(asset.GlobalAssetId) != true)
@@ -369,9 +283,9 @@ namespace AasxPackageLogic
             this.AddGroup(stack, "DefaultThumbnail: Resource element", this.levelColors.SubSection,
                 requestAuxButton: repo != null,
                 auxButtonTitle: (asset.DefaultThumbnail == null) ? null : "Delete",
-                auxButtonLambda: (o) =>
+                auxButtonLambdaAsync: async (o) =>
                 {
-                    if (AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
+                    if (AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
                                "Delete Resource element for thumbnail? This operation can not be reverted!",
                                "AssetInformation",
                                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
@@ -928,7 +842,7 @@ namespace AasxPackageLogic
                     AnyUiUIElement.RegisterControl(
                         this.AddSmallButtonTo(g2, 0, 0, content: "Sort according above order",
                             margin: new AnyUiThickness(2, 2, 2, 2), padding: new AnyUiThickness(5, 0, 5, 0)),
-                        (o) =>
+                        setValueAsync: async (o) =>
                         {
                             if (env.ConceptDescriptionCount() < 1)
                             {
@@ -936,7 +850,7 @@ namespace AasxPackageLogic
                                 return new AnyUiLambdaActionNone();
                             }
 
-                            if (AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
+                            if (AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
                                "Perform sort operation? This operation can not be reverted!",
                                "ConceptDescriptions",
                                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
@@ -971,7 +885,7 @@ namespace AasxPackageLogic
                                     return new AnyUiLambdaActionRedrawAllElements(nextFocus: env?.ConceptDescriptions);
                                 }
                                 else
-                                    this.context.MessageBoxFlyoutShow(
+                                    await context.MessageBoxFlyoutShowAsync(
                                        "Cannot apply selected sort order!",
                                        "ConceptDescriptions",
                                        AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Warning);
@@ -993,11 +907,11 @@ namespace AasxPackageLogic
                         ticketMenu: new AasxMenu()
                             .AddAction("fix-data-specs", "Fix data specs wrt. content",
                                 "Auto-detect content of data specification and set References accordingly."),
-                        ticketAction: (buttonNdx, ticket) =>
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx == 0)
                             {
-                                if (AnyUi.AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                                if (AnyUi.AnyUiMessageBoxResult.Yes != await context.MessageBoxFlyoutShowAsync(
                                     "Fix data specification References according known types of " +
                                     "data specification content? " +
                                     "This operation cannot be reverted!",
@@ -1055,12 +969,12 @@ namespace AasxPackageLogic
                     this.AddSmallButtonTo(
                         g, 0, 2, margin: new AnyUiThickness(2, 2, 2, 2), padding: new AnyUiThickness(5, 0, 5, 0),
                         content: "Select"),
-                        (o) =>
+                        setValueAsync: async (o) =>
                         {
                             var uc = new AnyUiDialogueDataOpenFile(
                                 caption: "Open supplemental file",
                                 message: "Select a supplementary file to add..");
-                            this.context?.StartFlyoverModal(uc);
+                            await context?.StartFlyoverModalAsync(uc);
                             if (uc.Result && uc.TargetFileName != null)
                             {
                                 PackageSourcePath = uc.TargetFileName;
@@ -1412,10 +1326,10 @@ namespace AasxPackageLogic
                     ticketMenu: new AasxMenu()
                         .AddAction("file-delete", "Delete",
                             "Deletes the supplemental file from the respective AAS environment."),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
-                            if (AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
+                            if (AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
                                     "Delete selected entity? This operation can not be reverted!", "AAS-ENV",
                                     AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
                             {
@@ -1492,7 +1406,7 @@ namespace AasxPackageLogic
                 // check if something is tainted
                 if (mainWindow?.CheckIsAnyTaintedIdentifiableInMain() == true)
                 {
-                    if (AnyUiMessageBoxResult.Yes != displayContext.MessageBoxFlyoutShow(
+                    if (AnyUiMessageBoxResult.Yes != await displayContext.MessageBoxFlyoutShowAsync(
                         "There are unsafed data changes in Identifiables. A fetch of elements " +
                         "might result in data loss.",
                         "Proceed with fetch?",
@@ -1749,7 +1663,7 @@ namespace AasxPackageLogic
                             }
                             Log.Singleton.Info($"Finalize AAS {aas.IdShort}: Processing {idfs.Count()} Identifiables.");
 
-                            if (AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                            if (AnyUiMessageBoxResult.Yes != await context.MessageBoxFlyoutShowAsync(
                                 "This operation reworks the contents of the dependent Identifiables to be " +
                                 "compliant to the AAS specification. Some data might get lost! " +
                                 "Do you want to proceed?",
@@ -1889,11 +1803,11 @@ namespace AasxPackageLogic
                             "Creates a new Submodel of kind Template and link to this SubmodelReference.")
                         .AddAction("create-instance", "Create new Submodel of kind Instance",
                             "Creates a new Submodel of kind Instance and link to this SubmodelReference."),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
                         {
-                            if (AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                            if (AnyUiMessageBoxResult.Yes != await context.MessageBoxFlyoutShowAsync(
                                     "This operation creates a reference to an existing Submodel. " +
                                         "By this, two AAS will share exactly the same data records. " +
                                         "Changing one will cause the other AAS's information to change as well. " +
@@ -1903,7 +1817,7 @@ namespace AasxPackageLogic
                                 return new AnyUiLambdaActionNone();
 
                             // select existing Submodel
-                            var ks = this.SmartSelectAasEntityKeys(packages,
+                            var ks = await SmartSelectAasEntityKeysAsync(packages,
                                         PackageCentral.PackageCentral.Selector.Main,
                                         "Submodel");
                             if (ks != null)
@@ -2202,7 +2116,7 @@ namespace AasxPackageLogic
                                 }
 
                                 if (!res)
-                                    this.context.MessageBoxFlyoutShow(
+                                    await context.MessageBoxFlyoutShowAsync(
                                         "The renaming of the AAS or some referring elements has not " +
                                             "performed successfully! Please review your inputs and the AAS " +
                                             "structure for any inconsistencies.",
@@ -2283,9 +2197,9 @@ namespace AasxPackageLogic
             this.AddGroup(stack, "AssetInformation", this.levelColors.MainSection,
                 requestAuxButton: repo != null,
                 auxButtonTitle: (aas.AssetInformation == null) ? null : "Delete",
-                auxButtonLambda: (o) =>
+                auxButtonLambdaAsync: async (o) =>
                 {
-                    if (AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
+                    if (AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
                                "Delete AssetInformation in general? This operation can not be reverted!",
                                "AssetInformation",
                                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
@@ -2392,7 +2306,7 @@ namespace AasxPackageLogic
                         {
                             // ask for complete deletion
                             if (ticket?.ScriptMode != true 
-                                && AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                                && AnyUiMessageBoxResult.Yes != await context.MessageBoxFlyoutShowAsync(
                                 "Delete selected Submodel for all AAS in the Environment? " +
                                 "This operation can not be reverted!", "AAS-ENV",
                                 AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
@@ -2523,86 +2437,6 @@ namespace AasxPackageLogic
                             this.appEventsProvider?.PushApplicationEvent(new AasxPluginResultEventRedrawAllElements());
                         }
                     });
-
-#if __old_not_required_anymore
-                AddActionPanel(stack, "Submodel:",
-                    repo: repo, superMenu: superMenu,
-                    ticketMenu: new AasxMenu()
-                        .AddAction("aas-elem-del", "Delete \U0001f847 here",
-                            "Deletes the currently selected Submodel in the local environment.",
-                            inputGesture: "Ctrl+Shift+Delete")
-                        .AddAction("delete-sm-in-repo", "Delete SM \u274c in Repo",
-                            "Delete Submodel by Id in a given Repository or Registry."),
-                    ticketActionAsync: async (buttonNdx, ticket) =>
-                    {
-                        if (buttonNdx == 0)
-                            if (AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
-                                     "Delete selected Submodel? This operation can not be reverted!", "AAS-ENV",
-                                     AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
-                            {
-                                // ask if to delete all references
-                                if (ticket?.ScriptMode != true
-                                    && AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
-                                    "Remove References to this Submodel from all AAS in the environment?",
-                                    "Remove Submodel",
-                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
-                                {
-                                    env.RemoveReferences(
-                                        rf: submodel.GetModelReference(),
-                                        inAas: true);
-                                }
-
-                                // delete the Submodel itself
-                                env.Remove(submodel);
-                                this.AddDiaryEntry(submodel, new DiaryEntryStructChange(StructuralChangeReason.Delete));
-                                return new AnyUiLambdaActionRedrawAllElements(nextFocus: null, isExpanded: null);
-                            }
-
-                        if (buttonNdx == 1)
-                        {
-                            // check, if Submodel is sitting in Repo
-                            var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
-                                    .FindSideInfoInListOfIdentifiables(
-                                        env.Submodels, submodel.GetReference());
-
-                            // enough info
-                            if (sideInfo.StubLevel < AasIdentifiableSideInfoLevel.IdOnly
-                                || sideInfo.Id?.HasContent() != true)
-                            {
-                                Log.Singleton.Error("No Id information available for deleting Identifiable in " +
-                                    "Repository or Registry.");
-                                return new AnyUiLambdaActionNone();
-                            }
-
-                            // simply prepare one Key!
-                            var smKey = new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, "" + submodel.Id) };
-                            
-                            // call function
-                            // (only the side info in the _specific_ endpoint gives information, in which
-                            //  repo the CDs could be deleted)
-                            await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
-                                ticket, context,
-                                "Delete Submodel in Repository/ Registry",
-                                "Submodel",
-                                smKey,
-                                runtimeOptions: packages.CentralRuntimeOptions,
-                                presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
-                                {
-                                    // assume Repo ?!
-                                    BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
-
-                                    // extract base address
-                                    BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
-                                        sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
-                                });
-
-                            // ok
-                            return new AnyUiLambdaActionNone();
-                        }
-
-                        return new AnyUiLambdaActionNone();
-                    });
-#endif
             }
 
             // Cut, copy, paste within an aas
@@ -2768,7 +2602,7 @@ namespace AasxPackageLogic
                         {
                             // from ECLASS
                             // ReSharper disable RedundantCast
-                            this.ImportEclassCDsForTargets(
+                            this.ImportEclassCDsForTargetsAsync(
                                 env, (smref != null) ? (object)smref : (object)submodel, targets);
                             // ReSharper enable RedundantCast
                         }
@@ -2800,7 +2634,7 @@ namespace AasxPackageLogic
                             // from all SMEs
 
                             var adaptive61360 = 
-                                this.context?.MessageBoxFlyoutShow(
+                                await context?.MessageBoxFlyoutShowAsync(
                                     "Create IEC61360 data specifications and adaptively fill preferredName " +
                                     "and definition by idShort and description attributes?",
                                     "Create CDs from all SMEs",
@@ -2884,13 +2718,13 @@ namespace AasxPackageLogic
 #endif
                         .AddAction("fix-references", "Fix References",
                             "Fix, if References first key to Identifiables use idShort instead of id."),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
                         {
                             // confirm
                             if (ticket?.ScriptMode != true
-                                && AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                                && AnyUiMessageBoxResult.Yes != await context.MessageBoxFlyoutShowAsync(
                                     "This operation will affect all Qualifers of " +
                                     "the Submodel and all of its SubmodelElements. Do you want to proceed?",
                                     "Upgrade qualifiers",
@@ -2934,159 +2768,6 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawAllElements(nextFocus: smref, isExpanded: true);
                         }
 
-#if __moved_to_menu
-
-                        if (buttonNdx == 1)
-						{
-                            // ask
-							if (ticket?.ScriptMode != true
-								&& AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
-									"This operation will move data in particular Qualifiers to Extensions of " +
-									"the Submodel and all of its SubmodelElements. Do you want to proceed?",
-									"Convert SMT qualifiers to SMT extension",
-									AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
-								return new AnyUiLambdaActionNone();
-
-                            // do
-                            int anyChanges = 0;
-                            Action<Aas.IReferable> lambdaConvert = (o) => {
-                                if (AasSmtQualifiers.ConvertSmtQualifiersToExtension(o))
-                                    anyChanges++;
-                            };
-
-                            lambdaConvert(submodel);
-							submodel.RecurseOnSubmodelElements(null, (o, parents, sme) =>
-							{
-								// do
-								lambdaConvert(sme);
-								// recurse
-								return true;
-							});
-
-                            // report
-                            Log.Singleton.Info($"Convert SMT qualifiers to SMT extension: {anyChanges} changes done.");
-
-							// emit event for Submodel and children
-							this.AddDiaryEntry(submodel, new DiaryEntryStructChange(), allChildrenAffected: true);
-
-							return new AnyUiLambdaActionRedrawAllElements(nextFocus: smref, isExpanded: true);
-						}
-
-						if (buttonNdx == 2)
-						{
-							// ask 1
-							if (ticket?.ScriptMode != true
-								&& AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
-									"This operation analyzes the element relatioships in the Submodel " +
-                                    "and will take over these as organize references into SMT attribute " +
-                                    "records of associated ConceptDescriptions. Do you want to proceed?",
-									"Take over SM element relationships to CDs",
-									AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
-								return new AnyUiLambdaActionNone();
-
-							// ask 2
-							var eachElemDetails = true;
-							if (ticket?.ScriptMode != true)
-								eachElemDetails = AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
-									"Create detailed SMT attributes for each relevant ConceptDescription, " +
-                                    "include SubmodelElement type list?",
-									"Take over SM element relationships to CDs",
-									AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning);
-
-#if __not_useful
-                            // ask 2
-                            var resetOrganize = true;
-                            if (ticket?.ScriptMode != true)
-                                resetOrganize = AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
-                                    "Reset existing organize references in CDs?",
-                                    "Take over SM element relationships to CDs",
-                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning);
-#endif
-
-							// do
-							int anyChanges = 0;
-							Action<Aas.IReferable> lambdaConvert = (o) => {
-								if (SmtAttributeRecord.TakeoverSmOrganizeToCds(env, o, 
-                                        eachElemDetails: eachElemDetails))
-									anyChanges++;
-							};
-
-							lambdaConvert(submodel);
-							submodel.RecurseOnSubmodelElements(null, (o, parents, sme) =>
-							{
-								// do
-								lambdaConvert(sme);
-								// recurse
-								return true;
-							});
-
-							// report
-							Log.Singleton.Info($"Take over SM element relationships to CDs: {anyChanges} changes done.");
-
-							// emit event for Submodel and children
-							this.AddDiaryEntry(submodel, new DiaryEntryStructChange(), allChildrenAffected: true);
-
-							return new AnyUiLambdaActionRedrawAllElements(nextFocus: smref, isExpanded: true);
-						}
-#endif
-
-#if __old_approach
-						if (buttonNdx == 1)
-                        {
-                            if (ticket?.ScriptMode != true
-                                && AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
-                                    "This operation will affect all Qualifers of " +
-                                    "the Submodel and all of its SubmodelElements. Do you want to proceed?",
-                                    "Remove qualifiers",
-                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
-                                return new AnyUiLambdaActionNone();
-
-                            if (submodel.Qualifiers != null)
-                                submodel.Qualifiers.Clear();
-
-                            submodel.RecurseOnSubmodelElements(null, (o, parents, sme) =>
-                            {
-                                // clear
-                                if (sme.Qualifiers != null)
-                                    sme.Qualifiers.Clear();
-                                // recurse
-                                return true;
-                            });
-
-                            // emit event for Submodel and children
-                            this.AddDiaryEntry(submodel, new DiaryEntryStructChange(), allChildrenAffected: true);
-
-                            return new AnyUiLambdaActionRedrawAllElements(nextFocus: smref, isExpanded: true);
-                        }
-
-                        if (buttonNdx == 2)
-                        {
-                            if (ticket?.ScriptMode != true
-                                && AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
-                                    "This operation will affect all Extensions of " +
-                                    "the Submodel and all of its SubmodelElements. Do you want to proceed?",
-                                    "Remove extensions",
-                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
-                                return new AnyUiLambdaActionNone();
-
-                            if (submodel.Extensions != null)
-                                submodel.Extensions.Clear();
-
-                            submodel.RecurseOnSubmodelElements(null, (o, parents, sme) =>
-                            {
-                                // clear
-                                if (sme.Extensions != null)
-                                    sme.Extensions.Clear();
-                                // recurse
-                                return true;
-                            });
-
-                            // emit event for Submodel and children
-                            this.AddDiaryEntry(submodel, new DiaryEntryStructChange(), allChildrenAffected: true);
-
-                            return new AnyUiLambdaActionRedrawAllElements(nextFocus: smref, isExpanded: true);
-                        }
-#else
                         if (buttonNdx == 1)
                         {
                             // define dialogue and map presets into dialogue items
@@ -3098,13 +2779,13 @@ namespace AasxPackageLogic
                                 "Add Descriptions", "DESC");
 
                             // perform dialogue
-                            this.context.StartFlyoverModal(uc);
+                            await context.StartFlyoverModalAsync(uc);
                             if (!(uc.Result && uc.ResultItem?.Tag is string selectedTag))
                                 return new AnyUiLambdaActionNone();
 
                             // be absolute sure!
                             if (ticket?.ScriptMode != true
-                                && AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                                && AnyUiMessageBoxResult.Yes != await context.MessageBoxFlyoutShowAsync(
                                     "This operation will affect the selected attributes of " +
                                     "the Submodel and all of its SubmodelElements. Do you want to proceed?",
                                     "Remove attributes",
@@ -3140,17 +2821,12 @@ namespace AasxPackageLogic
 
                             return new AnyUiLambdaActionRedrawAllElements(nextFocus: smref, isExpanded: true);
                         }
-#endif
 
-#if __old_approach
-                        if (buttonNdx == 3)
-#else
                         if (buttonNdx == 2)
-#endif
                         {
                             // confirm
                             if (ticket?.ScriptMode != true
-                                && AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                                && AnyUiMessageBoxResult.Yes != await context.MessageBoxFlyoutShowAsync(
                                     "This operation will affect all References within " +
                                     "the Submodel and all of its SubmodelElements. Do you want to proceed?",
                                     "Fix References",
@@ -3236,7 +2912,7 @@ namespace AasxPackageLogic
                                     symbol: AnyUiMessageBoxImage.Question,
                                     maxWidth: 1400,
                                     text: submodel.Id);
-                                if (this.context.StartFlyoverModal(uc))
+                                if (await context.StartFlyoverModalAsync(uc))
                                 {
                                     var oldId = submodel.Id;
                                     var newId = uc.Text.Trim();
@@ -3263,13 +2939,13 @@ namespace AasxPackageLogic
                                                 // (only the side info in the _specific_ endpoint gives information, in
                                                 // which repo the Indentifiables could be deleted)
                                                 var newEndpoint = await PackageContainerHttpRepoSubset
-                                                    .AssistantRenameIdfsInRepo<Aas.ISubmodel>(
-                                                    baseUri: PackageContainerHttpRepoSubset.GetBaseUri(
-                                                        sideInfo.DesignatedEndpoint?.AbsoluteUri),
-                                                    oldId: oldId,
-                                                    newId: newId,
-                                                    runtimeOptions: packages.CentralRuntimeOptions,
-                                                    moreLog: true);
+                                                        .AssistantRenameIdfsInRepo<Aas.ISubmodel>(
+                                                            baseUri: PackageContainerHttpRepoSubset.GetBaseUri(
+                                                                sideInfo.DesignatedEndpoint?.AbsoluteUri),
+                                                            oldId: oldId,
+                                                            newId: newId,
+                                                            runtimeOptions: packages.CentralRuntimeOptions,
+                                                            moreLog: true);
 
                                                 Log.Singleton.Info("Rename in repo performed successfully.");
 
@@ -3301,7 +2977,7 @@ namespace AasxPackageLogic
                                     }
 
                                     if (!res)
-                                        this.context.MessageBoxFlyoutShow(
+                                        await context.MessageBoxFlyoutShowAsync(
                                             "The renaming of the Submodel or some referring elements " +
                                             "has not performed successfully! Please review your inputs and " +
                                             "the AAS structure for any inconsistencies.",
@@ -3661,7 +3337,7 @@ namespace AasxPackageLogic
                                 symbol: AnyUiMessageBoxImage.Question,
                                 maxWidth: 1400,
                                 text: cd.Id);
-                            if (this.context.StartFlyoverModal(uc))
+                            if (await context.StartFlyoverModalAsync(uc))
                             {
                                 var oldId = cd.Id;
                                 var newId = uc.Text.Trim();
@@ -3679,7 +3355,7 @@ namespace AasxPackageLogic
                                         sideInfo.Id = newId;
 
                                         // ask user for repo operation
-                                        if (AnyUiMessageBoxResult.Yes == await this.context.MessageBoxFlyoutShowAsync(
+                                        if (AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
                                                 "Rename ConceptDescription in Repository as well? " +
                                                 "This operation can not be reverted!",
                                                 "Rename Identifiable",
@@ -3691,12 +3367,12 @@ namespace AasxPackageLogic
                                             // which repo the Indentifiables could be deleted)
                                             var newEndpoint = await PackageContainerHttpRepoSubset
                                                 .AssistantRenameIdfsInRepo<Aas.IConceptDescription>(
-                                                baseUri: PackageContainerHttpRepoSubset.GetBaseUri(
-                                                    sideInfo.DesignatedEndpoint?.AbsoluteUri),
-                                                oldId: oldId,
-                                                newId: newId,
-                                                runtimeOptions: packages.CentralRuntimeOptions,
-                                                moreLog: true);
+                                                    baseUri: PackageContainerHttpRepoSubset.GetBaseUri(
+                                                        sideInfo.DesignatedEndpoint?.AbsoluteUri),
+                                                    oldId: oldId,
+                                                    newId: newId,
+                                                    runtimeOptions: packages.CentralRuntimeOptions,
+                                                    moreLog: true);
 
                                             Log.Singleton.Info("Rename in repo performed successfully.");
 
@@ -3728,7 +3404,7 @@ namespace AasxPackageLogic
                                 }
 
                                 if (!res)
-                                    this.context.MessageBoxFlyoutShow(
+                                    await context.MessageBoxFlyoutShowAsync(
                                         "The renaming of the ConceptDescription or some referring elements has not " +
                                             "performed successfully! Please review your inputs and the AAS " +
                                             "structure for any inconsistencies.",
@@ -4040,31 +3716,6 @@ namespace AasxPackageLogic
 
                     if (editMode)
                     {
-#if __old_violates_spec
-                        this.AddActionPanel(stack, "value:",
-                            repo: repo, superMenu: superMenu,
-                            ticketMenu: new AasxMenu()
-                                .AddAction("remove-value", "Remove existing",
-                                    "Remove existing value from the OperationVariable."),
-                            ticketAction: (buttonNdx, ticket) =>
-                            {
-                                if (buttonNdx == 0)
-                                    if (AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
-                                             "Delete value, which is the dataset of a SubmodelElement? " +
-                                                 "This cannot be reverted!",
-                                             "AAS-ENV", AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
-                                    {
-                                        ov.Value = null;
-
-                                        // emit event (for parent container, e.g. Operation)
-                                        this.AddDiaryEntry(parentContainer, new DiaryEntryStructChange());
-
-                                        return new AnyUiLambdaActionRedrawAllElements(nextFocus: ov);
-                                    }
-                                return new AnyUiLambdaActionNone();
-                            });
-#endif
-
                         this.AddHintBubble(stack, hintMode, new[] {
                             new HintCheck(
                                 () => { return this.packages.AuxAvailable;  },
@@ -4305,12 +3956,12 @@ namespace AasxPackageLogic
                     stack, "Concept Description:",
                     repo: repo, superMenu: superMenu,
                     ticketMenu: cdmenu,
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
                         {
                             // select existing CD
-                            var ks = this.SmartSelectAasEntityKeys(
+                            var ks = await SmartSelectAasEntityKeysAsync(
                                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo);
                             if (ks != null)
                             {
@@ -4362,7 +4013,7 @@ namespace AasxPackageLogic
                             if (Options.Curr.EclassDir == null)
                             {
                                 // eclass dir?
-                                this.context?.MessageBoxFlyoutShow(
+                                await context?.MessageBoxFlyoutShowAsync(
                                         "The AASX Package Explore can take over ECLASS definition. " +
                                         "In order to do so, the commandine parameter -eclass has" +
                                         "to refer to a folder withe ECLASS XML files.", "Information",
@@ -4432,7 +4083,7 @@ namespace AasxPackageLogic
                         if (buttonNdx == 4)
                         {
                             var adaptive61360 = AnyUiMessageBoxResult.Yes ==
-                                this.context?.MessageBoxFlyoutShow(
+                                await context?.MessageBoxFlyoutShowAsync(
                                     "Create IEC61360 data specification and adaptively fill preferredName " +
                                     "and definition by idShort and description attributes.",
                                     "Create CDs from SMEs",
@@ -4468,11 +4119,11 @@ namespace AasxPackageLogic
                         .AddAction("import-missing", "Import missing",
                         "Checks for the element and its children, if semanticIds link to missing CD " +
                         "and imports those from ECLASS."),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
                         {
-                            this.ImportEclassCDsForTargets(env, sme, targets);
+                            await ImportEclassCDsForTargetsAsync(env, sme, targets);
                         }
 
                         return new AnyUiLambdaActionNone();
@@ -5017,7 +4668,7 @@ namespace AasxPackageLogic
                     },
                     auxButtonTitles: new[] { "\u2261" },
                     auxButtonToolTips: new[] { "Edit in multiline editor" },
-                    auxButtonLambda: (buttonNdx) =>
+                    auxButtonLambdaAsync: async (buttonNdx) =>
                     {
                         if (buttonNdx == 0)
                         {
@@ -5035,7 +4686,7 @@ namespace AasxPackageLogic
 							};
 #endif
 
-                            if (this.context.StartFlyoverModal(uc))
+                            if (await context.StartFlyoverModalAsync(uc))
                             {
                                 p.Value = uc.Text;
                                 this.AddDiaryEntry(p, new DiaryEntryUpdateValue());
@@ -5305,7 +4956,7 @@ namespace AasxPackageLogic
                         limitToOneRowForNoEdit: true,
                         auxButtonTitles: new[] { "\u2261" },
                         auxButtonToolTips: new[] { "Edit in multiline editor" },
-                        auxButtonLambda: (buttonNdx) =>
+                        auxButtonLambdaAsync: async (buttonNdx) =>
                         {
                             if (buttonNdx == 0)
                             {
@@ -5313,7 +4964,7 @@ namespace AasxPackageLogic
                                                     caption: $"Edit Blob '{"" + blb.IdShort}'",
                                                     mimeType: blb.ContentType,
                                                     text: Encoding.Default.GetString(blb.Value ?? new byte[0]));
-                                if (this.context.StartFlyoverModal(uc))
+                                if (await context.StartFlyoverModalAsync(uc))
                                 {
                                     blb.Value = Encoding.Default.GetBytes(uc.Text);
                                     this.AddDiaryEntry(blb, new DiaryEntryUpdateValue());
@@ -5501,13 +5152,13 @@ namespace AasxPackageLogic
                                 "Add or update blob value from given file.")
                             .AddAction("clear-blob", "Clear Blob",
                                 "Clear blob value."),
-                        ticketAction: (buttonNdx, ticket) =>
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx == 0)
                             {
                                 var uc = new AnyUiDialogueDataOpenFile(
                                 message: "Select a file to add..");
-                                this.context?.StartFlyoverModal(uc);
+                                await context?.StartFlyoverModalAsync(uc);
                                 if (uc.Result && uc.TargetFileName != null)
                                 {
                                     this.uploadAssistance.SourcePath = uc.TargetFileName;
@@ -5539,7 +5190,7 @@ namespace AasxPackageLogic
 
                             if (buttonNdx == 2)
                             {
-                                if (AnyUiMessageBoxResult.Yes == context.MessageBoxFlyoutShow(
+                                if (AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
                                     "Clear value? This operation cannot be reverted.",
                                     "Blob",
                                     AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
@@ -6023,7 +5674,7 @@ namespace AasxPackageLogic
                         .AddAction("emit-json", "Emit with JSON payload",
                             "Emits selected event after editing user-defined payload."),
                     addWoEdit: new[] { true, true },
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         string PayloadsRaw = null;
 
@@ -6033,7 +5684,7 @@ namespace AasxPackageLogic
                                                 caption: $"Edit raw Payload for '{"" + bev.IdShort}'",
                                                 mimeType: "application/json",
                                                 text: "[]");
-                            if (this.context.StartFlyoverModal(uc))
+                            if (await context.StartFlyoverModalAsync(uc))
                             {
                                 PayloadsRaw = uc.Text;
                             }
