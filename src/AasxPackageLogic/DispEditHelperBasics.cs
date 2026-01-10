@@ -1095,22 +1095,6 @@ namespace AasxPackageLogic
             view.Children.Add(g);
         }
 
-#if TO_DELETE
-        public List<Aas.IKey> SmartSelectAasEntityKeys(
-            PackageCentral.PackageCentral packages,
-            PackageCentral.PackageCentral.Selector selector, string filter = null)
-        {
-            var uc = new AnyUiDialogueDataSelectAasEntity(
-                caption: "Select entity of AAS ..",
-                selector: selector, filter: filter);
-            this.context.StartFlyoverModal(uc);
-            if (uc.Result && uc.ResultKeys != null)
-                return uc.ResultKeys;
-
-            return null;
-        }
-#endif
-
         public async Task<List<Aas.IKey>> SmartSelectAasEntityKeysAsync(
             PackageCentral.PackageCentral packages,
             PackageCentral.PackageCentral.Selector selector, string filter = null)
@@ -1124,23 +1108,6 @@ namespace AasxPackageLogic
 
             return null;
         }
-
-#if TO_DELETE
-        public VisualElementGeneric SmartSelectAasEntityVisualElement(
-            PackageCentral.PackageCentral packages,
-            PackageCentral.PackageCentral.Selector selector,
-            string filter = null)
-        {
-            var uc = new AnyUiDialogueDataSelectAasEntity(
-                caption: "Select entity of AAS ..",
-                selector: selector, filter: filter);
-            this.context.StartFlyoverModal(uc);
-            if (uc.Result && uc.ResultVisualElement != null)
-                return uc.ResultVisualElement;
-
-            return null;
-        }
-#endif
 
         public async Task <VisualElementGeneric> SmartSelectAasEntityVisualElementAsync(
             PackageCentral.PackageCentral packages,
