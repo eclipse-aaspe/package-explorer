@@ -67,7 +67,7 @@
   /* If unset, use transparent flyover dialogs, where possible */,
   "UseFlyovers": true
   /* If other then -1, then time in ms for the splash window to stay on the screen. | Arg: <milli-secs> */,
-  "SplashTime": 0
+  "SplashTime": 5000
   /* Fraction of main window with dedicated to left column of screen when resizing window. | Arg: Percent 0-100.0 */,
   "PercentageLeftColumn": 15.0
   /* Fraction of main window with dedicated to right column of screen (content section) when resizing window. | Arg: Percent 0-100.0 */,

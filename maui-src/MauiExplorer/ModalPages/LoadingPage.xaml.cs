@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using AasxIntegrationBase;
 using AasxPackageLogic;
+using AdminShellNS;
 
 namespace MauiTestTree;
 
@@ -34,6 +36,8 @@ public partial class LoadingPage : ContentPage
     {
         base.OnAppearing();
 
+        await Task.Yield();
+
         Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(200), async () =>
         {
             // load
@@ -54,6 +58,18 @@ public partial class LoadingPage : ContentPage
     {
         if (_timerState >= 1)
             DismissPage();
+    }
+
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        // when touched, enlarge the splash time -> needs to click cancel button
+        _viewModel.SplashTimeSecs = 999.0;
+    }
+
+    private void CollectionView_Scrolled(object sender, ItemsViewScrolledEventArgs e)
+    {
+        // when scrolled, enlarge the splash time -> needs to click cancel button
+        _viewModel.SplashTimeSecs = 999.0;
     }
 
     //
@@ -200,6 +216,20 @@ public partial class LoadingPage : ContentPage
     // Start up
     //
 
+    public static Dictionary<string, Plugins.PluginInstance> LoadAndActivatePlugins(
+            IReadOnlyList<OptionsInformation.PluginDllInfo> pluginDllInfos)
+    {
+        // Plugins to be loaded
+        if (pluginDllInfos.Count == 0) return new Dictionary<string, Plugins.PluginInstance>();
+
+        Log.Singleton.Info(
+            $"Trying to load and activate {pluginDllInfos.Count} plug-in(s)...");
+        var loadedPlugins = Plugins.TryActivatePlugins(pluginDllInfos);
+
+        Plugins.TrySetOptionsForPlugins(pluginDllInfos, loadedPlugins);
+        return loadedPlugins;
+    }
+
     protected async Task AppStartup()
     {
         // dead-csharp off
@@ -217,89 +247,79 @@ public partial class LoadingPage : ContentPage
         var exePath = System.Reflection.Assembly.GetEntryAssembly()?.Location;
         Options.ReplaceCurr(await InferOptions(exePath!, new string[] { }));
 
-#if cdscds
-            // commit some options to other global locations
-            AdminShellUtil.DefaultLngIso639 = AasxLanguageHelper.GetFirstLangCode(Options.Curr.DefaultLangs) ?? "en?";
+        // commit some options to other global locations
+        AdminShellUtil.DefaultLngIso639 = AasxLanguageHelper.GetFirstLangCode(Options.Curr.DefaultLangs) ?? "en?";
 
-            // search for plugins?
-            if (Options.Curr.PluginDir != null)
-            {
-                var searchDir = System.IO.Path.Combine(
-                    System.IO.Path.GetDirectoryName(exePath),
-                    Options.Curr.PluginDir);
-
-                Log.Singleton.Info(
-                    "Searching for the plugins in the plugin directory: {0}", searchDir);
-
-                var pluginDllInfos = Plugins.TrySearchPlugins(searchDir);
-
-                Log.Singleton.Info(
-                    $"Found {pluginDllInfos.Count} plugin(s) in the plugin directory: {searchDir}");
-
-                Options.Curr.PluginDll.AddRange(pluginDllInfos);
-            }
+        // search for plugins?
+        if (Options.Curr.PluginDir != null)
+        {
+            var searchDir = System.IO.Path.Combine(
+                System.IO.Path.GetDirectoryName(exePath) ?? "",
+                Options.Curr.PluginDir);
 
             Log.Singleton.Info(
-                $"Loading and activating {Options.Curr.PluginDll.Count} plugin(s)...");
+                "Searching for the plugins in the plugin directory: {0}", searchDir);
 
-            Plugins.LoadedPlugins = LoadAndActivatePlugins(Options.Curr.PluginDll);
+            var pluginDllInfos = Plugins.TrySearchPlugins(searchDir);
 
-            // at end, write all default options to JSON?
-            if (Options.Curr.WriteDefaultOptionsFN != null)
+            Log.Singleton.Info(
+                $"Found {pluginDllInfos.Count} plugin(s) in the plugin directory: {searchDir}");
+
+            Options.Curr.PluginDll.AddRange(pluginDllInfos);
+        }
+
+        Log.Singleton.Info(
+            $"Loading and activating {Options.Curr.PluginDll.Count} plugin(s)...");
+
+        Plugins.LoadedPlugins = LoadAndActivatePlugins(Options.Curr.PluginDll);
+
+        // at end, write all default options to JSON?
+        if (Options.Curr.WriteDefaultOptionsFN != null)
+        {
+            // info
+            var fullFilename = System.IO.Path.GetFullPath(Options.Curr.WriteDefaultOptionsFN);
+            Log.Singleton.Info($"Writing resulting options to a JSON file: {fullFilename}");
+
+            // retrieve
+            Plugins.TryGetDefaultOptionsForPlugins(Options.Curr.PluginDll, Plugins.LoadedPlugins);
+            OptionsInformation.WriteJson(Options.Curr, fullFilename, withComments: true);
+        }
+
+        // colors
+#if TODO
+        if (false) // for MAUI
+        {
+            var resNames = new[] {
+                "LightAccentColor", "DarkAccentColor", "DarkestAccentColor", "FocusErrorBrush" };
+            for (int i = 0; i < resNames.Length; i++)
             {
-                // info
-                var fullFilename = System.IO.Path.GetFullPath(Options.Curr.WriteDefaultOptionsFN);
-                Log.Singleton.Info($"Writing resulting options to a JSON file: {fullFilename}");
-
-                // retrieve
-                Plugins.TryGetDefaultOptionsForPlugins(Options.Curr.PluginDll, Plugins.LoadedPlugins);
-                OptionsInformation.WriteJson(Options.Curr, fullFilename, withComments: true);
+                var x = this.FindResource(resNames[i]);
+                if (x != null
+                    && x is System.Windows.Media.SolidColorBrush
+                    && Options.Curr.AccentColors.ContainsKey((OptionsInformation.ColorNames)i))
+                    this.Resources[resNames[i]] = AnyUiDisplayContextWpf.GetWpfBrush(
+                        Options.Curr.GetColor((OptionsInformation.ColorNames)i));
             }
-
-            // colors
-            if (true)
+            resNames = new[] { "FocusErrorColor" };
+            for (int i = 0; i < resNames.Length; i++)
             {
-                var resNames = new[] {
-                    "LightAccentColor", "DarkAccentColor", "DarkestAccentColor", "FocusErrorBrush" };
-                for (int i = 0; i < resNames.Length; i++)
-                {
-                    var x = this.FindResource(resNames[i]);
-                    if (x != null
-                        && x is System.Windows.Media.SolidColorBrush
-                        && Options.Curr.AccentColors.ContainsKey((OptionsInformation.ColorNames)i))
-                        this.Resources[resNames[i]] = AnyUiDisplayContextWpf.GetWpfBrush(
-                            Options.Curr.GetColor((OptionsInformation.ColorNames)i));
-                }
-                resNames = new[] { "FocusErrorColor" };
-                for (int i = 0; i < resNames.Length; i++)
-                {
-                    var x = this.FindResource(resNames[i]);
-                    if (x != null
-                        && x is System.Windows.Media.Color
-                        && Options.Curr.AccentColors.ContainsKey((OptionsInformation.ColorNames)(3 + i)))
-                        this.Resources[resNames[i]] = AnyUiDisplayContextWpf.GetWpfColor(
-                            Options.Curr.GetColor((OptionsInformation.ColorNames)(3 + i)));
-                }
+                var x = this.FindResource(resNames[i]);
+                if (x != null
+                    && x is System.Windows.Media.Color
+                    && Options.Curr.AccentColors.ContainsKey((OptionsInformation.ColorNames)(3 + i)))
+                    this.Resources[resNames[i]] = AnyUiDisplayContextWpf.GetWpfColor(
+                        Options.Curr.GetColor((OptionsInformation.ColorNames)(3 + i)));
             }
-
-            // languages
-            if (Options.Curr.OfferedLangs?.HasContent() == true)
-                AasxIntegrationBase.AasxLanguageHelper.Languages.InitByCustomString(Options.Curr.OfferedLangs);
-
-            // preferences
-            Pref pref = Pref.Read();
-
-            // show splash (required for licenses of open source)
-            if (Options.Curr.SplashTime != 0)
-            {
-                var splash = new CustomSplashScreenNew(pref);
-                splash.Show();
-            }
-
-            // show main window
-            MainWindow wnd = new MainWindow(pref);
-            wnd.Show();
+        }
 #endif
+
+        // languages
+        if (Options.Curr.OfferedLangs?.HasContent() == true)
+            AasxIntegrationBase.AasxLanguageHelper.Languages.InitByCustomString(Options.Curr.OfferedLangs);
+
+        // finally, bring the splash stay time down
+        _viewModel.SplashTimeSecs = Math.Max(1.0, 0.001 * Options.Curr.SplashTime);
+        
     }
 
 }
@@ -326,7 +346,9 @@ public class LoadingPageViewModel : INotifyPropertyChanged
     public string Authors { get; set; } = "";
     public string Version { get; set; } = "";
     public string BuildDate { get; set; } = "";
+    
     public string Licenses { get; set; } = "";
+    public IEnumerable<string> LicensesLines { get => Licenses?.Split('\r', StringSplitOptions.TrimEntries) ?? new string[] { }; }
 
     /// <summary>
     /// Splash time in seconds

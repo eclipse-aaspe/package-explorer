@@ -85,8 +85,10 @@
         <Grid Grid.Row="3" Grid.Column="0"
               MaximumWidthRequest="800"
               RowDefinitions="Auto, *"
+              Margin="4,0,4,0"
               ColumnDefinitions="*">
 
+            <!--
             <Label Grid.Row="0" Grid.Column="0" 
                    Margin="0,0,0,8"
                    VerticalOptions="Start"
@@ -97,6 +99,37 @@
                     IsReadOnly="True"
                     Text="{Binding Licenses}"
                     FontSize="8" />
+            -->
+            
+
+            <CollectionView
+                Grid.Row="1" Grid.Column="0"
+                ItemsSource="{Binding LicensesLines}"
+                ItemsLayout="VerticalList"
+                ItemSizingStrategy="MeasureFirstItem"
+                VerticalScrollBarVisibility="Default"
+                Background="Transparent"
+                Scrolled="CollectionView_Scrolled">
+
+                <CollectionView.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+                </CollectionView.GestureRecognizers>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="{x:Null}">
+                        <Label
+                            Text="{Binding .}"
+                            TextColor="{StaticResource Gray400}"
+                            Margin="0,0,0,0"
+                            Padding="4,0,4,0"
+                            FontFamily="Consolas"
+                            FontSize="9"
+                            LineBreakMode="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}},
+                                                    Path=BindingContext.WrapLinesMode}" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+            </CollectionView>
         </Grid>
 
     </Grid>
