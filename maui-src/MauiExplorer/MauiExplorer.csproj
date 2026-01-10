@@ -76,6 +76,7 @@
 	  <ProjectReference Include="..\..\src\AasxMqtt\AasxMqtt.csproj" />
 	  <ProjectReference Include="..\..\src\AasxPackageLogic\AasxPackageLogic.csproj" />
 	  <ProjectReference Include="..\..\src\AasxPredefinedConcepts\AasxPredefinedConcepts.csproj" />
+	  <ProjectReference Include="..\..\src\AasxSoftwareInfo\AasxSoftwareInfo.csproj" />
 	  <ProjectReference Include="..\..\src\AnyUi\AnyUi.csproj" />
 	  <ProjectReference Include="..\AasxIntegrationBaseMaui\AasxIntegrationBaseMaui.csproj" />
 	  <ProjectReference Include="..\FunctionZero.Maui.Controls\FunctionZero.Maui.Controls.csproj" />
