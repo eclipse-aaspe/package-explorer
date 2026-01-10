@@ -1867,7 +1867,7 @@ namespace MauiTestTree
         protected void StartTimer()
         {
             _timerRunning = true;
-            Dispatcher.StartTimer(TimeSpan.FromMilliseconds(50), () =>
+            Dispatcher.StartTimer(TimeSpan.FromMilliseconds(100), () =>
             {
                 // Update UI here
                 //  MyLabel.Text = DateTime.Now.ToString("HH:mm:ss");

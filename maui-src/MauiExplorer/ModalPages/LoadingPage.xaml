@@ -1,12 +1,122 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:local="clr-namespace:MauiTestTree"
              x:Class="MauiTestTree.LoadingPage"
+             x:DataType="local:LoadingPageViewModel"
              Title="LoadingPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+
+    <Grid RowDefinitions="2*, Auto, 1*, 3*"
+          Margin="8">
+        
+        <!-- Close -->
+        <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="0"
+            HorizontalOptions="End"
+            VerticalOptions="Start" 
+            Margin="8"
+            Padding="0" BackgroundColor="Transparent" CornerRadius="8"
+            Clicked="CancelButton_Clicked">
+
+            <Button.ImageSource>
+            <FontImageSource
+                FontFamily="MaterialOutlined"
+                Glyph="{x:Static m:MaterialOutlined.Close}"
+                Size="24"
+                Color="{StaticResource Gray500}" />
+            </Button.ImageSource>
+        </Button>
+        
+        <!-- First row: Image in the center -->
+        <Image Grid.Row="0" Grid.Column="0"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            MaximumHeightRequest="32"
+            Margin="0,0,30,0">
+
+            <Image.Source>
+                logo_idta_200x60_light.png
+            </Image.Source>
+        </Image>
+        
+        <!-- Second row: Static contents -->
+        <Grid Grid.Row="1" Grid.Column="0"
+              MaximumWidthRequest="800"
+              HorizontalOptions="Center"
+              RowDefinitions="Auto, Auto, Auto, Auto, Auto"
+              ColumnDefinitions="Auto, *">
+
+            <Label Grid.Row="0" Grid.Column="1" 
+                   Text="AASX Package Explorer for MAUI"
+                   Margin="0,0,0,20"
+                   FontAttributes="Bold"/>
+
+            <Label Grid.Row="1" Grid.Column="1" 
+                   Margin="0,0,0,8"
+                   HorizontalTextAlignment="Start"
+                   VerticalOptions="Start"
+                   FontSize="11"
+                   Text="(c) 2018-2023 Festo SE &amp; Co. KG &#10;(c) 2023-2025 Hochschule Karlsruhe and further" >
+            </Label>
+
+            <Label Grid.Row="2" Grid.Column="0" 
+                   Margin="0,0,8,8"
+                   HorizontalOptions="End"
+                   VerticalOptions="Start"
+                   FontSize="11"
+                   Text="Authors:" />
+            <Label Grid.Row="2" Grid.Column="1" 
+                   Margin="0,0,0,8"
+                   VerticalOptions="Start"
+                   FontSize="11"
+                   Text="{Binding Authors}" />
+
+            <Label Grid.Row="3" Grid.Column="0" 
+                   Margin="0,0,8,8"
+                   HorizontalOptions="End"
+                   VerticalOptions="Start"
+                   FontSize="11"
+                   Text="Version:" />
+            <Label Grid.Row="3" Grid.Column="1" 
+                   Margin="0,0,8,8"
+                   HorizontalOptions="End"
+                   VerticalOptions="Start"
+                   FontSize="11"
+                   Text="{Binding Version}" />
+
+            <Label Grid.Row="4" Grid.Column="0" 
+                   Margin="0,0,8,8"
+                   HorizontalOptions="End"
+                   VerticalOptions="Start"
+                   FontSize="11"
+                   Text="Build date:" />
+            <Label Grid.Row="4" Grid.Column="1" 
+                   Margin="0,0,0,8"
+                   VerticalOptions="Start"
+                   FontSize="11"
+                   Text="{Binding BuildDate}" />
+
+        </Grid>
+        
+        <!-- Third row -->
+        
+        <!-- Forth row: Licenses -->
+        <Grid Grid.Row="3" Grid.Column="0"
+              RowDefinitions="Auto, *"
+              ColumnDefinitions="*">
+
+            <Label Grid.Row="0" Grid.Column="0" 
+                   Margin="0,0,0,8"
+                   VerticalOptions="Start"
+                   FontSize="11"
+                   Text="Licenses:" />
+
+            <Editor Grid.Row="1" Grid.Column="0" 
+                    IsReadOnly="True"
+                    Text="{Binding Licenses}"
+                    FontSize="8" />
+        </Grid>
+
+    </Grid>
+    
 </ContentPage>
