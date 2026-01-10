@@ -1095,6 +1095,7 @@ namespace AasxPackageLogic
             view.Children.Add(g);
         }
 
+#if TO_DELETE
         public List<Aas.IKey> SmartSelectAasEntityKeys(
             PackageCentral.PackageCentral packages,
             PackageCentral.PackageCentral.Selector selector, string filter = null)
@@ -1108,6 +1109,7 @@ namespace AasxPackageLogic
 
             return null;
         }
+#endif
 
         public async Task<List<Aas.IKey>> SmartSelectAasEntityKeysAsync(
             PackageCentral.PackageCentral packages,
@@ -1123,6 +1125,7 @@ namespace AasxPackageLogic
             return null;
         }
 
+#if TO_DELETE
         public VisualElementGeneric SmartSelectAasEntityVisualElement(
             PackageCentral.PackageCentral packages,
             PackageCentral.PackageCentral.Selector selector,
@@ -1132,6 +1135,22 @@ namespace AasxPackageLogic
                 caption: "Select entity of AAS ..",
                 selector: selector, filter: filter);
             this.context.StartFlyoverModal(uc);
+            if (uc.Result && uc.ResultVisualElement != null)
+                return uc.ResultVisualElement;
+
+            return null;
+        }
+#endif
+
+        public async Task <VisualElementGeneric> SmartSelectAasEntityVisualElementAsync(
+            PackageCentral.PackageCentral packages,
+            PackageCentral.PackageCentral.Selector selector,
+            string filter = null)
+        {
+            var uc = new AnyUiDialogueDataSelectAasEntity(
+                caption: "Select entity of AAS ..",
+                selector: selector, filter: filter);
+            await this.context.StartFlyoverModalAsync(uc);
             if (uc.Result && uc.ResultVisualElement != null)
                 return uc.ResultVisualElement;
 
@@ -1493,9 +1512,9 @@ namespace AasxPackageLogic
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             content: "Add existing"),
-                        (o) =>
+                        setValueAsync: async (o) =>
                         {
-                            var k2 = SmartSelectAasEntityKeys(packages, selector, addExistingEntities);
+                            var k2 = await SmartSelectAasEntityKeysAsync(packages, selector, addExistingEntities);
 
                             if (modifyAddExistingKey != null)
                             {

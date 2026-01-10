@@ -471,11 +471,11 @@ namespace AasxPackageLogic
                             .AddAction("copy-with-files", "Copy rec. w/ suppl. files",
                                 "Copy selected entity and children from another AAS, caring for ConceptDescriptions " +
                                 "and supplemental files."),
-                        ticketAction: (buttonNdx, ticket) =>
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx == 0 || buttonNdx == 1 || buttonNdx == 2)
                             {
-                                var rve = this.SmartSelectAasEntityVisualElement(
+                                var rve = await SmartSelectAasEntityVisualElementAsync(
                                     packages, PackageCentral.PackageCentral.Selector.MainAux,
                                     Aas.Stringification.ToString(Aas.KeyTypes.AssetAdministrationShell)) as VisualElementAdminShell;
 
@@ -757,11 +757,11 @@ namespace AasxPackageLogic
                         ticketMenu: new AasxMenu()
                             .AddAction("copy-single", "Copy single",
                                 "Copy single selected entity from another AAS."),
-                        ticketAction: (buttonNdx, ticket) =>
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx == 0)
                             {
-                                var rve = this.SmartSelectAasEntityVisualElement(
+                                var rve = await SmartSelectAasEntityVisualElementAsync(
                                     packages, PackageCentral.PackageCentral.Selector.MainAux,
                                     "ConceptDescription") as VisualElementConceptDescription;
                                 if (rve != null)
@@ -1895,11 +1895,11 @@ namespace AasxPackageLogic
                         .AddAction("copy-recurse", "Copy recursively",
                             "Copy selected Submodel and children from another AAS, " +
                             "caring for ConceptDescriptions."),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0 || buttonNdx == 1)
                         {
-                            var rve = this.SmartSelectAasEntityVisualElement(
+                            var rve = await SmartSelectAasEntityVisualElementAsync(
                                 packages, PackageCentral.PackageCentral.Selector.MainAux,
                                 "SubmodelRef") as VisualElementSubmodelRef;
 
@@ -2521,11 +2521,11 @@ namespace AasxPackageLogic
                         .AddAction("copy-recurse", "Copy recursively",
                             "Copy selected Submodel and children from another AAS, " +
                             "caring for ConceptDescriptions."),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0 || buttonNdx == 1)
                         {
-                            var rve = this.SmartSelectAasEntityVisualElement(
+                            var rve = await SmartSelectAasEntityVisualElementAsync(
                                 packages, PackageCentral.PackageCentral.Selector.MainAux,
                                 "SubmodelElement") as VisualElementSubmodelElement;
 
@@ -3730,11 +3730,11 @@ namespace AasxPackageLogic
                                     "Copy single selected entity from another AAS, caring for ConceptDescriptions.")
                                 .AddAction("copy-recurse", "Copy recursively",
                                     "Copy selected entity and children from another AAS, caring for ConceptDescriptions."),
-                            ticketAction: (buttonNdx, ticket) =>
+                            ticketActionAsync: async (buttonNdx, ticket) =>
                             {
                                 if (buttonNdx == 0 || buttonNdx == 1)
                                 {
-                                    var rve = this.SmartSelectAasEntityVisualElement(
+                                    var rve = await SmartSelectAasEntityVisualElementAsync(
                                         packages, PackageCentral.PackageCentral.Selector.MainAux,
                                         "SubmodelElement") as VisualElementSubmodelElement;
 
@@ -4179,11 +4179,11 @@ namespace AasxPackageLogic
                             "Copy single selected entity from another AAS, caring for ConceptDescriptions.")
                         .AddAction("copy-recurse", "Copy recursively",
                             "Copy selected entity and children from another AAS, caring for ConceptDescriptions."),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0 || buttonNdx == 1)
                         {
-                            var rve = this.SmartSelectAasEntityVisualElement(
+                            var rve = await SmartSelectAasEntityVisualElementAsync(
                                 packages, PackageCentral.PackageCentral.Selector.MainAux,
                                 "SubmodelElement") as VisualElementSubmodelElement;
 
@@ -4396,11 +4396,11 @@ namespace AasxPackageLogic
                                 "Copy single selected entity from another AAS, caring for ConceptDescriptions.")
                             .AddAction("copy-recurse", "Copy recursively",
                                 "Copy selected entity and children from another AAS, caring for ConceptDescriptions."),
-                        ticketAction: (buttonNdx, ticket) =>
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx == 0 || buttonNdx == 1)
                             {
-                                var rve = this.SmartSelectAasEntityVisualElement(
+                                var rve = await SmartSelectAasEntityVisualElementAsync(
                                     packages, PackageCentral.PackageCentral.Selector.MainAux,
                                     "OperationVariable") as VisualElementOperationVariable;
 
@@ -4455,11 +4455,11 @@ namespace AasxPackageLogic
                     ticketMenu: new AasxMenu()
                         .AddAction("copy-single", "Copy single",
                             "Copy single selected entity from another AAS, caring for ConceptDescriptions."),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
                         {
-                            var rve = this.SmartSelectAasEntityVisualElement(
+                            var rve = await SmartSelectAasEntityVisualElementAsync(
                                 packages, PackageCentral.PackageCentral.Selector.MainAux,
                                 "SubmodelElement") as VisualElementSubmodelElement;
 
