@@ -350,7 +350,7 @@ namespace MauiTestTree
 
             // REFACTOR: LEAVE HERE
             if (cmd == "exportsmd")
-                CommandBinding_ExportSMD(ticket);
+                await CommandBinding_ExportSMDAsync(ticket);
 
             // REFACTOR: LEAVE HERE
             if (cmd == "printasset")
@@ -363,7 +363,7 @@ namespace MauiTestTree
 
             // stays in WPF
             if (cmd == "serverrest")
-                CommandBinding_ServerRest();
+                await CommandBinding_ServerRestAsync();
 
             // stays in WPF
             if (cmd == "mqttpub")
@@ -371,7 +371,7 @@ namespace MauiTestTree
 
             // stays in WPF
             if (cmd == "connectintegrated")
-                CommandBinding_ConnectIntegrated();
+                await CommandBinding_ConnectIntegratedAsync();
 
             // stays in WPF
             if (cmd == "connectsecure")
@@ -547,7 +547,7 @@ namespace MauiTestTree
 #if TODO_IMPORTANT
             var uc = new ShowValidationResultsFlyout();
             uc.ValidationItems = recs;
-            this.StartFlyoverModal(uc);
+            await StartFlyoverModalAsync(uc);
             if (uc.FixSelected)
             {
                 // fix
@@ -585,15 +585,16 @@ namespace MauiTestTree
 #endif
         }
 
-        public void CommandBinding_ConnectSecure()
+        public async Task CommandBinding_ConnectSecure()
         {
+            await Task.Yield();
             // make dialgue flyout
 #if TODO_IMPORTANT
             var uc = new SecureConnectFlyout();
             uc.LoadPresets(Options.Curr.SecureConnectPresets);
 
             // modal dialogue
-            this.StartFlyoverModal(uc, closingAction: () =>
+            await StartFlyoverModalAsync(uc, closingAction: () =>
             {
             });
 
@@ -651,7 +652,7 @@ namespace MauiTestTree
             worker.RunWorkerAsync();
 
             // modal dialogue
-            this.StartFlyoverModal(uc2, closingAction: () =>
+            await StartFlyoverModalAsync(uc2, closingAction: () =>
             {
                 // clean up
             });
@@ -666,8 +667,9 @@ namespace MauiTestTree
 #endif
         }
 
-        public void CommandBinding_ConnectIntegrated()
+        public async Task CommandBinding_ConnectIntegratedAsync()
         {
+            await Task.Yield();
 #if TODO_IMPORTANT
             // make dialogue flyout
             var uc = new IntegratedConnectFlyout(
@@ -677,7 +679,7 @@ namespace MauiTestTree
             uc.LoadPresets(Options.Curr.IntegratedConnectPresets);
 
             // modal dialogue
-            this.StartFlyoverModal(uc, closingAction: () =>
+            await StartFlyoverModalAsync(uc, closingAction: () =>
             {
             });
 
@@ -732,7 +734,7 @@ namespace MauiTestTree
             }
         }
 
-        public void CommandBinding_ServerRest()
+        public async Task CommandBinding_ServerRestAsync()
         {
 #if TODO
             // make a logger
@@ -755,7 +757,7 @@ namespace MauiTestTree
             worker.RunWorkerAsync();
 
             // modal dialogue
-            this.StartFlyoverModal(uc, closingAction: () =>
+            await StartFlyoverModalAsync(uc, closingAction: () =>
             {
                 AasxRestServerLibrary.AasxRestServer.Stop();
             });
@@ -994,7 +996,7 @@ namespace MauiTestTree
             };
 
             // modal dialogue
-            this.StartFlyoverModal(uc2, closingAction: () => { });
+            await StartFlyoverModalAsync(uc2, closingAction: () => { });
 #endif
         }
 
@@ -1012,7 +1014,7 @@ namespace MauiTestTree
             {
                 uc.Text = lastConnectInput;
             }
-            this.StartFlyoverModal(uc);
+            await StartFlyoverModalAsync(uc);
             if (uc.Result)
             {
                 string value = "";
@@ -1128,6 +1130,7 @@ namespace MauiTestTree
         private async Task CommandBinding_ExecutePluginServerAsync(
             string pluginName, string actionName, string stopName, string caption, string[] additionalArgs = null)
         {
+            await Task.Yield();
 #if TODO_IMPORTANT
             // check
             var pi = Plugins.FindPluginInstance(pluginName);
@@ -1198,7 +1201,7 @@ namespace MauiTestTree
             worker.RunWorkerAsync();
 
             // modal dialogue
-            this.StartFlyoverModal(uc, closingAction: () =>
+            await StartFlyoverModalAsync(uc, closingAction: () =>
             {
 #if FALSE
                 if (false && worker.IsBusy)
@@ -1512,7 +1515,7 @@ namespace MauiTestTree
 #endif
         }
 
-        public void CommandBinding_ExportSMD(
+        public async Task CommandBinding_ExportSMDAsync(
             AasxMenuActionTicket ticket)
         {
 #if TODO
@@ -1574,7 +1577,7 @@ namespace MauiTestTree
                 return (st == null) ? null : new StoredPrint(st);
             });
 
-            this.StartFlyoverModal(uc, closingAction: () =>
+            await StartFlyoverModalAsync(uc, closingAction: () =>
             {
                 AasxRestServerLibrary.AasxRestServer.Stop();
             });
