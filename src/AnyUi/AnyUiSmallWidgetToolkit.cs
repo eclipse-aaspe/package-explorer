@@ -412,7 +412,7 @@ namespace AnyUi
             AnyUiGrid g, int row, int col,
             string content,
             string[] menuHeaders,
-            Func<object, AnyUiLambdaActionBase> menuItemLambda,
+            Func<object, AnyUiLambdaActionBase> menuItemLambda, /* TO_DELETE */
             AnyUiThickness margin = null, AnyUiThickness padding = null,
             AnyUiBrush foreground = null, AnyUiBrush background = null,
             double? fontSize = null, AnyUiFontWeight? fontWeight = null,
@@ -728,10 +728,10 @@ namespace AnyUi
         public void AddGroup(AnyUiStackPanel view, string name, AnyUiBrushTuple colors,
             bool requestAuxButton = false,
             string auxButtonTitle = null, 
-            Func<object, AnyUiLambdaActionBase> auxButtonLambda = null,
+            Func<object, AnyUiLambdaActionBase> auxButtonLambda = null, /* TO_DELETE */
             Func<object, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
             string[] auxContextHeader = null, 
-            Func<object, AnyUiLambdaActionBase> auxContextLambda = null,
+            Func<object, AnyUiLambdaActionBase> auxContextLambda = null, /* TO_DELETE */
             Func<object, Task<AnyUiLambdaActionBase>> auxContextLambdaAsync = null)
         {
             AddGroup(view, name, colors?.Bg, colors?.Fg, requestAuxButton,
@@ -742,10 +742,10 @@ namespace AnyUi
         public void AddGroup(AnyUiStackPanel view, string name, AnyUiBrush background, AnyUiBrush foreground,
             bool requestAuxButton = false,
             string auxButtonTitle = null, 
-            Func<object, AnyUiLambdaActionBase> auxButtonLambda = null,
+            Func<object, AnyUiLambdaActionBase> auxButtonLambda = null, /* TO_DELETE */
             Func<object, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
             string[] auxContextHeader = null, 
-            Func<object, AnyUiLambdaActionBase> auxContextLambda = null,
+            Func<object, AnyUiLambdaActionBase> auxContextLambda = null, /* TO_DELETE */
             Func<object, Task<AnyUiLambdaActionBase>> auxContextLambdaAsync = null,
             AnyUiFrameworkElement iconElement = null)
         {
@@ -809,7 +809,7 @@ namespace AnyUi
         public void AddGroup(AnyUiStackPanel view, string name, AnyUiBrush background, AnyUiBrush foreground,
             bool requestContextMenu,
             string contextMenuText, string[] menuHeaders, 
-            Func<object, AnyUiLambdaActionBase> menuItemLambda = null,
+            Func<object, AnyUiLambdaActionBase> menuItemLambda = null, /* TO_DELETE */
             Func<object, Task<AnyUiLambdaActionBase>> menuItemLambdaAsync = null,
             AnyUiThickness margin = null, AnyUiThickness padding = null)
         {

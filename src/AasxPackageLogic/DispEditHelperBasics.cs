@@ -310,7 +310,7 @@ namespace AasxPackageLogic
             ModifyRepo repo = null, Func<object, AnyUiLambdaActionBase> setValue = null,
             string[] comboBoxItems = null, bool comboBoxIsEditable = false,
             string auxButtonTitle = null, 
-            Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
+            Func<int, AnyUiLambdaActionBase> auxButtonLambda = null, /* TO_DELETE */
             Func<int, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
             string auxButtonToolTip = null,
             string[] auxButtonTitles = null,
@@ -363,7 +363,8 @@ namespace AasxPackageLogic
             AnyUiStackPanel view, string key, string value, string nullValue = null,
             ModifyRepo repo = null, Func<object, AnyUiLambdaActionBase> setValue = null,
             string[] comboBoxItems = null, bool comboBoxIsEditable = false,
-            string auxButtonTitle = null, Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
+            string auxButtonTitle = null, 
+            Func<int, AnyUiLambdaActionBase> auxButtonLambda = null, /* TO_DELETE */
             Func<int, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
             string auxButtonToolTip = null,
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
@@ -658,7 +659,7 @@ namespace AasxPackageLogic
         public void AddSmallCheckBox(
             AnyUiStackPanel panel, string key, 
             bool value,             
-			Func<bool, AnyUiLambdaActionBase> setValue = null,
+			Func<bool, Task<AnyUiLambdaActionBase>> setValueAsync = null,
 			string additionalInfo = "",
 			string[] boolTexts = null)
         {
@@ -670,7 +671,7 @@ namespace AasxPackageLogic
             this.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: key);
 
             // Column 1 = Check box or info
-            if (repo == null || setValue == null)
+            if (repo == null || setValueAsync == null)
             {
 				// label
 				var strVal = (value) ? "True" : "False";
@@ -685,10 +686,10 @@ namespace AasxPackageLogic
                 AnyUiUIElement.RegisterControl(this.AddSmallCheckBoxTo(g, 0, 1, margin: new AnyUiThickness(2, 2, 2, 2),
                     content: additionalInfo, verticalContentAlignment: AnyUiVerticalAlignment.Center,
                     isChecked: value),
-                        (o) =>
+                        setValueAsync: async (o) =>
                         {
-                            if (o is bool && setValue != null)
-                                return setValue((bool)o);
+                            if (o is bool && setValueAsync != null)
+                                return await setValueAsync((bool)o);
                             return new AnyUiLambdaActionNone();
                         });
             }
@@ -699,7 +700,7 @@ namespace AasxPackageLogic
 
 		public void AddActionPanel(
             AnyUiPanel view, string key, string[] actionStr = null, ModifyRepo repo = null,
-            Func<int, AnyUiLambdaActionBase> action = null,
+            Func<int, AnyUiLambdaActionBase> action = null, /* TO_DELETE */
             string[] actionTags = null,
             bool[] addWoEdit = null,
             AasxMenu superMenu = null,
@@ -1792,8 +1793,9 @@ namespace AasxPackageLogic
                                 margin: new AnyUiThickness(2, 2, 2, 2),
                                 padding: new AnyUiThickness(5, 0, 5, 0),
                                 verticalAlignment: AnyUiVerticalAlignment.Center,
-                                menuItemLambda: (o) =>
+                                menuItemLambdaAsync: async (o) =>
                                 {
+                                    await Task.Yield();
                                     var action = false;
 
                                     if (o is int ti)
@@ -1867,7 +1869,7 @@ namespace AasxPackageLogic
             AnyUiStackPanel view, ModifyRepo repo, object data, string key,
             AasxMenu superMenu = null,
             AasxMenu ticketMenu = null,
-            Func<int, AasxMenuActionTicket, AnyUiLambdaActionBase> ticketAction = null,
+            Func<int, AasxMenuActionTicket, AnyUiLambdaActionBase> ticketAction = null, /* TO_DELETE */
             Func<int, AasxMenuActionTicket, Task<AnyUiLambdaActionBase>> ticketActionAsync = null,
             FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard)
         {

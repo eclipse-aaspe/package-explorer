@@ -53,8 +53,9 @@ namespace AasxPackageLogic
                     .AddAction("aas-multi-elem-copy", "Copy",
                         "Places the currently selected element in the paste buffer.",
                         inputGesture: "Ctrl+C"),
-                ticketAction: (buttonNdx, ticket) =>
+                ticketActionAsync: async (buttonNdx, ticket) =>
                 {
+                    await Task.Yield();
                     if (buttonNdx == 0 || buttonNdx == 1)
                     {
                         // store info
