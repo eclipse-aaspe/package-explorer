@@ -321,7 +321,8 @@ namespace AasxPackageLogic
 			int maxLines = -1,
 			bool keyVertCenter = false,
             bool auxButtonOverride = false,
-            bool isValueReadOnly = false)
+            bool isValueReadOnly = false,
+            Func<object, Task<AnyUiLambdaActionBase>> setValueAsync = null)
         {
             AddKeyValue(
                 view, key, value, nullValue, repo, setValue, comboBoxItems, comboBoxIsEditable,
@@ -360,7 +361,8 @@ namespace AasxPackageLogic
         /// <param name="comboBoxMinWidth">Minimal width if value is edited by combo box</param>
         public void AddKeyValue(
             AnyUiStackPanel view, string key, string value, string nullValue = null,
-            ModifyRepo repo = null, Func<object, AnyUiLambdaActionBase> setValue = null,
+            ModifyRepo repo = null, 
+            Func<object, AnyUiLambdaActionBase> setValue = null,
             string[] comboBoxItems = null, bool comboBoxIsEditable = false,
             string auxButtonTitle = null, 
             Func<int, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
@@ -375,7 +377,8 @@ namespace AasxPackageLogic
             int maxLines = -1,
             bool keyVertCenter = false,
             bool auxButtonOverride = false,
-            bool isValueReadOnly = false)
+            bool isValueReadOnly = false,
+            Func<object, Task<AnyUiLambdaActionBase>> setValueAsync = null)
         {
             // draw anyway?
             if (repo != null && value == null)
@@ -471,7 +474,7 @@ namespace AasxPackageLogic
                     maxWidth: maxWidth,
                     items: comboBoxItems,
                     isEditable: comboBoxIsEditable);
-                AnyUiUIElement.RegisterControl(cb, setValue, takeOverLambda: takeOverLambdaAction);
+                AnyUiUIElement.RegisterControl(cb, setValue, setValueAsync: setValueAsync, takeOverLambda: takeOverLambdaAction);
 
                 // check here, if to hightlight
                 if (cb != null && this.highlightField != null && valueHash != null &&
@@ -488,7 +491,7 @@ namespace AasxPackageLogic
                     tb.MaxLines = maxLines;
                 // events
                 AnyUiUIElement.RegisterControl(tb,
-                    setValue, takeOverLambda: takeOverLambdaAction);
+                    setValue, setValueAsync: setValueAsync, takeOverLambda: takeOverLambdaAction);
 
                 // check here, if to hightlight
                 if (tb != null && this.highlightField != null && valueHash != null &&

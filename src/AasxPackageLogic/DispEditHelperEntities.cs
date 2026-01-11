@@ -97,8 +97,9 @@ namespace AasxPackageLogic
             {
                 //TODO (jtikekar, 0000-00-00): check with Micha
                 this.AddKeyValueExRef(stack, "globalAssetId", asset, asset.GlobalAssetId, null, repo,
-                    setValue: v =>
+                    setValue: async (v) =>
                     {
+                        await Task.Yield();
                         asset.GlobalAssetId = v as string;
                         this.AddDiaryEntry(aas, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
