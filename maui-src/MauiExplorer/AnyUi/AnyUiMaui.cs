@@ -18,6 +18,7 @@ using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Layouts;
 using Newtonsoft.Json;
+using Windows.ApplicationModel.Appointments.AppointmentsProvider;
 
 #if IOS || MACCATALYST
 using UIKit;
@@ -558,10 +559,8 @@ namespace MauiTestTree
                                     // (only this could be sensible information to an any ui business logic)
                                     AnyUiPoint? p = null;
                                     var evdata = new AnyUiEventData(AnyUiEventMask.LeftDown, cntl, 1, p);
-                                    var la = cntl.setValueLambda?.Invoke(evdata);
-                                    if (la == null && cntl.setValueAsyncLambda != null)
-                                        la = await cntl.setValueAsyncLambda.Invoke(evdata);
-                                    EmitOutsideAction(la);
+                                    if (cntl.setValueAsyncLambda != null)
+                                        EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(evdata));
                                 };
                             }
 
@@ -577,10 +576,8 @@ namespace MauiTestTree
                                     // (only this could be sensible information to an any ui business logic)
                                     AnyUiPoint? p = null;
                                     var evdata = new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2, p);
-                                    var la = cntl.setValueLambda?.Invoke(evdata);
-                                    if (la == null && cntl.setValueAsyncLambda != null)
-                                        la = await cntl.setValueAsyncLambda.Invoke(evdata);
-                                    EmitOutsideAction(la);
+                                    if (cntl.setValueAsyncLambda != null)
+                                        EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(evdata));
                                 };
                             }
 #if TODO_IMPORTANT
@@ -928,10 +925,11 @@ namespace MauiTestTree
                         }
 
                         // callbacks
-                        maui.Scrolled += (s,e) =>
+                        maui.Scrolled += async (s,e) =>
                         {
-                            cntl.setValueLambda?.Invoke(
-                                new Tuple<double, double>(e.ScrollX, e.ScrollY));
+                            if (cntl.setValueAsyncLambda != null)
+                                await cntl.setValueAsyncLambda.Invoke(
+                                    new Tuple<double, double>(e.ScrollX, e.ScrollY));
                         };
                    }
                 }),
@@ -1007,8 +1005,9 @@ namespace MauiTestTree
                                     // get the current coordinates relative to the framework element
                                     // (only this could be sensible information to an any ui business logic)
                                     AnyUiPoint? p = null;
-                                    EmitOutsideAction(cntl.setValueLambda?.Invoke(
-                                        new AnyUiEventData(AnyUiEventMask.LeftDown, cntl, 1, p)));
+                                    var evdata = new AnyUiEventData(AnyUiEventMask.LeftDown, cntl, 1, p);
+                                    if (cntl.setValueAsyncLambda != null)
+                                        EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(evdata));
                                 };
                             }
 
@@ -1024,8 +1023,9 @@ namespace MauiTestTree
                                     // get the current coordinates relative to the framework element
                                     // (only this could be sensible information to an any ui business logic)
                                     AnyUiPoint? p = null;
-                                    EmitOutsideAction(cntl.setValueLambda?.Invoke(
-                                        new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 1, p)));
+                                    var evdata = new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2, p);
+                                    if (cntl.setValueAsyncLambda != null)
+                                        EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(evdata));
                                 };
                             }
                         }
@@ -1347,10 +1347,8 @@ namespace MauiTestTree
                                     cntl.Text = maui.Text;
 
                                     // the value event
-                                    var la = cntl.setValueLambda?.Invoke(maui.Text);
-                                    if (la == null && cntl.setValueAsyncLambda != null)
-                                        la = await cntl.setValueAsyncLambda.Invoke(maui.Text);
-                                    EmitOutsideAction(la);
+                                    if (cntl.setValueAsyncLambda != null)
+                                        EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(maui.Text));
 
                                     // other events
                                     EmitOutsideAction(new AnyUiLambdaActionContentsChanged());
@@ -1413,10 +1411,8 @@ namespace MauiTestTree
                                     cntl.Text = maui.Text;
 
                                     // the value event
-                                    var la = cntl.setValueLambda?.Invoke(maui.Text);
-                                    if (la == null && cntl.setValueAsyncLambda != null)
-                                        la = await cntl.setValueAsyncLambda.Invoke(maui.Text);
-                                    EmitOutsideAction(la);
+                                    if (cntl.setValueAsyncLambda != null)
+                                        EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(maui.Text));
 
                                     // other events
                                     EmitOutsideAction(new AnyUiLambdaActionContentsChanged());
@@ -1504,10 +1500,8 @@ namespace MauiTestTree
                                 cntl.Text = maui.Text;
 
                                 // the value event
-                                var la = cntl.setValueLambda?.Invoke(maui.Text);
-                                if (la == null && cntl.setValueAsyncLambda != null)
-                                    la = await cntl.setValueAsyncLambda.Invoke(maui.Text);
-                                EmitOutsideAction(la);
+                                if (cntl.setValueAsyncLambda != null)
+                                    EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(maui.Text));
 
                                 // other events
                                 EmitOutsideAction(new AnyUiLambdaActionContentsChanged());
@@ -1604,7 +1598,8 @@ namespace MauiTestTree
 
                             // callbacks
                             cntl.originalValue = "" + cntl.Text;
-                            if (cntl.IsEditable != true)
+                            // TODO!!
+                            if (true || cntl.IsEditable != true)
                             {
                                 // we need this event
                                 maui.SelectedIndexChanged += async (s, e) =>
@@ -1614,10 +1609,8 @@ namespace MauiTestTree
                                     cntl.Text = maui.SelectedItem as string;
 
                                     // the value event
-                                    var la = cntl.setValueLambda?.Invoke((string) maui.SelectedItem);
-                                    if (la == null && cntl.setValueAsyncLambda != null)
-                                        la = await cntl.setValueAsyncLambda.Invoke((string) maui.SelectedItem);
-                                    EmitOutsideAction(la);
+                                    if (cntl.setValueAsyncLambda != null)
+                                        EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke((string) maui.SelectedItem));
 
                                     // other events
                                     EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
@@ -1691,10 +1684,8 @@ namespace MauiTestTree
                                     cntl.Text = mauiTP.SelectedItem as string;
 
                                     // the value event
-                                    var la = cntl.setValueLambda?.Invoke((string) mauiTP.SelectedItem);
-                                    if (la == null && cntl.setValueAsyncLambda != null)
-                                        la = await cntl.setValueAsyncLambda.Invoke((string) mauiTP.SelectedItem);
-                                    EmitOutsideAction(la);
+                                    if (cntl.setValueAsyncLambda != null)
+                                        EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke((string) mauiTP.SelectedItem));
 
                                     // other events
                                     EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
@@ -1810,18 +1801,23 @@ namespace MauiTestTree
                             cntl.IsChecked = maui.IsChecked == true;
 
                             // the value events
-                            var la = cntl.setValueLambda?.Invoke(maui.IsChecked == true);
-                            if (la == null && cntl.setValueAsyncLambda != null)
-                                la = await cntl.setValueAsyncLambda.Invoke(maui.IsChecked == true);
-                            EmitOutsideAction(la);
+                            if (cntl.setValueAsyncLambda != null)
+                                EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(maui.IsChecked == true));
 
                             // other events
                             EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
                             EmitOutsideAction(cntl.takeOverLambda);
                         };
-                        maui.Unchecked += (s1, e1) =>
+                        maui.Unchecked += async (s1, e1) =>
                         {
-                            EmitOutsideAction(cntl.setValueLambda?.Invoke(maui.IsChecked == true));
+                            // state
+                            cntl.IsChecked = maui.IsChecked == true;
+
+                            // the value events
+                            if (cntl.setValueAsyncLambda != null)
+                                EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(maui.IsChecked == true));
+
+                            // other events
                             EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
                             EmitOutsideAction(cntl.takeOverLambda);
                         };
@@ -1881,10 +1877,8 @@ namespace MauiTestTree
                         maui.Clicked += async (sender, e) =>
                         {
                             // normal procedure
-                            var action = cntl.setValueLambda?.Invoke(cntl);
-                            if (action == null && cntl.setValueAsyncLambda != null)
-                                action = await cntl.setValueAsyncLambda.Invoke(cntl);
-                            EmitOutsideAction(action);
+                            if (cntl.setValueAsyncLambda != null)
+                                EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(cntl));
 
                             // special case
                             if (cntl.SpecialAction is AnyUiSpecialActionContextMenu cntlcm
@@ -2361,7 +2355,8 @@ namespace MauiTestTree
             return true;
         }
 
-        public int TriggerKeyShortcut(
+        // TODO
+        public async Task<int> TriggerKeyShortcutAsync(
             string key,
             KeyboardAcceleratorModifiers modifiers,
             bool preview)
@@ -2373,9 +2368,9 @@ namespace MauiTestTree
                 if (key == sc.Key && modifiers == sc.Modifiers && preview == sc.Preview)
                 {
                     // found, any lambdas appicable?
-                    if (sc.Element is AnyUiButton btn)
+                    if (sc.Element is AnyUiButton btn && btn?.setValueAsyncLambda != null)
                     {
-                        var action = btn.setValueLambda?.Invoke(btn);
+                        var action = await btn.setValueAsyncLambda.Invoke(btn);
                         EmitOutsideAction(action);
                         res++;
                     }

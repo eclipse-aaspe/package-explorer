@@ -733,7 +733,7 @@ namespace AnyUi
         {
             AddGroup(view, name, colors?.Bg, colors?.Fg, requestAuxButton,
                 auxButtonTitle, auxButtonLambdaAsync,
-                auxContextHeader, auxButtonLambdaAsync);
+                auxContextHeader, auxContextLambdaAsync);
         }
 
         public void AddGroup(AnyUiStackPanel view, string name, AnyUiBrush background, AnyUiBrush foreground,
