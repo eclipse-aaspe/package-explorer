@@ -36,46 +36,8 @@ namespace BlazorUI
         public AasxMenu Menu { get => _menu; }
         private AasxMenu _menu = new AasxMenu();
 
-        private void RenderItemCollection(
-            AasxMenu topMenu, AasxMenu menuItems,
-            object blazorItems,
-            CommandBindingCollection cmdBindings = null,
-            InputBindingCollection inputBindings = null,
-            object kgConv = null)
-        {
-        }
-
-        public AnyUiLambdaActionBase HandleGlobalKeyDown(KeyEventArgs e, bool preview)
-        {
-            // dead-csharp off
-            //// access
-            //if (e == null || Menu == null)
-            //    return null;
-
-            //var kgConv = new KeyGestureConverter();
-
-            //foreach (var mi in Menu.FindAll<AasxMenuItemHotkeyed>())
-            //{
-            //    if (mi.InputGesture == null)
-            //        continue;
-            //    var g = kgConv.ConvertFromInvariantString(mi.InputGesture) as KeyGesture;
-            //    if (g != null
-            //        && g.Key == e.Key
-            //        && g.Modifiers == Keyboard.Modifiers)
-            //    {
-            //        var ticket = new AasxMenuActionTicket();
-            //        mi.Action?.Invoke(mi.Name, mi, ticket);
-            //        return ticket.UiLambdaAction;
-            //    }
-            //}
-            // dead-csharp off
-            return null;
-        }
-
         public void LoadAndRender(
-            AasxMenu menuInfo,
-            CommandBindingCollection cmdBindings = null,
-            InputBindingCollection inputBindings = null)
+            AasxMenu menuInfo)
         {
             _menu = menuInfo;
             _menuItems.Clear();
@@ -87,10 +49,6 @@ namespace BlazorUI
             foreach (var mi in _menu.FindAll())
                 if (mi.Name.HasContent() && !_menuItems.Contains1(mi.Name.Trim().ToLower()))
                     _menuItems.AddPair(mi.Name.Trim().ToLower(), mi);
-
-            object kgConv = null; // new KeyGestureConverter();
-
-
         }
 
         public bool IsChecked(string name)

@@ -31,7 +31,7 @@
 	</div>
 	<div class="modal-footer">
 		@{
-			var layout = MessageBoxFlyout.LayoutButtons(ddmp.DialogButtons, ddmp.ExtraButtons);
+			var layout = BlazorExplorer.Data.ModalFooterButtonLayout.Create(ddmp.DialogButtons, ddmp.ExtraButtons);
 			foreach (var btn in layout)
 			{
 				@if (btn.Primary)
