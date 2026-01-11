@@ -417,8 +417,9 @@ namespace AasxPackageLogic
 
 			if (this.SafeguardAccess(stack, repo, value, "" + caption + ":",
 				"Create data element!",
-				v => {
-					setValue?.Invoke(new List<T>(new T[] { createInstance?.Invoke("") }));
+                async (v) => {
+                    await Task.Yield();
+                    setValue?.Invoke(new List<T>(new T[] { createInstance?.Invoke("") }));
 					return new AnyUiLambdaActionRedrawEntity();
 				}))
 			{
@@ -604,9 +605,10 @@ namespace AasxPackageLogic
 
 					if (this.SafeguardAccess(stack, repo, lls, "" + pii.Name + ":",
 						"Create data element!",
-						v =>
+                        async (v) =>
 						{
-							lambdaSetValue(ExtendILangStringTextType.CreateFrom(
+                            await Task.Yield();
+                            lambdaSetValue(ExtendILangStringTextType.CreateFrom(
 								lang: AdminShellUtil.GetDefaultLngIso639(), text: ""));
 							return new AnyUiLambdaActionRedrawEntity();
 						}))
@@ -640,9 +642,10 @@ namespace AasxPackageLogic
 
 					if (this.SafeguardAccess(stack, repo, ls, "" + pii.Name + ":",
 						"Create data element!",
-						v =>
+                        async (v) =>
 						{
-							pii.SetValue(recInst, (new List<string>(new[] { "" })));
+                            await Task.Yield();
+                            pii.SetValue(recInst, (new List<string>(new[] { "" })));
 							setValue?.Invoke(recInst);
 							return new AnyUiLambdaActionRedrawEntity();
 						}))
@@ -970,9 +973,10 @@ namespace AasxPackageLogic
 
 					if (this.SafeguardAccess(stack, repo, enumList, "" + pii.Name + ":",
 						"Create data element!",
-						v =>
+                        async (v) =>
 						{
-							var newList = Activator.CreateInstance(pii.PropertyType) as IList;
+                            await Task.Yield();
+                            var newList = Activator.CreateInstance(pii.PropertyType) as IList;
                             newList.Add((int)0);
                             pii.SetValue(recInst, newList);
 							setValue?.Invoke(recInst);

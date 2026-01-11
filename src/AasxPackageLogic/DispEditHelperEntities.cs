@@ -5240,8 +5240,9 @@ namespace AasxPackageLogic
                     });
                 if (this.SafeguardAccess(
                         stack, repo, rfe.Value, "Target reference:", "Create data element!",
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             rfe.Value = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
                             this.AddDiaryEntry(rfe, new DiaryEntryUpdateValue());
                             return new AnyUiLambdaActionRedrawEntity();
@@ -5299,8 +5300,9 @@ namespace AasxPackageLogic
                     });
                 if (this.SafeguardAccess(
                         stack, repo, rele.First, "First relation:", "Create w/ default!",
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             rele.First = Options.Curr.GetDefaultEmptyReference();
                             this.AddDiaryEntry(rele, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
@@ -5340,8 +5342,9 @@ namespace AasxPackageLogic
                     });
                 if (this.SafeguardAccess(
                         stack, repo, rele.Second, "Second relation:", "Create w/ default!",
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             rele.Second = Options.Curr.GetDefaultEmptyReference();
                             this.AddDiaryEntry(rele, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
@@ -5470,8 +5473,9 @@ namespace AasxPackageLogic
                 // add the keys
                 if (this.SafeguardAccess(
                         stack, repo, sml.SemanticIdListElement, "semanticIdListElement:", "Create w/ default!",
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             sml.SemanticIdListElement = Options.Curr.GetDefaultEmptyReference();
                             this.AddDiaryEntry(sml, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
@@ -5597,8 +5601,9 @@ namespace AasxPackageLogic
                     });
                 if (this.SafeguardAccess(
                         stack, repo, ent.GlobalAssetId, "globalAssetId:", "Create data element!",
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             ent.GlobalAssetId = "";
                             this.AddDiaryEntry(ent, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
@@ -5647,8 +5652,9 @@ namespace AasxPackageLogic
                 });
                 if (this.SafeguardAccess(
                         stack, repo, bev.Observed, "observed:", "Create data element!",
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             bev.Observed = new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>());
                             this.AddDiaryEntry(bev, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();

@@ -19,6 +19,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Aas = AasCore.Aas3_1;
 using Samm = AasCore.Samm2_2_0;
 
@@ -365,8 +366,9 @@ namespace AasxPackageLogic
 
                 if (SafeguardAccess(
                         substack, repo, qual.SemanticId, "semanticId:", "Create w/ default!",
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             qual.SemanticId = Options.Curr.GetDefaultEmptyReference();
                             this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
@@ -398,8 +400,9 @@ namespace AasxPackageLogic
 
                 if (this.SafeguardAccess(
                     substack, repo, qual.Kind, "kind:", "Create data element!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         qual.Kind = Aas.QualifierKind.ConceptQualifier;
                         return new AnyUiLambdaActionRedrawEntity();
                     }
@@ -488,8 +491,9 @@ namespace AasxPackageLogic
 
                 if (SafeguardAccess(
                         substack, repo, qual.ValueId, "valueId:", "Create data element!",
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             qual.ValueId = Options.Curr.GetDefaultEmptyReference();
                             this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
@@ -574,8 +578,9 @@ namespace AasxPackageLogic
                 });
             if (SafeguardAccess(
                     substack, repo, pair.SemanticId, "semanticId:", "Create w/ default!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         pair.SemanticId = Options.Curr.GetDefaultEmptyReference();
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
@@ -622,8 +627,9 @@ namespace AasxPackageLogic
 
             if (SafeguardAccess(
                     substack, repo, pair.ExternalSubjectId, "externalSubjectId:", "Create data element!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         pair.ExternalSubjectId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
@@ -1100,8 +1106,9 @@ namespace AasxPackageLogic
                         });
                     if (SafeguardAccess(
                             substack, repo, extension.SemanticId, "semanticId:", "Create w/ default!",
-                            v =>
+                            async (v) =>
                             {
+                                await Task.Yield();
                                 extension.SemanticId = Options.Curr.GetDefaultEmptyReference();
                                 this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                                 return new AnyUiLambdaActionRedrawEntity();
@@ -1179,8 +1186,9 @@ namespace AasxPackageLogic
                     // refersTo are MULTIPLE ModelReference<IReferable>. That is: multiple x multiple keys!                
                     if (this.SafeguardAccess(
                             substack, this.repo, extension.RefersTo, "refersTo:", "Create data element!",
-                            v =>
+                            async (v) =>
                             {
+                                await Task.Yield();
                                 extension.RefersTo = new List<IReference>() {
                                     Options.Curr.GetDefaultEmptyReference(),
                                 };
@@ -1194,8 +1202,9 @@ namespace AasxPackageLogic
                             this.AddActionPanel(
                                 substack, "refersTo:",
                                 new[] { "Add Reference", "Delete last reference" }, repo,
-                                (buttonNdx) =>
+                                actionAsync: async (buttonNdx) =>
                                 {
+                                    await Task.Yield();
                                     if (buttonNdx == 0)
                                     {
                                         if (extension.RefersTo == null)
@@ -1624,7 +1633,6 @@ namespace AasxPackageLogic
                         "\u29c9", "Copy to clipboard",
                         "\u2398", "Paste from clipboard",
                     },
-                    menuItemLambda: null,
                     menuItemLambdaAsync: async (o) =>
                     {
                         var action = false;
@@ -1702,8 +1710,9 @@ namespace AasxPackageLogic
 
                 if (SafeguardAccess(
                         substack, repo, vp.ValueId, "valueId:", "Create data element!",
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             vp.ValueId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
                             this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();

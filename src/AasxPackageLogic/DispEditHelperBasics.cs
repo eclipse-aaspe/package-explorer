@@ -1833,7 +1833,6 @@ namespace AasxPackageLogic
             AnyUiStackPanel view, ModifyRepo repo, object data, string key,
             AasxMenu superMenu = null,
             AasxMenu ticketMenu = null,
-            Func<int, AasxMenuActionTicket, AnyUiLambdaActionBase> ticketAction = null, /* TO_DELETE */
             Func<int, AasxMenuActionTicket, Task<AnyUiLambdaActionBase>> ticketActionAsync = null,
             FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard)
         {
@@ -1843,7 +1842,7 @@ namespace AasxPackageLogic
                     repo: repo, 
                     superMenu: superMenu,
                     ticketMenu: ticketMenu, 
-                    ticketAction: ticketAction,
+                    ticketActionAsync: ticketActionAsync,
                     firstColumnWidth: firstColumnWidth);
             return (data != null);
         }

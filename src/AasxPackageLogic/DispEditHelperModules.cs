@@ -211,8 +211,9 @@ namespace AasxPackageLogic
                         "Consider having Display name in multiple langauges.",
                         severityLevel: HintCheck.Severity.Notice)
             });
-            if (this.SafeguardAccess(stack, repo, referable.DisplayName, "displayName:", "Create w/ default!", v =>
+            if (this.SafeguardAccess(stack, repo, referable.DisplayName, "displayName:", "Create w/ default!", async (v) =>
             {
+                await Task.Yield();
                 referable.DisplayName = ExtendILangStringNameType.CreateFrom(
                     lang: AdminShellUtil.GetDefaultLngIso639(), text: "");
                 this.AddDiaryEntry(referable, new DiaryEntryStructChange());
@@ -268,8 +269,9 @@ namespace AasxPackageLogic
                         "Consider having description in multiple langauges.",
                         severityLevel: HintCheck.Severity.Notice)
             });
-            if (this.SafeguardAccess(stack, repo, referable.Description, "description:", "Create w/ default!", v =>
+            if (this.SafeguardAccess(stack, repo, referable.Description, "description:", "Create w/ default!", async (v) =>
             {
+                await Task.Yield();
                 referable.Description = ExtendILangStringTextType.CreateFrom(
                     lang: AdminShellUtil.GetDefaultLngIso639(), text: "");
                 return new AnyUiLambdaActionRedrawEntity();
@@ -437,8 +439,9 @@ namespace AasxPackageLogic
 
             if (this.SafeguardAccess(
                 stack, repo, extensions, "extensions:", "Create w/ default!",
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     setOutput?.Invoke(new List<Aas.IExtension>(new[] { new Aas.Extension("") }));
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionRedrawEntity();
@@ -500,8 +503,9 @@ namespace AasxPackageLogic
             });
             if (this.SafeguardAccess(
                     stack, repo, identifiable.Id, "id:", "Create data element!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         identifiable.Id = "";
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
@@ -571,8 +575,9 @@ namespace AasxPackageLogic
             });
             if (this.SafeguardAccess(
                     stack, repo, identifiable.Administration, "administration:", "Create data element!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         identifiable.Administration = new Aas.AdministrativeInformation();
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
@@ -616,8 +621,9 @@ namespace AasxPackageLogic
 
                 if (this.SafeguardAccess(
                     stack, repo, identifiable.Administration.Creator, "creator:", "Create data element!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         identifiable.Administration.Creator =
                             new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange());
@@ -691,8 +697,9 @@ namespace AasxPackageLogic
                     severityLevel: HintCheck.Severity.Notice) });
             if (this.SafeguardAccess(
                     stack, this.repo, hasDataSpecification, "DataSpecification:", "Create w/ default!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         setOutput?.Invoke(new List<Aas.IEmbeddedDataSpecification>(new[] { 
                             new Aas.EmbeddedDataSpecification(
                                 dataSpecification: Options.Curr.GetDefaultEmptyReference(),
@@ -791,8 +798,9 @@ namespace AasxPackageLogic
                         if (this.SafeguardAccess(
                             stack, this.repo, hasDataSpecification[i].DataSpecification,
                                 "DataSpecification:", "Create (inner) data element!",
-                            v =>
+                            async (v) =>
                             {
+                                await Task.Yield();
                                 hasDataSpecification[currentI].DataSpecification =
                                     Options.Curr.GetDefaultEmptyReference();
                                 if (hasDataSpecification[currentI].DataSpecificationContent == null)
@@ -949,8 +957,9 @@ namespace AasxPackageLogic
                     if (SafeguardAccess(
                         stack, this.repo, hasDataSpecification[i].DataSpecification,
                             "DataSpecification:", "Create (inner) data element!",
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             hasDataSpecification[currentI].DataSpecification =
                                 new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
                             return new AnyUiLambdaActionRedrawEntity();
@@ -1013,8 +1022,9 @@ namespace AasxPackageLogic
                         if (SafeguardAccess(
                             stack, this.repo, (cntNone || cntMismatch) ? null : "NotNull",
                                 "Content:", "Create (reset) content data element!",
-                            v =>
+                            async (v) =>
                             {
+                                await Task.Yield();
                                 hasDataSpecification[currentI].DataSpecificationContent =
                                     ExtendIDataSpecificationContent.ContentFactoryFor(cntByDs);
 
@@ -1062,8 +1072,9 @@ namespace AasxPackageLogic
             // hasDataSpecification are MULTIPLE references. That is: multiple x multiple keys!
             if (this.SafeguardAccess(
                     stack, this.repo, references, $"{entityName}:", "Create data element!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         setOutput?.Invoke((new Aas.IReference[] {
                             Options.Curr.GetDefaultEmptyReference() }).ToList());
                         return new AnyUiLambdaActionRedrawEntity();
@@ -1149,8 +1160,9 @@ namespace AasxPackageLogic
             });
             if (SafeguardAccess(
                 stack, repo, kind, "kind:", "Create data element!",
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     setOutput?.Invoke(new Aas.AssetKind());
                     return new AnyUiLambdaActionRedrawEntity();
                 }))
@@ -1194,8 +1206,9 @@ namespace AasxPackageLogic
 
             if (this.SafeguardAccess(
                 stack, repo, kind, "kind:", "Create data element!",
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     setOutput?.Invoke(Aas.ModellingKind.Instance);
                     return new AnyUiLambdaActionRedrawEntity();
                 }
@@ -1266,8 +1279,9 @@ namespace AasxPackageLogic
             // add the keys
             if (this.SafeguardAccess(
                     stack, repo, semElem.SemanticId, "semanticId:", "Create w/ default!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         semElem.SemanticId = Options.Curr.GetDefaultEmptyReference();
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
@@ -1340,7 +1354,7 @@ namespace AasxPackageLogic
                     this.AddActionPanel(
                         stack, "supplementalSem.Id:",
                         new[] { "Add", "Delete last" }, repo,
-                        (buttonNdx) =>
+                        actionAsync: async (buttonNdx) =>
                         {
                             if (buttonNdx == 0)
                                 semElem.SupplementalSemanticIds.Add(Options.Curr.GetDefaultEmptyReference());
@@ -1457,8 +1471,9 @@ namespace AasxPackageLogic
 
             if (this.SafeguardAccess(
                 stack, repo, qualifiers, "Qualifiers:", "Create w/ default!",
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     setOutput?.Invoke(new List<Aas.IQualifier>(new[] { new Aas.Qualifier("", DataTypeDefXsd.String) }));
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionRedrawEntity();
@@ -1491,8 +1506,9 @@ namespace AasxPackageLogic
 
             if (this.SafeguardAccess(
                 stack, repo, pairs, $"{key}:", "Create data element!",
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     setOutput?.Invoke(new List<Aas.ISpecificAssetId>());
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionRedrawEntity();
@@ -1629,8 +1645,9 @@ namespace AasxPackageLogic
                 });
             if (SafeguardAccess(
                     stack, repo, dsiec.PreferredName, "preferredName:", "Create data element!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         dsiec.PreferredName = ExtendILangStringPreferredNameTypeIec61360.CreateFrom(
                             lang: AdminShellUtil.GetDefaultLngIso639(), text: "");
 
@@ -1675,8 +1692,9 @@ namespace AasxPackageLogic
                 });
             if (SafeguardAccess(
                     stack, repo, dsiec.ShortName, "shortName:", "Create data element!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         dsiec.ShortName = ExtendILangStringShortNameTypeIec61360.CreateFrom(
                             lang: AdminShellUtil.GetDefaultLngIso639(), text: "");
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
@@ -1708,8 +1726,9 @@ namespace AasxPackageLogic
                         });
             if (SafeguardAccess(
                 stack, repo, dsiec.Unit, "unit:", "Create data element!",
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     dsiec.Unit = "";
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionRedrawEntity();
@@ -1755,8 +1774,9 @@ namespace AasxPackageLogic
                 });
             if (SafeguardAccess(
                 stack, repo, dsiec.UnitId, "unitId:", "Create data element!",
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     dsiec.UnitId = Options.Curr.GetDefaultEmptyReference();
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionRedrawEntity();
@@ -1793,8 +1813,9 @@ namespace AasxPackageLogic
                 });
             if (SafeguardAccess(
                 stack, repo, dsiec.SourceOfDefinition, "sourceOfDef.:", "Create data element!",
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     dsiec.SourceOfDefinition = "";
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionRedrawEntity();
@@ -1839,8 +1860,9 @@ namespace AasxPackageLogic
                 });
             if (SafeguardAccess(
                 stack, repo, dsiec.Symbol, "symbol:", "Create data element!",
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     dsiec.Symbol = "";
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionRedrawEntity();
@@ -1882,8 +1904,9 @@ namespace AasxPackageLogic
                 });
             if (SafeguardAccess(
                     stack, repo, dsiec.DataType, "dataType:", "Create data element!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         dsiec.DataType = DataTypeIec61360.StringTranslatable;
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
@@ -1938,8 +1961,9 @@ namespace AasxPackageLogic
                 });
             if (SafeguardAccess(
                     stack, repo, dsiec.Definition, "definition:", "Create data element!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         dsiec.Definition = ExtendILangStringDefinitionTypeIec61360.CreateFrom(
                             lang: AdminShellUtil.GetDefaultLngIso639(), text: "");
 
@@ -1962,8 +1986,9 @@ namespace AasxPackageLogic
                 });
             if (SafeguardAccess(
                     stack, repo, dsiec.ValueFormat, "valueFormat:", "Create data element!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         dsiec.ValueFormat = "";
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
@@ -2019,8 +2044,9 @@ namespace AasxPackageLogic
                 });
             if (SafeguardAccess(
                     stack, repo, dsiec.ValueList?.ValueReferencePairs, "valueList:", "Create data element!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         dsiec.ValueList ??= new Aas.ValueList(null);
                         dsiec.ValueList.ValueReferencePairs = new()
                         {
@@ -2058,8 +2084,9 @@ namespace AasxPackageLogic
                 });
             if (SafeguardAccess(
                 stack, repo, dsiec.Value, "value:", "Create data element!",
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     dsiec.Value = "";
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionRedrawEntity();
@@ -2067,7 +2094,7 @@ namespace AasxPackageLogic
             {
                 AddKeyValueExRef(
                     stack, "value", dsiec, dsiec.Value, null, repo,
-                    v =>
+                    (v) =>
                     {
                         dsiec.Value = v as string;
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
@@ -2103,8 +2130,9 @@ namespace AasxPackageLogic
                 });
             if (SafeguardAccess(
                     stack, repo, dsiec.LevelType, "levelType:", "Create data element!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         dsiec.LevelType = new Aas.LevelType(false, false, false, false);
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
