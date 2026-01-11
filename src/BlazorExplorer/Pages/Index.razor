@@ -1594,7 +1594,7 @@
                 && evMsgBox.Session?.SessionId is int sessionId2
                 && context != null)
             {
-                var res = context.MessageBoxFlyoutShow(
+                var res = await context.MessageBoxFlyoutShowAsync(
                     evMsgBox.Message, evMsgBox.Caption, evMsgBox.Buttons, evMsgBox.Image);
 
                 // fire back

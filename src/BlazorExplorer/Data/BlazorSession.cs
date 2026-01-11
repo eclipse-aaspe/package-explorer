@@ -18,8 +18,6 @@ using System.IO.Packaging;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using AasxIntegrationBase;
 using AasxIntegrationBaseGdi;
 using AasxPackageExplorer;
@@ -230,7 +228,7 @@ namespace BlazorUI.Data
 
             // Main menu
             MainMenu = new AasxMenuBlazor();
-            MainMenu.LoadAndRender(logicalMainMenu, null, null);
+            MainMenu.LoadAndRender(logicalMainMenu);
 
             // editor modes?
             MainMenu?.SetChecked("EditMenu", Options.Curr.EditMode);
@@ -706,7 +704,7 @@ namespace BlazorUI.Data
                 if (MainMenu?.IsChecked("FileRepoLoadWoPrompt") == false)
                 {
                     // ask double question
-                    if (AnyUiMessageBoxResult.OK != DisplayContext.MessageBoxFlyoutShow(
+                    if (AnyUiMessageBoxResult.OK != await DisplayContext.MessageBoxFlyoutShowAsync(
                             "Load file from AASX file repository?",
                             "AASX File Repository",
                             AnyUiMessageBoxButton.OKCancel, AnyUiMessageBoxImage.Hand))
