@@ -3365,8 +3365,9 @@ namespace AasxPackageLogic
 					margin: new AnyUiThickness(2, 2, 2, 2),
 					padding: new AnyUiThickness(5, 0, 5, 0),
 					content: "\u2261"),
-					setValue: (v) =>
+					setValueAsync: async (v) =>
 					{
+                        await Task.Yield();
                         // re-evaluate
                         Log.Singleton.Info("Starting check.");
 						var ci2 = DisplayOrEditEntityCheckValueEvalItems(rf);
