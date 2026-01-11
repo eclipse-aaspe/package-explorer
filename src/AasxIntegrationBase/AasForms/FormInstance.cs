@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Aas = AasCore.Aas3_1;
 
 /*
@@ -658,10 +659,11 @@ namespace AasxIntegrationBase.AasForms
             //   Instance 1        [-]
             //   Instance 2        [-]
 
-            Func<object, AnyUiLambdaActionBase> lambda = null;
+            Func<object, Task<AnyUiLambdaActionBase>> lambdaAsync = null;
             if (showButtonPlus)
-                lambda = (o) =>
+                lambdaAsync = async (o) =>
                 {
+                    await Task.Yield();
                     if (SubInstances.Count < maxRows)
                     {
                         // add a instance
@@ -679,7 +681,7 @@ namespace AasxIntegrationBase.AasForms
             var g = FormInstanceAnyUiHelper.RenderAnyUiHead(
                 view, uitk, opctx, desc, null,
                 extraRows: SubInstances.Count,
-                plusButtonLambda: lambda);
+                plusButtonLambdaAsync: lambdaAsync);
 
             g.Background = AnyUiBrushes.White;
             g.Margin = new AnyUiThickness(4.0);
@@ -707,8 +709,9 @@ namespace AasxIntegrationBase.AasForms
                         uitk.AddSmallButtonTo(g, row, 4, setHeight: 23.0, margin: new AnyUiThickness(1.0),
                             verticalAlignment: AnyUiVerticalAlignment.Top,
                             content: "\u2796"),
-                    (o) =>
+                    async (o) =>
                     {
+                        await Task.Yield();
                         if (SubInstances.Count > minRows && SubInstances.Contains(storedSI))
                         {
                             // delete
@@ -767,8 +770,8 @@ namespace AasxIntegrationBase.AasForms
             FormDescReferable desc,
             Aas.IReferable rf,
             int? extraRows = null,
-            Func<object, AnyUiLambdaActionBase> plusButtonLambda = null,
-            Func<object, AnyUiLambdaActionBase> expandButtonLambda = null)
+            Func<object, Task<AnyUiLambdaActionBase>> plusButtonLambdaAsync = null,
+            Func<object, Task<AnyUiLambdaActionBase>> expandButtonLambdaAsync = null)
         {
             // access
             if (desc == null)
@@ -803,25 +806,28 @@ namespace AasxIntegrationBase.AasForms
                         Padding = new AnyUiThickness(0, -4, 0, 0),
                         Content = "\u21a6"
                     }),
-                    (o) => new AnyUiLambdaActionDisplayContentFile()
-                    {
-                        fn = desc.FormUrl,
-                        mimeType = System.Net.Mime.MediaTypeNames.Text.Html,
-                        preferInternalDisplay = true
+                    async (o) => {
+                        await Task.Yield();
+                        return new AnyUiLambdaActionDisplayContentFile()
+                        {
+                            fn = desc.FormUrl,
+                            mimeType = System.Net.Mime.MediaTypeNames.Text.Html,
+                            preferInternalDisplay = true
+                        };
                     });
 
-            if (plusButtonLambda != null && opctx?.IsDisplayModeEditOrAdd == true)
+            if (plusButtonLambdaAsync != null && opctx?.IsDisplayModeEditOrAdd == true)
             {
                 AnyUiUIElement.RegisterControl(
                     uitk.AddSmallButtonTo(g, 0, 4, setHeight: 23.0, margin: new AnyUiThickness(1.0),
-                        content: "\u2795"), plusButtonLambda);
+                        content: "\u2795"), plusButtonLambdaAsync);
             }
             else
-            if (expandButtonLambda != null)
+            if (expandButtonLambdaAsync != null)
             {
                 AnyUiUIElement.RegisterControl(
                     uitk.AddSmallButtonTo(g, 0, 4, setHeight: 22.0, margin: new AnyUiThickness(2.0),
-                        content: "\u2bc5"), expandButtonLambda);
+                        content: "\u2bc5"), expandButtonLambdaAsync);
             }
 
             uitk.AddSmallBasicLabelTo(g, 1, 2, foreground: AnyUiBrushes.DarkBlue, fontSize: 0.8f,
@@ -875,8 +881,9 @@ namespace AasxIntegrationBase.AasForms
                     uitk.AddSmallTextBoxTo(g, row, 2, colSpan: 2,
                         margin: new AnyUiThickness(1.0),
                         text: "" + rf.IdShort),
-                    (o) =>
+                    async (o) =>
                     {
+                        await Task.Yield();
                         if (o is string os)
                             rf.IdShort = os;
                         touch?.Invoke();
@@ -913,8 +920,9 @@ namespace AasxIntegrationBase.AasForms
                         uitk.AddSmallButtonTo(g, row, 4,
                             setHeight: 23.0, margin: new AnyUiThickness(1.0),
                             content: "\u2795"),
-                            (o) =>
+                            async (o) =>
                             {
+                                await Task.Yield();
                                 rf.AddDescription("", "");
                                 touch?.Invoke();
                                 return FormInstanceBase.NewLambdaUpdateUi(current);
@@ -933,8 +941,9 @@ namespace AasxIntegrationBase.AasForms
                                 horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
                                 text: "" + ls.Language,
                                 items: AasxLanguageHelper.Languages.GetAllLanguages().ToArray()),
-                            (o) =>
+                            async (o) =>
                             {
+                                await Task.Yield();
                                 if (o is string os)
                                     ls.Language = os;
                                 touch?.Invoke();
@@ -945,8 +954,9 @@ namespace AasxIntegrationBase.AasForms
                         AnyUiUIElement.RegisterControl(
                             uitk.AddSmallTextBoxTo(g, row, 3, margin: new AnyUiThickness(1.0),
                                 text: "" + ls.Text),
-                            (o) =>
+                            async (o) =>
                             {
+                                await Task.Yield();
                                 if (o is string os)
                                     ls.Text = os;
                                 touch?.Invoke();
@@ -960,8 +970,9 @@ namespace AasxIntegrationBase.AasForms
                             AnyUiUIElement.RegisterControl(
                                 uitk.AddSmallButtonTo(g, row, 4, setHeight: 23.0, margin: new AnyUiThickness(1.0),
                                     content: "\u2796"),
-                                (o) =>
+                                async (o) =>
                                 {
+                                    await Task.Yield();
                                     if (rf.Description.Contains(storedLs))
                                         rf.Description.Remove(storedLs);
                                     touch?.Invoke();
@@ -1515,8 +1526,9 @@ namespace AasxIntegrationBase.AasForms
                         horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
                         items: pDesc.comboBoxChoices,
                         isEditable: editableMode),
-                        (o) =>
+                        async (o) =>
                         {
+                            await Task.Yield();
                             if (!(MainControl is AnyUiComboBox mcb) || mcb.SelectedIndex == null)
                                 return new AnyUiLambdaActionNone();
 
@@ -1564,8 +1576,9 @@ namespace AasxIntegrationBase.AasForms
                     uitk.AddSmallTextBoxTo(g, 0, 1,
                     margin: new AnyUiThickness(0, 2, 0, 2),
                     text: "" + prop.Value),
-                    (o) =>
+                    async (o) =>
                     {
+                        await Task.Yield();
                         if (o is string os)
                             prop.Value = os;
                         Touch();
@@ -1666,8 +1679,9 @@ namespace AasxIntegrationBase.AasForms
                 AnyUiUIElement.RegisterControl(
                     uitk.AddSmallButtonTo(g, 0, 3, setHeight: 23.0, margin: new AnyUiThickness(1.0),
                         content: "\u2795"),
-                        (o) =>
+                        async (o) =>
                         {
+                            await Task.Yield();
                             if (mlp.Value == null)
                                 mlp.Value = new List<Aas.ILangStringTextType>();
                             mlp.Value.Add(new Aas.LangStringTextType("", ""));
@@ -1699,8 +1713,9 @@ namespace AasxIntegrationBase.AasForms
                         horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
                         text: "" + ls.Language,
                         items: AasxLanguageHelper.Languages.GetAllLanguages().ToArray()),
-                    (o) =>
+                    async (o) =>
                     {
+                        await Task.Yield();
                         if (o is string os)
                             ls.Language = os;
                         Touch();
@@ -1711,8 +1726,9 @@ namespace AasxIntegrationBase.AasForms
                 AnyUiUIElement.RegisterControl(
                     uitk.AddSmallTextBoxTo(g, row, 2, margin: new AnyUiThickness(1.0),
                         text: "" + ls.Text),
-                    (o) =>
+                    async (o) =>
                     {
+                        await Task.Yield();
                         if (o is string os)
                             ls.Text = os;
                         Touch();
@@ -1726,8 +1742,9 @@ namespace AasxIntegrationBase.AasForms
                     AnyUiUIElement.RegisterControl(
                         uitk.AddSmallButtonTo(g, row, 3, setHeight: 23.0, margin: new AnyUiThickness(1.0),
                             content: "\u2796"),
-                        (o) =>
+                        async (o) =>
                         {
+                            await Task.Yield();
                             if (mlp.Value.Contains(storedLs))
                                 mlp.Value.Remove(storedLs);
                             Touch();
@@ -1877,8 +1894,9 @@ namespace AasxIntegrationBase.AasForms
                     margin: new AnyUiThickness(2, 2, 2, 2), minHeight: 40,
                     borderThickness: new AnyUiThickness(1),
                     text: finfo),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     if (o is string os)
                         FileToLoad = os;
                     Touch();
@@ -1890,8 +1908,9 @@ namespace AasxIntegrationBase.AasForms
                 AnyUiUIElement.RegisterControl(
                     uitk.AddSmallButtonTo(g, 0, 2, margin: new AnyUiThickness(1.0),
                         content: "Clear"),
-                        (o) =>
+                        async (o) =>
                         {
+                            await Task.Yield();
                             file.Value = "";
                             FileToLoad = null;
                             Touch();
@@ -1903,8 +1922,9 @@ namespace AasxIntegrationBase.AasForms
                 AnyUiUIElement.RegisterControl(
                     uitk.AddSmallButtonTo(g, 1, 2, margin: new AnyUiThickness(1.0),
                         content: "Select"),
-                        (o) =>
+                        async (o) =>
                         {
+                            await Task.Yield();
                             // kick off dialogue in main application
                             var tempI = this;
                             tempI.PushAndAdaptEventFromTop(
@@ -2024,8 +2044,9 @@ namespace AasxIntegrationBase.AasForms
                 AnyUiUIElement.RegisterControl(
                     uitk.AddSmallButtonTo(g, 0, 2, margin: new AnyUiThickness(1.0),
                         content: "Clear"),
-                        (o) =>
+                        async (o) =>
                         {
+                            await Task.Yield();
                             refe.Value = null;
                             Touch();
                             return NewLambdaUpdateUi(this);
@@ -2036,8 +2057,9 @@ namespace AasxIntegrationBase.AasForms
                 AnyUiUIElement.RegisterControl(
                     uitk.AddSmallButtonTo(g, 1, 2, margin: new AnyUiThickness(1.0),
                         content: "Select"),
-                        (o) =>
+                        async (o) =>
                         {
+                            await Task.Yield();
                             // kick off dialogue in main application
                             var tempI = this;
                             tempI.PushAndAdaptEventFromTop(
@@ -2186,8 +2208,9 @@ namespace AasxIntegrationBase.AasForms
                     AnyUiUIElement.RegisterControl(
                         uitk.AddSmallButtonTo(g, row + 1, 2, margin: new AnyUiThickness(1.0),
                             content: "Clear"),
-                            (o) =>
+                            async (o) =>
                             {
+                                await Task.Yield();
                                 valSet(null);
                                 Touch();
                                 return NewLambdaUpdateUi(this);
@@ -2198,8 +2221,9 @@ namespace AasxIntegrationBase.AasForms
                     AnyUiUIElement.RegisterControl(
                         uitk.AddSmallButtonTo(g, row + 2, 2, margin: new AnyUiThickness(1.0),
                             content: "Select"),
-                            (o) =>
+                            async (o) =>
                             {
+                                await Task.Yield();
                                 // kick off dialogue in main application
                                 var tempI = this;
                                 tempI.PushAndAdaptEventFromTop(

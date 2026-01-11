@@ -1324,8 +1324,9 @@ namespace AasxPackageLogic
                     items: Enum.GetValues(typeof(Aas.ReferenceTypes)).OfType<Aas.ReferenceTypes>().Select((rt) => Aas.Stringification.ToString(rt)).ToArray(),
                     isEditable: false,
                     verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     if (o is string os)
                         refkeys.Type = Aas.Stringification.ReferenceTypesFromString(os).Value;
                     return new AnyUiLambdaActionNone();
@@ -1333,21 +1334,21 @@ namespace AasxPackageLogic
                 takeOverLambda: takeOverLambdaAction);
 
             AnyUiUIElement.RegisterControl(
-                        AddSmallButtonTo(
-                            frontPanel, 0, 1,
-                            margin: NormalOrCapa(
-                                new AnyUiThickness(2, 2, 2, 2),
-                                AnyUiContextCapability.Blazor, new AnyUiThickness(6, 0, 0, 0)),
-                            padding: NormalOrCapa(
-                                new AnyUiThickness(5, 0, 5, 0),
-                                AnyUiContextCapability.Blazor, new AnyUiThickness(0, 0, 0, 0)),
-                            content: "\u21bb"),
-                        (o) =>
-                        {
-                            refkeys.Type = refkeys.GuessType();
-                            return new AnyUiLambdaActionRedrawEntity();
-                        }
-                        );
+                AddSmallButtonTo(
+                    frontPanel, 0, 1,
+                    margin: NormalOrCapa(
+                        new AnyUiThickness(2, 2, 2, 2),
+                        AnyUiContextCapability.Blazor, new AnyUiThickness(6, 0, 0, 0)),
+                    padding: NormalOrCapa(
+                        new AnyUiThickness(5, 0, 5, 0),
+                        AnyUiContextCapability.Blazor, new AnyUiThickness(0, 0, 0, 0)),
+                    content: "\u21bb"),
+                async (o) =>
+                {
+                    await Task.Yield();
+                    refkeys.Type = refkeys.GuessType();
+                    return new AnyUiLambdaActionRedrawEntity();
+                });
 
             //
             // referredSemanticId?
@@ -1375,8 +1376,9 @@ namespace AasxPackageLogic
                             AddSmallButtonTo(gx, 0, 1, content: "+",  // content: "\u25be",
                             margin: new AnyUiThickness(1),
                             padding: new AnyUiThickness(2, -2, 2, -2)),
-                            (o) =>
+                            async (o) =>
                             {
+                                await Task.Yield();
                                 refkeys.ReferredSemanticId = Options.Curr.GetDefaultEmptyReference();
                                 return new AnyUiLambdaActionRedrawEntity();
                             });

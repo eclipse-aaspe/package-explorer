@@ -112,8 +112,9 @@ namespace AasxIntegrationBase.AasForms
                     verticalScrollBarVisibility: AnyUiScrollBarVisibility.Visible,
                     flattenForTarget: AnyUiTargetPlatform.Browser,
                     initialScrollPosition: isc),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     if (o is Tuple<double, double> positions)
                     {
                         if (positions.Item2 > 5)

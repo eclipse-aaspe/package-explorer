@@ -764,7 +764,6 @@ namespace AnyUi
         /// <returns>Passes thru the user control</returns>
         public static T RegisterControl<T>(
             T cntl,
-            Func<object, AnyUiLambdaActionBase> setValue = null,
             Func<object, Task<AnyUiLambdaActionBase>> setValueAsync = null,
             AnyUiLambdaActionBase takeOverLambda = null)
             where T : AnyUiUIElement
@@ -774,7 +773,6 @@ namespace AnyUi
                 return null;
 
             // simply set lambdas
-            cntl.setValueLambda = setValue;
             cntl.setValueAsyncLambda = setValueAsync;
             cntl.takeOverLambda = takeOverLambda;
 

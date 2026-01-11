@@ -438,9 +438,10 @@ namespace AasxPackageLogic
 					margin: new AnyUiThickness(2, 2, 2, 2),
 					padding: new AnyUiThickness(1, 0, 1, 0),
 					content: "\u2795"),
-					(v) =>
+					async (v) =>
 					{
-						value.Add(createInstance?.Invoke(""));
+                        await Task.Yield();
+                        value.Add(createInstance?.Invoke(""));
 						setValue?.Invoke(value);
 						return new AnyUiLambdaActionRedrawEntity();
 					});
@@ -665,9 +666,10 @@ namespace AasxPackageLogic
 								margin: new AnyUiThickness(2, 2, 2, 2),
 								padding: new AnyUiThickness(5, 0, 5, 0),
 								content: "Add blank"),
-								(v) =>
+								async (v) =>
 								{
-									ls.Add("");
+                                    await Task.Yield();
+                                    ls.Add("");
 									pii.SetValue(recInst, ls);
 									setValue?.Invoke(recInst);
 									return new AnyUiLambdaActionRedrawEntity();
@@ -680,9 +682,10 @@ namespace AasxPackageLogic
 								AddSmallTextBoxTo(sg, 1 + lsi, 0,
 									text: ls[lsi],
 									margin: new AnyUiThickness(2, 2, 2, 2)),
-									(v) =>
+									async (v) =>
 									{
-										ls[theLsi] = (string)v;
+                                        await Task.Yield();
+                                        ls[theLsi] = (string)v;
 										pii.SetValue(recInst, ls);
 										setValue?.Invoke(recInst);
 										return new AnyUiLambdaActionRedrawEntity();
@@ -693,9 +696,10 @@ namespace AasxPackageLogic
 									margin: new AnyUiThickness(2, 2, 2, 2),
 									padding: new AnyUiThickness(5, 0, 5, 0),
 									content: "-"),
-									(v) =>
+									async (v) =>
 									{
-										ls.RemoveAt(theLsi);
+                                        await Task.Yield();
+                                        ls.RemoveAt(theLsi);
 										pii.SetValue(recInst, ls);
 										setValue?.Invoke(recInst);
 										return new AnyUiLambdaActionRedrawEntity();
@@ -1000,9 +1004,10 @@ namespace AasxPackageLogic
 								margin: new AnyUiThickness(2, 2, 2, 2),
 								padding: new AnyUiThickness(5, 0, 5, 0),
 								content: "Add blank"),
-								(v) =>
+								async (v) =>
 								{
-									enumList.Add((int) 0);
+                                    await Task.Yield();
+                                    enumList.Add((int) 0);
 									pii.SetValue(recInst, enumList);
 									setValue?.Invoke(recInst);
 									return new AnyUiLambdaActionRedrawEntity();
@@ -1030,9 +1035,10 @@ namespace AasxPackageLogic
 									margin: new AnyUiThickness(2, 2, 2, 2),
 									padding: new AnyUiThickness(5, 0, 5, 0),
 									content: "-"),
-									(v) =>
+									async (v) =>
 									{
-										enumList.RemoveAt(theLsi);
+                                        await Task.Yield();
+                                        enumList.RemoveAt(theLsi);
 										if (enumList.Count < 1)
 											enumList = null;
 										pii.SetValue(recInst, enumList);

@@ -2165,8 +2165,9 @@ namespace AasxPackageLogic
                             content: name,
                             isChecked: value,
                             margin: new AnyUiThickness(0, 0, 15, 0)),
-                        (v) =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             setValue?.Invoke(!value);
                             this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
@@ -2183,8 +2184,9 @@ namespace AasxPackageLogic
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         content: "Delete",
                         toolTip: "Delete data element"),
-                        (v) =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             dsiec.LevelType = null;
                             this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
@@ -3102,8 +3104,9 @@ namespace AasxPackageLogic
                         ? "(Please drop a file to set source file to add)"
                         : this.uploadAssistance.SourcePath,
                     null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         this.uploadAssistance.SourcePath = v as string;
                         return new AnyUiLambdaActionRedrawEntity();
                     }, minHeight: 40);
