@@ -880,9 +880,10 @@ namespace AasxPackageLogic
 								AnyUiContextCapability.Blazor, new AnyUiThickness(0, 4, 0, 4)),
 							selectedIndex: selectedIndex,
 							items: eMems.Select((mi) => mi.MemberValue).ToArray()),
-						setValue: (o) =>
+						setValueAsync: async (o) =>
 						{
-							if (cb.SelectedIndex.HasValue
+                            await Task.Yield();
+                            if (cb.SelectedIndex.HasValue
 								&& cb.SelectedIndex.Value >= 0
 								&& cb.SelectedIndex.Value < eMems.Count)
 							{

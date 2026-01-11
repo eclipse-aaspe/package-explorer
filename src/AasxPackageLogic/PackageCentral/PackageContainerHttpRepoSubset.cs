@@ -3209,8 +3209,9 @@ namespace AasxPackageLogic.PackageCentral
                                     modalDialogStyle: true,
                                     foreground: AnyUiBrushes.White,
                                     toolTip: "Enlarges the size of the query text editor"),
-                                    setValue: (o) =>
+                                    setValueAsync: async (o) =>
                                     {
+                                        await Task.Yield();
                                         heightQueryEditor += 50;
                                         return new AnyUiLambdaActionModalPanelReRender(uc);
                                     });
@@ -3222,8 +3223,9 @@ namespace AasxPackageLogic.PackageCentral
                                     modalDialogStyle: true,
                                     foreground: AnyUiBrushes.White,
                                     toolTip: "Decreases the size of the query text editor"),
-                                    setValue: (o) =>
+                                    setValueAsync: async (o) =>
                                     {
+                                        await Task.Yield();
                                         heightQueryEditor = Math.Max(120, heightQueryEditor - 50);
                                         return new AnyUiLambdaActionModalPanelReRender(uc);
                                     });
@@ -3325,8 +3327,9 @@ namespace AasxPackageLogic.PackageCentral
                                     modalDialogStyle: true,
                                     foreground: AnyUiBrushes.White,
                                     toolTip: "Checks if the JSON is valid. Does not check against JSON schema."),
-                                    setValue: (o) =>
+                                    setValueAsync: async (o) =>
                                     {
+                                        await Task.Yield();
                                         validateResult = ValidateJson(record.QueryScript) ;
                                         return new AnyUiLambdaActionModalPanelReRender(uc);
                                     });

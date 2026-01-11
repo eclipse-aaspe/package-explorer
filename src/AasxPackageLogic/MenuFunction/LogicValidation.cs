@@ -444,8 +444,9 @@ namespace AasxPackageExplorer
                     AnyUiUIElement.RegisterControl(
                         helper.AddSmallCheckBoxTo(utilsGrid, 0, 0, content: "Wrap", isChecked: wrap,
                             verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                        setValue: (o) =>
+                        setValueAsync: async (o) =>
                         {
+                            await Task.Yield();
                             wrap = !wrap;
                             tb.TextWrapping = wrap ? AnyUiTextWrapping.Wrap : AnyUiTextWrapping.NoWrap;
                             return new AnyUiLambdaActionModalPanelReRender(uc);
