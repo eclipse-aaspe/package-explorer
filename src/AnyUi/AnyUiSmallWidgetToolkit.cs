@@ -727,24 +727,20 @@ namespace AnyUi
         public void AddGroup(AnyUiStackPanel view, string name, AnyUiBrushTuple colors,
             bool requestAuxButton = false,
             string auxButtonTitle = null, 
-            Func<object, AnyUiLambdaActionBase> auxButtonLambda = null, /* TO_DELETE */
             Func<object, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
             string[] auxContextHeader = null, 
-            Func<object, AnyUiLambdaActionBase> auxContextLambda = null, /* TO_DELETE */
             Func<object, Task<AnyUiLambdaActionBase>> auxContextLambdaAsync = null)
         {
             AddGroup(view, name, colors?.Bg, colors?.Fg, requestAuxButton,
-                auxButtonTitle, auxButtonLambda,auxButtonLambdaAsync,
-                auxContextHeader, auxContextLambda, auxButtonLambdaAsync);
+                auxButtonTitle, auxButtonLambdaAsync,
+                auxContextHeader, auxButtonLambdaAsync);
         }
 
         public void AddGroup(AnyUiStackPanel view, string name, AnyUiBrush background, AnyUiBrush foreground,
             bool requestAuxButton = false,
             string auxButtonTitle = null, 
-            Func<object, AnyUiLambdaActionBase> auxButtonLambda = null, /* TO_DELETE */
             Func<object, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
             string[] auxContextHeader = null, 
-            Func<object, AnyUiLambdaActionBase> auxContextLambda = null, /* TO_DELETE */
             Func<object, Task<AnyUiLambdaActionBase>> auxContextLambdaAsync = null,
             AnyUiFrameworkElement iconElement = null)
         {
@@ -778,7 +774,7 @@ namespace AnyUi
             }
 
             // auxButton
-            if (requestAuxButton && auxButtonTitle != null && (auxButtonLambda != null || auxButtonLambdaAsync != null))
+            if (requestAuxButton && auxButtonTitle != null && auxButtonLambdaAsync != null)
             {
                 AnyUiUIElement.RegisterControl(
                     AddSmallButtonTo(
@@ -786,12 +782,11 @@ namespace AnyUi
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),
                         content: auxButtonTitle),
-                    auxButtonLambda,
                     setValueAsync: auxButtonLambdaAsync);
             }
 
             // context menu
-            if (requestAuxButton && auxContextHeader != null && (auxContextLambda != null || auxContextLambdaAsync != null))
+            if (requestAuxButton && auxContextHeader != null && auxContextLambdaAsync != null)
             {
                 AddSmallContextMenuItemTo(
                         g, 0, 3,
@@ -807,7 +802,6 @@ namespace AnyUi
         public void AddGroup(AnyUiStackPanel view, string name, AnyUiBrush background, AnyUiBrush foreground,
             bool requestContextMenu,
             string contextMenuText, string[] menuHeaders, 
-            Func<object, AnyUiLambdaActionBase> menuItemLambda = null, /* TO_DELETE */
             Func<object, Task<AnyUiLambdaActionBase>> menuItemLambdaAsync = null,
             AnyUiThickness margin = null, AnyUiThickness padding = null)
         {
@@ -819,7 +813,7 @@ namespace AnyUi
             g.ColumnDefinitions.Add(gc1);
 
             var isContextMenu = requestContextMenu && contextMenuText != null
-                && menuHeaders != null && menuItemLambda != null;
+                && menuHeaders != null && menuItemLambdaAsync != null;
             if (isContextMenu)
             {
                 var gc3 = new AnyUiColumnDefinition();

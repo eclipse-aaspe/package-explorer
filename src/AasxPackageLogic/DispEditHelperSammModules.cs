@@ -319,8 +319,9 @@ namespace AasxPackageLogic
 
 			if (this.SafeguardAccess(stack, repo, value, "" + caption + ":",
 				"Create data element!",
-				v => {
-					setValue?.Invoke(new List<T>(new T[] { createInstance?.Invoke("") }));
+                async (v) => {
+                    await Task.Yield();
+                    setValue?.Invoke(new List<T>(new T[] { createInstance?.Invoke("") }));
 					return new AnyUiLambdaActionRedrawEntity();
 				}))
 			{
@@ -517,9 +518,10 @@ namespace AasxPackageLogic
 
 					if (this.SafeguardAccess(stack, repo, lls, "" + pii.Name + ":",
 						"Create data element!",
-						v =>
+                        async (v) =>
 						{
-							lambdaSetValue(ExtendILangStringTextType.CreateFrom(
+                            await Task.Yield();
+                            lambdaSetValue(ExtendILangStringTextType.CreateFrom(
 								lang: AdminShellUtil.GetDefaultLngIso639(), text: ""));
 							return new AnyUiLambdaActionRedrawEntity();
 						}))
@@ -571,9 +573,10 @@ namespace AasxPackageLogic
 
 					if (this.SafeguardAccess(stack, repo, lsr, "" + pii.Name + ":",
 						"Create data element!",
-						v =>
+                        async (v) =>
 						{
-							var nsm = new Samm.NamespaceMap();
+                            await Task.Yield();
+                            var nsm = new Samm.NamespaceMap();
 							nsm.AddOrIgnore(":", "");
                             lambdaSetValue(nsm);
 							return new AnyUiLambdaActionRedrawEntity();
@@ -690,9 +693,10 @@ namespace AasxPackageLogic
 
 					if (this.SafeguardAccess(stack, repo, ls, "" + pii.Name + ":",
 						"Create data element!",
-						v =>
+                        async (v) =>
 						{
-							ls = new List<string>(new[] { "" });
+                            await Task.Yield();
+                            ls = new List<string>(new[] { "" });
 							pii.SetValue(sammInst, ls);
 							setValue?.Invoke(sammInst);
 							return new AnyUiLambdaActionRedrawEntity();
