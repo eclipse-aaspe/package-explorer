@@ -242,9 +242,10 @@ namespace AasxPackageLogic
 				stack, "" + pii.Name, recInst,
 				value: "" + toStringRepr?.Invoke(pii.GetValue(recInst)),
 				null, repo,
-				setValue: (v) =>
+                async (v) =>
 				{
-					if (isNullable && (v == null || ((string)v).Trim().Length < 1))
+                    await Task.Yield();
+                    if (isNullable && (v == null || ((string)v).Trim().Length < 1))
 						pii.SetValue(recInst, null);
 					else
 					{
@@ -362,9 +363,10 @@ namespace AasxPackageLogic
 			AddKeyValueExRef(
 				g1stack, "" + caption, recInst,
 				value: "" + sr?.Value, null, repo,
-				setValue: v =>
+                async (v) =>
 				{
-					setValue?.Invoke(createInstance?.Invoke((string)v));
+                    await Task.Yield();
+                    setValue?.Invoke(createInstance?.Invoke((string)v));
 					return new AnyUiLambdaActionNone();
 				},
 				firstColumnWidth: firstColumnWidth,
@@ -784,9 +786,10 @@ namespace AasxPackageLogic
 					var strVal = (string)pii.GetValue(recInst);
 					hintLambda(strVal == null || strVal.Length < 1);
 
-					Func<object, AnyUiLambdaActionBase> setValueLambda = (v) =>
+					Func<object, Task<AnyUiLambdaActionBase>> setValueLambdaAsync = async (v) =>
 					{
-						pii.SetValue(recInst, v);
+                        await Task.Yield();
+                        pii.SetValue(recInst, v);
 						setValue?.Invoke(recInst);
 						return new AnyUiLambdaActionNone();
 					};
@@ -796,7 +799,7 @@ namespace AasxPackageLogic
 						// 1 line
 						AddKeyValueExRef(
 							stack, "" + pii.Name, recInst, strVal, null, repo,
-							setValue: setValueLambda);
+							setValueLambdaAsync);
 					}
 					else
 					{
@@ -806,7 +809,7 @@ namespace AasxPackageLogic
 						// multi line
 						AddKeyValueExRef(
 							stack, "" + pii.Name, recInst, (string)pii.GetValue(recInst), null, repo,
-							setValue: setValueLambda,
+							setValueLambdaAsync,
 							limitToOneRowForNoEdit: true,
 							maxLines: isMultiLineAttr.MaxLines.Value,
 							auxButtonTitles: new[] { "\u2261" },

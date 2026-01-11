@@ -260,9 +260,10 @@ namespace AasxPackageLogic
 			AddKeyValueExRef(
 				g1stack, "" + caption, sammInst,
 				value: "" + sr?.Value, null, repo,
-				setValue: v =>
+                async (v) =>
 				{
-					setValue?.Invoke(createInstance?.Invoke((string)v));
+                    await Task.Yield();
+                    setValue?.Invoke(createInstance?.Invoke((string)v));
 					return new AnyUiLambdaActionNone();
 				},
 				firstColumnWidth: firstColumnWidth,
@@ -760,9 +761,10 @@ namespace AasxPackageLogic
 				{
 					var isMultiLineAttr = pii.GetCustomAttribute<Samm.SammMultiLineAttribute>();
 
-					Func<object, AnyUiLambdaActionBase> setValueLambda = (v) =>
+					Func<object, Task<AnyUiLambdaActionBase>> setValueLambdaAsync = async (v) =>
 					{
-						pii.SetValue(sammInst, v);
+                        await Task.Yield();
+                        pii.SetValue(sammInst, v);
 						setValue?.Invoke(sammInst);
 						return new AnyUiLambdaActionNone();
 					};
@@ -772,7 +774,7 @@ namespace AasxPackageLogic
 						// 1 line
 						AddKeyValueExRef(
 							stack, "" + pii.Name, sammInst, (string)pii.GetValue(sammInst), null, repo,
-							setValue: setValueLambda);
+							setValueLambdaAsync);
 					}
 					else
 					{
@@ -782,7 +784,7 @@ namespace AasxPackageLogic
 						// multi line
 						AddKeyValueExRef(
 							stack, "" + pii.Name, sammInst, (string)pii.GetValue(sammInst), null, repo,
-							setValue: setValueLambda,
+							setValueLambdaAsync,
 							limitToOneRowForNoEdit: true,
 							maxLines: isMultiLineAttr.MaxLines.Value,
 							auxButtonTitles: new[] { "\u2261" },
@@ -810,9 +812,10 @@ namespace AasxPackageLogic
 				// single uint?
 				if (pii.PropertyType.IsAssignableTo(typeof(uint?)))
 				{
-					Func<object, AnyUiLambdaActionBase> setValueLambda = (v) =>
+					Func<object, Task<AnyUiLambdaActionBase>> setValueLambdaAsync = async (v) =>
 					{
-						if (v == null || ((string)v).Trim().Length < 1)
+                        await Task.Yield();
+                        if (v == null || ((string)v).Trim().Length < 1)
 							pii.SetValue(sammInst, null);
 						else
 							if (uint.TryParse((string)v, out var result))
@@ -831,7 +834,7 @@ namespace AasxPackageLogic
 						stack, "" + pii.Name, sammInst,
 						value,
 						null, repo,
-						setValue: setValueLambda,
+						setValueLambdaAsync,
 						maxLines: 1);
 				}
 
