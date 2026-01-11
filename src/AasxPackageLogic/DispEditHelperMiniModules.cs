@@ -410,8 +410,9 @@ namespace AasxPackageLogic
                 {
                     AddKeyValueExRef(
                     substack, "kind", qual, Aas.Stringification.ToString(qual.Kind), null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         qual.Kind = Aas.Stringification.QualifierKindFromString((string)v);
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
@@ -432,8 +433,9 @@ namespace AasxPackageLogic
 
                 AddKeyValueExRef(
                     substack, "type", qual, qual.Type, null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         qual.Type = v as string;
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
@@ -446,8 +448,9 @@ namespace AasxPackageLogic
                     comboBoxIsEditable: editMode,
                     comboBoxItems: ExtendStringification.DataTypeXsdToStringArray().ToArray(),
                     comboBoxMinWidth: 190,
-                    setValue: v =>
+                    setValueAsync: async (v) =>
                     {
+                        await Task.Yield();
                         var vt = Aas.Stringification.DataTypeDefXsdFromString((string)v);
                         if (vt.HasValue)
                             qual.ValueType = vt.Value;
@@ -459,8 +462,9 @@ namespace AasxPackageLogic
 
                 AddKeyValueExRef(
                     substack, "value", qual, qual.Value, null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         qual.Value = v as string;
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
@@ -607,8 +611,9 @@ namespace AasxPackageLogic
                 });
             AddKeyValueExRef(
                 substack, "name", pair, pair.Name, null, repo,
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     pair.Name = v as string;
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionNone();
@@ -618,8 +623,9 @@ namespace AasxPackageLogic
 
             AddKeyValueExRef(
                 substack, "value", pair, pair.Value, null, repo,
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     pair.Value = v as string;
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionNone();
@@ -1089,8 +1095,9 @@ namespace AasxPackageLogic
                         });
                     AddKeyValueExRef(
                         substack, "name", extension, extension.Name, null, repo,
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             extension.Name = v as string;
                             this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionNone();
@@ -1145,8 +1152,9 @@ namespace AasxPackageLogic
                         //TODO (jtikekar, 0000-00-00): change
                         comboBoxItems: ExtendStringification.DataTypeXsdToStringArray().ToArray(),
                         comboBoxMinWidth: 190,
-                        setValue: v =>
+                        setValueAsync: async (v) =>
                         {
+                            await Task.Yield();
                             var vt = Aas.Stringification.DataTypeDefXsdFromString((string)v);
                             if (vt.HasValue)
                                 extension.ValueType = vt.Value;
@@ -1156,8 +1164,9 @@ namespace AasxPackageLogic
 
                     AddKeyValueExRef(
                         substack, "value", extension, extension.Value, null, repo,
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             extension.Value = v as string;
                             this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionNone();
@@ -1701,8 +1710,9 @@ namespace AasxPackageLogic
 
                 AddKeyValueExRef(
                     substack, "value", vp, vp.Value, null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         vp.Value = v as string;
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();

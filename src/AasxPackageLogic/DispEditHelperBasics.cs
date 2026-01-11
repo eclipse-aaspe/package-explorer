@@ -307,7 +307,9 @@ namespace AasxPackageLogic
         /// <param name="limitToOneRowForNoEdit">Limitation for displaying multiple lines of value</param>
         public void AddKeyValueExRef(
             AnyUiStackPanel view, string key, object containingObject, string value, string nullValue = null,
-            ModifyRepo repo = null, Func<object, AnyUiLambdaActionBase> setValue = null,
+            ModifyRepo repo = null, 
+            // Func<object, AnyUiLambdaActionBase> setValue = null, 
+            Func<object, Task<AnyUiLambdaActionBase>> setValueAsync = null,
             string[] comboBoxItems = null, bool comboBoxIsEditable = false,
             string auxButtonTitle = null, 
             Func<int, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
@@ -321,11 +323,10 @@ namespace AasxPackageLogic
 			int maxLines = -1,
 			bool keyVertCenter = false,
             bool auxButtonOverride = false,
-            bool isValueReadOnly = false,
-            Func<object, Task<AnyUiLambdaActionBase>> setValueAsync = null)
+            bool isValueReadOnly = false)
         {
             AddKeyValue(
-                view, key, value, nullValue, repo, setValue, comboBoxItems, comboBoxIsEditable,
+                view, key, value, nullValue, repo, setValueAsync, comboBoxItems, comboBoxIsEditable,
                 auxButtonTitle, auxButtonLambdaAsync, auxButtonToolTip,
                 auxButtonTitles, auxButtonToolTips, takeOverLambdaAction,
                 (value == null) ? 0 : value.GetHashCode(), containingObject: containingObject,
@@ -362,7 +363,8 @@ namespace AasxPackageLogic
         public void AddKeyValue(
             AnyUiStackPanel view, string key, string value, string nullValue = null,
             ModifyRepo repo = null, 
-            Func<object, AnyUiLambdaActionBase> setValue = null,
+            // Func<object, AnyUiLambdaActionBase> setValue = null,
+            Func<object, Task<AnyUiLambdaActionBase>> setValueAsync = null,
             string[] comboBoxItems = null, bool comboBoxIsEditable = false,
             string auxButtonTitle = null, 
             Func<int, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
@@ -377,8 +379,7 @@ namespace AasxPackageLogic
             int maxLines = -1,
             bool keyVertCenter = false,
             bool auxButtonOverride = false,
-            bool isValueReadOnly = false,
-            Func<object, Task<AnyUiLambdaActionBase>> setValueAsync = null)
+            bool isValueReadOnly = false)
         {
             // draw anyway?
             if (repo != null && value == null)
@@ -474,7 +475,7 @@ namespace AasxPackageLogic
                     maxWidth: maxWidth,
                     items: comboBoxItems,
                     isEditable: comboBoxIsEditable);
-                AnyUiUIElement.RegisterControl(cb, setValue, setValueAsync: setValueAsync, takeOverLambda: takeOverLambdaAction);
+                AnyUiUIElement.RegisterControl(cb, setValueAsync: setValueAsync, takeOverLambda: takeOverLambdaAction);
 
                 // check here, if to hightlight
                 if (cb != null && this.highlightField != null && valueHash != null &&
@@ -491,7 +492,7 @@ namespace AasxPackageLogic
                     tb.MaxLines = maxLines;
                 // events
                 AnyUiUIElement.RegisterControl(tb,
-                    setValue, setValueAsync: setValueAsync, takeOverLambda: takeOverLambdaAction);
+                    setValueAsync: setValueAsync, takeOverLambda: takeOverLambdaAction);
 
                 // check here, if to hightlight
                 if (tb != null && this.highlightField != null && valueHash != null &&

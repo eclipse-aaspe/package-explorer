@@ -97,7 +97,7 @@ namespace AasxPackageLogic
             {
                 //TODO (jtikekar, 0000-00-00): check with Micha
                 this.AddKeyValueExRef(stack, "globalAssetId", asset, asset.GlobalAssetId, null, repo,
-                    setValue: async (v) =>
+                    async (v) =>
                     {
                         await Task.Yield();
                         asset.GlobalAssetId = v as string;
@@ -266,8 +266,9 @@ namespace AasxPackageLogic
             {
                 //TODO (jtikekar, 0000-00-00): check with Micha
                 this.AddKeyValueExRef(stack, "assetType", asset, asset.AssetType, null, repo,
-                    setValue: v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         asset.AssetType = v as string;
                         this.AddDiaryEntry(aas, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
@@ -4620,8 +4621,9 @@ namespace AasxPackageLogic
 
                 AddKeyValueExRef(
                     stack, "valueType", p, Aas.Stringification.ToString(p.ValueType), null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         var vt = Aas.Stringification.DataTypeDefXsdFromString((string)v);
                         if (vt.HasValue)
                             p.ValueType = vt.Value;
@@ -4655,8 +4657,9 @@ namespace AasxPackageLogic
 				// now: Value
 				AddKeyValueExRef(
                     stack, "value", p, p.Value, null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         // primary update
                         p.Value = v as string;
                         this.AddDiaryEntry(p, new DiaryEntryUpdateValue());
@@ -4867,8 +4870,9 @@ namespace AasxPackageLogic
                     });
                 AddKeyValueExRef(
                     stack, "valueType", rng, Aas.Stringification.ToString(rng.ValueType), null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         rng.ValueType = (Aas.DataTypeDefXsd)Aas.Stringification.DataTypeDefXsdFromString((string)v);
                         this.AddDiaryEntry(rng, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
@@ -4897,8 +4901,9 @@ namespace AasxPackageLogic
 
                 AddKeyValueExRef(
                     stack, "min", rng, rng.Min, null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         rng.Min = v as string;
                         this.AddDiaryEntry(rng, new DiaryEntryUpdateValue());
                         return new AnyUiLambdaActionNone();
@@ -4918,8 +4923,9 @@ namespace AasxPackageLogic
 
                 AddKeyValueExRef(
                     stack, "max", rng, rng.Max, null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         rng.Max = v as string;
                         this.AddDiaryEntry(rng, new DiaryEntryUpdateValue());
                         return new AnyUiLambdaActionNone();
@@ -4958,8 +4964,9 @@ namespace AasxPackageLogic
                     AddKeyValue(
                         stack, "value", (blb.Value == null) ? "" : Encoding.Default.GetString(blb.Value),
                         nullValue: null, repo: repo,
-                        setValue: v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             blb.Value = Encoding.Default.GetBytes((string)v);
                             this.AddDiaryEntry(blb, new DiaryEntryUpdateValue());
                             return new AnyUiLambdaActionNone();
@@ -5127,8 +5134,9 @@ namespace AasxPackageLogic
 
                 AddKeyValueExRef(
                     stack, "contentType", blb, blb.ContentType, null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         blb.ContentType = v as string;
                         this.AddDiaryEntry(blb, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
@@ -5419,8 +5427,9 @@ namespace AasxPackageLogic
                 this.AddKeyValueExRef(
                     stack, "typeValueListElement", sml, Aas.Stringification.ToString(sml.TypeValueListElement),
                     null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         var tvle = Aas.Stringification.AasSubmodelElementsFromString(v as string);
                         if (tvle.HasValue)
                             sml.TypeValueListElement = tvle.Value;
@@ -5445,8 +5454,9 @@ namespace AasxPackageLogic
                 this.AddKeyValueExRef(
                     stack, "valueTypeListElement", sml, Aas.Stringification.ToString(sml.ValueTypeListElement),
                     null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         sml.ValueTypeListElement = Aas.Stringification.DataTypeDefXsdFromString((string)v);
                         this.AddDiaryEntry(sml, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
@@ -5575,8 +5585,9 @@ namespace AasxPackageLogic
                 // dead-csharp on
                 AddKeyValueExRef(
                     stack, "entityType", ent, Aas.Stringification.ToString(ent.EntityType), null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         ent.EntityType = (Aas.EntityType)Aas.Stringification.EntityTypeFromString((string)v);
                         this.AddDiaryEntry(ent, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
@@ -5618,8 +5629,9 @@ namespace AasxPackageLogic
                     //TODO (jtikekar, 0000-00-00): check with Micha
                     // dead-csharp off
                     this.AddKeyValueExRef(stack, "globalAssetId", ent, ent.GlobalAssetId, null, repo,
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             ent.GlobalAssetId = v as string;
                             this.AddDiaryEntry(ent, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionNone();

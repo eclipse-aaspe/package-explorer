@@ -162,8 +162,9 @@ namespace AasxPackageLogic
             }
             AddKeyValueExRef(
                 stack, "idShort", referable, referable.IdShort, null, repo,
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     referable.IdShort = v as string;
                     this.AddDiaryEntry(referable, new DiaryEntryStructChange(), new DiaryReference(referable));
                     return new AnyUiLambdaActionNone();
@@ -237,8 +238,9 @@ namespace AasxPackageLogic
             {
                 AddKeyValueExRef(
                         stack, "category", referable, referable.Category, null, repo,
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             referable.Category = v as string;
                             this.AddDiaryEntry(referable, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionNone();
@@ -514,8 +516,9 @@ namespace AasxPackageLogic
                 AddKeyValueExRef(
                     stack, "id", identifiable, identifiable.Id, null, 
                     (idReadOnly) ? null : repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         var dr = new DiaryReference(identifiable);
                         string value = v as string;
                         identifiable.Id = v as string;
@@ -602,8 +605,9 @@ namespace AasxPackageLogic
                 AddKeyValueExRef(
                     stack, "version", identifiable.Administration, identifiable.Administration.Version,
                     null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         identifiable.Administration.Version = v as string;
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
@@ -612,8 +616,9 @@ namespace AasxPackageLogic
                 AddKeyValueExRef(
                     stack, "revision", identifiable.Administration, identifiable.Administration.Revision,
                     null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         identifiable.Administration.Revision = v as string;
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
@@ -655,8 +660,9 @@ namespace AasxPackageLogic
                 AddKeyValueExRef(
                     stack, "templateId", identifiable.Administration, identifiable.Administration.TemplateId,
                     null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         identifiable.Administration.TemplateId = v as string;
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
@@ -1169,8 +1175,9 @@ namespace AasxPackageLogic
             {
                 AddKeyValueExRef(
                     stack, "kind", kind, Aas.Stringification.ToString(kind), null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         setOutput?.Invoke((Aas.AssetKind)Aas.Stringification.AssetKindFromString((string)v));
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
@@ -1216,8 +1223,9 @@ namespace AasxPackageLogic
             {
                 AddKeyValueExRef(
                     stack, "kind", kind, Aas.Stringification.ToString(kind), null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         setOutput?.Invoke((Aas.ModellingKind)Aas.Stringification.ModellingKindFromString((string)v));
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
@@ -1736,8 +1744,9 @@ namespace AasxPackageLogic
             {
                 AddKeyValueExRef(
                 stack, "unit", dsiec, dsiec.Unit, null, repo,
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     dsiec.Unit = v as string;
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionNone();
@@ -1823,8 +1832,9 @@ namespace AasxPackageLogic
             {
                 AddKeyValueExRef(
                 stack, "sourceOfDef.", dsiec, dsiec.SourceOfDefinition, null, repo,
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     dsiec.SourceOfDefinition = v as string;
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionNone();
@@ -1870,8 +1880,9 @@ namespace AasxPackageLogic
             {
                 AddKeyValueExRef(
                 stack, "symbol", dsiec, dsiec.Symbol, null, repo,
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     dsiec.Symbol = v as string;
                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionNone();
@@ -1918,8 +1929,9 @@ namespace AasxPackageLogic
 
                 AddKeyValueExRef(
                     stack, "dataType", dsiec, Aas.Stringification.ToString(dsiec.DataType), null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         dsiec.DataType = Aas.Stringification.DataTypeIec61360FromString(v as string);
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
@@ -1996,8 +2008,9 @@ namespace AasxPackageLogic
             {
                 AddKeyValueExRef(
                     stack, "valueFormat", dsiec, dsiec.ValueFormat, null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         dsiec.ValueFormat = v as string;
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
@@ -2094,8 +2107,9 @@ namespace AasxPackageLogic
             {
                 AddKeyValueExRef(
                     stack, "value", dsiec, dsiec.Value, null, repo,
-                    (v) =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         dsiec.Value = v as string;
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
@@ -2817,8 +2831,9 @@ namespace AasxPackageLogic
 
             AddKeyValueExRef(
                 stack, "value", containingObject, valuePath, null, repo,
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     valuePath = v as string;
                     setOutput?.Invoke(valuePath, valueContent);
                     this.AddDiaryEntry(containingObject, new DiaryEntryStructChange());
@@ -2866,8 +2881,9 @@ namespace AasxPackageLogic
 
             AddKeyValueExRef(
                 stack, "contentType", containingObject, valueContent, null, repo,
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     valueContent = v as string;
                     setOutput?.Invoke(valuePath, valueContent);
                     this.AddDiaryEntry(containingObject, new DiaryEntryStructChange());
@@ -3073,8 +3089,9 @@ namespace AasxPackageLogic
 
                 AddKeyValueExRef(
                     stack, "Target path", this.uploadAssistance, this.uploadAssistance.TargetPath, null, repo,
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         this.uploadAssistance.TargetPath = v as string;
                         return new AnyUiLambdaActionNone();
                     });
