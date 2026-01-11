@@ -710,7 +710,7 @@ namespace AasxPackageLogic
                 actionStr = ticketMenu.Select((tmi) => (tmi is AasxMenuItem mi) ? mi.Header : "").ToArray();
 
             // access 
-            if (ticketActionAsync == null || actionStr == null)
+            if ((actionAsync == null && ticketActionAsync == null) || actionStr == null)
                 return;
             if (repo == null && addWoEdit == null)
                 return;
