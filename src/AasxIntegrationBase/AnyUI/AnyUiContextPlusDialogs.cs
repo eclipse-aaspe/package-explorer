@@ -408,8 +408,9 @@ namespace AnyUi
                                     verticalContentAlignment: AnyUiVerticalAlignment.Center),
                                     minWidth: minWidth, maxWidth: maxWidth,
                                     horizontalAlignment: hAlign),
-                            setValue: (o) =>
+                            setValueAsync: async (o) =>
                             {
+                                await Task.Yield();
                                 AdminShellUtil.SetFieldLazyValue(f, data, o);
                                 return new AnyUiLambdaActionNone();
                             });
