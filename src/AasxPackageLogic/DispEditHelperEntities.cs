@@ -806,8 +806,9 @@ namespace AasxPackageLogic
                             "List index", "idShort", "Identification", "By AasSubmodel",
                             "By SubmodelElements", "Structured"
                         }),
-                        (o) =>
+                        async (o) =>
                         {
+                            await Task.Yield();
                             // resharper disable AccessToModifiedClosure
                             if (cb1?.SelectedIndex.HasValue == true)
                             {
@@ -965,8 +966,9 @@ namespace AasxPackageLogic
                 this.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(2, 0, 0, 0), content: "Source path: ");
                 AnyUiUIElement.RegisterControl(
                     this.AddSmallTextBoxTo(g, 0, 1, margin: new AnyUiThickness(2, 2, 2, 2), text: PackageSourcePath),
-                    (o) =>
+                    async (o) =>
                     {
+                        await Task.Yield();
                         if (o is string)
                             PackageSourcePath = o as string;
                         return new AnyUiLambdaActionNone();
@@ -992,8 +994,9 @@ namespace AasxPackageLogic
                 this.AddSmallLabelTo(g, 1, 0, padding: new AnyUiThickness(2, 0, 0, 0), content: "Target filename: ");
                 AnyUiUIElement.RegisterControl(
                     this.AddSmallTextBoxTo(g, 1, 1, margin: new AnyUiThickness(2, 2, 2, 2), text: PackageTargetFn),
-                    (o) =>
+                    async (o) =>
                     {
+                        await Task.Yield();
                         if (o is string)
                             PackageTargetFn = o as string;
                         return new AnyUiLambdaActionNone();
@@ -1001,8 +1004,9 @@ namespace AasxPackageLogic
                 this.AddSmallLabelTo(g, 2, 0, padding: new AnyUiThickness(2, 0, 0, 0), content: "Target path: ");
                 AnyUiUIElement.RegisterControl(
                     this.AddSmallTextBoxTo(g, 2, 1, margin: new AnyUiThickness(2, 2, 2, 2), text: PackageTargetDir),
-                    (o) =>
+                    async (o) =>
                     {
+                        await Task.Yield();
                         if (o is string)
                             PackageTargetDir = o as string;
                         return new AnyUiLambdaActionNone();
@@ -1010,8 +1014,9 @@ namespace AasxPackageLogic
                 AnyUiUIElement.RegisterControl(
                     this.AddSmallCheckBoxTo(g, 3, 1, margin: new AnyUiThickness(2, 2, 2, 2),
                     content: "Embed as thumbnail (only one file per package!)", isChecked: PackageEmbedAsThumbnail),
-                    (o) =>
+                    async (o) =>
                     {
+                        await Task.Yield();
                         if (o is bool)
                             PackageEmbedAsThumbnail = (bool)o;
                         return new AnyUiLambdaActionNone();
@@ -1019,8 +1024,9 @@ namespace AasxPackageLogic
                 AnyUiUIElement.RegisterControl(
                     this.AddSmallButtonTo(g, 4, 1, margin: new AnyUiThickness(2, 2, 2, 2),
                     padding: new AnyUiThickness(5, 0, 5, 0), content: "Add file to package"),
-                    (o) =>
+                    async (o) =>
                     {
+                        await Task.Yield();
                         try
                         {
                             var ptd = PackageTargetDir;
@@ -5157,8 +5163,9 @@ namespace AasxPackageLogic
                             ? "(Please drop a file to set source file to add)"
                             : this.uploadAssistance.SourcePath,
                         null, repo,
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             this.uploadAssistance.SourcePath = v as string;
                             return new AnyUiLambdaActionRedrawEntity();
                         }, minHeight: 40);

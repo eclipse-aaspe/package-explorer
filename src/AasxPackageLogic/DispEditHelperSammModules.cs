@@ -296,9 +296,10 @@ namespace AasxPackageLogic
 						verticalContentAlignment: AnyUiVerticalAlignment.Center,
 						content: "Opt.",
 						isChecked: osr.Optional),
-						(v) =>
+						async (v) =>
 						{
-							osr.Optional = (bool)v;
+                            await Task.Yield();
+                            osr.Optional = (bool)v;
 							setValue?.Invoke(sr);
 							return new AnyUiLambdaActionNone();
 						});
@@ -338,9 +339,10 @@ namespace AasxPackageLogic
 					margin: new AnyUiThickness(2, 2, 2, 2),
 					padding: new AnyUiThickness(1, 0, 1, 0),
 					content: "\u2795"),
-					(v) =>
+					async (v) =>
 					{
-						value.Add(createInstance?.Invoke(""));
+                        await Task.Yield();
+                        value.Add(createInstance?.Invoke(""));
 						setValue?.Invoke(value);
 						return new AnyUiLambdaActionRedrawEntity();
 					});
@@ -595,9 +597,10 @@ namespace AasxPackageLogic
 							margin: new AnyUiThickness(2, 2, 2, 2),
 							padding: new AnyUiThickness(1, 0, 1, 0),
 							content: "\u2795"),
-							(v) =>
+							async (v) =>
 							{
-								lsr.AddOrIgnore(":", "");
+                                await Task.Yield();
+                                lsr.AddOrIgnore(":", "");
 								lambdaSetValue(lsr);
 								return new AnyUiLambdaActionRedrawEntity();
 							});
@@ -612,9 +615,10 @@ namespace AasxPackageLogic
 								AddSmallTextBoxTo(sg, 1 + theLsri, 0,
 									text: lsr[theLsri].Prefix,
 									margin: new AnyUiThickness(4, 2, 2, 2)),
-									(v) =>
+									async (v) =>
 									{
-										lsr[theLsri].Prefix = (string)v;
+                                        await Task.Yield();
+                                        lsr[theLsri].Prefix = (string)v;
 										pii.SetValue(sammInst, lsr);
 										setValue?.Invoke(sammInst);
 										return new AnyUiLambdaActionNone();
@@ -625,9 +629,10 @@ namespace AasxPackageLogic
 								AddSmallTextBoxTo(sg, 1 + theLsri, 1,
 									text: lsr[theLsri].Uri,
 									margin: new AnyUiThickness(2, 2, 2, 2)),
-									(v) =>
+									async (v) =>
 									{
-										lsr[theLsri].Uri = (string)v;
+                                        await Task.Yield();
+                                        lsr[theLsri].Uri = (string)v;
 										pii.SetValue(sammInst, lsr);
 										setValue?.Invoke(sammInst);
 										return new AnyUiLambdaActionNone();
@@ -639,9 +644,10 @@ namespace AasxPackageLogic
 								margin: new AnyUiThickness(2, 2, 2, 2),
 								padding: new AnyUiThickness(5, 0, 5, 0),
 								content: "-"),
-								(v) =>
+								async (v) =>
 								{
-									lsr.RemoveAt(theLsri);
+                                    await Task.Yield();
+                                    lsr.RemoveAt(theLsri);
 									if (lsr.Count() < 1)
 										lsr = null;
 									pii.SetValue(sammInst, lsr);
@@ -715,9 +721,10 @@ namespace AasxPackageLogic
 								margin: new AnyUiThickness(2, 2, 2, 2),
 								padding: new AnyUiThickness(5, 0, 5, 0),
 								content: "Add blank"),
-								(v) =>
+								async (v) =>
 								{
-									ls.Add("");
+                                    await Task.Yield();
+                                    ls.Add("");
 									pii.SetValue(sammInst, ls);
 									setValue?.Invoke(sammInst);
 									return new AnyUiLambdaActionRedrawEntity();
@@ -730,9 +737,10 @@ namespace AasxPackageLogic
 								AddSmallTextBoxTo(sg, 1 + lsi, 0,
 									text: ls[lsi],
 									margin: new AnyUiThickness(2, 2, 2, 2)),
-									(v) =>
+									async (v) =>
 									{
-										ls[theLsi] = (string)v;
+                                        await Task.Yield();
+                                        ls[theLsi] = (string)v;
 										pii.SetValue(sammInst, ls);
 										setValue?.Invoke(sammInst);
 										return new AnyUiLambdaActionRedrawEntity();
@@ -743,9 +751,10 @@ namespace AasxPackageLogic
 									margin: new AnyUiThickness(2, 2, 2, 2),
 									padding: new AnyUiThickness(5, 0, 5, 0),
 									content: "-"),
-									(v) =>
+									async (v) =>
 									{
-										ls.RemoveAt(theLsi);
+                                        await Task.Yield();
+                                        ls.RemoveAt(theLsi);
 										if (ls.Count < 1)
 											ls = null;
 										pii.SetValue(sammInst, ls);

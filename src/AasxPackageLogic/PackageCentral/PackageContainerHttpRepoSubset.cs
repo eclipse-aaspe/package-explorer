@@ -2988,8 +2988,9 @@ namespace AasxPackageLogic.PackageCentral
                                         isChecked: record.GetAllAas,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Center),
                                     colSpan: 2),
-                                (o) =>
+                                async (o) =>
                                 {
+                                    await Task.Yield();
                                     if ((bool)o)
                                         record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllAas);
                                     else
@@ -3006,8 +3007,9 @@ namespace AasxPackageLogic.PackageCentral
                                         isChecked: record.GetSingleAas,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Center),
                                     colSpan: 2),
-                                (o) =>
+                                async (o) =>
                                 {
+                                    await Task.Yield();
                                     if ((bool)o)
                                         record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleAas);
                                     else
@@ -3038,8 +3040,9 @@ namespace AasxPackageLogic.PackageCentral
                                         isChecked: record.GetAasByAssetLink,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Center),
                                     colSpan: 2),
-                                (o) =>
+                                async (o) =>
                                 {
+                                    await Task.Yield();
                                     if ((bool)o)
                                         record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AasByAssetLink);
                                     else
@@ -3070,8 +3073,9 @@ namespace AasxPackageLogic.PackageCentral
                                         isChecked: record.GetAllSubmodel,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Center),
                                     colSpan: 2),
-                                (o) =>
+                                async (o) =>
                                 {
+                                    await Task.Yield();
                                     if ((bool)o)
                                         record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllSM);
                                     else
@@ -3088,8 +3092,9 @@ namespace AasxPackageLogic.PackageCentral
                                         isChecked: record.GetSingleSubmodel,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Center),
                                     colSpan: 2),
-                                (o) =>
+                                async (o) =>
                                 {
+                                    await Task.Yield();
                                     if ((bool)o)
                                         record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleSM);
                                     else
@@ -3120,8 +3125,9 @@ namespace AasxPackageLogic.PackageCentral
                                         isChecked: record.GetAllCD,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Center),
                                     colSpan: 2),
-                                (o) =>
+                                async (o) =>
                                 {
+                                    await Task.Yield();
                                     if ((bool)o)
                                         record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AllCD);
                                     else
@@ -3138,8 +3144,9 @@ namespace AasxPackageLogic.PackageCentral
                                         isChecked: record.GetSingleCD,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Center),
                                     colSpan: 2),
-                                (o) =>
+                                async (o) =>
                                 {
+                                    await Task.Yield();
                                     if ((bool)o)
                                         record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleCD);
                                     else
@@ -3183,7 +3190,8 @@ namespace AasxPackageLogic.PackageCentral
                                         margin: new AnyUiThickness(0, 0, 0, 0),
                                         padding: new AnyUiThickness(5, 0, 5, 0),
                                         horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
-                                    (o) => {
+                                    async (o) => {
+                                        await Task.Yield();
                                         if (!cbPreset.SelectedIndex.HasValue)
                                             return new AnyUiLambdaActionNone();
                                         selectedQueryNdx = cbPreset.SelectedIndex.Value - 1;
@@ -3241,8 +3249,9 @@ namespace AasxPackageLogic.PackageCentral
                                         content: "Get by query definition",
                                         isChecked: record.ExecuteQuery,
                                         verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                                    (o) =>
+                                    async (o) =>
                                     {
+                                        await Task.Yield();
                                         if ((bool)o)
                                             record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.Query);
                                         else

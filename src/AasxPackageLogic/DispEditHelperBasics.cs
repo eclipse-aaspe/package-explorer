@@ -530,7 +530,9 @@ namespace AasxPackageLogic
 
         public void AddKeyDropTarget(
             AnyUiStackPanel view, string key, string value, string nullValue = null,
-            ModifyRepo repo = null, Func<object, AnyUiLambdaActionBase> setValue = null, int minHeight = 0)
+            ModifyRepo repo = null, 
+            Func<object, Task<AnyUiLambdaActionBase>> setValueAsync = null, 
+            int minHeight = 0)
         {
             // draw anyway?
             if (repo != null && value == null)
@@ -573,7 +575,7 @@ namespace AasxPackageLogic
                 var brd = AddSmallDropBoxTo(g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2),
                     borderThickness: new AnyUiThickness(1), text: "" + value, minHeight: minHeight);
                 AnyUiUIElement.RegisterControl(brd,
-                    setValue);
+                    setValueAsync);
             }
 
             // in total
@@ -896,8 +898,9 @@ namespace AasxPackageLogic
                         verticalAlignment: AnyUiVerticalAlignment.Top,
                         verticalContentAlignment: AnyUiVerticalAlignment.Center,
                         colSpan: 3),
-                    (o) =>
+                    async (o) =>
                     {
+                        await Task.Yield();
                         langStr.Add<T>(language: AdminShellUtil.GetDefaultLngIso639(), text: "");
 
 						emitCustomEvent?.Invoke(relatedReferable);
@@ -948,8 +951,9 @@ namespace AasxPackageLogic
                             );
                         AnyUiUIElement.RegisterControl(
                             tbLang,
-                            (o) =>
+                            async (o) =>
                             {
+                                await Task.Yield();
                                 langStr[currentI].Language = o as string;
 								var evt = emitCustomEvent?.Invoke(relatedReferable);
 								if (evt != null && !(evt is AnyUiLambdaActionNone))
@@ -975,8 +979,9 @@ namespace AasxPackageLogic
                             text: "" + langStr[currentI].Text);
                         AnyUiUIElement.RegisterControl(
                             tbStr,
-                            (o) =>
+                            async (o) =>
                             {
+                                await Task.Yield();
                                 langStr[currentI].Text = o as string;
 								var evt = emitCustomEvent?.Invoke(relatedReferable);
 								if (evt != null && !(evt is AnyUiLambdaActionNone))
@@ -1361,8 +1366,9 @@ namespace AasxPackageLogic
                 // Define lambdas for double use (first row / context menu)
                 //
 
-                Func<object, AnyUiLambdaActionBase> lambdaEclassIrdi = (o) =>
+                Func<object, Task<AnyUiLambdaActionBase>> lambdaEclassIrdiAsync = async (o) =>
                 {
+                    await Task.Yield();
                     string resIRDI = null;
                     Aas.ConceptDescription resCD = null;
                     if (this.SmartSelectEclassEntity(
@@ -1440,7 +1446,7 @@ namespace AasxPackageLogic
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             content: "Add ECLASS"),
-                        lambdaEclassIrdi);
+                        lambdaEclassIrdiAsync);
 
                 if (addExistingEntities != null && packages.MainAvailable)
                     AnyUiUIElement.RegisterControl(
@@ -1484,8 +1490,9 @@ namespace AasxPackageLogic
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),
                         content: "Add blank"),
-                    (o) =>
+                    async (o) =>
                     {
+                        await Task.Yield();
                         var k = new Aas.Key(Aas.KeyTypes.GlobalReference, ""); //TODO (jtikekar, 0000-00-00): default key
                         keys.Add(k);
 
@@ -1504,8 +1511,9 @@ namespace AasxPackageLogic
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             content: "Jump"),
-                        (o) =>
+                        async (o) =>
                         {
+                            await Task.Yield();
                             return jumpLambda(keys);
                         });
 
@@ -1531,8 +1539,9 @@ namespace AasxPackageLogic
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             content: "" + addPresetNames[i]),
-                        (o) =>
+                        async (o) =>
                         {
+                            await Task.Yield();
                             keys.AddRange(closureKey);
                             emitCustomEvent?.Invoke(relatedReferable);
                             return new AnyUiLambdaActionRedrawEntity();
@@ -1548,11 +1557,12 @@ namespace AasxPackageLogic
                 if (auxButtonTitles != null)
                     for (int i = 0; i < auxButtonTitles.Length; i++)
                     {
-                        Func<object, AnyUiLambdaActionBase> lmb = null;
+                        Func<object, Task<AnyUiLambdaActionBase>> lmb = null;
                         int closureI = i;
                         if (auxButtonLambda != null)
-                            lmb = (o) =>
+                            lmb = async (o) =>
                             {
+                                await Task.Yield();
                                 return auxButtonLambda(closureI); // exchange o with i !!
                             };
                         var b = AnyUiUIElement.RegisterControl(
@@ -1603,7 +1613,7 @@ namespace AasxPackageLogic
                                     return auxContextLambda(oi - auxContextOfs);
 
                                 if (contextHeaders[2 * oi + 1].Contains("ECLASS"))
-                                    return lambdaEclassIrdi(o);
+                                    return await lambdaEclassIrdiAsync(o);
 
                                 if (contextHeaders[2 * oi + 1].Contains("Jump"))
                                     return jumpLambda(keys);
@@ -1675,8 +1685,9 @@ namespace AasxPackageLogic
                                     margin: new AnyUiThickness(2, 2, 2, 2),
                                     padding: new AnyUiThickness(5, 0, 5, 0),
                                     content: "Jump"),
-                                    (o) =>
+                                    async (o) =>
                                     {
+                                        await Task.Yield();
                                         return noEditJumpLambda(keys);
                                     });
                         }
@@ -1703,8 +1714,9 @@ namespace AasxPackageLogic
                                 items: Enum.GetNames(typeof(Aas.KeyTypes)),
                                 isEditable: false,
                                 verticalContentAlignment: AnyUiVerticalAlignment.Center),
-                            (o) =>
+                            async (o) =>
                             {
+                                await Task.Yield();
                                 keys[currentI].Type = (Aas.KeyTypes)Aas.Stringification.KeyTypesFromString((string)o);
                                 emitCustomEvent?.Invoke(relatedReferable);
                                 return new AnyUiLambdaActionNone();
@@ -1736,8 +1748,9 @@ namespace AasxPackageLogic
                             verticalContentAlignment: AnyUiVerticalAlignment.Center);
                         AnyUiUIElement.RegisterControl(
                             tbValue,
-                            (o) =>
+                            async (o) =>
                             {
+                                await Task.Yield();
                                 keys[currentI].Value = o as string;
                                 emitCustomEvent?.Invoke(relatedReferable);
                                 return new AnyUiLambdaActionNone();
