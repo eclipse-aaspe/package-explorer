@@ -5,8 +5,10 @@ using AasxIntegrationBase;
 using AnyUi;
 
 #if WINDOWS
-using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml.Controls;
+using Windows.System;
+using Windows.UI.Core;
 #endif
 
 namespace MauiTestTree;
@@ -52,6 +54,16 @@ public partial class TextEditorFlyoutPage : ContentPage, IFlyoutControl
         return _tcs.Task;
     }
 
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(200), () =>
+        {
+            DefaultEditor.Focus();
+        });
+    }
+
     private void PlatformSpecificHandleTabKey()
     {
 #if WINDOWS
@@ -61,8 +73,16 @@ public partial class TextEditorFlyoutPage : ContentPage, IFlyoutControl
         {
             if (DefaultEditor.Handler?.PlatformView is TextBox tb)
             {
-                tb.KeyDown += (s, e) =>
+                tb.PreviewKeyDown += (s, e) =>
                 {
+
+                    bool ctrlDown = InputKeyboardSource
+                            .GetKeyStateForCurrentThread(VirtualKey.Control)
+                            .HasFlag(CoreVirtualKeyStates.Down);
+
+                    if (e.Key == Windows.System.VirtualKey.Control)
+                        return;
+
                     if (e.Key == Windows.System.VirtualKey.Tab)
                     {
                         e.Handled = true;
@@ -70,6 +90,24 @@ public partial class TextEditorFlyoutPage : ContentPage, IFlyoutControl
                         var pos = tb.SelectionStart;
                         tb.Text = tb.Text.Insert(pos, "\t");
                         tb.SelectionStart = pos + 1;
+                    }
+
+                    if (ctrlDown && 
+                        e.Key == Windows.System.VirtualKey.Enter)
+                    {
+                        e.Handled = true;
+                        PrepareResult();
+                        DiaData.Result = true;
+                        _tcs?.TrySetResult(true);
+                        ControlClosed?.Invoke();
+                    }
+
+                    if (e.Key == Windows.System.VirtualKey.Escape)
+                    {
+                        e.Handled = true;
+                        DiaData.Result = false;
+                        _tcs?.TrySetResult(false);
+                        ControlClosed?.Invoke();
                     }
                 };
             }
