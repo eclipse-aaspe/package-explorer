@@ -582,7 +582,7 @@ namespace AasxPackageLogic
                 this.AddGroup(stack, "administration:", levelColors.SubSection,
                     requestAuxButton: repo != null,
                     auxContextHeader: new[] { "\u2702", "Delete" },
-                    auxContextLambdaAsync: (o) =>
+                    auxContextLambdaAsync: async (o) =>
                     {
                         await Task.Yield();
                         if (o is int i && i == 0)
@@ -1326,8 +1326,9 @@ namespace AasxPackageLogic
             });
             if (this.SafeguardAccess(
                     stack, this.repo, semElem.SupplementalSemanticIds, "supplementalSem.Id:", "Create w/ default!",
-                    action: v =>
+                    actionAsync: async (v) =>
                     {
+                        await Task.Yield();
                         semElem.SupplementalSemanticIds = new List<Aas.IReference>();
                         semElem.SupplementalSemanticIds.Add(Options.Curr.GetDefaultEmptyReference());
                         return new AnyUiLambdaActionRedrawEntity();

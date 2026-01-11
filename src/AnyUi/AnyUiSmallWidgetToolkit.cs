@@ -412,7 +412,6 @@ namespace AnyUi
             AnyUiGrid g, int row, int col,
             string content,
             string[] menuHeaders,
-            Func<object, AnyUiLambdaActionBase> menuItemLambda, /* TO_DELETE */
             AnyUiThickness margin = null, AnyUiThickness padding = null,
             AnyUiBrush foreground = null, AnyUiBrush background = null,
             double? fontSize = null, AnyUiFontWeight? fontWeight = null,
@@ -438,7 +437,7 @@ namespace AnyUi
             AnyUiGrid.SetColumn(but, col);
             g.Children.Add(but);
             but.SpecialAction = new AnyUiSpecialActionContextMenu(
-                menuHeaders, menuItemLambda, menuItemLambdaAsync);
+                menuHeaders, null, menuItemLambdaAsync);
 
             // ok
             return (but);
@@ -801,7 +800,6 @@ namespace AnyUi
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),
                         verticalAlignment: AnyUiVerticalAlignment.Center,
-                        menuItemLambda: auxContextLambda,
                         menuItemLambdaAsync: auxContextLambdaAsync);
             }
         }
@@ -846,7 +844,6 @@ namespace AnyUi
                 AddSmallContextMenuItemTo(
                     g, 0, 1,
                     contextMenuText, menuHeaders, 
-                    menuItemLambda,
                     margin: margin, padding: padding,
                     menuItemLambdaAsync: menuItemLambdaAsync);
             }

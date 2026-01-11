@@ -310,7 +310,6 @@ namespace AasxPackageLogic
             ModifyRepo repo = null, Func<object, AnyUiLambdaActionBase> setValue = null,
             string[] comboBoxItems = null, bool comboBoxIsEditable = false,
             string auxButtonTitle = null, 
-            Func<int, AnyUiLambdaActionBase> auxButtonLambda = null, /* TO_DELETE */
             Func<int, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
             string auxButtonToolTip = null,
             string[] auxButtonTitles = null,
@@ -326,7 +325,7 @@ namespace AasxPackageLogic
         {
             AddKeyValue(
                 view, key, value, nullValue, repo, setValue, comboBoxItems, comboBoxIsEditable,
-                auxButtonTitle, auxButtonLambda, auxButtonLambdaAsync, auxButtonToolTip,
+                auxButtonTitle, auxButtonLambdaAsync, auxButtonToolTip,
                 auxButtonTitles, auxButtonToolTips, takeOverLambdaAction,
                 (value == null) ? 0 : value.GetHashCode(), containingObject: containingObject,
                 limitToOneRowForNoEdit: limitToOneRowForNoEdit,
@@ -364,7 +363,6 @@ namespace AasxPackageLogic
             ModifyRepo repo = null, Func<object, AnyUiLambdaActionBase> setValue = null,
             string[] comboBoxItems = null, bool comboBoxIsEditable = false,
             string auxButtonTitle = null, 
-            Func<int, AnyUiLambdaActionBase> auxButtonLambda = null, /* TO_DELETE */
             Func<int, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
             string auxButtonToolTip = null,
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
@@ -407,7 +405,7 @@ namespace AasxPackageLogic
                 intButtonToolTips.AddRange(auxButtonToolTips);
 
             var auxButton = auxButtonOverride
-                    || (repo != null && intButtonTitles.Count > 0 && (auxButtonLambda != null || auxButtonLambdaAsync != null));
+                    || (repo != null && intButtonTitles.Count > 0 && auxButtonLambdaAsync != null);
 
             // Grid
             var g = new AnyUiGrid();
@@ -502,16 +500,9 @@ namespace AasxPackageLogic
             if (auxButton)
                 for (int i = 0; i < intButtonTitles.Count; i++)
                 {
-                    Func<object, AnyUiLambdaActionBase> lmb = null;
                     Func<object, Task<AnyUiLambdaActionBase>> lmbAsync = null;
                     int closureI = i;
                     
-                    if (auxButtonLambda != null)
-                        lmb = (o) =>
-                        {
-                            return auxButtonLambda(closureI); // exchange o with i !!
-                        };
-
                     if (auxButtonLambdaAsync != null)
                         lmbAsync = async (o) =>
                         {
@@ -524,7 +515,7 @@ namespace AasxPackageLogic
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             content: intButtonTitles[i]),
-                        lmb, lmbAsync) as AnyUiButton;
+                            setValueAsync: lmbAsync) as AnyUiButton;
                     if (i < intButtonToolTips.Count)
                         b.ToolTip = intButtonToolTips[i];
                 }
@@ -700,13 +691,11 @@ namespace AasxPackageLogic
 
 		public void AddActionPanel(
             AnyUiPanel view, string key, string[] actionStr = null, ModifyRepo repo = null,
-            Func<int, AnyUiLambdaActionBase> action = null, /* TO_DELETE */
             string[] actionTags = null,
             bool[] addWoEdit = null,
             AasxMenu superMenu = null,
             AasxMenu ticketMenu = null,
             Func<int, Task<AnyUiLambdaActionBase>> actionAsync = null,
-            Func<int, AasxMenuActionTicket, AnyUiLambdaActionBase> ticketAction = null,
 			Func<int, AasxMenuActionTicket, Task<AnyUiLambdaActionBase>> ticketActionAsync = null,
 			FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard)
         {
@@ -715,7 +704,7 @@ namespace AasxPackageLogic
                 actionStr = ticketMenu.Select((tmi) => (tmi is AasxMenuItem mi) ? mi.Header : "").ToArray();
 
             // access 
-            if ((action == null && ticketAction == null && ticketActionAsync == null) || actionStr == null)
+            if (ticketActionAsync == null || actionStr == null)
                 return;
             if (repo == null && addWoEdit == null)
                 return;
@@ -723,22 +712,12 @@ namespace AasxPackageLogic
 
             // add the ticketMenu items to the super menu
             // an re-route lambdas
-            if (superMenu != null && ticketMenu != null && ticketAction != null)
+            if (superMenu != null && ticketMenu != null && ticketActionAsync != null)
             {
                 for (int i = 0; i < ticketMenu.Count; i++)
                 {
                     var tmi = ticketMenu[i];
                     var currentI = i;
-
-                    // may be sync?
-                    if (ticketAction != null)
-                    {
-                        tmi.Action = (name, item, ticket) =>
-                        {
-                            if (ticket != null)
-                                ticket.UiLambdaAction = ticketAction(currentI, ticket);
-                        };
-                    }
 
                     // may be async
                     if (ticketActionAsync != null)
@@ -803,29 +782,15 @@ namespace AasxPackageLogic
                 wp.Children.Add(b);
 
                 // register callback
-                if (action != null || ticketAction != null)
-					AnyUiUIElement.RegisterControl(b,
-						setValue: (o) =>
-						{
-							// button # as argument!
-							if (ticketAction != null)
-								return ticketAction.Invoke(currentI, null);
-							else
-								return action?.Invoke(currentI);
-						});
-                
                 if (actionAsync != null || ticketActionAsync != null)
 				    AnyUiUIElement.RegisterControl(b,
                         setValueAsync: async (o) =>
                         {
 						    // button # as argument!
-						    if (ticketAction != null)
-							    return ticketAction.Invoke(currentI, null);
-						    else
 						    if (ticketActionAsync != null)
 							    return await ticketActionAsync.Invoke(currentI, null);
 						    else
-							    return action?.Invoke(currentI);
+							    return await actionAsync?.Invoke(currentI);
 					    });
 
                 if (actionTags != null && i < actionTags.Length)
@@ -844,10 +809,10 @@ namespace AasxPackageLogic
 
         public void AddAction(
             AnyUiStackPanel view, string key, string actionStr, ModifyRepo repo = null,
-            Func<int, AnyUiLambdaActionBase> action = null,
+            Func<int, Task<AnyUiLambdaActionBase>> actionAsync = null,
             FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard)
         {
-            AddActionPanel(view, key, new[] { actionStr }, repo, action, firstColumnWidth: firstColumnWidth);
+            AddActionPanel(view, key, new[] { actionStr }, repo, actionAsync: actionAsync, firstColumnWidth: firstColumnWidth);
         }
 
         public void AddKeyListLangStr<T>(
@@ -1058,8 +1023,9 @@ namespace AasxPackageLogic
                                     },
                                     margin: new AnyUiThickness(2, 2, 2, 2),
                                     padding: new AnyUiThickness(5, 0, 5, 0),
-                                    menuItemLambda: (o) =>
+                                    menuItemLambdaAsync: async (o) =>
                                     {
+                                        await Task.Yield();
                                         var action = false;
 
                                         if (o is int ti)
@@ -1268,7 +1234,6 @@ namespace AasxPackageLogic
             string content,
             ModifyRepo repo,
             string[] menuHeaders,
-            Func<object, AnyUiLambdaActionBase> menuItemLambda = null,
             AnyUiThickness margin = null, AnyUiThickness padding = null,
             AnyUiBrush foreground = null, AnyUiBrush background = null,
             Func<object, Task<AnyUiLambdaActionBase>> menuItemLambdaAsync = null)
@@ -1286,7 +1251,7 @@ namespace AasxPackageLogic
             AnyUiGrid.SetColumn(but, col);
             g.Children.Add(but);
             but.SpecialAction = new AnyUiSpecialActionContextMenu(
-                menuHeaders, menuItemLambda, menuItemLambdaAsync);
+                menuHeaders, null, menuItemLambdaAsync);
 
             // ok
             return (but);
@@ -1626,7 +1591,6 @@ namespace AasxPackageLogic
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),
                         verticalAlignment: AnyUiVerticalAlignment.Center,
-                        menuItemLambda: null,
                         menuItemLambdaAsync: async (o) =>
                         {
                             if (o is int oi && oi >= 0 && (2 * oi + 1) < contextHeaders.Count)
@@ -1857,11 +1821,11 @@ namespace AasxPackageLogic
 
         public bool SafeguardAccess(
             AnyUiStackPanel view, ModifyRepo repo, object data, string key, string actionStr,
-            Func<int, AnyUiLambdaActionBase> action,
+            Func<int, Task<AnyUiLambdaActionBase>> actionAsync,
             FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard)
         {
             if (repo != null && data == null)
-                AddAction(view, key, actionStr, repo, action, firstColumnWidth: firstColumnWidth);
+                AddAction(view, key, actionStr, repo, actionAsync: actionAsync, firstColumnWidth: firstColumnWidth);
             return (data != null);
         }
 
