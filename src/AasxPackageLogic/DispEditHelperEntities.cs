@@ -87,8 +87,9 @@ namespace AasxPackageLogic
 
             if (this.SafeguardAccess(
                     stack, repo, asset.GlobalAssetId, "globalAssetId:", "Create data element!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         asset.GlobalAssetId = "";
                         this.AddDiaryEntry(aas, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
@@ -254,8 +255,9 @@ namespace AasxPackageLogic
 
             if (this.SafeguardAccess(
                     stack, repo, asset.AssetType, "assetType:", "Create data element!",
-                    v =>
+                    async (v) =>
                     {
+                        await Task.Yield();
                         asset.AssetType = "";
                         this.AddDiaryEntry(aas, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
@@ -300,8 +302,9 @@ namespace AasxPackageLogic
 
             if (this.SafeguardAccess(
                 stack, repo, asset.DefaultThumbnail, $"defaultThumbnail:", $"Create empty Resource element!",
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     asset.DefaultThumbnail = new Aas.Resource(""); //File replaced by resource in V3
                     this.AddDiaryEntry(aas, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionRedrawEntity();
@@ -2155,8 +2158,9 @@ namespace AasxPackageLogic
             });
             if (this.SafeguardAccess(
                 stack, repo, aas.DerivedFrom, "derivedFrom:", "Create data element!",
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     aas.DerivedFrom = new Aas.Reference(Aas.ReferenceTypes.ModelReference,
                         new List<Aas.IKey>() { new Aas.Key(Aas.KeyTypes.AssetAdministrationShell, "") });
                     this.AddDiaryEntry(aas, new DiaryEntryStructChange());
@@ -2221,8 +2225,9 @@ namespace AasxPackageLogic
             });
             if (this.SafeguardAccess(
                 stack, repo, aas.AssetInformation, "AssetInformation:", "Create data element!",
-                v =>
+                async (v) =>
                 {
+                    await Task.Yield();
                     aas.AssetInformation = new Aas.AssetInformation(Aas.AssetKind.Type);
                     this.AddDiaryEntry(aas, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionRedrawEntity();
@@ -4720,8 +4725,9 @@ namespace AasxPackageLogic
 
                 if (this.SafeguardAccess(
                         stack, repo, p.ValueId, "valueId:", "Create data element!",
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             p.ValueId = Options.Curr.GetDefaultEmptyReference();
                             this.AddDiaryEntry(p, new DiaryEntryUpdateValue());
                             return new AnyUiLambdaActionRedrawEntity();
@@ -4771,9 +4777,10 @@ namespace AasxPackageLogic
                     });
                 if (this.SafeguardAccess(
                         stack, repo, mlp.Value, "value:", "Create data element!",
-                        v =>
+                        async (v) =>
                         {
-							mlp.Value = ExtendILangStringTextType.CreateFrom(
+                            await Task.Yield();
+                            mlp.Value = ExtendILangStringTextType.CreateFrom(
                                 lang: AdminShellUtil.GetDefaultLngIso639(), 
                                 text: Options.Curr.DefaultEmptyLangText);
                             this.AddDiaryEntry(mlp, new DiaryEntryUpdateValue());
@@ -4824,8 +4831,9 @@ namespace AasxPackageLogic
 
                 if (this.SafeguardAccess(
                         stack, repo, mlp.ValueId, "valueId:", "Create data element!",
-                        v =>
+                        async (v) =>
                         {
+                            await Task.Yield();
                             mlp.ValueId = Options.Curr.GetDefaultEmptyReference(); 
                             this.AddDiaryEntry(mlp, new DiaryEntryUpdateValue());
                             return new AnyUiLambdaActionRedrawEntity();
