@@ -400,8 +400,9 @@ namespace AasxPackageLogic
                         .AddAction("add-sm-temp", "Add Submodel template",
                             "Adds an Submodel template without direct reference in AAS.",
                             conditional: ve.theItemType == VisualElementEnvironmentItem.ItemType.AllSubmodels),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
+                        await Task.Yield();
                         if (buttonNdx == 0)
                         {
                             // create TOGETHER with AssetInformation!!, as serialization might fail!
@@ -3569,8 +3570,9 @@ namespace AasxPackageLogic
 
             AddActionPanel(stack, "Action:",
                 new[] { "Jump to CD" }, repo,
-                action: (buttonNdx) =>
+                actionAsync: async (buttonNdx) =>
                 {
+                    await Task.Yield();
                     if (buttonNdx == 0)
                     {
                         return new AnyUiLambdaActionNavigateTo(vlp?.ValueId);
@@ -4231,8 +4233,9 @@ namespace AasxPackageLogic
                     ticketMenu: new AasxMenu()
                         .AddAction("navigate-cd", "ConceptDescription",
                             "Finds the associated ConceptDescription by semanticId and visually selects it."),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
+                        await Task.Yield();
                         if (buttonNdx == 0)
                         {
                             return new AnyUiLambdaActionRedrawAllElements(nextFocus: jumpToCD, isExpanded: true);
@@ -4336,8 +4339,9 @@ namespace AasxPackageLogic
                         ticketMenu: new AasxMenu()
                             .AddAction("operation-paste", "Paste into",
                                 "Pastes an SubmodelElement from the paste buffer into the operation variable(s)."),
-                        ticketAction: (buttonNdx, ticket) =>
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
+                            await Task.Yield();
                             if (buttonNdx == 0
                                 && this.theCopyPaste?.Valid == true
                                 && this.theCopyPaste.Items != null
@@ -5380,7 +5384,11 @@ namespace AasxPackageLogic
                 this.AddSmallCheckBox(
                    stack, "orderRelevant:", sml.OrderRelevant ?? false, 
                    additionalInfo: " (true if order in list is relevant)",
-                   setValue: (b) => { sml.OrderRelevant = b; return new AnyUiLambdaActionNone(); });
+                   setValueAsync: async (b) => {
+                       await Task.Yield();
+                       sml.OrderRelevant = b; 
+                       return new AnyUiLambdaActionNone(); 
+                   });
 
                 // stats
                 var stats = sml.EvalConstraintStat();

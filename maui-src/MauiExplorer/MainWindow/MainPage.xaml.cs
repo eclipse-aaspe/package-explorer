@@ -85,7 +85,8 @@ namespace MauiTestTree
                 AnyUiGrid.SetRow(b, 0);
                 AnyUiGrid.SetColumn(b, 1);
                 g.Add(b);
-                b.setValueLambda = (o) => {
+                b.setValueAsyncLambda = async (o) => {
+                    await Task.Yield();
                     Trace.WriteLine("Button pressed!");
                     return new AnyUiLambdaActionNone();
                 };
@@ -100,7 +101,8 @@ namespace MauiTestTree
                 AnyUiGrid.SetRow(cb, 2);
                 AnyUiGrid.SetColumn(cb, 0);
                 g.Add(cb);
-                cb.setValueLambda = (o) => {
+                cb.setValueAsyncLambda = async (o) => {
+                    await Task.Yield();
                     if (o is string s)
                         Trace.WriteLine($"Combobox item {s} selected!");
                     return new AnyUiLambdaActionNone();

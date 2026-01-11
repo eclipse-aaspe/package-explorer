@@ -172,8 +172,9 @@ namespace AasxPackageLogic
                 auxButtonToolTips: DispEditInjectAction.GetToolTips(
                     new[] { "Fix characters of idShort to be in the allowed ranges." }, 
                     injectToIdShort),
-                auxButtonLambda: (i) =>
+                auxButtonLambdaAsync: async (i) =>
                 {
+                    await Task.Yield();
                     if (i == 0)
                     {
                         referable.IdShort = AdminShellUtil.FilterFriendlyName(referable.IdShort, 
@@ -581,8 +582,9 @@ namespace AasxPackageLogic
                 this.AddGroup(stack, "administration:", levelColors.SubSection,
                     requestAuxButton: repo != null,
                     auxContextHeader: new[] { "\u2702", "Delete" },
-                    auxContextLambda: (o) =>
+                    auxContextLambdaAsync: (o) =>
                     {
+                        await Task.Yield();
                         if (o is int i && i == 0)
                         {
                             identifiable.Administration = null;
@@ -883,8 +885,9 @@ namespace AasxPackageLogic
                             "Auto dectects known data specification contents and sets valid references.")
                         .AddAction("delete-last", "Delete last record",
                             "Deletes last record (data specification reference and content)."),
-                    ticketAction: (buttonNdx, ticket) =>
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
+                        await Task.Yield();
                         if (buttonNdx == 0)
                         {
                             hasDataSpecification = hasDataSpecification ?? new List<IEmbeddedDataSpecification>();
@@ -1079,8 +1082,9 @@ namespace AasxPackageLogic
                                 "Adds a reference to the list.")
                             .AddAction("delete-reference", "Delete last reference",
                                 "Deletes the last reference in the list."),
-                        ticketAction: (buttonNdx, ticket) =>
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
+                            await Task.Yield();
                             if (buttonNdx == 0)
                                 references.Add(Options.Curr.GetDefaultEmptyReference());
 
@@ -1561,8 +1565,9 @@ namespace AasxPackageLogic
                 ticketMenu: new AasxMenu()
                     .AddAction("add-record", "Delete invalid (empty)",
                         "Delete element attrributes which are invalid because of being empty."),
-                ticketAction: (buttonNdx, ticket) =>
+                ticketActionAsync: async (buttonNdx, ticket) =>
                 {
+                    await Task.Yield();
                     if (buttonNdx == 0)
                     {
                         if (dsiec.ShortName != null && dsiec.ShortName.IsValid() != true)
@@ -1719,8 +1724,9 @@ namespace AasxPackageLogic
                 },
                 auxButtonTitles: new[] { "Delete" },
                 auxButtonToolTips: new[] { "Delete data element" },
-                auxButtonLambda: (i) =>
+                auxButtonLambdaAsync: async (i) =>
                 {
+                    await Task.Yield();
                     if (i == 0)
                     {
                         dsiec.Unit = null;
@@ -1803,8 +1809,9 @@ namespace AasxPackageLogic
                 },
                 auxButtonTitles: new[] { "Delete" },
                 auxButtonToolTips: new[] { "Delete data element" },
-                auxButtonLambda: (i) =>
+                auxButtonLambdaAsync: async (i) =>
                 {
+                    await Task.Yield();
                     if (i == 0)
                     {
                         dsiec.SourceOfDefinition = null;
@@ -1848,8 +1855,9 @@ namespace AasxPackageLogic
                 },
                 auxButtonTitles: new[] { "Delete" },
                 auxButtonToolTips: new[] { "Delete data element" },
-                auxButtonLambda: (i) =>
+                auxButtonLambdaAsync: async (i) =>
                 {
+                    await Task.Yield();
                     if (i == 0)
                     {
                         dsiec.Symbol = null;
@@ -1898,8 +1906,9 @@ namespace AasxPackageLogic
                         (dt) => Aas.Stringification.ToString(dt)).ToArray(),
                     auxButtonTitles: new[] { "Delete" },
                     auxButtonToolTips: new[] { "Delete data element" },
-                    auxButtonLambda: (i) =>
+                    auxButtonLambdaAsync: async (i) =>
                     {
+                        await Task.Yield();
                         if (i == 0)
                         {
                             dsiec.DataType = null;
@@ -1969,8 +1978,9 @@ namespace AasxPackageLogic
                     },
                     auxButtonTitles: new[] { "Delete" },
                     auxButtonToolTips: new[] { "Delete data element" },
-                    auxButtonLambda: (i) =>
+                    auxButtonLambdaAsync: async (i) =>
                     {
+                        await Task.Yield();
                         if (i == 0)
                         {
                             dsiec.ValueFormat = null;
@@ -2055,25 +2065,26 @@ namespace AasxPackageLogic
                 }))
             {
                 AddKeyValueExRef(
-                stack, "value", dsiec, dsiec.Value, null, repo,
-                v =>
-                {
-                    dsiec.Value = v as string;
-                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                    return new AnyUiLambdaActionNone();
-                },
-                auxButtonTitles: new[] { "Delete" },
-                auxButtonToolTips: new[] { "Delete data element" },
-                auxButtonLambda: (i) =>
-                {
-                    if (i == 0)
+                    stack, "value", dsiec, dsiec.Value, null, repo,
+                    v =>
                     {
-                        dsiec.Value = null;
+                        dsiec.Value = v as string;
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                        return new AnyUiLambdaActionRedrawEntity();
-                    }
-                    return new AnyUiLambdaActionNone();
-                });
+                        return new AnyUiLambdaActionNone();
+                    },
+                    auxButtonTitles: new[] { "Delete" },
+                    auxButtonToolTips: new[] { "Delete data element" },
+                    auxButtonLambdaAsync: async (i) =>
+                    {
+                        await Task.Yield();
+                        if (i == 0)
+                        {
+                            dsiec.Value = null;
+                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                            return new AnyUiLambdaActionRedrawEntity();
+                        }
+                        return new AnyUiLambdaActionNone();
+                    });
             }
 
             // LevelType

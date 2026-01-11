@@ -838,7 +838,8 @@ namespace AasxPackageLogic
 					   stack, "" + pii.Name, 
 					   value: boolVal,
 					   additionalInfo: "",
-					   setValue: (b) => {
+					   setValueAsync: async (b) => {
+						   await Task.Yield();
 						   pii.SetValue(recInst, b);
 						   setValue?.Invoke(recInst);
 						   return new AnyUiLambdaActionNone();
@@ -1078,9 +1079,10 @@ namespace AasxPackageLogic
 							"Add attributes for Submodel template specifications.")
 						.AddAction("delete-last", "Delete last extension",
 							"Deletes last extension."),
-					ticketAction: (buttonNdx, ticket) =>
+					ticketActionAsync: async (buttonNdx, ticket) =>
 					{
-						if (buttonNdx == 0)
+                        await Task.Yield();
+                        if (buttonNdx == 0)
 						{
 							// create
                             var newSet = new SmtAttributeRecord();
