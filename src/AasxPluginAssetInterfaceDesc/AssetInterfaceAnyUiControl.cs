@@ -19,12 +19,12 @@ using AnyUi;
 using Newtonsoft.Json;
 using AasxPredefinedConcepts;
 using AasxPredefinedConcepts.AssetInterfacesDescription;
-using System.Windows.Shapes;
 using AasxIntegrationBaseGdi;
 using FluentModbus;
 using System.Net;
 using Org.BouncyCastle.Asn1.X509;
 using Workstation.ServiceModel.Ua;
+using System.Threading.Tasks;
 
 namespace AasxPluginAssetInterfaceDescription
 {
@@ -225,8 +225,9 @@ namespace AasxPluginAssetInterfaceDescription
                     horizontalScrollBarVisibility: AnyUiScrollBarVisibility.Disabled,
                     verticalScrollBarVisibility: AnyUiScrollBarVisibility.Visible,
                     flattenForTarget: AnyUiTargetPlatform.Browser, initialScrollPosition: _lastScrollPosition),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     if (o is Tuple<double, double> positions)
                     {
                         _lastScrollPosition = positions.Item2;
@@ -308,8 +309,9 @@ namespace AasxPluginAssetInterfaceDescription
                     margin: new AnyUiThickness(2), setHeight: 21,
                     padding: new AnyUiThickness(2, 0, 2, 0),
                     content: "Create status items"),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     try
                     {
                         // locked?
@@ -403,8 +405,9 @@ namespace AasxPluginAssetInterfaceDescription
                     margin: new AnyUiThickness(2), setHeight: 21,
                     padding: new AnyUiThickness(2, 0, 2, 0),
                     content: "Stop continous run .."),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     try
                     {
                         // command
@@ -562,8 +565,9 @@ namespace AasxPluginAssetInterfaceDescription
                                         content: "\U0001f872",
                                         padding: new AnyUiThickness(0, -2, 0, -2),
                                         margin: new AnyUiThickness(4, 2, 0, 2)),
-                                    (o) =>
+                                    async (o) =>
                                     {
+                                        await Task.Yield();
                                         _eventStack?.PushEvent(new AasxPluginResultEventNavigateToReference()
                                         {
                                             targetReference = moi.MapRelation.Second

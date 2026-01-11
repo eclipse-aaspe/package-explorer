@@ -15,7 +15,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows.Media;
 using System.Xml;
 using System.Xml.Schema;
 using Aas = AasCore.Aas3_1;
@@ -24,7 +23,6 @@ using AasxIntegrationBase.AasForms;
 using AdminShellNS;
 using Extensions;
 using Newtonsoft.Json;
-using System.Windows.Controls;
 
 namespace AasxPluginExportTable.Uml
 {

@@ -24,7 +24,6 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using AnyUi;
-using System.Windows.Media.Animation;
 using AasxIntegrationBase.AdminShellEvents;
 using System.IO;
 using Newtonsoft.Json.Linq;

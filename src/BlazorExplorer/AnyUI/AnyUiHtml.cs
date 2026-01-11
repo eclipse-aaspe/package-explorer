@@ -321,8 +321,6 @@ namespace AnyUi
         /// </summary>
         public static void htmlDotnetLoop()
         {
-            AnyUiUIElement el;
-
             while (true)
             {
                 // ReSharper disable InconsistentlySynchronizedField
@@ -591,6 +589,7 @@ namespace AnyUi
             }
         }
 
+#if TO_DELETE
         /// <summary>
         /// Show MessageBoxFlyout with contents
         /// </summary>
@@ -629,6 +628,7 @@ namespace AnyUi
 
             return r;
         }
+#endif
 
         /// <summary>
         /// Show MessageBoxFlyout with contents
@@ -876,15 +876,16 @@ namespace AnyUi
 
         }
 
-        public override void ClipboardSet(AnyUiClipboardData cb)
+        public async override Task ClipboardSetAsync(AnyUiClipboardData cb)
         {
             // see: https://www.meziantou.net/copying-text-to-clipboard-in-a-blazor-application.htm
+            await Task.Yield();
 
             if (_jsRuntime != null && cb != null)
             {
                 try
                 {
-                    _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", cb.Text);
+                    await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", cb.Text);
                 }
                 catch (Exception ex)
                 {
@@ -893,9 +894,10 @@ namespace AnyUi
             }
         }
 
-        public override AnyUiClipboardData ClipboardGet()
+        public async override Task<AnyUiClipboardData> ClipboardGetAsync()
         {
             // see: https://stackoverflow.com/questions/75472912/how-do-i-read-the-clipboard-with-blazor
+            await Task.Yield();
 
             if (_jsRuntime != null)
             {

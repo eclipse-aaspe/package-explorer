@@ -329,18 +329,17 @@ namespace AnyUi
                                         // detect and send appropriate event and emit return
                                         if ((cntl.EmitEvent & AnyUiEventMask.LeftDown) > 0)
                                         {
-                                            EmitOutsideAction(cntl.setValueLambda?.Invoke(
-                                                new AnyUiEventData(AnyUiEventMask.LeftDown, cntl, e5.ClickCount, p)));
+                                            if (cntl.setValueAsyncLambda != null)
+                                                EmitOutsideAction(await cntl.setValueAsyncLambda?.Invoke(
+                                                    new AnyUiEventData(AnyUiEventMask.LeftDown, cntl, e5.ClickCount, p)));
                                         }
 
                                         if (((cntl.EmitEvent & AnyUiEventMask.LeftDouble) > 0)
                                             && e5.ClickCount == 2)
                                         {
-                                            var la = cntl.setValueLambda?.Invoke(
-                                                new AnyUiEventData(AnyUiEventMask.LeftDown, cntl, e5.ClickCount, p));
-                                            if (la == null && cntl.setValueAsyncLambda != null)
-                                                la = await cntl.setValueAsyncLambda.Invoke(cntl);
-                                            EmitOutsideAction(la);
+                                            if (cntl.setValueAsyncLambda != null)
+                                                EmitOutsideAction(await cntl.setValueAsyncLambda?.Invoke(
+                                                    new AnyUiEventData(AnyUiEventMask.LeftDown, cntl, e5.ClickCount, p)));
                                         }
                                     }
                                 };
@@ -353,7 +352,7 @@ namespace AnyUi
                                     _dragStartPoint = e6.GetPosition(null);
                                 };
 
-                                wpf.PreviewMouseMove += (s7, e7) =>
+                                wpf.PreviewMouseMove += async (s7, e7) =>
                                 {
                                     if (e7.LeftButton == MouseButtonState.Pressed)
                                     {
@@ -363,8 +362,9 @@ namespace AnyUi
                                             || Math.Abs(position.Y - _dragStartPoint.Y)
                                                 > SystemParameters.MinimumVerticalDragDistance)
                                         {
-                                            cntl.setValueLambda?.Invoke(
-                                                new AnyUiEventData(AnyUiEventMask.DragStart, cntl));
+                                            if (cntl.setValueAsyncLambda != null)
+                                                await cntl.setValueAsyncLambda?.Invoke(
+                                                    new AnyUiEventData(AnyUiEventMask.DragStart, cntl));
                                         }
                                     }
                                 };
@@ -591,7 +591,7 @@ namespace AnyUi
                         {
                             if ((cntl.EmitEvent & AnyUiEventMask.MouseAll) > 0)
                             {
-                                wpf.MouseDown += (s,e) =>
+                                wpf.MouseDown += async (s,e) =>
                                 {
                                     // get the current coordinates relative to the framework element
                                     // (onlythis could be sensible information to an any ui business logic)
@@ -606,9 +606,10 @@ namespace AnyUi
                                     // send event and emit return
                                     if (e.ChangedButton == MouseButton.Left)
                                     {
-                                        EmitOutsideAction(
-                                            cntl.setValueLambda?.Invoke(new AnyUiEventData(
-                                                    AnyUiEventMask.LeftDown, auiSource, e.ClickCount, p)));
+                                        if (cntl.setValueAsyncLambda != null)
+                                            EmitOutsideAction(
+                                                await cntl.setValueAsyncLambda?.Invoke(new AnyUiEventData(
+                                                        AnyUiEventMask.LeftDown, auiSource, e.ClickCount, p)));
                                     }
                                 };
                             }
@@ -636,10 +637,11 @@ namespace AnyUi
                         }
 
                         // callbacks
-                        wpf.ScrollChanged += (object sender, ScrollChangedEventArgs e) =>
+                        wpf.ScrollChanged += async (object sender, ScrollChangedEventArgs e) =>
                         {
-                            cntl.setValueLambda?.Invoke(
-                                new Tuple<double, double>(e.HorizontalOffset, e.VerticalOffset));
+                            if (cntl.setValueAsyncLambda != null)
+                                await cntl.setValueAsyncLambda?.Invoke(
+                                    new Tuple<double, double>(e.HorizontalOffset, e.VerticalOffset));
                         };
                    }
                 }),
@@ -670,7 +672,7 @@ namespace AnyUi
                                 {
                                     e3.Handled = true;
                                 };
-                                wpf.Drop += (object sender4, DragEventArgs e4) =>
+                                wpf.Drop += async (object sender4, DragEventArgs e4) =>
                                 {
                                     if (e4.Data.GetDataPresent(DataFormats.FileDrop, true))
                                     {
@@ -687,7 +689,8 @@ namespace AnyUi
                                                 tb2.Text = "" + files[0];
 
                                             // value changed
-                                            cntl.setValueLambda?.Invoke(files[0]);
+                                            if (cntl.setValueAsyncLambda != null)
+                                                await cntl.setValueAsyncLambda?.Invoke(files[0]);
 
                                             // contents changed
                                             WishForOutsideAction.Add(new AnyUiLambdaActionContentsChanged());
@@ -698,25 +701,23 @@ namespace AnyUi
                                 };
                             }
 
-                            // double click
+                            // click
                             if ((cntl.EmitEvent & AnyUiEventMask.MouseAll) > 0)
                             {
                                 wpf.MouseDown += async (s2,e2) =>
                                 {
                                     if (((cntl.EmitEvent & AnyUiEventMask.LeftDown) > 0) && (e2.ClickCount == 1))
                                     {
-                                        var la = cntl.setValueLambda?.Invoke(
-                                            new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2));
-                                        if (la == null) await cntl.setValueAsyncLambda?.Invoke(
-                                            new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2));
+                                        if (cntl.setValueAsyncLambda != null) 
+                                            await cntl.setValueAsyncLambda?.Invoke(
+                                                new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 1));
                                     }
 
                                     if (((cntl.EmitEvent & AnyUiEventMask.LeftDouble) > 0) && (e2.ClickCount == 2))
                                     {
-                                        var la = cntl.setValueLambda?.Invoke(
-                                            new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2));
-                                        if (la == null) await cntl.setValueAsyncLambda?.Invoke(
-                                            new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2));
+                                        if (cntl.setValueAsyncLambda != null) 
+                                            await cntl.setValueAsyncLambda?.Invoke(
+                                                new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2));
                                     }
                                 };
                             }
@@ -806,11 +807,11 @@ namespace AnyUi
                                 NavigateUri = new Uri(cntl.Text, UriKind.RelativeOrAbsolute),
                             };
                             hl.Inlines.Add(cntl.Text);
-                            hl.RequestNavigate += (sender, e) =>
+                            hl.RequestNavigate += async (sender, e) =>
                             {
                                 // normal procedure
-                                var action = cntl.setValueLambda?.Invoke(cntl);
-                                EmitOutsideAction(action);
+                                if (cntl.setValueAsyncLambda != null)
+                                    EmitOutsideAction(await cntl.setValueAsyncLambda?.Invoke(cntl));
                             };
                             wpf.Inlines.Clear();
                             wpf.Inlines.Add(hl);
@@ -959,9 +960,9 @@ namespace AnyUi
                         
                             // callbacks
                             cntl.originalValue = "" + cntl.Text;
-                            wpf.TextChanged += (sender, e) => {
-                                var la = cntl.setValueLambda?.Invoke(wpf.Text);
-                                EmitOutsideAction(la);
+                            wpf.TextChanged += async (sender, e) => {
+                                if (cntl.setValueAsyncLambda != null)
+                                    EmitOutsideAction(await cntl.setValueAsyncLambda?.Invoke(wpf.Text));
 								EmitOutsideAction(new AnyUiLambdaActionContentsChanged());
                             };
                             wpf.KeyUp += (sender, e) =>
@@ -1026,12 +1027,12 @@ namespace AnyUi
 
                         // callbacks
                         cntl.originalValue = "" + cntl.Text;
-                        System.Windows.Controls.TextChangedEventHandler tceh = (sender, e) => {
+                        System.Windows.Controls.TextChangedEventHandler tceh = async (sender, e) => {
                             // for AAS events: only invoke, if required
                             if (cntl.Text != wpf.Text)
                             {
-                                var la = cntl.setValueLambda?.Invoke(wpf.Text);
-                                EmitOutsideAction(la);
+                                if (cntl.setValueAsyncLambda != null)
+                                    EmitOutsideAction(await cntl.setValueAsyncLambda?.Invoke(wpf.Text));
                             }
                             cntl.Text = wpf.Text;
                         };
@@ -1039,10 +1040,13 @@ namespace AnyUi
                         if (!wpf.IsEditable)
                         {
                             // we need this event
-                            wpf.SelectionChanged += (sender, e) => {
+                            wpf.SelectionChanged += async (sender, e) => {
                                 cntl.SelectedIndex = wpf.SelectedIndex;
                                 cntl.Text = wpf.Text;
-                                EmitOutsideAction(cntl.setValueLambda?.Invoke((string) wpf.SelectedItem));
+                                
+                                if (cntl.setValueAsyncLambda != null)
+                                    EmitOutsideAction(await cntl.setValueAsyncLambda?.Invoke((string) wpf.SelectedItem));
+                                
                                 EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
                                 // Note for MIHO: this was the dangerous outside event loop!
                                 EmitOutsideAction(cntl.takeOverLambda);
@@ -1126,9 +1130,10 @@ namespace AnyUi
                         wpf.Content = cntl.Content;
                         // callbacks
                         cntl.originalValue = cntl.IsChecked;
-                        RoutedEventHandler ceh = (sender, e) =>
+                        RoutedEventHandler ceh = async (sender, e) =>
                         {
-                            EmitOutsideAction(cntl.setValueLambda?.Invoke(wpf.IsChecked == true));
+                            if (cntl.setValueAsyncLambda != null)
+                                EmitOutsideAction(await cntl.setValueAsyncLambda?.Invoke(wpf.IsChecked == true));
                             EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
                             EmitOutsideAction(cntl.takeOverLambda);
                         };
@@ -1164,10 +1169,8 @@ namespace AnyUi
                         wpf.Click += async (sender, e) =>
                         {
                             // normal procedure
-                            var action = cntl.setValueLambda?.Invoke(cntl);
-                            if (action == null && cntl.setValueAsyncLambda != null)
-                                action = await cntl.setValueAsyncLambda.Invoke(cntl);
-                            EmitOutsideAction(action);
+                            if (cntl.setValueAsyncLambda != null)
+                                EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(cntl));
 
                             // special case
                             if (cntl.SpecialAction is AnyUiSpecialActionContextMenu cntlcm
@@ -1414,7 +1417,7 @@ namespace AnyUi
             return true;
         }
 
-        public int TriggerKeyShortcut(
+        public async Task<int> TriggerKeyShortcut(
             System.Windows.Input.Key key,
             System.Windows.Input.ModifierKeys modifiers,
             bool preview)
@@ -1426,10 +1429,9 @@ namespace AnyUi
                 if (key == sc.Key && modifiers == sc.Modifiers && preview == sc.Preview)
                 {
                     // found, any lambdas appicable?
-                    if (sc.Element is AnyUiButton btn)
+                    if (sc.Element is AnyUiButton btn && btn.setValueAsyncLambda != null)
                     {
-                        var action = btn.setValueLambda?.Invoke(btn);
-                        EmitOutsideAction(action);
+                        EmitOutsideAction(await btn.setValueAsyncLambda?.Invoke(btn));
                         res++;
                     }
                 }
@@ -1498,8 +1500,10 @@ namespace AnyUi
         /// If supported by implementation technology, will set Clipboard (copy/ paste buffer)
         /// of the main application computer.
         /// </summary>
-        public override void ClipboardSet(AnyUiClipboardData cb)
+        public async override Task ClipboardSetAsync(AnyUiClipboardData cb)
         {
+            await Task.Yield();
+
             if (cb == null)
                 return;
 
@@ -1514,8 +1518,9 @@ namespace AnyUi
         /// If supported by implementation technology, will get Clipboard (copy/ paste buffer)
         /// of the main application computer.
         /// </summary>
-        public override AnyUiClipboardData ClipboardGet()
+        public async override Task<AnyUiClipboardData> ClipboardGetAsync()
         {
+            await Task.Yield();
             var res = new AnyUiClipboardData();
 
             // get watermark?
@@ -1539,6 +1544,7 @@ namespace AnyUi
             return null;
         }
 
+#if TO_DELETE
         /// <summary>
         /// Show MessageBoxFlyout with contents
         /// </summary>
@@ -1554,6 +1560,7 @@ namespace AnyUi
                 return AnyUiMessageBoxResult.Cancel;
             return FlyoutProvider.MessageBoxFlyoutShow(message, caption, buttons, image);
         }
+#endif
 
         /// <summary>
         /// Show MessageBoxFlyout with contents
@@ -1867,6 +1874,7 @@ namespace AnyUi
             return dialogueData.Result;
         }
 
+#if TO_DELETE
         /// <summary>
         /// Shows specified dialogue hardware-independent. The technology implementation will show the
         /// dialogue based on the type of provided <c>dialogueData</c>. 
@@ -1896,6 +1904,7 @@ namespace AnyUi
                 Log.Singleton.Error(ex, $"while starting AnyUI dialogue {dialogueData.GetType().ToString()}");
             }
         }
+#endif
 
         /// <summary>
         /// Closes started flyover dialogue-

@@ -307,8 +307,10 @@ namespace AasxPluginDocumentShelf
                         margin: new AnyUiThickness(2), setHeight: 21,
                         padding: new AnyUiThickness(2, 0, 2, 0),
                         content: "Add Entity .."),
-                    (o) =>
+                    async (o) =>
                     {
+                        await Task.Yield();
+
                         // mode change
                         _formEntity = new AnyUiPanelEntity();
                         _formDoc = null;
@@ -363,8 +365,10 @@ namespace AasxPluginDocumentShelf
                 MinWidth = 140,
                 Items = classes,
                 SelectedIndex = (int)_selectedDocClass
-            }), (o) =>
+            }), async (o) =>
             {
+                await Task.Yield();
+
                 // ReSharper disable PossibleInvalidOperationException
                 if (cbClasses != null)
                     _selectedDocClass = (DefinitionsVDI2770.Vdi2770DocClass)cbClasses.SelectedIndex;
@@ -379,8 +383,9 @@ namespace AasxPluginDocumentShelf
                 MinWidth = 120,
                 Items = langs.Select((s) => "Lang - " + s).Cast<object>().ToList(),
                 SelectedIndex = _selectedLang == null ? 0 : (langs.IndexOf(_selectedLang.LangCode))
-            }), (o) =>
+            }), async (o) =>
             {
+                await Task.Yield();
                 // ReSharper disable PossibleInvalidOperationException
                 if (cbLangs != null)
                     _selectedLang = AasxLanguageHelper.Languages.FindByLang(
@@ -398,8 +403,9 @@ namespace AasxPluginDocumentShelf
                 SelectedIndex =
                     (_renderedVersion == DocumentEntity.SubmodelVersion.V12 ? 2 :
                     (_renderedVersion == DocumentEntity.SubmodelVersion.V11 ? 1 : 0)),
-            }), (o) =>
+            }), async (o) =>
             {
+                await Task.Yield();
                 if (o is int oi)
                     _selectedVersion = (DocumentEntity.SubmodelVersion)(oi + 1);
                 return new AnyUiLambdaActionNone();
@@ -423,8 +429,9 @@ namespace AasxPluginDocumentShelf
                     horizontalScrollBarVisibility: AnyUiScrollBarVisibility.Disabled,
                     verticalScrollBarVisibility: AnyUiScrollBarVisibility.Visible,
                     flattenForTarget: AnyUiTargetPlatform.Browser, initialScrollPosition: initialScrollPos),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     if (o is Tuple<double, double> positions)
                     {
                         _lastScrollPosition = positions.Item2;
@@ -668,7 +675,6 @@ namespace AasxPluginDocumentShelf
                     margin: new AnyUiThickness(2, 2, 2, 2),
                     padding: new AnyUiThickness(5, 0, 5, 0),
                     fontWeight: AnyUiFontWeight.Bold,
-                    menuItemLambda: null,
                     menuItemLambdaAsync: async (o) =>
                     {
                         if (o is int ti && ti >= 0 && ti < hds.Count)
@@ -681,7 +687,7 @@ namespace AasxPluginDocumentShelf
             return outerG;
         }
 
-        #endregion
+#endregion
 
         #region Create entity
         //=====================
@@ -760,8 +766,9 @@ namespace AasxPluginDocumentShelf
                     uitk.AddSmallTextBoxTo(body, 0, 1,
                         margin: new AnyUiThickness(2, 10, 2, 10),
                         text: "" + IdShort),
-                    (o) =>
+                    async (o) =>
                     {
+                        await Task.Yield();
                         if (o is string os)
                             IdShort = os;
                         return new AnyUiLambdaActionNone();

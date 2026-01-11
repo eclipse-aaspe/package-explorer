@@ -16,7 +16,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media;
 using System.Xml;
 using System.Xml.Schema;
 using AasxIntegrationBase;
@@ -209,7 +208,7 @@ namespace AasxPluginExportTable.BulkChange
             // Screen 3 : ask to proceed?
             //
 
-            if (AnyUiMessageBoxResult.Yes != displayContext.MessageBoxFlyoutShow(
+            if (AnyUiMessageBoxResult.Yes != await displayContext.MessageBoxFlyoutShowAsync(
                 $"Proceed with changing {rowsToUpload.Count} semanticIds?",
                 $"Bulk change semanticIds",
                 AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))

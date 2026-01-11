@@ -718,6 +718,7 @@ namespace AnyUi
         /// Buttons
         /// </summary>
         [JsonIgnore]
+        [System.Obsolete("use setValueAsyncLambda instead")]
         public Func<object, AnyUiLambdaActionBase> setValueLambda = null;
 
         /// <summary>

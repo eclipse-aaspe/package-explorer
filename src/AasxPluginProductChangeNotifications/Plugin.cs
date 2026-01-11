@@ -21,8 +21,6 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using AasxPluginProductChangeNotifications;
 using AnyUi;
-using System.Windows.Controls;
-using System.IO.Packaging;
 
 namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
 {

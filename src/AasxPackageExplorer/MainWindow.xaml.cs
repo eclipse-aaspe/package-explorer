@@ -3614,7 +3614,7 @@ namespace AasxPackageExplorer
                 {
                     Log.Singleton.Info("Trying edit multiline content from {0} ..", file.IdShort);
 
-                    DispEditHelperModules.DisplayOrEditEntityFileResource_EditTextFile(
+                    await DispEditHelperModules.DisplayOrEditEntityFileResource_EditTextFileAsync(
                         DisplayContext, PackageCentral.Main,
                         file.ContentType,
                         file.Value);
