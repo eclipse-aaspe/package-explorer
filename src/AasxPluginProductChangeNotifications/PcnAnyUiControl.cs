@@ -18,12 +18,9 @@ using Extensions;
 using AnyUi;
 using Newtonsoft.Json;
 using AasxPredefinedConcepts;
-using System.Reflection.PortableExecutable;
 
-using System.Windows.Documents;
 using System.Linq;
 using System.Globalization;
-using System.Windows.Controls;
 using AasxIntegrationBaseGdi;
 using System.Windows;
 using System.Threading.Tasks;
@@ -252,7 +249,8 @@ namespace AasxPluginProductChangeNotifications
                                 return new AnyUiLambdaActionNone();
                         });
 
-            Func<int, AnyUiLambdaActionBase> lambdaButtonClick = (i) => {
+            Func<int, Task<AnyUiLambdaActionBase>> lambdaButtonClickAsync = async (i) => {
+                await Task.Yield();
                 // mode change
                 if (data?.Records?.Record != null)
                     switch (i)
@@ -284,7 +282,12 @@ namespace AasxPluginProductChangeNotifications
                         margin: new AnyUiThickness(2), setHeight: 21,
                         padding: new AnyUiThickness(2, 0, 2, 0),
                         content: (new[] { "\u2759\u25c0", "\u25c0", "\u25b6", "\u25b6\u2759" })[i]),
-                        (o) => lambdaButtonClick(thisI));
+                        setValueAsync: async (o) =>
+                        {
+                            if (lambdaButtonClickAsync != null)
+                                await lambdaButtonClickAsync(thisI);
+                            return new AnyUiLambdaActionNone();
+                        });
             }
 
             //
@@ -305,8 +308,9 @@ namespace AasxPluginProductChangeNotifications
                     horizontalScrollBarVisibility: AnyUiScrollBarVisibility.Disabled,
                     verticalScrollBarVisibility: AnyUiScrollBarVisibility.Visible,
                     flattenForTarget: AnyUiTargetPlatform.Browser, initialScrollPosition: _lastScrollPosition),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     if (o is Tuple<double, double> positions)
                     {
                         _lastScrollPosition = positions.Item2;
@@ -453,7 +457,7 @@ namespace AasxPluginProductChangeNotifications
             AnyUiGrid grid,
             string[] cell,
             IDCellFormat[] cellFormat = null,
-            Func<int, AnyUiLambdaActionBase> lambdaClick = null,
+            Func<int, Task<AnyUiLambdaActionBase>> lambdaClickAsync = null,
             int minRowHeight = -1)
         {
             // access and add row
@@ -495,7 +499,12 @@ namespace AasxPluginProductChangeNotifications
                                     VerticalAlignment = AnyUiVerticalAlignment.Center,
                                     VerticalContentAlignment = AnyUiVerticalAlignment.Center
                                 },
-                                setValue: (o) => lambdaClick(thisI));
+                                setValueAsync: async (o) =>
+                                {
+                                    if (lambdaClickAsync != null)
+                                        await lambdaClickAsync(thisI);
+                                    return new AnyUiLambdaActionNone();
+                                });
                 }
                 else
                 {
@@ -857,8 +866,9 @@ namespace AasxPluginProductChangeNotifications
                             VerticalAlignment = AnyUiVerticalAlignment.Center,
                             VerticalContentAlignment = AnyUiVerticalAlignment.Center
                         },
-                        setValue: (o) =>
+                        setValueAsync: async (o) =>
                         {
+                            await Task.Yield();
                             InnerDocDisplaySaveFile(uriStr, contentType,
                                 display: true, save: false);
                             return new AnyUiLambdaActionNone();
@@ -883,8 +893,9 @@ namespace AasxPluginProductChangeNotifications
                             HorizontalAlignment = AnyUiHorizontalAlignment.Center,
                             HorizontalContentAlignment = AnyUiHorizontalAlignment.Center
                         },
-                        setValue: (o) =>
+                        setValueAsync: async (o) =>
                         {
+                            await Task.Yield();
                             InnerDocDisplaySaveFile(uriStr, contentType,
                                 display: false, save: true);
                             return new AnyUiLambdaActionNone();
@@ -942,8 +953,9 @@ namespace AasxPluginProductChangeNotifications
                         IDCellFormat.Wrap, IDCellFormat.Button
                     },
                     minRowHeight: 20,
-                    lambdaClick: (i) =>
+                    lambdaClickAsync: async (i) =>
                     {
+                        await Task.Yield();
                         if (i == 4 && origin?.Value?.IsValid() == true)
                         {
                             // send event to main application

@@ -15,10 +15,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Media;
-using System.Xml;
-using System.Xml.Schema;
 using AasxIntegrationBase;
 using AasxIntegrationBase.AasForms;
 using Newtonsoft.Json;
@@ -98,8 +94,9 @@ namespace AasxPluginExportTable.Smt
                                     items: pluginOptionsTable.Presets.Select((pr) => "" + pr.Name).ToArray(),
                                     selectedIndex: record.PresetTables),
                                 minWidth: 350, maxWidth: 400),
-                                (o) =>
+                                async (o) =>
                                 {
+                                    await Task.Yield();
                                     if (!cbPreset.SelectedIndex.HasValue)
                                         return new AnyUiLambdaActionNone();
                                     var ndx = cbPreset.SelectedIndex.Value;

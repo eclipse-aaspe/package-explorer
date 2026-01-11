@@ -329,85 +329,85 @@
   /* Contains a list of tuples (filenames, args) of plugins to be loaded. */,
   "PluginDll": [
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginProductChangeNotifications\\bin\\Debug\\net8.0-windows\\AasxPluginProductChangeNotifications.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginProductChangeNotifications\\bin\\Debug\\net9.0\\AasxPluginProductChangeNotifications.dll",
       "Args": [],
       "Options": null,
       "DefaultOptions": null
     },
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginAssetInterfaceDesc\\bin\\Debug\\net8.0-windows\\AasxPluginAssetInterfaceDesc.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginAssetInterfaceDesc\\bin\\Debug\\net9.0\\AasxPluginAssetInterfaceDesc.dll",
       "Args": [],
       "Options": null,
       "DefaultOptions": null
     },
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginKnownSubmodels\\bin\\Debug\\net8.0-windows\\AasxPluginKnownSubmodels.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginKnownSubmodels\\bin\\Debug\\net9.0\\AasxPluginKnownSubmodels.dll",
       "Args": [],
       "Options": null,
       "DefaultOptions": null
     },
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginDigitalNameplate\\bin\\Debug\\net8.0-windows\\AasxPluginDigitalNameplate.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginDigitalNameplate\\bin\\Debug\\net9.0\\AasxPluginDigitalNameplate.dll",
       "Args": [],
       "Options": null,
       "DefaultOptions": null
     },
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginDocumentShelf\\bin\\Debug\\net8.0-windows\\AasxPluginDocumentShelf.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginDocumentShelf\\bin\\Debug\\net9.0\\AasxPluginDocumentShelf.dll",
       "Args": [],
       "Options": null,
       "DefaultOptions": null
     },
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginContactInformation\\bin\\Debug\\net8.0-windows\\AasxPluginContactInformation.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginContactInformation\\bin\\Debug\\net9.0\\AasxPluginContactInformation.dll",
       "Args": [],
       "Options": null,
       "DefaultOptions": null
     },
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginGenericForms\\bin\\Debug\\net8.0-windows\\AasxPluginGenericForms.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginGenericForms\\bin\\Debug\\net9.0\\AasxPluginGenericForms.dll",
       "Args": [],
       "Options": null,
       "DefaultOptions": null
     },
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginAdvancedTextEditor\\bin\\Debug\\net8.0-windows\\AasxPluginAdvancedTextEditor.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginAdvancedTextEditor\\bin\\Debug\\net9.0-windows\\AasxPluginAdvancedTextEditor.dll",
       "Args": [],
       "Options": null,
       "DefaultOptions": null
     },
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginTechnicalData\\bin\\Debug\\net8.0-windows\\AasxPluginTechnicalData.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginTechnicalData\\bin\\Debug\\net9.0\\AasxPluginTechnicalData.dll",
       "Args": [],
       "Options": null,
       "DefaultOptions": null
     },
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginBomStructure\\bin\\Debug\\net8.0-windows\\AasxPluginBomStructure.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginBomStructure\\bin\\Debug\\net9.0-windows\\AasxPluginBomStructure.dll",
       "Args": [],
       "Options": null,
       "DefaultOptions": null
     },
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginPlotting\\bin\\Debug\\net8.0-windows\\AasxPluginPlotting.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginPlotting\\bin\\Debug\\net9.0-windows\\AasxPluginPlotting.dll",
       "Args": [],
       "Options": null,
       "DefaultOptions": null
     },
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginImageMap\\bin\\Debug\\net8.0-windows\\AasxPluginImageMap.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginImageMap\\bin\\Debug\\net9.0\\AasxPluginImageMap.dll",
       "Args": [],
       "Options": null,
       "DefaultOptions": null
     },
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginMtpViewer\\bin\\Debug\\net8.0-windows\\AasxPluginMtpViewer.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginMtpViewer\\bin\\Debug\\net9.0-windows\\AasxPluginMtpViewer.dll",
       "Args": [],
       "Options": null,
       "DefaultOptions": null
     },
     {
-      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginExportTable\\bin\\Debug\\net8.0-windows\\AasxPluginExportTable.dll",
+      "Path": "..\\..\\..\\..\\..\\..\\AasxPluginExportTable\\bin\\Debug\\net9.0\\AasxPluginExportTable.dll",
       "Args": [],
       "Options": null,
       "DefaultOptions": null

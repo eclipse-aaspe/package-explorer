@@ -981,6 +981,9 @@ namespace AasxPackageExplorer
         static string lastConnectInput = "";
         public async void CommandBinding_ConnectRest()
         {
+            await Task.Yield();
+            // TODO
+#if OLD_WIN_CODE
             var uc = new TextBoxFlyout("REST server adress:", AnyUiMessageBoxImage.Question);
             if (lastConnectInput == "")
             {
@@ -1099,6 +1102,7 @@ namespace AasxPackageExplorer
                     }
                 }
             }
+#endif
         }
 
         private void CommandBinding_ExecutePluginServer(

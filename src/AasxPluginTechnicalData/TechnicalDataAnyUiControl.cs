@@ -196,8 +196,9 @@ namespace AasxPluginTechnicalData
                         items: langs.ToArray(),
                         selectedIndex: _selectedLangIndex),
                     maxHeight: 21),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     if (!(cbLang?.SelectedIndex.HasValue == true))
                         return new AnyUiLambdaActionNone();
                     _selectedLangIndex = cbLang.SelectedIndex.Value;
@@ -243,8 +244,9 @@ namespace AasxPluginTechnicalData
                     horizontalScrollBarVisibility: AnyUiScrollBarVisibility.Disabled,
                     verticalScrollBarVisibility: AnyUiScrollBarVisibility.Visible,
                     flattenForTarget: AnyUiTargetPlatform.Browser, initialScrollPosition: _lastScrollPosition),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     if (o is Tuple<double, double> positions)
                     {
                         _lastScrollPosition = positions.Item2;

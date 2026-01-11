@@ -243,7 +243,8 @@ namespace AasxPluginContactInformation
                         Items = countries.Select((s) => "Nation - " + s).Cast<object>().ToList(),
                         SelectedIndex = _selectedLang == null ? 0 : (countries.IndexOf(_selectedLang.CountryCode))
                     }), 
-                (o) => {
+                async (o) => {
+                    await Task.Yield();
                     // ReSharper disable PossibleInvalidOperationException
                     if (cbCountries != null)
                         _selectedLang = AasxLanguageHelper.Languages.FindByCountry(
@@ -276,8 +277,10 @@ namespace AasxPluginContactInformation
                 MinWidth = 200,
                 Items = allRoles.Cast<object>().ToList(),
                 SelectedIndex = (_selectedRole == null) ? 0 : allRoles.IndexOf(roleHeader + _selectedRole)
-            }), (o) =>
+            }), 
+            async (o) =>
             {
+                await Task.Yield();
                 if (cbRoles != null && cbRoles.SelectedIndex.HasValue
                     && cbRoles.SelectedIndex >= 0 && cbRoles.SelectedIndex < allRoles.Count
                     && (allRoles[cbRoles.SelectedIndex.Value] is string selRole)
@@ -303,8 +306,9 @@ namespace AasxPluginContactInformation
             {
                 Margin = new AnyUiThickness(6, 4, 4, 4),
                 Content = "Filter \U0001f846"
-            }), (o) =>
+            }), async (o) =>
             {
+                await Task.Yield();
                 PushUpdateEvent();
                 return new AnyUiLambdaActionNone();
             });
@@ -315,8 +319,9 @@ namespace AasxPluginContactInformation
                 Margin = new AnyUiThickness(6, 4, 4, 4),
                 MinWidth = 200,
                 Text = _selectedFilterText
-            }), (o) =>
+            }), async (o) =>
             {
+                await Task.Yield();
                 if (o is string os)
                     _selectedFilterText = os;
                 return new AnyUiLambdaActionNone();
@@ -340,8 +345,9 @@ namespace AasxPluginContactInformation
                     horizontalScrollBarVisibility: AnyUiScrollBarVisibility.Disabled,
                     verticalScrollBarVisibility: AnyUiScrollBarVisibility.Visible,
                     flattenForTarget: AnyUiTargetPlatform.Browser, initialScrollPosition: initialScrollPos),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     if (o is Tuple<double, double> positions)
                     {
                         _lastScrollPosition = positions.Item2;
@@ -564,7 +570,6 @@ namespace AasxPluginContactInformation
                     margin: new AnyUiThickness(2, 2, 2, 2),
                     padding: new AnyUiThickness(5, 0, 5, 0),
                     fontWeight: AnyUiFontWeight.Bold,
-                    menuItemLambda: null,
                     menuItemLambdaAsync: async (o) =>
                     {
                         if (o is int ti && ti >= 0 && ti < hds.Count)

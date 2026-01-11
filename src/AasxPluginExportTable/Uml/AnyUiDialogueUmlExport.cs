@@ -15,8 +15,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Media;
 using System.Xml;
 using System.Xml.Schema;
 using AasxIntegrationBase;
@@ -268,7 +266,7 @@ namespace AasxPluginExportTable.Uml
             if (record.CopyToPasteBuffer)
             {
                 var lines = System.IO.File.ReadAllText(fn);
-                displayContext.ClipboardSet(new AnyUiClipboardData(lines));
+                await displayContext.ClipboardSetAsync(new AnyUiClipboardData(lines));
             }
 
             log.Info($"Export UML data to file: {fn}");

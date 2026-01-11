@@ -27,7 +27,6 @@ using System.Globalization;
 using System.Net.Http;
 using MQTTnet;
 using MQTTnet.Client;
-using System.Web.Services.Description;
 using AasxOpcUa2Client;
 
 

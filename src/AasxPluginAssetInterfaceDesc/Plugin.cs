@@ -21,8 +21,6 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using AasxPluginAssetInterfaceDescription;
 using AnyUi;
-using System.Windows.Controls;
-using System.IO.Packaging;
 
 namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
 {
@@ -246,7 +244,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                     && args[0] is string cmd
                     && args[1] is AasxMenuActionTicket ticket
                     && args[2] is AnyUiContextPlusDialogs displayContext
-                    && args[3] is DockPanel masterPanel)
+                    && args[3] is object masterPanel)
                 {
                     try
                     {

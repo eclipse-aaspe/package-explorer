@@ -200,8 +200,9 @@ namespace AasxPluginExportTable.Table
                                         items: pluginOptions.Presets.Select((pr) => "" + pr.Name).ToArray(),
                                         text: "Please select preset to load .."),
                                     minWidth: 350, maxWidth: 400),
-                                    (o) =>
+                                    async (o) =>
                                     {
+                                        await Task.Yield();
                                         if (!cbPreset.SelectedIndex.HasValue)
                                             return new AnyUiLambdaActionNone();
                                         var ndx = cbPreset.SelectedIndex.Value;
@@ -300,8 +301,9 @@ namespace AasxPluginExportTable.Table
                             helper.AddSmallButtonTo(
                                 g2, 0, 8, content: "Resize",
                                 padding: new AnyUiThickness(4, 0, 4, 0)),
-                            setValue: (o) =>
+                            setValueAsync: async (o) =>
                             {
+                                await Task.Yield();
                                 record.ReArrange(record.RowsTop, record.RowsBody, record.Cols,
                                     workRowsTop, workRowsBody, workCols);
 

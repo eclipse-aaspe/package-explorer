@@ -186,8 +186,9 @@ namespace AasxPluginImageMap
                     margin: new AnyUiThickness(2, 4, 8, 4),
                     items: new[] { "Operational", "Show clicks", "Show regions" },
                     selectedIndex: _showRegions),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     if (cbRegs?.SelectedIndex != null)
                         _showRegions = cbRegs.SelectedIndex.Value;
 
@@ -230,8 +231,9 @@ namespace AasxPluginImageMap
                     uitk.AddSmallImageTo(innerGrid, 0, 0,
                         stretch: AnyUiStretch.Uniform),
                     eventMask: AnyUiEventMask.LeftDouble),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     if (o is AnyUiEventData ev && _showRegions == 1)
                     {
                         _clickedCoordinates.Add(ev.RelOrigin);
@@ -257,7 +259,7 @@ namespace AasxPluginImageMap
                         // is being activated.
                         EmitEvent = (_showRegions == 0) ? AnyUiEventMask.LeftDouble : 0
                     }),
-                setValue: RenderedElement_Clicked);
+                setValueAsync: RenderedElement_ClickedAsync);
 
             //
             // Footer area
@@ -289,8 +291,9 @@ namespace AasxPluginImageMap
                     margin: new AnyUiThickness(2, 2, 2, 4),
                     padding: new AnyUiThickness(2, 0, 2, 0),
                     content: "Clear"),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     _clickedCoordinates.Clear();
                     DisplayClickedCoordinates();
                     return new AnyUiLambdaActionPluginUpdateAnyUi()
@@ -306,13 +309,13 @@ namespace AasxPluginImageMap
                     margin: new AnyUiThickness(2, 2, 2, 4),
                     padding: new AnyUiThickness(2, 0, 2, 0),
                     content: "Copy to clipboard"),
-                (o) =>
+                async (o) =>
                 {
                     if (_context != null)
                     {
                         var sum = ClickedCoordinatesToString();
                         sum = "[ " + sum + " ]";
-                        _context.ClipboardSet(new AnyUiClipboardData(sum));
+                        await _context.ClipboardSetAsync(new AnyUiClipboardData(sum));
                         _log?.Info("Coordinates copied to clipboard.");
                     }
                     return new AnyUiLambdaActionNone();
@@ -330,8 +333,9 @@ namespace AasxPluginImageMap
         /// <summary>
         /// This callback received the clicks from canvas / rendered elements withing
         /// </summary>
-        protected AnyUiLambdaActionBase RenderedElement_Clicked(object o)
+        protected async Task<AnyUiLambdaActionBase> RenderedElement_ClickedAsync(object o)
         {
+            await Task.Yield();
             // rendered element clicked?
             if (o is AnyUiEventData ev
                         && ev.ClickCount >= 2
@@ -695,7 +699,7 @@ namespace AasxPluginImageMap
                 afe.EmitEvent = AnyUiEventMask.LeftDouble;
 
                 // hereto
-                afe.setValueLambda = RenderedElement_Clicked;
+                afe.setValueAsyncLambda = RenderedElement_ClickedAsync;
             }
 
             // try sort in order not to click on the (large, rectangular) labels, but on the 

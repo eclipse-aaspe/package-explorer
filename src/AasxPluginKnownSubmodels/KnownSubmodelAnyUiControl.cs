@@ -18,6 +18,7 @@ using AdminShellNS;
 using Extensions;
 using AnyUi;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace AasxPluginKnownSubmodels
 {
@@ -166,8 +167,9 @@ namespace AasxPluginKnownSubmodels
                     horizontalScrollBarVisibility: AnyUiScrollBarVisibility.Disabled,
                     verticalScrollBarVisibility: AnyUiScrollBarVisibility.Visible,
                     flattenForTarget: AnyUiTargetPlatform.Browser, initialScrollPosition: _lastScrollPosition),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     if (o is Tuple<double, double> positions)
                     {
                         _lastScrollPosition = positions.Item2;
@@ -268,8 +270,9 @@ namespace AasxPluginKnownSubmodels
                     textWrapping: AnyUiTextWrapping.Wrap,
                     setHyperLink: true,
                     content: "" + rec.FurtherUrl),
-                (o) =>
+                async (o) =>
                 {
+                    await Task.Yield();
                     if (o is AnyUiSelectableTextBlock stb && stb.Text.HasContent())
                         return new AnyUiLambdaActionDisplayContentFile()
                         {

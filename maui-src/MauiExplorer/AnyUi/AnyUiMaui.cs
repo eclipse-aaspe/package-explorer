@@ -575,7 +575,7 @@ namespace MauiTestTree
                                     // get the current coordinates relative to the framework element
                                     // (only this could be sensible information to an any ui business logic)
                                     AnyUiPoint? p = null;
-                                    var evdata = new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2, p);
+                                    var evdata = new AnyUiEventData(AnyUiEventMask.LeftDown, cntl, 2, p);
                                     if (cntl.setValueAsyncLambda != null)
                                         EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(evdata));
                                 };
@@ -1023,7 +1023,7 @@ namespace MauiTestTree
                                     // get the current coordinates relative to the framework element
                                     // (only this could be sensible information to an any ui business logic)
                                     AnyUiPoint? p = null;
-                                    var evdata = new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2, p);
+                                    var evdata = new AnyUiEventData(AnyUiEventMask.LeftDown, cntl, 2, p);
                                     if (cntl.setValueAsyncLambda != null)
                                         EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(evdata));
                                 };

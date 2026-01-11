@@ -686,7 +686,7 @@ namespace AasxPackageExplorer
 
         #endregion
 
-        public void HandleGlobalKeyDown(KeyEventArgs e, bool preview)
+        public async void HandleGlobalKeyDown(KeyEventArgs e, bool preview)
         {
             // access
             if (!(_helper?.context is AnyUiDisplayContextWpf dcwpf))
@@ -700,7 +700,7 @@ namespace AasxPackageExplorer
             // investigate event itself
             if (e == null)
                 return;
-            var num = dcwpf.TriggerKeyShortcut(e.Key, Keyboard.Modifiers, preview);
+            var num = await dcwpf.TriggerKeyShortcut(e.Key, Keyboard.Modifiers, preview);
             if (num > 0)
                 e.Handled = true;
         }

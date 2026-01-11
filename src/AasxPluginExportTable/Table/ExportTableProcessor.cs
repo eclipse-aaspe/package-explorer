@@ -23,9 +23,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Windows.Media;
 using Aas = AasCore.Aas3_1;
 using AasxPredefinedConcepts.Qualifiers;
+using AnyUi;
 
 // ReSharper disable PossiblyMistakenUseOfParamsMethod .. issue, even if according to samples of Word API
 
@@ -1042,7 +1042,7 @@ namespace AasxPluginExportTable.Table
                 // ReSharper disable PossibleNullReferenceException
                 try
                 {
-                    var bgc = (System.Windows.Media.Color)ColorConverter.ConvertFromString(cr.Bg);
+                    var bgc = AnyUiColor.FromString(cr.Bg);
                     cell.Style.Fill.BackgroundColor = XLColor.FromArgb(bgc.A, bgc.R, bgc.G, bgc.B);
                 }
                 catch (Exception ex)
@@ -1057,7 +1057,7 @@ namespace AasxPluginExportTable.Table
                 // ReSharper disable PossibleNullReferenceException
                 try
                 {
-                    var fgc = (System.Windows.Media.Color)ColorConverter.ConvertFromString(cr.Fg);
+                    var fgc = AnyUiColor.FromString(cr.Fg);
                     cell.Style.Font.FontColor = XLColor.FromArgb(fgc.A, fgc.R, fgc.G, fgc.B);
                 }
                 catch (Exception ex)
@@ -1281,8 +1281,8 @@ namespace AasxPluginExportTable.Table
                     // ReSharper disable PossibleNullReferenceException
                     try
                     {
-                        var bgc = (System.Windows.Media.Color)ColorConverter.ConvertFromString(cr.Bg);
-                        var bgs = new ColorConverter().ConvertToString(bgc).Substring(3);
+                        var bgc = AnyUiColor.FromString(cr.Bg);
+                        var bgs = bgc.ToHtmlString(1).Substring(3);
 
                         tcp.Append(new Shading()
                         {
@@ -1318,10 +1318,10 @@ namespace AasxPluginExportTable.Table
 
                     if (cr.Fg != null)
                     {
-                        var fgc = (System.Windows.Media.Color)ColorConverter.ConvertFromString(cr.Fg);
-                        var fgs = new ColorConverter().ConvertToString(fgc).Substring(3);
+                        var fgc = AnyUiColor.FromString(cr.Fg);
+                        var fgs = fgc.ToHtmlString(1).Substring(3);
 
-                        rp.Append(new DocumentFormat.OpenXml.Wordprocessing.Color() { Val = fgs });
+                       rp.Append(new DocumentFormat.OpenXml.Wordprocessing.Color() { Val = fgs });
                     }
 
                     if (cr.Font != null && cr.Font.Contains("bold"))
