@@ -370,11 +370,13 @@
         }
 
         @code {
-            private void MyTextInput(AnyUiTextBox chtb, string value, bool takeOver)
+            private async void MyTextInput(AnyUiTextBox chtb, string value, bool takeOver)
             {
+                await Task.Yield();
+
                 if (takeOver)
                     ;
-                Program.EvalSetValueLambdaAndHandleReturn(Session.SessionId, chtb, value, takeOver);
+                await Program.EvalSetValueLambdaAndHandleReturnAsync(Session.SessionId, chtb, value, takeOver);
             }
         }
     }
@@ -391,7 +393,7 @@
 
         <button style="@style" @onclick="() => MyClickButton(chbt)">@chbt.Content</button>
         @code {
-            private void MyClickButton(AnyUiButton chbt)
+            private async void MyClickButton(AnyUiButton chbt)
             {
                 if (chbt.SpecialAction is AnyUiSpecialActionContextMenu cntlcm)
                 {
@@ -401,7 +403,7 @@
 
                 if (chbt.DirectInvoke)
                     // chbt.setValueLambda?.Invoke(chbt.Content);
-                    Program.EvalSetValueLambdaAndHandleReturn(Session.SessionId, chbt, chbt.Content);
+                    await Program.EvalSetValueLambdaAndHandleReturnAsync(Session.SessionId, chbt, chbt.Content);
                 else
                     AnyUi.AnyUiDisplayContextHtml.setValueLambdaHtml(chbt, chbt.Content);
             }
@@ -421,9 +423,9 @@
         </span>
 
         @code {
-            private void MyCheck(AnyUiCheckBox cb, string value)
+            private async void MyCheck(AnyUiCheckBox cb, string value)
             {
-                Program.EvalSetValueLambdaAndHandleReturn(Session.SessionId, cb, value.ToLower() == "true");
+                await Program.EvalSetValueLambdaAndHandleReturnAsync(Session.SessionId, cb, value.ToLower() == "true");
             }
         }
     }
@@ -474,10 +476,10 @@
         </select>
 
         @code {
-            private void MyComboSelect(AnyUiComboBox comb, string value)
+            private async void MyComboSelect(AnyUiComboBox comb, string value)
             {
                 comb.EvalSelectedIndex(value);
-                Program.EvalSetValueLambdaAndHandleReturn(Session.SessionId, comb, value);
+                await Program.EvalSetValueLambdaAndHandleReturnAsync(Session.SessionId, comb, value);
             }
         }
     }

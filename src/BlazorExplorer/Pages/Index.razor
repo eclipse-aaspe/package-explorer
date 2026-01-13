@@ -671,7 +671,7 @@
         var elementPanelStyle = new StylePile()
             .Add("word-wrap: break-word; width: 100%; overflow: hidden");
 
-        // by some weird reason, the top margin is to be correct, if NOT a plugon ..
+        // by some weird reason, the top margin is to be correct, if NOT a plugin ..
         if (!(Session.DisplayElements?.SelectedItem is VisualElementPluginExtension))
             elementPanelStyle.Add("margin-top", "-16px");
     }
@@ -686,6 +686,17 @@
                     ref Session.ElementPanel,
                     ref Session.DynamicMenu) == true)
                 {
+                    // kind of special hack: set a flag for fixed width for the 1st Grid in the element hierachy
+                    // trust on IEnumerable: take only the first, do not bother the full hierachy
+                    // var g = Session.ElementPanel?.FindAll((el) => el is AnyUiGrid)?.FirstOrDefault() as AnyUiGrid;
+                    // if (g != null)
+                    //     g.FillFixedWidth = true;
+
+                    if (Session.ElementPanel is AnyUi.IEnumerateChildren en)
+                        foreach (var ch in en.GetChildren())
+                            if (ch is AnyUiGrid chgr)
+                                chgr.FillFixedWidth = true;
+
                     // render
                     var _displayData = new AnyUiDisplayDataHtml(Session.DisplayContext);
                     <AnyUiRenderElem DisplayData="@_displayData"

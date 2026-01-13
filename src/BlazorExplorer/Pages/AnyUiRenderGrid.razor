@@ -10,9 +10,9 @@
 @code{
     // resharper disable all
     // test a new approach
-    protected bool NewApproach = true;
+    // Learning: Switch to fixed width only on first the FIRST GRID in hierarchy
+    protected bool NewApproach = false;
 }
-
 
 @{
 
@@ -88,7 +88,7 @@
         tablestyle += "border-collapse: separate";
 
     // test
-    if (NewApproach)
+    if (NewApproach && _grid.FillFixedWidth)
     {
         tablestyle.Add("table-layout", "fixed");
     }

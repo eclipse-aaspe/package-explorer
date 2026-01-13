@@ -1164,6 +1164,11 @@ namespace AnyUi
         /// </summary>
         public AnyUiImage BackgroundImageHtml = null;
 
+        /// <summary>
+        /// For HTML rendering, the first grid shall fill the complete width
+        /// </summary>
+        public bool FillFixedWidth = false;
+
         public static void SetRow(AnyUiUIElement el, int value) { if (el != null) el.GridRow = value; }
         public static void SetRowSpan(AnyUiUIElement el, int value) { if (el != null) el.GridRowSpan = value; }
         public static void SetColumn(AnyUiUIElement el, int value) { if (el != null) el.GridColumn = value; }
