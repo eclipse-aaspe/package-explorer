@@ -57,7 +57,7 @@
     [Parameter]
     public AnyUiHtmlFillMode FillMode { get; set; }
 
-    public void EventSenderTest(MouseEventArgs e, object sender, int num)
+    public async void EventSenderTest(MouseEventArgs e, object sender, int num)
     {
         // access
         if (Element == null)
@@ -65,11 +65,11 @@
 
         // pass on
         if (num == 1)
-            Element.setValueLambda?.Invoke(
+            await Element.setValueAsyncLambda?.Invoke(
                 new AnyUiEventData(AnyUiEventMask.LeftDown, Element, 1));
 
         if (num == 2)
-            Element.setValueLambda?.Invoke(
+            await Element.setValueAsyncLambda?.Invoke(
                 new AnyUiEventData(AnyUiEventMask.LeftDouble, Element, 2));
     }
 }

@@ -180,6 +180,7 @@ namespace BlazorExplorer
             NewDataAvailable?.Invoke(null, args);
         }
 
+        [Obsolete("use EvalSetValueLambdaAndHandleReturnAsync instead!")]
         public static void EvalSetValueLambdaAndHandleReturn(
             int sessionNumber, AnyUiUIElement elem, object value = null,
             bool takeOver = false)
@@ -190,12 +191,43 @@ namespace BlazorExplorer
 
             // evaluate & action
             var la = elem.setValueLambda?.Invoke(value);
-            if (!(la is AnyUiLambdaActionNone))
+            if (la != null && !(la is AnyUiLambdaActionNone))
             {
                 // same tree, only values changed
                 signalNewData(
                     new Program.NewDataAvailableArgs(
                         DataRedrawMode.ValueChanged, sessionNumber, la));
+            }
+
+            // more?
+            if (takeOver)
+            {
+                // more severe
+                signalNewData(
+                    new Program.NewDataAvailableArgs(
+                        DataRedrawMode.RebuildTreeKeepOpen, sessionNumber, elem.takeOverLambda));
+            }
+        }
+
+        public static async Task EvalSetValueLambdaAndHandleReturnAsync(
+            int sessionNumber, AnyUiUIElement elem, object value = null,
+            bool takeOver = false)
+        {
+            // access
+            if (elem == null)
+                return;
+
+            // evaluate & action
+            if (elem.setValueAsyncLambda != null)
+            {
+                var la = await elem.setValueAsyncLambda?.Invoke(value);
+                if (la != null && !(la is AnyUiLambdaActionNone))
+                {
+                    // same tree, only values changed
+                    signalNewData(
+                        new Program.NewDataAvailableArgs(
+                            DataRedrawMode.ValueChanged, sessionNumber, la));
+                }
             }
 
             // more?
