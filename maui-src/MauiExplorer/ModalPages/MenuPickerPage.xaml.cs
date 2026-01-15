@@ -7,45 +7,57 @@ namespace MauiTestTree;
 
 public partial class MenuPickerPage : ContentPage
 {
-    public string? SelectedOption { get; private set; }
+    protected MenuPickerViewModel _viewModel { get; set; } = new();
 
-    public MenuPickerViewModel ViewModel { get; set; } = new();
-
+    public string? SelectedHeader { get => _viewModel.SelectedItem?.Header; }
+    
     public MenuPickerPage(MenuPickerViewModel? preset = null)
     {
         InitializeComponent();
         if (preset == null)
-            ViewModel.FillDemoData();
+            _viewModel.FillDemoData();
         else
-            ViewModel = preset;
-        BindingContext = ViewModel;
+            _viewModel = preset;
+        BindingContext = _viewModel;
         SetSelectEnabled(false);
+    }
+
+    private TaskCompletionSource<string?>? _tcs;
+
+    public Task<string?> MauiShowPageAsync(INavigation navigation)
+    {
+        _tcs = new ();
+        navigation.PushModalAsync(this);
+        return _tcs.Task;
     }
 
     private void SetSelectEnabled(bool enable)
     {
-        if (!enable)
-        {
-            SelectButton.TextColor = Color.FromUint((SelectButton.TextColor.ToUint() & 0x00ffffff) | 0x40000000);
-            SelectButton.BorderColor = Color.FromUint((SelectButton.BorderColor.ToUint() & 0x00ffffff) | 0x40000000);
-        }
-        else
-        {
-            SelectButton.TextColor = Color.FromUint((SelectButton.TextColor.ToUint() & 0x00ffffff) | 0xff000000);
-            SelectButton.BorderColor = Color.FromUint((SelectButton.BorderColor.ToUint() & 0x00ffffff) | 0xff000000);
-        }
+        //if (!enable)
+        //{
+        //    DumpButton.TextColor = Color.FromUint((DumpButton.TextColor.ToUint() & 0x00ffffff) | 0x40000000);
+        //    DumpButton.BorderColor = Color.FromUint((DumpButton.BorderColor.ToUint() & 0x00ffffff) | 0x40000000);
+        //}
+        //else
+        //{
+        //    DumpButton.TextColor = Color.FromUint((DumpButton.TextColor.ToUint() & 0x00ffffff) | 0xff000000);
+        //    DumpButton.BorderColor = Color.FromUint((DumpButton.BorderColor.ToUint() & 0x00ffffff) | 0xff000000);
+        //}
     }
 
-    private async void OnOptionClicked(object sender, EventArgs e)
+    private async void OnOuterButtonClicked(object sender, EventArgs e)
     {
-        SelectedOption = ((Button)sender).Text;
-        await Navigation.PopModalAsync();
-    }
+        await Task.Yield();
+        if (sender == CancelButton)
+        {
+            _viewModel.SelectedItem = null;
+            _tcs?.TrySetResult(_viewModel.SelectedItem?.Header);
+        }
 
-    private async void OnCancelClicked(object sender, EventArgs e)
-    {
-        SelectedOption = null;
-        await Navigation.PopModalAsync();
+        if (sender == DumpButton && _viewModel.SelectedItem != null)
+        {
+            _tcs?.TrySetResult(_viewModel.SelectedItem?.Header);
+        }
     }
 
     private void ItemsView_ItemTapped(object sender, TappedEventArgs e)
@@ -53,12 +65,17 @@ public partial class MenuPickerPage : ContentPage
         if (!(sender is Grid g && g.BindingContext is MenuPickerItem mpi))
             return;
 
-        ViewModel.SelectedItem = mpi;
+        _viewModel.SelectedItem = mpi;
 
-        foreach (var it in ViewModel.Items)
-            it.IsSelected = it == ViewModel.SelectedItem;
+        foreach (var it in _viewModel.Items)
+            it.IsSelected = it == _viewModel.SelectedItem;
 
         SetSelectEnabled(true);
+    }
+
+    private void DumpButton_Clicked(object sender, EventArgs e)
+    {
+        ;
     }
 }
 
@@ -83,37 +100,10 @@ public class MenuPickerViewModel
     /// <summary>
     /// Currently selected item
     /// </summary>
-    public object? SelectedItem;
+    public MenuPickerItem? SelectedItem;
 
     public void FillDemoData()
     {
-        //RootItem.Children.Add(new MenuPickerItem() { 
-        //    Header = "New", 
-        //    HelpText = "Create new AASX package."
-        //});
-        //RootItem.Children.Add(new MenuPickerItem()
-        //{
-        //    Header = "Open",
-        //    HelpText = "Open (local) existing AASX package."
-        //});
-        //RootItem.Children.Add(new MenuPickerItem()
-        //{
-        //    Header = "Query open repositories/ registries …",
-        //    HelpText = "Selects and repository item (AASX) from the open AASX file repositories."
-        //});
-        //RootItem.Children.Add(new MenuPickerItem()
-        //{
-        //    Header = "Import …",
-        //    HelpText = "Import options",
-        //    Children = new ObservableCollection<MenuPickerItem>((new[] { 
-        //        new MenuPickerItem()
-        //        {
-        //            Header = "Import further AASX file into AASX …",
-        //            HelpText = "Import AASX file(s) with entities to overall AAS environment."
-        //        }
-        //    }).AsEnumerable())
-        //});
-
         Items.Add(new MenuPickerItem()
         {
             Header = "New",

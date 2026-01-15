@@ -1035,24 +1035,27 @@ namespace AasxPackageLogic
 
                 ticket.StartExec();
 
-                var lruFn = PackageContainerListLastRecentlyUsed.BuildDefaultFilename();
-                try
+                var lruFn = PackageContainerListLastRecentlyUsed.BuildDefaultFilename(this.MainWindow.GetAppDataDirectory());
+                if (lruFn != null)
                 {
-                    MainWindow.UiShowRepositories(visible: true);
-                    var lruExist = PackageCentral?.Repositories?.FindLRU();
-                    if (lruExist != null)
-                        PackageCentral.Repositories.Remove(lruExist);
-                    var lruNew = new PackageContainerListLastRecentlyUsed();
-                    lruNew.Header = "Last Recently Used";
-                    lruNew.SaveAs(lruFn);
-                    MainWindow.UiShowRepositories(visible: true);
-                    PackageCentral?.Repositories?.AddAtTop(lruNew);
-                    MainWindow.RedrawRepositories();
-                }
-                catch (Exception ex)
-                {
-                    LogErrorToTicket(ticket, ex,
-                        $"while initializing last recently used file in {lruFn}.");
+                    try
+                    {
+                        MainWindow.UiShowRepositories(visible: true);
+                        var lruExist = PackageCentral?.Repositories?.FindLRU();
+                        if (lruExist != null)
+                            PackageCentral.Repositories.Remove(lruExist);
+                        var lruNew = new PackageContainerListLastRecentlyUsed();
+                        lruNew.Header = "Last Recently Used";
+                        lruNew.SaveAs(lruFn);
+                        MainWindow.UiShowRepositories(visible: true);
+                        PackageCentral?.Repositories?.AddAtTop(lruNew);
+                        MainWindow.RedrawRepositories();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogErrorToTicket(ticket, ex,
+                            $"while initializing last recently used file in {lruFn}.");
+                    }
                 }
             }
 

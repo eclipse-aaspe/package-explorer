@@ -193,5 +193,13 @@ namespace AasxPackageExplorer
         {
             return null;
         }
+
+        /// <summary>
+        /// Get the path, where to store app-related specific configuration/ data files.
+        /// </summary>
+        public string GetAppDataDirectory()
+        {
+            return null;
+        }
     }
 }

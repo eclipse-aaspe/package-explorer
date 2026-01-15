@@ -5,6 +5,12 @@ using UraniumUI;
 using CommunityToolkit.Maui;
 using AasxPackageLogic;
 
+#if WINDOWS
+using Microsoft.Maui.LifecycleEvents;
+using Microsoft.UI;
+using Windows.UI.WindowManagement;
+#endif
+
 namespace MauiTestTree
 {
     public static class MauiProgram
@@ -45,6 +51,38 @@ namespace MauiTestTree
                     fonts.AddFontAwesomeIconFonts();
                     fonts.AddMaterialSymbolsFonts();
                 });
+
+#if WINDOWS
+            builder.ConfigureLifecycleEvents(events =>
+            {
+                events.AddWindows(wndLifeCycleBuilder =>
+                {
+                    wndLifeCycleBuilder.OnWindowCreated(window =>
+                    {
+                        // 1. Get the native window handle
+                        var nativeWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                        var win32WindowsId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
+                        var winuiAppWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(win32WindowsId);
+                        // 2. Subscribe to the Closing event
+                        // NOTE: This fires when the user clicks the "X" button
+                        winuiAppWindow.Closing += async (s, args) =>
+                        {
+                            // cancel normal behaviour, first
+                            args.Cancel = true;
+
+                            if (App.Current?.Windows[0]?.Page is AppShell aps
+                                && aps.CurrentPage is MainPage mp)
+                            {
+                                var doClose = await mp.IsWindowClosingAllowed(askForCloseCancel: true);
+
+                                if (doClose)
+                                    App.Current.Quit();
+                            }
+                        };
+                    });
+                });
+            });
+#endif
 
 #if DEBUG
     		builder.Logging.AddDebug();

@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<!-- <TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks> -->
-		 <!--<TargetFrameworks>net9.0-android</TargetFrameworks>--> 
+		 <TargetFrameworks>net9.0-android</TargetFrameworks> 
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net9.0-tizen</TargetFrameworks> -->
@@ -123,6 +123,9 @@
 	  <Compile Update="ModalPages\MessageReportPage.xaml.cs">
 	    <DependentUpon>MessageReportPage.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="ModalPages\MenuPickerNewPage.xaml.cs">
+	    <DependentUpon>MenuPickerNewPage.xaml</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -190,6 +193,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="CustomControls\TreeElemChevron.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="ModalPages\MenuPickerNewPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

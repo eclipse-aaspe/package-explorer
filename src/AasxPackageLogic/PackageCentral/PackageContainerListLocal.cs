@@ -168,10 +168,11 @@ namespace AasxPackageLogic.PackageCentral
         /// Use this to get the supposed default name of LRU in the binary folder of the application
         /// </summary>
         /// <returns>Full path</returns>
-        public static string BuildDefaultFilename()
+        public static string BuildDefaultFilename(string appDataPath)
         {
-            var exePath = System.Reflection.Assembly.GetEntryAssembly()?.Location;
-            var fn = Path.Combine(Path.GetDirectoryName(exePath),
+            if (appDataPath == null)
+                return null; 
+            var fn = Path.Combine(Path.GetDirectoryName(appDataPath),
                         "last-recently-used.json");
             return fn;
         }
