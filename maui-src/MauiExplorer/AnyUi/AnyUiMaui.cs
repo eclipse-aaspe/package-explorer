@@ -18,7 +18,6 @@ using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Layouts;
 using Newtonsoft.Json;
-using Windows.ApplicationModel.Appointments.AppointmentsProvider;
 
 #if IOS || MACCATALYST
 using UIKit;

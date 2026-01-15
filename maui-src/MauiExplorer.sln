@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FunctionZero.Maui.Controls", "FunctionZero.Maui.Controls\FunctionZero.Maui.Controls.csproj", "{D591C1B2-6F98-6BBA-0A15-6EA5F10495F2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Projektmappenelemente", "{84D27F74-D2BA-6C25-2661-968F101900D9}"
+	ProjectSection(SolutionItems) = preProject
+		Reame.MAUI.md = Reame.MAUI.md
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiExplorer", "MauiExplorer\MauiExplorer.csproj", "{7E53C285-89D6-3537-3BAB-9532CD3AFE52}"
 EndProject
@@ -60,6 +63,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AasxIntegrationBaseMaui", "AasxIntegrationBaseMaui\AasxIntegrationBaseMaui.csproj", "{085D2990-9AF7-45E7-837D-5C21EE176829}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AasxSoftwareInfo", "..\src\AasxSoftwareInfo\AasxSoftwareInfo.csproj", "{1E1F5087-866B-89AB-3FA7-88D240120FB9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "jsoncanonicalizer", "..\src\jsoncanonicalizer\jsoncanonicalizer.csproj", "{BDACE8ED-E230-239E-D9D0-327AB0C304A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "es6numberserializer", "..\src\es6numberserializer\es6numberserializer.csproj", "{21D6435A-04DB-C108-ED93-440A506F0691}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -159,6 +166,14 @@ Global
 		{1E1F5087-866B-89AB-3FA7-88D240120FB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E1F5087-866B-89AB-3FA7-88D240120FB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E1F5087-866B-89AB-3FA7-88D240120FB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDACE8ED-E230-239E-D9D0-327AB0C304A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDACE8ED-E230-239E-D9D0-327AB0C304A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDACE8ED-E230-239E-D9D0-327AB0C304A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDACE8ED-E230-239E-D9D0-327AB0C304A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21D6435A-04DB-C108-ED93-440A506F0691}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21D6435A-04DB-C108-ED93-440A506F0691}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21D6435A-04DB-C108-ED93-440A506F0691}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21D6435A-04DB-C108-ED93-440A506F0691}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -187,6 +202,8 @@ Global
 		{0D31DD7F-850C-4DE9-6898-FD8DB94A08FF} = {5EB84C47-8AE3-4AA3-A3C9-42AB645F36B1}
 		{085D2990-9AF7-45E7-837D-5C21EE176829} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{1E1F5087-866B-89AB-3FA7-88D240120FB9} = {B99C50F9-8627-42A7-817B-6C3E91A32B84}
+		{BDACE8ED-E230-239E-D9D0-327AB0C304A3} = {B99C50F9-8627-42A7-817B-6C3E91A32B84}
+		{21D6435A-04DB-C108-ED93-440A506F0691} = {B99C50F9-8627-42A7-817B-6C3E91A32B84}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2862EFC5-FE1A-4AF7-AAF1-C2F89D306AAD}
