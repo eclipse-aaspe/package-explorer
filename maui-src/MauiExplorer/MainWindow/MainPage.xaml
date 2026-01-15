@@ -32,23 +32,11 @@
             Dark="{StaticResource Primary}" />
     </Shell.BackgroundColor>
    
-
     <!-- For menues to work, it has to be a navigation page; per default this is given by
          having the shell for the application. -->
     <!-- The classic menu is for Windows and macOS Catalyst options. Not shown on any
          mobile devices -->
     <ContentPage.MenuBarItems>
-        <MenuBarItem Text="App">
-            <MenuFlyoutItem Text="Count" Clicked="ClassicMenuBarItem_Clicked"/>
-        </MenuBarItem>
-        <MenuBarItem Text="YouTube">
-            <MenuFlyoutItem Text="Count"/>
-            <MenuFlyoutSeparator/>
-            <MenuFlyoutSubItem Text="You may want ..">
-                <MenuFlyoutItem Text="Subscribe"/>
-                <MenuFlyoutItem Text="Un-Subscribe"/>
-            </MenuFlyoutSubItem>
-        </MenuBarItem>
     </ContentPage.MenuBarItems>
 
     <!-- The Shell/ Navigation bar renders a top bar on mobile devices. 

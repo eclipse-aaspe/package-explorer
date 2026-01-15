@@ -45,6 +45,8 @@ namespace MauiTestTree
                 _viewModel.ScreenIdiom = MainViewModel.ScreenIdiomEnum.Desktop;
             }
 
+            _viewModel.ScreenIdiom = MainViewModel.ScreenIdiomEnum.Tablet;
+
             // display view model
             BindingContext = _viewModel;
 
@@ -292,28 +294,7 @@ namespace MauiTestTree
 
                 return res;
             }
-        }
-
-        protected async void MainMenuItem_Clicked(object? sender, EventArgs e)
-        {
-            ;
-
-            if (sender is MenuFlyoutItem mfi)
-            {
-                if (mfi.Text == "Edit settings")
-                {
-                    await EditMainMenuCheckableOptionsAsync();
-                }
-
-                // regular way
-                // Note: Different than WPF / Blazor approaches
-                if (mfi.BindingContext is AasxMenuItemBase mib)
-                {
-                    var ticket = new AasxMenuActionTicket() { MenuItem = mib };
-                    await _viewModel.MainMenu.ActivateAction(mib, ticket);
-                }
-            }
-        }
+        }        
 
         // <summary>
         /// For mobile devices, shows a dedicated page in order to present
@@ -526,25 +507,46 @@ namespace MauiTestTree
             mpvm.AddFrom(m, omitRoot: true);
 
             // generate picker control and start
-            var pickerPage = new MenuPickerPage(mpvm);
-            await Navigation.PushModalAsync(pickerPage);
+            var pickerPage = new MenuPickerNewPage(mpvm);
+            var result = await pickerPage.MauiShowPageAsync(Navigation);
+            await Navigation.PopModalAsync();
 
             // Execution continues AFTER PopModalAsync
-            var result = pickerPage.SelectedOption;
-                        if (result != null)
+            if (result?.HasContent() == true)
             {
                 // Handle selection
                 // TODO
                 Trace.WriteLine($"User picked: {result}");
+
+                var mib = GetMainMenu()?.FindHeader(result);
+                if (mib != null)
+                {
+                    var ticket = new AasxMenuActionTicket() { MenuItem = mib };
+                    await _viewModel.MainMenu.ActivateAction(mib, ticket);
+                }
             }
         }
 
         /// <summary>
         /// Activated in Windows/ macOS Catalyst
         /// </summary>
-        private void ClassicMenuBarItem_Clicked(object sender, EventArgs e)
+        protected async void MainMenuItem_Clicked(object? sender, EventArgs e)
         {
+            if (sender is MenuFlyoutItem mfi)
+            {
+                if (mfi.Text == "Edit settings")
+                {
+                    await EditMainMenuCheckableOptionsAsync();
+                }
 
+                // regular way
+                // Note: Different than WPF / Blazor approaches
+                if (mfi.BindingContext is AasxMenuItemBase mib)
+                {
+                    var ticket = new AasxMenuActionTicket() { MenuItem = mib };
+                    await _viewModel.MainMenu.ActivateAction(mib, ticket);
+                }
+            }
         }
 
         /// <summary>
@@ -1362,6 +1364,8 @@ namespace MauiTestTree
 
         private async void Window_Loaded(object? sender, EventArgs e)
         {
+            Trace.WriteLine("*0*");
+
             // create a log file?
             if (Options.Curr.LogFile?.HasContent() == true)
                 try
@@ -1373,6 +1377,8 @@ namespace MauiTestTree
                 {
                     Log.Singleton.Error(ex, "creating log file: " + Options.Curr.LogFile);
                 }
+
+            Trace.WriteLine("*1*");
 
             // basic AnyUI handling
             DisplayContext = new AnyUiDisplayContextMaui(this, this, PackageCentral);
@@ -1442,15 +1448,22 @@ namespace MauiTestTree
             var win = App.Current?.Windows.FirstOrDefault();
             if (win != null)
             {
+#if WINDOWS
                 if (Options.Curr.WindowLeft > 0) win.X = Options.Curr.WindowLeft;
                 if (Options.Curr.WindowTop > 0)win.Y = Options.Curr.WindowTop;
                 if (Options.Curr.WindowWidth > 0) win.Width = Options.Curr.WindowWidth;
                 if (Options.Curr.WindowHeight > 0) win.Height = Options.Curr.WindowHeight;
+#endif
             }
 
-            // Timer
-            StartTimer();
+            Trace.WriteLine("*2*");
 
+
+            // Timer
+            // StartTimer();
+
+            Trace.WriteLine("*3*");
+            
             // attach result search
             //1// ToolFindReplace.Flyout = this;
             //1// ToolFindReplace.ResultSelected += ToolFindReplace_ResultSelected;
@@ -1467,23 +1480,30 @@ namespace MauiTestTree
             //1// RepoListControl.ExecuteMainCommand = this;
             this.UiShowRepositories(visible: false);
 
+            Trace.WriteLine("*4*");
+            
             // event viewer
             //1// UserContrlEventCollection.FlyoutProvider = this;
 
             // LRU repository?
-            var lruFn = PackageContainerListLastRecentlyUsed.BuildDefaultFilename();
-            try
+            var lruFn = PackageContainerListLastRecentlyUsed.BuildDefaultFilename(GetAppDataDirectory());
+            if (lruFn != null)
             {
-                if (System.IO.File.Exists(lruFn))
+                try
                 {
-                    var lru = PackageContainerListLastRecentlyUsed.Load<PackageContainerListLastRecentlyUsed>(lruFn);
-                    PackageCentral.Repositories.Add(lru);
+                    if (System.IO.File.Exists(lruFn))
+                    {
+                        var lru = PackageContainerListLastRecentlyUsed.Load<PackageContainerListLastRecentlyUsed>(lruFn);
+                        PackageCentral.Repositories.Add(lru);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Singleton.Error(ex, $"while loading last recently used file {lruFn}");
                 }
             }
-            catch (Exception ex)
-            {
-                Log.Singleton.Error(ex, $"while loading last recently used file {lruFn}");
-            }
+
+            Trace.WriteLine("*4.1*");
 
             // Repository pointed by the Options
             if (Options.Curr.AasxRepositoryFns != null && Options.Curr.AasxRepositoryFns.Count > 0)
@@ -1507,6 +1527,8 @@ namespace MauiTestTree
                     }
                 }
             }
+
+            Trace.WriteLine("*4.2*");
 
             // what happens on a repo file click
             //1// RepoListControl.FileDoubleClick += async (senderList, repo, fi) =>
@@ -1711,6 +1733,8 @@ namespace MauiTestTree
             //1//         }
             //1//     }
             //1// };
+            
+            Trace.WriteLine("*5*");
 
             // initialize menu
             _viewModel.MainMenu?.SetChecked("FileRepoLoadWoPrompt", Options.Curr.LoadWithoutPrompt);
@@ -1757,6 +1781,8 @@ namespace MauiTestTree
             // pump all pending log messages (from plugins) into the
             // log / status line, before setting the last information
             MainTimer_HandleLogMessages();
+
+            Trace.WriteLine("*6*");
 
             // Try to load?            
             if (Options.Curr.AasxToLoad?.HasContent() == true)
@@ -1877,6 +1903,10 @@ namespace MauiTestTree
 
 
                 // await MauiTestTree.Flyouts.MauiFlyoutTestCases.ExecuteMauiFlyoutTestCase(this, this, 1);
+
+                // await ShowMobilePanelMenuAsync("File");
+
+                ;
             }
         }
 
@@ -4000,28 +4030,26 @@ namespace MauiTestTree
             }
         }
 
-        private void Window_Closing(object sender, EventArgs e)
+        public async Task<bool> IsWindowClosingAllowed(bool askForCloseCancel)
         {
-            //1// if (this.IsInFlyout())
-            //1// {
-            //1//     e.Cancel = true;
-            //1//     return;
-            //1// }
-            //1// 
-            //1// var positiveQuestion = ScriptModeShutdown ||
-            //1//     (Options.Curr.UseFlyovers &&
-            //1//     AnyUiMessageBoxResult.Yes == MessageBoxFlyoutShow(
-            //1//         "Do you want to proceed closing the application? Make sure, that you have saved your data before.",
-            //1//         "Exit application?",
-            //1//         AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Question));
-            //1// 
-            //1// if (!positiveQuestion)
-            //1// {
-            //1//     e.Cancel = true;
-            //1//     return;
-            //1// }
+            // cancelling is only possible in some cases
+            if (askForCloseCancel)
+            {
+                if (this.IsInFlyout())
+                    return false;
 
-            // ok
+                var positiveQuestion = ScriptModeShutdown ||
+                    (Options.Curr.UseFlyovers &&
+                    AnyUiMessageBoxResult.Yes == await MessageBoxFlyoutShowAsync(
+                        "Do you want to proceed closing the application? Make sure, that you have saved your data before.",
+                        "Exit application?",
+                        AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Question));
+
+                if (!positiveQuestion)
+                    return false;
+            }
+
+            // ok, do it anyway
             Log.Singleton.Info("Application closing ..");
 
             // package
@@ -4044,8 +4072,11 @@ namespace MauiTestTree
                 if (lru != null)
                 {
                     Log.Singleton.Info("Saving LRU ..");
-                    var lruFn = PackageContainerListLastRecentlyUsed.BuildDefaultFilename();
-                    lru.SaveAsLocalFile(lruFn);
+                    var lruFn = PackageContainerListLastRecentlyUsed.BuildDefaultFilename(GetAppDataDirectory());
+                    if (lruFn != null)
+                    {
+                        lru.SaveAsLocalFile(lruFn);
+                    }
                 }
 
                 // also close log silently
@@ -4070,7 +4101,7 @@ namespace MauiTestTree
                 }
 
             // done
-            //1// e.Cancel = false;
+            return true;
         }
 
         private void Window_SizeChanged(object sender, EventArgs e)
@@ -4355,9 +4386,11 @@ namespace MauiTestTree
 
         public bool IsInFlyout()
         {
-            //1// if (this.GridFlyover.Children.Count > 0)
-            //1//     return true;
-            return false;
+            // may be also: Modal active?
+            // return ModalStack.Count > 0
+
+            // root page
+            return Navigation.NavigationStack.Count > 1;
         }
 
         public async Task StartFlyoverAsync(VisualElement uc)
@@ -4921,6 +4954,11 @@ namespace MauiTestTree
 #region General commands
 // ---------------------
 
+        public string GetAppDataDirectory()
+        {
+            return FileSystem.AppDataDirectory;
+        }
+
 #if _not_anymore_needed
         /// <summary>
         /// Redraw tree elements (middle), AAS entitty (right side)
@@ -4945,6 +4983,6 @@ namespace MauiTestTree
             throw new NotImplementedException();
         }
 #endif
-#endregion
+        #endregion
     }
 }

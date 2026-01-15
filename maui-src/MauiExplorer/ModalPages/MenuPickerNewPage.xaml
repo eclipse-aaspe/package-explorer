@@ -3,12 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
              xmlns:cz="clr-namespace:FunctionZero.Maui.Controls;assembly=FunctionZero.Maui.Controls"
-             xmlns:tlz="clr-namespace:FunctionZero.TreeListItemsSourceZero;assembly=FunctionZero.TreeListItemsSourceZero"
+             xmlns:anyui="clr-namespace:AnyUi;assembly=AnyUi"
              xmlns:local="clr-namespace:MauiTestTree"
-             x:Class="MauiTestTree.MenuPickerPage"
+             x:Class="MauiTestTree.MenuPickerNewPage"
              x:DataType="local:MenuPickerViewModel"
              Title="Pick an option"
-             Background="{DynamicResource Primary}">
+             Background="{StaticResource Backstage_Background}">
 
     <ContentPage.Resources>
         <local:BoolToColorConverter
@@ -20,35 +20,35 @@
             x:Key="MyInverseBoolConverter" />
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="1*,8*, 1*" ColumnDefinitions="*">
+    <Grid RowDefinitions="Auto, *, Auto" ColumnDefinitions="60,*, 60">
         
         <!-- Top row-->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-            <!-- Close -->
-            <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="1"
-                VerticalOptions="Center" Margin="8"
-                Padding="0" BackgroundColor="Transparent" CornerRadius="8"
-                Clicked="OnOuterButtonClicked">
+        <!-- Close -->
+        <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="2"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            Padding="0" BackgroundColor="Transparent" CornerRadius="8"
+            Clicked="OnOuterButtonClicked">
 
-                <Button.ImageSource>
-                    <FontImageSource
-                        FontFamily="MaterialOutlined"
-                        Glyph="{x:Static m:MaterialOutlined.Close}"
-                        Size="36"
-                        Color="White" />
-                </Button.ImageSource>
+            <Button.ImageSource>
+                <FontImageSource
+                    FontFamily="MaterialOutlined"
+                    Glyph="{x:Static m:MaterialOutlined.Close}"
+                    Size="24"
+                    Color="{StaticResource Backstage_Labels}" />        
+            </Button.ImageSource>
+        </Button>
 
-            </Button>
-        </Grid>
-
-        <Label Grid.Row="0" Grid.Column="0"
-               Text="{Binding DialogHeader}"
-               VerticalOptions="Center"
-               HorizontalOptions="Center"
-               TextColor="White" FontSize="18"/>
-
+        <!-- Caption -->
+        <Label Grid.Row="0" Grid.Column="1"
+           Text="{Binding DialogHeader}"
+           VerticalOptions="Center"
+           HorizontalOptions="Center"
+           TextColor="White" FontSize="18"/>
+        
+        <!-- Middle row: Main Content -->
         <CollectionView x:Name="ItemsView"
-            Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+            Grid.Row="1" Grid.Column="1" 
             ItemsSource="{Binding Items}"
             VerticalScrollBarVisibility="Always"
             SelectionMode="None">
@@ -124,33 +124,18 @@
             </CollectionView.ItemTemplate>
 
         </CollectionView>
-
-        <!-- OK -->
-        <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*, Auto" Margin="0,10,0,10">
-        <local:TransparentIconTextButton x:Name="DumpButton" Grid.Row="0" Grid.Column="0"
-            IsEnabled="False"
-            VerticalOptions="Center" Margin="2,4,2,4"
-            Clicked="DumpButton_Clicked"
-            Text="OK"
-            IconFontFamily="MaterialOutlined"
-            BorderWidth="1.2"
-            IconGlyph="{x:Static m:MaterialOutlined.Check}"
-            IconSize="18" />
-
-            <!--
-            <Button Grid.Row="0" Grid.Column="1" x:Name="sdacdcds" TextColor="White" Text="dcscdscd"
-                    Clicked="DumpButton_Clicked"/>
-            -->
-            
-            <local:TransparentIconTextButton x:Name="cdscdsButton" Grid.Row="0" Grid.Column="1"
-    IsEnabled="False"
-    VerticalOptions="Center" Margin="2,4,2,4"
-    Clicked="DumpButton_Clicked"
-    Text="cdsdscds"
-    IconFontFamily="MaterialOutlined"
-    BorderWidth="1.2"
-    IconGlyph="{x:Static m:MaterialOutlined.Check}"
-    IconSize="18" />
+        
+        <!-- Bottom row-->
+        <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*" Margin="0,10,0,10">
+            <local:TransparentIconTextButton x:Name="OkButton" Grid.Row="0" Grid.Column="0"
+                IsEnabled="True"
+                VerticalOptions="Center" Margin="2,4,2,4"
+                Clicked="OnOuterButtonClicked"
+                Text="OK"
+                IconFontFamily="MaterialOutlined"
+                BorderWidth="1.2"
+                IconGlyph="{x:Static m:MaterialOutlined.Check}"
+                IconSize="18" />
         </Grid>
 
     </Grid>

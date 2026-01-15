@@ -4552,6 +4552,14 @@ namespace AasxPackageExplorer
         }
 
         /// <summary>
+        /// Get the path, where to store app-related specific configuration/ data files.
+        /// </summary>
+        string IMainWindow.GetAppDataDirectory()
+        {
+            return System.Reflection.Assembly.GetEntryAssembly()?.Location;
+        }
+
+        /// <summary>
         /// Allows an other class to inject a lambda action.
         /// This will be perceived by the main window, most likely.
         /// </summary>
