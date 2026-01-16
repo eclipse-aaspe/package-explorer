@@ -60,7 +60,7 @@
                         <Grid
                             RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*"
                             IsVisible="{Binding IsSubMenu, Converter={StaticResource MyInverseBoolConverter}}"
-                            Padding="12"
+                            Padding="12,8,12,8"
                             Margin="8"
                             BackgroundColor="{Binding IsSelected, Converter={StaticResource HighlightConverter}}">
 
@@ -96,28 +96,27 @@
 
                             <Label
                                 Grid.Row="0" Grid.Column="1"
-                                Text="{Binding Header}"
-                                TextColor="{DynamicResource Primary}"
-                                FontSize="16"
-                                FontAttributes="Bold" />
+                                Text="{Binding DisplayHeader}"
+                                TextColor="{DynamicResource Gray900}"
+                                FontSize="13" />
 
                             <Label
                                 Grid.Row="1" Grid.Column="1"
                                 Text="{Binding HelpText}"
-                                FontSize="13"
-                                TextColor="{DynamicResource Gray600}" />
+                                FontSize="10"
+                                TextColor="{DynamicResource Gray400}" />
 
                         </Grid>
                     
                         <!-- Else: Sub section header -->
                         <Grid IsVisible="{Binding IsSubMenu}">
-                            <Label Text="{Binding Header}"
-                                   FontSize="16" FontAttributes="Bold"
+                            <Label Text="{Binding DisplayHeader}"
+                                   FontSize="14" FontAttributes="Bold"
                                    TextColor="White"
                                    LineBreakMode="WordWrap"
                                    HorizontalOptions="Start"
                                    VerticalOptions="Center" 
-                                   Margin="8, 10, 0, 4" />
+                                   Margin="8, 10, 0, 0" />
                         </Grid>
                     </Grid>
                 </DataTemplate>

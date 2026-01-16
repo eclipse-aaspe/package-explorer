@@ -180,9 +180,6 @@
 	  <MauiXaml Update="ModalPages\MessageReportPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="ModalPages\MenuPickerPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
 	  <MauiXaml Update="CustomControls\NavIconButton.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

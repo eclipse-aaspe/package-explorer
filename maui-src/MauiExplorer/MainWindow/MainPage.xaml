@@ -42,7 +42,9 @@
     <!-- The Shell/ Navigation bar renders a top bar on mobile devices. 
          This contains multiple items (extra ordinary) on the left side.-->
     <Shell.TitleView>
-        <Grid ColumnDefinitions="Auto,*,Auto">
+        <Grid ColumnDefinitions="Auto,*,Auto"
+              HeightRequest="{OnPlatform Android=56, WinUI=48, iOS=44}" 
+              Padding="0">
             <!-- IDTA logo or AAS/ AssetIds -->
             <local:OrgOrAasLabel 
                 Grid.Row="0" Grid.Column="0" 
@@ -53,27 +55,36 @@
 
             <!-- Just a foreach-loop over the given items -->
             <!-- Note: For phones this should be empty! -->
-            <HorizontalStackLayout x:Name="TitleViewMenuItems" HeightRequest="24"
+            <HorizontalStackLayout x:Name="TitleViewMenuItems"
                 Grid.Row="0" Grid.Column="1"
                 IsVisible="{Binding IsScreenIdiomDesktop, Converter={StaticResource MyInverseBoolConverter}}"
-                VerticalOptions="Center"
-                Margin="20,0,0,0" Spacing="8"
+                Margin="20,2,0,2" Spacing="8"
                 BindableLayout.ItemsSource="{Binding MobileTopRootMenuHandles}">
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="{x:Null}">
                         <Button Clicked="OnTitleViewButton_Clicked"
                                 Text="{Binding .}" 
-                                Margin="0"
-                                Padding="8,2,8,2" BackgroundColor="Transparent" CornerRadius="6"
-                                BorderColor="White" BorderWidth="1.5"
-                                TextColor="White" FontAttributes="Bold" FontSize="14"/>
+                                Margin="0,0,0,0"
+                                Padding="8,0,8,0" BackgroundColor="Transparent" CornerRadius="6"
+                                BorderColor="Transparent" BorderWidth="1.5"
+                                FontAttributes="Bold" FontSize="12">
+                            <Button.TextColor>
+                                <AppThemeBinding
+                                    Light="{StaticResource Gray600}"
+                                    Dark="{StaticResource Gray200}" />
+                            </Button.TextColor>
+                            <Button.Background>
+                                <AppThemeBinding
+                                    Light="#30ffffff"
+                                    Dark="#30000000" />
+                            </Button.Background>
+                        </Button>
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
             </HorizontalStackLayout>
 
             <HorizontalStackLayout x:Name="TitleViewFixItems"
                 Grid.Row="0" Grid.Column="2"
-                VerticalOptions="Center"
                 Margin="8,0,0,0" Spacing="8">
 
                 <!-- Move current element up/ down for quick element transition -->
@@ -156,11 +167,17 @@
 
     <!-- The main grid consists of a column left (elements) and a column right (element attributes)
          and a divider (between). -->
-    <Grid x:Name="MainGrid" ColumnDefinitions="300,8,*" RowDefinitions="*,24">
+    <Grid x:Name="MainGrid" ColumnDefinitions="300,8,*" RowDefinitions="4,*,4,24">
+        <!-- A small gray line on top to extend the shell -->
+        <BoxView
+            Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
+            BackgroundColor="{DynamicResource Gray100}">
+        </BoxView>
+        
         <!-- Left Panel -->
         <Grid RowDefinitions="Auto, Auto, *" ColumnDefinitions="*"
             x:Name="LeftContent" 
-            Grid.Row="0" Grid.Column="0">
+            Grid.Row="1" Grid.Column="0">
 
             <!-- Right margin rage because of scrollbor of tree -->
             <local:OrgOrAasLabel 
@@ -197,9 +214,26 @@
         <!-- Divider -->
         <BoxView
             x:Name="Divider"
-            Grid.Row="0" Grid.Column="1" 
+            Grid.Row="1" Grid.Column="1" 
             BackgroundColor="{DynamicResource Gray100}"
             WidthRequest="8">
+        </BoxView>
+        
+        <!-- a little handle in the divide -->
+        <Border Grid.Row="1" Grid.Column="1" 
+                MaximumHeightRequest="48"
+                MaximumWidthRequest="2"
+                StrokeShape="RoundRectangle 6"
+                StrokeThickness="0"
+                Background="DarkGray" />
+        
+        <!-- an invisible box to have a large pan handle -->
+        <BoxView
+            x:Name="TraspDivider"
+            Grid.Row="1" Grid.Column="1" 
+            BackgroundColor="Transparent"
+            MaximumHeightRequest="48"
+            Margin="-12,0,-12,0">
             <BoxView.GestureRecognizers>
                 <PanGestureRecognizer PanUpdated="OnDividerPanUpdated"/>
             </BoxView.GestureRecognizers>
@@ -208,7 +242,7 @@
         <!-- Right Panel -->
         <ContentView
             x:Name="RightContent"
-            Grid.Row="0" Grid.Column="2">
+            Grid.Row="1" Grid.Column="2">
 
             <local:DispEditAasxEntityMaui x:Name="DispEditEntityPanel"/>
 
@@ -216,7 +250,7 @@
         
         <!-- Log line -->
         <Grid x:Name="LogGrid"
-              Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+              Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3"
               ColumnDefinitions="*, Auto, Auto, Auto"
               Padding="16,2,16,2"
               Background="{Binding LogBg}">
@@ -271,6 +305,13 @@
                 TextColor="{Binding LogFg}"
                 Clicked="ReportControls_Click"/>
         </Grid>
+
+        <!-- A small gray line on top to extend the shell -->
+        <BoxView
+            Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+            BackgroundColor="{DynamicResource Gray100}">
+        </BoxView>
+
     </Grid>
 
 </ContentPage>

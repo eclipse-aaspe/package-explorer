@@ -62,12 +62,12 @@ public partial class MenuPickerNewPage : ContentPage
         if (sender == CancelButton)
         {
             _viewModel.SelectedItem = null;
-            _tcs?.TrySetResult(_viewModel.SelectedItem?.Header);
+            _tcs?.TrySetResult(_viewModel.SelectedItem?.Name);
         }
 
         if (sender == OkButton && _viewModel.SelectedItem != null)
         {
-            _tcs?.TrySetResult(_viewModel.SelectedItem?.Header);
+            _tcs?.TrySetResult(_viewModel.SelectedItem?.Name);
         }
     }
 

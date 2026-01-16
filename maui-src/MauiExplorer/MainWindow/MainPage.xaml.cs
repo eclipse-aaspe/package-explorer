@@ -313,6 +313,10 @@ namespace MauiTestTree
             var mbis = RootOfPage.MenuBarItems;
             mbis.Clear();
 
+            // only for desktop
+            if (_viewModel.ScreenIdiom != MainViewModel.ScreenIdiomEnum.Desktop)
+                return;
+
             // do the 1st level manually
             foreach (var rmh in _viewModel.RootMenuHandles)
             {
@@ -518,7 +522,7 @@ namespace MauiTestTree
                 // TODO
                 Trace.WriteLine($"User picked: {result}");
 
-                var mib = GetMainMenu()?.FindHeader(result);
+                var mib = GetMainMenu()?.FindName(result);
                 if (mib != null)
                 {
                     var ticket = new AasxMenuActionTicket() { MenuItem = mib };

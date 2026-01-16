@@ -26,10 +26,11 @@ namespace AasxIntegrationBase
     public enum AasxMenuFilter
     {
         None = 0x00,
-        Wpf = 0x01, Blazor = 0x02, Toolkit = 0x04,
+        Wpf = 0x01, Blazor = 0x02, Toolkit = 0x04, Maui = 0x08,
         WpfBlazor = 0x03,
-        All = 0x07,
-        NotBlazor = 0x05
+        WpfBlazorMaui = 0x07,
+        All = 0x0f,
+        NotBlazor = 0x0d
     }
 
     /// <summary>
@@ -490,6 +491,38 @@ namespace AasxIntegrationBase
             AasxMenuActionDelegate action = null,
             AasxMenuActionAsyncDelegate actionAsync = null,
             AasxMenuFilter filter = AasxMenuFilter.WpfBlazor,
+            string inputGesture = null,
+            bool onlyDisplay = false,
+            bool isCheckable = false, bool isChecked = false,
+            bool hidden = false,
+            AasxMenuArgReqInfo reqs = AasxMenuArgReqInfo.None,
+            AasxMenuListOfArgDefs args = null)
+        {
+            this.Add(new AasxMenuItem()
+            {
+                Name = name,
+                Header = header,
+                HelpText = help,
+                Action = action,
+                ActionAsync = actionAsync,
+                Filter = filter,
+                InputGesture = inputGesture,
+                GestureOnlyDisplay = onlyDisplay,
+                IsCheckable = isCheckable,
+                Hidden = hidden,
+                IsChecked = isChecked,
+                RequiredInfos = reqs,
+                ArgDefs = args
+            });
+            return this;
+        }
+
+        public AasxMenu Add(
+            AasxMenuFilter filter,
+            string name, string header,
+            string help = null,
+            AasxMenuActionDelegate action = null,
+            AasxMenuActionAsyncDelegate actionAsync = null,
             string inputGesture = null,
             bool onlyDisplay = false,
             bool isCheckable = false, bool isChecked = false,
