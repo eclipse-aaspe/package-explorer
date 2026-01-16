@@ -170,8 +170,12 @@
     <Grid x:Name="MainGrid" ColumnDefinitions="300,8,*" RowDefinitions="4,*,4,24">
         <!-- A small gray line on top to extend the shell -->
         <BoxView
-            Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
-            BackgroundColor="{DynamicResource Gray100}">
+            Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
+            <BoxView.BackgroundColor>
+                <AppThemeBinding
+                    Light="{DynamicResource Gray100}"
+                    Dark="{StaticResource Primary}" />
+            </BoxView.BackgroundColor>
         </BoxView>
         
         <!-- Left Panel -->
@@ -214,9 +218,13 @@
         <!-- Divider -->
         <BoxView
             x:Name="Divider"
-            Grid.Row="1" Grid.Column="1" 
-            BackgroundColor="{DynamicResource Gray100}"
+            Grid.Row="1" Grid.Column="1"             
             WidthRequest="8">
+            <BoxView.BackgroundColor>
+                <AppThemeBinding
+                    Light="{DynamicResource Gray100}"
+                    Dark="{StaticResource Primary}" />
+            </BoxView.BackgroundColor>
         </BoxView>
         
         <!-- a little handle in the divide -->
@@ -248,6 +256,16 @@
 
         </ContentView>
         
+        <!-- A small gray line on top to extend the shell -->
+        <BoxView
+            Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3">
+            <BoxView.BackgroundColor>
+                <AppThemeBinding
+                    Light="{DynamicResource Gray100}"
+                    Dark="{StaticResource Primary}" />
+            </BoxView.BackgroundColor>
+        </BoxView>
+            
         <!-- Log line -->
         <Grid x:Name="LogGrid"
               Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3"
@@ -306,11 +324,6 @@
                 Clicked="ReportControls_Click"/>
         </Grid>
 
-        <!-- A small gray line on top to extend the shell -->
-        <BoxView
-            Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
-            BackgroundColor="{DynamicResource Gray100}">
-        </BoxView>
 
     </Grid>
 

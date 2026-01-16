@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
-             xmlns:cz="clr-namespace:FunctionZero.Maui.Controls;assembly=FunctionZero.Maui.Controls"
-             xmlns:anyui="clr-namespace:AnyUi;assembly=AnyUi"
-             xmlns:local="clr-namespace:MauiTestTree"
-             x:Class="MauiTestTree.MenuPickerNewPage"
-             x:DataType="local:MenuPickerViewModel"
-             Title="Pick an option"
-             Background="{StaticResource Backstage_Background}">
+<local:AwaitableModalContentPage x:TypeArguments="sys:String" 
+                                 xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                                 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                                 xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+                                 xmlns:cz="clr-namespace:FunctionZero.Maui.Controls;assembly=FunctionZero.Maui.Controls"
+                                 xmlns:anyui="clr-namespace:AnyUi;assembly=AnyUi"
+                                 xmlns:local="clr-namespace:MauiTestTree"
+                                 xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                                 x:Class="MauiTestTree.MenuPickerNewPage"
+                                 x:DataType="local:MenuPickerViewModel"
+                                 Title="Pick an option"
+                                 Background="{StaticResource Backstage_Background}">
 
     <ContentPage.Resources>
         <local:BoolToColorConverter
@@ -139,4 +141,4 @@
 
     </Grid>
 
-</ContentPage>
+</local:AwaitableModalContentPage>

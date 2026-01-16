@@ -8,8 +8,11 @@
 
     <ContentView.Resources>
 
-        <local:AnyUiColorToWpfBrushConverter
+        <local:AnyUiColorToMauiBrushConverter
             x:Key="MyAnyUiColorToWpfBrushConverter" />
+
+        <local:AnyUiColorToMauiColorConverter
+            x:Key="MyAnyUiColorToMauiColorConverter" />
 
         <ControlTemplate x:Key="ElementChevronControlTemplate">
             
@@ -110,7 +113,7 @@
                             <local:AutoFitLabel 
                                 Text="{Binding TagString}"
                                 Background="{Binding TagBg, Converter={StaticResource MyAnyUiColorToWpfBrushConverter}}" 
-                                TextColor="{Binding TagFg, Converter={StaticResource MyAnyUiColorToWpfBrushConverter}}" 
+                                TextColor="{Binding TagFg, Converter={StaticResource MyAnyUiColorToMauiColorConverter}}" 
                                 Padding="0"/>
                             <Grid Grid.Column="1" ColumnDefinitions="*,*"
                                   Background="{Binding Background, Converter={StaticResource MyAnyUiColorToWpfBrushConverter}}">

@@ -2186,7 +2186,6 @@ namespace MauiTestTree
 
             // var vm = ContextMenuSubstituteViewModel.GetFromPairsOfString(cntlcm.MenuItemHeaders, dc, scaleFontSize: 1.2);
             var uc = new ContextMenuPopup(vm);
-
             await Shell.Current.ShowPopupAsync(uc);
             return uc.Result?.Index;
 
@@ -3320,7 +3319,7 @@ namespace MauiTestTree
         
     }
 
-    public class AnyUiColorToWpfBrushConverter : IValueConverter
+    public class AnyUiColorToMauiBrushConverter : IValueConverter
     {
         public object Convert(object? value, Type targetType, object? parameter,
             System.Globalization.CultureInfo culture)
@@ -3336,6 +3335,27 @@ namespace MauiTestTree
             if (value is SolidColorBrush br)
             {
                 return AnyUiDisplayContextMaui.GetAnyUiColor(br);
+            }
+            return AnyUiColors.Default;
+        }
+    }
+
+    public class AnyUiColorToMauiColorConverter : IValueConverter
+    {
+        public object Convert(object? value, Type targetType, object? parameter,
+            System.Globalization.CultureInfo culture)
+        {
+            if (value is AnyUiColor col)
+                return AnyUiDisplayContextMaui.GetMauiColor(col);
+            return Brush.Transparent;
+        }
+
+        public object ConvertBack(object? value, Type targetType, object? parameter,
+            System.Globalization.CultureInfo culture)
+        {
+            if (value is Color col)
+            {
+                return AnyUiDisplayContextMaui.GetAnyUiColor(col);
             }
             return AnyUiColors.Default;
         }

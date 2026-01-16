@@ -627,6 +627,14 @@ namespace AasxPackageLogic
             Cmd = "-show-deprecated")]
         public bool ShowDeprecated = false;
 
+        [OptionDescription(Description = "Specify the screen device class (Desktop, Tablet, Phone).",
+            Cmd = "-screen-idiom")]
+        public string ScreenIdiom = "";
+
+        [OptionDescription(Description = "Specify the app theme colors (Light, Dark).",
+            Cmd = "-app-theme")]
+        public string AppTheme = "";
+
         [OptionDescription(Description =
             "When activated, the UI will show verbose information on (secure) connect procedures. " +
             "When de-activated, default answers to questions within these procedures will be given",

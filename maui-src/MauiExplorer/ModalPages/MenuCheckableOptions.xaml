@@ -46,9 +46,9 @@
                 <Button.ImageSource>
                     <FontImageSource
                         FontFamily="MaterialOutlined"
-                        Glyph="{x:Static m:MaterialOutlined.Exit_to_app}"
-                        Size="36"
-                        Color="White" />
+                        Glyph="{x:Static m:MaterialOutlined.Close}"
+                        Size="24"
+                        Color="{StaticResource Backstage_Labels}" />        
                 </Button.ImageSource>
 
             </Button>

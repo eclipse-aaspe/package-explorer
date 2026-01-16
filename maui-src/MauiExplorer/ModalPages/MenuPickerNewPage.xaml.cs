@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace MauiTestTree;
 
-public partial class MenuPickerNewPage : ContentPage
+public partial class MenuPickerNewPage : AwaitableModalContentPage<string?>
 {
     //
     // Members
@@ -32,28 +32,19 @@ public partial class MenuPickerNewPage : ContentPage
         SetSelectEnabled(false);
     }
 
-    private TaskCompletionSource<string?>? _tcs;
-
-    public Task<string?> MauiShowPageAsync(INavigation navigation)
-    {
-        _tcs = new();
-        navigation.PushModalAsync(this);
-        return _tcs.Task;
-    }
-
     private void SetSelectEnabled(bool enable)
     {
-        //if (!enable)
-        //{
-        //    OkButton.TextColor = Color.FromUint((OkButton.TextColor.ToUint() & 0x00ffffff) | 0x40000000);
-        //    OkButton.BorderColor = Color.FromUint((OkButton.BorderColor.ToUint() & 0x00ffffff) | 0x40000000);
-        //}
-        //else
-        //{
-        //    OkButton.TextColor = Color.FromUint((OkButton.TextColor.ToUint() & 0x00ffffff) | 0xff000000);
-        //    OkButton.BorderColor = Color.FromUint((OkButton.BorderColor.ToUint() & 0x00ffffff) | 0xff000000);
-        //}
-        //OkButton.IsEnabled = enable;
+        if (!enable)
+        {
+            OkButton.TextColor = Color.FromUint((OkButton.TextColor.ToUint() & 0x00ffffff) | 0x40000000);
+            OkButton.BorderColor = Color.FromUint((OkButton.BorderColor.ToUint() & 0x00ffffff) | 0x40000000);
+        }
+        else
+        {
+            OkButton.TextColor = Color.FromUint((OkButton.TextColor.ToUint() & 0x00ffffff) | 0xff000000);
+            OkButton.BorderColor = Color.FromUint((OkButton.BorderColor.ToUint() & 0x00ffffff) | 0xff000000);
+        }
+        OkButton.IsEnabled = enable;
     }
 
     private async void OnOuterButtonClicked(object sender, EventArgs e)
@@ -62,12 +53,12 @@ public partial class MenuPickerNewPage : ContentPage
         if (sender == CancelButton)
         {
             _viewModel.SelectedItem = null;
-            _tcs?.TrySetResult(_viewModel.SelectedItem?.Name);
+            SetResult(_viewModel.SelectedItem?.Name);
         }
 
         if (sender == OkButton && _viewModel.SelectedItem != null)
         {
-            _tcs?.TrySetResult(_viewModel.SelectedItem?.Name);
+            SetResult(_viewModel.SelectedItem?.Name);
         }
     }
 

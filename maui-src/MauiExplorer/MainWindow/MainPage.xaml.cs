@@ -45,7 +45,21 @@ namespace MauiTestTree
                 _viewModel.ScreenIdiom = MainViewModel.ScreenIdiomEnum.Desktop;
             }
 
-            _viewModel.ScreenIdiom = MainViewModel.ScreenIdiomEnum.Tablet;
+            // force via options
+            if (Options.Curr.ScreenIdiom.Equals("Phone", StringComparison.InvariantCultureIgnoreCase))
+                _viewModel.ScreenIdiom = MainViewModel.ScreenIdiomEnum.Phone;
+
+            if (Options.Curr.ScreenIdiom.Equals("Tablet", StringComparison.InvariantCultureIgnoreCase))
+                _viewModel.ScreenIdiom = MainViewModel.ScreenIdiomEnum.Tablet;
+
+            if (Options.Curr.ScreenIdiom.Equals("Desktop", StringComparison.InvariantCultureIgnoreCase))
+                _viewModel.ScreenIdiom = MainViewModel.ScreenIdiomEnum.Desktop;
+
+            if (Options.Curr.AppTheme.Equals("Light", StringComparison.InvariantCultureIgnoreCase))
+                Application.Current!.UserAppTheme = AppTheme.Light;
+
+            if (Options.Curr.AppTheme.Equals("Dark", StringComparison.InvariantCultureIgnoreCase))
+                Application.Current!.UserAppTheme = AppTheme.Dark;
 
             // display view model
             BindingContext = _viewModel;
@@ -516,8 +530,7 @@ namespace MauiTestTree
 
             // generate picker control and start
             var pickerPage = new MenuPickerNewPage(mpvm);
-            var result = await pickerPage.MauiShowPageAsync(Navigation);
-            await Navigation.PopModalAsync();
+            var result = await pickerPage.PerformModalDialog(Navigation);
 
             // Execution continues AFTER PopModalAsync
             if (result?.HasContent() == true)

@@ -163,11 +163,18 @@ namespace MauiTestTree
             if (menu.Childs != null && menu.Childs.Count() >= 1)
                 mpi.IsSubMenu = true;
 
+            // no root?
             var toAdd = !omitRoot;
+            // no deprecated?
             if (!showDeprecated && mib is AasxMenuItem mi && mi.Deprecated)
                 toAdd = false;
+            // filter not matching?
             if (!mpi.IsSubMenu && ((int) mib.Filter & (int) filterMask) < 1)
                 toAdd = false;
+            // no checkable options 
+            if (mib is AasxMenuItem mi2 && mi2.IsCheckable)
+                toAdd = false;
+            // still?
             if (toAdd)
             {
                 Items.Add(mpi);
