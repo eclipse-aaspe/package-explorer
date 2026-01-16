@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<local:AwaitableModalContentPage x:TypeArguments="sys:Boolean"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
              xmlns:cz="clr-namespace:FunctionZero.Maui.Controls;assembly=FunctionZero.Maui.Controls"
              xmlns:ibase="clr-namespace:AasxIntegrationBase;assembly=AasxIntegrationBase"
              xmlns:local="clr-namespace:MauiTestTree"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              x:Class="MauiTestTree.MenuCheckableOptions"
              x:DataType="local:MenuCheckableOptionsViewModel"
              Title="Pick an option"
@@ -39,7 +41,7 @@
             <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="1"
                 VerticalOptions="Center" Margin="8"
                 Padding="0" BackgroundColor="Transparent" CornerRadius="8"
-                Clicked="OnCancelClicked">
+                Clicked="OnOuterButtonClicked">
 
                 <Button.ImageSource>
                     <FontImageSource
@@ -123,4 +125,4 @@
 
     </Grid>
 
-</ContentPage>
+</local:AwaitableModalContentPage>

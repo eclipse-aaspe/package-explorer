@@ -6,7 +6,7 @@ using AasxIntegrationBase;
 
 namespace MauiTestTree;
 
-public partial class MenuCheckableOptions : ContentPage
+public partial class MenuCheckableOptions : AwaitableModalContentPage<bool>
 {
     public MenuCheckableOptionsViewModel ViewModel { get; set; } = new();
 
@@ -18,14 +18,13 @@ public partial class MenuCheckableOptions : ContentPage
         BindingContext = ViewModel;
     }
 
-    private async void OnOptionClicked(object sender, EventArgs e)
+    private async void OnOuterButtonClicked(object sender, EventArgs e)
     {
-        await Navigation.PopModalAsync();
-    }
-
-    private async void OnCancelClicked(object sender, EventArgs e)
-    {
-        await Navigation.PopModalAsync();
+        if (sender == CancelButton)
+        {
+            await Task.Yield();
+            SetResult(false);
+        }
     }
 
     private void ItemsView_ItemTapped(object sender, TappedEventArgs e)

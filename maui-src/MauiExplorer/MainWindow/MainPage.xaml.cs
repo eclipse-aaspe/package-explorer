@@ -304,7 +304,7 @@ namespace MauiTestTree
         {
             // generate modal page and start
             var pickerPage = new MenuCheckableOptions(_viewModel.MainMenu);
-            await Navigation.PushModalAsync(pickerPage);
+            await pickerPage.PerformModalDialog(Navigation);
         }
 
         protected void GenerateMainMenu()
