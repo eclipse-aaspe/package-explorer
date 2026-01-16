@@ -103,15 +103,15 @@
                             <Label
                                 Grid.Row="0" Grid.Column="1"
                                 Text="{Binding Header, Converter={StaticResource MyRemoveAcceleratorKeyConverter}}"
-                                TextColor="{DynamicResource Primary}"
-                                FontSize="16"
-                                FontAttributes="Bold" />
+                                TextColor="{DynamicResource Gray900}"
+                                FontSize="13"
+                                 />
 
                             <Label
                                 Grid.Row="1" Grid.Column="1"
                                 Text="{Binding HelpText}"
-                                FontSize="13"
-                                TextColor="{DynamicResource Gray600}" />
+                                FontSize="10"
+                                TextColor="{DynamicResource Gray400}" />
 
                         </Grid>
                         

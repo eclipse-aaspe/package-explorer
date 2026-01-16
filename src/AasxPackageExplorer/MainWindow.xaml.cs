@@ -1084,7 +1084,7 @@ namespace AasxPackageExplorer
             UserContrlEventCollection.FlyoutProvider = this;
 
             // LRU repository?
-            var lruFn = PackageContainerListLastRecentlyUsed.BuildDefaultFilename();
+            var lruFn = PackageContainerListLastRecentlyUsed.BuildDefaultFilename(GetAppDataDirectory());
             try
             {
                 if (System.IO.File.Exists(lruFn))
@@ -3520,7 +3520,7 @@ namespace AasxPackageExplorer
                 if (lru != null)
                 {
                     Log.Singleton.Info("Saving LRU ..");
-                    var lruFn = PackageContainerListLastRecentlyUsed.BuildDefaultFilename();
+                    var lruFn = PackageContainerListLastRecentlyUsed.BuildDefaultFilename(GetAppDataDirectory());
                     lru.SaveAsLocalFile(lruFn);
                 }
 
@@ -4554,7 +4554,7 @@ namespace AasxPackageExplorer
         /// <summary>
         /// Get the path, where to store app-related specific configuration/ data files.
         /// </summary>
-        string IMainWindow.GetAppDataDirectory()
+        public string GetAppDataDirectory()
         {
             return System.Reflection.Assembly.GetEntryAssembly()?.Location;
         }

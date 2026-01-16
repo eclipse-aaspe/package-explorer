@@ -623,6 +623,11 @@ namespace AasxPackageLogic
         public bool ShowIdAsIri = false;
 
         [OptionDescription(Description =
+            "When activated, the UI will show menue options which are marked as deprecated/ for development only.",
+            Cmd = "-show-deprecated")]
+        public bool ShowDeprecated = false;
+
+        [OptionDescription(Description =
             "When activated, the UI will show verbose information on (secure) connect procedures. " +
             "When de-activated, default answers to questions within these procedures will be given",
             Cmd = "-verbose-connect")]

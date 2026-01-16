@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -132,11 +133,19 @@ namespace MauiTestTree
             });
         }
 
-        public void AddFrom(AasxMenuItemBase mib, bool omitRoot = false)
+        /// <summary>
+        /// Add from a AasxMenu
+        /// </summary>
+        /// <returns>Number of added children</returns>
+        public int AddFrom(AasxMenuItemBase mib, 
+            bool omitRoot = false, 
+            bool showDeprecated = true,
+            AasxMenuFilter filterMask = AasxMenuFilter.All)
         {
             // access
             if (mib is not AasxMenuItem menu)
-                return;
+                return 0;
+            int res = 0;
 
             // treat it as simple item, first
             var mpi = new MenuPickerItem()
@@ -147,16 +156,39 @@ namespace MauiTestTree
                 IsCheckable = menu.IsCheckable,
                 IsChecked = menu.IsChecked
             };
-            if (!omitRoot)
+
+            if (mib.Name == "FileRepoNew")
+                Trace.WriteLine("FRN");
+
+            if (menu.Childs != null && menu.Childs.Count() >= 1)
+                mpi.IsSubMenu = true;
+
+            var toAdd = !omitRoot;
+            if (!showDeprecated && mib is AasxMenuItem mi && mi.Deprecated)
+                toAdd = false;
+            if (!mpi.IsSubMenu && ((int) mib.Filter & (int) filterMask) < 1)
+                toAdd = false;
+            if (toAdd)
+            {
                 Items.Add(mpi);
+                res++;
+            }
 
             // has childs or not?
-            if (menu.Childs != null && menu.Childs.Count() >= 1)
+            if (mpi.IsSubMenu)
             {
                 mpi.IsSubMenu = true;
-                foreach (var mic in menu.Childs)
-                    AddFrom(mic);
+                foreach (var mic in menu.Childs!)
+                    res += AddFrom(mic, showDeprecated: showDeprecated, filterMask: filterMask);
+
+                // Menu without children?
+                if (res == 1)
+                {
+                    Items.Remove(mpi);
+                }
             }
+
+            return res;
         }
     }
 

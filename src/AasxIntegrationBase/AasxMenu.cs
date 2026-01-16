@@ -29,6 +29,7 @@ namespace AasxIntegrationBase
         Wpf = 0x01, Blazor = 0x02, Toolkit = 0x04, Maui = 0x08,
         WpfBlazor = 0x03,
         WpfBlazorMaui = 0x07,
+        WpfMaui = 0x09,
         All = 0x0f,
         NotBlazor = 0x0d
     }
@@ -366,6 +367,11 @@ namespace AasxIntegrationBase
         public bool Hidden = false;
 
         /// <summary>
+        /// If true, only shown in menu, if wanted by the user.
+        /// </summary>
+        public bool Deprecated = false;
+
+        /// <summary>
         /// Can be switched to checked or not
         /// </summary>
         public bool IsCheckable { get; set; } = false;
@@ -453,70 +459,6 @@ namespace AasxIntegrationBase
         // Creators (here, because class name is shorter)
         //
 
-        public AasxMenu AddWpf(
-            string name, string header,
-            string help = null,
-            AasxMenuActionDelegate action = null,
-            AasxMenuActionAsyncDelegate actionAsync = null,
-            AasxMenuFilter filter = AasxMenuFilter.Wpf,
-            string inputGesture = null,
-            bool onlyDisplay = false,
-            bool isCheckable = false, bool isChecked = false,
-            bool hidden = false,
-            AasxMenuArgReqInfo reqs = AasxMenuArgReqInfo.None,
-            AasxMenuListOfArgDefs args = null)
-        {
-            this.Add(new AasxMenuItem()
-            {
-                Name = name,
-                Header = header,
-                HelpText = help,
-                Action = action,
-                ActionAsync = actionAsync,
-                Filter = filter,
-                InputGesture = inputGesture,
-                GestureOnlyDisplay = onlyDisplay,
-                IsCheckable = isCheckable,
-                IsChecked = isChecked,
-                Hidden = hidden,
-                RequiredInfos = reqs,
-                ArgDefs = args
-            });
-            return this;
-        }
-
-        public AasxMenu AddWpfBlazor(
-            string name, string header,
-            string help = null,
-            AasxMenuActionDelegate action = null,
-            AasxMenuActionAsyncDelegate actionAsync = null,
-            AasxMenuFilter filter = AasxMenuFilter.WpfBlazor,
-            string inputGesture = null,
-            bool onlyDisplay = false,
-            bool isCheckable = false, bool isChecked = false,
-            bool hidden = false,
-            AasxMenuArgReqInfo reqs = AasxMenuArgReqInfo.None,
-            AasxMenuListOfArgDefs args = null)
-        {
-            this.Add(new AasxMenuItem()
-            {
-                Name = name,
-                Header = header,
-                HelpText = help,
-                Action = action,
-                ActionAsync = actionAsync,
-                Filter = filter,
-                InputGesture = inputGesture,
-                GestureOnlyDisplay = onlyDisplay,
-                IsCheckable = isCheckable,
-                Hidden = hidden,
-                IsChecked = isChecked,
-                RequiredInfos = reqs,
-                ArgDefs = args
-            });
-            return this;
-        }
-
         public AasxMenu Add(
             AasxMenuFilter filter,
             string name, string header,
@@ -527,6 +469,7 @@ namespace AasxIntegrationBase
             bool onlyDisplay = false,
             bool isCheckable = false, bool isChecked = false,
             bool hidden = false,
+            bool deprecated = false,
             AasxMenuArgReqInfo reqs = AasxMenuArgReqInfo.None,
             AasxMenuListOfArgDefs args = null)
         {
@@ -542,33 +485,10 @@ namespace AasxIntegrationBase
                 GestureOnlyDisplay = onlyDisplay,
                 IsCheckable = isCheckable,
                 Hidden = hidden,
+                Deprecated = deprecated,
                 IsChecked = isChecked,
                 RequiredInfos = reqs,
                 ArgDefs = args
-            });
-            return this;
-        }
-
-        public AasxMenu AddAll(
-            string name, string header,
-            string cmd, string help,
-            AasxMenuActionDelegate action = null,
-            AasxMenuActionAsyncDelegate actionAsync = null,
-            AasxMenuFilter filter = AasxMenuFilter.All,
-            string inputGesture = null,
-            bool onlyDisplay = false)
-        {
-            this.Add(new AasxMenuItem()
-            {
-                Name = name,
-                Header = header,
-                CmdLine = cmd,
-                HelpText = header,
-                Action = action,
-                ActionAsync = actionAsync,
-                Filter = filter,
-                InputGesture = inputGesture,
-                GestureOnlyDisplay = onlyDisplay,
             });
             return this;
         }

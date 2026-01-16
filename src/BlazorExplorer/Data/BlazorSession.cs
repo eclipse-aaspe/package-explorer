@@ -254,7 +254,7 @@ namespace BlazorUI.Data
             PackageCentral.CentralRuntimeOptions = UiBuildRuntimeOptionsForMainAppLoad();
 
             // LRU repository?
-            var lruFn = PackageContainerListLastRecentlyUsed.BuildDefaultFilename();
+            var lruFn = PackageContainerListLastRecentlyUsed.BuildDefaultFilename(GetAppDataDirectory());
             try
             {
                 if (System.IO.File.Exists(lruFn))
@@ -883,5 +883,14 @@ namespace BlazorUI.Data
         {
             return Logic;
         }
+
+        /// <summary>
+        /// Get the path, where to store app-related specific configuration/ data files.
+        /// </summary>
+        public string GetAppDataDirectory()
+        {
+            return System.Reflection.Assembly.GetEntryAssembly()?.Location;
+        }
+
     }
 }

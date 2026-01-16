@@ -647,6 +647,7 @@ namespace BlazorUI.Data
                 new Program.NewDataAvailableArgs(
                     Program.DataRedrawMode.None, SessionId));
         }
+
     }
 
 }

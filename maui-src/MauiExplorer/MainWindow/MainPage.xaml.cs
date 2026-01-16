@@ -474,25 +474,27 @@ namespace MauiTestTree
                     RequestScreenDivide(MainViewModel.ScreenDivideModeEnum.Right);
                 return;
             }
-
-            string? activateMenu = null;
-
-            if (sender is ToolbarItem tbi && tbi.Text != null)
-            {
-                if (tbi.Text.ToLower() == "File".ToLower())
-                    activateMenu = "File";
-                if (tbi.Text.ToLower() == "Workspace".ToLower())
-                    activateMenu = "Workspace";
-                if (tbi.Text.ToLower() == "Option".ToLower())
-                    activateMenu = "Option";
-                if (tbi.Text.ToLower() == "Help".ToLower())
-                    activateMenu = "Help";
-            }
-
-            // activate modal panel for menu pick on mobile devices
-            if (activateMenu != null)
-                await ShowMobilePanelMenuAsync(activateMenu);
         }
+
+        /// <summary>
+        /// Actiated on mobile device from top bar / left menu items
+        /// </summary>
+        private async void OnTitleViewButton_Clicked(object sender, EventArgs e)
+        {
+            if (!(sender is Button b && b.Text != null))
+                return;
+
+            if (b.Text == "Option")
+            {
+                // special: Options
+                await EditMainMenuCheckableOptionsAsync();
+            }
+            else
+                foreach (var mh in _viewModel.RootMenuHandles)
+                    if (b.Text == $"{mh}")
+                        await ShowMobilePanelMenuAsync(mh);
+        }
+
 
         /// <summary>
         /// For mobile devices, shows a dedicated page in order to present
@@ -508,7 +510,9 @@ namespace MauiTestTree
             // generate view model for this menu
             var mpvm = new MenuPickerViewModel();
             mpvm.DialogHeader = $"Select option for the « {activateMenu} » menu";
-            mpvm.AddFrom(m, omitRoot: true);
+            mpvm.AddFrom(m, omitRoot: true,
+                    showDeprecated: _viewModel.MainMenu?.IsChecked("ShowDeprecated") == true,
+                    filterMask: AasxMenuFilter.Maui);
 
             // generate picker control and start
             var pickerPage = new MenuPickerNewPage(mpvm);
@@ -551,19 +555,6 @@ namespace MauiTestTree
                     await _viewModel.MainMenu.ActivateAction(mib, ticket);
                 }
             }
-        }
-
-        /// <summary>
-        /// Actiated on mobile device from top bar / left menu items
-        /// </summary>
-        private async void OnTitleViewButton_Clicked(object sender, EventArgs e)
-        {
-            if (!(sender is Button b && b.Text != null))
-                return;
-
-            foreach (var mh in _viewModel.RootMenuHandles)
-                if (b.Text == $"{mh}")
-                    await ShowMobilePanelMenuAsync(mh);
         }
 
         #endregion
@@ -1742,6 +1733,7 @@ namespace MauiTestTree
 
             // initialize menu
             _viewModel.MainMenu?.SetChecked("FileRepoLoadWoPrompt", Options.Curr.LoadWithoutPrompt);
+            _viewModel.MainMenu?.SetChecked("ShowDeprecated", Options.Curr.ShowIdAsIri);
             _viewModel.MainMenu?.SetChecked("ShowIriMenu", Options.Curr.ShowIdAsIri);
             _viewModel.MainMenu?.SetChecked("VerboseConnect", Options.Curr.VerboseConnect);
             _viewModel.MainMenu?.SetChecked("AnimateElements", Options.Curr.AnimateElements);
