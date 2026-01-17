@@ -532,6 +532,7 @@ namespace AnyUi
             AnyUiHorizontalAlignment? horizontalContentAlignment = null,
             AnyUiVerticalAlignment? verticalAlignment = null,
             AnyUiVerticalAlignment? verticalContentAlignment = null,
+            bool verticalCenter = false,
             AnyUiTargetPlatform? skipForTarget = null,
             AnyUiEventMask? eventMask = null) where T : AnyUiFrameworkElement
         {
@@ -555,6 +556,8 @@ namespace AnyUi
                 fe.HorizontalAlignment = horizontalAlignment;
             if (verticalAlignment != null)
                 fe.VerticalAlignment = verticalAlignment;
+            if (verticalCenter)
+                fe.VerticalAlignment = AnyUiVerticalAlignment.Center;
 
             if (eventMask.HasValue)
                 fe.EmitEvent = eventMask.Value;
@@ -584,6 +587,8 @@ namespace AnyUi
                     ctl.HorizontalContentAlignment = horizontalContentAlignment;
                 if (verticalContentAlignment != null)
                     ctl.VerticalContentAlignment = verticalContentAlignment;
+                if (verticalCenter)
+                    ctl.VerticalContentAlignment = AnyUiVerticalAlignment.Center;
             }
 
             // chain

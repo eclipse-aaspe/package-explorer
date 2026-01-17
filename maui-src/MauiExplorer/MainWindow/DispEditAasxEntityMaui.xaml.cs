@@ -301,6 +301,9 @@ public partial class DispEditAasxEntityMaui : ContentView
         // create display context for MAUI
         _helper!.levelColors = DispLevelColors.GetLevelColorsFromOptions(Options.Curr);
 
+        // layout for MAUI
+        _helper.LayoutHints.AvoidTopRows = true;
+
         // modify repository
         ModifyRepo? repo = null;
         if (editMode)

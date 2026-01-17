@@ -118,6 +118,26 @@ namespace AasxPackageLogic
         }
     }
 
+    /// <summary>
+    /// This class provides hints, how different controls are placed in the UI in terms of layout.
+    /// </summary>
+    public class UILayoutHints
+    {
+        /// <summary>
+        /// In conventional Package Explorer, particular grid for enumerables had buttons in the top row.
+        /// Pro: very logical distinction between enumerables collection and single items
+        /// Cons: A lot vertical space added for e.g. mobile UIs
+        /// </summary>
+        public bool AvoidTopRows = false;
+
+        /// <summary>
+        /// In conventional Package Explorer, text fields provided an explicit multi line edit button (3 horizontal lines).
+        /// Pros: Speed up editing of text content
+        /// Cons: Takes horizontal space for each text field
+        /// </summary>
+        public bool ExplicitMultiLineEdit = true;
+    }
+
     //
     // Helpers
     //
@@ -147,6 +167,8 @@ namespace AasxPackageLogic
         private AnyUiFrameworkElement lastHighlightedField = null;
 
         public AnyUiContextBase context = null;
+
+        public UILayoutHints LayoutHints = new();
 
         //
         // Width of first column
@@ -887,8 +909,8 @@ namespace AasxPackageLogic
                 verticalCenter: true,
                 content: "" + key + ":");
 
-            // populate [+]
-            if (repo != null)
+            // populate top row with: [+]
+            if (repo != null && !LayoutHints.AvoidTopRows)
             {
                 AnyUiUIElement.RegisterControl(
                     Set(
@@ -897,8 +919,7 @@ namespace AasxPackageLogic
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             content: "Add blank"),
-                        verticalAlignment: AnyUiVerticalAlignment.Top,
-                        verticalContentAlignment: AnyUiVerticalAlignment.Center,
+                        verticalCenter: true,
                         colSpan: 3),
                     async (o) =>
                     {
@@ -999,30 +1020,36 @@ namespace AasxPackageLogic
                             this.HighligtStateElement(tbStr, true);
 
                         // button [≡]
-                        AnyUiUIElement.RegisterControl(
-                            AddSmallButtonTo(
-                                g, 0 + i + rowOfs, 3,
-                                margin: new AnyUiThickness(2, 2, 2, 2),
-                                padding: new AnyUiThickness(5, 0, 5, 0),
-                                verticalAlignment: AnyUiVerticalAlignment.Top,
-                                content: "\u2261"), 
-                            setValueAsync: async (o) =>
-                            {
-                                var uc = new AnyUiDialogueDataTextEditor(
-                                    caption: $"Edit Text @ {langStr[currentI].Language} ...",
-                                    mimeType: "text/markdown",
-                                    text: langStr[currentI].Text);
-
-                                if (await this.context.StartFlyoverModalAsync(uc))
+                        if (LayoutHints.ExplicitMultiLineEdit)
+                        {
+                            AnyUiUIElement.RegisterControl(
+                                AddSmallButtonTo(
+                                    g, 0 + i + rowOfs, 3,
+                                    margin: new AnyUiThickness(2, 2, 2, 2),
+                                    padding: new AnyUiThickness(5, 0, 5, 0),
+                                    verticalAlignment: AnyUiVerticalAlignment.Top,
+                                    content: "\u2261"),
+                                setValueAsync: async (o) =>
                                 {
-                                    langStr[currentI].Text = uc.Text;
-                                    emitCustomEvent?.Invoke(relatedReferable);
-                                    return new AnyUiLambdaActionRedrawEntity();
-                                }
-								return new AnyUiLambdaActionNone();
-                            });
+                                    var uc = new AnyUiDialogueDataTextEditor(
+                                        caption: $"Edit Text @ {langStr[currentI].Language} ...",
+                                        mimeType: "text/markdown",
+                                        text: langStr[currentI].Text);
+
+                                    if (await this.context.StartFlyoverModalAsync(uc))
+                                    {
+                                        langStr[currentI].Text = uc.Text;
+                                        emitCustomEvent?.Invoke(relatedReferable);
+                                        return new AnyUiLambdaActionRedrawEntity();
+                                    }
+                                    return new AnyUiLambdaActionNone();
+                                });
+                        }
 
                         // button [⋮]
+
+                        // TODO: AvoidTopRows + ExplicitMultiLine
+
                         Set(
                             AddSmallContextMenuItemTo(
                                     g, 0 + i + rowOfs, 4,
