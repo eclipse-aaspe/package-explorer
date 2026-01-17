@@ -1211,6 +1211,8 @@ namespace AnyUi
     {
         public AnyUiBrush Background = null;
         public AnyUiBrush Foreground = null;
+        public AnyUiBrush BorderColor = null;
+        public double? BorderWidth = null;
         public AnyUiVerticalAlignment? VerticalContentAlignment;
         public AnyUiHorizontalAlignment? HorizontalContentAlignment;
         public double? FontSize;

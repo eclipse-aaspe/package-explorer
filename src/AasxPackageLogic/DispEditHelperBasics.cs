@@ -123,12 +123,15 @@ namespace AasxPackageLogic
     /// </summary>
     public class UILayoutHints
     {
+        public enum PosOfControl { Top, Context, Bottom }
+
         /// <summary>
         /// In conventional Package Explorer, particular grid for enumerables had buttons in the top row.
         /// Pro: very logical distinction between enumerables collection and single items
         /// Cons: A lot vertical space added for e.g. mobile UIs
+        /// In ADX Hub, the button is on bottom, which seems to be more logical
         /// </summary>
-        public bool AvoidTopRows = false;
+        public PosOfControl PlacementAdd = PosOfControl.Top;
 
         /// <summary>
         /// In conventional Package Explorer, text fields provided an explicit multi line edit button (3 horizontal lines).
@@ -857,11 +860,18 @@ namespace AasxPackageLogic
             if (langStr != null && langStr.Count > 1)
                 rows = langStr.Count;
             int rowOfs = 0;
-            if (repo != null)
-                rowOfs = 1;
+            int rowsAdd = 0;
+            if (repo != null && LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Top)
+            {
+                rowOfs = 1; rowsAdd = 1;
+            }
+            if (repo != null && LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Bottom)
+            {
+                rowsAdd = 1;
+            }
 
-			// default
-			if (emitCustomEvent == null)
+            // default
+            if (emitCustomEvent == null)
 				emitCustomEvent = (rf) => { 
                     this.AddDiaryEntry(rf, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionNone();
@@ -896,7 +906,7 @@ namespace AasxPackageLogic
             }
 
             // rows
-            for (int r = 0; r < rows + rowOfs; r++)
+            for (int r = 0; r < rows + rowsAdd; r++)
             {
                 var gr = new AnyUiRowDefinition();
                 gr.Height = new AnyUiGridLength(1.0, AnyUiGridUnitType.Auto);
@@ -908,28 +918,6 @@ namespace AasxPackageLogic
                 setNoWrap: true,
                 verticalCenter: true,
                 content: "" + key + ":");
-
-            // populate top row with: [+]
-            if (repo != null && !LayoutHints.AvoidTopRows)
-            {
-                AnyUiUIElement.RegisterControl(
-                    Set(
-                        AddSmallButtonTo(
-                            g, 0, 3,
-                            margin: new AnyUiThickness(2, 2, 2, 2),
-                            padding: new AnyUiThickness(5, 0, 5, 0),
-                            content: "Add blank"),
-                        verticalCenter: true,
-                        colSpan: 3),
-                    async (o) =>
-                    {
-                        await Task.Yield();
-                        langStr.Add<T>(language: AdminShellUtil.GetDefaultLngIso639(), text: "");
-
-						emitCustomEvent?.Invoke(relatedReferable);
-						return new AnyUiLambdaActionRedrawEntity();
-                    });
-            }
 
             // contents?
             if (!langStr.IsNullOrEmpty())
@@ -1059,7 +1047,7 @@ namespace AasxPackageLogic
                                         "\u25b2", "Move Up",
                                         "\u25bc", "Move Down",
                                     })
-                                    .InsertBeforeIf(LayoutHints.AvoidTopRows, 
+                                    .InsertBeforeIf(LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Context, 
                                         new AnyUiContextMenuHeader(100, "+", "Add blank"))
                                     .AddIf(!LayoutHints.ExplicitMultiLineEdit,
                                         new AnyUiContextMenuHeader(101, "\u2261", "Edit multiline")),
@@ -1121,6 +1109,31 @@ namespace AasxPackageLogic
                             verticalAlignment: AnyUiVerticalAlignment.Top
                         );
                     }
+
+            // populate top row with: [+]
+            // .. or on bottom?
+            if (repo != null && (LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Top
+                                 || LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Bottom))
+            {
+                AnyUiUIElement.RegisterControl(
+                    Set(
+                        AddSmallButtonTo(
+                            g, 
+                            row: (LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Bottom) ? langStr.Count : 0, 
+                            col: (LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Bottom) ? 1 : 3,
+                            margin: new AnyUiThickness(2, 2, 2, 2),
+                            padding: new AnyUiThickness(5, 0, 5, 0),
+                            content: "Add"),
+                        verticalCenter: true,
+                        colSpan: 1),
+                        async (o) =>
+                        {
+                            await Task.Yield();
+                            langStr.Add<T>(language: AdminShellUtil.GetDefaultLngIso639(), text: "");
+                            emitCustomEvent?.Invoke(relatedReferable);
+                            return new AnyUiLambdaActionRedrawEntity();
+                        });
+            }
 
             // in total
             view.Children.Add(g);

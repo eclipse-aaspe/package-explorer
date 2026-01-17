@@ -25,6 +25,20 @@ namespace AnyUi
         public bool showIriMode = false;
 
         //
+        // Some style information
+        //
+
+        public class ButtonStyle
+        {
+            public AnyUiBrush Background = null;
+            public AnyUiBrush BorderColor = null;
+            public double? BorderWidth = null;
+            public AnyUiBrush TextColor = null;
+            public double? FontSize = null;
+            public AnyUiFontWeight? FontWeight = null;
+        }
+
+        //
         // Small widgets
         //
 
@@ -379,7 +393,8 @@ namespace AnyUi
             string content = "", AnyUiBrush foreground = null, AnyUiBrush background = null,
             double? setHeight = null, AnyUiVerticalAlignment? verticalAlignment = null,
             bool? directInvoke = null, string toolTip = null,
-            bool? modalDialogStyle = null)
+            bool? modalDialogStyle = null,
+            ButtonStyle buttonStyle = null)
         {
             var but = new AnyUiButton();
             but.Margin = margin;
@@ -402,6 +417,23 @@ namespace AnyUi
                 but.ModalDialogStyle = modalDialogStyle.Value;
             if (toolTip != null)
                 but.ToolTip = toolTip;
+
+            if (buttonStyle != null)
+            {
+                if (buttonStyle.Background != null)
+                    but.Background = buttonStyle.Background;
+                if (buttonStyle.BorderColor != null)
+                    but.BorderColor = buttonStyle.BorderColor;
+                if (buttonStyle.BorderWidth != null)
+                    but.BorderWidth = buttonStyle.BorderWidth.Value;
+                if (buttonStyle.TextColor != null)
+                    but.Foreground = buttonStyle.TextColor;
+                if (buttonStyle.FontSize != null)
+                    but.FontSize = buttonStyle.FontSize.Value;
+                if (buttonStyle.FontWeight != null)
+                    but.FontWeight = buttonStyle.FontWeight.Value;
+            }
+
             AnyUiGrid.SetRow(but, row);
             AnyUiGrid.SetColumn(but, col);
             g.Children.Add(but);

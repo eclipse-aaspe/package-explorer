@@ -1835,6 +1835,10 @@ namespace MauiTestTree
                             maui.TextColor = GetMauiColor(rd.ForegroundControl?.Color);
                         if (cntl.Foreground != null)
                             maui.TextColor = GetMauiColor(cntl.Foreground?.Color);
+                        if (cntl.BorderColor != null)
+                            maui.BorderColor = GetMauiColor(cntl.Foreground?.Color);
+                        if (cntl.BorderWidth != null)
+                            maui.BorderWidth = cntl.BorderWidth.Value;
                         if (cntl.Padding != null)
                             maui.Padding = GetMauiTickness(cntl.Padding);
 

@@ -302,7 +302,7 @@ public partial class DispEditAasxEntityMaui : ContentView
         _helper!.levelColors = DispLevelColors.GetLevelColorsFromOptions(Options.Curr);
 
         // layout for MAUI
-        _helper.LayoutHints.AvoidTopRows = true;
+        _helper.LayoutHints.PlacementAdd = UILayoutHints.PosOfControl.Bottom;
         _helper.LayoutHints.ExplicitMultiLineEdit = false;
 
         // modify repository
