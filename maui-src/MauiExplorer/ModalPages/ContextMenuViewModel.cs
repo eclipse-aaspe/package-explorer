@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AdminShellNS;
 using AasxIntegrationBase;
 using System.Collections.ObjectModel;
+using AnyUi;
 
 namespace MauiTestTree
 {
@@ -118,6 +119,61 @@ namespace MauiTestTree
                 if (fo?.FontAlias != null)
                 {
                     menuItem.IconGlyph = glyph;
+                    menuItem.IconFontAlias = fo.FontAlias;
+                    menuItem.IconFontSize = (!scaleFontSize.HasValue) ? fo.FontSize
+                        : (int)(1.0 * scaleFontSize.Value * fo.FontSize);
+                }
+
+                // add
+                res.Items.Add(menuItem);
+            }
+
+            // ok
+            return res;
+        }
+
+        /// <summary>
+        /// Creates and initializes a context menu from a list of pair of strings.
+        /// First of pair is the icon (or empty), second is the textual header of the menu item.
+        /// Format of icon could be e.g. "{awe}\uef50", then the AwesomeFont is being used.
+        /// For these preset, the display context must be given.
+        /// </summary>
+        public static ContextMenuSubstituteViewModel CreateNew(
+            AnyUiContextMenuHeaderList headers,
+            AnyUiDisplayContextMaui? dc = null,
+            double? scaleFontSize = null)
+        {
+            // start
+            var res = new ContextMenuSubstituteViewModel();
+
+            // loop
+            foreach (var hdr in headers)
+            {
+                // menu item itself
+                var menuItem = new ContextMenuSubstituteMenuItem
+                {
+                    Index = hdr.Id,
+                    Header = hdr.Header,
+                    IconGlyph = hdr.IconGlyph,
+                };
+
+                // try find icon font
+                var input = AnyUiContextMenuHeaderBase.IconFontToTag(hdr.IconFont);
+                AnyUiIconFont? fo = null;
+                string? glyph = null;
+                if (input.StartsWith("{") && input.Contains("}"))
+                {
+                    var p = input.IndexOf('}');
+                    fo = dc?.FindIconFont(input.Substring(1, p - 1));
+                }
+                else
+                {
+                    fo = dc?.FindIconFont("uc");
+                }
+
+                // fill icon info?
+                if (fo?.FontAlias != null)
+                {
                     menuItem.IconFontAlias = fo.FontAlias;
                     menuItem.IconFontSize = (!scaleFontSize.HasValue) ? fo.FontSize
                         : (int)(1.0 * scaleFontSize.Value * fo.FontSize);

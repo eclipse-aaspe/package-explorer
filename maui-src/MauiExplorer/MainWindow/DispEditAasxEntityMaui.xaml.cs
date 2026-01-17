@@ -303,6 +303,7 @@ public partial class DispEditAasxEntityMaui : ContentView
 
         // layout for MAUI
         _helper.LayoutHints.AvoidTopRows = true;
+        _helper.LayoutHints.ExplicitMultiLineEdit = false;
 
         // modify repository
         ModifyRepo? repo = null;

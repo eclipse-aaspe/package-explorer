@@ -373,7 +373,7 @@ namespace AasxPackageLogic
 					AddSmallContextMenuItemTo(
 						sg, 1 + lsri, 1,
 						"\u22ee",
-						repo, new[] {
+                        new AnyUiContextMenuHeaderList(new[] {
 							"\u2702", "Delete",
 							"\u25b2", "Move Up",
 							"\u25bc", "Move Down",
@@ -381,7 +381,7 @@ namespace AasxPackageLogic
 							"\U0001F517", "Select from existing CDs",
 							"\U0001f516", "Create new CD for SAMM",
 							"\U0001f872", "Jump to"
-						},
+						}),
 						margin: new AnyUiThickness(2, 2, 2, 2),
 						padding: new AnyUiThickness(5, 0, 5, 0),
 						menuItemLambdaAsync: async (o) =>

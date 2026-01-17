@@ -408,6 +408,7 @@ namespace AnyUi
             return (but);
         }
 
+        [Obsolete("update to AddSmallContextMenuItemTo() using AnyUiContextMenuHeaderList()")]
         public AnyUiButton AddSmallContextMenuItemTo(
             AnyUiGrid g, int row, int col,
             string content,
@@ -437,7 +438,41 @@ namespace AnyUi
             AnyUiGrid.SetColumn(but, col);
             g.Children.Add(but);
             but.SpecialAction = new AnyUiSpecialActionContextMenu(
-                menuHeaders, null, menuItemLambdaAsync);
+                menuItemHeaders: new AnyUiContextMenuHeaderList(menuHeaders),
+                menuItemLambda: null,
+                menuItemLambdaAsync: menuItemLambdaAsync);
+
+            // ok
+            return (but);
+        }
+
+        public AnyUiButton AddSmallContextMenuItemTo(
+            AnyUiGrid g, int row, int col,
+            string content,
+            AnyUiContextMenuHeaderList menuHeaders,
+            AnyUiThickness margin = null, AnyUiThickness padding = null,
+            AnyUiBrush foreground = null, AnyUiBrush background = null,
+            AnyUiVerticalAlignment? verticalAlignment = null,
+            Func<object, Task<AnyUiLambdaActionBase>> menuItemLambdaAsync = null)
+        {
+            // construct button
+            var but = new AnyUiButton();
+            but.Margin = margin;
+            but.Padding = padding;
+            if (foreground != null)
+                but.Foreground = foreground;
+            if (background != null)
+                but.Background = background;
+            if (verticalAlignment != null)
+                but.VerticalAlignment = verticalAlignment.Value;
+            but.Content = content;
+            AnyUiGrid.SetRow(but, row);
+            AnyUiGrid.SetColumn(but, col);
+            g.Children.Add(but);
+            but.SpecialAction = new AnyUiSpecialActionContextMenu(
+                menuItemHeaders: menuHeaders,
+                menuItemLambda: null,
+                menuItemLambdaAsync: menuItemLambdaAsync);
 
             // ok
             return (but);
@@ -732,7 +767,7 @@ namespace AnyUi
             bool requestAuxButton = false,
             string auxButtonTitle = null, 
             Func<object, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
-            string[] auxContextHeader = null, 
+            AnyUiContextMenuHeaderList auxContextHeader = null, 
             Func<object, Task<AnyUiLambdaActionBase>> auxContextLambdaAsync = null)
         {
             AddGroup(view, name, colors?.Bg, colors?.Fg, requestAuxButton,
@@ -744,7 +779,7 @@ namespace AnyUi
             bool requestAuxButton = false,
             string auxButtonTitle = null, 
             Func<object, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
-            string[] auxContextHeader = null, 
+            AnyUiContextMenuHeaderList auxContextHeader = null, 
             Func<object, Task<AnyUiLambdaActionBase>> auxContextLambdaAsync = null,
             AnyUiFrameworkElement iconElement = null)
         {
@@ -795,7 +830,7 @@ namespace AnyUi
                 AddSmallContextMenuItemTo(
                         g, 0, 3,
                         "\u22ee",
-                        auxContextHeader.ToArray(),
+                        auxContextHeader,
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),
                         verticalAlignment: AnyUiVerticalAlignment.Center,
@@ -805,7 +840,8 @@ namespace AnyUi
 
         public void AddGroup(AnyUiStackPanel view, string name, AnyUiBrush background, AnyUiBrush foreground,
             bool requestContextMenu,
-            string contextMenuText, string[] menuHeaders, 
+            string contextMenuText,
+            AnyUiContextMenuHeaderList menuHeaders, 
             Func<object, Task<AnyUiLambdaActionBase>> menuItemLambdaAsync = null,
             AnyUiThickness margin = null, AnyUiThickness padding = null)
         {

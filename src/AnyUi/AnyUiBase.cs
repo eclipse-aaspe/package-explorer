@@ -14,6 +14,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Extensions;
 using Newtonsoft.Json;
 
 // Quite declarative approach for the future
@@ -635,7 +636,7 @@ namespace AnyUi
     public class AnyUiSpecialActionContextMenu : AnyUiSpecialActionBase
     {
         public string Caption = "Context menu";
-        public string[] MenuItemHeaders;
+        public AnyUiContextMenuHeaderList MenuItemHeaders;
         [JsonIgnore]
         public Func<object, AnyUiLambdaActionBase> MenuItemLambda;
         public Func<object, Task<AnyUiLambdaActionBase>> MenuItemLambdaAsync;
@@ -645,7 +646,7 @@ namespace AnyUi
         public AnyUiSpecialActionContextMenu() { }
 
         public AnyUiSpecialActionContextMenu(
-            string[] menuItemHeaders,
+            AnyUiContextMenuHeaderList menuItemHeaders,
             Func<object, AnyUiLambdaActionBase> menuItemLambda,
             Func<object, Task<AnyUiLambdaActionBase>> menuItemLambdaAsync)
         {
@@ -667,6 +668,149 @@ namespace AnyUi
         {
             UiElement = uiElement;
             Argument = argument;
+        }
+    }
+
+    //
+    // Context menues
+    //
+
+    public enum AnyUiContextMenuIconFont
+    {
+        /// <summary>
+        /// Regular unicode font, such as OpenSansRegular
+        /// </summary>
+        Normal,
+
+        /// <summary>
+        /// Font Awesome
+        /// see: https://fontawesome.com/icons
+        /// </summary>
+        Awesome,
+
+        /// <summary>
+        /// Google Material font
+        /// see: https://fonts.google.com/icons
+        /// </summary>
+        Material
+    }
+
+    /// <summary>
+    /// Represents any context menu header, which is shared between the editing functions
+    /// of DispEditXXX classes.
+    /// </summary>
+    public class AnyUiContextMenuHeaderBase
+    {
+        /// <summary>
+        /// Identification index, in order to identify the header item in callback
+        /// via an int value.
+        /// Disable value: -1
+        /// </summary>
+        public int Id { get; set; } = -1;
+
+        /// <summary>
+        /// Which font shall be used to render the <c>IconGlyph</c>
+        /// </summary>
+        public AnyUiContextMenuIconFont IconFont { get; set; } = AnyUiContextMenuIconFont.Normal;
+
+        /// <summary>
+        /// Which icon shall be shown; see also <c>IconFont</c>
+        /// </summary>
+        public string IconGlyph { get; set; } = null;
+
+        /// <summary>
+        /// The textual header to present
+        /// </summary>
+        public string Header { get; set; } = "";
+
+        // TODO: Convert
+        public static string IconFontToTag(AnyUiContextMenuIconFont font)
+        {
+            if (font == AnyUiContextMenuIconFont.Awesome)
+                return "{awe}";
+            if (font == AnyUiContextMenuIconFont.Material)
+                return "{mat}";
+            return "{uc}";
+        }
+    }
+
+    /// <summary>
+    /// 'Normal' class to have icon glyph and headers
+    /// </summary>
+    public class AnyUiContextMenuHeader : AnyUiContextMenuHeaderBase
+    {
+        public AnyUiContextMenuHeader() { }
+
+        public AnyUiContextMenuHeader(
+            int id,
+            string iconGlyph,
+            string header,
+            AnyUiContextMenuIconFont? iconFont = null)
+        {
+            Id = id;
+            IconGlyph = iconGlyph;
+            Header = header;
+            if (iconFont.HasValue)
+                IconFont = iconFont.Value;
+        }
+    }
+
+    public class AnyUiContextMenuHeaderList : List<AnyUiContextMenuHeaderBase>
+    {
+        public AnyUiContextMenuHeaderList() : base() { }
+
+        /// <summary>
+        /// Compatibility constructor, to be initialized by an array of strings,
+        /// each having icon glyph and header text one after each other.
+        /// </summary>
+        public AnyUiContextMenuHeaderList(string[] glyphAndHeaders,
+            AnyUiContextMenuIconFont iconFont = AnyUiContextMenuIconFont.Normal)
+        {
+            // access
+            if (glyphAndHeaders == null || glyphAndHeaders.Length < 2)
+                return;
+
+            // each
+            for (int i = 0; i < glyphAndHeaders.Length / 2; i++)
+            {
+                Add(new AnyUiContextMenuHeader(
+                    i,
+                    glyphAndHeaders[2 * i + 0],
+                    glyphAndHeaders[2 * i + 1],
+                    iconFont));
+            }
+        }
+
+        public void AddRangeWithOffet(AnyUiContextMenuHeaderList other, int idOffset)
+        {
+            // access
+            if (other == null || other.Count < 1)
+                return;
+
+            foreach (var ot in other)
+            {
+                var x = ot.Copy();
+                x.Id += idOffset;
+                Add(x);
+            }
+        }
+
+        //
+        // Transitive functions
+        //
+
+        public AnyUiContextMenuHeaderList InsertBeforeIf(bool b, AnyUiContextMenuHeaderBase mhb)
+        {
+            if (b)
+                Insert(0, mhb);
+            return this;
+        }
+
+        public AnyUiContextMenuHeaderList AddIf(bool b, AnyUiContextMenuHeaderBase mhb)
+        {
+            if (b)
+                Add(mhb);
+            return this;
         }
     }
 

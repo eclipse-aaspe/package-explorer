@@ -278,13 +278,13 @@ namespace AasxPackageLogic
                     substack, $"Qualifier {1 + i}",
                     levelColors.SubSubSection.Bg, levelColors.SubSubSection.Fg, requestContextMenu: repo != null,
                     contextMenuText: "\u22ee",
-                    menuHeaders: new[] {
+                    menuHeaders: new AnyUiContextMenuHeaderList(new[] {
                         "\u2702", "Delete",
                         "\u25b2", "Move Up",
                         "\u25bc", "Move Down",
                         "\u29c9", "Copy to clipboard",
                         "\u2398", "Paste from clipboard",
-                    },
+                    }),
                     menuItemLambdaAsync: async (o) =>
                     {
                         var action = false;
@@ -383,7 +383,7 @@ namespace AasxPackageLogic
                         addEclassIrdi: true, addFromKnown: true,
                         showRefSemId: false,
                         relatedReferable: relatedReferable,
-                        auxContextHeader: new[] { "\u2573", "Delete semanticId" },
+                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete semanticId" }),
                         auxContextLambda: (i) =>
                         {
                             if (i == 0)
@@ -514,7 +514,7 @@ namespace AasxPackageLogic
                         addExistingEntities: "All", addFromKnown: true,
                         showRefSemId: false,
                         relatedReferable: relatedReferable,
-                        auxContextHeader: new[] { "\u2573", "Delete valueId" },
+                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete valueId" }),
                         auxContextLambda: (i) =>
                         {
                             if (i == 0)
@@ -755,13 +755,13 @@ namespace AasxPackageLogic
                     substack, $"Element {1 + i}: {AdminShellUtil.ShortenWithEllipses(pairs[storedI].Name, 30)}",
                     levelColors.SubSubSection.Bg, levelColors.SubSubSection.Fg, requestContextMenu: repo != null,
                     contextMenuText: "\u22ee",
-                    menuHeaders: new[] {
+                    menuHeaders: new AnyUiContextMenuHeaderList(new[] {
                         "\u2702", "Delete",
                         "\u25b2", "Move Up",
                         "\u25bc", "Move Down",
                         "\u29c9", "Copy to clipboard",
                         "\u2398", "Paste from clipboard",
-                    },
+                    }),
                     menuItemLambdaAsync: async (o) =>
                     {
                         var action = false;
@@ -1004,13 +1004,13 @@ namespace AasxPackageLogic
                     substack, $"Extension {1 + i}: {AdminShellUtil.ShortenWithEllipses(extension.Name, 30)}",
                     levelColors.SubSubSection.Bg, levelColors.SubSubSection.Fg, requestContextMenu: repo != null,
                     contextMenuText: "\u22ee",
-                    menuHeaders: new[] {
+                    menuHeaders: new AnyUiContextMenuHeaderList(new[] {
                         "\u2702", "Delete",
                         "\u25b2", "Move Up",
                         "\u25bc", "Move Down",
                         "\u29c9", "Copy to clipboard",
                         "\u2398", "Paste from clipboard",
-                    },
+                    }),
                     menuItemLambdaAsync: async (o) =>
                     {
                         var action = false;
@@ -1135,7 +1135,7 @@ namespace AasxPackageLogic
                             addExistingEntities: "All", addFromKnown: true,
                             addEclassIrdi: true,
                             relatedReferable: relatedReferable,
-                            auxContextHeader: new[] { "\u2573", "Delete semanticId" },
+                            auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete semanticId" }),
                             auxContextLambda: (i) =>
                             {
                                 if (i == 0)
@@ -1291,7 +1291,7 @@ namespace AasxPackageLogic
             bool addKnownSemanticId = false,
             Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
-            string[] auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null)
+            AnyUiContextMenuHeaderList auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null)
         {
             // default
             if (emitCustomEvent == null)
@@ -1401,7 +1401,7 @@ namespace AasxPackageLogic
                         addFromKnown: true,
                         relatedReferable: relatedReferable,
                         emitCustomEvent: emitCustomEvent,
-                        auxContextHeader: new[] { "\u2573", "Delete referredSemanticId" },
+                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete referredSemanticId" }),
                         auxContextLambda: (i) =>
                         {
                             if (i == 0)
@@ -1641,13 +1641,13 @@ namespace AasxPackageLogic
                     substack, $"Pair {1 + i}: {txt}",
                     levelColors.SubSubSection.Bg, levelColors.SubSubSection.Fg, requestContextMenu: repo != null,
                     contextMenuText: "\u22ee",
-                    menuHeaders: new[] {
+                    menuHeaders: new AnyUiContextMenuHeaderList(new[] {
                         "\u2702", "Delete",
                         "\u25b2", "Move Up",
                         "\u25bc", "Move Down",
                         "\u29c9", "Copy to clipboard",
                         "\u2398", "Paste from clipboard",
-                    },
+                    }),
                     menuItemLambdaAsync: async (o) =>
                     {
                         var action = false;

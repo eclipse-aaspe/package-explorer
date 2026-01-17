@@ -2190,7 +2190,7 @@ namespace AasxPackageLogic
                     packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo, "AssetAdministrationShell",
                     showRefSemId: false,
                     jumpLambda: lambda, noEditJumpLambda: lambda, relatedReferable: aas,
-                    auxContextHeader: new[] { "\u2573", "Delete derivedFrom" },
+                    auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete derivedFrom" }),
                     auxContextLambda: (i) =>
                     {
                         if (i == 0)
@@ -4754,7 +4754,7 @@ namespace AasxPackageLogic
                         relatedReferable: p,
                         showRefSemId: false, // not necessary, I think
                         emitCustomEvent: (rf) => { this.AddDiaryEntry(rf, new DiaryEntryUpdateValue()); },
-                        auxContextHeader: new[] { "\u2573", "Delete valueId" },
+                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete valueId" }),
                         auxContextLambda: (i) =>
                         {
                             if (i == 0)
@@ -5532,7 +5532,7 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionNavigateTo(sml.SemanticIdListElement);
                         },
                         relatedReferable: sml,
-                        auxContextHeader: new[] { "\U0001F796", "Auto-detect" },
+                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\U0001F796", "Auto-detect" }),
                         auxContextLambda: (i) =>
                         {
                             if (i == 0)

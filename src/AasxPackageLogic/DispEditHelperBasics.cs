@@ -1054,11 +1054,15 @@ namespace AasxPackageLogic
                             AddSmallContextMenuItemTo(
                                     g, 0 + i + rowOfs, 4,
                                     "\u22ee",
-                                    repo, new[] {
+                                    new AnyUiContextMenuHeaderList(new[] {
                                         "\u2702", "Delete",
                                         "\u25b2", "Move Up",
                                         "\u25bc", "Move Down",
-                                    },
+                                    })
+                                    .InsertBeforeIf(LayoutHints.AvoidTopRows, 
+                                        new AnyUiContextMenuHeader(100, "+", "Add blank"))
+                                    .AddIf(!LayoutHints.ExplicitMultiLineEdit,
+                                        new AnyUiContextMenuHeader(101, "\u2261", "Edit multiline")),
                                     margin: new AnyUiThickness(2, 2, 2, 2),
                                     padding: new AnyUiThickness(5, 0, 5, 0),
                                     menuItemLambdaAsync: async (o) =>
@@ -1081,6 +1085,28 @@ namespace AasxPackageLogic
                                                     break;
                                                 case 2:
                                                     MoveElementInListDownwards<T>(langStr, langStr[currentI]);
+                                                    action = true;
+                                                    break;
+
+                                                case 100:
+                                                    langStr.Add<T>(language: AdminShellUtil.GetDefaultLngIso639(), text: "");
+                                                    action = true;
+                                                    break;
+
+                                                case 101:
+                                                    {
+                                                        var uc = new AnyUiDialogueDataTextEditor(
+                                                                        caption: $"Edit Text @ {langStr[currentI].Language} ...",
+                                                                        mimeType: "text/markdown",
+                                                                        text: langStr[currentI].Text);
+
+                                                        if (await this.context.StartFlyoverModalAsync(uc))
+                                                        {
+                                                            langStr[currentI].Text = uc.Text;
+                                                            emitCustomEvent?.Invoke(relatedReferable);
+                                                            return new AnyUiLambdaActionRedrawEntity();
+                                                        }
+                                                    }
                                                     action = true;
                                                     break;
                                             }
@@ -1267,6 +1293,7 @@ namespace AasxPackageLogic
             return null;
         }
 
+        [Obsolete("update to AddSmallContextMenuItemTo() using AnyUiContextMenuHeaderList()")]
         public AnyUiButton AddSmallContextMenuItemTo(
             AnyUiGrid g, int row, int col,
             string content,
@@ -1289,11 +1316,13 @@ namespace AasxPackageLogic
             AnyUiGrid.SetColumn(but, col);
             g.Children.Add(but);
             but.SpecialAction = new AnyUiSpecialActionContextMenu(
-                menuHeaders, null, menuItemLambdaAsync);
+                menuItemHeaders: new AnyUiContextMenuHeaderList(menuHeaders),
+                menuItemLambda: null,
+                menuItemLambdaAsync: menuItemLambdaAsync);
 
             // ok
             return (but);
-        }
+        }        
 
         public void AddKeyListKeys(
             AnyUiStackPanel view, string key,
@@ -1317,7 +1346,7 @@ namespace AasxPackageLogic
             bool topContextMenu = false,
             Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
-            string[] auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null,
+            AnyUiContextMenuHeaderList auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null,
             int maxNumOfKey = int.MaxValue,
             bool addKnownSemanticId = false)
         {
@@ -1612,55 +1641,53 @@ namespace AasxPackageLogic
 
                 if (topContextMenu)
                 {
-                    List<string> contextHeaders = new();
-                    contextHeaders.AddRange(new[] { "\u2205", "Set all keys \u2192 1 blank" });
-                    contextHeaders.AddRange(new[] { "\u2702", "Delete keys completely" });
+                    AnyUiContextMenuHeaderList contextHeaders = new();
+                    contextHeaders.Add(new AnyUiContextMenuHeader(0, "\u2205", "Set all keys \u2192 1 blank"));
+                    contextHeaders.Add(new AnyUiContextMenuHeader(1, "\u2702", "Delete keys completely"));
 
                     if (addEclassIrdi)
-                        contextHeaders.AddRange(new[] { "\U0001f517", "Add ECLASS" });
+                        contextHeaders.Add(new AnyUiContextMenuHeader(2, "\U0001f517", "Add ECLASS"));
                     if (jumpLambda != null)
-                        contextHeaders.AddRange(new[] { "\u21a6", "Jump" });
+                        contextHeaders.Add(new AnyUiContextMenuHeader(3, "\u21a6", "Jump"));
                     if (true)
-                        contextHeaders.AddRange(new[] { "\U0001f4cb", "Copy to clipboard" });
+                        contextHeaders.Add(new AnyUiContextMenuHeader(4, "\U0001f4cb", "Copy to clipboard"));
 
-                    var auxContextOfs = contextHeaders.Count / 2;
-                    if (auxContextHeader != null && auxContextHeader.Length >= 2)
-                        contextHeaders.AddRange(auxContextHeader);
+                    // the aux receive an index > 100
+                    contextHeaders.AddRangeWithOffet(auxContextHeader, 100);
 
                     AddSmallContextMenuItemTo(
                         g2, 0, currCol++,
                         "\u22ee",
-                        contextHeaders.ToArray(),
+                        contextHeaders,
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),
                         verticalAlignment: AnyUiVerticalAlignment.Center,
                         menuItemLambdaAsync: async (o) =>
                         {
-                            if (o is int oi && oi >= 0 && (2 * oi + 1) < contextHeaders.Count)
+                            if (o is int oi)
                             {
-                                if (oi >= auxContextOfs && auxContextLambda != null)
-                                    return auxContextLambda(oi - auxContextOfs);
+                                if (oi >= 100 && auxContextLambda != null)
+                                    return auxContextLambda(oi - 100);
 
-                                if (contextHeaders[2 * oi + 1].Contains("ECLASS"))
+                                if (oi == 2)
                                     return await lambdaEclassIrdiAsync(o);
 
-                                if (contextHeaders[2 * oi + 1].Contains("Jump"))
+                                if (oi == 3)
                                     return jumpLambda(keys);
 
-                                if (contextHeaders[2 * oi + 1].Contains("clipboard"))
+                                if (oi == 4)
                                     return await lambdaClipboardAsync(o);
 
-                                if (contextHeaders[2 * oi + 1].Contains("Set all")
-                                    || (contextHeaders[2 * oi + 1].Contains("Delete")))
+                                if (oi == 0 || oi == 1)
                                 {
                                     // re-init
-                                    if (contextHeaders[2 * oi + 1].Contains("Set all"))
+                                    if (oi == 0)
                                     {
                                         keys.Clear();
                                         keys.Add(Options.Curr.GetDefaultEmptyReference()?.Keys?.FirstOrDefault());
                                     }
 
-                                    if (contextHeaders[2 * oi + 1].Contains("Delete"))
+                                    if (oi == 1)
                                     {
                                         keys = null;
                                         setKeysNull?.Invoke();
@@ -1795,11 +1822,11 @@ namespace AasxPackageLogic
                         AddSmallContextMenuItemTo(
                                 g, 0 + i + rowOfs, 5,
                                 "\u22ee",
-                                new[] {
+                                new AnyUiContextMenuHeaderList(new[] {
                                     "\u2702", "Delete",
                                     "\u25b2", "Move Up",
                                     "\u25bc", "Move Down",
-                                },
+                                }),
                                 margin: new AnyUiThickness(2, 2, 2, 2),
                                 padding: new AnyUiThickness(5, 0, 5, 0),
                                 verticalAlignment: AnyUiVerticalAlignment.Center,

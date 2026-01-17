@@ -591,7 +591,7 @@ namespace AasxPackageLogic
                 // Allow administrative information to be deleted again
                 this.AddGroup(stack, "administration:", levelColors.SubSection,
                     requestAuxButton: repo != null,
-                    auxContextHeader: new[] { "\u2702", "Delete" },
+                    auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2702", "Delete" }),
                     auxContextLambdaAsync: async (o) =>
                     {
                         await Task.Yield();
@@ -647,7 +647,7 @@ namespace AasxPackageLogic
                         addExistingEntities: "All", // no restriction
                         relatedReferable: identifiable,
                         showRefSemId: false,
-                        auxContextHeader: new[] { "\u2702", "Delete" },
+                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2702", "Delete" }),
                         auxContextLambda: (i) =>
                         {
                             if (i == 0)
@@ -835,7 +835,7 @@ namespace AasxPackageLogic
                             addPresetNames: addPresetNames, addPresetKeyLists: addPresetKeyLists,
                             relatedReferable: relatedReferable,
                             showRefSemId: false,
-                            auxContextHeader: new[] { "\u2573", "Delete this dataSpec." },
+                            auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete this dataSpec." }),
                             auxContextLambda: (choice) =>
                             {
                                 if (choice == 0)
@@ -1317,7 +1317,7 @@ namespace AasxPackageLogic
                         return new AnyUiLambdaActionNavigateTo(new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>(kl)));
                     },
                     relatedReferable: relatedReferable,
-                    auxContextHeader: new[] { "\u2573", "Delete semanticId" },
+                    auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete semanticId" }),
                     auxContextLambda: (i) =>
                     {
                         if (i == 0)
@@ -1420,7 +1420,7 @@ namespace AasxPackageLogic
                                 return new AnyUiLambdaActionNavigateTo(new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>(kl)));
                             },
                             relatedReferable: relatedReferable,
-                            auxContextHeader: new[] { "\u2573", "Delete supplementalSemanticId" },
+                            auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete supplementalSemanticId" }),
                             auxContextLambda: (i) =>
                             {
                                 if (i == 0)
@@ -1457,7 +1457,7 @@ namespace AasxPackageLogic
             // members
             this.AddGroup(stack, "Qualifiable:", levelColors.SubSection,
                 requestAuxButton: repo != null,
-                auxContextHeader: new[] { "\u27f4", "Migrate to Extensions" },
+                auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u27f4", "Migrate to Extensions" }),
                 auxContextLambdaAsync: async (o) =>
                 {
                     if (o is int i && i == 0 && relatedReferable != null)

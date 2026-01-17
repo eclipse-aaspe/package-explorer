@@ -2245,7 +2245,7 @@ namespace MauiTestTree
                     Tag = i
                 };
 
-                var thisI = i;
+                var thisI = mi.Index;
                 menuItem.Click += (_, _) =>
                 {
                     tcs.TrySetResult(thisI);
