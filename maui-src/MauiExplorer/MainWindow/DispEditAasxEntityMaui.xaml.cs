@@ -305,8 +305,22 @@ public partial class DispEditAasxEntityMaui : ContentView
         _helper.LayoutHints.PlacementAdd = UILayoutHints.PosOfControl.Bottom;
         _helper.LayoutHints.ExplicitMultiLineEdit = false;
 
+        // Button Action
+        _helper.StyleButtonThin.Background = AnyUiBrushes.White;
+        _helper.StyleButtonThin.BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
+            XamlHelpers.GetDynamicRessource("PrimaryLight", Colors.Blue));
+        _helper.StyleButtonThin.BorderWidth = 0.8;
+        _helper.StyleButtonThin.TextColor = AnyUiBrushes.Black;
+
+        // Button Action
+        _helper.StyleButtonAction.Background = AnyUiBrushes.White;
+        _helper.StyleButtonAction.BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
+            XamlHelpers.GetDynamicRessource("Primary", Colors.Blue));
+        _helper.StyleButtonAction.BorderWidth = 2.0;
+        _helper.StyleButtonAction.TextColor = AnyUiBrushes.Black;
+
         // modify repository
-        ModifyRepo? repo = null;
+        ModifyRepo ? repo = null;
         if (editMode)
         {
             // some functionality still uses repo != null to detect editMode!!

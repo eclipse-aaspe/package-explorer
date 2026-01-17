@@ -176,6 +176,13 @@ namespace MauiTestTree
             return GetAnyUiColor(br.Color);
         }
 
+        public static AnyUiBrush GetAnyUiBrush(Color c)
+        {
+            if (c == null)
+                return AnyUiBrushes.Transparent;
+            return new AnyUiBrush(GetAnyUiColor(c));
+        }
+
         public static AnyUiBrush GetAnyUiBrush(SolidColorBrush br)
         {
             if (br == null)
@@ -1836,7 +1843,7 @@ namespace MauiTestTree
                         if (cntl.Foreground != null)
                             maui.TextColor = GetMauiColor(cntl.Foreground?.Color);
                         if (cntl.BorderColor != null)
-                            maui.BorderColor = GetMauiColor(cntl.Foreground?.Color);
+                            maui.BorderColor = GetMauiColor(cntl.BorderColor.Color);
                         if (cntl.BorderWidth != null)
                             maui.BorderWidth = cntl.BorderWidth.Value;
                         if (cntl.Padding != null)

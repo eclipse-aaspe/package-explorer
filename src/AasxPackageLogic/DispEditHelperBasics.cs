@@ -173,6 +173,26 @@ namespace AasxPackageLogic
 
         public UILayoutHints LayoutHints = new();
 
+        // some styles to be defined
+
+        /// <summary>
+        /// This style is to be taken for Buttons, which are pretty regular and might come
+        /// in numbers. Idea is, that they are recognizable as Buttons, but are visually light.
+        /// </summary>
+        public AnyUiStyleButton StyleButtonThin = new();
+
+        /// <summary>
+        /// This style is to be taken for Buttons, which are an important action for the user, 
+        /// enabling him to do something relevant.
+        /// </summary>
+        public AnyUiStyleButton StyleButtonAction = new();
+
+        /// <summary>
+        /// This style is for Buttons, which acknowledge a whole transaction, so a set of many
+        /// actions.
+        /// </summary>
+        public AnyUiStyleButton StyleButtonHero = new();
+
         //
         // Width of first column
         // (not always identical to maintain space efficiency)
@@ -1123,7 +1143,8 @@ namespace AasxPackageLogic
                             col: (LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Bottom) ? 1 : 3,
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
-                            content: "Add"),
+                            content: "Add",
+                            buttonStyle: StyleButtonAction),
                         verticalCenter: true,
                         colSpan: 1),
                         async (o) =>

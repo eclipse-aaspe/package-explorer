@@ -28,7 +28,11 @@ namespace AnyUi
         // Some style information
         //
 
-        public class ButtonStyle
+        public class AnyUiStyleBase
+        {
+        }
+
+        public class AnyUiStyleButton : AnyUiStyleBase
         {
             public AnyUiBrush Background = null;
             public AnyUiBrush BorderColor = null;
@@ -394,7 +398,7 @@ namespace AnyUi
             double? setHeight = null, AnyUiVerticalAlignment? verticalAlignment = null,
             bool? directInvoke = null, string toolTip = null,
             bool? modalDialogStyle = null,
-            ButtonStyle buttonStyle = null)
+            AnyUiStyleButton buttonStyle = null)
         {
             var but = new AnyUiButton();
             but.Margin = margin;
