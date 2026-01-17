@@ -5409,7 +5409,7 @@ namespace AasxPackageLogic
                     this.AddKeyValue(stack, "Values", "Please add elements via editing of sub-ordinate entities");
 
                 this.AddSmallCheckBox(
-                   stack, "orderRelevant:", sml.OrderRelevant ?? false, 
+                   stack, "orderRelevant:", sml.OrderRelevant ?? false,                    
                    additionalInfo: " (true if order in list is relevant)",
                    setValueAsync: async (b) => {
                        await Task.Yield();

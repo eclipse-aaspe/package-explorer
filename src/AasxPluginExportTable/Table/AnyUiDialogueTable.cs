@@ -326,7 +326,7 @@ namespace AasxPluginExportTable.Table
                                 helper.AddSmallCheckBoxTo(g2, 0, 0,
                                     content: "Act in hierarchy",
                                     isChecked: record.ActInHierarchy,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                    verticalCenter: true)),
                                 (b) => { record.ActInHierarchy = b; });
 
                         // Replace failed matches
@@ -337,7 +337,7 @@ namespace AasxPluginExportTable.Table
                                     content: "Replace failed matches: ",
                                     margin: new AnyUiThickness(15, 0, 0, 0),
                                     isChecked: record.ReplaceFailedMatches,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                    verticalCenter: true)),
                                 (b) => { record.ReplaceFailedMatches = b; });
 
                         // Matches Subst
@@ -347,7 +347,7 @@ namespace AasxPluginExportTable.Table
                                 helper.AddSmallTextBoxTo(g2, 0, 2,
                                     text: $"{record.FailText}",
                                     verticalAlignment: AnyUiVerticalAlignment.Center,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                    verticalCenter: true),
                                     minWidth: 150, maxWidth: 300,
                                     horizontalAlignment: AnyUiHorizontalAlignment.Left),
                                     (s) => { record.FailText = s; });

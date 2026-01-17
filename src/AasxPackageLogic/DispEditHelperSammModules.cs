@@ -292,8 +292,7 @@ namespace AasxPackageLogic
 				AnyUiUIElement.RegisterControl(
 					AddSmallCheckBoxTo(grid, 0, 1,
 						margin: new AnyUiThickness(2, 2, 2, 2),
-						verticalAlignment: AnyUiVerticalAlignment.Center,
-						verticalContentAlignment: AnyUiVerticalAlignment.Center,
+						verticalCenter: true,
 						content: "Opt.",
 						isChecked: osr.Optional),
 						async (v) =>

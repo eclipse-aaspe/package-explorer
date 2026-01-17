@@ -443,7 +443,7 @@ namespace AasxPackageExplorer
 
                     AnyUiUIElement.RegisterControl(
                         helper.AddSmallCheckBoxTo(utilsGrid, 0, 0, content: "Wrap", isChecked: wrap,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                            verticalCenter: true),
                         setValueAsync: async (o) =>
                         {
                             await Task.Yield();

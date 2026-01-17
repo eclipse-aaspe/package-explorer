@@ -379,7 +379,7 @@ namespace AnyUi
                                 helper.AddSmallCheckBoxTo(gridToAdd, row, 1,
                                     content: "",
                                     isChecked: boolVal,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                    verticalCenter: true)),
                             (b) =>
                             {
                                 AdminShellUtil.SetFieldLazyValue(f, data, b);

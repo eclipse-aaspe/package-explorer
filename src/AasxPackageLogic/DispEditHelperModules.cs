@@ -169,6 +169,7 @@ namespace AasxPackageLogic
                     this.AddDiaryEntry(referable, new DiaryEntryStructChange(), new DiaryReference(referable));
                     return new AnyUiLambdaActionNone();
                 },
+                keyVertCenter: true,
                 auxButtonTitles: DispEditInjectAction.GetTitles(new[] { "Fix" } , injectToIdShort),
                 auxButtonToolTips: DispEditInjectAction.GetToolTips(
                     new[] { "Fix characters of idShort to be in the allowed ranges." }, 
@@ -525,6 +526,7 @@ namespace AasxPackageLogic
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange(), diaryReference: dr);
                         return new AnyUiLambdaActionNone();
                     },
+                    keyVertCenter: true,
                     takeOverLambdaAction: new AnyUiLambdaActionRedrawAllElements(nextFocus: identifiable),
                     auxButtonOverride: true,
                     auxButtonTitles: DispEditInjectAction.GetTitles(new[] { "Generate" }, injectToId),
@@ -611,7 +613,8 @@ namespace AasxPackageLogic
                         identifiable.Administration.Version = v as string;
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
-                    });
+                    },
+                    keyVertCenter: true);
 
                 AddKeyValueExRef(
                     stack, "revision", identifiable.Administration, identifiable.Administration.Revision,
@@ -622,7 +625,8 @@ namespace AasxPackageLogic
                         identifiable.Administration.Revision = v as string;
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
-                    });
+                    },
+                    keyVertCenter: true);
 
                 if (this.SafeguardAccess(
                     stack, repo, identifiable.Administration.Creator, "creator:", "Create data element!",
@@ -666,7 +670,8 @@ namespace AasxPackageLogic
                         identifiable.Administration.TemplateId = v as string;
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
-                    });
+                    },
+                    keyVertCenter: true);
             }
         }
 
@@ -1230,7 +1235,9 @@ namespace AasxPackageLogic
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
                     },
-                    Enum.GetNames(typeof(Aas.ModellingKind)), comboBoxMinWidth: 105);
+                    Enum.GetNames(typeof(Aas.ModellingKind)),
+                    keyVertCenter: true,
+                    comboBoxMinWidth: 105);
             }
         }
 
@@ -2654,7 +2661,7 @@ namespace AasxPackageLogic
                                 helper.AddSmallCheckBoxTo(g, row, 1,
                                     content: "Delete supplementary file, if local",
                                     isChecked: record.DeleteFileAfter,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                    verticalCenter: true)),
                             (b) => { record.DeleteFileAfter = b; });
                     row++;
 

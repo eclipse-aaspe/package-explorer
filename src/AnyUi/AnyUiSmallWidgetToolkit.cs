@@ -446,8 +446,7 @@ namespace AnyUi
         public AnyUiCheckBox AddSmallCheckBoxTo(
             AnyUiGrid g, int row, int col, AnyUiThickness margin = null, AnyUiThickness padding = null,
             string content = "", bool isChecked = false, AnyUiBrush foreground = null, AnyUiBrush background = null,
-            AnyUiVerticalAlignment? verticalAlignment = null,
-            AnyUiVerticalAlignment? verticalContentAlignment = null)
+            bool verticalCenter = false)
         {
             var cb = new AnyUiCheckBox();
             cb.Margin = margin;
@@ -458,10 +457,11 @@ namespace AnyUi
                 cb.Background = background;
             cb.Content = content;
             cb.IsChecked = isChecked;
-            if (verticalAlignment != null)
-                cb.VerticalAlignment = verticalAlignment.Value;
-            if (verticalContentAlignment != null)
-                cb.VerticalContentAlignment = verticalContentAlignment.Value;
+            if (verticalCenter)
+            {
+                cb.VerticalAlignment = AnyUiVerticalAlignment.Center;
+                cb.VerticalContentAlignment = AnyUiVerticalAlignment.Center;
+            }
             AnyUiGrid.SetRow(cb, row);
             AnyUiGrid.SetColumn(cb, col);
             g.Children.Add(cb);
@@ -638,8 +638,7 @@ namespace AnyUi
                         AddSmallCheckBoxTo(grid, row, col++,
                             content: contentRight,
                             isChecked: isChecked,
-                            verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                            verticalCenter: true),
                         horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
                     setValue);
 

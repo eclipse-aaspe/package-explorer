@@ -1386,8 +1386,6 @@ namespace MauiTestTree
                     Log.Singleton.Error(ex, "creating log file: " + Options.Curr.LogFile);
                 }
 
-            Trace.WriteLine("*1*");
-
             // basic AnyUI handling
             DisplayContext = new AnyUiDisplayContextMaui(this, this, PackageCentral);
             Logic.DisplayContext = DisplayContext;
@@ -1464,14 +1462,10 @@ namespace MauiTestTree
 #endif
             }
 
-            Trace.WriteLine("*2*");
-
 
             // Timer
-            // StartTimer();
+            StartTimer();
 
-            Trace.WriteLine("*3*");
-            
             // attach result search
             //1// ToolFindReplace.Flyout = this;
             //1// ToolFindReplace.ResultSelected += ToolFindReplace_ResultSelected;
@@ -1742,8 +1736,6 @@ namespace MauiTestTree
             //1//     }
             //1// };
             
-            Trace.WriteLine("*5*");
-
             // initialize menu
             _viewModel.MainMenu?.SetChecked("FileRepoLoadWoPrompt", Options.Curr.LoadWithoutPrompt);
             _viewModel.MainMenu?.SetChecked("ShowDeprecated", Options.Curr.ShowIdAsIri);
@@ -1790,8 +1782,6 @@ namespace MauiTestTree
             // pump all pending log messages (from plugins) into the
             // log / status line, before setting the last information
             MainTimer_HandleLogMessages();
-
-            Trace.WriteLine("*6*");
 
             // Try to load?            
             if (Options.Curr.AasxToLoad?.HasContent() == true)

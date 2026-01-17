@@ -294,7 +294,7 @@ namespace AasxPluginAssetInterfaceDescription
                         margin: new AnyUiThickness(0, 0, 10, 0),
                         content: "" + tech.ToString(),
                         isChecked: _allInterfaceStatus.UseTech[(int)tech],
-                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                        verticalCenter: true),
                     (b) => { _allInterfaceStatus.UseTech[(int)tech] = b; });
             }
 

@@ -417,7 +417,8 @@ namespace AasxPackageLogic
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
                     },
-                    Enum.GetNames(typeof(Aas.QualifierKind)));
+                    Enum.GetNames(typeof(Aas.QualifierKind)),
+                    keyVertCenter: true);
                 }
 
                 // Type
@@ -439,12 +440,14 @@ namespace AasxPackageLogic
                         qual.Type = v as string;
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
-                    });
+                    },
+                    keyVertCenter: true);
 
                 // ValueType
 
                 AddKeyValueExRef(
                     substack, "valueType", qual, Aas.Stringification.ToString(qual.ValueType), null, repo,
+                    keyVertCenter: true,
                     comboBoxIsEditable: editMode,
                     comboBoxItems: ExtendStringification.DataTypeXsdToStringArray().ToArray(),
                     comboBoxMinWidth: 190,
@@ -469,6 +472,7 @@ namespace AasxPackageLogic
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
                     },
+                    keyVertCenter: true,
                     limitToOneRowForNoEdit: true,
                     auxButtonTitles: new[] { "\u2261" },
                     auxButtonToolTips: new[] { "Edit in multiline editor" },

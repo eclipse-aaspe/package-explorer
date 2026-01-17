@@ -126,66 +126,61 @@ namespace AasxPluginExportTable.Smt
 
                     // Row 2 : Include Tables
                     helper.AddSmallLabelTo(g, 2, 0, content: "Include tables:",
-                        verticalAlignment: AnyUiVerticalAlignment.Center,
-                        verticalContentAlignment: AnyUiVerticalAlignment.Center);
+                        verticalCenter: true);
                     AnyUiUIElement.SetBoolFromControl(
                         helper.Set(
                             helper.AddSmallCheckBoxTo(g, 2, 1,
                                 content: "(generated code for tables will be in main file)",
                                 isChecked: record.IncludeTables,
-                                verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                verticalCenter: true),
                                 colSpan: 2),
                             (b) => { record.IncludeTables = b; });
 
                     // Row 3 : Export HTML
                     helper.AddSmallLabelTo(g, 3, 0, content: "Export HTML:",
-                        verticalAlignment: AnyUiVerticalAlignment.Center,
-                        verticalContentAlignment: AnyUiVerticalAlignment.Center);
+                        verticalCenter: true);
                     AnyUiUIElement.SetBoolFromControl(
                         helper.Set(
                             helper.AddSmallCheckBoxTo(g, 3, 1,
                                 content: "(export command given by options will be executed)",
                                 isChecked: record.ExportHtml,
-                                verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                verticalCenter: true),
                                 colSpan: 2),
                             (b) => { record.ExportHtml = b; });
 
                     // Row 4 : Export Antora
                     helper.AddSmallLabelTo(g, 4, 0, content: "Antora style:",
-                        verticalAlignment: AnyUiVerticalAlignment.Center,
-                        verticalContentAlignment: AnyUiVerticalAlignment.Center);
+                        verticalCenter: true);
                     AnyUiUIElement.SetBoolFromControl(
                         helper.Set(
                             helper.AddSmallCheckBoxTo(g, 4, 1,
                                 content: "(dedicated sub-folders for images and diagrams)",
                                 isChecked: record.AntoraStyle,
-                                verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                verticalCenter: true),
                                 colSpan: 2),
                             (b) => { record.AntoraStyle = b; });
 
                     // Row 5 : Export PDF
                     helper.AddSmallLabelTo(g, 5, 0, content: "Export PDF:",
-                        verticalAlignment: AnyUiVerticalAlignment.Center,
-                        verticalContentAlignment: AnyUiVerticalAlignment.Center);
+                        verticalCenter: true);
                     AnyUiUIElement.SetBoolFromControl(
                         helper.Set(
                             helper.AddSmallCheckBoxTo(g, 5, 1,
                                 content: "(export command given by options will be executed)",
                                 isChecked: record.ExportPdf,
-                                verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                verticalCenter: true),
                                 colSpan: 2),
                             (b) => { record.ExportPdf = b; });
 
                     // Row 6 : View
                     helper.AddSmallLabelTo(g, 6, 0, content: "View result:",
-                        verticalAlignment: AnyUiVerticalAlignment.Center,
-                        verticalContentAlignment: AnyUiVerticalAlignment.Center);
+                        verticalCenter: true);
                     AnyUiUIElement.SetBoolFromControl(
                         helper.Set(
                             helper.AddSmallCheckBoxTo(g, 6, 1,
                                 content: "(export command given by options will be executed)",
                                 isChecked: record.ViewResult,
-                                verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                verticalCenter: true),
                                 colSpan: 2),
                             (b) => { record.ViewResult = b; });
 

@@ -2986,7 +2986,7 @@ namespace AasxPackageLogic.PackageCentral
                                     helper.AddSmallCheckBoxTo(g, row, 0,
                                         content: "Get all AAS",
                                         isChecked: record.GetAllAas,
-                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                        verticalCenter: true),
                                     colSpan: 2),
                                 async (o) =>
                                 {
@@ -3005,7 +3005,7 @@ namespace AasxPackageLogic.PackageCentral
                                     helper.AddSmallCheckBoxTo(g, row, 0,
                                         content: "Get single AAS",
                                         isChecked: record.GetSingleAas,
-                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                        verticalCenter: true),
                                     colSpan: 2),
                                 async (o) =>
                                 {
@@ -3038,7 +3038,7 @@ namespace AasxPackageLogic.PackageCentral
                                     helper.AddSmallCheckBoxTo(g, row, 0,
                                         content: "AAS by AssetId",
                                         isChecked: record.GetAasByAssetLink,
-                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                        verticalCenter: true),
                                     colSpan: 2),
                                 async (o) =>
                                 {
@@ -3071,7 +3071,7 @@ namespace AasxPackageLogic.PackageCentral
                                     helper.AddSmallCheckBoxTo(g, row, 0,
                                         content: "Get all Submodels",
                                         isChecked: record.GetAllSubmodel,
-                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                        verticalCenter: true),
                                     colSpan: 2),
                                 async (o) =>
                                 {
@@ -3090,7 +3090,7 @@ namespace AasxPackageLogic.PackageCentral
                                     helper.AddSmallCheckBoxTo(g, row, 0,
                                         content: "Get single Submodel",
                                         isChecked: record.GetSingleSubmodel,
-                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                        verticalCenter: true),
                                     colSpan: 2),
                                 async (o) =>
                                 {
@@ -3123,7 +3123,7 @@ namespace AasxPackageLogic.PackageCentral
                                     helper.AddSmallCheckBoxTo(g, row, 0,
                                         content: "Get all CDs",
                                         isChecked: record.GetAllCD,
-                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                        verticalCenter: true),
                                     colSpan: 2),
                                 async (o) =>
                                 {
@@ -3142,7 +3142,7 @@ namespace AasxPackageLogic.PackageCentral
                                     helper.AddSmallCheckBoxTo(g, row, 0,
                                         content: "Get single ConceptDescription (CD)",
                                         isChecked: record.GetSingleCD,
-                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                        verticalCenter: true),
                                     colSpan: 2),
                                 async (o) =>
                                 {
@@ -3248,7 +3248,7 @@ namespace AasxPackageLogic.PackageCentral
                                     helper.AddSmallCheckBoxTo(g2, 0, 0,
                                         content: "Get by query definition",
                                         isChecked: record.ExecuteQuery,
-                                        verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                        verticalCenter: true),
                                     async (o) =>
                                     {
                                         await Task.Yield();
@@ -3406,7 +3406,7 @@ namespace AasxPackageLogic.PackageCentral
                                     helper.AddSmallCheckBoxTo(g, row, 1,
                                         content: "Auto-load Submodels",
                                         isChecked: record.AutoLoadSubmodels,
-                                        verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                        verticalCenter: true)),
                                 (b) => { record.AutoLoadSubmodels = b; });
 
                         row++;
@@ -3418,7 +3418,7 @@ namespace AasxPackageLogic.PackageCentral
                                     helper.AddSmallCheckBoxTo(g, row, 1,
                                         content: "Auto-load ConceptDescriptions",
                                         isChecked: record.AutoLoadCds,
-                                        verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                        verticalCenter: true)),
                                 (b) => { record.AutoLoadCds = b; });
 
                         row++;
@@ -3430,7 +3430,7 @@ namespace AasxPackageLogic.PackageCentral
                                     helper.AddSmallCheckBoxTo(g, row, 1,
                                         content: "Auto-load thumbnail for every AAS",
                                         isChecked: record.AutoLoadThumbnails,
-                                        verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                        verticalCenter: true)),
                                 (b) => { record.AutoLoadThumbnails = b; });
 
                         row++;
@@ -3442,7 +3442,7 @@ namespace AasxPackageLogic.PackageCentral
                                     helper.AddSmallCheckBoxTo(g, row, 1,
                                         content: "Auto-loaded elements for later on-demand loading",
                                         isChecked: record.AutoLoadOnDemand,
-                                        verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                        verticalCenter: true)),
                                 (b) => { record.AutoLoadOnDemand = b; });
 
                         row++;
@@ -3454,7 +3454,7 @@ namespace AasxPackageLogic.PackageCentral
                                     helper.AddSmallCheckBoxTo(g, row, 1,
                                         content: "Encrypt Ids (needs to be checked, unless encrypted Ids are provided)",
                                         isChecked: record.EncryptIds,
-                                        verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                        verticalCenter: true)),
                                 (b) => { record.EncryptIds = b; });
 
                         row++;
@@ -3466,7 +3466,7 @@ namespace AasxPackageLogic.PackageCentral
                                     helper.AddSmallCheckBoxTo(g, row, 1,
                                         content: "Authenticate (X5C, Entra, PW) and determine header data",
                                         isChecked: record.AutoAuthenticate,
-                                        verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                        verticalCenter: true)),
                                 (b) => { record.AutoAuthenticate = b; });
 
                         row++;
@@ -3509,7 +3509,7 @@ namespace AasxPackageLogic.PackageCentral
                                         helper.AddSmallCheckBoxTo(g, row, 1,
                                             content: "Stay connected (will receive events)",
                                             isChecked: record.StayConnected,
-                                            verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                            verticalCenter: true)),
                                     (b) => { record.StayConnected = b; });
 
                         row++;
@@ -3828,7 +3828,7 @@ namespace AasxPackageLogic.PackageCentral
                                 helper.AddSmallCheckBoxTo(g, row, 1,
                                     content: "Include Submodels (in upload)",
                                     isChecked: recordJob.IncludeSubmodels,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                    verticalCenter: true)),
                             (b) => { recordJob.IncludeSubmodels = b; });
 
                     row++;
@@ -3839,7 +3839,7 @@ namespace AasxPackageLogic.PackageCentral
                                 helper.AddSmallCheckBoxTo(g, row, 1,
                                     content: "Include thumbnail file(s)",
                                     isChecked: recordJob.IncludeThumbFiles,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                    verticalCenter: true)),
                             (b) => { recordJob.IncludeThumbFiles = b; });
 
                     row++;
@@ -3850,7 +3850,7 @@ namespace AasxPackageLogic.PackageCentral
                                 helper.AddSmallCheckBoxTo(g, row, 1,
                                     content: "Include ConceptDescriptions (in upload)",
                                     isChecked: recordJob.IncludeCDs,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                    verticalCenter: true)),
                             (b) => { recordJob.IncludeCDs = b; });
 
                     row++;
@@ -3861,7 +3861,7 @@ namespace AasxPackageLogic.PackageCentral
                                 helper.AddSmallCheckBoxTo(g, row, 1,
                                     content: "Include supplementary files for File elements",
                                     isChecked: recordJob.IncludeSupplFiles,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                    verticalCenter: true)),
                             (b) => { recordJob.IncludeSupplFiles = b; });
 
                     row++;
@@ -3872,7 +3872,7 @@ namespace AasxPackageLogic.PackageCentral
                                 helper.AddSmallCheckBoxTo(g, row, 1,
                                     content: "Upload to overwrite on repository, if exists",
                                     isChecked: recordJob.OverwriteIfExist,
-                                    verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                    verticalCenter: true)),
                             (b) => { recordJob.OverwriteIfExist = b; });
 
                     row++;

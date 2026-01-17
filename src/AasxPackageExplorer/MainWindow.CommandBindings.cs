@@ -795,7 +795,7 @@ namespace AasxPackageExplorer
                             helper.AddSmallCheckBoxTo(g, ++row, 2,
                                 content: "Set retain flag in MQTT messages",
                                 isChecked: data.MqttRetain,
-                                verticalContentAlignment: AnyUiVerticalAlignment.Center)),
+                                verticalCenter: true)),
                             (b) => { data.MqttRetain = b; });
 
                     // VSpace
@@ -807,7 +807,7 @@ namespace AasxPackageExplorer
                         helper.AddSmallCheckBoxTo(g, row, 2,
                             content: "Enable publishing",
                             isChecked: data.EnableFirstPublish,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                            verticalCenter: true),
                         (b) => { data.EnableFirstPublish = b; });
 
                     // Row : Topic AAS
@@ -843,7 +843,7 @@ namespace AasxPackageExplorer
                         helper.AddSmallCheckBoxTo(g, row, 2,
                             content: "Enable publishing",
                             isChecked: data.EnableEventPublish,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                            verticalCenter: true),
                         (b) => { data.EnableEventPublish = b; });
 
                     // Row : Topic event publish
@@ -867,7 +867,7 @@ namespace AasxPackageExplorer
                         helper.AddSmallCheckBoxTo(g, row, 2,
                             content: "Enable publishing",
                             isChecked: data.SingleValuePublish,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                            verticalCenter: true),
                         (b) => { data.SingleValuePublish = b; });
 
                     // Row : single value first time
@@ -875,7 +875,7 @@ namespace AasxPackageExplorer
                         helper.AddSmallCheckBoxTo(g, ++row, 2,
                             content: "First time",
                             isChecked: data.SingleValueFirstTime,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                            verticalCenter: true),
                         (b) => { data.SingleValueFirstTime = b; });
 
                     // Row : Topic single value publish

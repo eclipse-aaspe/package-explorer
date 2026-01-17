@@ -658,14 +658,15 @@ namespace AasxPackageLogic
             bool value,             
 			Func<bool, Task<AnyUiLambdaActionBase>> setValueAsync = null,
 			string additionalInfo = "",
-			string[] boolTexts = null)
+			string[] boolTexts = null,
+            bool verticalCenter = false)
         {
             // make grid
             var g = this.AddSmallGrid(1, 2, new[] { "" + this.GetWidth(FirstColumnWidth.Standard) + ":", "*" },
                     margin: new AnyUiThickness(0, 2, 0, 0));
 
             // Column 0 = Key
-            this.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: key);
+            this.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: key, verticalCenter: verticalCenter);
 
             // Column 1 = Check box or info
             if (repo == null || setValueAsync == null)
@@ -676,12 +677,12 @@ namespace AasxPackageLogic
 					strVal = (value) ? boolTexts[1] : boolTexts[0];
 
 				this.AddSmallLabelTo(g, 0, 1, padding: new AnyUiThickness(2, 0, 0, 0),
-                        content: strVal);
+                        content: strVal, verticalCenter: verticalCenter);
             }
             else
             {
                 AnyUiUIElement.RegisterControl(this.AddSmallCheckBoxTo(g, 0, 1, margin: new AnyUiThickness(2, 2, 2, 2),
-                    content: additionalInfo, verticalContentAlignment: AnyUiVerticalAlignment.Center,
+                    content: additionalInfo, verticalCenter: verticalCenter,
                     isChecked: value),
                         setValueAsync: async (o) =>
                         {
@@ -883,6 +884,7 @@ namespace AasxPackageLogic
             // populate key
             AddSmallLabelTo(g, 0, 0, margin: new AnyUiThickness(5, 0, 0, 0),
                 setNoWrap: true,
+                verticalCenter: true,
                 content: "" + key + ":");
 
             // populate [+]
