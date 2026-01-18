@@ -139,6 +139,27 @@ namespace AasxPackageLogic
         /// Cons: Takes horizontal space for each text field
         /// </summary>
         public bool ExplicitMultiLineEdit = true;
+
+        // some styles
+
+        /// <summary>
+        /// This style is to be taken for Buttons, which are pretty regular and might come
+        /// in numbers. Idea is, that they are recognizable as Buttons, but are visually light.
+        /// </summary>
+        public AnyUiButton StyleButtonThin = new();
+
+        /// <summary>
+        /// This style is to be taken for Buttons, which are an important action for the user, 
+        /// enabling him to do something relevant.
+        /// </summary>
+        public AnyUiButton StyleButtonAction = new();
+
+        /// <summary>
+        /// This style is for Buttons, which acknowledge a whole transaction, so a set of many
+        /// actions.
+        /// </summary>
+        public AnyUiButton StyleButtonHero = new();
+
     }
 
     //
@@ -157,7 +178,7 @@ namespace AasxPackageLogic
 
         public DispLevelColors levelColors = null;
 
-        public enum FirstColumnWidth { Standard, Small, Large }
+        public enum FirstColumnWidth { No, Standard, Small, Large }
 
         public const int valueFieldsMinWidth = 50;
 
@@ -173,25 +194,11 @@ namespace AasxPackageLogic
 
         public UILayoutHints LayoutHints = new();
 
-        // some styles to be defined
-
         /// <summary>
-        /// This style is to be taken for Buttons, which are pretty regular and might come
-        /// in numbers. Idea is, that they are recognizable as Buttons, but are visually light.
+        /// This tag value identifies controls, which can be substituted in order to 
+        /// reduce complexity.
         /// </summary>
-        public AnyUiStyleButton StyleButtonThin = new();
-
-        /// <summary>
-        /// This style is to be taken for Buttons, which are an important action for the user, 
-        /// enabling him to do something relevant.
-        /// </summary>
-        public AnyUiStyleButton StyleButtonAction = new();
-
-        /// <summary>
-        /// This style is for Buttons, which acknowledge a whole transaction, so a set of many
-        /// actions.
-        /// </summary>
-        public AnyUiStyleButton StyleButtonHero = new();
+        public const string TAG_ControlToBeSubstituted = nameof(TAG_ControlToBeSubstituted);
 
         //
         // Width of first column
@@ -200,6 +207,8 @@ namespace AasxPackageLogic
 
         public int GetWidth(FirstColumnWidth cw)
         {
+            if (cw == FirstColumnWidth.No)
+                return 0;
             if (cw == FirstColumnWidth.Small)
                 return 40;
             if (cw == FirstColumnWidth.Large)
@@ -364,11 +373,12 @@ namespace AasxPackageLogic
             AnyUiLambdaActionBase takeOverLambdaAction = null,
             bool limitToOneRowForNoEdit = false,
             int comboBoxMinWidth = -1,
-			int firstColumnWidth = -1, // -1 = Standard
-			int maxLines = -1,
+            FirstColumnWidth? firstColumnWidth = null,
+            int maxLines = -1,
 			bool keyVertCenter = false,
             bool auxButtonOverride = false,
-            bool isValueReadOnly = false)
+            bool isValueReadOnly = false,
+            AnyUiButton buttonStyle = null)
         {
             AddKeyValue(
                 view, key, value, nullValue, repo, setValueAsync, comboBoxItems, comboBoxIsEditable,
@@ -380,7 +390,8 @@ namespace AasxPackageLogic
                 firstColumnWidth: firstColumnWidth,
                 maxLines: maxLines,
                 keyVertCenter: keyVertCenter,
-                isValueReadOnly: isValueReadOnly);
+                isValueReadOnly: isValueReadOnly,
+                buttonStyle: buttonStyle);
         }
 
         /// <summary>
@@ -420,11 +431,12 @@ namespace AasxPackageLogic
             object containingObject = null,
             bool limitToOneRowForNoEdit = false,
             int comboBoxMinWidth = -1,
-            int firstColumnWidth = -1, // -1 = Standard
+            FirstColumnWidth? firstColumnWidth = null,
             int maxLines = -1,
             bool keyVertCenter = false,
             bool auxButtonOverride = false,
-            bool isValueReadOnly = false)
+            bool isValueReadOnly = false,
+            AnyUiButton buttonStyle = null)
         {
             // draw anyway?
             if (repo != null && value == null)
@@ -461,16 +473,17 @@ namespace AasxPackageLogic
             g.Margin = new AnyUiThickness(0, 1, 0, 1);
             var gc1 = new AnyUiColumnDefinition();
             gc1.Width = AnyUiGridLength.Auto;
-            if (firstColumnWidth >= 0)
-                gc1.MinWidth = firstColumnWidth;
-            if (firstColumnWidth == -1)
-                gc1.MinWidth = this.GetWidth(FirstColumnWidth.Standard);
             g.ColumnDefinitions.Add(gc1);
             var gc2 = new AnyUiColumnDefinition();
             gc2.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Star);
             g.ColumnDefinitions.Add(gc2);
             // 2024-05-09: add a minimum width to these kinds of fields
             gc2.MinWidth = valueFieldsMinWidth;
+
+            if (firstColumnWidth != null)
+                MaintainFirstColumnWidth(g, firstColumnWidth);
+            else
+                g.ColumnDefinitions[0].MinWidth = GetWidth(FirstColumnWidth.Standard);
 
             if (auxButton)
                 for (int i = 0; i < intButtonTitles.Count; i++)
@@ -481,12 +494,15 @@ namespace AasxPackageLogic
                 }
 
             // Label for key
-            var klb = AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "" + key + ":");
-            if (keyVertCenter)
+            if (firstColumnWidth != FirstColumnWidth.No)
             {
-                klb.VerticalAlignment = AnyUiVerticalAlignment.Center;
-                klb.VerticalContentAlignment = AnyUiVerticalAlignment.Center;
-                klb.Margin = new AnyUiThickness(0, -1, 0, 0);
+                var klb = AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "" + key + ":");
+                if (keyVertCenter)
+                {
+                    klb.VerticalAlignment = AnyUiVerticalAlignment.Center;
+                    klb.VerticalContentAlignment = AnyUiVerticalAlignment.Center;
+                    klb.Margin = new AnyUiThickness(0, -1, 0, 0);
+                }
             }
 
             // Label / TextBox for value
@@ -563,6 +579,7 @@ namespace AasxPackageLogic
                             g, 0, 2 + i,
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
+                            buttonStyle: buttonStyle,
                             content: intButtonTitles[i]),
                             setValueAsync: lmbAsync) as AnyUiButton;
                     if (i < intButtonToolTips.Count)
@@ -1073,6 +1090,7 @@ namespace AasxPackageLogic
                                         new AnyUiContextMenuHeader(101, "\u2261", "Edit multiline")),
                                     margin: new AnyUiThickness(2, 2, 2, 2),
                                     padding: new AnyUiThickness(5, 0, 5, 0),
+                                    buttonStyle: LayoutHints.StyleButtonThin,
                                     menuItemLambdaAsync: async (o) =>
                                     {
                                         await Task.Yield();
@@ -1144,7 +1162,7 @@ namespace AasxPackageLogic
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             content: "Add",
-                            buttonStyle: StyleButtonAction),
+                            buttonStyle: LayoutHints.StyleButtonAction),
                         verticalCenter: true,
                         colSpan: 1),
                         async (o) =>
@@ -1382,7 +1400,8 @@ namespace AasxPackageLogic
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
             AnyUiContextMenuHeaderList auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null,
             int maxNumOfKey = int.MaxValue,
-            bool addKnownSemanticId = false)
+            bool addKnownSemanticId = false,
+            FirstColumnWidth? firstColumnWidth = null)
         {
             // sometimes needless to show
             if (repo == null && (keys == null || keys.Count < 1))
@@ -1405,12 +1424,17 @@ namespace AasxPackageLogic
             // Grid
             var g = AddSmallGrid(rows + rowOfs, 6, new[] { "#", "#", "#", "#", "*", "#", },
                 margin: new AnyUiThickness(0, 0, 0, 0));
-            g.ColumnDefinitions[0].MinWidth = GetWidth(FirstColumnWidth.Standard);
+
+            if (firstColumnWidth != null)
+                MaintainFirstColumnWidth(g, firstColumnWidth);
+            else
+                g.ColumnDefinitions[0].MinWidth = GetWidth(FirstColumnWidth.Standard);
 
             // populate key
-            AddSmallLabelTo(g, 0, 0, margin: new AnyUiThickness(5, 0, 0, 0),
-                verticalAlignment: AnyUiVerticalAlignment.Center,
-                content: "" + key + ":");
+            if (firstColumnWidth != FirstColumnWidth.No)
+                AddSmallLabelTo(g, 0, 0, margin: new AnyUiThickness(5, 0, 0, 0),
+                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                    content: "" + key + ":");
 
             // presets?
             var presetNo = 0;
@@ -1935,6 +1959,107 @@ namespace AasxPackageLogic
                 AddAction(view, key, actionStr, repo, actionAsync: actionAsync, firstColumnWidth: firstColumnWidth);
             return (data != null);
         }
+
+        /// <summary>
+        /// Generates a string for the <c>AddSmallGrid</c> function to represent the first column
+        /// </summary>
+        [Obsolete]
+        public string DetermineFirstColumnWidth(FirstColumnWidth? firstColumnWidth = FirstColumnWidth.Standard)
+        {
+            if (firstColumnWidth != null)
+            {
+                var w = GetWidth(FirstColumnWidth.Standard);
+                return $"{w}:";
+            }
+            return "#";
+        }
+
+
+        /// <summary>
+        /// Generates a string for the <c>AddSmallGrid</c> function to represent the first column
+        /// </summary>
+        public AnyUiGrid MaintainFirstColumnWidth(
+            AnyUiGrid g, 
+            FirstColumnWidth? firstColumnWidth = FirstColumnWidth.Standard)
+        {
+            // access
+            if (g?.ColumnDefinitions == null || g.ColumnDefinitions.Count < 1 || firstColumnWidth == null)
+                return g;
+
+            // apply
+            g.ColumnDefinitions[0].MinWidth = GetWidth(firstColumnWidth.Value);
+
+            // done
+            return g;
+        }
+
+        public bool SafeguardAccessNew(
+            AnyUiStackPanel view, ModifyRepo repo, 
+            Func<bool> lambdaIsNone,
+            Action lambdaSetNull,
+            string key, string actionStr,
+            Func<int, Task<AnyUiLambdaActionBase>> lambdaCreate,
+            Action<AnyUiStackPanel> lambdaSuccess,
+            FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard,
+            AnyUiThickness margin = null)
+        {
+            // new approach: make a two column grid for key and the rest
+            var g = MaintainFirstColumnWidth(
+                        AddSmallGrid(1, 2, new[] { "#", "*" }, margin: margin),
+                        firstColumnWidth);
+            view?.Children?.Add(g);
+
+            // key
+            var x = AddSmallLabelTo(g, 0, 0, margin: new AnyUiThickness(5, 0, 0, 0),
+                setNoWrap: true,
+                content: "" + key,
+                verticalCenter: true);
+
+            // the old data == 0 ?
+            if (lambdaIsNone != null && lambdaIsNone.Invoke() == true)
+            {
+                // unify to null
+                lambdaSetNull?.Invoke();
+
+                // display a button for action?
+                if (repo != null)
+                {
+                    AnyUiUIElement.RegisterControl(
+                        Set(
+                            AddSmallButtonTo(
+                                g, 0, 1,
+                                margin: new AnyUiThickness(0, 2, 4, 2),
+                                padding: new AnyUiThickness(5, 0, 5, 0),
+                                content: "" + actionStr,
+                                buttonStyle: LayoutHints.StyleButtonAction),
+                            horizontalAlignment: AnyUiHorizontalAlignment.Left),
+                        async (o) =>
+                        {
+                            if (lambdaCreate != null)
+                                return await lambdaCreate.Invoke((int)0);
+                            return new AnyUiLambdaActionNone();
+                        });
+                }
+
+                // nope is negative result
+                return false;
+            }
+            else
+            {
+                // make a panel to put childs to it
+                var childPanel = AddSmallStackPanelTo(g, 0, 1, setVertical: true);
+
+                // mark to be potentially be substituted
+                childPanel.Tag = TAG_ControlToBeSubstituted;
+
+                // put contents to 
+                lambdaSuccess?.Invoke(childPanel);
+
+                // success is positive result
+                return true;
+            }
+        }
+
 
         public bool SafeguardAccess(
             AnyUiStackPanel view, ModifyRepo repo, object data, string key,

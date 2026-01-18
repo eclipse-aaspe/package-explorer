@@ -306,18 +306,18 @@ public partial class DispEditAasxEntityMaui : ContentView
         _helper.LayoutHints.ExplicitMultiLineEdit = false;
 
         // Button Action
-        _helper.StyleButtonThin.Background = AnyUiBrushes.White;
-        _helper.StyleButtonThin.BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
-            XamlHelpers.GetDynamicRessource("PrimaryLight", Colors.Blue));
-        _helper.StyleButtonThin.BorderWidth = 0.8;
-        _helper.StyleButtonThin.TextColor = AnyUiBrushes.Black;
+        _helper.LayoutHints.StyleButtonThin.Background = AnyUiBrushes.White;
+        _helper.LayoutHints.StyleButtonThin.BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
+            XamlHelpers.GetDynamicRessource("ThinCntlBorder", Colors.Blue));
+        _helper.LayoutHints.StyleButtonThin.BorderWidth = 0.8;
+        _helper.LayoutHints.StyleButtonThin.Foreground = AnyUiBrushes.Black;
 
         // Button Action
-        _helper.StyleButtonAction.Background = AnyUiBrushes.White;
-        _helper.StyleButtonAction.BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
+        _helper.LayoutHints.StyleButtonAction.Background = AnyUiBrushes.White;
+        _helper.LayoutHints.StyleButtonAction.BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
             XamlHelpers.GetDynamicRessource("Primary", Colors.Blue));
-        _helper.StyleButtonAction.BorderWidth = 2.0;
-        _helper.StyleButtonAction.TextColor = AnyUiBrushes.Black;
+        _helper.LayoutHints.StyleButtonAction.BorderWidth = 2.0;
+        _helper.LayoutHints.StyleButtonAction.Foreground = AnyUiBrushes.Black;
 
         // modify repository
         ModifyRepo ? repo = null;

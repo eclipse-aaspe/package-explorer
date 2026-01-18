@@ -815,6 +815,101 @@ namespace AnyUi
     }
 
     //
+    // Image sources
+    //
+
+    /// <summary>
+    /// Abstract class to represent a source of an image, e.g.
+    /// font-based or bitmap-based
+    /// </summary>
+    public class AnyUiImageSourceBase
+    {
+    }
+
+    public enum AnyUiIconColor { Normal, Intense, Delete }
+
+    public class AnyUiImageSourceFont : AnyUiImageSourceBase
+    {
+        /// <summary>
+        /// "Letter" of the font, which denotes the icon = image.
+        /// </summary>
+        public string IconGlyph;
+
+        /// <summary>
+        /// Font id alias, to be directly translated by the display context to result 
+        /// in a font family name for system lookup.
+        /// </summary>
+        public string FontId;
+
+        /// <summary>
+        /// Size of the font
+        /// </summary>
+        public double? FontSize;
+
+        /// <summary>
+        /// Color of the icon
+        /// </summary>
+        public AnyUiIconColor Color = AnyUiIconColor.Normal;
+
+        public AnyUiImageSourceFont() : base() { }
+        public AnyUiImageSourceFont(string fontFamily, string iconGlyph, AnyUiIconColor color) 
+            : base() 
+        {
+            FontId = fontFamily;
+            IconGlyph = iconGlyph;
+            Color = color;
+        }
+    }
+
+    //
+    // Buttons as form of Text and Image
+    //
+
+    public class AnyUiButtonHeader
+    {
+        public string Text;
+        public string ToolTip;
+        public AnyUiImageSourceBase Image;
+
+        public AnyUiButtonHeader() : base() { }
+
+        public AnyUiButtonHeader(string text, string toolTip = null) 
+            : base() 
+        {
+            Text = text;
+            ToolTip = toolTip;
+        }
+
+        public AnyUiButtonHeader(AnyUiImageSourceBase image, string text = null)
+            : base()
+        {
+            Image = image;
+            Text = text;
+        }
+    }
+
+    public class AnyUiButtonHeaderList : List<AnyUiButtonHeader>
+    {
+        public AnyUiButtonHeaderList() : base() { }
+
+        public AnyUiButtonHeaderList(IEnumerable<AnyUiButtonHeader> members) : base(members) { }
+
+        public AnyUiButtonHeaderList(IList<string> headers, IList<string> toolTips) : base()
+        {
+            var n = Math.Max(
+                (headers == null) ? 0 : headers.Count(),
+                (toolTips == null) ? 0 : toolTips.Count()
+            );
+
+            for (int i = 0; i < n; i++)
+                Add(new AnyUiButtonHeader(
+                    text: (headers != null && headers.Count() > i) ? headers[i] : null,
+                    toolTip: (toolTips != null && toolTips.Count() > i) ? toolTips[i] : null
+                    ));
+        }
+    }
+
+    //
     // Hierarchy of AnyUI graphical elements (including controls).
     // This hierarchy stems from the WPF hierarchy but should be sufficiently 
     // abstracted in order to be implemented an many UI systems
@@ -896,6 +991,21 @@ namespace AnyUi
         /// Touches the element
         /// </summary>
         public virtual void Touch() { Touched = true; }
+
+        /// <summary>
+        /// If properties are set in <c>style</c> they will overwrite the ones
+        /// in this instance.
+        /// </summary>
+        public virtual void ApplyAsStyle(AnyUiUIElement style)
+        {
+            // base - nope
+
+            // this
+            if (style is AnyUiUIElement s)
+            {
+                // nothing yet
+            }
+        }
 
         /// <summary>
         /// This function attaches the above lambdas accordingly to a given user control.
@@ -1111,6 +1221,35 @@ namespace AnyUi
         public object Tag = null;
 
         public AnyUiEventMask EmitEvent;
+
+        /// <summary>
+        /// If properties are set in <c>style</c> they will overwrite the ones
+        /// in this instance.
+        /// </summary>
+        public virtual new void ApplyAsStyle(AnyUiUIElement style)
+        {
+            // base?
+            base.ApplyAsStyle(style);
+
+            // this
+            if (style is AnyUiFrameworkElement s)
+            {
+                if (s.Margin != null)
+                    Margin = s.Margin;
+                if (s.VerticalAlignment != null)
+                    VerticalAlignment = s.VerticalAlignment.Value;
+                if (s.HorizontalAlignment != null)
+                    HorizontalAlignment = s.HorizontalAlignment.Value;
+                if (s.MinHeight.HasValue)
+                    MinHeight = s.MinHeight.Value;
+                if (s.MinWidth.HasValue)
+                    MinWidth = s.MinWidth.Value;
+                if (s.MaxHeight.HasValue)
+                    MaxHeight = s.MaxHeight.Value;
+                if (s.MaxWidth.HasValue)
+                    MaxWidth = s.MaxWidth.Value;
+            }
+        }
     }
 
     /// <summary>
@@ -1220,6 +1359,37 @@ namespace AnyUi
         public bool FontMono = false;
 
         public AnyUiBrush GetBackground() => Background;
+
+        /// <summary>
+        /// If properties are set in <c>style</c> they will overwrite the ones
+        /// in this instance.
+        /// </summary>
+        public virtual new void ApplyAsStyle(AnyUiUIElement style)
+        {
+            // base?
+            base.ApplyAsStyle(style);
+
+            // this
+            if (style is AnyUiControl s)
+            {
+                if (s.Background != null)
+                    Background = s.Background;
+                if (s.Foreground != null)
+                    Foreground = s.Foreground;
+                if (s.BorderColor != null)
+                    BorderColor = s.BorderColor;
+                if (s.BorderWidth.HasValue)
+                    BorderWidth = s.BorderWidth.Value;
+                if (s.VerticalContentAlignment != null)
+                    VerticalContentAlignment = s.VerticalContentAlignment.Value;
+                if (s.HorizontalContentAlignment != null)
+                    HorizontalContentAlignment = s.HorizontalContentAlignment.Value;
+                if (s.FontSize.HasValue)
+                    FontSize = s.FontSize.Value;
+                if (s.FontMono)
+                    FontMono = s.FontMono;
+            }
+        }
     }
 
     public class AnyUiContentControl : AnyUiControl, IEnumerateChildren
@@ -1230,6 +1400,22 @@ namespace AnyUi
         {
             if (Content != null)
                 yield return Content;
+        }
+
+        /// <summary>
+        /// If properties are set in <c>style</c> they will overwrite the ones
+        /// in this instance.
+        /// </summary>
+        public virtual new void ApplyAsStyle(AnyUiUIElement style)
+        {
+            // base?
+            base.ApplyAsStyle(style);
+
+            // this
+            if (style is AnyUiContentControl s)
+            {
+                // nothing here
+            }
         }
     }
 
@@ -1563,6 +1749,23 @@ namespace AnyUi
         public bool DirectInvoke;
 
         public AnyUiSpecialActionBase SpecialAction;
+
+        /// <summary>
+        /// If properties are set in <c>style</c> they will overwrite the ones
+        /// in this instance.
+        /// </summary>
+        public virtual new void ApplyAsStyle(AnyUiUIElement style)
+        {
+            // base?
+            base.ApplyAsStyle(style);
+
+            // this
+            if (style is AnyUiButton s)
+            {
+                if (s.Padding != null)
+                    Padding = s.Padding;
+            }
+        }
     }
 
     public class AnyUiCountryFlag : AnyUiFrameworkElement
@@ -1651,4 +1854,5 @@ namespace AnyUi
             return _imageDictionary[guid];
         }
     }
+
 }

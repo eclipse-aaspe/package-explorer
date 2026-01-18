@@ -2102,6 +2102,8 @@ namespace AasxPackageLogic
                         "According to the specification, empty values are not allowed. " +
                         "Please delete the data element or set the content.")
                 });
+
+#if OLD_SAFEGUARD
             if (SafeguardAccess(
                 stack, repo, dsiec.Value, "value:", "Create data element!",
                 async (v) =>
@@ -2135,6 +2137,47 @@ namespace AasxPackageLogic
                         return new AnyUiLambdaActionNone();
                     });
             }
+#else
+            SafeguardAccessNew(
+                stack, repo,
+                () => dsiec.Value == null,
+                () => dsiec.Value = null,
+                "value:", "Add",
+                lambdaCreate: async (v) =>
+                {
+                    await Task.Yield();
+                    dsiec.Value = "";
+                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                    return new AnyUiLambdaActionRedrawEntity();
+                },
+                lambdaSuccess: (childView) =>
+                {
+                    AddKeyValueExRef(
+                        childView, "value", dsiec, dsiec.Value, null, repo,
+                        async (v) =>
+                        {
+                            await Task.Yield();
+                            dsiec.Value = v as string;
+                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                            return new AnyUiLambdaActionNone();
+                        },
+                        firstColumnWidth: FirstColumnWidth.No,
+                        buttonStyle: LayoutHints.StyleButtonThin,
+                        auxButtonTitles: new[] { "Delete" },
+                        auxButtonToolTips: new[] { "Delete data element" },
+                        auxButtonLambdaAsync: async (i) =>
+                        {
+                            await Task.Yield();
+                            if (i == 0)
+                            {
+                                dsiec.Value = null;
+                                this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                                return new AnyUiLambdaActionRedrawEntity();
+                            }
+                            return new AnyUiLambdaActionNone();
+                        });
+                });
+#endif
 
             // LevelType
 

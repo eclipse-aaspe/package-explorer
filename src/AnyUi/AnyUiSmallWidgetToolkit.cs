@@ -25,24 +25,6 @@ namespace AnyUi
         public bool showIriMode = false;
 
         //
-        // Some style information
-        //
-
-        public class AnyUiStyleBase
-        {
-        }
-
-        public class AnyUiStyleButton : AnyUiStyleBase
-        {
-            public AnyUiBrush Background = null;
-            public AnyUiBrush BorderColor = null;
-            public double? BorderWidth = null;
-            public AnyUiBrush TextColor = null;
-            public double? FontSize = null;
-            public AnyUiFontWeight? FontWeight = null;
-        }
-
-        //
         // Small widgets
         //
 
@@ -398,7 +380,7 @@ namespace AnyUi
             double? setHeight = null, AnyUiVerticalAlignment? verticalAlignment = null,
             bool? directInvoke = null, string toolTip = null,
             bool? modalDialogStyle = null,
-            AnyUiStyleButton buttonStyle = null)
+            AnyUiButton buttonStyle = null)
         {
             var but = new AnyUiButton();
             but.Margin = margin;
@@ -423,20 +405,7 @@ namespace AnyUi
                 but.ToolTip = toolTip;
 
             if (buttonStyle != null)
-            {
-                if (buttonStyle.Background != null)
-                    but.Background = buttonStyle.Background;
-                if (buttonStyle.BorderColor != null)
-                    but.BorderColor = buttonStyle.BorderColor;
-                if (buttonStyle.BorderWidth != null)
-                    but.BorderWidth = buttonStyle.BorderWidth.Value;
-                if (buttonStyle.TextColor != null)
-                    but.Foreground = buttonStyle.TextColor;
-                if (buttonStyle.FontSize != null)
-                    but.FontSize = buttonStyle.FontSize.Value;
-                if (buttonStyle.FontWeight != null)
-                    but.FontWeight = buttonStyle.FontWeight.Value;
-            }
+                but.ApplyAsStyle(buttonStyle);
 
             AnyUiGrid.SetRow(but, row);
             AnyUiGrid.SetColumn(but, col);
@@ -489,7 +458,8 @@ namespace AnyUi
             AnyUiThickness margin = null, AnyUiThickness padding = null,
             AnyUiBrush foreground = null, AnyUiBrush background = null,
             AnyUiVerticalAlignment? verticalAlignment = null,
-            Func<object, Task<AnyUiLambdaActionBase>> menuItemLambdaAsync = null)
+            Func<object, Task<AnyUiLambdaActionBase>> menuItemLambdaAsync = null,
+            AnyUiButton buttonStyle = null)
         {
             // construct button
             var but = new AnyUiButton();
@@ -501,6 +471,10 @@ namespace AnyUi
                 but.Background = background;
             if (verticalAlignment != null)
                 but.VerticalAlignment = verticalAlignment.Value;
+
+            if (buttonStyle != null)
+                but.ApplyAsStyle(buttonStyle);
+
             but.Content = content;
             AnyUiGrid.SetRow(but, row);
             AnyUiGrid.SetColumn(but, col);

@@ -353,8 +353,8 @@ namespace AasxPackageLogic
 			T sr,
 			Action<T> setValue,
 			Func<string, T> createInstance,
-			int firstColumnWidth = -1, // -1 = Standard
-			string[] presetList = null,
+            FirstColumnWidth? firstColumnWidth = null,
+            string[] presetList = null,
 			bool showButtons = true) where T : ExtIdfReference
 		{
 			var grid = AddSmallGrid(1, 2, colWidths: new[] { "*", "#" });
@@ -460,7 +460,7 @@ namespace AasxPackageLogic
 						$"[{1 + lsri}]",
 						recInst, relatedReferable,
 						value[lsri],
-						firstColumnWidth: 40,
+						firstColumnWidth: FirstColumnWidth.Small,
 						showButtons: false,
 						setValue: (v) => {
 							value[theLsri] = v;

@@ -848,7 +848,7 @@ namespace AasxPackageLogic
                         minWidthFirstCol: GetWidth(FirstColumnWidth.Standard));
                     AnyUiUIElement.RegisterControl(
                         this.AddSmallButtonTo(g2, 0, 0, content: "Sort according above order",
-                            margin: new AnyUiThickness(2, 2, 2, 2), padding: new AnyUiThickness(5, 0, 5, 0)),
+                        margin: new AnyUiThickness(2, 2, 2, 2), padding: new AnyUiThickness(5, 0, 5, 0)),
                         setValueAsync: async (o) =>
                         {
                             if (env.ConceptDescriptionCount() < 1)
@@ -3439,61 +3439,6 @@ namespace AasxPackageLogic
                     "isCaseOf", relatedReferable: cd, superMenu: superMenu);
             };
 
-#if OLD
-            // joint header for data spec ref and content
-            this.AddGroup(stack, "HasDataSpecification:", this.levelColors.SubSection);
-
-            // check, if there is a IEC61360 content amd, subsequently, also a according data specification
-            var esc = cd.EmbeddedDataSpecifications?.FindFirstIEC61360Spec();
-            this.AddHintBubble(
-                stack, hintMode,
-                new[] {
-                    new HintCheck(
-                        () => { return esc != null && (esc.DataSpecification == null
-                            || !esc.DataSpecification.MatchesExactlyOneKey(
-                                ExtendListOfEmbeddedDataSpecification.GetKeyForIec61360())); },
-                        "IEC61360 content present, but data specification missing. Please add according reference.",
-                        breakIfTrue: true),
-                });
-
-            //TODO (jtikekar, 0000-00-00): cd.dataspecifications vs embeddedDS
-            // use the normal module to edit ALL data specifications
-            this.DisplayOrEditEntityHasDataSpecificationReferences(stack, cd.EmbeddedDataSpecifications,
-                (ds) => { cd.EmbeddedDataSpecifications = ds; },
-                addPresetNames: new[] { "IEC61360" },
-                addPresetKeyLists: new[] {
-                    new List<Aas.Key>(){ 
-                        ExtendListOfEmbeddedDataSpecification.GetKeyForIec61360() } },
-                dataSpecRefsAreUsual: true, relatedReferable: cd);
-
-            // the IEC61360 Content
-
-            // TODO (MIHO, 2020-09-01): extend the lines below to cover also data spec. for units
-
-            this.AddHintBubble(
-                stack, hintMode,
-                new[] {
-                    new HintCheck(
-                        () => { return cd.EmbeddedDataSpecifications?.GetIEC61360Content() == null; },
-                        "Providing an embeddedDataSpecification, e.g. IEC61360 data specification content, " +
-                            "is mandatory. This holds the descriptive information " +
-                            "of an concept and allows for an off-line understanding of the meaning " +
-                            "of an concept/ ISubmodelElement. Please create this data element.",
-                        breakIfTrue: true),
-                });
-            var Iec61360spec = cd.EmbeddedDataSpecifications.FindFirstIEC61360Spec();
-            if (this.SafeguardAccess(
-                    stack, repo, Iec61360spec.DataSpecificationContent, "embeddedDataSpecification:",
-                    "Create IEC61360 data specification content",
-                    c))
-            {
-                this.DisplayOrEditEntityDataSpecificationIEC61360(
-                    stack, Iec61360spec.DataSpecificationContent as Aas.DataSpecificationIec61360, 
-                    relatedReferable: cd);
-            }
-
-#else
-
             // new apprpoach: model distinct sections with [Reference + Content]
             Action<bool> lambdaEDS = (suppressWarning) =>
             {
@@ -3508,7 +3453,6 @@ namespace AasxPackageLogic
                     relatedReferable: cd, superMenu: superMenu,
                     suppressNoEdsWarning: suppressWarning);
             };
-#endif
 
             // experimental: SAMM elements
 

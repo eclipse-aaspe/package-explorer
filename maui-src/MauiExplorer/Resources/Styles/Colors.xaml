@@ -26,6 +26,7 @@
     <Color x:Key="ErrorDark">#D62B00</Color>
     <Color x:Key="ErrorLight">#D6735A</Color>
     
+    <Color x:Key="ThinCntlBorder">#F0F0F0</Color>
 
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>

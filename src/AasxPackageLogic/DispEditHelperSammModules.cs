@@ -247,8 +247,8 @@ namespace AasxPackageLogic
 			T sr,
 			Action<T> setValue,
 			Func<string, T> createInstance,
-			int firstColumnWidth = -1, // -1 = Standard
-			string[] presetList = null,
+            FirstColumnWidth? firstColumnWidth = null,
+            string[] presetList = null,
 			bool showButtons = true,
 			bool editOptionalFlag = false,
 			Type[] addableElements = null) where T : SammReference
@@ -359,7 +359,7 @@ namespace AasxPackageLogic
 						sp1, $"[{1 + lsri}]",
 						(Samm.ModelElement)sammInst, relatedReferable,
 						value[lsri],
-						firstColumnWidth: 40,
+						firstColumnWidth: FirstColumnWidth.Small,
 						showButtons: false,
 						editOptionalFlag: editOptionalFlag,
 						addableElements: addableElements,

@@ -363,9 +363,9 @@ namespace AasxPackageLogic
                 // Qualifier members
 
                 // SemanticId
-
+#if OLD_SAFEGUARD
                 if (SafeguardAccess(
-                        substack, repo, qual.SemanticId, "semanticId:", "Create w/ default!",
+                        substack, repo, qual.SemanticId, "semanticId:", "Add",
                         async (v) =>
                         {
                             await Task.Yield();
@@ -395,6 +395,44 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionNone();
                         });
                 }
+#else
+                SafeguardAccessNew(
+                    substack, repo,
+                    () => qual.SemanticId == null || qual.SemanticId.IsEmpty(),
+                    () => qual.SemanticId = null,
+                    "semanticId:", "Add",
+                    lambdaCreate: async (v) =>
+                    {
+                        await Task.Yield();
+                        qual.SemanticId = Options.Curr.GetDefaultEmptyReference();
+                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                        return new AnyUiLambdaActionRedrawEntity();
+                    },
+                    lambdaSuccess: (childPanel) =>
+                    {
+                        AddKeyReference(
+                            childPanel, "semanticId",
+                            qual.SemanticId, () => qual.SemanticId = null,
+                            repo,
+                            packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
+                            firstColumnWidth: FirstColumnWidth.No,
+                            addExistingEntities: "All",
+                            addEclassIrdi: true, addFromKnown: true,
+                            showRefSemId: false,
+                            relatedReferable: relatedReferable,
+                            auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete semanticId" }),
+                            auxContextLambda: (i) =>
+                            {
+                                if (i == 0)
+                                {
+                                    qual.SemanticId = null;
+                                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                                    return new AnyUiLambdaActionRedrawEntity();
+                                }
+                                return new AnyUiLambdaActionNone();
+                            });
+                    });
+#endif
 
                 // Kind
 
@@ -1291,7 +1329,8 @@ namespace AasxPackageLogic
             bool addKnownSemanticId = false,
             Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
-            AnyUiContextMenuHeaderList auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null)
+            AnyUiContextMenuHeaderList auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null,
+            FirstColumnWidth? firstColumnWidth = null)
         {
             // default
             if (emitCustomEvent == null)
@@ -1441,7 +1480,8 @@ namespace AasxPackageLogic
                     // pass on
                     emitCustomEvent?.Invoke(o);
                 },
-                addKnownSemanticId: addKnownSemanticId);
+                addKnownSemanticId: addKnownSemanticId,
+                firstColumnWidth: firstColumnWidth);
         }
 
         //
