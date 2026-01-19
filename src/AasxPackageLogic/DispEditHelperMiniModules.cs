@@ -400,7 +400,8 @@ namespace AasxPackageLogic
                     substack, repo,
                     () => qual.SemanticId == null || qual.SemanticId.IsEmpty(),
                     () => qual.SemanticId = null,
-                    "semanticId:", "Add",
+                    "semanticId:",
+                    buttonCreate: new AnyUiButtonHeader(IconPool.Add.SetIntense(), "Add", "Add empty element data"),
                     lambdaCreate: async (v) =>
                     {
                         await Task.Yield();

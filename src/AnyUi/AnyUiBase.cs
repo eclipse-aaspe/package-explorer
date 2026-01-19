@@ -852,12 +852,32 @@ namespace AnyUi
         public AnyUiIconColor Color = AnyUiIconColor.Normal;
 
         public AnyUiImageSourceFont() : base() { }
-        public AnyUiImageSourceFont(string fontFamily, string iconGlyph, AnyUiIconColor color) 
+        public AnyUiImageSourceFont(string fontId, string iconGlyph, AnyUiIconColor color) 
             : base() 
         {
-            FontId = fontFamily;
+            FontId = fontId;
             IconGlyph = iconGlyph;
             Color = color;
+        }
+
+        public AnyUiImageSourceFont SetIntense()
+        {
+            Color = AnyUiIconColor.Intense;
+            return this;
+        }
+
+        public AnyUiImageSourceFont Modify(
+            string fontId = null, 
+            string iconGlyph = null, 
+            AnyUiIconColor? color = null)
+        {
+            if (fontId != null)
+                FontId = fontId;
+            if (iconGlyph != null)
+                IconGlyph = iconGlyph;
+            if (color != null)
+                Color = color.Value;
+            return this;
         }
     }
 
@@ -865,11 +885,14 @@ namespace AnyUi
     // Buttons as form of Text and Image
     //
 
+    public enum AnyUiButtonPreference { None, Both, Image, Text }
+
     public class AnyUiButtonHeader
     {
         public string Text;
         public string ToolTip;
-        public AnyUiImageSourceBase Image;
+        public AnyUiImageSourceBase ImageSource;
+        public AnyUiButtonPreference Preference = AnyUiButtonPreference.Both;
 
         public AnyUiButtonHeader() : base() { }
 
@@ -880,11 +903,27 @@ namespace AnyUi
             ToolTip = toolTip;
         }
 
-        public AnyUiButtonHeader(AnyUiImageSourceBase image, string text = null)
+        public AnyUiButtonHeader(
+            AnyUiImageSourceBase image, 
+            string text = null, string toolTip = null,
+            AnyUiButtonPreference preference = AnyUiButtonPreference.Both)
             : base()
         {
-            Image = image;
+            ImageSource = image;
             Text = text;
+            ToolTip = toolTip;
+            Preference = preference;
+        }
+
+        public AnyUiButtonHeader Modify(
+            AnyUiButtonPreference? pref = null,
+            AnyUiIconColor? iconColor = null)
+        {
+            if (pref != null)
+                Preference = pref.Value;
+            if (iconColor != null && ImageSource is AnyUiImageSourceFont isf)
+                isf.Color = iconColor.Value;
+            return this;
         }
     }
 
@@ -893,6 +932,19 @@ namespace AnyUi
         public AnyUiButtonHeaderList() : base() { }
 
         public AnyUiButtonHeaderList(IEnumerable<AnyUiButtonHeader> members) : base(members) { }
+
+        public AnyUiButtonHeaderList(string text, string toolTip = null) : base() 
+        {
+            Add(new AnyUiButtonHeader(text: text, toolTip: toolTip));
+        }
+
+        public AnyUiButtonHeaderList(
+            AnyUiImageSourceBase image, 
+            string text = null, string toolTip = null,
+            AnyUiButtonPreference preference = AnyUiButtonPreference.Both) : base()
+        {
+            Add(new AnyUiButtonHeader(image: image, text: text, toolTip: toolTip, preference: preference));
+        }
 
         public AnyUiButtonHeaderList(IList<string> headers, IList<string> toolTips) : base()
         {
@@ -1738,6 +1790,8 @@ namespace AnyUi
 
         public new string Content = null;
         public string ToolTip = null;
+        public AnyUiImageSourceBase ImageSource = null;
+        public AnyUiButtonPreference Preference = AnyUiButtonPreference.None;
 
         public bool ModalDialogStyle = false;
 

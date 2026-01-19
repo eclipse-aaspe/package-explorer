@@ -4924,8 +4924,7 @@ namespace AasxPackageLogic
                         valueHash: (blb.Value == null) ? 0 : blb.Value.GetHashCode(),
                         containingObject: blb,
                         limitToOneRowForNoEdit: true,
-                        auxButtonTitles: new[] { "\u2261" },
-                        auxButtonToolTips: new[] { "Edit in multiline editor" },
+                        auxButtons: new AnyUiButtonHeaderList("\u2261", "Edit in multiline editor"),
                         auxButtonLambdaAsync: async (buttonNdx) =>
                         {
                             if (buttonNdx == 0)

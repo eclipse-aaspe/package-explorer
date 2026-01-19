@@ -379,8 +379,10 @@ namespace AnyUi
             string content = "", AnyUiBrush foreground = null, AnyUiBrush background = null,
             double? setHeight = null, AnyUiVerticalAlignment? verticalAlignment = null,
             bool? directInvoke = null, string toolTip = null,
+            AnyUiImageSourceBase imageSource = null,
             bool? modalDialogStyle = null,
-            AnyUiButton buttonStyle = null)
+            AnyUiButton buttonStyle = null,
+            AnyUiButtonHeader header = null)
         {
             var but = new AnyUiButton();
             but.Margin = margin;
@@ -403,6 +405,17 @@ namespace AnyUi
                 but.ModalDialogStyle = modalDialogStyle.Value;
             if (toolTip != null)
                 but.ToolTip = toolTip;
+            if (imageSource != null)
+                but.ImageSource = imageSource;
+
+            if (header != null)
+            {
+                but.Content = header.Text;
+                but.ImageSource = header.ImageSource;
+                but.ToolTip = header.ToolTip;
+                if (header.Preference != AnyUiButtonPreference.None)
+                    but.Preference = header.Preference;
+            }
 
             if (buttonStyle != null)
                 but.ApplyAsStyle(buttonStyle);

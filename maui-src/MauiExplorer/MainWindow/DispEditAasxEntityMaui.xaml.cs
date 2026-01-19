@@ -257,6 +257,37 @@ public partial class DispEditAasxEntityMaui : ContentView
         public bool useInnerGrid = false;
     }
 
+    public static AnyUiDisplayContextMaui.IconSourceResolveResult? ResolveImageSourceFont(
+        AnyUiDisplayContextMaui dc, 
+        AnyUiImageSourceFont isf)
+    {
+        var res = new AnyUiDisplayContextMaui.IconSourceResolveResult();
+        res.FontAlias = dc.FindIconFont(isf.FontId)?.FontAlias ?? "";
+
+        var col = Colors.Transparent;
+        if (Application.Current?.RequestedTheme == AppTheme.Light)
+        {
+            if (isf.Color == AnyUiIconColor.Normal)
+                col = XamlHelpers.GetDynamicRessource("Gray900", Color.FromRgb(0x40, 0x40, 0x40));
+            if (isf.Color == AnyUiIconColor.Intense)
+                col = XamlHelpers.GetDynamicRessource("Primary", Color.FromRgb(0x70, 0x70, 0x70));
+            if (isf.Color == AnyUiIconColor.Delete)
+                col = XamlHelpers.GetDynamicRessource("ErrorDark", Color.FromRgb(0xd6, 0x2b, 0x00));
+        }
+        else
+        {
+            if (isf.Color == AnyUiIconColor.Normal)
+                col = XamlHelpers.GetDynamicRessource("Gray100", Color.FromRgb(0xe0, 0xe0, 0xe0));
+            if (isf.Color == AnyUiIconColor.Intense)
+                col = XamlHelpers.GetDynamicRessource("PrimaryLight", Color.FromRgb(0x70, 0x70, 0x70));
+            if (isf.Color == AnyUiIconColor.Delete)
+                col = XamlHelpers.GetDynamicRessource("ErrorLight", Color.FromRgb(0xd6, 0x2b, 0x00));
+        }
+        res.IconColor = AnyUiDisplayContextMaui.GetAnyUiColor(col);
+
+        return res;
+    }
+
     public async Task<DisplayRenderHints> DisplayOrEditVisualAasxElement(
         PackageCentral packages,
         AnyUiDisplayContextMaui displayContext,
@@ -319,8 +350,24 @@ public partial class DispEditAasxEntityMaui : ContentView
         _helper.LayoutHints.StyleButtonAction.BorderWidth = 2.0;
         _helper.LayoutHints.StyleButtonAction.Foreground = AnyUiBrushes.Black;
 
+        // for icon resolution
+        displayContext.LambdaResolveImageSourceFont = ResolveImageSourceFont;
+
+        IconPool.Delete
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Delete_forever);
+        IconPool.Add
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Add);
+        IconPool.AddExisting
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Fact_check);
+        IconPool.AddBlank
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Add_box);
+        IconPool.Jump
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Outbound);
+        IconPool.CopyToClipboard
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Content_copy);
+
         // modify repository
-        ModifyRepo ? repo = null;
+        ModifyRepo? repo = null;
         if (editMode)
         {
             // some functionality still uses repo != null to detect editMode!!

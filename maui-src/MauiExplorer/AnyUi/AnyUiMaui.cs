@@ -138,6 +138,14 @@ namespace MauiTestTree
             return null;
         }
 
+        public class IconSourceResolveResult
+        {
+            public string FontAlias = "";
+            public AnyUiColor IconColor = AnyUiColors.Transparent;
+        }
+
+        public Func<AnyUiDisplayContextMaui, AnyUiImageSourceFont, IconSourceResolveResult?>? LambdaResolveImageSourceFont = null;
+
         public static Color GetMauiColor(AnyUiColor? c)
         {
             if (c == null)
@@ -1857,7 +1865,31 @@ namespace MauiTestTree
                         if (cntl.FontWeight.HasValue)
                             maui.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);
 
-                        maui.Text = cntl.Content;
+                        // sort preference
+                        var pref = AnyUiButtonPreference.Both;
+                        if (cntl.Preference != AnyUiButtonPreference.None)
+                            pref = cntl.Preference;
+
+                        // set contents
+                        if (pref != AnyUiButtonPreference.Image)
+                        {
+                            maui.Text = cntl.Content;
+                        }
+
+                        if (pref != AnyUiButtonPreference.Text && cntl.ImageSource != null)
+                        {
+                            if (cntl.ImageSource is AnyUiImageSourceFont isf)
+                            {
+                                var reso = LambdaResolveImageSourceFont?.Invoke(this, isf);
+                                if (reso != null)
+                                    maui.ImageSource = new FontImageSource() {
+                                        FontFamily = reso.FontAlias,
+                                        Glyph = isf.IconGlyph,
+                                        Size = isf.FontSize ?? 20,
+                                        Color = GetMauiColor(reso.IconColor)
+                                };
+                            }
+                        }
 
                         if (cntl.ToolTip != null)
                         {

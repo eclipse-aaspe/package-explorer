@@ -361,7 +361,7 @@ namespace AasxPackageLogic
             AddKeyValue(stack, "Id", "" + si.Id, repo: null);
 
             AddKeyValue(stack, "Id endpoint", "" + si.Id, repo: null,
-                auxButtonTitle: "Copy",
+                auxButtons: new AnyUiButtonHeaderList("Copy"),
                 auxButtonLambdaAsync: async (i) => {
                     await context?.ClipboardSetAsync(new AnyUiClipboardData(
                         text: si.Id)
@@ -372,7 +372,7 @@ namespace AasxPackageLogic
                 auxButtonOverride: true);
 
             AddKeyValue(stack, "Queried endpoint", "" + si.QueriedEndpoint?.ToString(), repo: null,
-                auxButtonTitle: "Copy",
+                auxButtons: new AnyUiButtonHeaderList("Copy"),
                 auxButtonLambdaAsync: async (i) => {
                     if (si.QueriedEndpoint == null)
                     {
@@ -390,7 +390,7 @@ namespace AasxPackageLogic
                 auxButtonOverride: true);
 
             AddKeyValue(stack, "Designated endpoint", "" + si.DesignatedEndpoint?.ToString(), repo: null,
-                auxButtonTitle: "Copy",
+                auxButtons: new AnyUiButtonHeaderList("Copy"),
                 auxButtonLambdaAsync: async (i) => {
                     if (si.DesignatedEndpoint == null)
                     {
@@ -2142,7 +2142,8 @@ namespace AasxPackageLogic
                 stack, repo,
                 () => dsiec.Value == null,
                 () => dsiec.Value = null,
-                "value:", "Add",
+                "value:",
+                buttonCreate: new AnyUiButtonHeader(IconPool.Add.SetIntense(), "Add", "Add empty element data"),
                 lambdaCreate: async (v) =>
                 {
                     await Task.Yield();
@@ -2152,7 +2153,7 @@ namespace AasxPackageLogic
                 },
                 lambdaSuccess: (childView) =>
                 {
-                    AddKeyValueExRef(
+                    AddKeyValueExRefNew(
                         childView, "value", dsiec, dsiec.Value, null, repo,
                         async (v) =>
                         {
@@ -2163,8 +2164,7 @@ namespace AasxPackageLogic
                         },
                         firstColumnWidth: FirstColumnWidth.No,
                         buttonStyle: LayoutHints.StyleButtonThin,
-                        auxButtonTitles: new[] { "Delete" },
-                        auxButtonToolTips: new[] { "Delete data element" },
+                        auxButtons: new AnyUiButtonHeaderList(IconPool.Delete, "Delete", "Delete data element", AnyUiButtonPreference.Image),
                         auxButtonLambdaAsync: async (i) =>
                         {
                             await Task.Yield();

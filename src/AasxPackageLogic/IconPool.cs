@@ -10,6 +10,13 @@ namespace AasxPackageLogic
     public static class IconPool
     {
         public static AnyUiImageSourceFont Delete = new("{uc}", "\u2702", AnyUiIconColor.Delete);
+        public static AnyUiImageSourceFont Add = new("{uc}", "\uff0b", AnyUiIconColor.Normal);
+        public static AnyUiImageSourceFont AddExisting = new("{uc}", "\uff0b", AnyUiIconColor.Normal);
+        public static AnyUiImageSourceFont AddBlank = new("{uc}", "\uff0b", AnyUiIconColor.Normal);
+        
+        public static AnyUiImageSourceFont Jump = new("{uc}", "\u21a6", AnyUiIconColor.Normal);
+        
+        public static AnyUiImageSourceFont CopyToClipboard = new("{uc}", "\u29c9", AnyUiIconColor.Normal);
         
         public static AnyUiImageSourceFont MoveUp = new("{uc}", "\u25b2", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont MoveDown = new("{uc}", "\u25bc", AnyUiIconColor.Normal);

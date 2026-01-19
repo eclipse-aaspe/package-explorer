@@ -340,7 +340,7 @@ namespace AasxPackageLogic
         /// <summary>
         /// This is a plain wrapper for <c>AddKeyValue</c> and <c>AddKeyValueRef</c>.
         /// Background is that in former times a reference was required; however, this is now
-        /// for yoears done with the <c>setValue</c> lambda.
+        /// for years done with the <c>setValue</c> lambda.
         /// Both this function and <c>AddKeyValue</c> are functionally equivalent.
         /// </summary>
         /// <param name="view">The <c>AnyUiView</c> the widget shall be added to</param>
@@ -359,6 +359,7 @@ namespace AasxPackageLogic
         /// <param name="auxButtonToolTips">Array of tool tips for that buttons.</param>
         /// <param name="takeOverLambdaAction">Lambda called at the end of a modification.</param>
         /// <param name="limitToOneRowForNoEdit">Limitation for displaying multiple lines of value</param>
+        [Obsolete("use variant with AnyUiButtonHeaderList")]
         public void AddKeyValueExRef(
             AnyUiStackPanel view, string key, object containingObject, string value, string nullValue = null,
             ModifyRepo repo = null, 
@@ -380,10 +381,20 @@ namespace AasxPackageLogic
             bool isValueReadOnly = false,
             AnyUiButton buttonStyle = null)
         {
+            var auxButtons = new AnyUiButtonHeaderList(
+                                    headers: auxButtonTitles,
+                                    toolTips: auxButtonToolTips);
+
+            if (auxButtonTitle?.HasContent() == true)
+                auxButtons.Insert(0, new AnyUiButtonHeader(
+                    text: auxButtonTitle,
+                    toolTip: auxButtonToolTip));
+
             AddKeyValue(
                 view, key, value, nullValue, repo, setValueAsync, comboBoxItems, comboBoxIsEditable,
-                auxButtonTitle, auxButtonLambdaAsync, auxButtonToolTip,
-                auxButtonTitles, auxButtonToolTips, takeOverLambdaAction,
+                auxButtons, 
+                auxButtonLambdaAsync, 
+                takeOverLambdaAction,
                 (value == null) ? 0 : value.GetHashCode(), containingObject: containingObject,
                 limitToOneRowForNoEdit: limitToOneRowForNoEdit,
                 comboBoxMinWidth: comboBoxMinWidth,
@@ -392,6 +403,59 @@ namespace AasxPackageLogic
                 keyVertCenter: keyVertCenter,
                 isValueReadOnly: isValueReadOnly,
                 buttonStyle: buttonStyle);
+        }
+
+        /// <summary>
+        /// This is a plain wrapper for <c>AddKeyValue</c> and <c>AddKeyValueRef</c>.
+        /// Background is that in former times a reference was required; however, this is now
+        /// for years done with the <c>setValue</c> lambda.
+        /// Both this function and <c>AddKeyValue</c> are functionally equivalent.
+        /// </summary>
+        /// <param name="view">The <c>AnyUiView</c> the widget shall be added to</param>
+        /// <param name="key">Label to be displayed in fron of editing field</param>
+        /// <param name="containingObject">Contiaing object (for find/replace function)</param>
+        /// <param name="value">Stringified value of the variable</param>
+        /// <param name="nullValue">String if the value happens to be null</param>
+        /// <param name="repo">Repository link. Used to mark the edit mode.</param>
+        /// <param name="setValue">Lambda activiated, if variable is changed</param>
+        /// <param name="comboBoxItems">If <c>null</c> displays a combo box</param>
+        /// <param name="comboBoxIsEditable">True, if combobox choices can also be editied</param>
+        /// <param name="auxButtons">Definition of a number of buttons</param>
+        /// <param name="takeOverLambdaAction">Lambda called at the end of a modification.</param>
+        /// <param name="limitToOneRowForNoEdit">Limitation for displaying multiple lines of value</param>
+        /// <param name="auxButtonOverride">Show buttons, even if <c>repo == null</c></param>
+        public void AddKeyValueExRefNew(
+            AnyUiStackPanel view, string key, object containingObject, string value, string nullValue = null,
+            ModifyRepo repo = null,
+            // Func<object, AnyUiLambdaActionBase> setValue = null, 
+            Func<object, Task<AnyUiLambdaActionBase>> setValueAsync = null,
+            string[] comboBoxItems = null, bool comboBoxIsEditable = false,
+            Func<int, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
+            AnyUiButtonHeaderList auxButtons = null,
+            AnyUiLambdaActionBase takeOverLambdaAction = null,
+            bool limitToOneRowForNoEdit = false,
+            int comboBoxMinWidth = -1,
+            FirstColumnWidth? firstColumnWidth = null,
+            int maxLines = -1,
+            bool keyVertCenter = false,
+            bool auxButtonOverride = false,
+            bool isValueReadOnly = false,
+            AnyUiButton buttonStyle = null)
+        {
+            AddKeyValue(
+                view, key, value, nullValue, repo, setValueAsync, comboBoxItems, comboBoxIsEditable,
+                auxButtons, 
+                auxButtonLambdaAsync, 
+                takeOverLambdaAction,
+                (value == null) ? 0 : value.GetHashCode(), containingObject: containingObject,
+                limitToOneRowForNoEdit: limitToOneRowForNoEdit,
+                comboBoxMinWidth: comboBoxMinWidth,
+                firstColumnWidth: firstColumnWidth,
+                maxLines: maxLines,
+                keyVertCenter: keyVertCenter,
+                isValueReadOnly: isValueReadOnly,
+                buttonStyle: buttonStyle,
+                auxButtonOverride: auxButtonOverride);
         }
 
         /// <summary>
@@ -406,11 +470,8 @@ namespace AasxPackageLogic
         /// <param name="setValue">Lambda activiated, if variable is changed</param>
         /// <param name="comboBoxItems">If <c>null</c> displays a combo box</param>
         /// <param name="comboBoxIsEditable">True, if combobox choices can also be editied</param>
-        /// <param name="auxButtonTitle">Legacy. If there is a single auxiliary button, name of the button</param>
+        /// <param name="auxButtons">Definition of a number of buttons</param>
         /// <param name="auxButtonLambda">Legacy. Lambda for that single button</param>
-        /// <param name="auxButtonToolTip">Legacy. Tooltip for that single button.</param>
-        /// <param name="auxButtonTitles">Array of button titles to be offered.</param>
-        /// <param name="auxButtonToolTips">Array of tool tips for that buttons.</param>
         /// <param name="takeOverLambdaAction">Lambda called at the end of a modification.</param>
         /// <param name="valueHash">Hash value of the variable (for find/replace function)</param>
         /// <param name="containingObject">Contiaing object (for find/replace function)</param>
@@ -422,10 +483,8 @@ namespace AasxPackageLogic
             // Func<object, AnyUiLambdaActionBase> setValue = null,
             Func<object, Task<AnyUiLambdaActionBase>> setValueAsync = null,
             string[] comboBoxItems = null, bool comboBoxIsEditable = false,
-            string auxButtonTitle = null, 
+            AnyUiButtonHeaderList auxButtons = null, 
             Func<int, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
-            string auxButtonToolTip = null,
-            string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
             AnyUiLambdaActionBase takeOverLambdaAction = null,
             Nullable<int> valueHash = null,
             object containingObject = null,
@@ -454,19 +513,9 @@ namespace AasxPackageLogic
             }
 
             // aux buttons
-            List<string> intButtonTitles = new List<string>();
-            List<string> intButtonToolTips = new List<string>();
-            if (auxButtonTitle != null)
-                intButtonTitles.Add(auxButtonTitle);
-            if (auxButtonToolTip != null)
-                intButtonToolTips.Add(auxButtonToolTip);
-            if (auxButtonTitles != null)
-                intButtonTitles.AddRange(auxButtonTitles);
-            if (auxButtonToolTips != null)
-                intButtonToolTips.AddRange(auxButtonToolTips);
-
+            auxButtons = auxButtons ?? new();
             var auxButton = auxButtonOverride
-                    || (repo != null && intButtonTitles.Count > 0 && auxButtonLambdaAsync != null);
+                || (repo != null && auxButtons.Count > 0 && auxButtonLambdaAsync != null);
 
             // Grid
             var g = new AnyUiGrid();
@@ -486,7 +535,7 @@ namespace AasxPackageLogic
                 g.ColumnDefinitions[0].MinWidth = GetWidth(FirstColumnWidth.Standard);
 
             if (auxButton)
-                for (int i = 0; i < intButtonTitles.Count; i++)
+                for (int i = 0; i < auxButtons.Count; i++)
                 {
                     var gc3 = new AnyUiColumnDefinition();
                     gc3.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Auto);
@@ -563,7 +612,7 @@ namespace AasxPackageLogic
             }
 
             if (auxButton)
-                for (int i = 0; i < intButtonTitles.Count; i++)
+                for (int i = 0; i < auxButtons.Count; i++)
                 {
                     Func<object, Task<AnyUiLambdaActionBase>> lmbAsync = null;
                     int closureI = i;
@@ -580,10 +629,8 @@ namespace AasxPackageLogic
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             buttonStyle: buttonStyle,
-                            content: intButtonTitles[i]),
+                            header: auxButtons[i]),
                             setValueAsync: lmbAsync) as AnyUiButton;
-                    if (i < intButtonToolTips.Count)
-                        b.ToolTip = intButtonToolTips[i];
                 }
 
             // in total
@@ -1401,7 +1448,10 @@ namespace AasxPackageLogic
             AnyUiContextMenuHeaderList auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null,
             int maxNumOfKey = int.MaxValue,
             bool addKnownSemanticId = false,
-            FirstColumnWidth? firstColumnWidth = null)
+            FirstColumnWidth? firstColumnWidth = null,
+            AnyUiButton buttonStyle = null,
+            AnyUiIconColor? iconColor = null,
+            AnyUiButtonPreference buttonPref = AnyUiButtonPreference.Image)
         {
             // sometimes needless to show
             if (repo == null && (keys == null || keys.Count < 1))
@@ -1570,27 +1620,50 @@ namespace AasxPackageLogic
                             g2, 0, 4,
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
-                            content: "Add existing"),
-                        setValueAsync: async (o) =>
-                        {
-                            var k2 = await SmartSelectAasEntityKeysAsync(packages, selector, addExistingEntities);
-
-                            if (modifyAddExistingKey != null)
+                            header: new AnyUiButtonHeader(IconPool.AddExisting, "Add existing", 
+                                        "Add reference to existing element in packages.").Modify(pref: buttonPref, iconColor: iconColor),
+                            buttonStyle: buttonStyle),
+                            setValueAsync: async (o) =>
                             {
-                                var outRefs = ExtendReference.CreateNew(k2);
-                                var inRefs = modifyAddExistingKey.Invoke(outRefs);
-                                if (inRefs != null)
-                                    k2 = inRefs.Keys;
-                            }                                                      
+                                var k2 = await SmartSelectAasEntityKeysAsync(packages, selector, addExistingEntities);
 
-                            // some special cases
-                            if (!Options.Curr.ModelRefCd && k2 != null && k2.Count == 1
-                                && k2[0].Type == Aas.KeyTypes.ConceptDescription)
-                                k2[0].Type = Aas.KeyTypes.GlobalReference;
+                                if (modifyAddExistingKey != null)
+                                {
+                                    var outRefs = ExtendReference.CreateNew(k2);
+                                    var inRefs = modifyAddExistingKey.Invoke(outRefs);
+                                    if (inRefs != null)
+                                        k2 = inRefs.Keys;
+                                }                                                      
 
-                            if (k2 != null)
-                                foreach (var k2k in k2)
-                                    keys.AddCheckBlank(k2k);
+                                // some special cases
+                                if (!Options.Curr.ModelRefCd && k2 != null && k2.Count == 1
+                                    && k2[0].Type == Aas.KeyTypes.ConceptDescription)
+                                    k2[0].Type = Aas.KeyTypes.GlobalReference;
+
+                                if (k2 != null)
+                                    foreach (var k2k in k2)
+                                        keys.AddCheckBlank(k2k);
+
+                                emitCustomEvent?.Invoke(relatedReferable);
+
+                                if (takeOverLambdaAction != null)
+                                    return takeOverLambdaAction;
+                                else
+                                    return new AnyUiLambdaActionRedrawEntity();
+                            });
+
+                AnyUiUIElement.RegisterControl(
+                    AddSmallButtonTo(
+                        g2, 0, 5,
+                        margin: new AnyUiThickness(2, 2, 2, 2),
+                        padding: new AnyUiThickness(5, 0, 5, 0),
+                        header: new AnyUiButtonHeader(IconPool.AddBlank, "Add blank",
+                                        "Add blank data element.").Modify(pref: buttonPref)),
+                        async (o) =>
+                        {
+                            await Task.Yield();
+                            var k = new Aas.Key(Aas.KeyTypes.GlobalReference, ""); //TODO (jtikekar, 0000-00-00): default key
+                            keys.Add(k);
 
                             emitCustomEvent?.Invoke(relatedReferable);
 
@@ -1600,33 +1673,14 @@ namespace AasxPackageLogic
                                 return new AnyUiLambdaActionRedrawEntity();
                         });
 
-                AnyUiUIElement.RegisterControl(
-                    AddSmallButtonTo(
-                        g2, 0, 5,
-                        margin: new AnyUiThickness(2, 2, 2, 2),
-                        padding: new AnyUiThickness(5, 0, 5, 0),
-                        content: "Add blank"),
-                    async (o) =>
-                    {
-                        await Task.Yield();
-                        var k = new Aas.Key(Aas.KeyTypes.GlobalReference, ""); //TODO (jtikekar, 0000-00-00): default key
-                        keys.Add(k);
-
-                        emitCustomEvent?.Invoke(relatedReferable);
-
-                        if (takeOverLambdaAction != null)
-                            return takeOverLambdaAction;
-                        else
-                            return new AnyUiLambdaActionRedrawEntity();
-                    });
-
                 if (!topContextMenu && jumpLambda != null)
                     AnyUiUIElement.RegisterControl(
                         AddSmallButtonTo(
                             g2, 0, 6,
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
-                            content: "Jump"),
+                            header: new AnyUiButtonHeader(IconPool.Jump, "Jump",
+                                        "Jump to AAS element in package.").Modify(pref: buttonPref)),
                         async (o) =>
                         {
                             await Task.Yield();
@@ -1639,7 +1693,8 @@ namespace AasxPackageLogic
                             g2, 0, 7,
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
-                            content: "Clipboard"),
+                            header: new AnyUiButtonHeader(IconPool.CopyToClipboard, "Clipboard",
+                                        "Copy reference as JSON to clipbaord.").Modify(pref: buttonPref)),
                         setValueAsync: lambdaClipboardAsync);
 
                 //
@@ -1706,7 +1761,7 @@ namespace AasxPackageLogic
                     if (addEclassIrdi)
                         contextHeaders.Add(new AnyUiContextMenuHeader(2, "\U0001f517", "Add ECLASS"));
                     if (jumpLambda != null)
-                        contextHeaders.Add(new AnyUiContextMenuHeader(3, "\u21a6", "Jump"));
+                        contextHeaders.Add(new AnyUiContextMenuHeader(3, "\u21a6", "Jump")); 
                     if (true)
                         contextHeaders.Add(new AnyUiContextMenuHeader(4, "\U0001f4cb", "Copy to clipboard"));
 
@@ -1997,7 +2052,7 @@ namespace AasxPackageLogic
             AnyUiStackPanel view, ModifyRepo repo, 
             Func<bool> lambdaIsNone,
             Action lambdaSetNull,
-            string key, string actionStr,
+            string key, AnyUiButtonHeader buttonCreate,
             Func<int, Task<AnyUiLambdaActionBase>> lambdaCreate,
             Action<AnyUiStackPanel> lambdaSuccess,
             FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard,
@@ -2022,7 +2077,7 @@ namespace AasxPackageLogic
                 lambdaSetNull?.Invoke();
 
                 // display a button for action?
-                if (repo != null)
+                if (repo != null && buttonCreate != null)
                 {
                     AnyUiUIElement.RegisterControl(
                         Set(
@@ -2030,7 +2085,7 @@ namespace AasxPackageLogic
                                 g, 0, 1,
                                 margin: new AnyUiThickness(0, 2, 4, 2),
                                 padding: new AnyUiThickness(5, 0, 5, 0),
-                                content: "" + actionStr,
+                                header: new AnyUiButtonHeader(IconPool.Add.SetIntense(), "Add", "Add empty element data"),
                                 buttonStyle: LayoutHints.StyleButtonAction),
                             horizontalAlignment: AnyUiHorizontalAlignment.Left),
                         async (o) =>
