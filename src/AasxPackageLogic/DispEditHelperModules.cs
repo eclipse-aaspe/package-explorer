@@ -2163,7 +2163,7 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionNone();
                         },
                         firstColumnWidth: FirstColumnWidth.No,
-                        buttonStyle: LayoutHints.StyleButtonThin,
+                        buttonOverStyle: LayoutHints.StyleButtonThin,
                         auxButtons: new AnyUiButtonHeaderList(IconPool.Delete, "Delete", "Delete data element", AnyUiButtonPreference.Image),
                         auxButtonLambdaAsync: async (i) =>
                         {

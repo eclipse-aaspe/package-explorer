@@ -337,18 +337,20 @@ public partial class DispEditAasxEntityMaui : ContentView
         _helper.LayoutHints.ExplicitMultiLineEdit = false;
 
         // Button Action
-        _helper.LayoutHints.StyleButtonThin.Background = AnyUiBrushes.White;
-        _helper.LayoutHints.StyleButtonThin.BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
+        _helper.LayoutHints.StyleButtonThin.Style = new();
+        _helper.LayoutHints.StyleButtonThin.Style.Background = AnyUiBrushes.White;
+        _helper.LayoutHints.StyleButtonThin.Style.BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
             XamlHelpers.GetDynamicRessource("ThinCntlBorder", Colors.Blue));
-        _helper.LayoutHints.StyleButtonThin.BorderWidth = 0.8;
-        _helper.LayoutHints.StyleButtonThin.Foreground = AnyUiBrushes.Black;
+        _helper.LayoutHints.StyleButtonThin.Style.BorderWidth = 0.8;
+        _helper.LayoutHints.StyleButtonThin.Style.Foreground = AnyUiBrushes.Black;
 
         // Button Action
-        _helper.LayoutHints.StyleButtonAction.Background = AnyUiBrushes.White;
-        _helper.LayoutHints.StyleButtonAction.BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
+        _helper.LayoutHints.StyleButtonAction.Style = new();
+        _helper.LayoutHints.StyleButtonAction.Style.Background = AnyUiBrushes.White;
+        _helper.LayoutHints.StyleButtonAction.Style.BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
             XamlHelpers.GetDynamicRessource("Primary", Colors.Blue));
-        _helper.LayoutHints.StyleButtonAction.BorderWidth = 2.0;
-        _helper.LayoutHints.StyleButtonAction.Foreground = AnyUiBrushes.Black;
+        _helper.LayoutHints.StyleButtonAction.Style.BorderWidth = 2.0;
+        _helper.LayoutHints.StyleButtonAction.Style.Foreground = AnyUiBrushes.Black;
 
         // for icon resolution
         displayContext.LambdaResolveImageSourceFont = ResolveImageSourceFont;
@@ -365,6 +367,8 @@ public partial class DispEditAasxEntityMaui : ContentView
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Outbound);
         IconPool.CopyToClipboard
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Content_copy);
+        IconPool.MoreVert
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.More_vert);
 
         // modify repository
         ModifyRepo? repo = null;

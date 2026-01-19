@@ -146,20 +146,19 @@ namespace AasxPackageLogic
         /// This style is to be taken for Buttons, which are pretty regular and might come
         /// in numbers. Idea is, that they are recognizable as Buttons, but are visually light.
         /// </summary>
-        public AnyUiButton StyleButtonThin = new();
+        public AnyUiButtonOverStyle StyleButtonThin = new();
 
         /// <summary>
         /// This style is to be taken for Buttons, which are an important action for the user, 
         /// enabling him to do something relevant.
         /// </summary>
-        public AnyUiButton StyleButtonAction = new();
+        public AnyUiButtonOverStyle StyleButtonAction = new();
 
         /// <summary>
         /// This style is for Buttons, which acknowledge a whole transaction, so a set of many
         /// actions.
         /// </summary>
-        public AnyUiButton StyleButtonHero = new();
-
+        public AnyUiButtonOverStyle StyleButtonHero = new();
     }
 
     //
@@ -379,7 +378,7 @@ namespace AasxPackageLogic
 			bool keyVertCenter = false,
             bool auxButtonOverride = false,
             bool isValueReadOnly = false,
-            AnyUiButton buttonStyle = null)
+            AnyUiButtonOverStyle buttonOverStyle = null)
         {
             var auxButtons = new AnyUiButtonHeaderList(
                                     headers: auxButtonTitles,
@@ -402,7 +401,7 @@ namespace AasxPackageLogic
                 maxLines: maxLines,
                 keyVertCenter: keyVertCenter,
                 isValueReadOnly: isValueReadOnly,
-                buttonStyle: buttonStyle);
+                buttonOverStyle: buttonOverStyle);
         }
 
         /// <summary>
@@ -440,7 +439,7 @@ namespace AasxPackageLogic
             bool keyVertCenter = false,
             bool auxButtonOverride = false,
             bool isValueReadOnly = false,
-            AnyUiButton buttonStyle = null)
+            AnyUiButtonOverStyle buttonOverStyle = null)
         {
             AddKeyValue(
                 view, key, value, nullValue, repo, setValueAsync, comboBoxItems, comboBoxIsEditable,
@@ -454,7 +453,7 @@ namespace AasxPackageLogic
                 maxLines: maxLines,
                 keyVertCenter: keyVertCenter,
                 isValueReadOnly: isValueReadOnly,
-                buttonStyle: buttonStyle,
+                buttonOverStyle: buttonOverStyle,
                 auxButtonOverride: auxButtonOverride);
         }
 
@@ -495,7 +494,7 @@ namespace AasxPackageLogic
             bool keyVertCenter = false,
             bool auxButtonOverride = false,
             bool isValueReadOnly = false,
-            AnyUiButton buttonStyle = null)
+            AnyUiButtonOverStyle buttonOverStyle = null)
         {
             // draw anyway?
             if (repo != null && value == null)
@@ -628,7 +627,7 @@ namespace AasxPackageLogic
                             g, 0, 2 + i,
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
-                            buttonStyle: buttonStyle,
+                            buttonOverStyle: buttonOverStyle,
                             header: auxButtons[i]),
                             setValueAsync: lmbAsync) as AnyUiButton;
                 }
@@ -1137,7 +1136,7 @@ namespace AasxPackageLogic
                                         new AnyUiContextMenuHeader(101, "\u2261", "Edit multiline")),
                                     margin: new AnyUiThickness(2, 2, 2, 2),
                                     padding: new AnyUiThickness(5, 0, 5, 0),
-                                    buttonStyle: LayoutHints.StyleButtonThin,
+                                    buttonOverStyle: LayoutHints.StyleButtonThin,
                                     menuItemLambdaAsync: async (o) =>
                                     {
                                         await Task.Yield();
@@ -1209,7 +1208,7 @@ namespace AasxPackageLogic
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             content: "Add",
-                            buttonStyle: LayoutHints.StyleButtonAction),
+                            buttonOverStyle: LayoutHints.StyleButtonAction),
                         verticalCenter: true,
                         colSpan: 1),
                         async (o) =>
@@ -1390,37 +1389,6 @@ namespace AasxPackageLogic
             }
 
             return null;
-        }
-
-        [Obsolete("update to AddSmallContextMenuItemTo() using AnyUiContextMenuHeaderList()")]
-        public AnyUiButton AddSmallContextMenuItemTo(
-            AnyUiGrid g, int row, int col,
-            string content,
-            ModifyRepo repo,
-            string[] menuHeaders,
-            AnyUiThickness margin = null, AnyUiThickness padding = null,
-            AnyUiBrush foreground = null, AnyUiBrush background = null,
-            Func<object, Task<AnyUiLambdaActionBase>> menuItemLambdaAsync = null)
-        {
-            // construct button
-            var but = new AnyUiButton();
-            but.Margin = margin;
-            but.Padding = padding;
-            if (foreground != null)
-                but.Foreground = foreground;
-            if (background != null)
-                but.Background = background;
-            but.Content = content;
-            AnyUiGrid.SetRow(but, row);
-            AnyUiGrid.SetColumn(but, col);
-            g.Children.Add(but);
-            but.SpecialAction = new AnyUiSpecialActionContextMenu(
-                menuItemHeaders: new AnyUiContextMenuHeaderList(menuHeaders),
-                menuItemLambda: null,
-                menuItemLambdaAsync: menuItemLambdaAsync);
-
-            // ok
-            return (but);
         }        
 
         public void AddKeyListKeys(
@@ -1449,9 +1417,7 @@ namespace AasxPackageLogic
             int maxNumOfKey = int.MaxValue,
             bool addKnownSemanticId = false,
             FirstColumnWidth? firstColumnWidth = null,
-            AnyUiButton buttonStyle = null,
-            AnyUiIconColor? iconColor = null,
-            AnyUiButtonPreference buttonPref = AnyUiButtonPreference.Image)
+            AnyUiButtonOverStyle buttonOverStyle = null)
         {
             // sometimes needless to show
             if (repo == null && (keys == null || keys.Count < 1))
@@ -1570,7 +1536,9 @@ namespace AasxPackageLogic
                             g2, 0, 2,
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
-                            content: "Add known"),
+                            header: new AnyUiButtonHeader(IconPool.AddKnown, "Add known", 
+                                        "Add reference from the internal library of known references."),
+                            buttonOverStyle: buttonOverStyle),
                         setValueAsync: async (o) =>
                         {
                             var uc = new AnyUiDialogueDataSelectReferableFromPool(
@@ -1611,7 +1579,9 @@ namespace AasxPackageLogic
                             g2, 0, 3,
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
-                            content: "Add ECLASS"),
+                            header: new AnyUiButtonHeader(IconPool.AddExisting, "Add ECLASS",
+                                        "Add reference to a ECLASS concept via IRDI."),
+                            buttonOverStyle: buttonOverStyle),
                         lambdaEclassIrdiAsync);
 
                 if (addExistingEntities != null && packages.MainAvailable)
@@ -1620,9 +1590,9 @@ namespace AasxPackageLogic
                             g2, 0, 4,
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
-                            header: new AnyUiButtonHeader(IconPool.AddExisting, "Add existing", 
-                                        "Add reference to existing element in packages.").Modify(pref: buttonPref, iconColor: iconColor),
-                            buttonStyle: buttonStyle),
+                            header: new AnyUiButtonHeader(IconPool.AddExisting, "Add existing",
+                                        "Add reference to an existing element in packages."),
+                            buttonOverStyle: buttonOverStyle),
                             setValueAsync: async (o) =>
                             {
                                 var k2 = await SmartSelectAasEntityKeysAsync(packages, selector, addExistingEntities);
@@ -1658,7 +1628,8 @@ namespace AasxPackageLogic
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),
                         header: new AnyUiButtonHeader(IconPool.AddBlank, "Add blank",
-                                        "Add blank data element.").Modify(pref: buttonPref)),
+                                        "Add blank reference."),
+                        buttonOverStyle: buttonOverStyle),
                         async (o) =>
                         {
                             await Task.Yield();
@@ -1680,7 +1651,8 @@ namespace AasxPackageLogic
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             header: new AnyUiButtonHeader(IconPool.Jump, "Jump",
-                                        "Jump to AAS element in package.").Modify(pref: buttonPref)),
+                                        "Jump to AAS element in package."),
+                            buttonOverStyle: buttonOverStyle),
                         async (o) =>
                         {
                             await Task.Yield();
@@ -1694,7 +1666,8 @@ namespace AasxPackageLogic
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             header: new AnyUiButtonHeader(IconPool.CopyToClipboard, "Clipboard",
-                                        "Copy reference as JSON to clipbaord.").Modify(pref: buttonPref)),
+                                        "Copy reference as JSON to clipboard."),
+                            buttonOverStyle: buttonOverStyle),
                         setValueAsync: lambdaClipboardAsync);
 
                 //
@@ -1709,7 +1682,9 @@ namespace AasxPackageLogic
                             g2, 0, 8 + i,
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
-                            content: "" + addPresetNames[i]),
+                            header: new AnyUiButtonHeader(IconPool.AddPreset, "" + addPresetNames[i],
+                                        "Add preset: " + addPresetNames[i]).Modify(AnyUiButtonPreference.Both),
+                            buttonOverStyle: buttonOverStyle),
                         async (o) =>
                         {
                             await Task.Yield();
@@ -1741,7 +1716,9 @@ namespace AasxPackageLogic
                                 g2, 0, currCol++,
                                 margin: new AnyUiThickness(2, 2, 2, 2),
                                 padding: new AnyUiThickness(5, 0, 5, 0),
-                                content: auxButtonTitles[i]),
+                                header: new AnyUiButtonHeader(IconPool.AddPreset, "" + auxButtonTitles[i],
+                                        "" + auxButtonTitles[i]).Modify(AnyUiButtonPreference.Both),
+                                buttonOverStyle: buttonOverStyle),
                             lmb) as AnyUiButton;
                         if (auxButtonToolTips != null && i < auxButtonToolTips.Length)
                             b.ToolTip = auxButtonToolTips[i];
@@ -1769,9 +1746,11 @@ namespace AasxPackageLogic
                     contextHeaders.AddRangeWithOffet(auxContextHeader, 100);
 
                     AddSmallContextMenuItemTo(
-                        g2, 0, currCol++,
-                        "\u22ee",
-                        contextHeaders,
+                        g2, 0, currCol++,      
+                        header: new AnyUiButtonHeader(IconPool.MoreVert, "More",
+                                        "More options in context menu."),
+                        buttonOverStyle: buttonOverStyle,
+                        menuHeaders: contextHeaders,
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),
                         verticalAlignment: AnyUiVerticalAlignment.Center,
@@ -1934,8 +1913,10 @@ namespace AasxPackageLogic
                         // button [hamburger]
                         AddSmallContextMenuItemTo(
                                 g, 0 + i + rowOfs, 5,
-                                "\u22ee",
-                                new AnyUiContextMenuHeaderList(new[] {
+                                header: new AnyUiButtonHeader(IconPool.MoreVert, "More",
+                                        "More options in context menu."),
+                                buttonOverStyle: buttonOverStyle,
+                                menuHeaders: new AnyUiContextMenuHeaderList(new[] {
                                     "\u2702", "Delete",
                                     "\u25b2", "Move Up",
                                     "\u25bc", "Move Down",
@@ -2086,7 +2067,7 @@ namespace AasxPackageLogic
                                 margin: new AnyUiThickness(0, 2, 4, 2),
                                 padding: new AnyUiThickness(5, 0, 5, 0),
                                 header: new AnyUiButtonHeader(IconPool.Add.SetIntense(), "Add", "Add empty element data"),
-                                buttonStyle: LayoutHints.StyleButtonAction),
+                                buttonOverStyle: LayoutHints.StyleButtonAction),
                             horizontalAlignment: AnyUiHorizontalAlignment.Left),
                         async (o) =>
                         {

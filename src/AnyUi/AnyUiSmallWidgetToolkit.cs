@@ -382,7 +382,8 @@ namespace AnyUi
             AnyUiImageSourceBase imageSource = null,
             bool? modalDialogStyle = null,
             AnyUiButton buttonStyle = null,
-            AnyUiButtonHeader header = null)
+            AnyUiButtonHeader header = null,
+            AnyUiButtonOverStyle buttonOverStyle = null)
         {
             var but = new AnyUiButton();
             but.Margin = margin;
@@ -410,6 +411,8 @@ namespace AnyUi
 
             if (header != null)
             {
+                header.Modify(buttonOverStyle);
+
                 but.Content = header.Text;
                 but.ImageSource = header.ImageSource;
                 but.ToolTip = header.ToolTip;
@@ -419,6 +422,9 @@ namespace AnyUi
 
             if (buttonStyle != null)
                 but.ApplyAsStyle(buttonStyle);
+
+            if (buttonOverStyle?.Style != null)
+                but.ApplyAsStyle(buttonOverStyle.Style);
 
             AnyUiGrid.SetRow(but, row);
             AnyUiGrid.SetColumn(but, col);
@@ -466,13 +472,15 @@ namespace AnyUi
 
         public AnyUiButton AddSmallContextMenuItemTo(
             AnyUiGrid g, int row, int col,
-            string content,
-            AnyUiContextMenuHeaderList menuHeaders,
+            string content = null,
+            AnyUiContextMenuHeaderList menuHeaders = null,
             AnyUiThickness margin = null, AnyUiThickness padding = null,
             AnyUiBrush foreground = null, AnyUiBrush background = null,
             AnyUiVerticalAlignment? verticalAlignment = null,
             Func<object, Task<AnyUiLambdaActionBase>> menuItemLambdaAsync = null,
-            AnyUiButton buttonStyle = null)
+            AnyUiButton buttonStyle = null,
+            AnyUiButtonHeader header = null,
+            AnyUiButtonOverStyle buttonOverStyle = null)
         {
             // construct button
             var but = new AnyUiButton();
@@ -485,8 +493,22 @@ namespace AnyUi
             if (verticalAlignment != null)
                 but.VerticalAlignment = verticalAlignment.Value;
 
+            if (header != null)
+            {
+                header.Modify(buttonOverStyle);
+
+                but.Content = header.Text;
+                but.ImageSource = header.ImageSource;
+                but.ToolTip = header.ToolTip;
+                if (header.Preference != AnyUiButtonPreference.None)
+                    but.Preference = header.Preference;
+            }
+
             if (buttonStyle != null)
                 but.ApplyAsStyle(buttonStyle);
+
+            if (buttonOverStyle?.Style != null)
+                but.ApplyAsStyle(buttonOverStyle.Style);
 
             but.Content = content;
             AnyUiGrid.SetRow(but, row);

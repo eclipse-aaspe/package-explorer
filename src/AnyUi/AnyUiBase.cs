@@ -925,6 +925,16 @@ namespace AnyUi
                 isf.Color = iconColor.Value;
             return this;
         }
+
+        public AnyUiButtonHeader Modify(AnyUiButtonOverStyle overStyle = null)
+        {
+            if (overStyle != null)
+                Preference = overStyle.Preference;
+
+            if (overStyle != null && ImageSource is AnyUiImageSourceFont isf)
+                isf.Color = overStyle.Color;
+            return this;
+        }
     }
 
     public class AnyUiButtonHeaderList : List<AnyUiButtonHeader>
@@ -958,6 +968,32 @@ namespace AnyUi
                     text: (headers != null && headers.Count() > i) ? headers[i] : null,
                     toolTip: (toolTips != null && toolTips.Count() > i) ? toolTips[i] : null
                     ));
+        }
+    }
+
+    //
+    // Aggegate some styling components
+    //
+
+    /// <summary>
+    /// Combine style of button, icon color and icon preference
+    /// </summary>
+    public class AnyUiButtonOverStyle
+    {
+        public AnyUiButton Style;
+        public AnyUiIconColor Color = AnyUiIconColor.Normal;
+        public AnyUiButtonPreference Preference = AnyUiButtonPreference.None;
+
+        public AnyUiButtonOverStyle() { }
+
+        public AnyUiButtonOverStyle(
+            AnyUiButton style = null, 
+            AnyUiIconColor color = AnyUiIconColor.Normal, 
+            AnyUiButtonPreference preference = AnyUiButtonPreference.None)
+        {
+            Style = style;
+            Color = color;
+            Preference = preference;
         }
     }
 

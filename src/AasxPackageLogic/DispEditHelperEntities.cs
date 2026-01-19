@@ -2284,7 +2284,8 @@ namespace AasxPackageLogic
                     repo,
                     packages, PackageCentral.PackageCentral.Selector.Main, "Reference Submodel ",
                     takeOverLambdaAction: new AnyUiLambdaActionRedrawAllElements(smref),
-                    jumpLambda: lambda, relatedReferable: aas);
+                    jumpLambda: lambda, relatedReferable: aas,
+                    buttonOverStyle: LayoutHints.StyleButtonAction);
             }
 
             // check, if Submodel is sitting in Repo
