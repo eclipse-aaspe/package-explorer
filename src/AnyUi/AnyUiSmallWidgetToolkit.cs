@@ -119,7 +119,9 @@ namespace AnyUi
         }
 
         public AnyUiWrapPanel AddSmallWrapPanelTo(
-            AnyUiGrid g, int row, int col, AnyUiThickness margin = null, AnyUiBrush background = null,
+            AnyUiGrid g, int row, int col, 
+            AnyUiThickness margin = null, 
+            AnyUiBrush background = null,
             int? colSpan = null)
         {
             var wp = new AnyUiWrapPanel();
@@ -476,6 +478,7 @@ namespace AnyUi
             AnyUiContextMenuHeaderList menuHeaders = null,
             AnyUiThickness margin = null, AnyUiThickness padding = null,
             AnyUiBrush foreground = null, AnyUiBrush background = null,
+            AnyUiHorizontalAlignment? horizontalAlignment = null,
             AnyUiVerticalAlignment? verticalAlignment = null,
             Func<object, Task<AnyUiLambdaActionBase>> menuItemLambdaAsync = null,
             AnyUiButton buttonStyle = null,
@@ -490,6 +493,12 @@ namespace AnyUi
                 but.Foreground = foreground;
             if (background != null)
                 but.Background = background;
+
+            if (horizontalAlignment != null)
+            {
+                but.HorizontalAlignment = horizontalAlignment.Value;
+                but.HorizontalContentAlignment = horizontalAlignment.Value;
+            }
             if (verticalAlignment != null)
                 but.VerticalAlignment = verticalAlignment.Value;
 

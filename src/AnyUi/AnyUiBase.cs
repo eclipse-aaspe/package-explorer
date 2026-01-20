@@ -224,6 +224,28 @@ namespace AnyUi
             );
         }
 
+        public static AnyUiColor Overlay(AnyUiColor baseColor, AnyUiColor overlay)
+        {
+            double ao = 1.0 * overlay.A / 255.0;
+            double ab = 1.0 * baseColor.A / 255.0;
+
+            double a = ao + ab * (1 - ao);
+
+            if (a <= 0)
+                return AnyUiColors.Transparent;
+
+            double r = (overlay.R * ao + baseColor.R * ab * (1 - ao)) / a;
+            double g = (overlay.G * ao + baseColor.G * ab * (1 - ao)) / a;
+            double b = (overlay.B * ao + baseColor.B * ab * (1 - ao)) / a;
+
+            return AnyUiColor.FromArgb(
+                Convert.ToByte(255.0 * a),
+                Convert.ToByte(r),
+                Convert.ToByte(g),
+                Convert.ToByte(b)
+            );
+        }
+
         public Single Blackness()
         {
             return ScA * (1.0f - 0.3333f * (ScR + ScG + ScB));

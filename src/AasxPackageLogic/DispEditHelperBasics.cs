@@ -812,7 +812,9 @@ namespace AasxPackageLogic
             AasxMenu ticketMenu = null,
             Func<int, Task<AnyUiLambdaActionBase>> actionAsync = null,
 			Func<int, AasxMenuActionTicket, Task<AnyUiLambdaActionBase>> ticketActionAsync = null,
-			FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard)
+			FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard,
+            AnyUiButtonOverStyle buttonOverStyle = null,
+            bool useWrapFlexPanel = true)
         {
             // generate actionStr from ticketMenu
             if (actionStr == null && ticketMenu != null)
@@ -859,10 +861,10 @@ namespace AasxPackageLogic
             g.ColumnDefinitions.Add(gc);
 
             // 1+x button
-            for (int i = 0; i < 1 /* numButton*/ ; i++)
+            for (int i = 0; i < (useWrapFlexPanel ? 1 : numButton); i++)
             {
                 gc = new AnyUiColumnDefinition();
-                gc.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Star);
+                gc.Width = new AnyUiGridLength(1.0, useWrapFlexPanel ? AnyUiGridUnitType.Star : AnyUiGridUnitType.Auto);
                 g.ColumnDefinitions.Add(gc);
             }
 
@@ -878,7 +880,7 @@ namespace AasxPackageLogic
             x.VerticalAlignment = AnyUiVerticalAlignment.Center;
 
             // 1 + action button
-            var wp = AddSmallWrapPanelTo(g, 0, 1, margin: new AnyUiThickness(4, 0, 4, 0));
+            var wp = !useWrapFlexPanel ? null : AddSmallWrapPanelTo(g, 0, 1, margin: new AnyUiThickness(4, 0, 4, 0));
             for (int i = 0; i < numButton; i++)
             {
                 // render?
@@ -890,15 +892,34 @@ namespace AasxPackageLogic
 
                 // render?
                 int currentI = i;
-                var b = new AnyUiButton();
-                b.Content = "" + actionStr[i];
-                b.Margin = new AnyUiThickness(0, 2, 4, 2);
-                b.Padding = new AnyUiThickness(5, 0, 5, 0);
-                wp.Children.Add(b);
+                AnyUiButton but = null;
+                if (!useWrapFlexPanel)
+                {
+                    but = AddSmallButtonTo(
+                        g, 0, 1 + i,
+                        content: "" + actionStr[i],
+                        margin: new AnyUiThickness(0, 2, 4, 2),
+                        padding: new AnyUiThickness(5, 0, 5, 0),
+                        buttonOverStyle: buttonOverStyle);
+                }
+                else
+                {
+                    // flex panel
+                    but = new AnyUiButton();
+                    but.Content = "" + actionStr[i];
+                    but.Margin = new AnyUiThickness(0, 2, 4, 2);
+                    but.Padding = new AnyUiThickness(5, 0, 5, 0);
+                    if (buttonOverStyle?.Style != null)
+                        but.ApplyAsStyle(buttonOverStyle.Style);
+                    wp.Children.Add(but);
+                }
+
+                if (but == null)
+                    continue;
 
                 // register callback
                 if (actionAsync != null || ticketActionAsync != null)
-				    AnyUiUIElement.RegisterControl(b,
+				    AnyUiUIElement.RegisterControl(but,
                         setValueAsync: async (o) =>
                         {
 						    // button # as argument!
@@ -909,13 +930,13 @@ namespace AasxPackageLogic
 					    });
 
                 if (actionTags != null && i < actionTags.Length)
-                    AnyUiUIElement.NameControl(b, actionTags[i]);
+                    AnyUiUIElement.NameControl(but, actionTags[i]);
 
                 // can set a tool tip?
                 if (ticketMenu != null && ticketMenu.Count > i
                     && ticketMenu[i] is AasxMenuItem mii
                     && mii.HelpText?.HasContent() == true)
-                    b.ToolTip = mii.HelpText;
+                    but.ToolTip = mii.HelpText;
             }
 
             // in total
@@ -1753,6 +1774,7 @@ namespace AasxPackageLogic
                         menuHeaders: contextHeaders,
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),
+                        horizontalAlignment: AnyUiHorizontalAlignment.Center,
                         verticalAlignment: AnyUiVerticalAlignment.Center,
                         menuItemLambdaAsync: async (o) =>
                         {
@@ -1923,6 +1945,7 @@ namespace AasxPackageLogic
                                 }),
                                 margin: new AnyUiThickness(2, 2, 2, 2),
                                 padding: new AnyUiThickness(5, 0, 5, 0),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Center,
                                 verticalAlignment: AnyUiVerticalAlignment.Center,
                                 menuItemLambdaAsync: async (o) =>
                                 {
@@ -2340,6 +2363,8 @@ namespace AasxPackageLogic
                 repo: repo,
                 superMenu: superMenu,
                 ticketMenu: theMenu,
+                useWrapFlexPanel: false,
+                buttonOverStyle: LayoutHints.StyleButtonAction,
                 ticketActionAsync: async (buttonNdx, ticket) =>
                 {
                     if (buttonNdx >= 0 && buttonNdx <= 3)

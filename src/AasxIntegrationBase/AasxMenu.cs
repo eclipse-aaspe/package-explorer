@@ -357,9 +357,9 @@ namespace AasxIntegrationBase
 
         /// <summary>
         /// Icon to be place aside the header in GUI based applications.
-        /// Might contain unicode symbil, text or bitmap.
+        /// Might contain unicode symbol, text or bitmap.
         /// </summary>
-        public object Icon { get; set; } = null;
+        public AnyUiImageSourceBase Icon { get; set; } = null;
 
         /// <summary>
         /// If true, not shown in menu.
@@ -496,7 +496,7 @@ namespace AasxIntegrationBase
         public AasxMenu AddAction(
             string name, string header,
             string help = null,
-            object icon = null,
+            AnyUiImageSourceBase icon = null,
             AasxMenuActionDelegate action = null,
             AasxMenuActionAsyncDelegate actionAsync = null,
             AasxMenuFilter filter = AasxMenuFilter.Wpf,
@@ -567,7 +567,7 @@ namespace AasxIntegrationBase
         }
 
         public AasxMenu AddTextBox(
-            string name, object icon, string header,
+            string name, AnyUiImageSourceBase icon, string header,
             double headerWidth, string textValue, double textWidth)
         {
             this.Add(new AasxMenuTextBox()

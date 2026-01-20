@@ -13,13 +13,25 @@ namespace MauiTestTree;
 public partial class DispEditAasxEntityMaui : ContentView
 {
     //
+    // Members
+    // 
+
+    protected AnyUiDisplayContextMaui.RenderDefaults _renderDefaults;
+
+    //
     // Component
     //
 
 	public DispEditAasxEntityMaui()
 	{
 		InitializeComponent();
-        
+
+        // built up render defaults
+        _renderDefaults = new AnyUiDisplayContextMaui.RenderDefaults()
+        {
+            FontSizeNormal = 12,
+        };
+
         // Outer life cycle for correct timer
         Loaded += (s1, e1) => { 
             StartTimer(); 
@@ -336,21 +348,25 @@ public partial class DispEditAasxEntityMaui : ContentView
         _helper.LayoutHints.PlacementAdd = UILayoutHints.PosOfControl.Bottom;
         _helper.LayoutHints.ExplicitMultiLineEdit = false;
 
-        // Button Action
+        // Button Thin
         _helper.LayoutHints.StyleButtonThin.Style = new();
         _helper.LayoutHints.StyleButtonThin.Style.Background = AnyUiBrushes.White;
         _helper.LayoutHints.StyleButtonThin.Style.BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
             XamlHelpers.GetDynamicRessource("ThinCntlBorder", Colors.Blue));
         _helper.LayoutHints.StyleButtonThin.Style.BorderWidth = 0.8;
         _helper.LayoutHints.StyleButtonThin.Style.Foreground = AnyUiBrushes.Black;
+        _helper.LayoutHints.StyleButtonThin.Style.MinHeight = _renderDefaults.ControlSizeNormal;
+        _helper.LayoutHints.StyleButtonThin.Style.MinWidth = _renderDefaults.ControlSizeNormal;
 
         // Button Action
         _helper.LayoutHints.StyleButtonAction.Style = new();
         _helper.LayoutHints.StyleButtonAction.Style.Background = AnyUiBrushes.White;
         _helper.LayoutHints.StyleButtonAction.Style.BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
             XamlHelpers.GetDynamicRessource("Primary", Colors.Blue));
-        _helper.LayoutHints.StyleButtonAction.Style.BorderWidth = 2.0;
+        _helper.LayoutHints.StyleButtonAction.Style.BorderWidth = 1.0;
         _helper.LayoutHints.StyleButtonAction.Style.Foreground = AnyUiBrushes.Black;
+        _helper.LayoutHints.StyleButtonAction.Style.MinHeight = _renderDefaults.ControlSizeNormal;
+        _helper.LayoutHints.StyleButtonAction.Style.MinWidth = _renderDefaults.ControlSizeNormal;
 
         // for icon resolution
         displayContext.LambdaResolveImageSourceFont = ResolveImageSourceFont;
@@ -500,11 +516,11 @@ public partial class DispEditAasxEntityMaui : ContentView
                 && stack.Children[0] is AnyUiGrid grid)
             {
                 // accessing the already rendered version of display context!
-                spwpf = displayContext.GetOrCreateMauiElement(grid);
+                spwpf = displayContext.GetOrCreateMauiElement(grid, renderDefaults: _renderDefaults);
             }
             else
             {
-                spwpf = displayContext.GetOrCreateMauiElement(stack);
+                spwpf = displayContext.GetOrCreateMauiElement(stack, renderDefaults: _renderDefaults);
             }
             _helper.ShowLastHighlights();
 
@@ -555,12 +571,12 @@ public partial class DispEditAasxEntityMaui : ContentView
             && stack.Children[0] is AnyUiGrid grid)
         {
             spmaui = dcmaui.GetOrCreateMauiElement(grid, allowReUse: allowReUse, mode: mode,
-                updateElemsOnly: updateElemsOnly);
+                updateElemsOnly: updateElemsOnly, renderDefaults: _renderDefaults);
         }
         else
         {
             spmaui = dcmaui.GetOrCreateMauiElement(root, allowReUse: allowReUse, mode: mode,
-                updateElemsOnly: updateElemsOnly);
+                updateElemsOnly: updateElemsOnly, renderDefaults: _renderDefaults);
         }
 
         _helper.ShowLastHighlights();

@@ -448,6 +448,11 @@ namespace MauiTestTree
             public double FontSizeNormal = 14.0;
 
             /// <summary>
+            /// Height of a normal Entry field on the specific platform
+            /// </summary>
+            public double ControlSizeNormal = 46;
+
+            /// <summary>
             /// Relative font size (to make fonts relatively larger/ smaller) to the 
             /// default control theme. Multiplied by default font size and widgets own
             /// (relative) font size.
@@ -466,6 +471,7 @@ namespace MauiTestTree
 
             public RenderDefaults()
             {
+                // measure out Label
                 var lab = new Label();
                 FontSizeNormal = lab.FontSize;
             }
@@ -805,12 +811,15 @@ namespace MauiTestTree
                        && mode == AnyUiRenderMode.All)
                    {
                        if (cntl.Orientation.HasValue)
-                        {
+                       {
                             if (cntl.Orientation == AnyUiOrientation.Horizontal)
                                 maui.Direction = FlexDirection.Row;
                             if (cntl.Orientation == AnyUiOrientation.Vertical)
                                 maui.Direction = FlexDirection.Column;
-                        }
+                       }
+
+                       // Enable wrap
+                       maui.Wrap = FlexWrap.Wrap;
                    }
                 }),
 
@@ -1838,12 +1847,22 @@ namespace MauiTestTree
                     }
                 }),
 
-                new RenderRec(typeof(AnyUiButton), (wts) => typeof(Button), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiButton), (wts) => typeof(/* Button */ Border), null, (a, b, mode, rd) =>
                 {
-                    if (a is AnyUiButton cntl && b is Button maui
+                    if (a is AnyUiButton cntl && b is /* Button */ Border maui
                         && mode == AnyUiRenderMode.All)
                     {
-                        // members
+                        // sort preference
+                        var pref = AnyUiButtonPreference.Both;
+                        if (cntl.Preference != AnyUiButtonPreference.None)
+                            pref = cntl.Preference;
+
+                        // some
+                        if (cntl.Padding != null)
+                            maui.Padding = GetMauiTickness(cntl.Padding);
+
+#if __wrong__aproach
+                        // members of Button
                         if (cntl.Background != null)
                             maui.Background = GetMauiBrush(cntl.Background);
                         if (rd?.ForegroundControl != null)
@@ -1854,8 +1873,6 @@ namespace MauiTestTree
                             maui.BorderColor = GetMauiColor(cntl.BorderColor.Color);
                         if (cntl.BorderWidth != null)
                             maui.BorderWidth = cntl.BorderWidth.Value;
-                        if (cntl.Padding != null)
-                            maui.Padding = GetMauiTickness(cntl.Padding);
 
                         maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
 
@@ -1864,11 +1881,6 @@ namespace MauiTestTree
 
                         if (cntl.FontWeight.HasValue)
                             maui.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);
-
-                        // sort preference
-                        var pref = AnyUiButtonPreference.Both;
-                        if (cntl.Preference != AnyUiButtonPreference.None)
-                            pref = cntl.Preference;
 
                         // set contents
                         if (pref != AnyUiButtonPreference.Image)
@@ -1889,30 +1901,6 @@ namespace MauiTestTree
                                         Color = GetMauiColor(reso.IconColor)
                                 };
                             }
-                        }
-
-                        if (cntl.ToolTip != null)
-                        {
-                            var thisToolTip = "" + cntl.ToolTip;
-                            var thisMaui = maui;
-                            thisMaui.HandlerChanged += (s,e) =>
-                            {
-#if WINDOWS
-                                if (thisMaui.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.Button btn)
-                                {
-                                    Microsoft.UI.Xaml.Controls.ToolTip toolTip = new Microsoft.UI.Xaml.Controls.ToolTip();
-                                    toolTip.Content = thisToolTip;
-                                    Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(btn, toolTip);
-                                }
-#endif
-                            };
-                        }
-
-                        if (cntl.ModalDialogStyle)
-                        {
-#if TODO_IMPORTANT
-                            wpf.SetResourceReference(Control.StyleProperty, "TranspRoundCorner");
-#endif
                         }
 
                         // callbacks
@@ -1965,6 +1953,183 @@ namespace MauiTestTree
 #endif
                             }
                         };
+
+#else
+                        // mimick the button
+                        var hsl = new HorizontalStackLayout
+                        {
+                            Spacing = 6,
+                            VerticalOptions = LayoutOptions.Center                            
+                        };
+
+                        if (cntl.HorizontalAlignment != null)
+                            hsl.HorizontalOptions = GetLayoutOptions(cntl.HorizontalAlignment.Value);
+
+                        maui.Content = hsl;
+
+                        // maui.MinimumWidthRequest = 100;
+                        maui.StrokeShape = new RoundRectangle() { CornerRadius = 4 };
+
+                        if (cntl.BorderColor != null)
+                            maui.Stroke = GetMauiColor(cntl.BorderColor.Color);
+                        if (cntl.BorderWidth != null)
+                            maui.StrokeThickness = cntl.BorderWidth.Value;
+
+                        if (pref != AnyUiButtonPreference.Text && cntl.ImageSource != null)
+                        {
+                            if (cntl.ImageSource is AnyUiImageSourceFont isf)
+                            {
+                                var reso = LambdaResolveImageSourceFont?.Invoke(this, isf);
+                                if (reso != null)
+                                    hsl.Children.Add(
+                                        new Label
+                                        {
+                                            Background = Brush.LightBlue,
+                                            FontFamily = reso.FontAlias,
+                                            Text = isf.IconGlyph,
+                                            FontSize = isf.FontSize ?? 20,
+                                            TextColor = GetMauiColor(reso.IconColor),
+                                            VerticalTextAlignment = TextAlignment.Center
+                                        });
+                            }
+                        }
+
+                        if (pref != AnyUiButtonPreference.Image && cntl.Content?.HasContent() == true)
+                        {
+                            var lab = new Label
+                            {
+                                Text = cntl.Content,
+                                Background = Brush.MistyRose,
+                                VerticalTextAlignment = TextAlignment.Center,
+                                HorizontalTextAlignment = TextAlignment.Center,
+                                HorizontalOptions = LayoutOptions.Center
+                            };
+                            
+                            lab.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
+
+                            if (cntl.FontMono)
+                                lab.FontFamily = "Consolas";
+
+                            if (cntl.FontWeight.HasValue)
+                                lab.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);
+
+                            hsl.Children.Add(lab);
+                        }
+
+                        // callbacks
+                        var tap = new TapGestureRecognizer();
+                        var myCntl = cntl;
+                        maui.GestureRecognizers.Add(tap);
+                        tap.Tapped += async (sender, e) =>
+                        {
+                            // normal procedure
+                            if (myCntl.setValueAsyncLambda != null)
+                                EmitOutsideAction(await myCntl.setValueAsyncLambda.Invoke(myCntl));
+
+                            // special case
+                            if (myCntl.SpecialAction is AnyUiSpecialActionContextMenu cntlcm
+                                && cntlcm.MenuItemHeaders != null
+                                && sender is View mauiSender
+                                && (myCntl?.DisplayData is AnyUiDisplayDataMaui ddmaui) && ddmaui.Context != null)
+                            {
+                                var res = await ddmaui.Context.MauiShowContextMenuForControlWrapper(mauiSender, cntlcm);
+
+                                if (res.HasValue)
+                                {
+                                    var action2 = cntlcm.MenuItemLambda?.Invoke(res.Value);
+                                    if (action2 == null && cntlcm.MenuItemLambdaAsync != null)
+                                        action2 = await cntlcm.MenuItemLambdaAsync(res.Value);
+                                    EmitOutsideAction(action2);
+                                }
+                            }
+                        };
+
+                        // Visual states
+                        var bgColor = AnyUiColors.Transparent;
+                        if (cntl.Background != null)
+                            bgColor = cntl.Background?.Color;
+
+                        var light = Application.Current?.RequestedTheme == AppTheme.Light;
+
+                        var pointerOverColor = AnyUiColor.Overlay(bgColor, new AnyUiColor( light ? 0x15000000u : 0x15ffffffu));
+                        var pressedColor = AnyUiColor.Overlay(bgColor, new AnyUiColor( light ? 0x30000000u : 0x30ffffffu));
+
+                        var pointer = new PointerGestureRecognizer();
+
+                        pointer.PointerEnteredCommand = new Command(() =>
+                            VisualStateManager.GoToState(maui, "PointerOver"));
+
+                        pointer.PointerExitedCommand = new Command(() =>
+                            VisualStateManager.GoToState(maui, "Normal"));
+
+                        pointer.PointerPressedCommand = new Command(() =>
+                            VisualStateManager.GoToState(maui, "Pressed"));
+
+                        pointer.PointerReleasedCommand = new Command(() =>
+                            VisualStateManager.GoToState(maui, "PointerOver"));
+
+                        maui.GestureRecognizers.Add(pointer);
+
+                        VisualStateManager.SetVisualStateGroups(maui, new VisualStateGroupList
+                        {
+                            new VisualStateGroup
+                            {
+                                Name = "CommonStates",
+                                States =
+                                {
+                                    new VisualState
+                                    {
+                                        Name = "Normal",
+                                        Setters =
+                                        {
+                                            new Setter { Property = Border.BackgroundColorProperty, Value = GetMauiColor(bgColor) }
+                                        }
+                                    },
+                                    new VisualState
+                                    {
+                                        Name = "PointerOver",
+                                        Setters =
+                                        {
+                                            new Setter { Property = Border.BackgroundColorProperty, Value = GetMauiColor(pointerOverColor) }
+                                        }
+                                    },
+                                    new VisualState
+                                    {
+                                        Name = "Pressed",
+                                        Setters =
+                                        {
+                                            new Setter { Property = Border.BackgroundColorProperty, Value = GetMauiColor(pressedColor) }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+#endif
+
+                        if (cntl.ToolTip != null)
+                        {
+                            var thisToolTip = "" + cntl.ToolTip;
+                            var thisMaui = maui;
+                            thisMaui.HandlerChanged += (s,e) =>
+                            {
+#if WINDOWS
+                                if (thisMaui.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.Button btn)
+                                {
+                                    Microsoft.UI.Xaml.Controls.ToolTip toolTip = new Microsoft.UI.Xaml.Controls.ToolTip();
+                                    toolTip.Content = thisToolTip;
+                                    Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(btn, toolTip);
+                                }
+#endif
+                            };
+                        }
+
+                        if (cntl.ModalDialogStyle)
+                        {
+#if TODO_IMPORTANT
+                            wpf.SetResourceReference(Control.StyleProperty, "TranspRoundCorner");
+#endif
+                        }
+
                     }
                 })
             });
@@ -2257,15 +2422,16 @@ namespace MauiTestTree
             // Windows
             //
 
-            if (mauiCntl is not Button mauiButton)
-            {
-                tcs.SetResult(null);
-                return tcs.Task;
-            }
+            Microsoft.UI.Xaml.FrameworkElement? fe = null;
+            // original
+            if (mauiCntl is Button mauiButton && mauiButton.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.Button winButton)
+                fe = winButton;
+            // alternative
+            if (mauiCntl is Border mauiBorder && mauiBorder.Handler?.PlatformView is Microsoft.UI.Xaml.FrameworkElement winFe)
+                fe = winFe;
 
 
-            var handler = mauiButton.Handler;
-            if (handler?.PlatformView is not Microsoft.UI.Xaml.Controls.Button winButton)
+            if (fe == null)
             {
                 tcs.SetResult(null);
                 return tcs.Task;
@@ -2302,7 +2468,7 @@ namespace MauiTestTree
                 tcs.TrySetResult(null); // dismissed
             };
 
-            flyout.ShowAt(winButton);
+            flyout.ShowAt(fe /* winButton */);
 
             return tcs.Task;
 #endif

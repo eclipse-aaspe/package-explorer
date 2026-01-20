@@ -174,7 +174,7 @@ namespace MauiTestTree
             if (mode < 80)
             {
                 var dc = new AnyUiDisplayContextMaui(this, this, new PackageCentral());
-                var ve = dc.GetOrCreateMauiElement(stack, null, allowReUse: false);
+                var ve = dc.GetOrCreateMauiElement(stack, null, allowReUse: false, renderDefaults: new AnyUiDisplayContextMaui.RenderDefaults());
 
                 var dbg = new VisualTreeDebugger();
                 dbg.Dump(ve!, VisualTreeDebugger.Attributes.All);
