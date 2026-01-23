@@ -791,17 +791,24 @@ namespace AasxPackageExplorer
 
                 var tokenExchanges2 = await AskForTokenExchange();
 
-                if (tokenExchanges2 != null && !String.IsNullOrEmpty(tokenExchanges2[0]))
+                if (tokenExchanges2 != null && !String.IsNullOrEmpty(tokenExchanges2[0])
+                    && tokenExchanges2[0] != "none")
                 {
                     var target = tokenExchanges2[0];
                     var configUrl = "https://iam-security-training.com/consumer/sts";
                     var d = new Dictionary<string, string>
-                {
-                    { "grant_type", "urn:ietf:params:oauth:grant-type:token-exchange" },
-                    { "subject_token_type", "urn:ietf:params:oauth:token-type:jwt" },
-                    { "requested_token_type", "urn:ietf:params:oauth:token-type:access_token" },
-                    { "subject_token", secretAccessToken },
-                };
+                    {
+
+                        { "grant_type", "urn:ietf:params:oauth:grant-type:token-exchange" },
+
+                        { "subject_token_type", "urn:ietf:params:oauth:token-type:jwt" },
+
+                        { "requested_token_type", "urn:ietf:params:oauth:token-type:access_token" },
+
+                        { "subject_token", secretAccessToken },
+
+                    };
+
                     if (target != "")
                     {
                         d.Add("audience", target);
@@ -910,6 +917,134 @@ namespace AasxPackageExplorer
                         catch (Exception ex)
                         {
                             Console.WriteLine($"Validation failed: {ex.Message}");
+                        }
+                    }
+
+                    if (tokenExchanges2[1] != "none")
+                    {
+                        handler = new HttpClientHandler { DefaultProxyCredentials = CredentialCache.DefaultCredentials };
+                        client = new HttpClient(handler);
+
+                        var configUrl2 = "https://iam-security-training.com/provider/sts";
+                        target = tokenExchanges2[1];
+
+                        var d2 = new Dictionary<string, string>
+                        {
+                            { "grant_type", "urn:ietf:params:oauth:grant-type:token-exchange" },
+                            { "subject_token_type", "urn:ietf:params:oauth:token-type:jwt" },
+                            { "requested_token_type", "urn:ietf:params:oauth:token-type:access_token" },
+                            { "subject_token", accessToken2 },
+                        };
+                        if (target != "")
+                        {
+                            d2.Add("audience", target);
+                        }
+                        var request3 = new HttpRequestMessage(HttpMethod.Post, $"{configUrl}/token")
+                        {
+                            Content = new FormUrlEncodedContent(d)
+                        };
+                        request3.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+
+                        var response3 = await client.SendAsync(request3);
+                        var content3 = await response3.Content.ReadAsStringAsync();
+
+                        var accessToken3 = "";
+                        var doc3 = JsonDocument.Parse(content);
+                        if (doc3.RootElement.TryGetProperty("access_token", out var tokenElement2))
+                        {
+                            accessToken3 = tokenElement2.GetString();
+                            Console.WriteLine("Access Token: " + accessToken3);
+
+                            using var httpClient = new HttpClient(handler);
+                            var jwksJson = await httpClient.GetStringAsync($"{configUrl}/jwks");
+                            var jwks = JObject.Parse(jwksJson)["keys"];
+
+                            /*
+                            var handler2 = new JwtSecurityTokenHandler();
+                            var jwt2 = handler2.ReadJwtToken(accessToken);
+                            var kid = jwt2.Header["kid"].ToString();
+
+                            // 3. Find matching key
+                            var key = jwks.First(k => k["kid"].ToString() == kid);
+
+                            // 4. Build RSA key
+                            var e = Base64UrlEncoder.DecodeBytes(key["e"].ToString());
+                            var n = Base64UrlEncoder.DecodeBytes(key["n"].ToString());
+                            var rsa = new RSAParameters { Exponent = e, Modulus = n };
+                            var rsaKey = new RsaSecurityKey(rsa);
+
+                            // 5. Validate token
+                            var validationParams = new TokenValidationParameters
+                            {
+                                ValidateIssuer = false,
+                                ValidateAudience = false,
+                                ValidateLifetime = true,
+                                ValidateIssuerSigningKey = true,
+                                IssuerSigningKey = rsaKey,
+                                ClockSkew = TimeSpan.FromMinutes(5)
+                            };
+
+                            try
+                            {
+                                handler2.ValidateToken(accessToken, validationParams, out _);
+                                ioConsole.WriteLine("Token is valid");
+                            }
+                            catch (Exception ex)
+                            {
+                                ioConsole.WriteLine($"Validation failed: {ex.Message}");
+                            }
+                            */
+
+                            // 1) Handler
+                            var handler2 = new JsonWebTokenHandler();
+
+                            // 2) JWK aus JWKS direkt verwenden (hier exemplarisch LINQ auf Dein jwks-Array)
+                            var jwtHeaderKid = new JsonWebToken(accessToken3).Kid; // liest 'kid' robust
+                            var jwkJson = jwks.First(k => k["kid"].ToString() == jwtHeaderKid).ToString(); // k ist i. d. R. ein JObject
+                            var jwk = new JsonWebKey(jwkJson);
+
+                            // 3) Validierungsparameter
+                            var validationParams = new TokenValidationParameters
+                            {
+                                // Signaturprüfung
+                                IssuerSigningKey = jwk,            // kein manuelles RSAParameters nötig
+                                ValidateIssuerSigningKey = true,
+
+                                // Lebenszeit
+                                ValidateLifetime = true,
+                                RequireExpirationTime = true,
+                                ClockSkew = TimeSpan.FromMinutes(5),   // bei UTC+0 gut, ggf. 2–5 Minuten
+
+                                // Issuer/Audience je nach Bedarf (bei Tests oft aus)
+                                ValidateIssuer = false,                // später auf true + ValidIssuer setzen
+                                ValidateAudience = false,              // später auf true + ValidAudience setzen
+
+                                // Keine Legacy-Claim-Mappings
+                                // MapInboundClaims = false,
+
+                                // Optional: Name-/Rollen-Claims aus dem JWT
+                                NameClaimType = "name",
+                                RoleClaimType = "role"
+                            };
+
+                            try
+                            {
+                                var result = handler2.ValidateToken(accessToken3, validationParams);
+                                if (!result.IsValid)
+                                {
+                                    Console.WriteLine($"Validation failed: {result.Exception?.Message}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Token is valid");
+                                    secretAccessToken = accessToken3;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Validation failed: {ex.Message}");
+                            }
+
                         }
                     }
                 }
