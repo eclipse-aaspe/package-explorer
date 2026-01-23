@@ -907,6 +907,7 @@ namespace AasxPackageExplorer
                             if (!result.IsValid)
                             {
                                 Console.WriteLine($"Validation failed: {result.Exception?.Message}");
+                                return null;
                             }
                             else
                             {
@@ -917,6 +918,7 @@ namespace AasxPackageExplorer
                         catch (Exception ex)
                         {
                             Console.WriteLine($"Validation failed: {ex.Message}");
+                            return null;
                         }
                     }
 
@@ -1033,6 +1035,7 @@ namespace AasxPackageExplorer
                                 if (!result.IsValid)
                                 {
                                     Console.WriteLine($"Validation failed: {result.Exception?.Message}");
+                                    return null;
                                 }
                                 else
                                 {
@@ -1043,6 +1046,7 @@ namespace AasxPackageExplorer
                             catch (Exception ex)
                             {
                                 Console.WriteLine($"Validation failed: {ex.Message}");
+                                return null;
                             }
 
                         }
