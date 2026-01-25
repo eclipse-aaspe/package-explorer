@@ -376,10 +376,11 @@ namespace AnyUi
                 cb.SelectedIndex = foundI;
         }
 
-        public AnyUiButton AddSmallButtonTo(
-            AnyUiGrid g, int row, int col, AnyUiThickness margin = null, AnyUiThickness padding = null,
+        public AnyUiButton AddSmallButton(
+            AnyUiThickness margin = null, AnyUiThickness padding = null,
             string content = "", AnyUiBrush foreground = null, AnyUiBrush background = null,
-            double? setHeight = null, AnyUiVerticalAlignment? verticalAlignment = null,
+            double? setHeight = null,
+            AnyUiVerticalAlignment? verticalAlignment = null,
             bool? directInvoke = null, string toolTip = null,
             AnyUiImageSourceBase imageSource = null,
             bool? modalDialogStyle = null,
@@ -412,21 +413,33 @@ namespace AnyUi
                 but.ImageSource = imageSource;
 
             if (header != null)
-            {
-                header.Modify(buttonOverStyle);
-
-                but.Content = header.Text;
-                but.ImageSource = header.ImageSource;
-                but.ToolTip = header.ToolTip;
-                if (header.Preference != AnyUiButtonPreference.None)
-                    but.Preference = header.Preference;
-            }
+                but.ApplyHeader(header, buttonOverStyle);
 
             if (buttonStyle != null)
                 but.ApplyAsStyle(buttonStyle);
 
             if (buttonOverStyle?.Style != null)
                 but.ApplyAsStyle(buttonOverStyle.Style);
+            
+            return (but);
+        }
+
+        public AnyUiButton AddSmallButtonTo(
+            AnyUiGrid g, int row, int col, AnyUiThickness margin = null, AnyUiThickness padding = null,
+            string content = "", AnyUiBrush foreground = null, AnyUiBrush background = null,
+            double? setHeight = null, 
+            AnyUiVerticalAlignment? verticalAlignment = null,
+            bool? directInvoke = null, string toolTip = null,
+            AnyUiImageSourceBase imageSource = null,
+            bool? modalDialogStyle = null,
+            AnyUiButton buttonStyle = null,
+            AnyUiButtonHeader header = null,
+            AnyUiButtonOverStyle buttonOverStyle = null)
+        {
+            var but = AddSmallButton(
+                margin, padding, content, foreground, background, setHeight, 
+                verticalAlignment, directInvoke, toolTip, imageSource, 
+                modalDialogStyle, buttonStyle, header, buttonOverStyle);
 
             AnyUiGrid.SetRow(but, row);
             AnyUiGrid.SetColumn(but, col);

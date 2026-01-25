@@ -2512,12 +2512,21 @@ namespace AasxPackageLogic
             // normal edit of the submodel
             if (editMode && submodel != null)
             {
+#if OLD
                 DispSmeListAddNewHelper<ISubmodelElement>(env, stack, repo,
                     key: "SubmodelElement:",
                     submodel.SubmodelElements,
                     setOutput: (sml) => submodel.SubmodelElements = sml,
                     superMenu: superMenu,
                     basedOnSemanticId: submodel.SemanticId);
+#else
+                AddKeyButtons(stack, "SubmodelElement:", DispSmeListAddNewGenerateButtons(
+                    env, repo,
+                    submodel.SubmodelElements,
+                    setOutput: (sml) => submodel.SubmodelElements = sml,
+                    superMenu: superMenu,
+                    basedOnSemanticId: submodel.SemanticId));
+#endif
 
                 this.AddHintBubble(stack, hintMode, new[] {
                     new HintCheck(

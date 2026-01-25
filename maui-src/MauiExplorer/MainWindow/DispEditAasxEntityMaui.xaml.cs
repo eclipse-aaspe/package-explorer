@@ -381,10 +381,37 @@ public partial class DispEditAasxEntityMaui : ContentView
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Add_box);
         IconPool.Jump
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Outbound);
+
         IconPool.CopyToClipboard
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Content_copy);
+
         IconPool.MoreVert
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.More_vert);
+
+        IconPool.MoveUp
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Arrow_upward_alt);
+        IconPool.MoveDown
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Arrow_downward_alt);
+        IconPool.MoveTop
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Vertical_align_top);
+        IconPool.MoveBottom
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Vertical_align_bottom);
+
+        IconPool.Cut
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Content_cut);
+        IconPool.Copy
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Content_copy);
+        IconPool.Paste
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Content_paste);
+        IconPool.PasteAbove
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Text_select_move_up);
+        IconPool.PasteBelow
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Text_select_move_down);
+        IconPool.PasteInto
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Text_select_move_forward_word);
+
+        IconPool.ContextMenuDropDown
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Arrow_drop_down_circle);
 
         // modify repository
         ModifyRepo? repo = null;

@@ -297,6 +297,65 @@ namespace AasxPackageLogic
         // Helpers for GUI building blocks
         //
 
+        public static T RegisterSmallControl<T>(
+                            T cntl,
+                            AasxMenu superMenu,
+                            AasxMenuItemBase menuItem,
+                            Func<object, AasxMenuActionTicket, Task<AnyUiLambdaActionBase>> setValueWithTicketAsync = null,
+                            AnyUiLambdaActionBase takeOverLambda = null,
+                            object setValue = null)
+        where T : AnyUiUIElement
+        {
+            // just go thru
+            AnyUiUIElement.RegisterControl(cntl, 
+                setValueAsync: async (o) => {
+                    if (setValueWithTicketAsync != null)
+                        return await setValueWithTicketAsync(o, new AasxMenuActionTicket());
+                    return new AnyUiLambdaActionNone();
+                }, 
+                takeOverLambda);
+
+            // add the ticketMenu items to the super menu
+            // an re-route lambdas
+            if (superMenu != null && menuItem != null && setValueWithTicketAsync != null)
+            {
+                menuItem.ActionAsync = async (name, item, ticket) =>
+                {
+                    if (ticket != null)
+                        ticket.UiLambdaAction = await setValueWithTicketAsync(setValue == null ? ((int) 0) : setValue, ticket);
+                };
+
+                superMenu.Add(menuItem);
+            }
+
+            // give back
+            return cntl;
+        }
+
+        /// <summary>
+        /// Display the key and some buttons in a wrap panel
+        /// </summary>
+        public void AddKeyButtons(
+            AnyUiStackPanel view, string key, IEnumerable<AnyUiControl> buttons)
+        {
+            // access
+            if (view == null || buttons == null)
+                return;
+
+            // small grid for this
+            var g = AddSmallGrid(1, 2, new[] { "#", "*" });
+            g.ColumnDefinitions[0].MinWidth = GetWidth(FirstColumnWidth.Standard);
+
+            view.Add(g);
+
+            AddSmallLabelTo(g, 0, 0, content: key, padding: new AnyUiThickness(5, 0, 0, 0), verticalCenter: true);
+
+            // make a panel for the buttons
+            var panel = AddSmallWrapPanelTo(g, 0, 1, margin: new AnyUiThickness(5, 0, 0, 0));
+            foreach (var b in buttons)
+                panel.Add(b);
+        }
+
         public void AddInfoText(
             AnyUiStackPanel view, string text)
         {
@@ -805,7 +864,7 @@ namespace AasxPackageLogic
         }
 
 		public void AddActionPanel(
-            AnyUiPanel view, string key, string[] actionStr = null, ModifyRepo repo = null,
+            AnyUiPanel view, string key, string[] actionStrXX = null, ModifyRepo repo = null,
             string[] actionTags = null,
             bool[] addWoEdit = null,
             AasxMenu superMenu = null,
@@ -817,15 +876,18 @@ namespace AasxPackageLogic
             bool useWrapFlexPanel = true)
         {
             // generate actionStr from ticketMenu
-            if (actionStr == null && ticketMenu != null)
-                actionStr = ticketMenu.Select((tmi) => (tmi is AasxMenuItem mi) ? mi.Header : "").ToArray();
+            //if (actionStr == null && ticketMenu != null)
+            //    actionStr = ticketMenu.Select((tmi) => (tmi is AasxMenuItem mi) ? mi.Header : "").ToArray();
+
+            var buttonList = ticketMenu?.Where((tmi) => tmi is AasxMenuItem)
+                                        .Select((tmi) => (tmi as AasxMenuItem).ToButtonHeader())?.ToList();
 
             // access 
-            if ((actionAsync == null && ticketActionAsync == null) || actionStr == null)
+            if ((actionAsync == null && ticketActionAsync == null) || buttonList == null)
                 return;
             if (repo == null && addWoEdit == null)
                 return;
-            var numButton = actionStr.Length;
+            var numButton = buttonList.Count;
 
             // add the ticketMenu items to the super menu
             // an re-route lambdas
@@ -890,6 +952,9 @@ namespace AasxPackageLogic
                      ))
                     continue;
 
+                // prepare button header data
+
+
                 // render?
                 int currentI = i;
                 AnyUiButton but = null;
@@ -897,7 +962,8 @@ namespace AasxPackageLogic
                 {
                     but = AddSmallButtonTo(
                         g, 0, 1 + i,
-                        content: "" + actionStr[i],
+                        header: buttonList[i],
+                        // content: "" + actionStr[i],
                         margin: new AnyUiThickness(0, 2, 4, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),
                         buttonOverStyle: buttonOverStyle);
@@ -906,11 +972,9 @@ namespace AasxPackageLogic
                 {
                     // flex panel
                     but = new AnyUiButton();
-                    but.Content = "" + actionStr[i];
                     but.Margin = new AnyUiThickness(0, 2, 4, 2);
                     but.Padding = new AnyUiThickness(5, 0, 5, 0);
-                    if (buttonOverStyle?.Style != null)
-                        but.ApplyAsStyle(buttonOverStyle.Style);
+                    but.ApplyHeader(buttonList[i], buttonOverStyle);
                     wp.Children.Add(but);
                 }
 
@@ -2341,18 +2405,23 @@ namespace AasxPackageLogic
             var theMenu = new AasxMenu()
                     .AddAction("aas-elem-move-up", "Move up",
                         "Moves the currently selected element up in containing collection.",
+                        IconPool.MoveUp,
                         inputGesture: "Shift+Ctrl+Up")
                     .AddAction("aas-elem-move-down", "Move down",
                         "Moves the currently selected element down in containing collection.",
+                        IconPool.MoveDown,
                         inputGesture: "Shift+Ctrl+Down")
                     .AddAction("aas-elem-move-top", "Move top",
                         "Moves the currently selected element to the top in containing collection.",
+                        IconPool.MoveTop,
                         inputGesture: "Shift+Ctrl+Home")
                     .AddAction("aas-elem-move-end", "Move end",
                         "Moves the currently selected element to the end in containing collection.",
+                        IconPool.MoveBottom,
                         inputGesture: "Shift+Ctrl+End")
                     .AddAction("aas-elem-delete", "Delete",
                         "Deletes the currently selected element.",
+                        IconPool.Delete,
                         inputGesture: "Ctrl+Shift+Delete");
 
             if (extraMenu != null)
@@ -2364,7 +2433,9 @@ namespace AasxPackageLogic
                 superMenu: superMenu,
                 ticketMenu: theMenu,
                 useWrapFlexPanel: false,
-                buttonOverStyle: LayoutHints.StyleButtonAction,
+                buttonOverStyle: LayoutHints.StyleButtonAction.Modify(
+                                    preference: AnyUiButtonPreference.Image,
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Center),
                 ticketActionAsync: async (buttonNdx, ticket) =>
                 {
                     if (buttonNdx >= 0 && buttonNdx <= 3)

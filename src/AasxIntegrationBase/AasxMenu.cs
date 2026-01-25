@@ -409,6 +409,21 @@ namespace AasxIntegrationBase
         public string AttachPoint = null;
 
         //
+        // Constructor
+        //
+
+        public AasxMenuItem() : base() { }
+
+        public AasxMenuItem(string name, string header, string helpText,
+            AasxMenuListOfArgDefs args = null)
+        {
+            Name = name;
+            Header = header;
+            HelpText = helpText;
+            ArgDefs = args;
+        }
+
+        //
         // more
         //
 
@@ -417,6 +432,18 @@ namespace AasxIntegrationBase
             if (Childs == null)
                 Childs = new AasxMenu();
             Childs.Add(item);
+        }
+
+        public AnyUiButtonHeader ToButtonHeader(AnyUiButtonPreference pref = AnyUiButtonPreference.None)
+        {
+            var res = new AnyUiButtonHeader()
+            {
+                Text = Header,
+                ImageSource = Icon,
+                Preference = pref,
+                ToolTip = HelpText
+            };
+            return res;
         }
     }
 

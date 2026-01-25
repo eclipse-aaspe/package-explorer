@@ -766,21 +766,30 @@ namespace AasxPackageLogic
                 stack, label,
                 repo: repo,
                 superMenu: superMenu,
+                useWrapFlexPanel: false,
+                buttonOverStyle: LayoutHints.StyleButtonAction.Modify(
+                                    preference: AnyUiButtonPreference.Image,
+                                    horizontalAlignment: AnyUiHorizontalAlignment.Center),
                 ticketMenu: new AasxMenu()
                     .AddAction("aas-elem-cut", "Cut",
                         "Removes the currently selected element and places it in the paste buffer.",
+                        IconPool.Cut,
                         inputGesture: "Ctrl+X")
                     .AddAction("aas-elem-copy", "Copy",
                         "Places the currently selected element in the paste buffer.",
+                        IconPool.Copy,
                         inputGesture: "Ctrl+Shift+C")
                     .AddAction("aas-elem-paste-above", "Paste above",
                         "Adds the content of the paste buffer before (above) the currently selected element.",
+                        IconPool.PasteAbove,
                         inputGesture: "Ctrl+Alt+V")
                     .AddAction("aas-elem-paste-below", "Paste below",
                         "Adds the content of the paste buffer after (below) the currently selected element.",
+                        IconPool.PasteBelow,
                         inputGesture: "Ctrl+Shift+V")
                     .AddAction("aas-elem-paste-into", "Paste into",
                         "Adds the content of the paste buffer into the currently selected collection-like element.",
+                        IconPool.PasteInto,
                         inputGesture: "Ctrl+Shift+Alt+V"),
                 ticketActionAsync: async (buttonNdx, ticket) =>
                 {

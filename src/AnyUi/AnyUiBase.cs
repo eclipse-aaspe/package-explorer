@@ -915,6 +915,7 @@ namespace AnyUi
         public string ToolTip;
         public AnyUiImageSourceBase ImageSource;
         public AnyUiButtonPreference Preference = AnyUiButtonPreference.Both;
+        public AnyUiHorizontalAlignment? ImagePosition = null;
 
         public AnyUiButtonHeader() : base() { }
 
@@ -928,13 +929,15 @@ namespace AnyUi
         public AnyUiButtonHeader(
             AnyUiImageSourceBase image, 
             string text = null, string toolTip = null,
-            AnyUiButtonPreference preference = AnyUiButtonPreference.Both)
+            AnyUiButtonPreference preference = AnyUiButtonPreference.Both,
+            AnyUiHorizontalAlignment? imagePosition = null)
             : base()
         {
             ImageSource = image;
             Text = text;
             ToolTip = toolTip;
             Preference = preference;
+            ImagePosition = imagePosition;
         }
 
         public AnyUiButtonHeader Modify(
@@ -1016,6 +1019,24 @@ namespace AnyUi
             Style = style;
             Color = color;
             Preference = preference;
+        }
+
+        public AnyUiButtonOverStyle Modify(
+            AnyUiButtonPreference preference = AnyUiButtonPreference.None,
+            AnyUiHorizontalAlignment? horizontalAlignment = null)
+        {
+            var res = this.Copy();
+
+            if (preference != AnyUiButtonPreference.None)
+                res.Preference = preference;
+
+            if (horizontalAlignment != null)
+            {
+                res.Style = res.Style ?? new();
+                res.Style.HorizontalAlignment = horizontalAlignment;
+            }
+
+            return res;
         }
     }
 
@@ -1848,6 +1869,7 @@ namespace AnyUi
 
         public new string Content = null;
         public string ToolTip = null;
+        public AnyUiHorizontalAlignment ImagePosition = AnyUiHorizontalAlignment.Left;
         public AnyUiImageSourceBase ImageSource = null;
         public AnyUiButtonPreference Preference = AnyUiButtonPreference.None;
 
@@ -1877,6 +1899,25 @@ namespace AnyUi
                 if (s.Padding != null)
                     Padding = s.Padding;
             }
+        }
+
+        public void ApplyHeader(AnyUiButtonHeader header, AnyUiButtonOverStyle overStyle = null)
+        {
+            // access
+            if (header == null)
+                return;
+
+            // style affects header
+            header.Modify(overStyle);
+
+            // set
+            Content = header.Text;
+            ImageSource = header.ImageSource;
+            ToolTip = header.ToolTip;
+            if (header.Preference != AnyUiButtonPreference.None)
+                Preference = header.Preference;
+            if (header.ImagePosition != null)
+                ImagePosition = header.ImagePosition.Value;
         }
     }
 

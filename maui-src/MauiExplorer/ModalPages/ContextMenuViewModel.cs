@@ -230,6 +230,7 @@ namespace MauiTestTree
                     };
 
                     // icon
+#if old
                     if (mi.Icon is string input)
                     {
                         // try find icon font
@@ -255,6 +256,14 @@ namespace MauiTestTree
                             menuItem.IconFontSize = (!scaleFontSize.HasValue) ? fo.FontSize
                                 : (int)(1.0 * scaleFontSize.Value * fo.FontSize);
                         }
+                    }
+#endif
+                    // Icon?
+                    if (mi.Icon is AnyUiImageSourceFont isf)
+                    {
+                        menuItem.IconGlyph = isf.IconGlyph;
+                        menuItem.IconFontAlias = isf.FontId;
+                        menuItem.IconFontSize = (isf.FontSize.HasValue) ? (int) isf.FontSize.Value : 16;
                     }
 
                     // add

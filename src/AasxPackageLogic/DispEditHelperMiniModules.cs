@@ -1915,6 +1915,104 @@ namespace AasxPackageLogic
         }
 
         /// <summary>
+        /// Provides one or multiple buttons allowing to add SubmodelElements.
+        /// Note: the stack is used to add hints!!
+        /// </summary>
+        public List<AnyUiControl> DispSmeListAddNewGenerateButtons<T>(
+            Aas.IEnvironment env,
+            ModifyRepo repo, 
+            List<T> smeList,
+            Action<List<T>> setOutput = null,
+            AasxMenu superMenu = null,
+            AnyUiButtonPreference preference = AnyUiButtonPreference.Both,
+            Aas.IReference basedOnSemanticId = null) where T : class, ISubmodelElement
+        {
+            // access
+            var res = new List<AnyUiControl>();
+            if (false)
+                return res;
+
+
+            // gather potential SMT element items
+            var smtElemItem = DispSmeListAddNewCheckForSmtItems(packages, basedOnSemanticId);
+
+            // is data element only?
+            var isDataElem = typeof(IDataElement).IsAssignableFrom(typeof(T));
+
+            // normal way to add SME
+            {
+                var but = RegisterSmallControl(
+                    AddSmallButton(
+                        header: new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Add SME", "Add SubmodelElement", 
+                        imagePosition: AnyUiHorizontalAlignment.Right,
+                        preference: preference)),
+                    superMenu, 
+                    new AasxMenuItem(
+                        "add-named", "Add other ..",
+                        "Adds a selected kind of SubmodelElement to the containing collection.",
+                        args: new AasxMenuListOfArgDefs()
+                            .Add("Kind", "Name (not abbreviated) of kind of SubmodelElement.")),
+                    setValueWithTicketAsync: async (o, ticket) =>
+                    {
+                        // select adequate type
+                        Aas.AasSubmodelElements[] includes = null;
+                        if (isDataElem) includes = new Aas.AasSubmodelElements[] {
+                            Aas.AasSubmodelElements.Property,
+                            Aas.AasSubmodelElements.MultiLanguageProperty,
+                            Aas.AasSubmodelElements.Range,
+                            Aas.AasSubmodelElements.File,
+                            Aas.AasSubmodelElements.Blob,
+                            Aas.AasSubmodelElements.ReferenceElement};
+
+                        var en = await this.SelectAdequateEnum("Select SubmodelElement to create ..", ticket: ticket,
+                                includeValues: includes,
+                                excludeValues: new[] {
+                            Aas.AasSubmodelElements.DataElement,
+                            Aas.AasSubmodelElements.EventElement,
+                            Aas.AasSubmodelElements.ContainerElement
+                        });
+
+                        // ok?
+                        if (en != Aas.AasSubmodelElements.SubmodelElement)
+                        {
+                            T sme2 = (T)
+                                AdminShellUtil.CreateSubmodelElementFromEnum(en,
+                                    defaultHelper: Options.Curr.GetCreateDefaultHelper());
+
+                            // add
+                            smeList = smeList ?? new List<T>();
+                            smeList.Add(sme2);
+                            setOutput?.Invoke(smeList);
+
+                            // make some more adjustments
+                            if (sme2 is IMultiLanguageProperty mlp)
+                            {
+                                // create
+                                mlp.Value = new List<ILangStringTextType>();
+
+                                // add defaults?
+                                if (Options.Curr.DefaultLangs.HasContent())
+                                    foreach (var lng in Options.Curr.DefaultLangs.Split(',',
+                                        StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                        mlp.Value.Add(new LangStringTextType("" + lng, ""));
+                            }
+
+                            // emit event
+                            this.AddDiaryEntry(sme2, new DiaryEntryStructChange(StructuralChangeReason.Create));
+
+                            // redraw
+                            return new AnyUiLambdaActionRedrawAllElements(nextFocus: sme2, isExpanded: true);
+                        }
+
+                        return new AnyUiLambdaActionNone();
+                    });
+                res.Add(but);
+            }
+
+            return res;
+        }
+
+        /// <summary>
         /// Provides a menu to add a new SubmodelElement to a list of these.
         /// </summary>
         public void DispSmeListAddNewHelper<T>(

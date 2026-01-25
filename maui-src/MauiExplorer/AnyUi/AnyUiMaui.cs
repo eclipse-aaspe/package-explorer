@@ -1975,14 +1975,16 @@ namespace MauiTestTree
                         if (cntl.BorderWidth != null)
                             maui.StrokeThickness = cntl.BorderWidth.Value;
 
+                        // not clear, which order
+                        IView? feText = null, feImage = null;
+
                         if (pref != AnyUiButtonPreference.Text && cntl.ImageSource != null)
                         {
                             if (cntl.ImageSource is AnyUiImageSourceFont isf)
                             {
                                 var reso = LambdaResolveImageSourceFont?.Invoke(this, isf);
                                 if (reso != null)
-                                    hsl.Children.Add(
-                                        new Label
+                                        feText = new Label
                                         {
                                             Background = Brush.LightBlue,
                                             FontFamily = reso.FontAlias,
@@ -1990,7 +1992,7 @@ namespace MauiTestTree
                                             FontSize = isf.FontSize ?? 20,
                                             TextColor = GetMauiColor(reso.IconColor),
                                             VerticalTextAlignment = TextAlignment.Center
-                                        });
+                                        };
                             }
                         }
 
@@ -2013,7 +2015,18 @@ namespace MauiTestTree
                             if (cntl.FontWeight.HasValue)
                                 lab.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);
 
-                            hsl.Children.Add(lab);
+                            feImage = lab;
+                        }
+
+                        if (cntl.ImagePosition != AnyUiHorizontalAlignment.Right)
+                        {
+                            hsl.Children.Add(feText);
+                            hsl.Children.Add(feImage);
+                        }
+                        else
+                        {
+                            hsl.Children.Add(feImage);
+                            hsl.Children.Add(feText);
                         }
 
                         // callbacks
