@@ -522,6 +522,10 @@ namespace MauiTestTree
         [JsonIgnore]
         private Point _dragStartPoint = new Point(0, 0);
 
+        [JsonIgnore]
+        private CancellationTokenSource? _toolTipCancelTokSource;
+        private DateTime? _toolTipLongPressTriggered = null;
+
         private void InitRenderRecs()
         {
             RenderRecs.Clear();
@@ -2029,12 +2033,19 @@ namespace MauiTestTree
                             hsl.Children.Add(feText);
                         }
 
-                        // callbacks
-                        var tap = new TapGestureRecognizer();
+                        // "normal" callbacks
                         var myCntl = cntl;
+                        var tap = new TapGestureRecognizer();
                         maui.GestureRecognizers.Add(tap);
                         tap.Tapped += async (sender, e) =>
                         {
+                            // not, if a tool tip long press is pending
+                            if (_toolTipLongPressTriggered != null
+                                && ((DateTime.UtcNow - _toolTipLongPressTriggered.Value).TotalMilliseconds < 2500))
+                                return;
+
+                            _toolTipLongPressTriggered = null;
+
                             // normal procedure
                             if (myCntl.setValueAsyncLambda != null)
                                 EmitOutsideAction(await myCntl.setValueAsyncLambda.Invoke(myCntl));
@@ -2057,7 +2068,47 @@ namespace MauiTestTree
                             }
                         };
 
+                        // for touch devices -> click and long press for tool tip
+#if WINDOWS
+                        if (cntl.ToolTip != null)
+                        {
+                            var thisToolTip = "" + cntl.ToolTip;
+                            var thisMaui = maui;
+                            thisMaui.HandlerChanged += (s,e) =>
+                            {
+                                if (thisMaui.Handler?.PlatformView is Microsoft.UI.Xaml.FrameworkElement fe)
+                                {
+                                    Microsoft.UI.Xaml.Controls.ToolTip toolTip = new Microsoft.UI.Xaml.Controls.ToolTip();
+                                    toolTip.Content = thisToolTip;
+                                    Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(fe, toolTip);
+                                }
+                            };
+                        }
+#endif
+
+#if ANDROID || MACCATALYST
+                        if (cntl.ToolTip?.HasContent() == true)
+                        {
+                            var bh = new CommunityToolkit.Maui.Behaviors.TouchBehavior()
+                            {
+                                LongPressDuration = 600
+                            };
+
+                            var myToolTip = cntl.ToolTip;
+                            bh.LongPressCommand = new Command(async () => {
+                                _toolTipLongPressTriggered = DateTime.UtcNow;
+
+                                await CommunityToolkit.Maui.Alerts.Toast
+                                        .Make(myToolTip)
+                                        .Show();
+                            });
+
+                            maui.Behaviors.Add(bh);
+                        }
+#endif
+
                         // Visual states
+                        // also: timer for tool tip emulation
                         var bgColor = AnyUiColors.Transparent;
                         if (cntl.Background != null)
                             bgColor = cntl.Background?.Color;
@@ -2075,11 +2126,52 @@ namespace MauiTestTree
                         pointer.PointerExitedCommand = new Command(() =>
                             VisualStateManager.GoToState(maui, "Normal"));
 
-                        pointer.PointerPressedCommand = new Command(() =>
-                            VisualStateManager.GoToState(maui, "Pressed"));
+                        pointer.PointerPressedCommand = new Command(() => {
+                            // ALWAYS marshal to UI thread
+                            MainThread.BeginInvokeOnMainThread(() =>
+                            {
+                                VisualStateManager.GoToState(maui, "Pressed");
+                            });
 
-                        pointer.PointerReleasedCommand = new Command(() =>
-                            VisualStateManager.GoToState(maui, "PointerOver"));
+                            //// tool tip
+                            //_toolTipLongPressTriggered = null;
+                            //_toolTipCancelTokSource = new CancellationTokenSource();
+
+                            //_ = Task.Run(async () =>
+                            //{
+                            //    try
+                            //    {
+                            //        await Task.Delay(600, _toolTipCancelTokSource.Token);
+
+                            //        _toolTipLongPressTriggered = DateTime.UtcNow;
+
+                            //        await MainThread.InvokeOnMainThreadAsync(async () =>
+                            //        {
+                            //            await CommunityToolkit.Maui.Alerts.Toast
+                            //                .Make("Paste above")
+                            //                .Show();
+                            //        });
+                            //    }
+                            //    catch (TaskCanceledException)
+                            //    {
+                            //        // expected
+                            //    }
+                            //});
+                        });
+
+                        pointer.PointerReleasedCommand = new Command(() => {
+
+                            //// re-aim
+                            //if (_toolTipLongPressTriggered != null)
+                            //    _toolTipLongPressTriggered = DateTime.UtcNow;
+
+                            //_toolTipCancelTokSource?.Cancel();
+
+                            MainThread.BeginInvokeOnMainThread(() =>
+                            {
+                                VisualStateManager.GoToState(maui, "Normal");
+                            });
+                        });
 
                         maui.GestureRecognizers.Add(pointer);
 
@@ -2117,24 +2209,9 @@ namespace MauiTestTree
                                 }
                             }
                         });
-#endif
 
-                        if (cntl.ToolTip != null)
-                        {
-                            var thisToolTip = "" + cntl.ToolTip;
-                            var thisMaui = maui;
-                            thisMaui.HandlerChanged += (s,e) =>
-                            {
-#if WINDOWS
-                                if (thisMaui.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.Button btn)
-                                {
-                                    Microsoft.UI.Xaml.Controls.ToolTip toolTip = new Microsoft.UI.Xaml.Controls.ToolTip();
-                                    toolTip.Content = thisToolTip;
-                                    Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(btn, toolTip);
-                                }
+
 #endif
-                            };
-                        }
 
                         if (cntl.ModalDialogStyle)
                         {
@@ -2407,7 +2484,7 @@ namespace MauiTestTree
 
             // var vm = ContextMenuSubstituteViewModel.GetFromPairsOfString(cntlcm.MenuItemHeaders, dc, scaleFontSize: 1.2);
             var uc = new ContextMenuPopup(vm);
-            await Shell.Current.ShowPopupAsync(uc, new PopupOptions() { 
+            await Shell.Current.ShowPopupAsync(uc, new CommunityToolkit.Maui.PopupOptions() { 
                 Shape = new RoundRectangle() { 
                     CornerRadius = 16,
                     Stroke = Colors.Transparent,
