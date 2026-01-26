@@ -926,7 +926,7 @@ namespace AasxPackageExplorer
                         target = tokenExchanges2[1];
 
                         var d2 = new Dictionary<string, string>
-                        { 
+                        {
                             { "grant_type", "urn:ietf:params:oauth:grant-type:token-exchange" },
                             { "subject_token_type", "urn:ietf:params:oauth:token-type:jwt" },
                             { "requested_token_type", "urn:ietf:params:oauth:token-type:access_token" },
@@ -1174,6 +1174,7 @@ namespace AasxPackageExplorer
                             }
                         }
                     }
+                }
 
                 // build correct header key, remember, return
                 endpoint.LastRenewed = DateTime.UtcNow;
