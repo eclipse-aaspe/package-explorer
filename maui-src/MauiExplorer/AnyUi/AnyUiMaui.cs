@@ -2064,8 +2064,8 @@ namespace MauiTestTree
 
                         var light = Application.Current?.RequestedTheme == AppTheme.Light;
 
-                        var pointerOverColor = AnyUiColor.Overlay(bgColor, new AnyUiColor( light ? 0x15000000u : 0x15ffffffu));
-                        var pressedColor = AnyUiColor.Overlay(bgColor, new AnyUiColor( light ? 0x30000000u : 0x30ffffffu));
+                        var pointerOverColor = AnyUiColor.Overlay(bgColor, new AnyUiColor( light ? 0x08000000u : 0x08ffffffu));
+                        var pressedColor = AnyUiColor.Overlay(bgColor, new AnyUiColor( light ? 0x15000000u : 0x15ffffffu));
 
                         var pointer = new PointerGestureRecognizer();
 
@@ -2407,7 +2407,13 @@ namespace MauiTestTree
 
             // var vm = ContextMenuSubstituteViewModel.GetFromPairsOfString(cntlcm.MenuItemHeaders, dc, scaleFontSize: 1.2);
             var uc = new ContextMenuPopup(vm);
-            await Shell.Current.ShowPopupAsync(uc);
+            await Shell.Current.ShowPopupAsync(uc, new PopupOptions() { 
+                Shape = new RoundRectangle() { 
+                    CornerRadius = 16,
+                    Stroke = Colors.Transparent,
+                    StrokeThickness = 0.0
+                }
+            });
             return uc.Result?.Index;
 
 #endif
@@ -2481,7 +2487,7 @@ namespace MauiTestTree
                 tcs.TrySetResult(null); // dismissed
             };
 
-            flyout.ShowAt(fe /* winButton */);
+            flyout.ShowAt(fe /* winButton */, new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions() { Placement = Microsoft.UI.Xaml.Controls.Primitives.FlyoutPlacementMode.BottomEdgeAlignedLeft });
 
             return tcs.Task;
 #endif
@@ -2506,8 +2512,9 @@ namespace MauiTestTree
 #endif
 
             // no?
-            return null;
-        
+            tcs.SetResult(null);
+            return tcs.Task;
+
         }
 
         //
@@ -2795,14 +2802,14 @@ namespace MauiTestTree
                 uc.DiaData = ddsc;
                 res = uc;
             }
+#endif
 
             if (dialogueData is AnyUiDialogueDataSelectFromList ddsl)
             {
-                var uc = new SelectFromListFlyout();
-                uc.DiaData = ddsl;
-                res = uc;
+                res = new SelectFromListFlyoutPage(this, ddsl);
             }
 
+#if TODO_IMPORTANT
             if (dialogueData is AnyUiDialogueDataSelectFromDataGrid ddsdg)
             {
                 var uc = new SelectFromDataGridFlyout();

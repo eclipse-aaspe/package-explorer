@@ -2265,8 +2265,12 @@ namespace AasxPackageLogic
             Aas.ISubmodel submodel,
             bool editMode,
             AnyUiStackPanel stack, bool hintMode = false, bool checkSmt = false,
-			AasxMenu superMenu = null)
+			AasxMenu superMenu = null,
+            KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
         {
+            // TEST
+            keyLabel = KeyLabelHandling.No;
+
             // This panel renders first the SubmodelReference and then the Submodel, below
             if (smref != null)
             {
@@ -2285,7 +2289,9 @@ namespace AasxPackageLogic
                     packages, PackageCentral.PackageCentral.Selector.Main, "Reference Submodel ",
                     takeOverLambdaAction: new AnyUiLambdaActionRedrawAllElements(smref),
                     jumpLambda: lambda, relatedReferable: aas,
-                    buttonOverStyle: LayoutHints.StyleButtonAction);
+                    buttonOverStyleLo: LayoutHints.StyleButtonThin,
+                    buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                    buttonPreferenceLo: AnyUiButtonPreference.Image);
             }
 
             // check, if Submodel is sitting in Repo
@@ -2293,11 +2299,28 @@ namespace AasxPackageLogic
                     .FindSideInfoInListOfIdentifiables(
                         env.Submodels, submodel?.GetReference());
 
+            // section title
+            if (editMode && smref != null)
+            {
+                AddGroup(stack, "Editing of entities (within specific AAS)", this.levelColors.SubSection);
+            }
+
+            // prepare widget containers for action buttons
+
+            var actionStack1 = new AnyUiStackPanel() { Orientation = AnyUiOrientation.Horizontal };
+            var actionStack2 = new AnyUiStackPanel() { Orientation = AnyUiOrientation.Horizontal };
+
+            var actionWrapPanel = new AnyUiWrapPanel() { Orientation = AnyUiOrientation.Horizontal };
+            actionWrapPanel.Add(actionStack1);
+            actionWrapPanel.Add(actionStack2);
+            stack.Add(actionWrapPanel);
+
+            // futher edit actions here
+            var actionsButtons = new List<AnyUiControl>();
+
             // entities when under AAS (smref)
             if (editMode && smref != null)
             {
-                this.AddGroup(stack, "Editing of entities (within specific AAS)", this.levelColors.SubSection);
-
                 //
                 // Up/Down Helper for SM References!
                 //
@@ -2311,10 +2334,12 @@ namespace AasxPackageLogic
                 };
 
                 this.EntityListUpDownDeleteHelper<Aas.IReference>(
-                    stack, repo, 
+                    actionStack1, repo, 
                     aas.Submodels, (lst) => { aas.Submodels = lst; },
                     smref, aas, "Reference:", sendUpdateEvent: evTemplate,
                     explicitParent: aas,
+                    buttonOverStyle: LayoutHints.StyleButtonThin,
+                    keyLabel: keyLabel,
                     postActionHookAsync: async (actionName, ticket) => {
                         await Task.Yield();
                         if (actionName == "aas-elem-delete")
@@ -2398,12 +2423,14 @@ namespace AasxPackageLogic
                 };
 
                 this.EntityListUpDownDeleteHelper<Aas.ISubmodel>(
-                    stack, repo,
+                    actionStack1, repo,
                     env.Submodels, (lst) => { env.Submodels = lst; },
                     submodel, alternativeFocus: env, 
                     "Submodel:", sendUpdateEvent: evTemplate,
                     explicitParent: aas,
                     moveDoesNotModify: true,
+                    buttonOverStyle: LayoutHints.StyleButtonThin,
+                    keyLabel: keyLabel,
                     postActionHookAsync: async (actionName, ticket) => {
                         await Task.Yield();
                         if (actionName == "aas-elem-delete")
@@ -2459,9 +2486,11 @@ namespace AasxPackageLogic
             if (editMode && smref != null && submodel != null && aas != null)
             {
                 // cut/ copy / paste
-                this.DispSubmodelCutCopyPasteHelper<Aas.IReference>(stack, repo, this.theCopyPaste,
+                this.DispSubmodelCutCopyPasteHelper<Aas.IReference>(actionStack2, repo, this.theCopyPaste,
                     aas.Submodels, smref, (sr) => { return new Aas.Reference(sr.Type, new List<Aas.IKey>(sr.Keys)); },
                     smref, submodel, superMenu: superMenu,
+                    buttonOverStyle: LayoutHints.StyleButtonThin,
+                    keyLabel: keyLabel,
                     label: "Buffer:",
                     checkEquality: (r1, r2) =>
                     {
@@ -2492,9 +2521,11 @@ namespace AasxPackageLogic
             if (editMode && smref == null && submodel != null && env != null)
             {
                 // cut/ copy / paste
-                this.DispSubmodelCutCopyPasteHelper<Aas.ISubmodel>(stack, repo, this.theCopyPaste,
+                this.DispSubmodelCutCopyPasteHelper<Aas.ISubmodel>(actionStack2, repo, this.theCopyPaste,
                     env.Submodels, submodel, (sm) => { return sm.Copy(); },
                     null, submodel, superMenu: superMenu,
+                    buttonOverStyle: LayoutHints.StyleButtonThin,
+                    keyLabel: keyLabel,
                     label: "Buffer:",
                     checkEquality: (s1, s2) =>
                     {
@@ -2520,12 +2551,13 @@ namespace AasxPackageLogic
                     superMenu: superMenu,
                     basedOnSemanticId: submodel.SemanticId);
 #else
-                AddKeyButtons(stack, "SubmodelElement:", DispSmeListAddNewGenerateButtons(
-                    env, repo,
-                    submodel.SubmodelElements,
-                    setOutput: (sml) => submodel.SubmodelElements = sml,
-                    superMenu: superMenu,
-                    basedOnSemanticId: submodel.SemanticId));
+                actionsButtons.AddRange(DispSmeListAddNewGenerateButtons(
+                        env, repo,
+                        submodel.SubmodelElements,
+                        setOutput: (sml) => submodel.SubmodelElements = sml,
+                        superMenu: superMenu,
+                        basedOnSemanticId: submodel.SemanticId,
+                        buttonOverStyle: LayoutHints.StyleButtonThin));
 #endif
 
                 this.AddHintBubble(stack, hintMode, new[] {
@@ -2534,6 +2566,8 @@ namespace AasxPackageLogic
                         "You have opened an auxiliary AASX package. You can copy elements from it!",
                         severityLevel: HintCheck.Severity.Notice)
                 });
+
+#if OLD
                 this.AddActionPanel(
                     stack, "Copy existing SMEs:",
                     repo: repo,
@@ -2586,6 +2620,64 @@ namespace AasxPackageLogic
 
                         return new AnyUiLambdaActionNone();
                     });
+#else
+                actionsButtons.AddRange(GenerateActionButton(
+                        new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Copy SME", 
+                                "Copy SubmodelElements", AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+                        repo: repo,
+                        superMenu: superMenu,
+                        ticketMenu: new AasxMenu()
+                            .AddAction("copy-single", "Copy single",
+                                "Copy selected Submodel without children from another AAS, " +
+                                "caring for ConceptDescriptions.")
+                            .AddAction("copy-recurse", "Copy recursively",
+                                "Copy selected Submodel and children from another AAS, " +
+                                "caring for ConceptDescriptions."),
+                        buttonOverStyle: LayoutHints.StyleButtonThin.Modify(
+                                        preference: AnyUiButtonPreference.Both),
+                        padding: new AnyUiThickness(5,0,5,0),
+                        ticketActionAsync: async (buttonNdx, ticket) =>
+                        {
+                            if (buttonNdx == 0 || buttonNdx == 1)
+                            {
+                                var rve = await SmartSelectAasEntityVisualElementAsync(
+                                    packages, PackageCentral.PackageCentral.Selector.MainAux,
+                                    "SubmodelElement") as VisualElementSubmodelElement;
+
+                                if (rve != null && env != null)
+                                {
+                                    var mdo = rve.GetMainDataObject();
+                                    if (mdo != null && mdo is Aas.ISubmodelElement)
+                                    {
+                                        var clone = env.CopySubmodelElementAndCD(
+                                            rve.theEnv, mdo as Aas.ISubmodelElement,
+                                            copyCD: true, shallowCopy: buttonNdx == 0);
+
+                                        if (submodel.SubmodelElements == null)
+                                            submodel.SubmodelElements =
+                                                new List<Aas.ISubmodelElement>();
+
+                                        // make unqiue?
+                                        if (!submodel.SubmodelElements.CheckIdShortIsUnique(clone.IdShort))
+                                            this.MakeNewReferableUnique(clone);
+
+                                        // ReSharper disable once PossibleNullReferenceException -- ignore a false positive
+                                        submodel.SubmodelElements.Add(clone);
+
+                                        // emit events
+                                        // TODO (MIHO, 2021-08-17): create events for CDs are not emitted!
+                                        this.AddDiaryEntry(clone,
+                                            new DiaryEntryStructChange(StructuralChangeReason.Create));
+
+                                        return new AnyUiLambdaActionRedrawAllElements(
+                                            submodel, isExpanded: true);
+                                    }
+                                }
+                            }
+
+                            return new AnyUiLambdaActionNone();
+                        }));
+#endif
 
                 // create ConceptDescriptions for ECLASS
                 var targets = new List<Aas.ISubmodelElement>();
@@ -2606,6 +2698,7 @@ namespace AasxPackageLogic
                             severityLevel: HintCheck.Severity.Notice)
                 });
 
+#if OLD
                 this.AddActionPanel(
                     stack, "ConceptDescriptions:",
                     repo: repo, superMenu: superMenu,
@@ -2724,24 +2817,162 @@ namespace AasxPackageLogic
 
                         return new AnyUiLambdaActionNone();
                     });
+#else
+                actionsButtons.AddRange(GenerateActionButton(
+                    new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Create CDs",
+                            "Create ConceptDescription for specifc SubmodelElement", 
+                            AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+                    repo: repo,
+                    superMenu: superMenu,
+                    ticketMenu: new AasxMenu()
+                        .AddAction("create-eclass", "Create from ECLASS",
+                            "Create missing CDs searching from ECLASS.")
+                        .AddAction("create-this", "Create from this SME",
+                            "Creates an ConceptDescription from this element and " +
+                            "assigns the SubmodelElement to it.")
+                        .AddAction("create-smes", "Create for all SMEs",
+                            "Create missing CDs from semanticId of used SMEs.")
+                        .AddAction("delete-cd-in-repo", "Delete respective CD in Repo",
+                            "Delete ConceptDescriptions which are referenced by semanticId of SubmodelElements " +
+                            "in a given Repository or Registry."),
+                    buttonOverStyle: LayoutHints.StyleButtonThin.Modify(
+                                    preference: AnyUiButtonPreference.Both),
+                    padding: new AnyUiThickness(5, 0, 5, 0),
+                    ticketActionAsync: async (buttonNdx, ticket) =>
+                    {
+                        if (buttonNdx == 0)
+                        {
+                            // from ECLASS
+                            // ReSharper disable RedundantCast
+                           await  this.ImportEclassCDsForTargetsAsync(
+                                env, (smref != null) ? (object)smref : (object)submodel, targets);
+                            // ReSharper enable RedundantCast
+                        }
 
+                        if (buttonNdx == 1)
+                        {
+                            var res = this.ImportCDsFromSmSme(env, submodel, recurseChilds: false, repairSemIds: true);
+
+                            if (res.Item1 > 0)
+                            {
+                                Log.Singleton.Error("Cannot create CD because no valid semanticId is present " +
+                                    "in SME.");
+                                return new AnyUiLambdaActionNone();
+                            }
+                            if (res.Item2 > 0)
+                            {
+                                Log.Singleton.Error("Cannot create CD because CD with semanticId is already " +
+                                    "present in AAS environment.");
+                                return new AnyUiLambdaActionNone();
+                            }
+                            Log.Singleton.Info(StoredPrint.Color.Blue, $"Added {res.Item3} CDs to the environment.");
+
+                            // redraw
+                            return new AnyUiLambdaActionRedrawAllElements(nextFocus: null);
+                        }
+
+                        if (buttonNdx == 2)
+                        {
+                            // from all SMEs
+
+                            var adaptive61360 =
+                                await context?.MessageBoxFlyoutShowAsync(
+                                    "Create IEC61360 data specifications and adaptively fill preferredName " +
+                                    "and definition by idShort and description attributes?",
+                                    "Create CDs from all SMEs",
+                                    AnyUiMessageBoxButton.YesNoCancel, AnyUiMessageBoxImage.Information);
+
+                            if (adaptive61360 == AnyUiMessageBoxResult.Cancel)
+                                return new AnyUiLambdaActionNone();
+
+                            var res = this.ImportCDsFromSmSme(env, submodel, recurseChilds: true, repairSemIds: true,
+                                adaptive61360: adaptive61360 == AnyUiMessageBoxResult.Yes);
+
+                            Log.Singleton.Info(StoredPrint.Color.Blue, $"Added {res.Item3} CDs to the environment, " +
+                                $"while {res.Item1} invalid semanticIds were present and " +
+                                $"{res.Item2} CDs were already existing.");
+
+                            return new AnyUiLambdaActionRedrawAllElements(
+                                        submodel, isExpanded: true);
+                        }
+
+                        if (buttonNdx == 3)
+                        {
+                            // check, if Submodel is sitting in Repo
+                            var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
+                                    .FindSideInfoInListOfIdentifiables(
+                                        env.Submodels, submodel.GetReference());
+
+                            if (sideInfo == null)
+                            {
+                                Log.Singleton.Error("Not enough information to delete AAS in Repository/ Registry!");
+                                return new AnyUiLambdaActionNone();
+                            }
+
+                            // collect Ids of SubmodelElements.semanticId
+                            var lrs = env?.FindAllSemanticIdsForSubmodel(submodel);
+                            if (lrs == null)
+                                return new AnyUiLambdaActionNone();
+
+                            var cdIds = lrs.Select((lr) => lr?.Reference?.GetAsExactlyOneKey()?.Value);
+                            var cdKeys = cdIds.Select((cdid) => new Aas.Key(KeyTypes.ConceptDescription, cdid)).Cast<Aas.IKey>();
+
+                            // call function
+                            // (only the side info in the _specific_ endpoint gives information, in which
+                            //  repo the CDs could be deleted)
+                            await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
+                                ticket, context,
+                                "Delete CDs in Repository/ Registry",
+                                "ConceptDescription",
+                                cdKeys,
+                                runtimeOptions: packages.CentralRuntimeOptions,
+                                presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                                {
+                                    // assume Repo ?!
+                                    BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                    // extract base address
+                                    BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                        sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
+                                });
+
+                            // ok
+                            return new AnyUiLambdaActionNone();
+                        }
+
+                        return new AnyUiLambdaActionNone();
+                    }));
+#endif
+
+#if OLD
                 this.AddActionPanel(
                     stack, "Submodel&-elems:",
                     repo: repo, superMenu: superMenu,
                     ticketMenu: new AasxMenu()
                         .AddAction("upgrade-qualifiers", "Upgrade qualifiers",
                             "Upgrades particular qualifiers from V2.0 to V3.0 for selected element.")
-#if __old_approach
-                        .AddAction("remove-qualifiers", "Remove qualifiers",
-                            "Removes all qualifiers for selected element.")
-                        .AddAction("remove-extensions", "Remove extensions",
-                            "Removes all extensions for selected element.")
-#else
                         .AddAction("remove-attributes", "Remove attributes",
                             "Removes specific attrributes for each selected element.")
-#endif
                         .AddAction("fix-references", "Fix References",
                             "Fix, if References first key to Identifiables use idShort instead of id."),
+#else
+                actionsButtons.AddRange(GenerateActionButton(
+                    new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Maintain SMEs",
+                            "Maintain specific attributes of one or multiple SubmodelElements",
+                            AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+                    repo: repo,
+                    superMenu: superMenu,
+                    ticketMenu: new AasxMenu()
+                        .AddAction("upgrade-qualifiers", "Upgrade qualifiers",
+                            "Upgrades particular qualifiers from V2.0 to V3.0 for selected element.")
+                        .AddAction("remove-attributes", "Remove attributes",
+                            "Removes specific attrributes for each selected element.")
+                        .AddAction("fix-references", "Fix References",
+                            "Fix, if References first key to Identifiables use idShort instead of id."),
+                    buttonOverStyle: LayoutHints.StyleButtonThin.Modify(
+                                    preference: AnyUiButtonPreference.Both),
+                    padding: new AnyUiThickness(5, 0, 5, 0),
+#endif
                     ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
@@ -2883,10 +3114,21 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawAllElements(nextFocus: smref, isExpanded: true);
                         }
                         return new AnyUiLambdaActionNone();
+#if OLD
                     });
+#else
+                    }));
+#endif
 
-				// Check for cardinality
-				if (checkSmt)
+                // render action buttons
+                var wp = AddKeyButtons(stack, "Actions:",
+                        keyLabel: keyLabel,
+                        buttons: actionsButtons.Select((c) => Set(c, margin: new AnyUiThickness(0,0,0,4))));
+                wp.Margin = new AnyUiThickness(0, 5, 0, 0);
+                wp.Padding = new AnyUiThickness(0, 0, 2, 0);
+
+                // Check for cardinality
+                if (checkSmt)
 					DisplayOrEditEntityCheckValue(env, stack, _checkValueHandle, submodel);
 
 			}

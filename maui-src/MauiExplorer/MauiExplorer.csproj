@@ -102,6 +102,9 @@
 	  <Compile Update="Flyouts\TextBoxFlyoutPage.xaml.cs">
 	    <DependentUpon>TextBoxFlyoutPage.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Flyouts\SelectFromListFlyoutPage.xaml.cs">
+	    <DependentUpon>SelectFromListFlyoutPage.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Flyouts\TextEditorFlyoutPage.xaml.cs">
 	    <DependentUpon>TextEditorFlyoutPage.xaml</DependentUpon>
 	  </Compile>
@@ -151,6 +154,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Flyouts\TextBoxFlyoutPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Flyouts\SelectFromListFlyoutPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Flyouts\TextEditorFlyoutPage.xaml">

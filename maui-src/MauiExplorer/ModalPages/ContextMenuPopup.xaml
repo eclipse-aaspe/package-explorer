@@ -16,16 +16,18 @@
     </toolkit:Popup.BackgroundColor>
     
     <!-- Your menu content -->
-    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto">
+    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*"
+          MinimumWidthRequest="200" MaximumWidthRequest="400">
 
         <!-- Top row-->
-        <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*" 
+              Margin="0,0,0,20">
 
             <Label Grid.Row="0" Grid.Column="0"
                 Text="{Binding DialogHeader}"
                 VerticalOptions="Center"
                 HorizontalOptions="Center"
-                Margin="4,4,20,4"
+                Margin="4,4,4,4"
                 FontSize="14">
                 <Label.TextColor>
                     <AppThemeBinding
@@ -35,26 +37,22 @@
             </Label>
 
             <!-- Close -->
-            <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="1"
-                VerticalOptions="Center" Margin="4,4,-4,4"
-                Padding="0" BackgroundColor="Transparent" CornerRadius="8"
+            <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="1" 
+                VerticalOptions="Center" 
+                HorizontalOptions="End"
+                Margin="0,0,-8,0"
+                Padding="0" BackgroundColor="Transparent"
+                FontFamily="MaterialOutlined"
+                Text="{x:Static m:MaterialOutlined.Close}"
+                FontSize="16"
                 Clicked="OnCancelClicked">
 
-                <Button.ImageSource>
-                    <FontImageSource
-                        FontFamily="MaterialOutlined"
-                        Glyph="{x:Static m:MaterialOutlined.Exit_to_app}"
-                        Size="22">
-
-                        <FontImageSource.Color>
-                            <AppThemeBinding
-                                Light="{StaticResource Gray100}"
-                                Dark="{StaticResource Gray900}" />
-                        </FontImageSource.Color>
-                        
-                    </FontImageSource>
-                </Button.ImageSource>
-
+                <Button.TextColor>
+                    <AppThemeBinding
+                        Light="{StaticResource Gray100}"
+                        Dark="{StaticResource Gray900}" />
+                </Button.TextColor>
+                
             </Button>
         </Grid>
 
@@ -64,55 +62,45 @@
             VerticalScrollBarVisibility="Always"
             SelectionMode="None"
             ItemSizingStrategy="MeasureAllItems"
+            HorizontalOptions="Fill"
             VerticalOptions="Fill">
 
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="local:ContextMenuSubstituteMenuItem">
-                    <Grid HorizontalOptions="Fill" ColumnDefinitions="*">
-                        <!-- Full card -->
-                        <Grid
-                            RowDefinitions="Auto" ColumnDefinitions="Auto,*"
-                            Padding="2"
-                            Margin="2"
-                            HorizontalOptions="Fill">
+                    <Border StrokeShape="RoundRectangle 8"
+                            StrokeThickness="0"
+                            HorizontalOptions="Fill"
+                            Margin="0,0,0,6"
+                            Padding="2,2,2,2">
+                        
+                        <Border.BackgroundColor>
+                            <AppThemeBinding
+                                Light="#10ffffff"
+                                Dark="#10000000" />
+                        </Border.BackgroundColor>
+                            
+                        <Grid HorizontalOptions="Fill" ColumnDefinitions="Auto">
+                            <!-- Full card -->
+                            <Grid
+                                RowDefinitions="Auto" ColumnDefinitions="Auto,*"
+                                Padding="2"
+                                Margin="2"
+                                HorizontalOptions="Fill">
 
-                            <Grid.BackgroundColor>
-                                <AppThemeBinding
-                                    Light="#10ffffff"
-                                    Dark="#10000000" />
-                            </Grid.BackgroundColor>
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="ItemsView_ItemTapped"/>
+                                </Grid.GestureRecognizers>
 
-                            <Grid.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="ItemsView_ItemTapped"/>
-                            </Grid.GestureRecognizers>
-
-                            <Label
-                                Grid.Row="0" Grid.Column="0"
-                                MinimumWidthRequest="40"
-                                IsVisible="{Binding ShowIcon}"
-                                Margin="0,0,12,0"
-                                Text="{Binding IconGlyph}"
-                                FontFamily="{Binding IconFontAlias}"
-                                FontSize="{Binding IconFontSize}"
-                                VerticalTextAlignment="Center"
-                                HorizontalTextAlignment="Center">
-                                <Label.TextColor>
-                                    <AppThemeBinding
-                                        Light="{StaticResource Gray100}"
-                                        Dark="{StaticResource Gray900}" />
-                                </Label.TextColor>
-                            </Label>
-
-                            <!-- Display one or two lines -->
-                            <Grid 
-                                RowDefinitions="Auto, Auto" ColumnDefinitions="*"
-                                Grid.Row="0" Grid.Column="1"
-                                VerticalOptions="Center" HorizontalOptions="Fill">
                                 <Label
                                     Grid.Row="0" Grid.Column="0"
-                                    Text="{Binding Header}"
-                                    FontSize="11"
-                                    FontAttributes="Bold" HorizontalOptions="Fill">
+                                    MinimumWidthRequest="40"
+                                    IsVisible="{Binding ShowIcon}"
+                                    Margin="0,0,12,0"
+                                    Text="{Binding IconGlyph}"
+                                    FontFamily="{Binding IconFontAlias}"
+                                    FontSize="{Binding IconFontSize}"
+                                    VerticalTextAlignment="Center"
+                                    HorizontalTextAlignment="Center">
                                     <Label.TextColor>
                                         <AppThemeBinding
                                             Light="{StaticResource Gray100}"
@@ -120,20 +108,38 @@
                                     </Label.TextColor>
                                 </Label>
 
-                                <Label
-                                    Grid.Row="1" Grid.Column="0"
-                                    IsVisible="{Binding ShowHelpText}"
-                                    Text="{Binding HelpText}"
-                                    FontSize="9">
-                                    <Label.TextColor>
-                                        <AppThemeBinding
-                                            Light="{StaticResource Gray100}"
-                                            Dark="{StaticResource Gray900}" />
-                                    </Label.TextColor>
-                                </Label>
+                                <!-- Display one or two lines -->
+                                <Grid 
+                                    RowDefinitions="Auto, Auto" ColumnDefinitions="*"
+                                    Grid.Row="0" Grid.Column="1"
+                                    VerticalOptions="Center" HorizontalOptions="Fill">
+                                    <Label
+                                        Grid.Row="0" Grid.Column="0"
+                                        Text="{Binding Header}"
+                                        FontSize="13"
+                                        FontAttributes="Bold" HorizontalOptions="Fill">
+                                        <Label.TextColor>
+                                            <AppThemeBinding
+                                                Light="{StaticResource Gray100}"
+                                                Dark="{StaticResource Gray900}" />
+                                        </Label.TextColor>
+                                    </Label>
+
+                                    <Label
+                                        Grid.Row="1" Grid.Column="0"
+                                        IsVisible="{Binding ShowHelpText}"
+                                        Text="{Binding HelpText}"
+                                        FontSize="9">
+                                        <Label.TextColor>
+                                            <AppThemeBinding
+                                                Light="{StaticResource Gray100}"
+                                                Dark="{StaticResource Gray900}" />
+                                        </Label.TextColor>
+                                    </Label>
+                                </Grid>
                             </Grid>
                         </Grid>
-                    </Grid>
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

@@ -485,8 +485,7 @@ namespace AnyUi
             return (but);
         }
 
-        public AnyUiButton AddSmallContextMenuItemTo(
-            AnyUiGrid g, int row, int col,
+        public AnyUiButton AddSmallContextMenuItem(
             string content = null,
             AnyUiContextMenuHeaderList menuHeaders = null,
             AnyUiThickness margin = null, AnyUiThickness padding = null,
@@ -495,7 +494,7 @@ namespace AnyUi
             AnyUiVerticalAlignment? verticalAlignment = null,
             Func<object, Task<AnyUiLambdaActionBase>> menuItemLambdaAsync = null,
             AnyUiButton buttonStyle = null,
-            AnyUiButtonHeader header = null,
+            AnyUiButtonHeader buttonHeader = null,
             AnyUiButtonOverStyle buttonOverStyle = null)
         {
             // construct button
@@ -515,15 +514,18 @@ namespace AnyUi
             if (verticalAlignment != null)
                 but.VerticalAlignment = verticalAlignment.Value;
 
-            if (header != null)
+            but.Content = content;
+            if (buttonHeader != null)
             {
-                header.Modify(buttonOverStyle);
+                buttonHeader.Modify(buttonOverStyle);
 
-                but.Content = header.Text;
-                but.ImageSource = header.ImageSource;
-                but.ToolTip = header.ToolTip;
-                if (header.Preference != AnyUiButtonPreference.None)
-                    but.Preference = header.Preference;
+                but.Content = buttonHeader.Text;
+                but.ImageSource = buttonHeader.ImageSource;
+                if (buttonHeader.ImagePosition != null)
+                    but.ImagePosition = buttonHeader.ImagePosition.Value;
+                but.ToolTip = buttonHeader.ToolTip;
+                if (buttonHeader.Preference != AnyUiButtonPreference.None)
+                    but.Preference = buttonHeader.Preference;
             }
 
             if (buttonStyle != null)
@@ -532,14 +534,41 @@ namespace AnyUi
             if (buttonOverStyle?.Style != null)
                 but.ApplyAsStyle(buttonOverStyle.Style);
 
-            but.Content = content;
+            but.SpecialAction = new AnyUiSpecialActionContextMenu(
+                    menuItemHeaders: menuHeaders,
+                    menuItemLambda: null,
+                    menuItemLambdaAsync: menuItemLambdaAsync);
+
+            // ok
+            return (but);
+        }
+
+        public AnyUiButton AddSmallContextMenuItemTo(
+            AnyUiGrid g, int row, int col,
+            string content = null,
+            AnyUiContextMenuHeaderList menuHeaders = null,
+            AnyUiThickness margin = null, AnyUiThickness padding = null,
+            AnyUiBrush foreground = null, AnyUiBrush background = null,
+            AnyUiHorizontalAlignment? horizontalAlignment = null,
+            AnyUiVerticalAlignment? verticalAlignment = null,
+            Func<object, Task<AnyUiLambdaActionBase>> menuItemLambdaAsync = null,
+            AnyUiButton buttonStyle = null,
+            AnyUiButtonHeader header = null,
+            AnyUiButtonOverStyle buttonOverStyle = null)
+        {
+            // construct button
+            var but = AddSmallContextMenuItem(
+                            content, menuHeaders,
+                            margin, padding,
+                            foreground, background,
+                            horizontalAlignment, verticalAlignment,
+                            menuItemLambdaAsync,
+                            buttonStyle, header, buttonOverStyle);
+
             AnyUiGrid.SetRow(but, row);
             AnyUiGrid.SetColumn(but, col);
             g.Children.Add(but);
-            but.SpecialAction = new AnyUiSpecialActionContextMenu(
-                menuItemHeaders: menuHeaders,
-                menuItemLambda: null,
-                menuItemLambdaAsync: menuItemLambdaAsync);
+
 
             // ok
             return (but);

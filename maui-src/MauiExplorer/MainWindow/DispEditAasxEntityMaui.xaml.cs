@@ -349,24 +349,29 @@ public partial class DispEditAasxEntityMaui : ContentView
         _helper.LayoutHints.ExplicitMultiLineEdit = false;
 
         // Button Thin
-        _helper.LayoutHints.StyleButtonThin.Style = new();
-        _helper.LayoutHints.StyleButtonThin.Style.Background = AnyUiBrushes.White;
-        _helper.LayoutHints.StyleButtonThin.Style.BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
-            XamlHelpers.GetDynamicRessource("ThinCntlBorder", Colors.Blue));
-        _helper.LayoutHints.StyleButtonThin.Style.BorderWidth = 0.8;
-        _helper.LayoutHints.StyleButtonThin.Style.Foreground = AnyUiBrushes.Black;
-        _helper.LayoutHints.StyleButtonThin.Style.MinHeight = _renderDefaults.ControlSizeNormal;
-        _helper.LayoutHints.StyleButtonThin.Style.MinWidth = _renderDefaults.ControlSizeNormal;
+        _helper.LayoutHints.StyleButtonThin.Style = new()
+        {
+            Background = new AnyUiBrush(0xfff8f8f8),
+            BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
+                XamlHelpers.GetDynamicRessource("ThinCntlBorder", Colors.Blue)),
+            BorderWidth = 1.0,
+            Foreground = AnyUiBrushes.Black,
+            MinHeight = _renderDefaults.ControlSizeNormal,
+            MinWidth = _renderDefaults.ControlSizeNormal,
+            HorizontalAlignment = AnyUiHorizontalAlignment.Center
+        };
 
         // Button Action
-        _helper.LayoutHints.StyleButtonAction.Style = new();
-        _helper.LayoutHints.StyleButtonAction.Style.Background = AnyUiBrushes.White;
-        _helper.LayoutHints.StyleButtonAction.Style.BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
-            XamlHelpers.GetDynamicRessource("Primary", Colors.Blue));
-        _helper.LayoutHints.StyleButtonAction.Style.BorderWidth = 1.0;
-        _helper.LayoutHints.StyleButtonAction.Style.Foreground = AnyUiBrushes.Black;
-        _helper.LayoutHints.StyleButtonAction.Style.MinHeight = _renderDefaults.ControlSizeNormal;
-        _helper.LayoutHints.StyleButtonAction.Style.MinWidth = _renderDefaults.ControlSizeNormal;
+        _helper.LayoutHints.StyleButtonAction.Style = new()
+        {
+            Background = AnyUiBrushes.White,
+            BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(XamlHelpers.GetDynamicRessource("Primary", Colors.Blue)),
+            BorderWidth = 1.0,
+            Foreground = AnyUiBrushes.Black,
+            MinHeight = _renderDefaults.ControlSizeNormal,
+            MinWidth = _renderDefaults.ControlSizeNormal,
+            HorizontalAlignment = AnyUiHorizontalAlignment.Center
+        };
 
         // for icon resolution
         displayContext.LambdaResolveImageSourceFont = ResolveImageSourceFont;
@@ -380,7 +385,7 @@ public partial class DispEditAasxEntityMaui : ContentView
         IconPool.AddBlank
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Add_box);
         IconPool.Jump
-                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Outbound);
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Jump_to_element);
 
         IconPool.CopyToClipboard
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Content_copy);
@@ -393,9 +398,9 @@ public partial class DispEditAasxEntityMaui : ContentView
         IconPool.MoveDown
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Arrow_downward_alt);
         IconPool.MoveTop
-                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Vertical_align_top);
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Arrow_warm_up);
         IconPool.MoveBottom
-                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Vertical_align_bottom);
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Arrow_cool_down);
 
         IconPool.Cut
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Content_cut);
@@ -408,7 +413,7 @@ public partial class DispEditAasxEntityMaui : ContentView
         IconPool.PasteBelow
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Text_select_move_down);
         IconPool.PasteInto
-                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Text_select_move_forward_word);
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Subdirectory_arrow_right);
 
         IconPool.ContextMenuDropDown
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Arrow_drop_down_circle);

@@ -198,6 +198,21 @@ namespace MauiTestTree.Flyouts
                     await main.RedrawElementViewAsync();
                 }
             }
+
+            if (ndx == 6)
+            {
+                var uc = new AnyUiDialogueDataSelectFromList($"Enter some meaningful text:");
+
+                uc.ListOfItems = new ();
+                uc.ListOfItems.Add(new AnyUiDialogueListItem("1st", 1));
+                uc.ListOfItems.Add(new AnyUiDialogueListItem("2nd", 2));
+                uc.SelectFiles = true;
+
+                if (await dcMaui.StartFlyoverModalAsync(uc))
+                {
+                    await main.RedrawElementViewAsync();
+                }
+            }
         }
     }
 }

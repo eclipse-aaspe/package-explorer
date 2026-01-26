@@ -749,7 +749,9 @@ namespace AasxPackageLogic
             Func<T, T, bool> checkEquality = null,
             Action<T, bool> modifyAfterClone = null,
             Action<CopyPasteItemBase> extraAction = null,
-            AasxMenu superMenu = null) /*where T : new()*/ //TODO (jtikekar, 0000-00-00): Test
+            AasxMenu superMenu = null,
+            AnyUiButtonOverStyle buttonOverStyle = null,
+            KeyLabelHandling keyLabel = KeyLabelHandling.Standard) /*where T : new()*/ //TODO (jtikekar, 0000-00-00): Test
         {
             // access
             if (parentContainer == null || cpbInternal == null || sm == null || cloneEntity == null)
@@ -767,9 +769,9 @@ namespace AasxPackageLogic
                 repo: repo,
                 superMenu: superMenu,
                 useWrapFlexPanel: false,
-                buttonOverStyle: LayoutHints.StyleButtonAction.Modify(
-                                    preference: AnyUiButtonPreference.Image,
-                                    horizontalAlignment: AnyUiHorizontalAlignment.Center),
+                keyLabel: keyLabel,
+                buttonOverStyle: (buttonOverStyle ?? LayoutHints.StyleButtonAction).Modify(
+                                    preference: AnyUiButtonPreference.Image),
                 ticketMenu: new AasxMenu()
                     .AddAction("aas-elem-cut", "Cut",
                         "Removes the currently selected element and places it in the paste buffer.",

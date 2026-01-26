@@ -14,7 +14,7 @@
             x:Key="MyLogColorToColorConverter" />
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto, Auto, *" ColumnDefinitions="*">
+    <Grid RowDefinitions="Auto, Auto, *" ColumnDefinitions="Auto">
         
         <!-- Top row-->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto">

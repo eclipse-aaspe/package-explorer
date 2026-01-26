@@ -179,6 +179,8 @@ namespace AasxPackageLogic
 
         public enum FirstColumnWidth { No, Standard, Small, Large }
 
+        public enum KeyLabelHandling { Standard, No, Above }
+
         public const int valueFieldsMinWidth = 50;
 
         public bool editMode = false;
@@ -335,25 +337,44 @@ namespace AasxPackageLogic
         /// <summary>
         /// Display the key and some buttons in a wrap panel
         /// </summary>
-        public void AddKeyButtons(
-            AnyUiStackPanel view, string key, IEnumerable<AnyUiControl> buttons)
+        public AnyUiWrapPanel AddKeyButtons(
+            AnyUiStackPanel view, string key, IEnumerable<AnyUiControl> buttons,
+            KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
         {
             // access
             if (view == null || buttons == null)
-                return;
+                return null;
 
-            // small grid for this
-            var g = AddSmallGrid(1, 2, new[] { "#", "*" });
-            g.ColumnDefinitions[0].MinWidth = GetWidth(FirstColumnWidth.Standard);
+            if (keyLabel == KeyLabelHandling.Standard)
+            {
+                // Grid with two columns
+                var g = AddSmallGrid(1, 2, new[] { "#", "*" });
+                g.ColumnDefinitions[0].MinWidth = GetWidth(FirstColumnWidth.Standard);
 
-            view.Add(g);
+                view.Add(g);
 
-            AddSmallLabelTo(g, 0, 0, content: key, padding: new AnyUiThickness(5, 0, 0, 0), verticalCenter: true);
+                AddSmallLabelTo(g, 0, 0, content: key, padding: new AnyUiThickness(5, 0, 0, 0), verticalCenter: true);
 
-            // make a panel for the buttons
-            var panel = AddSmallWrapPanelTo(g, 0, 1, margin: new AnyUiThickness(5, 0, 0, 0));
-            foreach (var b in buttons)
-                panel.Add(b);
+                // make a panel for the buttons
+                var panel = AddSmallWrapPanelTo(g, 0, 1, margin: new AnyUiThickness(5, 0, 0, 0));
+                foreach (var b in buttons)
+                    panel.Add(b);
+                return panel;
+            }
+            else if (keyLabel == KeyLabelHandling.Above)
+            {
+                throw new NotImplementedException("AddKeyButtons::KeyLabelHandling.Above");
+            }
+            else
+            {
+                var panel = new AnyUiWrapPanel() { Orientation = AnyUiOrientation.Horizontal };
+                foreach (var b in buttons)
+                    panel.Add(b);
+                view.Add(panel);
+                return panel;
+            }
+
+            return null;
         }
 
         public void AddInfoText(
@@ -863,7 +884,95 @@ namespace AasxPackageLogic
             panel.Children.Add(g);
         }
 
-		public void AddActionPanel(
+        /// <summary>
+        /// Generates a button with a context menu attached, which can also
+        /// be commended by tickets.
+        /// </summary>
+        public IEnumerable<AnyUiButton> GenerateActionButton(
+            AnyUiButtonHeader buttonHeader,
+            ModifyRepo repo = null,
+            bool[] addWoEdit = null,
+            AasxMenu superMenu = null,
+            AasxMenu ticketMenu = null,
+            Func<int, AasxMenuActionTicket, Task<AnyUiLambdaActionBase>> ticketActionAsync = null,
+            AnyUiButtonOverStyle buttonOverStyle = null,
+            AnyUiThickness padding = null)
+        {
+            // result
+            var res = new List<AnyUiButton>();
+
+            // add the ticketMenu items to the super menu
+            // an re-route lambdas
+            if (superMenu != null && ticketMenu != null && ticketActionAsync != null)
+            {
+                for (int i = 0; i < ticketMenu.Count; i++)
+                {
+                    // get
+                    var tmi = ticketMenu[i];
+                    var currentI = i;
+
+                    // check if allowed
+                    if (repo == null && addWoEdit != null && i < addWoEdit.Length && !addWoEdit[i])
+                        continue;
+
+                    // may be async
+                    if (ticketActionAsync != null)
+                    {
+                        tmi.ActionAsync = async (name, item, ticket) =>
+                        {
+                            if (ticket != null)
+                                ticket.UiLambdaAction = await ticketActionAsync(currentI, ticket);
+                        };
+                    }
+
+                    superMenu.Add(tmi);
+                }
+            }
+
+            // construct menu headers
+            var menuHeaders = new AnyUiContextMenuHeaderList();
+            if (ticketMenu != null && ticketActionAsync != null)
+                for (int i = 0; i < ticketMenu.Count; i++)
+                {
+                    // get
+                    var tmi = ticketMenu[i];
+                    var currentI = i;
+
+                    // check if allowed
+                    if (repo == null && addWoEdit != null && i < addWoEdit.Length && !addWoEdit[i])
+                        continue;
+
+                    // add
+                    if (tmi is AasxMenuItem mi)
+                    {
+                        var cmh = new AnyUiContextMenuHeader(currentI, null, header: mi.Header);
+                        menuHeaders.Add(cmh);
+                    }
+                }
+
+            // no context menu -> show no button!
+            if (menuHeaders.Count < 1)
+                return res;
+
+            // make a context menu
+            var but = AddSmallContextMenuItem(
+                menuHeaders: menuHeaders,
+                buttonHeader: buttonHeader,
+                buttonOverStyle: buttonOverStyle,
+                padding: padding,
+                menuItemLambdaAsync: async (o) =>
+                {
+                    if (ticketActionAsync != null)
+                        return await ticketActionAsync.Invoke((o is int ii) ? (int) o : 0, new AasxMenuActionTicket());
+                    return new AnyUiLambdaActionNone();
+                });
+            res.Add(but);
+
+            // ok
+            return res;
+        }
+
+        public void AddActionPanel(
             AnyUiPanel view, string key, string[] actionStrXX = null, ModifyRepo repo = null,
             string[] actionTags = null,
             bool[] addWoEdit = null,
@@ -873,7 +982,8 @@ namespace AasxPackageLogic
 			Func<int, AasxMenuActionTicket, Task<AnyUiLambdaActionBase>> ticketActionAsync = null,
 			FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard,
             AnyUiButtonOverStyle buttonOverStyle = null,
-            bool useWrapFlexPanel = true)
+            bool useWrapFlexPanel = true,
+            KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
         {
             // generate actionStr from ticketMenu
             //if (actionStr == null && ticketMenu != null)
@@ -919,7 +1029,8 @@ namespace AasxPackageLogic
             // 0 key
             var gc = new AnyUiColumnDefinition();
             gc.Width = AnyUiGridLength.Auto;
-            gc.MinWidth = GetWidth(firstColumnWidth);
+            if (keyLabel == KeyLabelHandling.Standard)
+                gc.MinWidth = GetWidth(firstColumnWidth);
             g.ColumnDefinitions.Add(gc);
 
             // 1+x button
@@ -936,10 +1047,13 @@ namespace AasxPackageLogic
             g.RowDefinitions.Add(gr);
 
             // key label
-            var x = AddSmallLabelTo(g, 0, 0, margin: new AnyUiThickness(5, 0, 0, 0),
-                setNoWrap: true,
-                content: "" + key);
-            x.VerticalAlignment = AnyUiVerticalAlignment.Center;
+            if (keyLabel != KeyLabelHandling.No)
+            {
+                var x = AddSmallLabelTo(g, 0, 0, margin: new AnyUiThickness(5, 0, 0, 0),
+                    setNoWrap: true,
+                    content: "" + key);
+                x.VerticalAlignment = AnyUiVerticalAlignment.Center;
+            }
 
             // 1 + action button
             var wp = !useWrapFlexPanel ? null : AddSmallWrapPanelTo(g, 0, 1, margin: new AnyUiThickness(4, 0, 4, 0));
@@ -992,9 +1106,6 @@ namespace AasxPackageLogic
 						    else
 							    return await actionAsync?.Invoke(currentI);
 					    });
-
-                if (actionTags != null && i < actionTags.Length)
-                    AnyUiUIElement.NameControl(but, actionTags[i]);
 
                 // can set a tool tip?
                 if (ticketMenu != null && ticketMenu.Count > i
@@ -1502,7 +1613,9 @@ namespace AasxPackageLogic
             int maxNumOfKey = int.MaxValue,
             bool addKnownSemanticId = false,
             FirstColumnWidth? firstColumnWidth = null,
-            AnyUiButtonOverStyle buttonOverStyle = null)
+            AnyUiButtonOverStyle buttonOverStyleLo = null,
+            AnyUiButtonOverStyle buttonOverStyleHi = null,
+            AnyUiButtonPreference buttonPreferenceLo = AnyUiButtonPreference.None)
         {
             // sometimes needless to show
             if (repo == null && (keys == null || keys.Count < 1))
@@ -1623,7 +1736,7 @@ namespace AasxPackageLogic
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             header: new AnyUiButtonHeader(IconPool.AddKnown, "Add known", 
                                         "Add reference from the internal library of known references."),
-                            buttonOverStyle: buttonOverStyle),
+                            buttonOverStyle: buttonOverStyleLo),
                         setValueAsync: async (o) =>
                         {
                             var uc = new AnyUiDialogueDataSelectReferableFromPool(
@@ -1666,7 +1779,7 @@ namespace AasxPackageLogic
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             header: new AnyUiButtonHeader(IconPool.AddExisting, "Add ECLASS",
                                         "Add reference to a ECLASS concept via IRDI."),
-                            buttonOverStyle: buttonOverStyle),
+                            buttonOverStyle: buttonOverStyleLo),
                         lambdaEclassIrdiAsync);
 
                 if (addExistingEntities != null && packages.MainAvailable)
@@ -1677,7 +1790,7 @@ namespace AasxPackageLogic
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             header: new AnyUiButtonHeader(IconPool.AddExisting, "Add existing",
                                         "Add reference to an existing element in packages."),
-                            buttonOverStyle: buttonOverStyle),
+                            buttonOverStyle: buttonOverStyleHi),
                             setValueAsync: async (o) =>
                             {
                                 var k2 = await SmartSelectAasEntityKeysAsync(packages, selector, addExistingEntities);
@@ -1714,7 +1827,7 @@ namespace AasxPackageLogic
                         padding: new AnyUiThickness(5, 0, 5, 0),
                         header: new AnyUiButtonHeader(IconPool.AddBlank, "Add blank",
                                         "Add blank reference."),
-                        buttonOverStyle: buttonOverStyle),
+                        buttonOverStyle: buttonOverStyleLo),
                         async (o) =>
                         {
                             await Task.Yield();
@@ -1737,7 +1850,7 @@ namespace AasxPackageLogic
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             header: new AnyUiButtonHeader(IconPool.Jump, "Jump",
                                         "Jump to AAS element in package."),
-                            buttonOverStyle: buttonOverStyle),
+                            buttonOverStyle: buttonOverStyleLo.Modify(preference: buttonPreferenceLo)),
                         async (o) =>
                         {
                             await Task.Yield();
@@ -1752,7 +1865,7 @@ namespace AasxPackageLogic
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             header: new AnyUiButtonHeader(IconPool.CopyToClipboard, "Clipboard",
                                         "Copy reference as JSON to clipboard."),
-                            buttonOverStyle: buttonOverStyle),
+                            buttonOverStyle: buttonOverStyleLo.Modify(preference: buttonPreferenceLo)),
                         setValueAsync: lambdaClipboardAsync);
 
                 //
@@ -1769,7 +1882,7 @@ namespace AasxPackageLogic
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             header: new AnyUiButtonHeader(IconPool.AddPreset, "" + addPresetNames[i],
                                         "Add preset: " + addPresetNames[i]).Modify(AnyUiButtonPreference.Both),
-                            buttonOverStyle: buttonOverStyle),
+                            buttonOverStyle: buttonOverStyleLo),
                         async (o) =>
                         {
                             await Task.Yield();
@@ -1803,7 +1916,7 @@ namespace AasxPackageLogic
                                 padding: new AnyUiThickness(5, 0, 5, 0),
                                 header: new AnyUiButtonHeader(IconPool.AddPreset, "" + auxButtonTitles[i],
                                         "" + auxButtonTitles[i]).Modify(AnyUiButtonPreference.Both),
-                                buttonOverStyle: buttonOverStyle),
+                                buttonOverStyle: buttonOverStyleLo),
                             lmb) as AnyUiButton;
                         if (auxButtonToolTips != null && i < auxButtonToolTips.Length)
                             b.ToolTip = auxButtonToolTips[i];
@@ -1834,7 +1947,7 @@ namespace AasxPackageLogic
                         g2, 0, currCol++,      
                         header: new AnyUiButtonHeader(IconPool.MoreVert, "More",
                                         "More options in context menu."),
-                        buttonOverStyle: buttonOverStyle,
+                        buttonOverStyle: buttonOverStyleLo,
                         menuHeaders: contextHeaders,
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),
@@ -2001,7 +2114,7 @@ namespace AasxPackageLogic
                                 g, 0 + i + rowOfs, 5,
                                 header: new AnyUiButtonHeader(IconPool.MoreVert, "More",
                                         "More options in context menu."),
-                                buttonOverStyle: buttonOverStyle,
+                                buttonOverStyle: buttonOverStyleLo,
                                 menuHeaders: new AnyUiContextMenuHeaderList(new[] {
                                     "\u2702", "Delete",
                                     "\u25b2", "Move Up",
@@ -2390,7 +2503,9 @@ namespace AasxPackageLogic
             AasxMenu extraMenu = null,
             Func<int, AnyUiLambdaActionBase> lambdaExtraMenu = null,
             Func<int, Task<AnyUiLambdaActionBase>> lambdaExtraMenuAsync = null,
-            bool moveDoesNotModify = false)
+            bool moveDoesNotModify = false,
+            AnyUiButtonOverStyle buttonOverStyle = null,
+            KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
         {
             if (nextFocus == null)
                 nextFocus = entity;
@@ -2432,10 +2547,10 @@ namespace AasxPackageLogic
                 repo: repo,
                 superMenu: superMenu,
                 ticketMenu: theMenu,
+                keyLabel: keyLabel,
                 useWrapFlexPanel: false,
-                buttonOverStyle: LayoutHints.StyleButtonAction.Modify(
-                                    preference: AnyUiButtonPreference.Image,
-                                    horizontalAlignment: AnyUiHorizontalAlignment.Center),
+                buttonOverStyle: (buttonOverStyle ?? LayoutHints.StyleButtonAction).Modify(
+                                    preference: AnyUiButtonPreference.Image),
                 ticketActionAsync: async (buttonNdx, ticket) =>
                 {
                     if (buttonNdx >= 0 && buttonNdx <= 3)

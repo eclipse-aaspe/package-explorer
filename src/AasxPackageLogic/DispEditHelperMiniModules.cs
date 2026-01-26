@@ -1925,13 +1925,13 @@ namespace AasxPackageLogic
             Action<List<T>> setOutput = null,
             AasxMenu superMenu = null,
             AnyUiButtonPreference preference = AnyUiButtonPreference.Both,
-            Aas.IReference basedOnSemanticId = null) where T : class, ISubmodelElement
+            Aas.IReference basedOnSemanticId = null,
+            AnyUiButtonOverStyle buttonOverStyle = null) where T : class, ISubmodelElement
         {
             // access
             var res = new List<AnyUiControl>();
             if (false)
                 return res;
-
 
             // gather potential SMT element items
             var smtElemItem = DispSmeListAddNewCheckForSmtItems(packages, basedOnSemanticId);
@@ -1940,74 +1940,74 @@ namespace AasxPackageLogic
             var isDataElem = typeof(IDataElement).IsAssignableFrom(typeof(T));
 
             // normal way to add SME
-            {
-                var but = RegisterSmallControl(
-                    AddSmallButton(
-                        header: new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Add SME", "Add SubmodelElement", 
-                        imagePosition: AnyUiHorizontalAlignment.Right,
-                        preference: preference)),
-                    superMenu, 
-                    new AasxMenuItem(
-                        "add-named", "Add other ..",
-                        "Adds a selected kind of SubmodelElement to the containing collection.",
-                        args: new AasxMenuListOfArgDefs()
-                            .Add("Kind", "Name (not abbreviated) of kind of SubmodelElement.")),
-                    setValueWithTicketAsync: async (o, ticket) =>
+            var but = RegisterSmallControl(
+                AddSmallButton(
+                    header: new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Add SME", "Add SubmodelElement", 
+                        imagePosition: AnyUiHorizontalAlignment.Right, preference: preference),
+                    buttonOverStyle: (buttonOverStyle ?? LayoutHints.StyleButtonAction).Modify(
+                                    preference: AnyUiButtonPreference.Both),
+                    padding: new AnyUiThickness(5,0,5,0)),
+                superMenu, 
+                new AasxMenuItem(
+                    "add-named", "Add other ..",
+                    "Adds a selected kind of SubmodelElement to the containing collection.",
+                    args: new AasxMenuListOfArgDefs()
+                        .Add("Kind", "Name (not abbreviated) of kind of SubmodelElement.")),
+                setValueWithTicketAsync: async (o, ticket) =>
+                {
+                    // select adequate type
+                    Aas.AasSubmodelElements[] includes = null;
+                    if (isDataElem) includes = new Aas.AasSubmodelElements[] {
+                        Aas.AasSubmodelElements.Property,
+                        Aas.AasSubmodelElements.MultiLanguageProperty,
+                        Aas.AasSubmodelElements.Range,
+                        Aas.AasSubmodelElements.File,
+                        Aas.AasSubmodelElements.Blob,
+                        Aas.AasSubmodelElements.ReferenceElement};
+
+                    var en = await this.SelectAdequateEnum("Select SubmodelElement to create ..", ticket: ticket,
+                            includeValues: includes,
+                            excludeValues: new[] {
+                        Aas.AasSubmodelElements.DataElement,
+                        Aas.AasSubmodelElements.EventElement,
+                        Aas.AasSubmodelElements.ContainerElement
+                    });
+
+                    // ok?
+                    if (en != Aas.AasSubmodelElements.SubmodelElement)
                     {
-                        // select adequate type
-                        Aas.AasSubmodelElements[] includes = null;
-                        if (isDataElem) includes = new Aas.AasSubmodelElements[] {
-                            Aas.AasSubmodelElements.Property,
-                            Aas.AasSubmodelElements.MultiLanguageProperty,
-                            Aas.AasSubmodelElements.Range,
-                            Aas.AasSubmodelElements.File,
-                            Aas.AasSubmodelElements.Blob,
-                            Aas.AasSubmodelElements.ReferenceElement};
+                        T sme2 = (T)
+                            AdminShellUtil.CreateSubmodelElementFromEnum(en,
+                                defaultHelper: Options.Curr.GetCreateDefaultHelper());
 
-                        var en = await this.SelectAdequateEnum("Select SubmodelElement to create ..", ticket: ticket,
-                                includeValues: includes,
-                                excludeValues: new[] {
-                            Aas.AasSubmodelElements.DataElement,
-                            Aas.AasSubmodelElements.EventElement,
-                            Aas.AasSubmodelElements.ContainerElement
-                        });
+                        // add
+                        smeList = smeList ?? new List<T>();
+                        smeList.Add(sme2);
+                        setOutput?.Invoke(smeList);
 
-                        // ok?
-                        if (en != Aas.AasSubmodelElements.SubmodelElement)
+                        // make some more adjustments
+                        if (sme2 is IMultiLanguageProperty mlp)
                         {
-                            T sme2 = (T)
-                                AdminShellUtil.CreateSubmodelElementFromEnum(en,
-                                    defaultHelper: Options.Curr.GetCreateDefaultHelper());
+                            // create
+                            mlp.Value = new List<ILangStringTextType>();
 
-                            // add
-                            smeList = smeList ?? new List<T>();
-                            smeList.Add(sme2);
-                            setOutput?.Invoke(smeList);
-
-                            // make some more adjustments
-                            if (sme2 is IMultiLanguageProperty mlp)
-                            {
-                                // create
-                                mlp.Value = new List<ILangStringTextType>();
-
-                                // add defaults?
-                                if (Options.Curr.DefaultLangs.HasContent())
-                                    foreach (var lng in Options.Curr.DefaultLangs.Split(',',
-                                        StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                                        mlp.Value.Add(new LangStringTextType("" + lng, ""));
-                            }
-
-                            // emit event
-                            this.AddDiaryEntry(sme2, new DiaryEntryStructChange(StructuralChangeReason.Create));
-
-                            // redraw
-                            return new AnyUiLambdaActionRedrawAllElements(nextFocus: sme2, isExpanded: true);
+                            // add defaults?
+                            if (Options.Curr.DefaultLangs.HasContent())
+                                foreach (var lng in Options.Curr.DefaultLangs.Split(',',
+                                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                    mlp.Value.Add(new LangStringTextType("" + lng, ""));
                         }
 
-                        return new AnyUiLambdaActionNone();
-                    });
-                res.Add(but);
-            }
+                        // emit event
+                        this.AddDiaryEntry(sme2, new DiaryEntryStructChange(StructuralChangeReason.Create));
+
+                        // redraw
+                        return new AnyUiLambdaActionRedrawAllElements(nextFocus: sme2, isExpanded: true);
+                    }
+
+                    return new AnyUiLambdaActionNone();
+                });
+            res.Add(but);
 
             return res;
         }

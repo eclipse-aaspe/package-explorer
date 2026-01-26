@@ -487,8 +487,8 @@ namespace AnyUi
     /// </summary>
     public class AnyUiDialogueListItem
     {
-        public string Text = "";
-        public object Tag = null;
+        public string Text { get; set; } = "";
+        public object Tag { get; set; } = null;
 
         public AnyUiDialogueListItem() { }
 
@@ -502,7 +502,7 @@ namespace AnyUi
     /// <summary>
     /// List of items, the user might choose from
     /// </summary>
-    public class AnyUiDialogueListItemList : List<AnyUiDialogueListItem>
+    public class AnyUiDialogueListItemList : ObservableCollection<AnyUiDialogueListItem>
     {
         public AnyUiDialogueListItemList() { }
 
@@ -562,9 +562,11 @@ namespace AnyUi
 	public class AnyUiDialogueDataSelectFromList : AnyUiDialogueDataBase
     {
         // in
-        public AnyUiDialogueListItemList ListOfItems = null;
+        public AnyUiDialogueListItemList ListOfItems { get; set; } = null;
         public string[] AlternativeSelectButtons = null;
-        public bool SelectFiles = false;
+
+        public string FileFilter = "*.*";
+        public bool SelectFiles { get; set; } = false;
 
         // out
         public int ResultIndex = -1;
