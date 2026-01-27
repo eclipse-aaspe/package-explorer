@@ -146,7 +146,7 @@ namespace AasxPackageLogic
         /// This style is to be taken for Buttons, which are pretty regular and might come
         /// in numbers. Idea is, that they are recognizable as Buttons, but are visually light.
         /// </summary>
-        public AnyUiButtonOverStyle StyleButtonThin = new();
+        public AnyUiButtonOverStyle StyleButtonStandard = new();
 
         /// <summary>
         /// This style is to be taken for Buttons, which are an important action for the user, 
@@ -159,6 +159,11 @@ namespace AasxPackageLogic
         /// actions.
         /// </summary>
         public AnyUiButtonOverStyle StyleButtonHero = new();
+
+        /// <summary>
+        /// Display text and/or image for: medium clear/ obvious button
+        /// </summary>
+        public AnyUiButtonPreference ButtonPrefMediumClear = AnyUiButtonPreference.Both;
     }
 
     //
@@ -973,7 +978,9 @@ namespace AasxPackageLogic
         }
 
         public void AddActionPanel(
-            AnyUiPanel view, string key, string[] actionStrXX = null, ModifyRepo repo = null,
+            AnyUiPanel view, string key,
+            string[] actionStrXX = null, 
+            ModifyRepo repo = null,
             string[] actionTags = null,
             bool[] addWoEdit = null,
             AasxMenu superMenu = null,
@@ -991,6 +998,13 @@ namespace AasxPackageLogic
 
             var buttonList = ticketMenu?.Where((tmi) => tmi is AasxMenuItem)
                                         .Select((tmi) => (tmi as AasxMenuItem).ToButtonHeader())?.ToList();
+
+            if (actionStrXX != null)
+            {
+                buttonList = buttonList ?? new();
+                foreach (var a in actionStrXX)
+                    buttonList.Add(new AnyUiButtonHeader(text: "§§ " + a));
+            }
 
             // access 
             if ((actionAsync == null && ticketActionAsync == null) || buttonList == null)
@@ -1089,6 +1103,8 @@ namespace AasxPackageLogic
                     but.Margin = new AnyUiThickness(0, 2, 4, 2);
                     but.Padding = new AnyUiThickness(5, 0, 5, 0);
                     but.ApplyHeader(buttonList[i], buttonOverStyle);
+                    if (buttonOverStyle?.Style != null)
+                        but.ApplyAsStyle(buttonOverStyle.Style);
                     wp.Children.Add(but);
                 }
 
@@ -1332,7 +1348,7 @@ namespace AasxPackageLogic
                                         new AnyUiContextMenuHeader(101, "\u2261", "Edit multiline")),
                                     margin: new AnyUiThickness(2, 2, 2, 2),
                                     padding: new AnyUiThickness(5, 0, 5, 0),
-                                    buttonOverStyle: LayoutHints.StyleButtonThin,
+                                    buttonOverStyle: LayoutHints.StyleButtonStandard,
                                     menuItemLambdaAsync: async (o) =>
                                     {
                                         await Task.Yield();
@@ -2192,7 +2208,18 @@ namespace AasxPackageLogic
             FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard)
         {
             if (repo != null && data == null)
-                AddAction(view, key, actionStr, repo, actionAsync: actionAsync, firstColumnWidth: firstColumnWidth);
+            {
+                AddActionPanel(view, key,
+                    superMenu: null,
+                    ticketMenu: new AasxMenu(new[] { new AasxMenuItem(
+                                        IconPool.Add,
+                                        name: AdminShellUtil.FilterFriendlyName("add-" + key, fixMoreBlanks: true).ToLower(),
+                                        header: "Add",
+                                        helpText: "Add empty attribute data") }),
+                    buttonOverStyle: LayoutHints.StyleButtonAction,
+                    repo: repo, actionAsync: actionAsync, firstColumnWidth: firstColumnWidth);
+                // AddAction(view, key, actionStr, repo, actionAsync: actionAsync, firstColumnWidth: firstColumnWidth);
+            }
             return (data != null);
         }
 

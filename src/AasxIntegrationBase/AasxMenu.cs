@@ -423,6 +423,16 @@ namespace AasxIntegrationBase
             ArgDefs = args;
         }
 
+        public AasxMenuItem(AnyUiImageSourceBase icon, string name, string header, string helpText,
+            AasxMenuListOfArgDefs args = null)
+        {
+            Icon = icon;
+            Name = name;
+            Header = header;
+            HelpText = helpText;
+            ArgDefs = args;
+        }
+
         //
         // more
         //

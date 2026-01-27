@@ -34,6 +34,8 @@ namespace AasxPackageLogic
         public static AnyUiImageSourceFont PasteInto = new("{uc}", "\U0001f4cb", AnyUiIconColor.Normal);
 
         public static AnyUiImageSourceFont MoreVert = new("{uc}", "\u22ee", AnyUiIconColor.Normal);
+        
+        public static AnyUiImageSourceFont FixText = new("{uc}", "\u2714", AnyUiIconColor.Normal);
 
         public static AnyUiImageSourceFont ContextMenuDropDown = new("{uc}", "\u25bd", AnyUiIconColor.Normal);
 

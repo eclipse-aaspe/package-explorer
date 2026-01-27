@@ -96,6 +96,18 @@ namespace AasxPackageLogic
                     return null;
                 return res.ToArray();
             }
+
+            public AnyUiButtonHeaderList GetButtonHeaders()
+            {
+                var res = new AnyUiButtonHeaderList();
+                if (auxTitles == null)
+                    return res;
+                for (int i = 0; i < auxTitles.Length; i++)
+                    res.Add(new AnyUiButtonHeader(
+                        text: auxTitles[i],
+                        toolTip: (auxToolTips != null && auxToolTips.Length > i) ? auxToolTips[i] : null));
+                return res;
+            }
         }
 
         //
@@ -160,9 +172,11 @@ namespace AasxPackageLogic
                         "SubmodelElementList shall not be specified.")
                     });
             }
-            AddKeyValueExRef(
-                stack, "idShort", referable, referable.IdShort, null, repo,
-                async (v) =>
+            
+            AddKeyValue(
+                stack, "idShort", referable.IdShort, null, repo,
+                containingObject: referable,
+                setValueAsync: async (v) =>
                 {
                     await Task.Yield();
                     referable.IdShort = v as string;
@@ -170,10 +184,11 @@ namespace AasxPackageLogic
                     return new AnyUiLambdaActionNone();
                 },
                 keyVertCenter: true,
-                auxButtonTitles: DispEditInjectAction.GetTitles(new[] { "Fix" } , injectToIdShort),
-                auxButtonToolTips: DispEditInjectAction.GetToolTips(
-                    new[] { "Fix characters of idShort to be in the allowed ranges." }, 
-                    injectToIdShort),
+                buttonOverStyle: LayoutHints.StyleButtonStandard, 
+                auxButtons: new AnyUiButtonHeaderList(IconPool.FixText, "Fix", 
+                                "Fix characters of idShort to be in the allowed character sets.",
+                                LayoutHints.ButtonPrefMediumClear)
+                            .Merge(injectToIdShort?.GetButtonHeaders()),
                 auxButtonLambdaAsync: async (i) =>
                 {
                     await Task.Yield();
@@ -2163,7 +2178,7 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionNone();
                         },
                         firstColumnWidth: FirstColumnWidth.No,
-                        buttonOverStyle: LayoutHints.StyleButtonThin,
+                        buttonOverStyle: LayoutHints.StyleButtonStandard,
                         auxButtons: new AnyUiButtonHeaderList(IconPool.Delete, "Delete", "Delete data element", AnyUiButtonPreference.Image),
                         auxButtonLambdaAsync: async (i) =>
                         {

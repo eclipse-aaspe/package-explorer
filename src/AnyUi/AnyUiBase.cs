@@ -953,7 +953,7 @@ namespace AnyUi
 
         public AnyUiButtonHeader Modify(AnyUiButtonOverStyle overStyle = null)
         {
-            if (overStyle != null)
+            if (overStyle != null && overStyle.Preference != AnyUiButtonPreference.None)
                 Preference = overStyle.Preference;
 
             if (overStyle != null && ImageSource is AnyUiImageSourceFont isf)
@@ -993,6 +993,18 @@ namespace AnyUi
                     text: (headers != null && headers.Count() > i) ? headers[i] : null,
                     toolTip: (toolTips != null && toolTips.Count() > i) ? toolTips[i] : null
                     ));
+        }
+
+        /// <summary>
+        /// Makes an copy of this list and merges another.
+        /// </summary>
+        public AnyUiButtonHeaderList Merge(AnyUiButtonHeaderList other)
+        {
+            var res = new AnyUiButtonHeaderList();
+            res.AddRange(this);
+            if (other != null)
+                res.AddRange(other);
+            return res;
         }
     }
 

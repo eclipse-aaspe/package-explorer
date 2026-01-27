@@ -2289,7 +2289,7 @@ namespace AasxPackageLogic
                     packages, PackageCentral.PackageCentral.Selector.Main, "Reference Submodel ",
                     takeOverLambdaAction: new AnyUiLambdaActionRedrawAllElements(smref),
                     jumpLambda: lambda, relatedReferable: aas,
-                    buttonOverStyleLo: LayoutHints.StyleButtonThin,
+                    buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonOverStyleHi: LayoutHints.StyleButtonAction,
                     buttonPreferenceLo: AnyUiButtonPreference.Image);
             }
@@ -2338,7 +2338,7 @@ namespace AasxPackageLogic
                     aas.Submodels, (lst) => { aas.Submodels = lst; },
                     smref, aas, "Reference:", sendUpdateEvent: evTemplate,
                     explicitParent: aas,
-                    buttonOverStyle: LayoutHints.StyleButtonThin,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
                     keyLabel: keyLabel,
                     postActionHookAsync: async (actionName, ticket) => {
                         await Task.Yield();
@@ -2429,7 +2429,7 @@ namespace AasxPackageLogic
                     "Submodel:", sendUpdateEvent: evTemplate,
                     explicitParent: aas,
                     moveDoesNotModify: true,
-                    buttonOverStyle: LayoutHints.StyleButtonThin,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
                     keyLabel: keyLabel,
                     postActionHookAsync: async (actionName, ticket) => {
                         await Task.Yield();
@@ -2489,7 +2489,7 @@ namespace AasxPackageLogic
                 this.DispSubmodelCutCopyPasteHelper<Aas.IReference>(actionStack2, repo, this.theCopyPaste,
                     aas.Submodels, smref, (sr) => { return new Aas.Reference(sr.Type, new List<Aas.IKey>(sr.Keys)); },
                     smref, submodel, superMenu: superMenu,
-                    buttonOverStyle: LayoutHints.StyleButtonThin,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
                     keyLabel: keyLabel,
                     label: "Buffer:",
                     checkEquality: (r1, r2) =>
@@ -2524,7 +2524,7 @@ namespace AasxPackageLogic
                 this.DispSubmodelCutCopyPasteHelper<Aas.ISubmodel>(actionStack2, repo, this.theCopyPaste,
                     env.Submodels, submodel, (sm) => { return sm.Copy(); },
                     null, submodel, superMenu: superMenu,
-                    buttonOverStyle: LayoutHints.StyleButtonThin,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
                     keyLabel: keyLabel,
                     label: "Buffer:",
                     checkEquality: (s1, s2) =>
@@ -2557,7 +2557,7 @@ namespace AasxPackageLogic
                         setOutput: (sml) => submodel.SubmodelElements = sml,
                         superMenu: superMenu,
                         basedOnSemanticId: submodel.SemanticId,
-                        buttonOverStyle: LayoutHints.StyleButtonThin));
+                        buttonOverStyle: LayoutHints.StyleButtonStandard));
 #endif
 
                 this.AddHintBubble(stack, hintMode, new[] {
@@ -2633,7 +2633,7 @@ namespace AasxPackageLogic
                             .AddAction("copy-recurse", "Copy recursively",
                                 "Copy selected Submodel and children from another AAS, " +
                                 "caring for ConceptDescriptions."),
-                        buttonOverStyle: LayoutHints.StyleButtonThin.Modify(
+                        buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
                                         preference: AnyUiButtonPreference.Both),
                         padding: new AnyUiThickness(5,0,5,0),
                         ticketActionAsync: async (buttonNdx, ticket) =>
@@ -2835,7 +2835,7 @@ namespace AasxPackageLogic
                         .AddAction("delete-cd-in-repo", "Delete respective CD in Repo",
                             "Delete ConceptDescriptions which are referenced by semanticId of SubmodelElements " +
                             "in a given Repository or Registry."),
-                    buttonOverStyle: LayoutHints.StyleButtonThin.Modify(
+                    buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
                                     preference: AnyUiButtonPreference.Both),
                     padding: new AnyUiThickness(5, 0, 5, 0),
                     ticketActionAsync: async (buttonNdx, ticket) =>
@@ -2969,7 +2969,7 @@ namespace AasxPackageLogic
                             "Removes specific attrributes for each selected element.")
                         .AddAction("fix-references", "Fix References",
                             "Fix, if References first key to Identifiables use idShort instead of id."),
-                    buttonOverStyle: LayoutHints.StyleButtonThin.Modify(
+                    buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
                                     preference: AnyUiButtonPreference.Both),
                     padding: new AnyUiThickness(5, 0, 5, 0),
 #endif

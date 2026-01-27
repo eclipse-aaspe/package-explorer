@@ -348,8 +348,10 @@ public partial class DispEditAasxEntityMaui : ContentView
         _helper.LayoutHints.PlacementAdd = UILayoutHints.PosOfControl.Bottom;
         _helper.LayoutHints.ExplicitMultiLineEdit = false;
 
+        _helper.LayoutHints.ButtonPrefMediumClear = AnyUiButtonPreference.Image;
+
         // Button Thin
-        _helper.LayoutHints.StyleButtonThin.Style = new()
+        _helper.LayoutHints.StyleButtonStandard.Style = new()
         {
             Background = new AnyUiBrush(0xfff8f8f8),
             BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
@@ -417,6 +419,9 @@ public partial class DispEditAasxEntityMaui : ContentView
 
         IconPool.ContextMenuDropDown
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Arrow_drop_down_circle);
+
+        IconPool.FixText
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Rule);
 
         // modify repository
         ModifyRepo? repo = null;
