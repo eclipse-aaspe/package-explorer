@@ -106,12 +106,12 @@ namespace MauiTestTree
                 if (input.StartsWith("{") && input.Contains("}"))
                 {
                     var p = input.IndexOf('}');
-                    fo = dc?.FindIconFont(input.Substring(1, p - 1));
+                    fo = dc?.FindIconFontByShort(input.Substring(1, p - 1));
                     glyph = input.Substring(p + 1);
                 }
                 else
                 {
-                    fo = dc?.FindIconFont("uc");
+                    fo = dc?.FindIconFontByShort("uc");
                     glyph = input;
                 }
 
@@ -154,29 +154,44 @@ namespace MauiTestTree
                 {
                     Index = hdr.Id,
                     Header = hdr.Header,
-                    IconGlyph = hdr.IconGlyph,
                 };
 
-                // try find icon font
-                var input = AnyUiContextMenuHeaderBase.IconFontToTag(hdr.IconFont);
-                AnyUiIconFont? fo = null;
-                string? glyph = null;
-                if (input.StartsWith("{") && input.Contains("}"))
+                if (hdr is AnyUiContextMenuHeader hdrGlyph)
                 {
-                    var p = input.IndexOf('}');
-                    fo = dc?.FindIconFont(input.Substring(1, p - 1));
-                }
-                else
-                {
-                    fo = dc?.FindIconFont("uc");
+
+                    // try find icon font
+                    menuItem.IconGlyph = hdrGlyph.IconGlyph;
+                    var input = AnyUiContextMenuHeader.IconFontToTag(hdrGlyph.IconFont);
+                    AnyUiIconFont? fo = null;
+                    if (input.StartsWith("{") && input.Contains("}"))
+                    {
+                        var p = input.IndexOf('}');
+                        fo = dc?.FindIconFontByShort(input.Substring(1, p - 1));
+                    }
+                    else
+                    {
+                        fo = dc?.FindIconFontByShort("uc");
+                    }
+
+                    // fill icon info?
+                    if (fo?.FontAlias != null)
+                    {
+                        menuItem.IconFontAlias = fo.FontAlias;
+                        menuItem.IconFontSize = (!scaleFontSize.HasValue) ? fo.FontSize
+                            : (int)(1.0 * scaleFontSize.Value * fo.FontSize);
+                    }
                 }
 
-                // fill icon info?
-                if (fo?.FontAlias != null)
+                if (hdr is AnyUiContextMenuHeaderIconSource hdrSource)
                 {
-                    menuItem.IconFontAlias = fo.FontAlias;
-                    menuItem.IconFontSize = (!scaleFontSize.HasValue) ? fo.FontSize
-                        : (int)(1.0 * scaleFontSize.Value * fo.FontSize);
+                    menuItem.IconGlyph = hdrSource.Icon.IconGlyph;
+
+                    AnyUiIconFont? fo = dc?.FindIconFontByShort(hdrSource.Icon.FontId);
+                    if (fo?.FontAlias != null)
+                    {
+                        menuItem.IconFontAlias = fo.FontAlias;
+                        menuItem.IconFontSize = (int)(hdrSource.Icon.FontSize ?? 16);
+                    }
                 }
 
                 // add

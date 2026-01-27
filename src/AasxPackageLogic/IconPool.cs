@@ -36,7 +36,13 @@ namespace AasxPackageLogic
         public static AnyUiImageSourceFont MoreVert = new("{uc}", "\u22ee", AnyUiIconColor.Normal);
         
         public static AnyUiImageSourceFont FixText = new("{uc}", "\u2714", AnyUiIconColor.Normal);
+        public static AnyUiImageSourceFont MultiLineEdit = new("{uc}", "\u2261", AnyUiIconColor.Normal);
 
+        public static AnyUiImageSourceFont Generate = new("{uc}", "\U0001f6e0", AnyUiIconColor.Normal);
+        public static AnyUiImageSourceFont Rename = new("{uc}", "\u270e", AnyUiIconColor.Normal);
+
+        public static AnyUiImageSourceFont Refresh = new("{uc}", "\u21bb", AnyUiIconColor.Normal);
+        
         public static AnyUiImageSourceFont ContextMenuDropDown = new("{uc}", "\u25bd", AnyUiIconColor.Normal);
 
     }

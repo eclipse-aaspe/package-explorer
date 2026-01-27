@@ -15,6 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxIntegrationBase
 {
@@ -239,6 +240,33 @@ namespace AasxIntegrationBase
             if (codes == null)
                 return null;
             var lst = codes.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            return lst.FirstOrDefault();
+        }
+
+        public static string GetFirstLangCodeNotTused<T>(
+            string codes, 
+            IList<T> alreadyUsed = null) where T : IAbstractLangString
+        {
+            if (codes == null)
+                return null;
+            var lst = codes.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            // simple answer
+            if (alreadyUsed == null || lst == null)
+                return lst.FirstOrDefault();
+
+            // more complex
+            foreach (var ln in lst)
+            {
+                var found = false;
+                foreach (var au in alreadyUsed)
+                    if (au.Language.Equals(ln?.Trim(), StringComparison.InvariantCultureIgnoreCase))
+                        found = true;
+                if (!found)
+                    return ln;
+            }
+
+            // uups, default
             return lst.FirstOrDefault();
         }
     }

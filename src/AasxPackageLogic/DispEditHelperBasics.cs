@@ -164,6 +164,11 @@ namespace AasxPackageLogic
         /// Display text and/or image for: medium clear/ obvious button
         /// </summary>
         public AnyUiButtonPreference ButtonPrefMediumClear = AnyUiButtonPreference.Both;
+
+        /// <summary>
+        /// Display text and/or image for: buttons, which icon is rather unclear
+        /// </summary>
+        public AnyUiButtonPreference ButtonPrefLowClear = AnyUiButtonPreference.Both;
     }
 
     //
@@ -561,6 +566,7 @@ namespace AasxPackageLogic
         /// <param name="containingObject">Contiaing object (for find/replace function)</param>
         /// <param name="limitToOneRowForNoEdit">Limitation for displaying multiple lines of value</param>
         /// <param name="comboBoxMinWidth">Minimal width if value is edited by combo box</param>
+        /// <param name="topContextMenu">Allow many (direct) buttons on top row or put them into context menu</param>
         public void AddKeyValue(
             AnyUiStackPanel view, string key, string value, string nullValue = null,
             ModifyRepo repo = null, 
@@ -579,6 +585,7 @@ namespace AasxPackageLogic
             bool keyVertCenter = false,
             bool auxButtonOverride = false,
             bool isValueReadOnly = false,
+            bool topContextMenu = true,
             AnyUiButtonOverStyle buttonOverStyle = null)
         {
             // draw anyway?
@@ -696,26 +703,54 @@ namespace AasxPackageLogic
             }
 
             if (auxButton)
-                for (int i = 0; i < auxButtons.Count; i++)
+            {
+                if (topContextMenu)
                 {
-                    Func<object, Task<AnyUiLambdaActionBase>> lmbAsync = null;
-                    int closureI = i;
-                    
-                    if (auxButtonLambdaAsync != null)
-                        lmbAsync = async (o) =>
-                        {
-                            return await auxButtonLambdaAsync(closureI); // exchange o with i !!
-                        };
+                    for (int i = 0; i < auxButtons.Count; i++)
+                    {
+                        Func<object, Task<AnyUiLambdaActionBase>> lmbAsync = null;
+                        int closureI = i;
 
-                    var b = AnyUiUIElement.RegisterControl(
-                        AddSmallButtonTo(
-                            g, 0, 2 + i,
-                            margin: new AnyUiThickness(2, 2, 2, 2),
-                            padding: new AnyUiThickness(5, 0, 5, 0),
-                            buttonOverStyle: buttonOverStyle,
-                            header: auxButtons[i]),
-                            setValueAsync: lmbAsync) as AnyUiButton;
+                        if (auxButtonLambdaAsync != null)
+                            lmbAsync = async (o) =>
+                            {
+                                return await auxButtonLambdaAsync(closureI); // exchange o with i !!
+                            };
+
+                        var b = AnyUiUIElement.RegisterControl(
+                            AddSmallButtonTo(
+                                g, 0, 2 + i,
+                                margin: new AnyUiThickness(2, 2, 2, 2),
+                                padding: new AnyUiThickness(5, 0, 5, 0),
+                                buttonOverStyle: buttonOverStyle,
+                                header: auxButtons[i]),
+                                setValueAsync: lmbAsync) as AnyUiButton;
+                    }
                 }
+                else
+                {
+                    var menuHeaders = new AnyUiContextMenuHeaderList();
+                    int i = 0;
+                    foreach (var ab in auxButtons)
+                        menuHeaders.Add(new AnyUiContextMenuHeaderIconSource(
+                            i++, ab.ImageSource as AnyUiImageSourceFont, ab.Text));
+
+                    AddSmallContextMenuItemTo(
+                                g, 0, 2,
+                                header: new AnyUiButtonHeader(IconPool.MoreVert, "More",
+                                        "More options in context menu."),
+                                buttonOverStyle: buttonOverStyle.Modify(preference: AnyUiButtonPreference.Image),
+                                menuHeaders: menuHeaders,
+                                margin: new AnyUiThickness(2, 2, 2, 2),
+                                padding: new AnyUiThickness(5, 0, 5, 0),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Center,
+                                verticalAlignment: AnyUiVerticalAlignment.Center,
+                                menuItemLambdaAsync: async (o) =>
+                                {
+                                    return await auxButtonLambdaAsync((o is int ii) ? ii : 0);
+                                });
+                }
+            }
 
             // in total
             view.Children.Add(g);
@@ -1146,7 +1181,11 @@ namespace AasxPackageLogic
             AnyUiStackPanel view, string key, List<T> langStr, ModifyRepo repo = null,
             Aas.IReferable relatedReferable = null,
             Action setNullList = null,
-			Func<Aas.IReferable, AnyUiLambdaActionBase> emitCustomEvent = null) where T : IAbstractLangString
+			Func<Aas.IReferable, AnyUiLambdaActionBase> emitCustomEvent = null,
+            AnyUiButtonOverStyle buttonOverStyleLo = null,
+            AnyUiButtonOverStyle buttonOverStyleHi = null,
+            AnyUiButtonPreference buttonPreferenceLo = AnyUiButtonPreference.None,
+            AnyUiButtonPreference buttonPreferenceHi = AnyUiButtonPreference.None) where T : IAbstractLangString
         {
             // sometimes needless to show
             if (repo == null && (langStr == null || langStr.Count < 1))
@@ -1311,7 +1350,9 @@ namespace AasxPackageLogic
                                     margin: new AnyUiThickness(2, 2, 2, 2),
                                     padding: new AnyUiThickness(5, 0, 5, 0),
                                     verticalAlignment: AnyUiVerticalAlignment.Top,
-                                    content: "\u2261"),
+                                    header: new AnyUiButtonHeader(IconPool.MultiLineEdit, "Multi line",
+                                        "Edit value with multi-line text editor."),
+                                    buttonOverStyle: buttonOverStyleLo),
                                 setValueAsync: async (o) =>
                                 {
                                     var uc = new AnyUiDialogueDataTextEditor(
@@ -1331,24 +1372,29 @@ namespace AasxPackageLogic
 
                         // button [⋮]
 
-                        // TODO: AvoidTopRows + ExplicitMultiLine
-
                         Set(
                             AddSmallContextMenuItemTo(
                                     g, 0 + i + rowOfs, 4,
-                                    "\u22ee",
-                                    new AnyUiContextMenuHeaderList(new[] {
-                                        "\u2702", "Delete",
-                                        "\u25b2", "Move Up",
-                                        "\u25bc", "Move Down",
+                                    "\u22ee", 
+                                    header: new AnyUiButtonHeader(IconPool.MoreVert, "More",
+                                        "More options in context menu."),
+                                    menuHeaders: new AnyUiContextMenuHeaderList(new[] {
+                                        new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete"),
+                                        new AnyUiContextMenuHeaderIconSource(1, IconPool.MoveUp, "Move Up"),
+                                        new AnyUiContextMenuHeaderIconSource(1, IconPool.MoveDown, "Move Down"),
                                     })
+                                    //menuHeaders: new AnyUiContextMenuHeaderList(new[] {
+                                    //    "\u2702", "Delete",
+                                    //    "\u25b2", "Move Up",
+                                    //    "\u25bc", "Move Down",
+                                    //})
                                     .InsertBeforeIf(LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Context, 
                                         new AnyUiContextMenuHeader(100, "+", "Add blank"))
                                     .AddIf(!LayoutHints.ExplicitMultiLineEdit,
                                         new AnyUiContextMenuHeader(101, "\u2261", "Edit multiline")),
                                     margin: new AnyUiThickness(2, 2, 2, 2),
                                     padding: new AnyUiThickness(5, 0, 5, 0),
-                                    buttonOverStyle: LayoutHints.StyleButtonStandard,
+                                    buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(preference: buttonPreferenceLo),
                                     menuItemLambdaAsync: async (o) =>
                                     {
                                         await Task.Yield();
@@ -1419,14 +1465,16 @@ namespace AasxPackageLogic
                             col: (LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Bottom) ? 1 : 3,
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
-                            content: "Add",
-                            buttonOverStyle: LayoutHints.StyleButtonAction),
+                            header: new AnyUiButtonHeader(IconPool.Add, "Add", "Add language string", preference: buttonPreferenceHi),
+                            buttonOverStyle: buttonOverStyleHi),
                         verticalCenter: true,
                         colSpan: 1),
                         async (o) =>
                         {
                             await Task.Yield();
-                            langStr.Add<T>(language: AdminShellUtil.GetDefaultLngIso639(), text: "");
+                            langStr.Add<T>(
+                                language: AasxLanguageHelper.GetFirstLangCodeNotTused<T>(Options.Curr.DefaultLangs, langStr), 
+                                text: Options.Curr.DefaultEmptyLangText);
                             emitCustomEvent?.Invoke(relatedReferable);
                             return new AnyUiLambdaActionRedrawEntity();
                         });
@@ -1601,8 +1649,45 @@ namespace AasxPackageLogic
             }
 
             return null;
-        }        
+        }
 
+        public enum AddKeyListKeys_AddButton { };
+
+        /// <summary>
+        /// Add a list of keys
+        /// </summary>
+        /// <param name="view"></param>
+        /// <param name="key">Label to be displayed on left/ top of edit field. Note: No key valuw!!</param>
+        /// <param name="keys">List of keys to edit</param>
+        /// <param name="setKeysNull">Lambda to set the keys</param>
+        /// <param name="repo"><c>Repo != null</c> means edit mode</param>
+        /// <param name="packages">AASX packages to select from</param>
+        /// <param name="selector">What to select from the packages</param>
+        /// <param name="addExistingEntities">Select exisiting entities from the packages</param>
+        /// <param name="modifyAddExistingKey">Lambda to modify selected existing entity reference</param>
+        /// <param name="addEclassIrdi">Select from ECLASS</param>
+        /// <param name="addFromKnown">Select from known (system) references</param>
+        /// <param name="addPresetNames">Names of presets for key lists, given</param>
+        /// <param name="addPresetKeyLists">Values (key lists) of presets for key lists, given</param>
+        /// <param name="jumpLambda">Lambda to activate for jumping</param>
+        /// <param name="takeOverLambdaAction">Lambda actiated, when editing completed</param>
+        /// <param name="noEditJumpLambda">Lambda to activate for jumping, when in no edit mode</param>
+        /// <param name="relatedReferable">Referable the value is in</param>
+        /// <param name="emitCustomEvent">Custom lambda, when vales were changed</param>
+        /// <param name="frontPanel">Panel to hook in at top of values</param>
+        /// <param name="footerPanel">Panel to hook in at bottom of values</param>
+        /// <param name="topContextMenu">Allow many (direct) buttons on top row or put them into context menu</param>
+        /// <param name="auxButtonLambda"></param>
+        /// <param name="auxButtonTitles"></param>
+        /// <param name="auxButtonToolTips"></param>
+        /// <param name="auxContextHeader"></param>
+        /// <param name="auxContextLambda"></param>
+        /// <param name="maxNumOfKey">Maximum number of keys allow</param>
+        /// <param name="addKnownSemanticId">For adding known system references, take the semanticId instead of id</param>
+        /// <param name="firstColumnWidth">Width of column for the ´kwy label</param>
+        /// <param name="buttonOverStyleLo">Override button style for lowly important buttons</param>
+        /// <param name="buttonOverStyleHi">Override button style for highly important buttons</param>
+        /// <param name="buttonPreferenceLo">Preference to show icons/ texts for lowly important buttons</param>
         public void AddKeyListKeys(
             AnyUiStackPanel view, string key,
             List<Aas.IKey> keys,
@@ -1625,7 +1710,8 @@ namespace AasxPackageLogic
             bool topContextMenu = false,
             Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
-            AnyUiContextMenuHeaderList auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null,
+            AnyUiContextMenuHeaderList auxContextHeader = null, 
+            Func<int, AnyUiLambdaActionBase> auxContextLambda = null,
             int maxNumOfKey = int.MaxValue,
             bool addKnownSemanticId = false,
             FirstColumnWidth? firstColumnWidth = null,
@@ -1963,7 +2049,7 @@ namespace AasxPackageLogic
                         g2, 0, currCol++,      
                         header: new AnyUiButtonHeader(IconPool.MoreVert, "More",
                                         "More options in context menu."),
-                        buttonOverStyle: buttonOverStyleLo,
+                        buttonOverStyle: buttonOverStyleLo?.Modify(preference: buttonPreferenceLo),
                         menuHeaders: contextHeaders,
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),

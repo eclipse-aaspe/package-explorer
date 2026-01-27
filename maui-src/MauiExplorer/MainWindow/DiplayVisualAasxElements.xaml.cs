@@ -549,6 +549,11 @@ public partial class DiplayVisualAasxElements : ContentView, IDisplayElements
         return displayedTreeViewLines.ContainsDeep(ve);
     }
 
+    public void Dispose()
+    {
+        MyTree.ClearLogicalChildren();
+    }
+
     public void Refresh()
     {
     }

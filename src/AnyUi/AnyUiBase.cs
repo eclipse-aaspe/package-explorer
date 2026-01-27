@@ -730,6 +730,18 @@ namespace AnyUi
         /// </summary>
         public int Id { get; set; } = -1;
 
+
+        /// <summary>
+        /// The textual header to present
+        /// </summary>
+        public string Header { get; set; } = "";
+    }
+
+    /// <summary>
+    /// 'Legacy' class to have icon glyph and headers
+    /// </summary>
+    public class AnyUiContextMenuHeader : AnyUiContextMenuHeaderBase
+    {
         /// <summary>
         /// Which font shall be used to render the <c>IconGlyph</c>
         /// </summary>
@@ -740,27 +752,6 @@ namespace AnyUi
         /// </summary>
         public string IconGlyph { get; set; } = null;
 
-        /// <summary>
-        /// The textual header to present
-        /// </summary>
-        public string Header { get; set; } = "";
-
-        // TODO: Convert
-        public static string IconFontToTag(AnyUiContextMenuIconFont font)
-        {
-            if (font == AnyUiContextMenuIconFont.Awesome)
-                return "{awe}";
-            if (font == AnyUiContextMenuIconFont.Material)
-                return "{mat}";
-            return "{uc}";
-        }
-    }
-
-    /// <summary>
-    /// 'Normal' class to have icon glyph and headers
-    /// </summary>
-    public class AnyUiContextMenuHeader : AnyUiContextMenuHeaderBase
-    {
         public AnyUiContextMenuHeader() { }
 
         public AnyUiContextMenuHeader(
@@ -775,11 +766,46 @@ namespace AnyUi
             if (iconFont.HasValue)
                 IconFont = iconFont.Value;
         }
+
+        // TODO: Convert
+        public static string IconFontToTag(AnyUiContextMenuIconFont font)
+        {
+            if (font == AnyUiContextMenuIconFont.Awesome)
+                return "{awe}";
+            if (font == AnyUiContextMenuIconFont.Material)
+                return "{mat}";
+            return "{uc}";
+        }
+    }
+
+    /// <summary>
+    /// 'New' class for ImageSource based icons
+    /// </summary>
+    public class AnyUiContextMenuHeaderIconSource : AnyUiContextMenuHeaderBase
+    {
+        /// <summary>
+        /// Which icon shall be shown; see also <c>IconFont</c>
+        /// </summary>
+        public AnyUiImageSourceFont Icon { get; set; } = null;
+
+        public AnyUiContextMenuHeaderIconSource() { }
+
+        public AnyUiContextMenuHeaderIconSource(
+            int id,
+            AnyUiImageSourceFont icon,
+            string header)
+        {
+            Id = id;
+            Icon = icon;
+            Header = header;
+        }
     }
 
     public class AnyUiContextMenuHeaderList : List<AnyUiContextMenuHeaderBase>
     {
         public AnyUiContextMenuHeaderList() : base() { }
+
+        public AnyUiContextMenuHeaderList(IEnumerable<AnyUiContextMenuHeaderBase> items) : base(items) { }
 
         /// <summary>
         /// Compatibility constructor, to be initialized by an array of strings,

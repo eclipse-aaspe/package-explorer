@@ -3167,7 +3167,8 @@ namespace AasxPackageLogic
                         ? Options.Curr.TemplateIdSubmodelTemplate
                         : Options.Curr.TemplateIdSubmodelInstance,
                     new DispEditHelperModules.DispEditInjectAction(
-                        new[] { "Rename" },
+                        auxTitles: new[] { "Rename" },
+                        auxIcons: new[] { IconPool.Rename },
                         auxLambda: null,
                         auxLambdaAsync: async (i) =>
                         {

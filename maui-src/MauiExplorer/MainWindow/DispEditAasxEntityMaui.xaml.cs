@@ -274,7 +274,7 @@ public partial class DispEditAasxEntityMaui : ContentView
         AnyUiImageSourceFont isf)
     {
         var res = new AnyUiDisplayContextMaui.IconSourceResolveResult();
-        res.FontAlias = dc.FindIconFont(isf.FontId)?.FontAlias ?? "";
+        res.FontAlias = dc.FindIconFontByShort(isf.FontId)?.FontAlias ?? "";
 
         var col = Colors.Transparent;
         if (Application.Current?.RequestedTheme == AppTheme.Light)
@@ -349,6 +349,7 @@ public partial class DispEditAasxEntityMaui : ContentView
         _helper.LayoutHints.ExplicitMultiLineEdit = false;
 
         _helper.LayoutHints.ButtonPrefMediumClear = AnyUiButtonPreference.Image;
+        _helper.LayoutHints.ButtonPrefLowClear = AnyUiButtonPreference.Both;
 
         // Button Thin
         _helper.LayoutHints.StyleButtonStandard.Style = new()
@@ -422,6 +423,14 @@ public partial class DispEditAasxEntityMaui : ContentView
 
         IconPool.FixText
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Rule);
+
+        IconPool.Generate
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Handyman);
+        IconPool.Rename
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Edit);
+
+        IconPool.Refresh
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Refresh);
 
         // modify repository
         ModifyRepo? repo = null;

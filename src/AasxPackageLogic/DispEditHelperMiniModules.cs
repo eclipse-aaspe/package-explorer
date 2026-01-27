@@ -1331,7 +1331,10 @@ namespace AasxPackageLogic
             Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
             AnyUiContextMenuHeaderList auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null,
-            FirstColumnWidth? firstColumnWidth = null)
+            FirstColumnWidth? firstColumnWidth = null,
+            AnyUiButtonOverStyle buttonOverStyleLo = null,
+            AnyUiButtonOverStyle buttonOverStyleHi = null,
+            AnyUiButtonPreference buttonPreferenceLo = AnyUiButtonPreference.None)
         {
             // default
             if (emitCustomEvent == null)
@@ -1386,7 +1389,8 @@ namespace AasxPackageLogic
                     padding: NormalOrCapa(
                         new AnyUiThickness(5, 0, 5, 0),
                         AnyUiContextCapability.Blazor, new AnyUiThickness(0, 0, 0, 0)),
-                    content: "\u21bb"),
+                    header: new AnyUiButtonHeader(IconPool.Refresh, "Refresh", "Refresh the reference type based on given keys"),
+                    buttonOverStyle: buttonOverStyleLo?.Modify(preference: buttonPreferenceLo)),
                 async (o) =>
                 {
                     await Task.Yield();
@@ -1473,6 +1477,9 @@ namespace AasxPackageLogic
                 auxButtonLambda: auxButtonLambda,
                 auxContextHeader: auxContextHeader,
                 auxContextLambda: auxContextLambda,
+                buttonOverStyleLo: buttonOverStyleLo,
+                buttonOverStyleHi: buttonOverStyleHi,
+                buttonPreferenceLo: buttonPreferenceLo,
                 emitCustomEvent: (o) =>
                 {
                     // use the custom event as event for fired when changed keys

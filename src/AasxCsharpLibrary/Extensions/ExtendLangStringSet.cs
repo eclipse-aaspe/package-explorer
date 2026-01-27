@@ -194,5 +194,6 @@ namespace Extensions
                     .Add(new LangStringDefinitionTypeIec61360(language, text));
             }
         }
+
     }
 }

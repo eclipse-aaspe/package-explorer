@@ -49,6 +49,7 @@ namespace AasxPackageLogic
 
         public class DispEditInjectAction
         {
+            public AnyUiImageSourceFont[] auxIcons = null;
             public string[] auxTitles = null;
             public string[] auxToolTips = null;
             public Func<int, AnyUiLambdaActionBase> auxLambda = null;
@@ -56,11 +57,16 @@ namespace AasxPackageLogic
 
             public DispEditInjectAction() { }
 
-            public DispEditInjectAction(string[] auxTitles, 
-                Func<int, AnyUiLambdaActionBase> auxLambda,
-                Func<int, Task<AnyUiLambdaActionBase>> auxLambdaAsync)
+            public DispEditInjectAction(
+                string[] auxTitles, 
+                AnyUiImageSourceFont[] auxIcons = null,
+                string[] auxToolTips = null, 
+                Func<int, AnyUiLambdaActionBase> auxLambda = null,
+                Func<int, Task<AnyUiLambdaActionBase>> auxLambdaAsync = null)
             {
                 this.auxTitles = auxTitles;
+                this.auxIcons = auxIcons;
+                this.auxToolTips = auxToolTips;
                 this.auxLambda = auxLambda;
                 this.auxLambdaAsync = auxLambdaAsync;
             }
@@ -105,6 +111,7 @@ namespace AasxPackageLogic
                 for (int i = 0; i < auxTitles.Length; i++)
                     res.Add(new AnyUiButtonHeader(
                         text: auxTitles[i],
+                        image: (auxIcons != null && auxIcons.Length > i) ? auxIcons[i] : null,
                         toolTip: (auxToolTips != null && auxToolTips.Length > i) ? auxToolTips[i] : null));
                 return res;
             }
@@ -309,7 +316,11 @@ namespace AasxPackageLogic
                 this.AddKeyListLangStr<ILangStringTextType>(
                     stack, "description", referable.Description,
                     repo, relatedReferable: referable,
-                    setNullList: () => referable.Description = null);
+                    setNullList: () => referable.Description = null,
+                    buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                    buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                    buttonPreferenceLo: AnyUiButtonPreference.Image,
+                    buttonPreferenceHi: AnyUiButtonPreference.Both);
             }
 
             if (!hideExtensions)
@@ -529,8 +540,8 @@ namespace AasxPackageLogic
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
             {
-                AddKeyValueExRef(
-                    stack, "id", identifiable, identifiable.Id, null, 
+                AddKeyValue(
+                    stack, "id", identifiable.Id, null, 
                     (idReadOnly) ? null : repo,
                     async (v) =>
                     {
@@ -541,10 +552,16 @@ namespace AasxPackageLogic
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange(), diaryReference: dr);
                         return new AnyUiLambdaActionNone();
                     },
+                    containingObject: identifiable,
+                    topContextMenu: false,
                     keyVertCenter: true,
                     takeOverLambdaAction: new AnyUiLambdaActionRedrawAllElements(nextFocus: identifiable),
                     auxButtonOverride: true,
-                    auxButtonTitles: DispEditInjectAction.GetTitles(new[] { "Generate" }, injectToId),
+                    auxButtons: new AnyUiButtonHeaderList(IconPool.Generate, "Generate",
+                                    "Create an unique identification by given template.",
+                                    LayoutHints.ButtonPrefMediumClear)
+                                .Merge(injectToId?.GetButtonHeaders()),
+                    buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(preference: LayoutHints.ButtonPrefLowClear),
                     auxButtonLambdaAsync: async (i) =>
                     {
                         if (i == 0)
@@ -649,7 +666,8 @@ namespace AasxPackageLogic
                     {
                         await Task.Yield();
                         identifiable.Administration.Creator =
-                            new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
+                            new Aas.Reference(Aas.ReferenceTypes.ExternalReference, (new Aas.IKey[] { 
+                                    new Aas.Key(KeyTypes.GlobalReference, "" )}).ToList());
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
@@ -662,6 +680,9 @@ namespace AasxPackageLogic
                         addExistingEntities: "All", // no restriction
                         relatedReferable: identifiable,
                         showRefSemId: false,
+                        buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                        buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                        buttonPreferenceLo: AnyUiButtonPreference.Image,
                         auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2702", "Delete" }),
                         auxContextLambda: (i) =>
                         {
@@ -1003,7 +1024,10 @@ namespace AasxPackageLogic
                             addExistingEntities: null /* "All" */,
                             addPresetNames: addPresetNames, addPresetKeyLists: addPresetKeyLists,
                             relatedReferable: relatedReferable,
-                            showRefSemId: false);
+                            showRefSemId: false,
+                            buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                            buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                            buttonPreferenceLo: AnyUiButtonPreference.Image);
                     }
 
                     // indicate new section
@@ -1332,6 +1356,9 @@ namespace AasxPackageLogic
                         return new AnyUiLambdaActionNavigateTo(new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>(kl)));
                     },
                     relatedReferable: relatedReferable,
+                    buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                    buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                    buttonPreferenceLo: AnyUiButtonPreference.Image,
                     auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete semanticId" }),
                     auxContextLambda: (i) =>
                     {

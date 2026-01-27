@@ -130,10 +130,18 @@ namespace MauiTestTree
             IconFonts.Add(n);
         }
 
-        public AnyUiIconFont? FindIconFont(string shortId)
+        public AnyUiIconFont? FindIconFontByShort(string shortId)
         {
             foreach (var fo in IconFonts)
                 if (fo.Short == shortId)
+                    return fo;
+            return null;
+        }
+
+        public AnyUiIconFont? FindIconFontByAlias(string alias)
+        {
+            foreach (var fo in IconFonts)
+                if (fo.FontAlias == alias)
                     return fo;
             return null;
         }
@@ -2435,12 +2443,12 @@ namespace MauiTestTree
             string? glyph = null;
             if (fontFamily != null)
             {
-                fo = dc.FindIconFont(fontFamily);
+                fo = dc.FindIconFontByShort(fontFamily);
                 glyph = iconText;
             }
             else
             {
-                fo = dc.FindIconFont("uc");
+                fo = dc.FindIconFontByShort("uc");
                 glyph = iconText;
             }
                 
@@ -2546,9 +2554,21 @@ namespace MauiTestTree
                 var menuItem = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem
                 {
                     Text = "" + mi.Header,
-                    Icon = ContextMenu_CreateIcon(dc, mi.IconGlyph, mi.IconFontAlias),
+                    // Icon = ContextMenu_CreateIcon(dc, mi.IconGlyph, mi.IconFontAlias),
                     Tag = i
                 };
+
+                if (mi.IconGlyph != null && mi.IconFontAlias != null)
+                {
+                    var font = dc.FindIconFontByAlias(mi.IconFontAlias);
+                    if (font?.FontFamily != null)
+                        menuItem.Icon = new Microsoft.UI.Xaml.Controls.FontIcon()
+                        {
+                            Glyph = /* mi.IconGlyph */ UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Rule,
+                            FontFamily = /* font.FontFamily */ new Microsoft.UI.Xaml.Media.FontFamily("Material Symbols Outlined"),
+                            FontSize = mi.IconFontSize
+                        };  
+                }
 
                 var thisI = mi.Index;
                 menuItem.Click += (_, _) =>

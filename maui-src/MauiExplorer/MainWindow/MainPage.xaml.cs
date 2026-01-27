@@ -4058,6 +4058,9 @@ namespace MauiTestTree
                     return false;
             }
 
+            // close tree
+            DisplayElements.Dispose();
+
             // ok, do it anyway
             Log.Singleton.Info("Application closing ..");
 
