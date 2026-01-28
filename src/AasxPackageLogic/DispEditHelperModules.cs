@@ -899,7 +899,8 @@ namespace AasxPackageLogic
             string[] addPresetNames = null, List<Aas.IKey>[] addPresetKeyLists = null,
             Aas.IReferable relatedReferable = null,
             AasxMenu superMenu = null,
-            bool suppressNoEdsWarning = false)
+            bool suppressNoEdsWarning = false,
+            KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
         {
             // access
             if (stack == null)
@@ -930,67 +931,80 @@ namespace AasxPackageLogic
             if (editMode)
             {
                 // let the user control the number of references
-                this.AddActionPanel(
-                    stack, "Spec. records:", repo: repo,
-                    superMenu: superMenu,
-                    ticketMenu: new AasxMenu()
-                        .AddAction("add-record", "Add record",
-                            "Adds a record for data specification reference and content.")
-                        .AddAction("add-iec61360", "Add IEC61360",
-                            "Adds a record initialized for IEC 61360 content.")
-                        .AddAction("auto-detect", "Auto detect content",
-                            "Auto dectects known data specification contents and sets valid references.")
-                        .AddAction("delete-last", "Delete last record",
-                            "Deletes last record (data specification reference and content)."),
-                    ticketActionAsync: async (buttonNdx, ticket) =>
-                    {
-                        await Task.Yield();
-                        if (buttonNdx == 0)
-                        {
-                            hasDataSpecification = hasDataSpecification ?? new List<IEmbeddedDataSpecification>();
-                            hasDataSpecification.Add(
-                                new Aas.EmbeddedDataSpecification(
-                                    dataSpecification: Options.Curr.GetDefaultEmptyReference(),
-                                    dataSpecificationContent: new DataSpecificationBlank()));
-                            setOutput?.Invoke(hasDataSpecification);
-                        }
 
-                        if (buttonNdx == 1)
+                AddKeyButtons(stack, "Known extension:",
+                    keyLabel: keyLabel,
+                    buttons: GenerateActionButton(
+                        new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Manage data specifications",
+                                "Manage records of data specification references and content", 
+                                AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+                        repo: repo,
+                        superMenu: superMenu,
+                        ticketMenu: new AasxMenu()
+                            .AddAction("add-record", "Add record",
+                                icon: IconPool.Add,
+                                help: "Adds a record for data specification reference and content.")
+                            .AddAction("add-iec61360", "Add IEC61360",
+                                icon: IconPool.IecOrg,
+                                help: "Adds a record initialized for IEC 61360 content.")
+                            .AddAction("auto-detect", "Auto detect content",
+                                icon: IconPool.AutoDetect,
+                                help: "Auto dectects known data specification contents and sets valid references.")
+                            .AddAction("delete-last", "Delete last record",
+                                icon: IconPool.Delete,
+                                help: "Deletes last record (data specification reference and content)."),
+                        buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
+                                        preference: AnyUiButtonPreference.Both),
+                        padding: new AnyUiThickness(5, 0, 5, 0),
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
-                            hasDataSpecification = hasDataSpecification ?? new List<IEmbeddedDataSpecification>();
-                            hasDataSpecification.Add(
-                                new Aas.EmbeddedDataSpecification(
-                                    new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey> {
-                                        ExtendIDataSpecificationContent.GetKeyForIec61360()
-                                    }),
-                                    new Aas.DataSpecificationIec61360(new List<Aas.ILangStringPreferredNameTypeIec61360>() {
-                                        new Aas.LangStringPreferredNameTypeIec61360(
-                                            AdminShellUtil.GetDefaultLngIso639(), "")
-                                    })));
-                            setOutput?.Invoke(hasDataSpecification);
-                        }
+                            await Task.Yield();
+                            if (buttonNdx == 0)
+                            {
+                                hasDataSpecification = hasDataSpecification ?? new List<IEmbeddedDataSpecification>();
+                                hasDataSpecification.Add(
+                                    new Aas.EmbeddedDataSpecification(
+                                        dataSpecification: Options.Curr.GetDefaultEmptyReference(),
+                                        dataSpecificationContent: new DataSpecificationBlank()));
+                                setOutput?.Invoke(hasDataSpecification);
+                            }
 
-                        if (buttonNdx == 2)
-                        {
-                            var fix = 0;
-                            foreach (var eds in hasDataSpecification.ForEachSafe())
-                                if (eds != null && eds.FixReferenceWrtContent())
-                                    fix++;
-                            Log.Singleton.Info($"Fixed {fix} records of embedded data specification.");
-                        }
+                            if (buttonNdx == 1)
+                            {
+                                hasDataSpecification = hasDataSpecification ?? new List<IEmbeddedDataSpecification>();
+                                hasDataSpecification.Add(
+                                    new Aas.EmbeddedDataSpecification(
+                                        new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey> {
+                                            ExtendIDataSpecificationContent.GetKeyForIec61360()
+                                        }),
+                                        new Aas.DataSpecificationIec61360(new List<Aas.ILangStringPreferredNameTypeIec61360>() {
+                                            new Aas.LangStringPreferredNameTypeIec61360(
+                                                AdminShellUtil.GetDefaultLngIso639(), "")
+                                        })));
+                                setOutput?.Invoke(hasDataSpecification);
+                            }
 
-                        if (buttonNdx == 3)
-                        {
-                            if (hasDataSpecification != null && hasDataSpecification.Count > 0)
-                                hasDataSpecification.RemoveAt(hasDataSpecification.Count - 1);
+                            if (buttonNdx == 2)
+                            {
+                                var fix = 0;
+                                foreach (var eds in hasDataSpecification.ForEachSafe())
+                                    if (eds != null && eds.FixReferenceWrtContent())
+                                        fix++;
+                                Log.Singleton.Info($"Fixed {fix} records of embedded data specification.");
+                            }
+
+                            if (buttonNdx == 3)
+                            {
+                                if (hasDataSpecification != null && hasDataSpecification.Count > 0)
+                                    hasDataSpecification.RemoveAt(hasDataSpecification.Count - 1);
                             
-                            if (hasDataSpecification != null && hasDataSpecification.Count < 1)
-                                setOutput?.Invoke(null);
-                        }
+                                if (hasDataSpecification != null && hasDataSpecification.Count < 1)
+                                    setOutput?.Invoke(null);
+                            }
 
-                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                        return new AnyUiLambdaActionRedrawEntity();
-                    });
+                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                            return new AnyUiLambdaActionRedrawEntity();
+                        }));
             }
 
             // now use the normal mechanism to deal with editMode or not ..

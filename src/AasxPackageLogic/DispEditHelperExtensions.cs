@@ -1087,7 +1087,7 @@ namespace AasxPackageLogic
 			{
                 // let the user control the number of references
                 AddKeyButtons(stack, "Known extension:",
-                    keyLabel: keyLabel , 
+                    keyLabel: keyLabel, 
 					buttons: GenerateActionButton(
 						new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Known extensions",
 								"Handle Extensions with UI support for editing", AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),

@@ -1005,9 +1005,10 @@ namespace AasxPackageLogic
             string label = "Buffer:",
             Func<CopyPasteBuffer, bool> checkPasteInfo = null,
             Func<CopyPasteItemBase, bool, object> doPasteInto = null,
-            AasxMenu superMenu = null)
-                where T : Aas.IIdentifiable/*, new()*/
-            //TODO (jtikekar, 0000-00-00): Test
+            AasxMenu superMenu = null,
+            bool embedded = false,
+            AnyUiButtonOverStyle buttonOverStyle = null,
+            KeyLabelHandling keyLabel = KeyLabelHandling.Standard) where T : Aas.IIdentifiable
         {
             // access
             if (parentContainer == null || cpbInternal == null || entity == null || cloneEntity == null)
@@ -1018,21 +1019,34 @@ namespace AasxPackageLogic
                 stack, label,
                 repo: repo,
                 superMenu: superMenu,
+                useWrapFlexPanel: false,
+                keyLabel: keyLabel,
+                buttonOverStyle: (buttonOverStyle ?? LayoutHints.StyleButtonAction).Modify(
+                                 preference: AnyUiButtonPreference.Image),
                 ticketMenu: new AasxMenu()
-                    .AddAction("aas-elem-cut", "Cut",
-                        "Removes the currently selected element and places it in the paste buffer.",
+                    .AddAction(conditional: !embedded, 
+                        name: "aas-elem-cut", header: "Cut",
+                        icon: IconPool.Cut,
+                        help: "Removes the currently selected element and places it in the paste buffer.",
                         inputGesture: "Ctrl+X")
                     .AddAction("aas-elem-copy", "Copy",
-                        "Places the currently selected element in the paste buffer.",
+                        icon: IconPool.Copy,
+                        help: "Places the currently selected element in the paste buffer.",
                         inputGesture: "Ctrl+Shift+C")
-                    .AddAction("aas-elem-paste-above", "Paste above",
-                        "Adds the content of the paste buffer before (above) the currently selected element.",
+                    .AddAction(conditional: !embedded, 
+                        name: "aas-elem-paste-above", header: "Paste above",
+                        icon: IconPool.PasteAbove,
+                        help: "Adds the content of the paste buffer before (above) the currently selected element.",
                         inputGesture: "Ctrl+Alt+V")
-                    .AddAction("aas-elem-paste-below", "Paste below",
-                        "Adds the content of the paste buffer after (below) the currently selected element.",
+                    .AddAction(conditional: !embedded, 
+                        name: "aas-elem-paste-below", header: "Paste below",
+                        icon: IconPool.PasteBelow,
+                        help: "Adds the content of the paste buffer after (below) the currently selected element.",
                         inputGesture: "Ctrl+Shift+V")
-                    .AddAction("aas-elem-paste-into", "Paste into",
-                        "Adds the content of the paste buffer into the currently selected collection-like element.",
+                    .AddAction(conditional: !embedded, 
+                        name: "aas-elem-paste-into", header: "Paste into",
+                        icon: IconPool.PasteInto,
+                        help: "Adds the content of the paste buffer into the currently selected collection-like element.",
                         inputGesture: "Ctrl+Shift+Alt+V"),
                 ticketActionAsync: async (buttonNdx, ticket) =>
                 {

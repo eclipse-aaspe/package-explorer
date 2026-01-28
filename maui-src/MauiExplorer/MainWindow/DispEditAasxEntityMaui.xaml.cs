@@ -432,6 +432,11 @@ public partial class DispEditAasxEntityMaui : ContentView
         IconPool.Refresh
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Refresh);
 
+        IconPool.IecOrg
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Power);
+        IconPool.AutoDetect
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Radar);
+
         // modify repository
         ModifyRepo? repo = null;
         if (editMode)

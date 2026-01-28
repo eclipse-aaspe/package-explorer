@@ -43,6 +43,9 @@ namespace AasxPackageLogic
 
         public static AnyUiImageSourceFont Refresh = new("{uc}", "\u21bb", AnyUiIconColor.Normal);
         
+        public static AnyUiImageSourceFont IecOrg = new("{uc}", "\U0001f50c", AnyUiIconColor.Normal);
+        public static AnyUiImageSourceFont AutoDetect = new("{uc}", "\u26ef", AnyUiIconColor.Normal);
+        
         public static AnyUiImageSourceFont ContextMenuDropDown = new("{uc}", "\u25bd", AnyUiIconColor.Normal);
 
     }
