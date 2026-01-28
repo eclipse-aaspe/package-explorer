@@ -1058,7 +1058,8 @@ namespace AasxPackageLogic
 			Action<List<Aas.IExtension>> setOutput,
 			string[] addPresetNames = null, List<Aas.IKey>[] addPresetKeyLists = null,
 			Aas.IReferable relatedReferable = null,
-			AasxMenu superMenu = null)
+			AasxMenu superMenu = null,
+            KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
 		{
 			// access
 			if (stack == null)
@@ -1084,50 +1085,59 @@ namespace AasxPackageLogic
             // Head control. Allow menu, even if list is null!
             if (editMode)
 			{
-				// let the user control the number of references
-				this.AddActionPanel(
-					stack, "Known extension:", repo: repo,
-					superMenu: superMenu,
-					ticketMenu: new AasxMenu()
-						.AddAction("add-smt-attributes", "SMT attributes",
-							"Add attributes for Submodel template specifications.")
-						.AddAction("delete-last", "Delete last extension",
-							"Deletes last extension."),
-					ticketActionAsync: async (buttonNdx, ticket) =>
-					{
-                        await Task.Yield();
-                        if (buttonNdx == 0)
+                // let the user control the number of references
+                AddKeyButtons(stack, "Known extension:",
+                    keyLabel: keyLabel , 
+					buttons: GenerateActionButton(
+						new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Known extensions",
+								"Handle Extensions with UI support for editing", AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+						repo: repo,
+						superMenu: superMenu,
+						ticketMenu: new AasxMenu()
+							.AddAction("add-smt-attributes", "SMT attributes",
+								icon: IconPool.Add,
+								help: "Add attributes for Submodel template specifications.")
+							.AddAction("delete-last", "Delete last extension",
+								icon: IconPool.Delete,
+								help: "Deletes last extension."),
+						buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
+										preference: AnyUiButtonPreference.Both),
+						padding: new AnyUiThickness(5, 0, 5, 0),
+						ticketActionAsync: async (buttonNdx, ticket) =>
 						{
-							// create
-                            var newSet = new SmtAttributeRecord();
-                            var newExt = new Aas.Extension(
-                                name: newSet.GetSelfName(),
-                                semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
-                                    (new[] {
-                                new Aas.Key(KeyTypes.GlobalReference,
-                                "" + newSet.GetSelfUri())
-                                    })
-                                    .Cast<Aas.IKey>().ToList()),
-                                value: "");
+							await Task.Yield();
+							if (buttonNdx == 0)
+							{
+								// create
+								var newSet = new SmtAttributeRecord();
+								var newExt = new Aas.Extension(
+									name: newSet.GetSelfName(),
+									semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
+										(new[] {
+									new Aas.Key(KeyTypes.GlobalReference,
+									"" + newSet.GetSelfUri())
+										})
+										.Cast<Aas.IKey>().ToList()),
+									value: "");
 
-							// add
-							extension = extension ?? new List<IExtension>();
-                            extension.Add(newExt);
-							setOutput?.Invoke(extension);
-						}
+								// add
+								extension = extension ?? new List<IExtension>();
+								extension.Add(newExt);
+								setOutput?.Invoke(extension);
+							}
 							
-						// remove
-						if (buttonNdx == 1)
-						{
-							if (extension != null && extension.Count > 0)
-								extension.RemoveAt(extension.Count - 1);
-							if (extension != null && extension.Count < 1)
-								setOutput?.Invoke(null);
-						}
+							// remove
+							if (buttonNdx == 1)
+							{
+								if (extension != null && extension.Count > 0)
+									extension.RemoveAt(extension.Count - 1);
+								if (extension != null && extension.Count < 1)
+									setOutput?.Invoke(null);
+							}
 
-						this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-						return new AnyUiLambdaActionRedrawEntity();
-					});
+							this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+							return new AnyUiLambdaActionRedrawEntity();
+						}));
 			}
 
 			// now use the normal mechanism to deal with editMode or not ..

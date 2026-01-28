@@ -2187,7 +2187,10 @@ namespace AasxPackageLogic
                     stack, "derivedFrom", 
                     aas.DerivedFrom, () => aas.DerivedFrom = null,
                     repo,
-                    packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo, "AssetAdministrationShell",
+                    packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo, 
+                    addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing,
+                    highlightButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing,
+                    addExistingEntities: "AssetAdministrationShell",
                     showRefSemId: false,
                     jumpLambda: lambda, noEditJumpLambda: lambda, relatedReferable: aas,
                     auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete derivedFrom" }),
@@ -2286,7 +2289,10 @@ namespace AasxPackageLogic
                     stack, "submodelRef", 
                     smref.Keys, setSmRefNull,
                     repo,
-                    packages, PackageCentral.PackageCentral.Selector.Main, "Reference Submodel ",
+                    packages, PackageCentral.PackageCentral.Selector.Main, 
+                    addButton: AddKeyListKeys_Button.Existing | AddKeyListKeys_Button.Blank,
+                    highlightButton: AddKeyListKeys_Button.Existing,
+                    addExistingEntities: "Reference Submodel ",
                     takeOverLambdaAction: new AnyUiLambdaActionRedrawAllElements(smref),
                     jumpLambda: lambda, relatedReferable: aas,
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
@@ -5052,7 +5058,8 @@ namespace AasxPackageLogic
                         mlp.ValueId.Keys, () => mlp.ValueId = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
-                        Aas.Stringification.ToString(Aas.KeyTypes.GlobalReference),
+                        addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing,
+                        addExistingEntities: Aas.Stringification.ToString(Aas.KeyTypes.GlobalReference),
                         relatedReferable: mlp,
                         emitCustomEvent: (rf) => { this.AddDiaryEntry(rf, new DiaryEntryUpdateValue()); });
                 }
@@ -5469,8 +5476,10 @@ namespace AasxPackageLogic
                         rfe.Value, () => rfe.Value = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
+                        addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing
+                                   | AddKeyListKeys_Button.Known,
+                        highlightButton: AddKeyListKeys_Button.Existing,
                         addExistingEntities: "All", // no restriction
-                        addFromKnown: true,
                         addPresetNames: bufferKeys.Item1,
                         addPresetKeyLists: bufferKeys.Item2,
                         jumpLambda: lambda, noEditJumpLambda: lambda,
@@ -5526,8 +5535,9 @@ namespace AasxPackageLogic
                         rele.First, () => rele.First = null,                        
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
+                        addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing,
+                        highlightButton: AddKeyListKeys_Button.Existing,
                         addExistingEntities: "All", // no restriction
-                        addFromKnown: true,
                         addPresetNames: bufferKeys.Item1,
                         addPresetKeyLists: bufferKeys.Item2,
                         jumpLambda: lambda, noEditJumpLambda: lambda,
@@ -5568,8 +5578,9 @@ namespace AasxPackageLogic
                         rele.Second, () => rele.Second = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
+                        addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing,
+                        highlightButton: AddKeyListKeys_Button.Existing,
                         addExistingEntities: "All", // no restriction
-                        addFromKnown: true,
                         addPresetNames: bufferKeys.Item1,
                         addPresetKeyLists: bufferKeys.Item2,
                         jumpLambda: lambda, noEditJumpLambda: lambda,
@@ -5700,7 +5711,10 @@ namespace AasxPackageLogic
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAux,
                         showRefSemId: false,
-                        addExistingEntities: "Submodel SubmodelElement ConceptDescription ", addFromKnown: true,
+                        addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing
+                                   | AddKeyListKeys_Button.Eclass | AddKeyListKeys_Button.Known,
+                        highlightButton: AddKeyListKeys_Button.Existing,
+                        addExistingEntities: "Submodel SubmodelElement ConceptDescription ", 
                         modifyAddExistingKey: (inRefs) =>
                         {
                             var outRefs = inRefs.Copy();
@@ -5720,7 +5734,6 @@ namespace AasxPackageLogic
 
                             return outRefs;
                         },
-                        addEclassIrdi: true,
                         addPresetNames: bufferKeys.Item1,
                         addPresetKeyLists: bufferKeys.Item2,
                         jumpLambda: (kl) =>

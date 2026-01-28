@@ -677,6 +677,8 @@ namespace AasxPackageLogic
                         identifiable.Administration.Creator, () => identifiable.Administration.Creator = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
+                        addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing,
+                        highlightButton: AddKeyListKeys_Button.Blank,
                         addExistingEntities: "All", // no restriction
                         relatedReferable: identifiable,
                         showRefSemId: false,
@@ -1177,8 +1179,10 @@ namespace AasxPackageLogic
                             },
                             repo,
                             packages, PackageCentral.PackageCentral.Selector.MainAux,
+                            addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing
+                                       | AddKeyListKeys_Button.Eclass,
+                            highlightButton: AddKeyListKeys_Button.Existing,
                             "All",
-                            addEclassIrdi: true,
                             relatedReferable: relatedReferable,
                             showRefSemId: false);
                     }
@@ -1265,18 +1269,19 @@ namespace AasxPackageLogic
                 }
                 ))
             {
-                AddKeyValueExRef(
-                    stack, "kind", kind, Aas.Stringification.ToString(kind), null, repo,
-                    async (v) =>
+                AddKeyValue(
+                    stack, "kind", Aas.Stringification.ToString(kind), null, repo,
+                    containingObject: kind,
+                    setValueAsync: async (v) =>
                     {
                         await Task.Yield();
                         setOutput?.Invoke((Aas.ModellingKind)Aas.Stringification.ModellingKindFromString((string)v));
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
                     },
-                    Enum.GetNames(typeof(Aas.ModellingKind)),
                     keyVertCenter: true,
-                    comboBoxMinWidth: 105);
+                    comboBoxItems: Enum.GetNames(typeof(Aas.ModellingKind)),
+                    comboBoxMinWidth: 120);
             }
         }
 
@@ -1347,8 +1352,10 @@ namespace AasxPackageLogic
                     repo,
                     packages, PackageCentral.PackageCentral.Selector.MainAux,
                     showRefSemId: false,
-                    addExistingEntities: addExistingEntities, addFromKnown: true,
-                    addEclassIrdi: true,
+                    addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing
+                               | AddKeyListKeys_Button.Eclass | AddKeyListKeys_Button.Known,
+                    highlightButton: AddKeyListKeys_Button.Existing,
+                    addExistingEntities: addExistingEntities,
                     addPresetNames: bufferKeys.Item1,
                     addPresetKeyLists: bufferKeys.Item2,
                     jumpLambda: (kl) =>
@@ -1369,8 +1376,7 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawEntity();
                         }
                         return new AnyUiLambdaActionNone();
-                    }, 
-                    addKnownSemanticId: true);
+                    });
 
             //
             // Supplemenatal SemanticId
@@ -1453,8 +1459,10 @@ namespace AasxPackageLogic
                             repo,
                             packages, PackageCentral.PackageCentral.Selector.MainAux,
                             showRefSemId: false,
-                            addExistingEntities: addExistingEntities, addFromKnown: true,
-                            addEclassIrdi: true,
+                            addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing
+                                       | AddKeyListKeys_Button.Eclass | AddKeyListKeys_Button.Known,
+                            highlightButton: AddKeyListKeys_Button.Existing,
+                            addExistingEntities: addExistingEntities, 
                             addPresetNames: bufferKeys.Item1,
                             addPresetKeyLists: bufferKeys.Item2,
                             jumpLambda: (kl) =>
@@ -1845,8 +1853,10 @@ namespace AasxPackageLogic
                     dsiec.UnitId, () => dsiec.UnitId = null,
                     repo,
                     packages, PackageCentral.PackageCentral.Selector.MainAux,
+                    addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing
+                               | AddKeyListKeys_Button.Eclass | AddKeyListKeys_Button.Known,
+                    highlightButton: AddKeyListKeys_Button.Existing,
                     addExistingEntities: Aas.Stringification.ToString(Aas.KeyTypes.GlobalReference),
-                    addEclassIrdi: true,
                     relatedReferable: relatedReferable);
             }
 

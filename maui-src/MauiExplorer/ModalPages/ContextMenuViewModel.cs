@@ -182,7 +182,7 @@ namespace MauiTestTree
                     }
                 }
 
-                if (hdr is AnyUiContextMenuHeaderIconSource hdrSource)
+                if (hdr is AnyUiContextMenuHeaderIconSource hdrSource && hdrSource.Icon != null)
                 {
                     menuItem.IconGlyph = hdrSource.Icon.IconGlyph;
 

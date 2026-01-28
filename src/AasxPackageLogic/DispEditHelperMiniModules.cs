@@ -417,8 +417,10 @@ namespace AasxPackageLogic
                             repo,
                             packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                             firstColumnWidth: FirstColumnWidth.No,
+                            addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing 
+                                       | AddKeyListKeys_Button.Eclass | AddKeyListKeys_Button.Known,
+                            highlightButton: AddKeyListKeys_Button.Existing,
                             addExistingEntities: "All",
-                            addEclassIrdi: true, addFromKnown: true,
                             showRefSemId: false,
                             relatedReferable: relatedReferable,
                             auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete semanticId" }),
@@ -550,7 +552,10 @@ namespace AasxPackageLogic
                         qual.ValueId, () => qual.ValueId = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
-                        addExistingEntities: "All", addFromKnown: true,
+                        addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing
+                                   | AddKeyListKeys_Button.Eclass | AddKeyListKeys_Button.Known,
+                        highlightButton: AddKeyListKeys_Button.Existing,
+                        addExistingEntities: "All",
                         showRefSemId: false,
                         relatedReferable: relatedReferable,
                         auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete valueId" }),
@@ -638,8 +643,11 @@ namespace AasxPackageLogic
                     pair.SemanticId, () => pair.SemanticId = null,
                     repo,
                     packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
+                    addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing
+                                       | AddKeyListKeys_Button.Eclass | AddKeyListKeys_Button.Known,
+                    highlightButton: AddKeyListKeys_Button.Existing,
                     addExistingEntities: "All",
-                    addEclassIrdi: true, showRefSemId: false,
+                    showRefSemId: false,
                     relatedReferable: relatedReferable);
             }
 
@@ -688,7 +696,11 @@ namespace AasxPackageLogic
                     pair.ExternalSubjectId, () => pair.ExternalSubjectId = null,
                     repo,
                     packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
-                    addExistingEntities: "All", addFromKnown: true, showRefSemId: false,
+                    addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing
+                               | AddKeyListKeys_Button.Known,
+                    highlightButton: AddKeyListKeys_Button.Blank,
+                    addExistingEntities: "All", 
+                    showRefSemId: false,
                     relatedReferable: relatedReferable);
             }
 
@@ -1171,8 +1183,10 @@ namespace AasxPackageLogic
                             repo,
                             packages, PackageCentral.PackageCentral.Selector.MainAux,
                             showRefSemId: false,
-                            addExistingEntities: "All", addFromKnown: true,
-                            addEclassIrdi: true,
+                            addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing
+                                       | AddKeyListKeys_Button.Eclass | AddKeyListKeys_Button.Known,
+                            highlightButton: AddKeyListKeys_Button.Existing,
+                            addExistingEntities: "All", 
                             relatedReferable: relatedReferable,
                             auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete semanticId" }),
                             auxContextLambda: (i) =>
@@ -1294,8 +1308,10 @@ namespace AasxPackageLogic
                                                 extension.RefersTo = null;
                                         },
                                         repo, packages, PackageCentral.PackageCentral.Selector.MainAux,
-                                        addExistingEntities: "All", addFromKnown: true,
-                                        addEclassIrdi: true,
+                                        addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing
+                                                   | AddKeyListKeys_Button.Eclass | AddKeyListKeys_Button.Known,
+                                        highlightButton: AddKeyListKeys_Button.Existing,
+                                        addExistingEntities: "All", 
                                         showRefSemId: false);
                                 }
                         }
@@ -1316,10 +1332,10 @@ namespace AasxPackageLogic
             ModifyRepo repo = null,
             PackageCentral.PackageCentral packages = null,
             PackageCentral.PackageCentral.Selector selector = PackageCentral.PackageCentral.Selector.Main,
+            AddKeyListKeys_Button addButton = AddKeyListKeys_Button.Existing,
+            AddKeyListKeys_Button highlightButton = AddKeyListKeys_Button.None,
             string addExistingEntities = null,
             Func<Aas.IReference, Aas.IReference> modifyAddExistingKey = null,
-            bool addEclassIrdi = false,
-            bool addFromKnown = false,
             string[] addPresetNames = null, List<Aas.IKey>[] addPresetKeyLists = null,
             Func<List<Aas.IKey>, AnyUiLambdaActionBase> jumpLambda = null,
             AnyUiLambdaActionBase takeOverLambdaAction = null,
@@ -1327,7 +1343,6 @@ namespace AasxPackageLogic
             Aas.IReferable relatedReferable = null,
             Action<Aas.IReferable> emitCustomEvent = null,
             bool showRefSemId = true,
-            bool addKnownSemanticId = false,
             Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
             AnyUiContextMenuHeaderList auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null,
@@ -1439,10 +1454,11 @@ namespace AasxPackageLogic
                         footerPanel, "referredSem.Id",
                         refkeys.ReferredSemanticId, () => refkeys.ReferredSemanticId = null,
                         repo,
-                        packages, PackageCentral.PackageCentral.Selector.Main, addExistingEntities: "All",
+                        packages, PackageCentral.PackageCentral.Selector.Main,
+                        addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing | AddKeyListKeys_Button.Known,
+                        highlightButton: AddKeyListKeys_Button.Existing,
+                        addExistingEntities: "All",
                         showRefSemId: false,
-                        addEclassIrdi: true,
-                        addFromKnown: true,
                         relatedReferable: relatedReferable,
                         emitCustomEvent: emitCustomEvent,
                         auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete referredSemanticId" }),
@@ -1466,8 +1482,10 @@ namespace AasxPackageLogic
                 view, key, refkeys.Keys,
                 setReferenceNull,
                 repo, packages, selector,
+                addButton: addButton,
+                highlightButton: highlightButton,
                 addExistingEntities, modifyAddExistingKey,
-                addEclassIrdi, addFromKnown, addPresetNames, addPresetKeyLists,
+                addPresetNames, addPresetKeyLists,
                 jumpLambda, takeOverLambdaAction, noEditJumpLambda,
                 relatedReferable,
                 frontPanel: frontPanel,
@@ -1488,7 +1506,6 @@ namespace AasxPackageLogic
                     // pass on
                     emitCustomEvent?.Invoke(o);
                 },
-                addKnownSemanticId: addKnownSemanticId,
                 firstColumnWidth: firstColumnWidth);
         }
 
@@ -1786,8 +1803,11 @@ namespace AasxPackageLogic
                         vp.ValueId, () => vp.ValueId = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
+                        addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing
+                                   | AddKeyListKeys_Button.Known,
+                        highlightButton: AddKeyListKeys_Button.Existing,
                         addExistingEntities: Aas.Stringification.ToString(Aas.KeyTypes.ConceptDescription),
-                        addFromKnown: true, showRefSemId: false,
+                        showRefSemId: false,
                         relatedReferable: relatedReferable);
                 }
             }

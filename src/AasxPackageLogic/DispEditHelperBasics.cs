@@ -660,7 +660,9 @@ namespace AasxPackageLogic
                 foreach (var c in comboBoxItems)
                     if (c.Length > maxc)
                         maxc = c.Length;
-                var maxWidth = 10 * maxc; // about one em                
+                var maxWidth = 12 * maxc; // about one em
+                if (comboBoxMinWidth > maxWidth)
+                    maxWidth = comboBoxMinWidth;
 
                 // use combo box
                 var cb = AddSmallComboBoxTo(
@@ -1651,7 +1653,15 @@ namespace AasxPackageLogic
             return null;
         }
 
-        public enum AddKeyListKeys_AddButton { };
+        public enum AddKeyListKeys_Button { 
+            None = 0x0,
+            Blank = 0x01,
+            Existing = 0x02,
+            Eclass = 0x04,
+            Known = 0x08,
+            KnownSemanticId = 0x10,
+            Presets = 0x20,
+        };
 
         /// <summary>
         /// Add a list of keys
@@ -1663,7 +1673,9 @@ namespace AasxPackageLogic
         /// <param name="repo"><c>Repo != null</c> means edit mode</param>
         /// <param name="packages">AASX packages to select from</param>
         /// <param name="selector">What to select from the packages</param>
-        /// <param name="addExistingEntities">Select exisiting entities from the packages</param>
+        /// <param name="addButton">Which buttons to add for adding</param>
+        /// <param name="highlightButton">Which buttons to highlight</param>
+        /// <param name="addExistingEntities">Filter for existing entities from the packages</param>
         /// <param name="modifyAddExistingKey">Lambda to modify selected existing entity reference</param>
         /// <param name="addEclassIrdi">Select from ECLASS</param>
         /// <param name="addFromKnown">Select from known (system) references</param>
@@ -1695,10 +1707,10 @@ namespace AasxPackageLogic
             ModifyRepo repo = null,
             PackageCentral.PackageCentral packages = null,
             PackageCentral.PackageCentral.Selector selector = PackageCentral.PackageCentral.Selector.Main,
+            AddKeyListKeys_Button addButton = AddKeyListKeys_Button.Existing,
+            AddKeyListKeys_Button highlightButton = AddKeyListKeys_Button.None,
             string addExistingEntities = null,
             Func<Aas.IReference, Aas.IReference> modifyAddExistingKey = null,
-            bool addEclassIrdi = false,
-            bool addFromKnown = false,
             string[] addPresetNames = null, List<Aas.IKey>[] addPresetKeyLists = null,
             Func<List<Aas.IKey>, AnyUiLambdaActionBase> jumpLambda = null,
             AnyUiLambdaActionBase takeOverLambdaAction = null,
@@ -1713,7 +1725,6 @@ namespace AasxPackageLogic
             AnyUiContextMenuHeaderList auxContextHeader = null, 
             Func<int, AnyUiLambdaActionBase> auxContextLambda = null,
             int maxNumOfKey = int.MaxValue,
-            bool addKnownSemanticId = false,
             FirstColumnWidth? firstColumnWidth = null,
             AnyUiButtonOverStyle buttonOverStyleLo = null,
             AnyUiButtonOverStyle buttonOverStyleHi = null,
@@ -1830,7 +1841,7 @@ namespace AasxPackageLogic
                 // populate top row
                 //
 
-                if (addFromKnown)
+                if ((addButton & AddKeyListKeys_Button.Known) > 0)
                     AnyUiUIElement.RegisterControl(
                         AddSmallButtonTo(
                             g2, 0, 2,
@@ -1838,7 +1849,8 @@ namespace AasxPackageLogic
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             header: new AnyUiButtonHeader(IconPool.AddKnown, "Add known", 
                                         "Add reference from the internal library of known references."),
-                            buttonOverStyle: buttonOverStyleLo),
+                            buttonOverStyle: ((highlightButton & AddKeyListKeys_Button.Known) > 0) 
+                                             ? buttonOverStyleHi : buttonOverStyleLo),
                         setValueAsync: async (o) =>
                         {
                             var uc = new AnyUiDialogueDataSelectReferableFromPool(
@@ -1849,7 +1861,7 @@ namespace AasxPackageLogic
                                 uc.ResultItem is AasxPredefinedConcepts.DefinitionsPoolReferableEntity pe)
                             {
                                 // dedicated semanticId proposed?
-                                if (addKnownSemanticId 
+                                if (((addButton & AddKeyListKeys_Button.KnownSemanticId) > 0) 
                                     && pe.Ref is Aas.IHasSemantics sem
                                     && sem.SemanticId?.IsValid() == true)
                                 {
@@ -1873,7 +1885,7 @@ namespace AasxPackageLogic
                                 return new AnyUiLambdaActionRedrawEntity();
                         });
 
-                if (!topContextMenu && addEclassIrdi)
+                if (!topContextMenu && ((addButton & AddKeyListKeys_Button.Eclass) > 0))
                     AnyUiUIElement.RegisterControl(
                         AddSmallButtonTo(
                             g2, 0, 3,
@@ -1881,10 +1893,11 @@ namespace AasxPackageLogic
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             header: new AnyUiButtonHeader(IconPool.AddExisting, "Add ECLASS",
                                         "Add reference to a ECLASS concept via IRDI."),
-                            buttonOverStyle: buttonOverStyleLo),
+                            buttonOverStyle: ((highlightButton & AddKeyListKeys_Button.Eclass) > 0)
+                                             ? buttonOverStyleHi : buttonOverStyleLo),
                         lambdaEclassIrdiAsync);
 
-                if (addExistingEntities != null && packages.MainAvailable)
+                if (packages.MainAvailable && ((addButton & AddKeyListKeys_Button.Existing) > 0))
                     AnyUiUIElement.RegisterControl(
                         AddSmallButtonTo(
                             g2, 0, 4,
@@ -1892,7 +1905,8 @@ namespace AasxPackageLogic
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             header: new AnyUiButtonHeader(IconPool.AddExisting, "Add existing",
                                         "Add reference to an existing element in packages."),
-                            buttonOverStyle: buttonOverStyleHi),
+                            buttonOverStyle: ((highlightButton & AddKeyListKeys_Button.Existing) > 0)
+                                             ? buttonOverStyleHi : buttonOverStyleLo),
                             setValueAsync: async (o) =>
                             {
                                 var k2 = await SmartSelectAasEntityKeysAsync(packages, selector, addExistingEntities);
@@ -1922,27 +1936,31 @@ namespace AasxPackageLogic
                                     return new AnyUiLambdaActionRedrawEntity();
                             });
 
-                AnyUiUIElement.RegisterControl(
-                    AddSmallButtonTo(
-                        g2, 0, 5,
-                        margin: new AnyUiThickness(2, 2, 2, 2),
-                        padding: new AnyUiThickness(5, 0, 5, 0),
-                        header: new AnyUiButtonHeader(IconPool.AddBlank, "Add blank",
-                                        "Add blank reference."),
-                        buttonOverStyle: buttonOverStyleLo),
-                        async (o) =>
-                        {
-                            await Task.Yield();
-                            var k = new Aas.Key(Aas.KeyTypes.GlobalReference, ""); //TODO (jtikekar, 0000-00-00): default key
-                            keys.Add(k);
+                if ((addButton & AddKeyListKeys_Button.Blank) > 0)
+                {
+                    AnyUiUIElement.RegisterControl(
+                        AddSmallButtonTo(
+                            g2, 0, 5,
+                            margin: new AnyUiThickness(2, 2, 2, 2),
+                            padding: new AnyUiThickness(5, 0, 5, 0),
+                            header: new AnyUiButtonHeader(IconPool.AddBlank, "Add blank",
+                                            "Add blank reference."),
+                            buttonOverStyle: ((highlightButton & AddKeyListKeys_Button.Blank) > 0)
+                                             ? buttonOverStyleHi : buttonOverStyleLo),
+                            async (o) =>
+                            {
+                                await Task.Yield();
+                                var k = new Aas.Key(Aas.KeyTypes.GlobalReference, ""); //TODO (jtikekar, 0000-00-00): default key
+                                keys.Add(k);
 
-                            emitCustomEvent?.Invoke(relatedReferable);
+                                emitCustomEvent?.Invoke(relatedReferable);
 
-                            if (takeOverLambdaAction != null)
-                                return takeOverLambdaAction;
-                            else
-                                return new AnyUiLambdaActionRedrawEntity();
-                        });
+                                if (takeOverLambdaAction != null)
+                                    return takeOverLambdaAction;
+                                else
+                                    return new AnyUiLambdaActionRedrawEntity();
+                            });
+                }
 
                 if (!topContextMenu && jumpLambda != null)
                     AnyUiUIElement.RegisterControl(
@@ -1967,7 +1985,7 @@ namespace AasxPackageLogic
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             header: new AnyUiButtonHeader(IconPool.CopyToClipboard, "Clipboard",
                                         "Copy reference as JSON to clipboard."),
-                            buttonOverStyle: buttonOverStyleLo.Modify(preference: buttonPreferenceLo)),
+                            buttonOverStyle: buttonOverStyleLo?.Modify(preference: buttonPreferenceLo)),
                         setValueAsync: lambdaClipboardAsync);
 
                 //
@@ -1984,7 +2002,8 @@ namespace AasxPackageLogic
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             header: new AnyUiButtonHeader(IconPool.AddPreset, "" + addPresetNames[i],
                                         "Add preset: " + addPresetNames[i]).Modify(AnyUiButtonPreference.Both),
-                            buttonOverStyle: buttonOverStyleLo),
+                            buttonOverStyle: ((highlightButton & AddKeyListKeys_Button.Presets) > 0)
+                                             ? buttonOverStyleHi : buttonOverStyleLo),
                         async (o) =>
                         {
                             await Task.Yield();
@@ -2035,7 +2054,7 @@ namespace AasxPackageLogic
                     contextHeaders.Add(new AnyUiContextMenuHeader(0, "\u2205", "Set all keys \u2192 1 blank"));
                     contextHeaders.Add(new AnyUiContextMenuHeader(1, "\u2702", "Delete keys completely"));
 
-                    if (addEclassIrdi)
+                    if ((addButton & AddKeyListKeys_Button.Eclass) > 0)
                         contextHeaders.Add(new AnyUiContextMenuHeader(2, "\U0001f517", "Add ECLASS"));
                     if (jumpLambda != null)
                         contextHeaders.Add(new AnyUiContextMenuHeader(3, "\u21a6", "Jump")); 
@@ -2216,7 +2235,7 @@ namespace AasxPackageLogic
                                 g, 0 + i + rowOfs, 5,
                                 header: new AnyUiButtonHeader(IconPool.MoreVert, "More",
                                         "More options in context menu."),
-                                buttonOverStyle: buttonOverStyleLo,
+                                buttonOverStyle: buttonOverStyleLo?.Modify(preference: buttonPreferenceLo),
                                 menuHeaders: new AnyUiContextMenuHeaderList(new[] {
                                     "\u2702", "Delete",
                                     "\u25b2", "Move Up",
