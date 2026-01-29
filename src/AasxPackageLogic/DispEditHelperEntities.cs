@@ -2193,7 +2193,9 @@ namespace AasxPackageLogic
                     addExistingEntities: "AssetAdministrationShell",
                     showRefSemId: false,
                     jumpLambda: lambda, noEditJumpLambda: lambda, relatedReferable: aas,
-                    auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete derivedFrom" }),
+                    auxContextHeader: new AnyUiContextMenuHeaderList(new[] { 
+                        new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete derivedFrom")
+                    }),
                     auxContextLambda: (i) =>
                     {
                         if (i == 0)
@@ -4770,7 +4772,9 @@ namespace AasxPackageLogic
                         relatedReferable: p,
                         showRefSemId: false, // not necessary, I think
                         emitCustomEvent: (rf) => { this.AddDiaryEntry(rf, new DiaryEntryUpdateValue()); },
-                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete valueId" }),
+                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
+                            new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete valueId")
+                        }),
                         auxContextLambda: (i) =>
                         {
                             if (i == 0)
@@ -5554,7 +5558,9 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionNavigateTo(sml.SemanticIdListElement);
                         },
                         relatedReferable: sml,
-                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\U0001F796", "Auto-detect" }),
+                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
+                            new AnyUiContextMenuHeaderIconSource(0, IconPool.AutoDetect, "Auto-detect")
+                        }),
                         auxContextLambda: (i) =>
                         {
                             if (i == 0)

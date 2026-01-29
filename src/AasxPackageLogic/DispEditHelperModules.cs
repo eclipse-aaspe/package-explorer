@@ -623,7 +623,11 @@ namespace AasxPackageLogic
                 // Allow administrative information to be deleted again
                 this.AddGroup(stack, "administration:", levelColors.SubSection,
                     requestAuxButton: repo != null,
-                    auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2702", "Delete" }),
+                    auxContextButtonHeader: new AnyUiButtonHeader(IconPool.MoreVert, "More",
+                        "More options in context menu."),
+                    auxContextMenuHeaders: new AnyUiContextMenuHeaderList(new[] {
+                        new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete"),
+                    }),
                     auxContextLambdaAsync: async (o) =>
                     {
                         await Task.Yield();
@@ -685,7 +689,9 @@ namespace AasxPackageLogic
                         buttonOverStyleHi: LayoutHints.StyleButtonAction,
                         buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                         buttonPreferenceLo: AnyUiButtonPreference.Image,
-                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2702", "Delete" }),
+                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
+                            new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete creator"),
+                        }),
                         auxContextLambda: (i) =>
                         {
                             if (i == 0)
@@ -873,7 +879,9 @@ namespace AasxPackageLogic
                             addPresetNames: addPresetNames, addPresetKeyLists: addPresetKeyLists,
                             relatedReferable: relatedReferable,
                             showRefSemId: false,
-                            auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete this dataSpec." }),
+                            auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
+                                new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete this DataSpec."),
+                            }),
                             auxContextLambda: (choice) =>
                             {
                                 if (choice == 0)
@@ -1380,7 +1388,9 @@ namespace AasxPackageLogic
                     buttonOverStyleHi: LayoutHints.StyleButtonAction,
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
-                    auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete semanticId" }),
+                    auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
+                        new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete semanticId"),
+                    }),
                     auxContextLambda: (i) =>
                     {
                         if (i == 0)
@@ -1484,7 +1494,9 @@ namespace AasxPackageLogic
                                 return new AnyUiLambdaActionNavigateTo(new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>(kl)));
                             },
                             relatedReferable: relatedReferable,
-                            auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete supplementalSemanticId" }),
+                            auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
+                                new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete supplementalSemanticId"),
+                            }),
                             auxContextLambda: (i) =>
                             {
                                 if (i == 0)
@@ -1521,7 +1533,11 @@ namespace AasxPackageLogic
             // members
             this.AddGroup(stack, "Qualifiable:", levelColors.SubSection,
                 requestAuxButton: repo != null,
-                auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u27f4", "Migrate to Extensions" }),
+                auxContextButtonHeader: new AnyUiButtonHeader(IconPool.MoreVert, "More",
+                        "More options in context menu."),
+                auxContextMenuHeaders: new AnyUiContextMenuHeaderList(new[] {
+                    new AnyUiContextMenuHeaderIconSource(0, IconPool.Migrate, "Migrate to Extensions"),
+                }),
                 auxContextLambdaAsync: async (o) =>
                 {
                     if (o is int i && i == 0 && relatedReferable != null)

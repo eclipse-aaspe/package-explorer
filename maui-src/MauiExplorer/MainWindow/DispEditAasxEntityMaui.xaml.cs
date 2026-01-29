@@ -383,8 +383,12 @@ public partial class DispEditAasxEntityMaui : ContentView
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Delete_forever);
         IconPool.Add
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Add);
+        IconPool.ClearAll
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Clear_all);
         IconPool.AddExisting
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Fact_check);
+        IconPool.AddPreset
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Ballot);
         IconPool.AddBlank
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Add_box);
         IconPool.Jump
@@ -426,6 +430,8 @@ public partial class DispEditAasxEntityMaui : ContentView
 
         IconPool.Generate
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Handyman);
+        IconPool.Migrate
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Moving);
         IconPool.Rename
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Edit);
 
@@ -434,8 +440,12 @@ public partial class DispEditAasxEntityMaui : ContentView
 
         IconPool.IecOrg
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Power);
+        IconPool.EclassOrg
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Key_visualizer);
         IconPool.AutoDetect
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Radar);
+        IconPool.CreateNew
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Local_activity);
 
         // modify repository
         ModifyRepo? repo = null;

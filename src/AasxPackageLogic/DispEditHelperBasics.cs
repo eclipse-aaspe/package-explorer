@@ -987,7 +987,8 @@ namespace AasxPackageLogic
                     // add
                     if (tmi is AasxMenuItem mi)
                     {
-                        var cmh = new AnyUiContextMenuHeader(currentI, null, header: mi.Header);
+                        var cmh = new AnyUiContextMenuHeaderIconSource(
+                                currentI, icon: mi.Icon as AnyUiImageSourceFont, header: mi.Header);
                         menuHeaders.Add(cmh);
                     }
                 }
@@ -1377,7 +1378,6 @@ namespace AasxPackageLogic
                         Set(
                             AddSmallContextMenuItemTo(
                                     g, 0 + i + rowOfs, 4,
-                                    "\u22ee", 
                                     header: new AnyUiButtonHeader(IconPool.MoreVert, "More",
                                         "More options in context menu."),
                                     menuHeaders: new AnyUiContextMenuHeaderList(new[] {
@@ -1385,15 +1385,10 @@ namespace AasxPackageLogic
                                         new AnyUiContextMenuHeaderIconSource(1, IconPool.MoveUp, "Move Up"),
                                         new AnyUiContextMenuHeaderIconSource(1, IconPool.MoveDown, "Move Down"),
                                     })
-                                    //menuHeaders: new AnyUiContextMenuHeaderList(new[] {
-                                    //    "\u2702", "Delete",
-                                    //    "\u25b2", "Move Up",
-                                    //    "\u25bc", "Move Down",
-                                    //})
                                     .InsertBeforeIf(LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Context, 
-                                        new AnyUiContextMenuHeader(100, "+", "Add blank"))
+                                        new AnyUiContextMenuHeaderIconSource(100, IconPool.AddBlank, "Add blank"))
                                     .AddIf(!LayoutHints.ExplicitMultiLineEdit,
-                                        new AnyUiContextMenuHeader(101, "\u2261", "Edit multiline")),
+                                        new AnyUiContextMenuHeaderIconSource(101, IconPool.MultiLineEdit, "Edit multiline")),
                                     margin: new AnyUiThickness(2, 2, 2, 2),
                                     padding: new AnyUiThickness(5, 0, 5, 0),
                                     buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(preference: buttonPreferenceLo),
@@ -2051,15 +2046,15 @@ namespace AasxPackageLogic
                 if (topContextMenu)
                 {
                     AnyUiContextMenuHeaderList contextHeaders = new();
-                    contextHeaders.Add(new AnyUiContextMenuHeader(0, "\u2205", "Set all keys \u2192 1 blank"));
-                    contextHeaders.Add(new AnyUiContextMenuHeader(1, "\u2702", "Delete keys completely"));
+                    contextHeaders.Add(new AnyUiContextMenuHeaderIconSource(1, IconPool.Delete, "Delete keys completely"));
+                    contextHeaders.Add(new AnyUiContextMenuHeaderIconSource(0, IconPool.ClearAll, "Set all keys \u2192 1 blank"));
 
                     if ((addButton & AddKeyListKeys_Button.Eclass) > 0)
-                        contextHeaders.Add(new AnyUiContextMenuHeader(2, "\U0001f517", "Add ECLASS"));
+                        contextHeaders.Add(new AnyUiContextMenuHeaderIconSource(2, IconPool.EclassOrg, "Add ECLASS"));
                     if (jumpLambda != null)
-                        contextHeaders.Add(new AnyUiContextMenuHeader(3, "\u21a6", "Jump")); 
+                        contextHeaders.Add(new AnyUiContextMenuHeaderIconSource(3, IconPool.Jump, "Jump")); 
                     if (true)
-                        contextHeaders.Add(new AnyUiContextMenuHeader(4, "\U0001f4cb", "Copy to clipboard"));
+                        contextHeaders.Add(new AnyUiContextMenuHeaderIconSource(4, IconPool.CopyToClipboard, "Copy to clipboard"));
 
                     // the aux receive an index > 100
                     contextHeaders.AddRangeWithOffet(auxContextHeader, 100);
@@ -2237,9 +2232,9 @@ namespace AasxPackageLogic
                                         "More options in context menu."),
                                 buttonOverStyle: buttonOverStyleLo?.Modify(preference: buttonPreferenceLo),
                                 menuHeaders: new AnyUiContextMenuHeaderList(new[] {
-                                    "\u2702", "Delete",
-                                    "\u25b2", "Move Up",
-                                    "\u25bc", "Move Down",
+                                    new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete"),
+                                    new AnyUiContextMenuHeaderIconSource(1, IconPool.MoveUp, "Move Up"),
+                                    new AnyUiContextMenuHeaderIconSource(1, IconPool.MoveDown, "Move Down"),
                                 }),
                                 margin: new AnyUiThickness(2, 2, 2, 2),
                                 padding: new AnyUiThickness(5, 0, 5, 0),

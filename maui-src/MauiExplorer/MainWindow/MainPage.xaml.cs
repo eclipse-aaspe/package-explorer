@@ -1393,7 +1393,7 @@ namespace MauiTestTree
             // basic AnyUI handling
             DisplayContext = new AnyUiDisplayContextMaui(this, this, PackageCentral);
             DisplayContext.TryRegisterIconFont("uc", "OpenSansRegular", null, 16);
-            DisplayContext.TryRegisterIconFont("awe", "FontAwesome", null, 16);
+            // DisplayContext.TryRegisterIconFont("awe", "FontAwesome", null, 16);
             DisplayContext.TryRegisterIconFont(
                 "mat-out", "MaterialOutlined",
                 "ms-appx:///Resources/Fonts/material-symbols-outlined-latin-400-normal.ttf#Material Symbols Outlined",

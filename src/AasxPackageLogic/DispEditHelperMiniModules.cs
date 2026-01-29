@@ -279,11 +279,11 @@ namespace AasxPackageLogic
                     levelColors.SubSubSection.Bg, levelColors.SubSubSection.Fg, requestContextMenu: repo != null,
                     contextMenuText: "\u22ee",
                     menuHeaders: new AnyUiContextMenuHeaderList(new[] {
-                        "\u2702", "Delete",
-                        "\u25b2", "Move Up",
-                        "\u25bc", "Move Down",
-                        "\u29c9", "Copy to clipboard",
-                        "\u2398", "Paste from clipboard",
+                        new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete"),
+                        new AnyUiContextMenuHeaderIconSource(1, IconPool.MoveUp, "Move Up"),
+                        new AnyUiContextMenuHeaderIconSource(2, IconPool.MoveDown, "Move Down"),
+                        new AnyUiContextMenuHeaderIconSource(3, IconPool.CopyToClipboard, "Copy to clipboard"),
+                        new AnyUiContextMenuHeaderIconSource(4, IconPool.Paste, "Paste from clipboard"),
                     }),
                     menuItemLambdaAsync: async (o) =>
                     {
@@ -423,7 +423,9 @@ namespace AasxPackageLogic
                             addExistingEntities: "All",
                             showRefSemId: false,
                             relatedReferable: relatedReferable,
-                            auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete semanticId" }),
+                            auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
+                                new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete semanticId"),
+                            }),
                             auxContextLambda: (i) =>
                             {
                                 if (i == 0)
@@ -558,7 +560,9 @@ namespace AasxPackageLogic
                         addExistingEntities: "All",
                         showRefSemId: false,
                         relatedReferable: relatedReferable,
-                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete valueId" }),
+                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
+                            new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete valueId"),
+                        }),
                         auxContextLambda: (i) =>
                         {
                             if (i == 0)
@@ -807,11 +811,11 @@ namespace AasxPackageLogic
                     levelColors.SubSubSection.Bg, levelColors.SubSubSection.Fg, requestContextMenu: repo != null,
                     contextMenuText: "\u22ee",
                     menuHeaders: new AnyUiContextMenuHeaderList(new[] {
-                        "\u2702", "Delete",
-                        "\u25b2", "Move Up",
-                        "\u25bc", "Move Down",
-                        "\u29c9", "Copy to clipboard",
-                        "\u2398", "Paste from clipboard",
+                        new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete"),
+                        new AnyUiContextMenuHeaderIconSource(1, IconPool.MoveUp, "Move Up"),
+                        new AnyUiContextMenuHeaderIconSource(2, IconPool.MoveDown, "Move Down"),
+                        new AnyUiContextMenuHeaderIconSource(3, IconPool.CopyToClipboard, "Copy to clipboard"),
+                        new AnyUiContextMenuHeaderIconSource(4, IconPool.Paste, "Paste from clipboard"),
                     }),
                     menuItemLambdaAsync: async (o) =>
                     {
@@ -1056,11 +1060,11 @@ namespace AasxPackageLogic
                     levelColors.SubSubSection.Bg, levelColors.SubSubSection.Fg, requestContextMenu: repo != null,
                     contextMenuText: "\u22ee",
                     menuHeaders: new AnyUiContextMenuHeaderList(new[] {
-                        "\u2702", "Delete",
-                        "\u25b2", "Move Up",
-                        "\u25bc", "Move Down",
-                        "\u29c9", "Copy to clipboard",
-                        "\u2398", "Paste from clipboard",
+                        new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete"),
+                        new AnyUiContextMenuHeaderIconSource(1, IconPool.MoveUp, "Move Up"),
+                        new AnyUiContextMenuHeaderIconSource(2, IconPool.MoveDown, "Move Down"),
+                        new AnyUiContextMenuHeaderIconSource(3, IconPool.CopyToClipboard, "Copy to clipboard"),
+                        new AnyUiContextMenuHeaderIconSource(4, IconPool.Paste, "Paste from clipboard"),
                     }),
                     menuItemLambdaAsync: async (o) =>
                     {
@@ -1188,7 +1192,9 @@ namespace AasxPackageLogic
                             highlightButton: AddKeyListKeys_Button.Existing,
                             addExistingEntities: "All", 
                             relatedReferable: relatedReferable,
-                            auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete semanticId" }),
+                            auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
+                                new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete semanticId"),
+                            }),
                             auxContextLambda: (i) =>
                             {
                                 if (i == 0)
@@ -1461,7 +1467,9 @@ namespace AasxPackageLogic
                         showRefSemId: false,
                         relatedReferable: relatedReferable,
                         emitCustomEvent: emitCustomEvent,
-                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] { "\u2573", "Delete referredSemanticId" }),
+                        auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
+                            new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete referredSemanticId"),
+                        }),
                         auxContextLambda: (i) =>
                         {
                             if (i == 0)
@@ -1707,11 +1715,11 @@ namespace AasxPackageLogic
                     levelColors.SubSubSection.Bg, levelColors.SubSubSection.Fg, requestContextMenu: repo != null,
                     contextMenuText: "\u22ee",
                     menuHeaders: new AnyUiContextMenuHeaderList(new[] {
-                        "\u2702", "Delete",
-                        "\u25b2", "Move Up",
-                        "\u25bc", "Move Down",
-                        "\u29c9", "Copy to clipboard",
-                        "\u2398", "Paste from clipboard",
+                        new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete"),
+                        new AnyUiContextMenuHeaderIconSource(1, IconPool.MoveUp, "Move Up"),
+                        new AnyUiContextMenuHeaderIconSource(2, IconPool.MoveDown, "Move Down"),
+                        new AnyUiContextMenuHeaderIconSource(3, IconPool.CopyToClipboard, "Copy to clipboard"),
+                        new AnyUiContextMenuHeaderIconSource(4, IconPool.Paste, "Paste from clipboard"),
                     }),
                     menuItemLambdaAsync: async (o) =>
                     {

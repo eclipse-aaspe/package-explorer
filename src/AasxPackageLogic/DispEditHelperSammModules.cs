@@ -372,15 +372,16 @@ namespace AasxPackageLogic
 					// button [hamburger]
 					AddSmallContextMenuItemTo(
 						sg, 1 + lsri, 1,
-						"\u22ee",
-                        new AnyUiContextMenuHeaderList(new[] {
-							"\u2702", "Delete",
-							"\u25b2", "Move Up",
-							"\u25bc", "Move Down",
-							"\U0001F4D1", "Select from preset",
-							"\U0001F517", "Select from existing CDs",
-							"\U0001f516", "Create new CD for SAMM",
-							"\U0001f872", "Jump to"
+                        header: new AnyUiButtonHeader(IconPool.MoreVert, "More",
+										"More options in context menu."),
+						menuHeaders: new AnyUiContextMenuHeaderList(new[] {
+                            new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete"),
+                            new AnyUiContextMenuHeaderIconSource(1, IconPool.MoveUp, "Move Up"),
+                            new AnyUiContextMenuHeaderIconSource(2, IconPool.MoveDown, "Move Down"),
+                            new AnyUiContextMenuHeaderIconSource(3, IconPool.AddPreset, "Select from preset"),
+                            new AnyUiContextMenuHeaderIconSource(4, IconPool.AddExisting, "Select from existing CDs"),
+                            new AnyUiContextMenuHeaderIconSource(5, IconPool.CreateNew, "Create new CD for SAMM"),
+                            new AnyUiContextMenuHeaderIconSource(6, IconPool.Jump, "Jump to")
 						}),
 						margin: new AnyUiThickness(2, 2, 2, 2),
 						padding: new AnyUiThickness(5, 0, 5, 0),

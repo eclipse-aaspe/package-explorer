@@ -859,23 +859,33 @@ namespace AnyUi
             return (space);
         }
 
+        /// <summary>
+        /// Add a visual group
+        /// To be used with Brush Triple!
+        /// </summary>
         public void AddGroup(AnyUiStackPanel view, string name, AnyUiBrushTuple colors,
             bool requestAuxButton = false,
             string auxButtonTitle = null, 
             Func<object, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
-            AnyUiContextMenuHeaderList auxContextHeader = null, 
+            AnyUiButtonHeader auxContextButtonHeader = null,
+            AnyUiContextMenuHeaderList auxContextMenuHeaders = null,
             Func<object, Task<AnyUiLambdaActionBase>> auxContextLambdaAsync = null)
         {
             AddGroup(view, name, colors?.Bg, colors?.Fg, requestAuxButton,
                 auxButtonTitle, auxButtonLambdaAsync,
-                auxContextHeader, auxContextLambdaAsync);
+                auxContextButtonHeader, auxContextMenuHeaders, auxContextLambdaAsync);
         }
 
+        /// <summary>
+        /// Add a visual group
+        /// Single color attributes
+        /// </summary>
         public void AddGroup(AnyUiStackPanel view, string name, AnyUiBrush background, AnyUiBrush foreground,
             bool requestAuxButton = false,
-            string auxButtonTitle = null, 
+            string auxButtonTitle = null,
             Func<object, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
-            AnyUiContextMenuHeaderList auxContextHeader = null, 
+            AnyUiButtonHeader auxContextButtonHeader = null,
+            AnyUiContextMenuHeaderList auxContextMenuHeaders = null, 
             Func<object, Task<AnyUiLambdaActionBase>> auxContextLambdaAsync = null,
             AnyUiFrameworkElement iconElement = null)
         {
@@ -921,12 +931,13 @@ namespace AnyUi
             }
 
             // context menu
-            if (requestAuxButton && auxContextHeader != null && auxContextLambdaAsync != null)
+            if (requestAuxButton && auxContextButtonHeader != null 
+                && auxContextMenuHeaders != null && auxContextLambdaAsync != null)
             {
                 AddSmallContextMenuItemTo(
                         g, 0, 3,
-                        "\u22ee",
-                        auxContextHeader,
+                        header: auxContextButtonHeader,
+                        menuHeaders: auxContextMenuHeaders,
                         margin: new AnyUiThickness(2, 2, 2, 2),
                         padding: new AnyUiThickness(5, 0, 5, 0),
                         verticalAlignment: AnyUiVerticalAlignment.Center,
