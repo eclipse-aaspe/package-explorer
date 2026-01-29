@@ -46,13 +46,14 @@ namespace MauiTestTree
                     options.SetShouldEnableSnackbarOnWindows(true);
                 })
                 .UseUraniumUI()
-                .UseUraniumUIMaterial() // important!
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSansRegular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSansSemibold.ttf", "OpenSansSemibold");
-                    fonts.AddFontAwesomeIconFonts();
-                    fonts.AddMaterialSymbolsFonts();
+                    // for using glyph names in MAUI
+                    fonts.AddMaterialSymbolsFonts(); 
+                    // for using glyphs from WinUI, font should be extra contained in Resources/Fonts!
+                    // fonts.AddFont("material-symbols-outlined-latin-400-normal.ttf", "MaterialOutlined");
                 });
 
 #if WINDOWS

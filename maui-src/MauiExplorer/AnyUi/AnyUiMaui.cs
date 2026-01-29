@@ -70,10 +70,24 @@ namespace MauiTestTree
     public class AnyUiIconFont
     {
         public string Short = "";
+
+        /// <summary>
+        /// Font alias to be used for MAUI controls
+        /// </summary>
         public string FontAlias = "";
         public int FontSize;
+
 #if WINDOWS
-        public Microsoft.UI.Xaml.Media.FontFamily? FontFamily;
+
+        /// <summary>
+        /// Complete path for font location to be used by WinUI
+        /// </summary>
+        public string? FontLocationWin = "";
+
+        /// <summary>
+        /// Font Family as be used by WinUI
+        /// </summary>
+        public Microsoft.UI.Xaml.Media.FontFamily? FontFamilyWin;
 #endif
     }
 
@@ -114,7 +128,11 @@ namespace MauiTestTree
 
         protected List<AnyUiIconFont> IconFonts = new();
 
-        public void TryRegisterIconFont(string shortId, string fontAlias, int fontSize)
+        public void TryRegisterIconFont(
+            string shortId, 
+            string fontAlias, 
+            string? fontLocationWin,
+            int fontSize)
         {
             var n = new AnyUiIconFont()
             {
@@ -124,7 +142,8 @@ namespace MauiTestTree
             };
 
 #if WINDOWS
-            n.FontFamily = new Microsoft.UI.Xaml.Media.FontFamily(fontAlias);
+            n.FontLocationWin = fontLocationWin;
+            n.FontFamilyWin = new Microsoft.UI.Xaml.Media.FontFamily(n.FontLocationWin ?? n.FontAlias);
 #endif
 
             IconFonts.Add(n);
@@ -2452,12 +2471,13 @@ namespace MauiTestTree
                 glyph = iconText;
             }
                 
-            if (fo?.FontFamily != null && glyph != null)
+            if (fo?.FontFamilyWin != null && glyph != null)
             {
+                // ChatGPT: check, if a Label would be more reliable
                 return new Microsoft.UI.Xaml.Controls.FontIcon
                 {
                     Glyph = glyph,
-                    FontFamily = fo.FontFamily,
+                    FontFamily = fo.FontFamilyWin,
                     FontSize = fo.FontSize
                 };
             }
@@ -2543,6 +2563,12 @@ namespace MauiTestTree
 
             var flyout = new Microsoft.UI.Xaml.Controls.MenuFlyout();
 
+            //var fontFamilies = System.Drawing.FontFamily.Families;
+            //foreach (var family in fontFamilies)
+            //{
+            //    Trace.WriteLine(family.Name);
+            //}
+
             for (int i=0; i<vm.Items.Count; i++)
             {
                 // independent menu item
@@ -2561,11 +2587,12 @@ namespace MauiTestTree
                 if (mi.IconGlyph != null && mi.IconFontAlias != null)
                 {
                     var font = dc.FindIconFontByAlias(mi.IconFontAlias);
-                    if (font?.FontFamily != null)
+                    if (font?.FontFamilyWin != null)
+                        // ChatGPT: replace with Label for better reliability?
                         menuItem.Icon = new Microsoft.UI.Xaml.Controls.FontIcon()
                         {
-                            Glyph = /* mi.IconGlyph */ UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Rule,
-                            FontFamily = /* font.FontFamily */ new Microsoft.UI.Xaml.Media.FontFamily("Material Symbols Outlined"),
+                            Glyph = mi.IconGlyph,
+                            FontFamily = font.FontFamilyWin,
                             FontSize = mi.IconFontSize
                         };  
                 }

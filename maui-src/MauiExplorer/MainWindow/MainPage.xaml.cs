@@ -187,9 +187,12 @@ namespace MauiTestTree
             {
                 var dc = new AnyUiDisplayContextMaui(this, this, new PackageCentral());
 
-                dc.TryRegisterIconFont("uc", "OpenSansRegular", 16);
-                dc.TryRegisterIconFont("awe", "FontAwesome", 16);
-                dc.TryRegisterIconFont("mat-out", "MaterialOutlined", 16);
+                dc.TryRegisterIconFont("uc", "OpenSansRegular", null, 16);
+                dc.TryRegisterIconFont("awe", "FontAwesome", null, 16);
+                dc.TryRegisterIconFont(
+                    "mat-out", "MaterialOutlined",
+                    "ms-appx:///Resources/Fonts/material-symbols-outlined-latin-400-normal.ttf#Material Symbols Outlined",
+                    16);
 
                 var env = new AasCore.Aas3_1.Environment();
                 var parentContainer = new AasCore.Aas3_1.Submodel("http://abc.de/123");
@@ -1389,9 +1392,12 @@ namespace MauiTestTree
 
             // basic AnyUI handling
             DisplayContext = new AnyUiDisplayContextMaui(this, this, PackageCentral);
-            DisplayContext.TryRegisterIconFont("uc", "OpenSansRegular", 16);
-            DisplayContext.TryRegisterIconFont("awe", "FontAwesome", 16);
-            DisplayContext.TryRegisterIconFont("mat-out", "MaterialOutlined", 16);
+            DisplayContext.TryRegisterIconFont("uc", "OpenSansRegular", null, 16);
+            DisplayContext.TryRegisterIconFont("awe", "FontAwesome", null, 16);
+            DisplayContext.TryRegisterIconFont(
+                "mat-out", "MaterialOutlined",
+                "ms-appx:///Resources/Fonts/material-symbols-outlined-latin-400-normal.ttf#Material Symbols Outlined",
+                16);
             Logic.DisplayContext = DisplayContext;
             Logic.MainWindow = this;
 

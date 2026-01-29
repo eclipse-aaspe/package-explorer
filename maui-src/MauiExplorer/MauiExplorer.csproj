@@ -69,9 +69,8 @@
 		<PackageReference Include="ExhaustiveMatching.Analyzer" Version="0.5.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.1" />
-		<PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.14.0" />
+		<PackageReference Include="UraniumUI" Version="2.14.0" />
 		<PackageReference Include="UraniumUI.Icons.MaterialSymbols" Version="2.14.0" />
-		<PackageReference Include="UraniumUI.Material" Version="2.14.0" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -86,6 +85,13 @@
 	  <ProjectReference Include="..\FunctionZero.Maui.Controls\FunctionZero.Maui.Controls.csproj" />
 	</ItemGroup>
 
+	<!-- make this availble for WinUI -->
+	<ItemGroup>
+		<Content Include="Resources\Fonts\material-symbols-outlined-latin-400-normal.ttf">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+	
 	<ItemGroup>
 	  <Compile Update="Flyouts\EmptyFlyoutPage.xaml.cs">
 	    <DependentUpon>EmptyFlyoutPage.xaml</DependentUpon>
