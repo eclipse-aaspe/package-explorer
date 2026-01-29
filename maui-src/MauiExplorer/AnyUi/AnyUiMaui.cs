@@ -1674,178 +1674,321 @@ namespace MauiTestTree
                 }),
 
                 new RenderRec(typeof(AnyUiComboBox), 
-                (wts) => (wts == RenderWidgetToolSet.Transparent) ? typeof(TransparentPicker) : typeof(Picker), 
+                (wts) => (wts == RenderWidgetToolSet.Transparent) ? typeof(TransparentPicker) : typeof(/*Picker*/ Border), 
                 null, (a, b, mode, rd) =>
                 {
                     // members
                     if (a is AnyUiComboBox cntl && mode == AnyUiRenderMode.All)
                     {
-                        if (b is Picker maui)
+                        // protect names
                         {
-                            if (cntl.Background != null)
-                                maui.Background = GetMauiBrush(cntl.Background);
-                            if (rd?.ForegroundControl != null)
-                                maui.TextColor = GetMauiColor(rd.ForegroundControl?.Color);
-                            if (cntl.Foreground != null)
-                                maui.TextColor = GetMauiColor(cntl.Foreground?.Color);
-
-    #if TODO_IMPORTANT
-                            if (cntl.Padding != null)
-                                maui.Padding = GetMauiTickness(cntl.Padding);
-                            if (cntl.IsEditable.HasValue)
-                                maui.IsEditable = cntl.IsEditable.Value;
-    #endif
-
-                            maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
-
-                            if (cntl.VerticalContentAlignment.HasValue)
-                                maui.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
-                            if (cntl.HorizontalContentAlignment.HasValue)
-                                maui.HorizontalTextAlignment = GetTextAlignment(cntl.HorizontalContentAlignment.Value);
-
-                            if (cntl.FontMono)
-                                maui.FontFamily = "Consolas";
-
-                            if (cntl.FontWeight.HasValue)
-                                maui.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);
-
-                            if (cntl.Items != null)
+                            //
+                            // straight Picker .. may be outdated because of large screen real estate
+                            //
+                            if (b is Border maui)
                             {
-                                foreach (var i in cntl.Items)
-                                    maui.Items.Add(i?.ToString());
-                            }
+                                // allow clear names
+                                var border = maui;
+                                var picker = new Picker();
+                                border.Content = picker;
 
-    #if TODO_IMPORTANT
-                            maui.Text = cntl.Text;
-    #endif
+                                // for the picker, set many attributes to visually neutral
+                                picker.BackgroundColor = Colors.Transparent;
+                                picker.HeightRequest = -1; // lets the parent control sizing
+                                picker.HorizontalOptions = LayoutOptions.Fill;
+                                picker.VerticalOptions = LayoutOptions.Center;
+                                picker.VerticalTextAlignment = TextAlignment.Center;
+                                if (cntl.VerticalContentAlignment.HasValue)
+                                    picker.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
+                                if (cntl.HorizontalContentAlignment.HasValue)
+                                    picker.HorizontalTextAlignment = GetTextAlignment(cntl.HorizontalContentAlignment.Value);
+                                picker.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
+                                if (rd?.ForegroundControl != null)
+                                    picker.TextColor = GetMauiColor(rd.ForegroundControl.Color);
+                                if (cntl.Foreground != null)
+                                    picker.TextColor = GetMauiColor(cntl.Foreground?.Color);
+                                if (cntl.FontMono)
+                                    picker.FontFamily = "Consolas";
+                                if (cntl.FontWeight.HasValue)
+                                    picker.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);
+
+                                // TODO
+                                // picker.Text = cntl.Text;
+
+                                if (cntl.Text == "en")
+                                    ;
+
+                                // ok, border is the wrapping control
+                                border.VerticalOptions = LayoutOptions.Center;
+                                border.Margin = new Thickness(0);
+                                border.Padding = new Thickness(0, 0, 0, 0);
+                                border.HeightRequest = 36;
+                                border.StrokeShape = new RoundRectangle() { CornerRadius = 16 };
+
+                                if (cntl.BorderColor != null)
+                                    border.Stroke = GetMauiColor(cntl.BorderColor.Color);
+                                if (cntl.BorderWidth != null)
+                                    border.StrokeThickness = cntl.BorderWidth.Value;
+                                if (cntl.Background != null)
+                                    border.Background = GetMauiBrush(cntl.Background);
+                                //if (cntl.Padding != null)
+                                //    border.Padding = GetMauiTickness(cntl.Padding);
+
+                                if (cntl.Background != null)
+                                    maui.Background = GetMauiBrush(cntl.Background);
+
+        #if TODO_IMPORTANT
+                                if (cntl.Padding != null)
+                                    maui.Padding = GetMauiTickness(cntl.Padding);
+                                if (cntl.IsEditable.HasValue)
+                                    maui.IsEditable = cntl.IsEditable.Value;
+        #endif
+
+                                if (cntl.Items != null)
+                                {
+                                    foreach (var i in cntl.Items)
+                                        picker.Items.Add(i?.ToString());
+                                }
+
+        #if TODO_IMPORTANT
+                                maui.Text = cntl.Text;
+        #endif
                         
-                            if (cntl.Text != null && cntl.Text.Length > 0 && !cntl.SelectedIndex.HasValue
-                                && cntl.Items != null)
-                            {
-                                // use the existing text to set the combo box value via SelectedIndex
-                                int ndx = -1;
-                                for (int i=0; i<cntl.Items.Count; i++)
-                                    if (cntl.Text.Trim().Equals(cntl.Items[i].ToString()?.Trim(),
-                                        StringComparison.InvariantCultureIgnoreCase))
-                                        ndx = i;
-                                if (ndx >= 0)
-                                    cntl.SelectedIndex = ndx;
-                            }
-
-                            if (cntl.SelectedIndex.HasValue)
-                                maui.SelectedIndex = cntl.SelectedIndex.Value;
-
-                            // callbacks
-                            cntl.originalValue = "" + cntl.Text;
-                            // TODO!!
-                            if (true || cntl.IsEditable != true)
-                            {
-                                // we need this event
-                                maui.SelectedIndexChanged += async (s, e) =>
+                                if (cntl.Text != null && cntl.Text.Length > 0 && !cntl.SelectedIndex.HasValue
+                                    && cntl.Items != null)
                                 {
-                                    // state
-                                    cntl.SelectedIndex = maui.SelectedIndex;
-                                    cntl.Text = maui.SelectedItem as string;
+                                    // use the existing text to set the combo box value via SelectedIndex
+                                    int ndx = -1;
+                                    for (int i=0; i<cntl.Items.Count; i++)
+                                        if (cntl.Text.Trim().Equals(cntl.Items[i].ToString()?.Trim(),
+                                            StringComparison.InvariantCultureIgnoreCase))
+                                            ndx = i;
+                                    if (ndx >= 0)
+                                        cntl.SelectedIndex = ndx;
+                                }
 
-                                    // the value event
-                                    if (cntl.setValueAsyncLambda != null)
-                                        EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke((string) maui.SelectedItem));
+                                if (cntl.SelectedIndex.HasValue)
+                                    picker.SelectedIndex = cntl.SelectedIndex.Value;
 
-                                    // other events
-                                    EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
-                                    // Note for MIHO: this was the dangerous outside event loop!
-                                    EmitOutsideAction(cntl.takeOverLambda);
-                                };
-                            }
-                            else
-                            {
-    #if TODO_IMPORTANT
-                                // if editable, add this for comfort
-                                maui.KeyUp += (sender, e) =>
+                                // callbacks
+                                cntl.originalValue = "" + cntl.Text;
+                                // TODO!!
+                                if (true || cntl.IsEditable != true)
                                 {
-                                    if (e.Key == Key.Enter)
+                                    // we need this event
+                                    picker.SelectedIndexChanged += async (s, e) =>
                                     {
-                                        e.Handled = true;
+                                        // state
+                                        cntl.SelectedIndex = picker.SelectedIndex;
+                                        cntl.Text = picker.SelectedItem as string;
+
+                                        // the value event
+                                        if (cntl.setValueAsyncLambda != null)
+                                            EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke((string) picker.SelectedItem));
+
+                                        // other events
                                         EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
+                                        // Note for MIHO: this was the dangerous outside event loop!
                                         EmitOutsideAction(cntl.takeOverLambda);
-                                    }
-                                };
-    #endif
+                                    };
+                                }
+                                else
+                                {
+        #if TODO_IMPORTANT
+                                    // if editable, add this for comfort
+                                    maui.KeyUp += (sender, e) =>
+                                    {
+                                        if (e.Key == Key.Enter)
+                                        {
+                                            e.Handled = true;
+                                            EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
+                                            EmitOutsideAction(cntl.takeOverLambda);
+                                        }
+                                    };
+        #endif
+                                }
                             }
                         }
 
-                        if (b is TransparentPicker mauiTP)
+
+                        // protect names
                         {
-
-                            mauiTP.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
-
-    #if TODO_IMPORTANT
-                            if (cntl.Padding != null)
-                                maui.Padding = GetMauiTickness(cntl.Padding);
-                            if (cntl.IsEditable.HasValue)
-                                maui.IsEditable = cntl.IsEditable.Value;
-    #endif
-
-                            if (cntl.Items != null)
+                            //
+                            // straight Picker .. may be outdated because of large screen real estate
+                            //
+                            if (b is Picker maui)
                             {
-                                mauiTP.ItemsSource = cntl.Items;
-                            }
+                                if (cntl.Background != null)
+                                    maui.Background = GetMauiBrush(cntl.Background);
+                                if (rd?.ForegroundControl != null)
+                                    maui.TextColor = GetMauiColor(rd.ForegroundControl?.Color);
+                                if (cntl.Foreground != null)
+                                    maui.TextColor = GetMauiColor(cntl.Foreground?.Color);
 
-    #if TODO_IMPORTANT
-                            maui.Text = cntl.Text;
-    #endif
+        #if TODO_IMPORTANT
+                                if (cntl.Padding != null)
+                                    maui.Padding = GetMauiTickness(cntl.Padding);
+                                if (cntl.IsEditable.HasValue)
+                                    maui.IsEditable = cntl.IsEditable.Value;
+        #endif
+
+                                maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
+
+                                if (cntl.VerticalContentAlignment.HasValue)
+                                    maui.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
+                                if (cntl.HorizontalContentAlignment.HasValue)
+                                    maui.HorizontalTextAlignment = GetTextAlignment(cntl.HorizontalContentAlignment.Value);
+
+                                if (cntl.FontMono)
+                                    maui.FontFamily = "Consolas";
+
+                                if (cntl.FontWeight.HasValue)
+                                    maui.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);
+
+                                if (cntl.Items != null)
+                                {
+                                    foreach (var i in cntl.Items)
+                                        maui.Items.Add(i?.ToString());
+                                }
+
+        #if TODO_IMPORTANT
+                                maui.Text = cntl.Text;
+        #endif
                         
-                            if (cntl.Text != null && cntl.Text.Length > 0 && !cntl.SelectedIndex.HasValue
-                                && cntl.Items != null)
-                            {
-                                // use the existing text to set the combo box value via SelectedIndex
-                                int ndx = -1;
-                                for (int i=0; i<cntl.Items.Count; i++)
-                                    if (cntl.Text.Trim().Equals(cntl.Items[i].ToString()?.Trim(),
-                                        StringComparison.InvariantCultureIgnoreCase))
-                                        ndx = i;
-                                if (ndx >= 0)
-                                    cntl.SelectedIndex = ndx;
-                            }
-
-                            if (cntl.SelectedIndex.HasValue)
-                                mauiTP.SelectedIndex = cntl.SelectedIndex.Value;
-
-                            // callbacks
-                            cntl.originalValue = "" + cntl.Text;
-                            if (cntl.IsEditable != true)
-                            {
-                                // we need this event
-                                mauiTP.SelectedIndexChanged += async (s, e) =>
+                                if (cntl.Text != null && cntl.Text.Length > 0 && !cntl.SelectedIndex.HasValue
+                                    && cntl.Items != null)
                                 {
-                                    // state
-                                    cntl.SelectedIndex = mauiTP.SelectedIndex;
-                                    cntl.Text = mauiTP.SelectedItem as string;
+                                    // use the existing text to set the combo box value via SelectedIndex
+                                    int ndx = -1;
+                                    for (int i=0; i<cntl.Items.Count; i++)
+                                        if (cntl.Text.Trim().Equals(cntl.Items[i].ToString()?.Trim(),
+                                            StringComparison.InvariantCultureIgnoreCase))
+                                            ndx = i;
+                                    if (ndx >= 0)
+                                        cntl.SelectedIndex = ndx;
+                                }
 
-                                    // the value event
-                                    if (cntl.setValueAsyncLambda != null)
-                                        EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke((string) mauiTP.SelectedItem));
+                                if (cntl.SelectedIndex.HasValue)
+                                    maui.SelectedIndex = cntl.SelectedIndex.Value;
 
-                                    // other events
-                                    EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
-                                    // Note for MIHO: this was the dangerous outside event loop!
-                                    EmitOutsideAction(cntl.takeOverLambda);
-                                };
-                            }
-                            else
-                            {
-    #if TODO_IMPORTANT
-                                // if editable, add this for comfort
-                                maui.KeyUp += (sender, e) =>
+                                // callbacks
+                                cntl.originalValue = "" + cntl.Text;
+                                // TODO!!
+                                if (true || cntl.IsEditable != true)
                                 {
-                                    if (e.Key == Key.Enter)
+                                    // we need this event
+                                    maui.SelectedIndexChanged += async (s, e) =>
                                     {
-                                        e.Handled = true;
+                                        // state
+                                        cntl.SelectedIndex = maui.SelectedIndex;
+                                        cntl.Text = maui.SelectedItem as string;
+
+                                        // the value event
+                                        if (cntl.setValueAsyncLambda != null)
+                                            EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke((string) maui.SelectedItem));
+
+                                        // other events
                                         EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
+                                        // Note for MIHO: this was the dangerous outside event loop!
                                         EmitOutsideAction(cntl.takeOverLambda);
-                                    }
-                                };
-    #endif
+                                    };
+                                }
+                                else
+                                {
+        #if TODO_IMPORTANT
+                                    // if editable, add this for comfort
+                                    maui.KeyUp += (sender, e) =>
+                                    {
+                                        if (e.Key == Key.Enter)
+                                        {
+                                            e.Handled = true;
+                                            EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
+                                            EmitOutsideAction(cntl.takeOverLambda);
+                                        }
+                                    };
+        #endif
+                                }
+                            }
+                        }
+
+                        // protect names
+                        {
+                            //
+                            // Transparent picker .. screen real estate no problem
+                            //
+                            if (b is TransparentPicker maui)
+                            {
+
+                                maui.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
+
+        #if TODO_IMPORTANT
+                                if (cntl.Padding != null)
+                                    maui.Padding = GetMauiTickness(cntl.Padding);
+                                if (cntl.IsEditable.HasValue)
+                                    maui.IsEditable = cntl.IsEditable.Value;
+        #endif
+
+                                if (cntl.Items != null)
+                                {
+                                    maui.ItemsSource = cntl.Items;
+                                }
+
+        #if TODO_IMPORTANT
+                                maui.Text = cntl.Text;
+        #endif
+                        
+                                if (cntl.Text != null && cntl.Text.Length > 0 && !cntl.SelectedIndex.HasValue
+                                    && cntl.Items != null)
+                                {
+                                    // use the existing text to set the combo box value via SelectedIndex
+                                    int ndx = -1;
+                                    for (int i=0; i<cntl.Items.Count; i++)
+                                        if (cntl.Text.Trim().Equals(cntl.Items[i].ToString()?.Trim(),
+                                            StringComparison.InvariantCultureIgnoreCase))
+                                            ndx = i;
+                                    if (ndx >= 0)
+                                        cntl.SelectedIndex = ndx;
+                                }
+
+                                if (cntl.SelectedIndex.HasValue)
+                                    maui.SelectedIndex = cntl.SelectedIndex.Value;
+
+                                // callbacks
+                                cntl.originalValue = "" + cntl.Text;
+                                if (cntl.IsEditable != true)
+                                {
+                                    // we need this event
+                                    maui.SelectedIndexChanged += async (s, e) =>
+                                    {
+                                        // state
+                                        cntl.SelectedIndex = maui.SelectedIndex;
+                                        cntl.Text = maui.SelectedItem as string;
+
+                                        // the value event
+                                        if (cntl.setValueAsyncLambda != null)
+                                            EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke((string) maui.SelectedItem));
+
+                                        // other events
+                                        EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
+                                        // Note for MIHO: this was the dangerous outside event loop!
+                                        EmitOutsideAction(cntl.takeOverLambda);
+                                    };
+                                }
+                                else
+                                {
+        #if TODO_IMPORTANT
+                                    // if editable, add this for comfort
+                                    maui.KeyUp += (sender, e) =>
+                                    {
+                                        if (e.Key == Key.Enter)
+                                        {
+                                            e.Handled = true;
+                                            EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
+                                            EmitOutsideAction(cntl.takeOverLambda);
+                                        }
+                                    };
+        #endif
+                                }
                             }
                         }
                     }
