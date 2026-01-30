@@ -93,7 +93,7 @@ namespace MauiTestTree
         private class RenderRec
         {
             public Type CntlType;
-            public Func<RenderWidgetToolSet, Type> GetMauiType;
+            public Func<RenderWidgetToolSet, AnyUiUIElement, Type> GetMauiType;
             [JsonIgnore]
             public Action<AnyUiUIElement, VisualElement, AnyUiRenderMode, RenderDefaults?>? InitLambda;
             [JsonIgnore]
@@ -101,7 +101,7 @@ namespace MauiTestTree
 
             public Func<AnyUiUIElement, int>? CheckSuitability;
 
-            public RenderRec(Type cntlType, Func<RenderWidgetToolSet, Type> getMauiType,
+            public RenderRec(Type cntlType, Func<RenderWidgetToolSet, AnyUiUIElement, Type> getMauiType,
                 Func<AnyUiUIElement, int>? checkSuitability = null,
                 Action<AnyUiUIElement, VisualElement, AnyUiRenderMode, RenderDefaults?>? initLambda = null,
                 Action<AnyUiUIElement, VisualElement, bool>? highlightLambda = null)
@@ -144,7 +144,7 @@ namespace MauiTestTree
             RenderRecs.Clear();
             RenderRecs.AddRange(new[]
             {
-                new RenderRec(typeof(AnyUiUIElement), (wts) => typeof(VisualElement), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiUIElement), (wts, cntl) => typeof(VisualElement), null, (a, b, mode, rd) =>
                 {
                     // ReSharper disable UnusedVariable
                     if (a is AnyUiUIElement cntl && b is VisualElement maui
@@ -154,7 +154,7 @@ namespace MauiTestTree
                     // ReSharper enable UnusedVariable
                 }),
 
-                new RenderRec(typeof(AnyUiFrameworkElement), (wts) => typeof(View), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiFrameworkElement), (wts, cntl) => typeof(View), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiFrameworkElement cntl && b is View maui
                         && mode == AnyUiRenderMode.All)
@@ -248,7 +248,7 @@ namespace MauiTestTree
 
                 // Do the  render record (basetype initialization) for AnyUiControl, even if there is no
                 // directly equivalent on MAUI side
-                new RenderRec(typeof(AnyUiControl), (wts) => typeof(View), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiControl), (wts, cntl) => typeof(View), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiControl cntl && b is View wpf
                        && mode == AnyUiRenderMode.All)
@@ -268,7 +268,7 @@ namespace MauiTestTree
 
                 // Do the  render record (basetype initialization) for AnyUiControl, even if there is no
                 // directly equivalent on MAUI side
-                new RenderRec(typeof(AnyUiContentControl), (wts) => typeof(View), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiContentControl), (wts, cntl) => typeof(View), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiContentControl && b is View
                        && mode == AnyUiRenderMode.All)
@@ -278,7 +278,7 @@ namespace MauiTestTree
 
                 // Do the  render record (basetype initialization) for AnyUiControl, even if there is no
                 // directly equivalent on MAUI side
-                new RenderRec(typeof(AnyUiDecorator), (wts) => typeof(ContentView), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiDecorator), (wts, cntl) => typeof(ContentView), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiDecorator cntl && b is ContentView maui
                         && mode == AnyUiRenderMode.All)
@@ -288,7 +288,7 @@ namespace MauiTestTree
                     }
                 }),
 
-                new RenderRec(typeof(AnyUiViewbox), (wts) => typeof(Viewbox), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiViewbox), (wts, cntl) => typeof(Viewbox), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiViewbox cntl && b is Viewbox maui
                        && mode == AnyUiRenderMode.All)
@@ -299,7 +299,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiPanel), (wts) => typeof(Layout), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiPanel), (wts, cntl) => typeof(Layout), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiPanel cntl && b is Layout maui)
                    {
@@ -338,7 +338,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiGrid), (wts) => typeof(Grid), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiGrid), (wts, cntl) => typeof(Grid), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiGrid cntl && b is Grid maui
                        && mode == AnyUiRenderMode.All)
@@ -393,7 +393,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiStackPanel), (wts) => typeof(VerticalStackLayout),
+                new RenderRec(typeof(AnyUiStackPanel), (wts, cntl) => typeof(VerticalStackLayout),
                 (anyelem) => (anyelem is AnyUiStackPanel cntl
                               && (cntl.Orientation == null || cntl.Orientation == AnyUiOrientation.Vertical)) ? 1 : 0,
                 (a, b, mode, rd) =>
@@ -408,7 +408,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiStackPanel), (wts) => typeof(HorizontalStackLayout),
+                new RenderRec(typeof(AnyUiStackPanel), (wts, cntl) => typeof(HorizontalStackLayout),
                 (anyelem) => (anyelem is AnyUiStackPanel cntl && cntl.Orientation == AnyUiOrientation.Horizontal) ? 1 : 0,
                 (a, b, mode, rd) =>
                 {
@@ -422,7 +422,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiWrapPanel), (wts) => typeof(FlexLayout), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiWrapPanel), (wts, cntl) => typeof(FlexLayout), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiWrapPanel cntl && b is FlexLayout maui
                        && mode == AnyUiRenderMode.All)
@@ -440,7 +440,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiShape), (wts) => typeof(Shape), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiShape), (wts, cntl) => typeof(Shape), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiShape cntl && b is Shape maui
                         && mode == AnyUiRenderMode.All)
@@ -455,7 +455,7 @@ namespace MauiTestTree
                     }
                 }),
 
-                new RenderRec(typeof(AnyUiRectangle), (wts) => typeof(Rectangle), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiRectangle), (wts, cntl) => typeof(Rectangle), null, (a, b, mode, rd) =>
                 {
                     // ReSharper disable UnusedVariable
                     if (a is AnyUiRectangle cntl && b is Rectangle maui
@@ -465,7 +465,7 @@ namespace MauiTestTree
                     // ReSharper enable UnusedVariable
                 }),
 
-                new RenderRec(typeof(AnyUiEllipse), (wts) => typeof(Ellipse), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiEllipse), (wts, cntl) => typeof(Ellipse), null, (a, b, mode, rd) =>
                 {
                     // ReSharper disable UnusedVariable
                     if (a is AnyUiEllipse cntl && b is Ellipse maui
@@ -475,7 +475,7 @@ namespace MauiTestTree
                     // ReSharper enable UnusedVariable
                 }),
 
-                new RenderRec(typeof(AnyUiPolygon), (wts) => typeof(Polygon), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiPolygon), (wts, cntl) => typeof(Polygon), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiPolygon cntl && b is Polygon maui
                         && (mode == AnyUiRenderMode.All || mode == AnyUiRenderMode.StatusToUi))
@@ -487,7 +487,7 @@ namespace MauiTestTree
                     }
                 }),
 
-                new RenderRec(typeof(AnyUiCanvas), (wts) => typeof(AbsoluteLayout), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiCanvas), (wts, cntl) => typeof(AbsoluteLayout), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiCanvas cntl && b is AbsoluteLayout maui)
                    {
@@ -538,7 +538,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiScrollViewer), (wts) => typeof(ScrollView), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiScrollViewer), (wts, cntl) => typeof(ScrollView), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiScrollViewer cntl && b is ScrollView maui
                        && mode == AnyUiRenderMode.All)
@@ -574,7 +574,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiBorder), (wts) => typeof(Border), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiBorder), (wts, cntl) => typeof(Border), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiBorder cntl && b is Border maui)
                     {
@@ -680,7 +680,7 @@ namespace MauiTestTree
                     }
                 }),
 
-                new RenderRec(typeof(AnyUiLabel), (wts) => typeof(Label), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiLabel), (wts, cntl) => typeof(Label), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiLabel cntl && b is Label maui)
                     {
@@ -720,7 +720,7 @@ namespace MauiTestTree
                     }
                 }),
 
-                new RenderRec(typeof(AnyUiTextBlock), (wts) => typeof(Label), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiTextBlock), (wts, cntl) => typeof(Label), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiTextBlock cntl && b is Label maui)
                    {
@@ -761,7 +761,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiSelectableTextBlock), (wts) => typeof(Label), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiSelectableTextBlock), (wts, cntl) => typeof(Label), null, (a, b, mode, rd) =>
                 {
                    // TODO IMPORTANT: For now, only NON-SELECTABLE LABEL, change!!
                    if (a is AnyUiTextBlock cntl && b is Label maui)
@@ -803,7 +803,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiHintBubble), (wts) => typeof(Label), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiHintBubble), (wts, cntl) => typeof(Label), null, (a, b, mode, rd) =>
                 {
                    // TODO IMPORTANT: For now, only LABEL, change!!
                    if (a is AnyUiHintBubble cntl && b is Label maui)
@@ -841,7 +841,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiImage), (wts) => typeof(Image), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiImage), (wts, cntl) => typeof(Image), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiImage cntl && b is Image maui)
                    {
@@ -902,7 +902,7 @@ namespace MauiTestTree
                    }
                 }),
 
-                new RenderRec(typeof(AnyUiCountryFlag), (wts) => typeof(Image), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiCountryFlag), (wts, cntl) => typeof(Image), null, (a, b, mode, rd) =>
                 {
                    if (a is AnyUiCountryFlag cntl && b is Image maui)
                    {
@@ -938,7 +938,15 @@ namespace MauiTestTree
 
                 // TextBox -> Entry for SINGLE LINE
                 new RenderRec(typeof(AnyUiTextBox),
-                (wts) => (wts == RenderWidgetToolSet.Transparent) ? typeof(TransparentEntry) : typeof(/* Entry Border*/ AbsoluteLayout),
+                (wts, cntl) => {
+                    if (wts == RenderWidgetToolSet.Transparent)
+                        return typeof(TransparentEntry);
+
+                    if (cntl is AnyUiTextBox tb && tb.BorderRadius.HasValue)
+                        return typeof(AbsoluteLayout);
+                    else
+                        return typeof(Entry /* Border */);
+                },
                 (anyElem) => (anyElem is AnyUiTextBox tb && tb.MultiLine == false) ? 1 : 0,
                 (a, b, mode, rd) =>
                 {
@@ -975,7 +983,7 @@ namespace MauiTestTree
                 }),
 
                 // TextBox -> Editor for MULTI LINE
-                new RenderRec(typeof(AnyUiTextBox), (wts) => typeof(Editor),
+                new RenderRec(typeof(AnyUiTextBox), (wts, cntl) => typeof(Editor),
                 (anyElem) => (anyElem is AnyUiTextBox tb && tb.MultiLine == true) ? 1 : 0,
                 (a, b, mode, rd) =>
                 {
@@ -1058,7 +1066,7 @@ namespace MauiTestTree
                 }),
 
                 new RenderRec(typeof(AnyUiComboBox),
-                (wts) => (wts == RenderWidgetToolSet.Transparent) ? typeof(TransparentPicker) : typeof(/*Picker*/ Border),
+                (wts, cntl) => (wts == RenderWidgetToolSet.Transparent) ? typeof(TransparentPicker) : typeof(/*Picker*/ Border),
                 null, (a, b, mode, rd) =>
                 {
                     // members
@@ -1121,7 +1129,7 @@ namespace MauiTestTree
                     }
                 }),
 
-                new RenderRec(typeof(AnyUiCheckBox), (wts) => typeof(LabelledCheckBox), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiCheckBox), (wts, cntl) => typeof(LabelledCheckBox), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiCheckBox cntl && b is LabelledCheckBox maui
                         && mode == AnyUiRenderMode.All)
@@ -1185,7 +1193,7 @@ namespace MauiTestTree
                     }
                 }),
 
-                new RenderRec(typeof(AnyUiButton), (wts) => typeof(/* Button */ Border), null, (a, b, mode, rd) =>
+                new RenderRec(typeof(AnyUiButton), (wts, cntl) => typeof(/* Button */ Border), null, (a, b, mode, rd) =>
                 {
                     if (a is AnyUiButton cntl && b is /* Button */ Border maui
                         && mode == AnyUiRenderMode.All)
@@ -1734,7 +1742,7 @@ namespace MauiTestTree
 
                 // visual focus
                 var normalStrokeColor = cntl.BorderColor?.Color ?? new AnyUiColor(0xffd8d8d8);
-                SetPointerOverEffect(maui,
+                SetPointerOverEffect(border,
                     new Setter {
                         Property = Border.StrokeProperty,
                         Value = GetMauiColor(normalStrokeColor)

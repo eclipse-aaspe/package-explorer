@@ -129,7 +129,7 @@ namespace AasxPackageLogic
             DispEditInjectAction injectToIdShort = null,
             bool hideExtensions = false,
             AasxMenu superMenu = null,
-            KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
         {
             // access
             if (stack == null || referable == null)
@@ -183,7 +183,7 @@ namespace AasxPackageLogic
             
             AddKeyValue(
                 stack, "idShort", referable.IdShort, null, repo,
-                textBoxStyle: LayoutHints.StyleEntryFor(keyLabel),
+                textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
                 plateLabelText: "idShort",
                 containingObject: referable,
                 setValueAsync: async (v) =>
@@ -323,7 +323,8 @@ namespace AasxPackageLogic
                     buttonOverStyleHi: LayoutHints.StyleButtonAction,
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
-                    buttonPreferenceHi: AnyUiButtonPreference.Both);
+                    buttonPreferenceHi: AnyUiButtonPreference.Both,
+                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling));
             }
 
             if (!hideExtensions)
@@ -497,7 +498,8 @@ namespace AasxPackageLogic
             Aas.IEnvironment env,
             Aas.IIdentifiable identifiable,
             string templateForIdString,
-            DispEditInjectAction injectToId = null)
+            DispEditInjectAction injectToId = null,
+            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
         {
             // access
             if (stack == null || identifiable == null)
@@ -555,6 +557,7 @@ namespace AasxPackageLogic
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange(), diaryReference: dr);
                         return new AnyUiLambdaActionNone();
                     },
+                    plateLabelText: "id:",
                     containingObject: identifiable,
                     topContextMenu: false,
                     keyVertCenter: true,
@@ -565,6 +568,7 @@ namespace AasxPackageLogic
                                     LayoutHints.ButtonPrefMediumClear)
                                 .Merge(injectToId?.GetButtonHeaders()),
                     buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(preference: LayoutHints.ButtonPrefLowClear),
+                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
                     auxButtonLambdaAsync: async (i) =>
                     {
                         if (i == 0)
@@ -643,10 +647,13 @@ namespace AasxPackageLogic
                         return new AnyUiLambdaActionNone();
                     });
 
-                AddKeyValueExRef(
-                    stack, "version", identifiable.Administration, identifiable.Administration.Version,
+                AddKeyValue(
+                    stack, "version", identifiable.Administration.Version,
                     null, repo,
-                    async (v) =>
+                    plateLabelText: "version:",
+                    containingObject: identifiable.Administration,
+                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
+                    setValueAsync: async (v) =>
                     {
                         await Task.Yield();
                         identifiable.Administration.Version = v as string;
@@ -655,10 +662,13 @@ namespace AasxPackageLogic
                     },
                     keyVertCenter: true);
 
-                AddKeyValueExRef(
-                    stack, "revision", identifiable.Administration, identifiable.Administration.Revision,
+                AddKeyValue(
+                    stack, "revision", identifiable.Administration.Revision,
                     null, repo,
-                    async (v) =>
+                    plateLabelText: "revision:",
+                    containingObject: identifiable.Administration,
+                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
+                    setValueAsync: async (v) =>
                     {
                         await Task.Yield();
                         identifiable.Administration.Revision = v as string;
@@ -692,6 +702,7 @@ namespace AasxPackageLogic
                         buttonOverStyleHi: LayoutHints.StyleButtonAction,
                         buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                         buttonPreferenceLo: AnyUiButtonPreference.Image,
+                        textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
                         auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
                             new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete creator"),
                         }),
@@ -708,10 +719,13 @@ namespace AasxPackageLogic
                         emitCustomEvent: (rf) => { this.AddDiaryEntry(rf, new DiaryEntryUpdateValue()); });
                 }
 
-                AddKeyValueExRef(
-                    stack, "templateId", identifiable.Administration, identifiable.Administration.TemplateId,
+                AddKeyValue(
+                    stack, "templateId", identifiable.Administration.TemplateId,
                     null, repo,
-                    async (v) =>
+                    plateLabelText: "templateId:",
+                    containingObject: identifiable.Administration,
+                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
+                    setValueAsync: async (v) =>
                     {
                         await Task.Yield();
                         identifiable.Administration.TemplateId = v as string;
@@ -911,7 +925,7 @@ namespace AasxPackageLogic
             Aas.IReferable relatedReferable = null,
             AasxMenu superMenu = null,
             bool suppressNoEdsWarning = false,
-            KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
         {
             // access
             if (stack == null)
@@ -944,7 +958,7 @@ namespace AasxPackageLogic
                 // let the user control the number of references
 
                 AddKeyButtons(stack, "Known extension:",
-                    keyLabel: keyLabel,
+                    keyHandling: keyHandling,
                     buttons: GenerateActionButton(
                         new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Manage data specifications",
                                 "Manage records of data specification references and content", 
@@ -1320,7 +1334,9 @@ namespace AasxPackageLogic
             bool checkForCD = false,
             string addExistingEntities = null,
             CopyPasteBuffer cpb = null,
-            Aas.IReferable relatedReferable = null)
+            AasxMenu superMenu = null,
+            Aas.IReferable relatedReferable = null,
+            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
         {
             // access
             if (stack == null || semElem == null)
@@ -1391,6 +1407,7 @@ namespace AasxPackageLogic
                     buttonOverStyleHi: LayoutHints.StyleButtonAction,
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
+                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
                     auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
                         new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete semanticId"),
                     }),
@@ -1443,9 +1460,16 @@ namespace AasxPackageLogic
                     // let the user control the number of references
                     this.AddActionPanel(
                         stack, "supplementalSem.Id:",
-                        new[] { "Add", "Delete last" }, repo,
+                        repo: repo,
+                        superMenu: superMenu,
+                        ticketMenu: new AasxMenu()
+                            .AddAction("add-suppl", "Add", icon: IconPool.Add, help: "Add supplemantalSemanticId")
+                            .AddAction("delete-last-suppl", "Delete last",
+                                icon: IconPool.Delete, help: "Delete last supplemantalSemanticId"),
+                        buttonOverStyle: LayoutHints.StyleButtonAction,
                         actionAsync: async (buttonNdx) =>
                         {
+                            await Task.Yield();
                             if (buttonNdx == 0)
                                 semElem.SupplementalSemanticIds.Add(Options.Curr.GetDefaultEmptyReference());
 
@@ -1497,6 +1521,10 @@ namespace AasxPackageLogic
                                 return new AnyUiLambdaActionNavigateTo(new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>(kl)));
                             },
                             relatedReferable: relatedReferable,
+                            buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                            buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                            buttonPreferenceLo: AnyUiButtonPreference.Image,
+                            textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
                             auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
                                 new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete supplementalSemanticId"),
                             }),

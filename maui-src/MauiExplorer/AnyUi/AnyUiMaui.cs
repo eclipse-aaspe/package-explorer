@@ -526,7 +526,9 @@ namespace MauiTestTree
 
             // create MauiElement accordingly?
             //// Note: excluded from condition: dd.WpfElement == null
-            var mauiType = foundRR.GetMauiType?.Invoke(renderDefaults?.WidgetToolSet == null ? RenderWidgetToolSet.Normal : renderDefaults.WidgetToolSet);
+            var mauiType = foundRR.GetMauiType?.Invoke(
+                    renderDefaults?.WidgetToolSet == null ? RenderWidgetToolSet.Normal : renderDefaults.WidgetToolSet,
+                    el);
             if (mauiType == null)
                 return null;
             if (topClass)

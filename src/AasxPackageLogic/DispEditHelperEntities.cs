@@ -2271,10 +2271,10 @@ namespace AasxPackageLogic
             bool editMode,
             AnyUiStackPanel stack, bool hintMode = false, bool checkSmt = false,
 			AasxMenu superMenu = null,
-            KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
         {
             // TEST
-            keyLabel = KeyLabelHandling.Integrated;
+            keyHandling = KeyLabelHandling.Integrated;
 
             // This panel renders first the SubmodelReference and then the Submodel, below
             if (smref != null)
@@ -2299,7 +2299,8 @@ namespace AasxPackageLogic
                     jumpLambda: lambda, relatedReferable: aas,
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonOverStyleHi: LayoutHints.StyleButtonAction,
-                    buttonPreferenceLo: AnyUiButtonPreference.Image);
+                    buttonPreferenceLo: AnyUiButtonPreference.Image,
+                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling));
             }
 
             // check, if Submodel is sitting in Repo
@@ -2344,7 +2345,7 @@ namespace AasxPackageLogic
                     smref, aas, "Reference:", sendUpdateEvent: evTemplate,
                     explicitParent: aas,
                     buttonOverStyle: LayoutHints.StyleButtonStandard,
-                    keyLabel: keyLabel,
+                    keyHandling: keyHandling,
                     postActionHookAsync: async (actionName, ticket) => {
                         await Task.Yield();
                         if (actionName == "aas-elem-delete")
@@ -2435,7 +2436,7 @@ namespace AasxPackageLogic
                     explicitParent: aas,
                     moveDoesNotModify: true,
                     buttonOverStyle: LayoutHints.StyleButtonStandard,
-                    keyLabel: keyLabel,
+                    keyHandling: keyHandling,
                     postActionHookAsync: async (actionName, ticket) => {
                         await Task.Yield();
                         if (actionName == "aas-elem-delete")
@@ -2495,7 +2496,7 @@ namespace AasxPackageLogic
                     aas.Submodels, smref, (sr) => { return new Aas.Reference(sr.Type, new List<Aas.IKey>(sr.Keys)); },
                     smref, submodel, superMenu: superMenu,
                     buttonOverStyle: LayoutHints.StyleButtonStandard,
-                    keyLabel: keyLabel,
+                    keyHandling: keyHandling,
                     label: "Buffer:",
                     checkEquality: (r1, r2) =>
                     {
@@ -2530,7 +2531,7 @@ namespace AasxPackageLogic
                     env.Submodels, submodel, (sm) => { return sm.Copy(); },
                     null, submodel, superMenu: superMenu,
                     buttonOverStyle: LayoutHints.StyleButtonStandard,
-                    keyLabel: keyLabel,
+                    keyHandling: keyHandling,
                     label: "Buffer:",
                     checkEquality: (s1, s2) =>
                     {
@@ -2924,7 +2925,7 @@ namespace AasxPackageLogic
 
                 // render action buttons
                 var wp = AddKeyButtons(stack, "Actions:",
-                        keyLabel: keyLabel,
+                        keyHandling: keyHandling,
                         buttons: actionsButtons.Select((c) => Set(c, margin: new AnyUiThickness(0,0,0,4))));
                 wp.Margin = new AnyUiThickness(0, 5, 0, 0);
                 wp.Padding = new AnyUiThickness(0, 0, 2, 0);
@@ -2961,7 +2962,7 @@ namespace AasxPackageLogic
                     parentContainer: null, referable: submodel, indexPosition: 0,
                     hideExtensions: true,
                     superMenu: superMenu,
-                    keyLabel: keyLabel);
+                    keyHandling: keyHandling);
 
                 // Identifiable
                 this.DisplayOrEditEntityIdentifiable(
@@ -2969,7 +2970,8 @@ namespace AasxPackageLogic
                     (submodel.Kind == Aas.ModellingKind.Template)
                         ? Options.Curr.TemplateIdSubmodelTemplate
                         : Options.Curr.TemplateIdSubmodelInstance,
-                    new DispEditHelperModules.DispEditInjectAction(
+                    keyHandling: keyHandling,
+                    injectToId: new DispEditHelperModules.DispEditInjectAction(
                         auxTitles: new[] { "Rename" },
                         auxIcons: new[] { IconPool.Rename },
                         auxLambda: null,
@@ -3076,7 +3078,8 @@ namespace AasxPackageLogic
                     "defining the semantics of the submodel (for example an PDF if a standard).",
                     addExistingEntities: Aas.KeyTypes.Referable + " " + Aas.KeyTypes.Submodel + " " +
                         Aas.KeyTypes.ConceptDescription,
-                    relatedReferable: submodel);
+                    relatedReferable: submodel,
+                    keyHandling: keyHandling);
 
                 // Qualifiable: qualifiers are MULTIPLE structures with possible references. 
                 // That is: multiple x multiple keys!
@@ -3262,10 +3265,10 @@ namespace AasxPackageLogic
             bool editMode, ModifyRepo repo,
             AnyUiStackPanel stack, bool embedded = false, bool hintMode = false, bool preventMove = false,
             AasxMenu superMenu = null,
-            KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
         {
             // TEST
-            keyLabel = KeyLabelHandling.No;
+            keyHandling = KeyLabelHandling.No;
 
             this.AddGroup(stack, "ConceptDescription", this.levelColors.MainSection);
 
@@ -3304,7 +3307,7 @@ namespace AasxPackageLogic
                     preventMove: preventMove,
                     superMenu: superMenu,
                     moveDoesNotModify: true,
-                    keyLabel: keyLabel,
+                    keyHandling: keyHandling,
                     buttonOverStyle: LayoutHints.StyleButtonStandard,
                     postActionHookAsync: async (actionName, ticket) =>
                     {
@@ -3357,7 +3360,7 @@ namespace AasxPackageLogic
                     label: "Buffer:", superMenu: superMenu,
                     embedded: embedded,
                     buttonOverStyle: LayoutHints.StyleButtonStandard,
-                    keyLabel: keyLabel);
+                    keyHandling: keyHandling);
             }
 
             DisplayOrEditEntitySideInfo(env, stack, cd, sideInfo, "ConceptDescription", superMenu);

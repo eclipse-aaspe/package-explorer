@@ -1355,7 +1355,8 @@ namespace AasxPackageLogic
             FirstColumnWidth? firstColumnWidth = null,
             AnyUiButtonOverStyle buttonOverStyleLo = null,
             AnyUiButtonOverStyle buttonOverStyleHi = null,
-            AnyUiButtonPreference buttonPreferenceLo = AnyUiButtonPreference.None)
+            AnyUiButtonPreference buttonPreferenceLo = AnyUiButtonPreference.None,
+            AnyUiTextBox textBoxStyle = null)
         {
             // default
             if (emitCustomEvent == null)
@@ -1506,6 +1507,7 @@ namespace AasxPackageLogic
                 buttonOverStyleLo: buttonOverStyleLo,
                 buttonOverStyleHi: buttonOverStyleHi,
                 buttonPreferenceLo: buttonPreferenceLo,
+                textBoxStyle: textBoxStyle,
                 emitCustomEvent: (o) =>
                 {
                     // use the custom event as event for fired when changed keys

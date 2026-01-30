@@ -1060,7 +1060,7 @@ namespace AasxPackageLogic
 			string[] addPresetNames = null, List<Aas.IKey>[] addPresetKeyLists = null,
 			Aas.IReferable relatedReferable = null,
 			AasxMenu superMenu = null,
-            KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
 		{
 			// access
 			if (stack == null)
@@ -1088,7 +1088,7 @@ namespace AasxPackageLogic
 			{
                 // let the user control the number of references
                 AddKeyButtons(stack, "Known extension:",
-                    keyLabel: keyLabel, 
+                    keyHandling: keyHandling, 
 					buttons: GenerateActionButton(
 						new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Known extensions",
 								"Handle Extensions with UI support for editing", AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),

@@ -370,13 +370,13 @@ namespace AasxPackageLogic
         /// </summary>
         public AnyUiWrapPanel AddKeyButtons(
             AnyUiStackPanel view, string key, IEnumerable<AnyUiControl> buttons,
-            KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
         {
             // access
             if (view == null || buttons == null)
                 return null;
 
-            if (keyLabel == KeyLabelHandling.Standard)
+            if (keyHandling == KeyLabelHandling.Standard)
             {
                 // Grid with two columns
                 var g = AddSmallGrid(1, 2, new[] { "#", "*" });
@@ -392,7 +392,7 @@ namespace AasxPackageLogic
                     panel.Add(b);
                 return panel;
             }
-            else if (keyLabel == KeyLabelHandling.Above)
+            else if (keyHandling == KeyLabelHandling.Above)
             {
                 throw new NotImplementedException("AddKeyButtons::KeyLabelHandling.Above");
             }
@@ -1054,7 +1054,7 @@ namespace AasxPackageLogic
 			FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard,
             AnyUiButtonOverStyle buttonOverStyle = null,
             bool useWrapFlexPanel = true,
-            KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
         {
             // generate actionStr from ticketMenu
             //if (actionStr == null && ticketMenu != null)
@@ -1107,7 +1107,7 @@ namespace AasxPackageLogic
             // 0 key
             var gc = new AnyUiColumnDefinition();
             gc.Width = AnyUiGridLength.Auto;
-            if (keyLabel == KeyLabelHandling.Standard)
+            if (keyHandling == KeyLabelHandling.Standard)
                 gc.MinWidth = GetWidth(firstColumnWidth);
             g.ColumnDefinitions.Add(gc);
 
@@ -1125,7 +1125,7 @@ namespace AasxPackageLogic
             g.RowDefinitions.Add(gr);
 
             // key label
-            if (keyLabel != KeyLabelHandling.No)
+            if (keyHandling != KeyLabelHandling.No)
             {
                 var x = AddSmallLabelTo(g, 0, 0, margin: new AnyUiThickness(5, 0, 0, 0),
                     setNoWrap: true,
@@ -1214,7 +1214,8 @@ namespace AasxPackageLogic
             AnyUiButtonOverStyle buttonOverStyleLo = null,
             AnyUiButtonOverStyle buttonOverStyleHi = null,
             AnyUiButtonPreference buttonPreferenceLo = AnyUiButtonPreference.None,
-            AnyUiButtonPreference buttonPreferenceHi = AnyUiButtonPreference.None) where T : IAbstractLangString
+            AnyUiButtonPreference buttonPreferenceHi = AnyUiButtonPreference.None,
+            AnyUiTextBox textBoxStyle = null) where T : IAbstractLangString
         {
             // sometimes needless to show
             if (repo == null && (langStr == null || langStr.Count < 1))
@@ -1350,6 +1351,7 @@ namespace AasxPackageLogic
                                 AnyUiContextCapability.Blazor, new AnyUiThickness(6, 2, 2, 2)),
                             verticalAlignment: AnyUiVerticalAlignment.Center,
                             verticalContentAlignment: AnyUiVerticalAlignment.Center,
+                            textBoxStyle: textBoxStyle,
                             text: "" + langStr[currentI].Text);
                         AnyUiUIElement.RegisterControl(
                             tbStr,
@@ -1749,7 +1751,8 @@ namespace AasxPackageLogic
             FirstColumnWidth? firstColumnWidth = null,
             AnyUiButtonOverStyle buttonOverStyleLo = null,
             AnyUiButtonOverStyle buttonOverStyleHi = null,
-            AnyUiButtonPreference buttonPreferenceLo = AnyUiButtonPreference.None)
+            AnyUiButtonPreference buttonPreferenceLo = AnyUiButtonPreference.None,
+            AnyUiTextBox textBoxStyle = null)
         {
             // sometimes needless to show
             if (repo == null && (keys == null || keys.Count < 1))
@@ -2234,7 +2237,8 @@ namespace AasxPackageLogic
                                 AnyUiContextCapability.Blazor, new AnyUiThickness(6, 1, 2, 1)),
                             text: "" + keys[currentI].Value,
                             verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center,
+                            textBoxStyle: textBoxStyle);
                         AnyUiUIElement.RegisterControl(
                             tbValue,
                             async (o) =>
@@ -2658,7 +2662,7 @@ namespace AasxPackageLogic
             Func<int, Task<AnyUiLambdaActionBase>> lambdaExtraMenuAsync = null,
             bool moveDoesNotModify = false,
             AnyUiButtonOverStyle buttonOverStyle = null,
-            KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
         {
             if (nextFocus == null)
                 nextFocus = entity;
@@ -2700,7 +2704,7 @@ namespace AasxPackageLogic
                 repo: repo,
                 superMenu: superMenu,
                 ticketMenu: theMenu,
-                keyLabel: keyLabel,
+                keyHandling: keyHandling,
                 useWrapFlexPanel: false,
                 buttonOverStyle: (buttonOverStyle ?? LayoutHints.StyleButtonAction).Modify(
                                     preference: AnyUiButtonPreference.Image),
