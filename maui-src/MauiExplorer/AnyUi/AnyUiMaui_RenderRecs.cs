@@ -1666,9 +1666,17 @@ namespace MauiTestTree
                 absLayout.SetLayoutBounds(border, new Rect(0, 0, 1, 1));
                 absLayout.SetLayoutFlags(border, AbsoluteLayoutFlags.All);
                 border.HorizontalOptions = LayoutOptions.Fill;
-                border.StrokeShape = new RoundRectangle() { CornerRadius = cntl.BorderRadius ?? 0 };
                 border.Padding = GetMauiTickness(cntl.BorderPadding);
-                
+                border.StrokeShape = new RoundRectangle() { CornerRadius = cntl.BorderRadius ?? 0 };
+                //if (cntl.BorderColor != null)
+                //    border.Stroke = GetMauiColor(cntl.BorderColor.Color);
+                if (cntl.BorderWidth != null)
+                    border.StrokeThickness = cntl.BorderWidth.Value;
+                if (cntl.Background != null)
+                    border.Background = GetMauiBrush(cntl.Background);
+                if (cntl.BorderPadding != null)
+                    border.Padding = GetMauiTickness(cntl.BorderPadding);
+
                 // for the entry, set many attributes to visually neutral
                 absLayout.SetLayoutBounds(entry, new Rect(0, 0, 1, 1));
                 absLayout.SetLayoutFlags(entry, AbsoluteLayoutFlags.All);
@@ -1716,15 +1724,6 @@ namespace MauiTestTree
                     if (cntl.PlateLabel.Background != null)
                         plateLabel.BackgroundColor = GetMauiColor(cntl.PlateLabel.Background?.Color);
                 }
-
-                //if (cntl.BorderColor != null)
-                //    border.Stroke = GetMauiColor(cntl.BorderColor.Color);
-                if (cntl.BorderWidth != null)
-                    border.StrokeThickness = cntl.BorderWidth.Value;
-                if (cntl.Background != null)
-                    border.Background = GetMauiBrush(cntl.Background);
-                if (cntl.BorderPadding != null)
-                    border.Padding = GetMauiTickness(cntl.BorderPadding);
 
                 // callbacks
                 cntl.originalValue = "" + cntl.Text;
@@ -2002,6 +2001,180 @@ namespace MauiTestTree
         /// <summary>
         /// ComboBox -> Border with Picker inside
         /// </summary>
+        protected void RenderRecInit_AnyUiComboBox_MauiAbsoluteBorder(
+            AnyUiComboBox cntl,
+            AbsoluteLayout maui,
+            AnyUiRenderMode mode,
+            RenderDefaults? rd)
+        {
+            if (mode == AnyUiRenderMode.All)
+            {
+                // allow clear names
+                var absLayout = maui;
+                var border = new Border();
+                var picker = new Picker();
+                absLayout.Add(border);
+                border.Content = picker;
+
+                // set absolute layout
+                absLayout.HeightRequest = rd?.ControlSizeBordered ?? -1;
+                absLayout.HorizontalOptions = LayoutOptions.Fill;
+                // absLayout.Background = Brush.LightBlue;
+
+                // ok, border is the wrapping control
+                absLayout.SetLayoutBounds(border, new Rect(0, 0, 1, 1));
+                absLayout.SetLayoutFlags(border, AbsoluteLayoutFlags.All);
+                border.HorizontalOptions = LayoutOptions.Fill;
+                border.VerticalOptions = LayoutOptions.Center;
+                border.Margin = new Thickness(0);
+                border.Padding = GetMauiTickness(cntl.BorderPadding);
+                border.StrokeShape = new RoundRectangle() { CornerRadius = cntl.BorderRadius ?? 0 };
+                border.HeightRequest = rd?.ControlSizeBordered ?? -1;
+                if (cntl.BorderColor != null)
+                    border.Stroke = GetMauiColor(cntl.BorderColor.Color);
+                if (cntl.BorderWidth != null)
+                    border.StrokeThickness = cntl.BorderWidth.Value;
+                if (cntl.Background != null)
+                    border.Background = GetMauiBrush(cntl.Background);
+
+                // for the picker, set many attributes to visually neutral
+                picker.BackgroundColor = Colors.Transparent;
+                picker.HeightRequest = -1; // lets the parent control sizing
+                picker.HorizontalOptions = LayoutOptions.Fill;
+                picker.VerticalOptions = LayoutOptions.Center;
+                picker.VerticalTextAlignment = TextAlignment.Center;
+                if (cntl.VerticalContentAlignment.HasValue)
+                    picker.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
+                if (cntl.HorizontalContentAlignment.HasValue)
+                    picker.HorizontalTextAlignment = GetTextAlignment(cntl.HorizontalContentAlignment.Value);
+                picker.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
+                if (rd?.ForegroundControl != null)
+                    picker.TextColor = GetMauiColor(rd.ForegroundControl.Color);
+                if (cntl.Foreground != null)
+                    picker.TextColor = GetMauiColor(cntl.Foreground?.Color);
+                if (cntl.FontMono)
+                    picker.FontFamily = "Consolas";
+                if (cntl.FontWeight.HasValue)
+                    picker.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);
+
+                // TODO
+                // picker.Text = cntl.Text;
+
+#if TODO_IMPORTANT
+                if (cntl.IsEditable.HasValue)
+                    maui.IsEditable = cntl.IsEditable.Value;
+#endif
+
+                if (cntl.Items != null)
+                {
+                    foreach (var i in cntl.Items)
+                        picker.Items.Add(i?.ToString());
+                }
+
+#if TODO_IMPORTANT
+                maui.Text = cntl.Text;
+#endif
+
+                if (cntl.Text != null && cntl.Text.Length > 0 && !cntl.SelectedIndex.HasValue
+                    && cntl.Items != null)
+                {
+                    // use the existing text to set the combo box value via SelectedIndex
+                    int ndx = -1;
+                    for (int i = 0; i < cntl.Items.Count; i++)
+                        if (cntl.Text.Trim().Equals(cntl.Items[i].ToString()?.Trim(),
+                            StringComparison.InvariantCultureIgnoreCase))
+                            ndx = i;
+                    if (ndx >= 0)
+                        cntl.SelectedIndex = ndx;
+                }
+
+                if (cntl.SelectedIndex.HasValue)
+                    picker.SelectedIndex = cntl.SelectedIndex.Value;
+
+                // for the entry, set many attributes to visually neutral
+                Label? plateLabel = null;
+                if (rd != null && cntl.PlateLabel?.Text?.HasContent() == true)
+                {
+                    plateLabel = new();
+                    absLayout.Add(plateLabel);
+                    absLayout.SetLayoutBounds(plateLabel, new Rect(0, 0, 1, 1));
+                    absLayout.SetLayoutFlags(plateLabel, AbsoluteLayoutFlags.All);
+                    plateLabel.HeightRequest = -1; // lets the parent control sizing
+                    plateLabel.HorizontalOptions = LayoutOptions.Start;
+                    plateLabel.VerticalOptions = LayoutOptions.Start;
+                    plateLabel.VerticalTextAlignment = TextAlignment.Start;
+                    plateLabel.Margin = GetMauiTickness(cntl.PlateLabel.Margin);
+                    plateLabel.Padding = GetMauiTickness(cntl.PlateLabel.Padding);
+                    plateLabel.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize, cntl.PlateLabel.FontSizeRel);
+                    plateLabel.Text = cntl.PlateLabel.Text;
+                    if (cntl.PlateLabel.Foreground != null)
+                        plateLabel.TextColor = GetMauiColor(cntl.PlateLabel.Foreground?.Color);
+                    if (cntl.PlateLabel.Background != null)
+                        plateLabel.BackgroundColor = GetMauiColor(cntl.PlateLabel.Background?.Color);
+                }
+
+                // callbacks
+                cntl.originalValue = "" + cntl.Text;
+                // TODO!!
+                if (true || cntl.IsEditable != true)
+                {
+                    // we need this event
+                    picker.SelectedIndexChanged += async (s, e) =>
+                    {
+                        // state
+                        cntl.SelectedIndex = picker.SelectedIndex;
+                        cntl.Text = picker.SelectedItem as string;
+
+                        // the value event
+                        if (cntl.setValueAsyncLambda != null)
+                            EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke((string)picker.SelectedItem));
+
+                        // other events
+                        EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
+                        // Note for MIHO: this was the dangerous outside event loop!
+                        EmitOutsideAction(cntl.takeOverLambda);
+                    };
+                }
+                else
+                {
+#if TODO_IMPORTANT
+                    // if editable, add this for comfort
+                    maui.KeyUp += (sender, e) =>
+                    {
+                        if (e.Key == Key.Enter)
+                        {
+                            e.Handled = true;
+                            EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
+                            EmitOutsideAction(cntl.takeOverLambda);
+                        }
+                    };
+#endif
+                }
+
+                // visual focus
+                var normalStrokeColor = cntl.BorderColor?.Color ?? new AnyUiColor(0xffd8d8d8);
+                SetPointerOverEffect(maui,
+                    new Setter
+                    {
+                        Property = Border.StrokeProperty,
+                        Value = GetMauiColor(normalStrokeColor)
+                    },
+                    new Setter
+                    {
+                        Property = Border.StrokeProperty,
+                        Value = GetMauiColor(AnyUiColor.Overlay(normalStrokeColor, new AnyUiColor(0x40000000)))
+                    });
+
+            }
+
+            if (mode == AnyUiRenderMode.All || mode == AnyUiRenderMode.StatusToUi)
+            {
+            }
+        }
+
+        /// <summary>
+        /// ComboBox -> Border with Picker inside
+        /// </summary>
         protected void RenderRecInit_AnyUiComboBox_MauiBorder(
             AnyUiComboBox cntl,
             Border maui,
@@ -2046,7 +2219,7 @@ namespace MauiTestTree
                 border.Margin = new Thickness(0);
                 border.Padding = new Thickness(0, 0, 0, 0);
                 border.HeightRequest = rd?.ControlSizeBordered ?? -1;
-                border.StrokeShape = new RoundRectangle() { CornerRadius = 16 };
+                border.StrokeShape = new RoundRectangle() { CornerRadius = cntl.BorderRadius ?? 0 };
 
                 if (cntl.BorderColor != null)
                     border.Stroke = GetMauiColor(cntl.BorderColor.Color);

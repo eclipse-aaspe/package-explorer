@@ -1952,6 +1952,8 @@ namespace AnyUi
     {
         public AnyUiThickness Padding;
 
+        public AnyUiPlateLabelData PlateLabel;
+
         public bool? IsEditable;
 
         public List<object> Items = new List<object>();
@@ -1968,6 +1970,27 @@ namespace AnyUi
                 for (int i = 0; i < Items.Count; i++)
                     if (Items[i] as string == value)
                         SelectedIndex = i;
+        }
+
+        /// <summary>
+        /// If properties are set in <c>style</c> they will overwrite the ones
+        /// in this instance.
+        /// </summary>
+        public virtual new void ApplyAsStyle(AnyUiUIElement style)
+        {
+            // base?
+            base.ApplyAsStyle(style);
+
+            // this
+            if (style is AnyUiComboBox s)
+            {
+                if (s.Padding != null)
+                    Padding = s.Padding;
+                if (s.PlateLabel != null)
+                    PlateLabel = s.PlateLabel.Copy();
+                if (s.IsEditable != null)
+                    IsEditable = s.IsEditable.Value;
+            }
         }
     }
 
