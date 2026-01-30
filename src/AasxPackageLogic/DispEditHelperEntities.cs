@@ -2274,7 +2274,7 @@ namespace AasxPackageLogic
             KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
         {
             // TEST
-            keyHandling = KeyLabelHandling.Integrated;
+            keyHandling = KeyLabelHandling.LabelPlate;
 
             // This panel renders first the SubmodelReference and then the Submodel, below
             if (smref != null)

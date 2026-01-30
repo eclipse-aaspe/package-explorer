@@ -170,7 +170,7 @@ namespace AasxPackageLogic
         /// </summary>
         public AnyUiTextBox StyleEntryFor(DispEditHelperBasics.KeyLabelHandling klh)
         {
-            if (klh == DispEditHelperBasics.KeyLabelHandling.Integrated)
+            if (klh == DispEditHelperBasics.KeyLabelHandling.LabelPlate)
                 return StyleEntryPlateLabel;
             else
                 return StyleEntry;
@@ -210,7 +210,7 @@ namespace AasxPackageLogic
 
         public enum FirstColumnWidth { No, Standard, Small, Large }
 
-        public enum KeyLabelHandling { Standard, No, Above, Integrated }
+        public enum KeyLabelHandling { Standard, No, Above, LabelPlate }
 
         public const int valueFieldsMinWidth = 50;
 
@@ -1125,7 +1125,7 @@ namespace AasxPackageLogic
             g.RowDefinitions.Add(gr);
 
             // key label
-            if (keyHandling != KeyLabelHandling.No)
+            if (keyHandling == KeyLabelHandling.Standard)
             {
                 var x = AddSmallLabelTo(g, 0, 0, margin: new AnyUiThickness(5, 0, 0, 0),
                     setNoWrap: true,

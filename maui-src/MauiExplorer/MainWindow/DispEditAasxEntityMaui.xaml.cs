@@ -351,16 +351,17 @@ public partial class DispEditAasxEntityMaui : ContentView
         _helper.LayoutHints.ButtonPrefMediumClear = AnyUiButtonPreference.Image;
         _helper.LayoutHints.ButtonPrefLowClear = AnyUiButtonPreference.Both;
 
-        // Button Thin
+        // Button Standard
         _helper.LayoutHints.StyleButtonStandard.Style = new()
         {
             Background = new AnyUiBrush(0xfff8f8f8),
-            BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(
-                XamlHelpers.GetDynamicRessource("ThinCntlBorder", Colors.Blue)),
-            BorderWidth = 1.0,
+            BorderColor = AnyUiBrushes.Transparent /* AnyUiDisplayContextMaui.GetAnyUiBrush(
+                XamlHelpers.GetDynamicRessource("ThinCntlBorder", Colors.Blue)) */,
+            BorderWidth = 0.0,
+            BorderRadius = 8,
             Foreground = AnyUiBrushes.Black,
-            MinHeight = _renderDefaults.ControlSizeNormal,
-            MinWidth = _renderDefaults.ControlSizeNormal,
+            MinHeight = _renderDefaults.ControlSizeBordered,
+            MinWidth = _renderDefaults.ControlSizeBordered,
             HorizontalAlignment = AnyUiHorizontalAlignment.Center
         };
 
@@ -370,9 +371,23 @@ public partial class DispEditAasxEntityMaui : ContentView
             Background = AnyUiBrushes.White,
             BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(XamlHelpers.GetDynamicRessource("Primary", Colors.Blue)),
             BorderWidth = 1.0,
+            BorderRadius = 8,
             Foreground = AnyUiBrushes.Black,
-            MinHeight = _renderDefaults.ControlSizeNormal,
-            MinWidth = _renderDefaults.ControlSizeNormal,
+            MinHeight = _renderDefaults.ControlSizeBordered,
+            MinWidth = _renderDefaults.ControlSizeBordered,
+            HorizontalAlignment = AnyUiHorizontalAlignment.Center
+        };
+
+        // Button Hero
+        _helper.LayoutHints.StyleButtonHero.Style = new()
+        {
+            Background = AnyUiDisplayContextMaui.GetAnyUiBrush(XamlHelpers.GetDynamicRessource("Primary", Colors.Blue)),
+            BorderColor = AnyUiBrushes.Transparent,
+            BorderWidth = 0.0,
+            BorderRadius = 8,
+            Foreground = AnyUiBrushes.White,
+            MinHeight = _renderDefaults.ControlSizeBordered,
+            MinWidth = _renderDefaults.ControlSizeBordered,
             HorizontalAlignment = AnyUiHorizontalAlignment.Center
         };
 
@@ -380,14 +395,14 @@ public partial class DispEditAasxEntityMaui : ContentView
         _helper.LayoutHints.StyleEntry = new()
         {
             // enable outer Border
-            BorderRadius = 16,
-            BorderPadding = new AnyUiThickness(8,0,8,0),
+            BorderRadius = 8,
+            BorderPadding = new AnyUiThickness(0,-4,0,0),
             BorderColor = AnyUiBrushes.LightGray
         };
         _helper.LayoutHints.StyleEntryPlateLabel = new()
         {
             // enable outer Border
-            BorderRadius = 16,
+            BorderRadius = 8,
             BorderPadding = new AnyUiThickness(0,-4,0,0),
             BorderColor = AnyUiBrushes.LightGray,
             PlateLabel = new()

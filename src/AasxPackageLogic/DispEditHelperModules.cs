@@ -250,7 +250,12 @@ namespace AasxPackageLogic
                 this.AddKeyListLangStr<ILangStringNameType>(
                     stack, "displayName", referable.DisplayName,
                     repo, relatedReferable: referable,
-                    setNullList: () => referable.DisplayName = null);
+                    setNullList: () => referable.DisplayName = null,
+                    buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                    buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                    buttonPreferenceLo: AnyUiButtonPreference.Image,
+                    buttonPreferenceHi: AnyUiButtonPreference.Both,
+                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling));
             }
 
             // category deprecated
@@ -262,17 +267,18 @@ namespace AasxPackageLogic
 
             if (referable.Category?.HasContent() == true)
             {
-                AddKeyValueExRef(
-                        stack, "category", referable, referable.Category, null, repo,
-                        async (v) =>
+                AddKeyValue(
+                        stack, "category", referable.Category, null, repo,
+                        containingObject: referable,
+                        textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
+                        plateLabelText: "category",
+                        setValueAsync: async (v) =>
                         {
                             await Task.Yield();
                             referable.Category = v as string;
                             this.AddDiaryEntry(referable, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionNone();
                         }, isValueReadOnly: true);
-                //},
-                //comboBoxItems: new string[] { "CONSTANT", "PARAMETER", "VARIABLE" }, comboBoxIsEditable: true); 
             }
 
             this.AddHintBubble(
@@ -557,7 +563,7 @@ namespace AasxPackageLogic
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange(), diaryReference: dr);
                         return new AnyUiLambdaActionNone();
                     },
-                    plateLabelText: "id:",
+                    plateLabelText: "id",
                     containingObject: identifiable,
                     topContextMenu: false,
                     keyVertCenter: true,
@@ -650,7 +656,7 @@ namespace AasxPackageLogic
                 AddKeyValue(
                     stack, "version", identifiable.Administration.Version,
                     null, repo,
-                    plateLabelText: "version:",
+                    plateLabelText: "version",
                     containingObject: identifiable.Administration,
                     textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
                     setValueAsync: async (v) =>
@@ -665,7 +671,7 @@ namespace AasxPackageLogic
                 AddKeyValue(
                     stack, "revision", identifiable.Administration.Revision,
                     null, repo,
-                    plateLabelText: "revision:",
+                    plateLabelText: "revision",
                     containingObject: identifiable.Administration,
                     textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
                     setValueAsync: async (v) =>
@@ -722,7 +728,7 @@ namespace AasxPackageLogic
                 AddKeyValue(
                     stack, "templateId", identifiable.Administration.TemplateId,
                     null, repo,
-                    plateLabelText: "templateId:",
+                    plateLabelText: "templateId",
                     containingObject: identifiable.Administration,
                     textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
                     setValueAsync: async (v) =>

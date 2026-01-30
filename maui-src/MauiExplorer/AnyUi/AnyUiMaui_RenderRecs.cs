@@ -63,7 +63,12 @@ namespace MauiTestTree
             /// <summary>
             /// Height of a normal Entry field on the specific platform
             /// </summary>
-            public double ControlSizeNormal = 46;
+            public double ControlSizeMauiStandard = 46;
+
+            /// <summary>
+            /// Height of an Entry field with height-limited Border
+            /// </summary>
+            public double ControlSizeBordered = 36;
 
             /// <summary>
             /// Relative font size (to make fonts relatively larger/ smaller) to the 
@@ -1314,7 +1319,7 @@ namespace MauiTestTree
                         maui.Content = hsl;
 
                         // maui.MinimumWidthRequest = 100;
-                        maui.StrokeShape = new RoundRectangle() { CornerRadius = 4 };
+                        maui.StrokeShape = new RoundRectangle() { CornerRadius = cntl.BorderRadius ?? 4 };
 
                         if (cntl.BorderColor != null)
                             maui.Stroke = GetMauiColor(cntl.BorderColor.Color);
@@ -1332,7 +1337,7 @@ namespace MauiTestTree
                                 if (reso != null)
                                         feText = new Label
                                         {
-                                            Background = Brush.LightBlue,
+                                            // Background = Brush.LightBlue,
                                             FontFamily = reso.FontAlias,
                                             Text = isf.IconGlyph,
                                             FontSize = isf.FontSize ?? 20,
@@ -1347,7 +1352,7 @@ namespace MauiTestTree
                             var lab = new Label
                             {
                                 Text = cntl.Content,
-                                Background = Brush.MistyRose,
+                                // Background = Brush.MistyRose,
                                 VerticalTextAlignment = TextAlignment.Center,
                                 HorizontalTextAlignment = TextAlignment.Center,
                                 HorizontalOptions = LayoutOptions.Center
@@ -1653,7 +1658,7 @@ namespace MauiTestTree
                 border.Content = entry;
 
                 // set absolute layout
-                absLayout.HeightRequest = 36;
+                absLayout.HeightRequest = rd?.ControlSizeBordered ?? -1;
                 absLayout.HorizontalOptions = LayoutOptions.Fill;
                 // absLayout.Background = Brush.LightBlue;
 
@@ -1801,7 +1806,7 @@ namespace MauiTestTree
 
                 // ok, border is the wrapping control
                 border.Padding = new Thickness(0, -4, 0, 0);
-                border.HeightRequest = 36;
+                border.HeightRequest = rd?.ControlSizeBordered ?? -1;
                 border.StrokeShape = new RoundRectangle() { CornerRadius = 16 };
 
                 //if (cntl.BorderColor != null)
@@ -2040,7 +2045,7 @@ namespace MauiTestTree
                 border.VerticalOptions = LayoutOptions.Center;
                 border.Margin = new Thickness(0);
                 border.Padding = new Thickness(0, 0, 0, 0);
-                border.HeightRequest = 36;
+                border.HeightRequest = rd?.ControlSizeBordered ?? -1;
                 border.StrokeShape = new RoundRectangle() { CornerRadius = 16 };
 
                 if (cntl.BorderColor != null)
