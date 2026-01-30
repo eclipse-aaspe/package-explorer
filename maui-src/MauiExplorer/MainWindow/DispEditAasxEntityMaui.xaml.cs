@@ -376,6 +376,30 @@ public partial class DispEditAasxEntityMaui : ContentView
             HorizontalAlignment = AnyUiHorizontalAlignment.Center
         };
 
+        // Text Boxes
+        _helper.LayoutHints.StyleEntry = new()
+        {
+            // enable outer Border
+            BorderRadius = 16,
+            BorderPadding = new AnyUiThickness(8,0,8,0),
+            BorderColor = AnyUiBrushes.LightGray
+        };
+        _helper.LayoutHints.StyleEntryPlateLabel = new()
+        {
+            // enable outer Border
+            BorderRadius = 16,
+            BorderPadding = new AnyUiThickness(0,-4,0,0),
+            BorderColor = AnyUiBrushes.LightGray,
+            PlateLabel = new()
+            {
+                Margin = new AnyUiThickness(10, -5, 0, 0),
+                Padding = new AnyUiThickness(3,0,3,0),
+                Background = AnyUiBrushes.White,
+                Foreground = AnyUiBrushes.DarkGray
+            }
+        };
+
+
         // for icon resolution
         displayContext.LambdaResolveImageSourceFont = ResolveImageSourceFont;
 

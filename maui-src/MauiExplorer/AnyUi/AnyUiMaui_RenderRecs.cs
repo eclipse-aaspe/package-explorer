@@ -938,28 +938,21 @@ namespace MauiTestTree
 
                 // TextBox -> Entry for SINGLE LINE
                 new RenderRec(typeof(AnyUiTextBox),
-                (wts) => (wts == RenderWidgetToolSet.Transparent) ? typeof(TransparentEntry) : typeof(/* Entry*/ Border),
+                (wts) => (wts == RenderWidgetToolSet.Transparent) ? typeof(TransparentEntry) : typeof(/* Entry Border*/ AbsoluteLayout),
                 (anyElem) => (anyElem is AnyUiTextBox tb && tb.MultiLine == false) ? 1 : 0,
                 (a, b, mode, rd) =>
                 {
                     // TODO: Border in outside control!!
 
-                    // protect names
-                        if (a is AnyUiTextBox cntl1 && b is Border maui1)
-                            RenderRecInit_AnyUiTextBox_MauiBorder(cntl1, maui1, mode, rd);
+                    if (a is AnyUiTextBox cntl1 && b is Border maui1)
+                        RenderRecInit_AnyUiTextBox_MauiBorder(cntl1, maui1, mode, rd);
 
-                        if (a is AnyUiTextBox cntl2 && b is Entry maui2)
-                            RenderRecInit_AnyUiTextBox_MauiEntry(cntl2, maui2, mode, rd);
+                    if (a is AnyUiTextBox cntl2 && b is Entry maui2)
+                        RenderRecInit_AnyUiTextBox_MauiEntry(cntl2, maui2, mode, rd);
+                        
+                    if (a is AnyUiTextBox cntl3 && b is AbsoluteLayout maui3)
+                            RenderRecInit_AnyUiTextBox_MauiAbsoluteBorder(cntl3, maui3, mode, rd);
 
-                    // protect names
-                    {
-                        //
-                        // TransparentEntry -> used in modal dialogs .. plenty of screen real estate
-                        //
-                        if (a is AnyUiTextBox cntl && b is TransparentEntry maui)
-                        {
-                        }
-                    }
                 }, highlightLambda: (a,b,highlighted) => {
                     // TODO: Border in outside control!!
 #if TODO_IMPORTANT
@@ -1634,6 +1627,133 @@ namespace MauiTestTree
         #region TextBox ..
 
         /// <summary>
+        /// TextBox -> AbsoluteLayout
+        /// </summary>
+        protected void RenderRecInit_AnyUiTextBox_MauiAbsoluteBorder(
+            AnyUiTextBox cntl,
+            Microsoft.Maui.Controls.AbsoluteLayout maui,
+            AnyUiRenderMode mode,
+            RenderDefaults? rd)
+        {
+            if (mode == AnyUiRenderMode.All)
+            {
+                // allow clear names
+                var absLayout = maui;
+                var border = new Border();
+                var entry = new Entry();                
+                absLayout.Add(border);                
+                border.Content = entry;
+
+                // set absolute layout
+                absLayout.HeightRequest = 36;
+                absLayout.HorizontalOptions = LayoutOptions.Fill;
+                // absLayout.Background = Brush.LightBlue;
+
+                // ok, border is the wrapping control
+                absLayout.SetLayoutBounds(border, new Rect(0, 0, 1, 1));
+                absLayout.SetLayoutFlags(border, AbsoluteLayoutFlags.All);
+                border.HorizontalOptions = LayoutOptions.Fill;
+                border.StrokeShape = new RoundRectangle() { CornerRadius = cntl.BorderRadius ?? 0 };
+                border.Padding = GetMauiTickness(cntl.BorderPadding);
+                
+                // for the entry, set many attributes to visually neutral
+                absLayout.SetLayoutBounds(entry, new Rect(0, 0, 1, 1));
+                absLayout.SetLayoutFlags(entry, AbsoluteLayoutFlags.All);
+                entry.BackgroundColor = Colors.Transparent;
+                entry.HeightRequest = -1; // lets the parent control sizing
+                entry.HorizontalOptions = LayoutOptions.Fill;
+                entry.VerticalTextAlignment = TextAlignment.Center;
+                if (cntl.Padding != null)
+                    entry.Margin = GetMauiTickness(cntl.Padding);
+                if (cntl.VerticalContentAlignment.HasValue)
+                    entry.VerticalTextAlignment = GetTextAlignment(cntl.VerticalContentAlignment.Value);
+                if (cntl.HorizontalContentAlignment.HasValue)
+                    entry.HorizontalTextAlignment = GetTextAlignment(cntl.HorizontalContentAlignment.Value);
+                entry.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize);
+                if (rd?.ForegroundControl != null)
+                    entry.TextColor = GetMauiColor(rd.ForegroundControl.Color);
+                if (cntl.Foreground != null)
+                    entry.TextColor = GetMauiColor(cntl.Foreground?.Color);
+                if (cntl.IsReadOnly)
+                    entry.IsReadOnly = cntl.IsReadOnly;
+                if (cntl.FontMono)
+                    entry.FontFamily = "Consolas";
+                if (cntl.FontWeight.HasValue)
+                    entry.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);
+                entry.Text = cntl.Text;
+
+                // for the entry, set many attributes to visually neutral
+                Label? plateLabel = null;
+                if (rd != null && cntl.PlateLabel?.Text?.HasContent() == true)
+                {
+                    plateLabel = new();
+                    absLayout.Add(plateLabel);
+                    absLayout.SetLayoutBounds(plateLabel, new Rect(0, 0, 1, 1));
+                    absLayout.SetLayoutFlags(plateLabel, AbsoluteLayoutFlags.All);
+                    plateLabel.HeightRequest = -1; // lets the parent control sizing
+                    plateLabel.HorizontalOptions = LayoutOptions.Start;
+                    plateLabel.VerticalOptions = LayoutOptions.Start;
+                    plateLabel.VerticalTextAlignment = TextAlignment.Start;
+                    plateLabel.Margin = GetMauiTickness(cntl.PlateLabel.Margin);
+                    plateLabel.Padding = GetMauiTickness(cntl.PlateLabel.Padding);
+                    plateLabel.FontSize = GetFontSizeFromRelative(rd, cntl.FontSize, cntl.PlateLabel.FontSizeRel);
+                    plateLabel.Text = cntl.PlateLabel.Text;
+                    if (cntl.PlateLabel.Foreground != null)
+                        plateLabel.TextColor = GetMauiColor(cntl.PlateLabel.Foreground?.Color);
+                    if (cntl.PlateLabel.Background != null)
+                        plateLabel.BackgroundColor = GetMauiColor(cntl.PlateLabel.Background?.Color);
+                }
+
+                //if (cntl.BorderColor != null)
+                //    border.Stroke = GetMauiColor(cntl.BorderColor.Color);
+                if (cntl.BorderWidth != null)
+                    border.StrokeThickness = cntl.BorderWidth.Value;
+                if (cntl.Background != null)
+                    border.Background = GetMauiBrush(cntl.Background);
+                if (cntl.BorderPadding != null)
+                    border.Padding = GetMauiTickness(cntl.BorderPadding);
+
+                // callbacks
+                cntl.originalValue = "" + cntl.Text;
+                entry.TextChanged += async (sender, e) => {
+                    // state
+                    cntl.Text = entry.Text;
+
+                    // the value event
+                    if (cntl.setValueAsyncLambda != null)
+                        EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(entry.Text));
+
+                    // other events
+                    EmitOutsideAction(new AnyUiLambdaActionContentsChanged());
+                };
+                entry.Completed += (sender, e) =>
+                {
+                    EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
+                    EmitOutsideAction(cntl.takeOverLambda);
+                };
+
+                // visual focus
+                var normalStrokeColor = cntl.BorderColor?.Color ?? new AnyUiColor(0xffd8d8d8);
+                SetPointerOverEffect(maui,
+                    new Setter {
+                        Property = Border.StrokeProperty,
+                        Value = GetMauiColor(normalStrokeColor)
+                    },
+                    new Setter
+                    {
+                        Property = Border.StrokeProperty,
+                        Value = GetMauiColor(AnyUiColor.Overlay(normalStrokeColor, new AnyUiColor(0x40000000)))
+                    });
+            }
+
+            if (mode == AnyUiRenderMode.All || mode == AnyUiRenderMode.StatusToUi)
+            {
+                // TODO !!
+                // entry.Text = cntl.Text;
+            }
+        }
+
+        /// <summary>
         /// TextBox -> Border (around entry) -> idea to limit screen real estate
         /// </summary>
         protected void RenderRecInit_AnyUiTextBox_MauiBorder(
@@ -1707,7 +1827,8 @@ namespace MauiTestTree
                 // visual focus
                 var normalStrokeColor = cntl.BorderColor?.Color ?? new AnyUiColor(0xffd8d8d8);
                 SetPointerOverEffect(maui,
-                    new Setter {
+                    new Setter
+                    {
                         Property = Border.StrokeProperty,
                         Value = GetMauiColor(normalStrokeColor)
                     },

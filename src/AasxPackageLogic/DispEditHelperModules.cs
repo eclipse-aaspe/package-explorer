@@ -128,7 +128,8 @@ namespace AasxPackageLogic
             int indexPosition,
             DispEditInjectAction injectToIdShort = null,
             bool hideExtensions = false,
-            AasxMenu superMenu = null)
+            AasxMenu superMenu = null,
+            KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
         {
             // access
             if (stack == null || referable == null)
@@ -182,6 +183,8 @@ namespace AasxPackageLogic
             
             AddKeyValue(
                 stack, "idShort", referable.IdShort, null, repo,
+                textBoxStyle: LayoutHints.StyleEntryFor(keyLabel),
+                plateLabelText: "idShort",
                 containingObject: referable,
                 setValueAsync: async (v) =>
                 {

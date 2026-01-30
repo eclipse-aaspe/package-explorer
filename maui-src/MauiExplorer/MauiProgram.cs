@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using UraniumUI;
 using CommunityToolkit.Maui;
 using AasxPackageLogic;
+using Microsoft.Maui.Handlers;
 
 #if WINDOWS
 using Microsoft.Maui.LifecycleEvents;
@@ -88,8 +89,38 @@ namespace MauiTestTree
             });
 #endif
 
+            // no underline for Entry field. Global, as it is everywhere meaningful
+            EntryHandler.Mapper.AppendToMapping("NoUnderline", (handler, view) =>
+            {
+#if ANDROID
+                if (handler.PlatformView != null)
+                {
+                    // Remove underline completely
+                    handler.PlatformView.Background = null;
+
+                    // Optional: remove default padding added by Android
+                    handler.PlatformView.SetPadding(0, 0, 0, 0);
+                }
+#endif
+            });
+
+            // no underline for Picker field. Global, as it is everywhere meaningful
+            PickerHandler.Mapper.AppendToMapping("NoUnderline", (handler, view) =>
+            {
+#if ANDROID
+                if (handler.PlatformView != null)
+                {
+                    // Remove underline completely
+                    handler.PlatformView.Background = null;
+
+                    // Optional: remove default padding added by Android
+                    handler.PlatformView.SetPadding(0, 0, 0, 0);
+                }
+#endif
+            });
+
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
 
             return builder.Build();

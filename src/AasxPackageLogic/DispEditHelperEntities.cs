@@ -2274,7 +2274,7 @@ namespace AasxPackageLogic
             KeyLabelHandling keyLabel = KeyLabelHandling.Standard)
         {
             // TEST
-            keyLabel = KeyLabelHandling.No;
+            keyLabel = KeyLabelHandling.Integrated;
 
             // This panel renders first the SubmodelReference and then the Submodel, below
             if (smref != null)
@@ -2960,7 +2960,8 @@ namespace AasxPackageLogic
                     env, stack,
                     parentContainer: null, referable: submodel, indexPosition: 0,
                     hideExtensions: true,
-                    superMenu: superMenu);
+                    superMenu: superMenu,
+                    keyLabel: keyLabel);
 
                 // Identifiable
                 this.DisplayOrEditEntityIdentifiable(

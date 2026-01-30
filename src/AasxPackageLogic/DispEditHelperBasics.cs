@@ -161,6 +161,27 @@ namespace AasxPackageLogic
         public AnyUiButtonOverStyle StyleButtonHero = new();
 
         /// <summary>
+        /// Style of Entry fields with a plate label
+        /// </summary>
+        public AnyUiTextBox StyleEntryPlateLabel = null;
+
+        /// <summary>
+        /// Returns style depening on key label handling
+        /// </summary>
+        public AnyUiTextBox StyleEntryFor(DispEditHelperBasics.KeyLabelHandling klh)
+        {
+            if (klh == DispEditHelperBasics.KeyLabelHandling.Integrated)
+                return StyleEntryPlateLabel;
+            else
+                return StyleEntry;
+        }
+
+        /// <summary>
+        /// Style of Entry fields without a plate label
+        /// </summary>
+        public AnyUiTextBox StyleEntry = null;
+
+        /// <summary>
         /// Display text and/or image for: medium clear/ obvious button
         /// </summary>
         public AnyUiButtonPreference ButtonPrefMediumClear = AnyUiButtonPreference.Both;
@@ -189,7 +210,7 @@ namespace AasxPackageLogic
 
         public enum FirstColumnWidth { No, Standard, Small, Large }
 
-        public enum KeyLabelHandling { Standard, No, Above }
+        public enum KeyLabelHandling { Standard, No, Above, Integrated }
 
         public const int valueFieldsMinWidth = 50;
 
@@ -586,7 +607,9 @@ namespace AasxPackageLogic
             bool auxButtonOverride = false,
             bool isValueReadOnly = false,
             bool topContextMenu = true,
-            AnyUiButtonOverStyle buttonOverStyle = null)
+            AnyUiButtonOverStyle buttonOverStyle = null,
+            AnyUiTextBox textBoxStyle = null,
+            string plateLabelText = null)
         {
             // draw anyway?
             if (repo != null && value == null)
@@ -689,7 +712,10 @@ namespace AasxPackageLogic
             else
             {
                 // use plain text box
-                var tb = AddSmallTextBoxTo(g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2), text: "" + value, isValReadOnly: isValueReadOnly);
+                var tb = AddSmallTextBoxTo(
+                    g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2), text: "" + value, 
+                    isValReadOnly: isValueReadOnly,  
+                    textBoxStyle: textBoxStyle, plateLabelText: plateLabelText);
                 // multiple lines
                 if (maxLines > 0)
                     tb.MaxLines = maxLines;

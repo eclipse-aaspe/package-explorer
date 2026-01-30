@@ -1521,6 +1521,17 @@ namespace AnyUi
         public AnyUiBrush Foreground = null;
         public AnyUiBrush BorderColor = null;
         public double? BorderWidth = null;
+        
+        /// <summary>
+        /// Enables a dedicated Border element, gives radius
+        /// </summary>
+        public double? BorderRadius = null;
+
+        /// <summary>
+        /// If Control has a dedicated Border, which Padding to apply
+        /// </summary>
+        public AnyUiThickness BorderPadding = null;
+
         public AnyUiVerticalAlignment? VerticalContentAlignment;
         public AnyUiHorizontalAlignment? HorizontalContentAlignment;
         public double? FontSize;
@@ -1549,6 +1560,10 @@ namespace AnyUi
                     BorderColor = s.BorderColor;
                 if (s.BorderWidth.HasValue)
                     BorderWidth = s.BorderWidth.Value;
+                if (s.BorderRadius.HasValue)
+                    BorderRadius = s.BorderRadius.Value;
+                if (s.BorderPadding != null)
+                    BorderPadding = s.BorderPadding;
                 if (s.VerticalContentAlignment != null)
                     VerticalContentAlignment = s.VerticalContentAlignment.Value;
                 if (s.HorizontalContentAlignment != null)
@@ -1855,10 +1870,55 @@ namespace AnyUi
     {
     }
 
+    public class AnyUiPlateLabelData
+    {
+        /// <summary>
+        /// If not <c>null</c>, decorate with a label text.
+        /// </summary>
+        public string Text = null;
+
+        /// <summary>
+        /// Text color of the plate label
+        /// </summary>
+        public AnyUiBrush Foreground = null;
+
+        /// <summary>
+        /// Background color of the plate label
+        /// </summary>
+        public AnyUiBrush Background = null;
+
+        /// <summary>
+        /// How to position the plate label with respect to the origin of the control.
+        /// </summary>
+        public AnyUiThickness Margin = new AnyUiThickness(0);
+
+        /// <summary>
+        /// Borders of the plate label text
+        /// </summary>
+        public AnyUiThickness Padding = new AnyUiThickness(0);
+
+        /// <summary>
+        /// Factor to take the font size of the control and determine the font size of
+        /// the plate label
+        /// </summary>
+        public double FontSizeRel = 0.8;
+
+
+        public AnyUiPlateLabelData Modify(string? text)
+        {
+            var res = this.Copy();
+            if (text != null)
+                Text = text;
+            return res;
+        }
+    }
+
     public class AnyUiTextBox : AnyUiControl
     {
         public AnyUiThickness Padding;
         public AnyUiTextWrapping? TextWrapping;
+
+        public AnyUiPlateLabelData PlateLabel;
 
         public AnyUiScrollBarVisibility VerticalScrollBarVisibility;
 
@@ -1867,6 +1927,25 @@ namespace AnyUi
         public bool IsReadOnly = false;
 
         public string Text = null;
+
+        /// <summary>
+        /// If properties are set in <c>style</c> they will overwrite the ones
+        /// in this instance.
+        /// </summary>
+        public virtual new void ApplyAsStyle(AnyUiUIElement style)
+        {
+            // base?
+            base.ApplyAsStyle(style);
+
+            // this
+            if (style is AnyUiTextBox s)
+            {
+                if (s.Padding != null)
+                    Padding = s.Padding;
+                if (s.PlateLabel != null)
+                    PlateLabel = s.PlateLabel.Copy();
+            }
+        }
     }
 
     public class AnyUiComboBox : AnyUiControl

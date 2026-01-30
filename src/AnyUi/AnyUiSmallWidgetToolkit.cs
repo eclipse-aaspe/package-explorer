@@ -234,11 +234,17 @@ namespace AnyUi
             bool? fontMono = null,
             bool? readOnly = null,
             AnyUiScrollBarVisibility? verticalScroll = null,
-            bool isValReadOnly = false)
+            bool isValReadOnly = false,
+            AnyUiTextBox textBoxStyle = null,
+            string plateLabelText = null)
         {
             var tb = new AnyUiTextBox();
-            tb.Margin = margin;
-            tb.Padding = padding;
+            if (textBoxStyle != null)
+                tb.ApplyAsStyle(textBoxStyle);
+            if (margin != null)
+                tb.Margin = margin;
+            if (padding != null)
+                tb.Padding = padding;
             if (foreground != null)
                 tb.Foreground = foreground;
             if (background != null)
@@ -261,8 +267,7 @@ namespace AnyUi
             if (fontMono.HasValue)
                 tb.FontMono = fontMono.Value;
             if (readOnly.HasValue)
-                tb.IsReadOnly = readOnly.Value;
-                        
+                tb.IsReadOnly = readOnly.Value;                                   
             tb.VerticalScrollBarVisibility = AnyUiScrollBarVisibility.Auto;
             if (verticalScroll.HasValue)
                 tb.VerticalScrollBarVisibility = verticalScroll.Value;
@@ -274,6 +279,9 @@ namespace AnyUi
             if (multiLine.HasValue)
                 tb.MultiLine = multiLine.Value;
 
+            // there needs to already be plate label config
+            if (plateLabelText != null && tb.PlateLabel != null)
+                tb.PlateLabel.Text = plateLabelText;
 
             AnyUiGrid.SetRow(tb, row);
             AnyUiGrid.SetColumn(tb, col);
