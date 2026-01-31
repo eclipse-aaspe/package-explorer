@@ -18,6 +18,7 @@ using Extensions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing.Printing;
 using System.Linq;
 using System.Threading.Tasks;
 using Aas = AasCore.Aas3_1;
@@ -119,6 +120,16 @@ namespace AasxPackageLogic
     }
 
     /// <summary>
+    /// Bundles some format descriptions, particularily for headlines
+    /// </summary>
+    public class UITextFormat
+    {
+        public AnyUiBrush TextColor;
+        public AnyUiThickness Margin;
+        public double? FontSizeRel;
+    }
+
+    /// <summary>
     /// This class provides hints, how different controls are placed in the UI in terms of layout.
     /// </summary>
     public class UILayoutHints
@@ -211,6 +222,16 @@ namespace AasxPackageLogic
         /// Display text and/or image for: buttons, which icon is rather unclear
         /// </summary>
         public AnyUiButtonPreference ButtonPrefLowClear = AnyUiButtonPreference.Both;
+
+        /// <summary>
+        /// Headline most important
+        /// </summary>
+        public UITextFormat Headline1 = null;
+
+        /// <summary>
+        /// Headline second important
+        /// </summary>
+        public UITextFormat Headline2 = null;
     }
 
     //
@@ -345,6 +366,23 @@ namespace AasxPackageLogic
 
             // nope
             return normal;
+        }
+
+        //
+        // Headline formatting
+        //
+
+        public AnyUiLabel CreateHeadline(UITextFormat format, string content)
+        {
+            // access
+            if (content == null)
+                return null;
+
+            if (format == null)
+                return new AnyUiLabel() { Content = content };
+
+            // ok
+
         }
 
         //
@@ -676,7 +714,7 @@ namespace AasxPackageLogic
             // Label for key
             if (hasKeyCol)
             {
-                var klb = AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "" + key + ":");
+                var klb = AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(0, 0, 0, 0), content: "" + key + ":");
                 if (keyVertCenter)
                 {
                     klb.VerticalAlignment = AnyUiVerticalAlignment.Center;
@@ -690,7 +728,7 @@ namespace AasxPackageLogic
             {
                 if (limitToOneRowForNoEdit)
                     value = AdminShellUtil.RemoveNewLinesAndLimit("" + value, 120, ellipsis: "\u2026");
-                AddSmallLabelTo(g, 0, 1, padding: new AnyUiThickness(4, 0, 0, 0), content: "" + value,
+                AddSmallLabelTo(g, 0, 1, padding: new AnyUiThickness(0, 0, 0, 0), content: "" + value,
                     verticalCenter: true);
             }
             else if (comboBoxItems != null)
@@ -709,10 +747,12 @@ namespace AasxPackageLogic
                     g, 0, 1,
                     margin: NormalOrCapa(
                         new AnyUiThickness(4, 2, 2, 2),
-                        AnyUiContextCapability.Blazor, new AnyUiThickness(4, 0, 2, 0)),
+                        AnyUiContextCapability.Blazor, new AnyUiThickness(4, 0, 2, 0),
+                        AnyUiContextCapability.MAUI, new AnyUiThickness(0, 0, 0, 0)),
                     padding: NormalOrCapa(
                         new AnyUiThickness(2, 0, 2, 0),
-                        AnyUiContextCapability.Blazor, new AnyUiThickness(2, 3, 2, 3)),
+                        AnyUiContextCapability.Blazor, new AnyUiThickness(2, 3, 2, 3),
+                        AnyUiContextCapability.MAUI, new AnyUiThickness(0,0,0,0)),
                     text: "" + value,
                     minWidth: Math.Max(60, comboBoxMinWidth),
                     maxWidth: maxWidth,
@@ -1226,19 +1266,19 @@ namespace AasxPackageLogic
             AnyUiTextBox textBoxStyle = null,
             AnyUiComboBox comboBoxStyle = null) where T : IAbstractLangString
         {
-            // access
+            // sometimes needless to show
             if (repo == null && (langStr == null || langStr.Count < 1))
                 return;
 
-            // metrics
-            int rows = 1; // default!
+            // metrics (first row is for potential label or empty)
+            int rows = 2; 
             if (langStr != null && langStr.Count > 1)
-                rows = langStr.Count;
-            int rowOfs = 0;
+                rows = 1 + langStr.Count;
+            int rowOfs = 1;
             int rowsAdd = 0;
             if (repo != null && LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Top)
             {
-                rowOfs = 1; rowsAdd = 1;
+                rowOfs = 2; rowsAdd = 1;
             }
             if (repo != null && LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Bottom)
             {
@@ -1252,17 +1292,22 @@ namespace AasxPackageLogic
                     return new AnyUiLambdaActionNone();
                 };
 
-            // Grid
+            // Grid (first column is for potential label)
             var g = AddSmallGrid(rows + rowsAdd, 5, new[] { "#", "#", "*" , "#", "#" }, margin: new AnyUiThickness(0, 0, 0, 0));
-            var hasKeyCol = keyHandling == KeyLabelHandling.FirstColumn;
-            if (hasKeyCol)
+            if (keyHandling == KeyLabelHandling.FirstColumn)
                 MaintainFirstColumnWidth(g, null);
 
             // populate key
-            AddSmallLabelTo(g, 0, 0, margin: new AnyUiThickness(5, 0, 0, 0),
-                setNoWrap: true,
-                verticalCenter: true,
-                content: "" + key + ":");
+            if (keyHandling == KeyLabelHandling.FirstColumn)
+                AddSmallLabelTo(g, 1, 0, margin: new AnyUiThickness(0, 0, 0, 0),
+                    setNoWrap: true,
+                    verticalCenter: true,
+                    content: "" + key + ":");
+            else if (keyHandling == KeyLabelHandling.Above || keyHandling == KeyLabelHandling.Above_LabelPlate)
+                AddSmallLabelTo(g, 0, 1, margin: new AnyUiThickness(0, 0, 0, 0),
+                    setNoWrap: true,
+                    verticalCenter: true,
+                    content: "" + key + ":");
 
             // contents?
             if (!langStr.IsNullOrEmpty())
@@ -1295,7 +1340,7 @@ namespace AasxPackageLogic
                                     margin: NormalOrCapa(
                                         new AnyUiThickness(4, 2, 2, 2),
                                         AnyUiContextCapability.Blazor, new AnyUiThickness(4, 2, 2, 0),
-                                        AnyUiContextCapability.MAUI, new AnyUiThickness(0,0,0,0)),
+                                        AnyUiContextCapability.MAUI, new AnyUiThickness(0, 0, 0, 0)),
                                     padding: NormalOrCapa(
                                         new AnyUiThickness(0, 0, 0, 0),
                                         AnyUiContextCapability.Blazor, new AnyUiThickness(0, 4, 0, 4),
@@ -1308,19 +1353,17 @@ namespace AasxPackageLogic
                                 verticalAlignment: AnyUiVerticalAlignment.Top,
                                 verticalContentAlignment: AnyUiVerticalAlignment.Center
                             );
-                        
                         AnyUiUIElement.RegisterControl(
                             tbLang,
                             async (o) =>
                             {
                                 await Task.Yield();
                                 langStr[currentI].Language = o as string;
-								var evt = emitCustomEvent?.Invoke(relatedReferable);
-								if (evt != null && !(evt is AnyUiLambdaActionNone))
-									return evt;
-								return new AnyUiLambdaActionNone();
+                                var evt = emitCustomEvent?.Invoke(relatedReferable);
+                                if (evt != null && !(evt is AnyUiLambdaActionNone))
+                                    return evt;
+                                return new AnyUiLambdaActionNone();
                             });
-                        
                         // check here, if to hightlight
                         if (tbLang != null && this.highlightField != null &&
                                 this.highlightField.fieldHash == langStr[currentI].Language.GetHashCode() &&
@@ -1339,25 +1382,23 @@ namespace AasxPackageLogic
                             verticalContentAlignment: AnyUiVerticalAlignment.Center,
                             textBoxStyle: textBoxStyle,
                             text: "" + langStr[currentI].Text);
-                        
                         AnyUiUIElement.RegisterControl(
                             tbStr,
                             async (o) =>
                             {
                                 await Task.Yield();
                                 langStr[currentI].Text = o as string;
-								var evt = emitCustomEvent?.Invoke(relatedReferable);
-								if (evt != null && !(evt is AnyUiLambdaActionNone))
-									return evt;
-								return new AnyUiLambdaActionNone();
+                                var evt = emitCustomEvent?.Invoke(relatedReferable);
+                                if (evt != null && !(evt is AnyUiLambdaActionNone))
+                                    return evt;
+                                return new AnyUiLambdaActionNone();
                             });
-                        
                         // check here, if to hightlight
                         if (tbStr != null && this.highlightField != null &&
                                 this.highlightField.fieldHash == langStr[currentI].Text.GetHashCode() &&
-                                (this.highlightField.containingObject == (object) langStr[currentI]))
-                                //TODO (jtikekar, 0000-00-00): need to test
-                                // CompareUtils.Compare<IAbstractLangString>((IAbstractLangString)this.highlightField.containingObject, langStr[currentI]))
+                                (this.highlightField.containingObject == (object)langStr[currentI]))
+                            //TODO (jtikekar, 0000-00-00): need to test
+                            // CompareUtils.Compare<IAbstractLangString>((IAbstractLangString)this.highlightField.containingObject, langStr[currentI]))
                             this.HighligtStateElement(tbStr, true);
 
                         // button [≡]
@@ -1401,7 +1442,7 @@ namespace AasxPackageLogic
                                         new AnyUiContextMenuHeaderIconSource(1, IconPool.MoveUp, "Move Up"),
                                         new AnyUiContextMenuHeaderIconSource(1, IconPool.MoveDown, "Move Down"),
                                     })
-                                    .InsertBeforeIf(LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Context, 
+                                    .InsertBeforeIf(LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Context,
                                         new AnyUiContextMenuHeaderIconSource(100, IconPool.AddBlank, "Add blank"))
                                     .AddIf(!LayoutHints.ExplicitMultiLineEdit,
                                         new AnyUiContextMenuHeaderIconSource(101, IconPool.MultiLineEdit, "Edit multiline")),
@@ -1474,7 +1515,7 @@ namespace AasxPackageLogic
                     Set(
                         AddSmallButtonTo(
                             g, 
-                            row: (LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Bottom) ? langStr.Count : 0, 
+                            row: (LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Bottom) ? rowOfs + langStr.Count : 0, 
                             col: (LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Bottom) ? 1 : 3,
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
