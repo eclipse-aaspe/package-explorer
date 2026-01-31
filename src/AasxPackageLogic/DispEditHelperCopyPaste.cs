@@ -751,7 +751,7 @@ namespace AasxPackageLogic
             Action<CopyPasteItemBase> extraAction = null,
             AasxMenu superMenu = null,
             AnyUiButtonOverStyle buttonOverStyle = null,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard) /*where T : new()*/ //TODO (jtikekar, 0000-00-00): Test
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn) /*where T : new()*/ //TODO (jtikekar, 0000-00-00): Test
         {
             // access
             if (parentContainer == null || cpbInternal == null || sm == null || cloneEntity == null)
@@ -1008,7 +1008,7 @@ namespace AasxPackageLogic
             AasxMenu superMenu = null,
             bool embedded = false,
             AnyUiButtonOverStyle buttonOverStyle = null,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard) where T : Aas.IIdentifiable
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn) where T : Aas.IIdentifiable
         {
             // access
             if (parentContainer == null || cpbInternal == null || entity == null || cloneEntity == null)

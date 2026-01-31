@@ -170,7 +170,7 @@ namespace AasxPackageLogic
         /// </summary>
         public AnyUiTextBox StyleTextBoxFor(DispEditHelperBasics.KeyLabelHandling klh)
         {
-            if (klh == DispEditHelperBasics.KeyLabelHandling.LabelPlate)
+            if (klh == DispEditHelperBasics.KeyLabelHandling.Above_LabelPlate)
                 return StyleTextBoxPlateLabel;
             else
                 return StyleTextBox;
@@ -191,7 +191,7 @@ namespace AasxPackageLogic
         /// </summary>
         public AnyUiComboBox StyleComboBoxFor(DispEditHelperBasics.KeyLabelHandling klh)
         {
-            if (klh == DispEditHelperBasics.KeyLabelHandling.LabelPlate)
+            if (klh == DispEditHelperBasics.KeyLabelHandling.Above_LabelPlate)
                 return StyleComboBoxPlateLabel;
             else
                 return StyleComboBox;
@@ -231,7 +231,7 @@ namespace AasxPackageLogic
 
         public enum FirstColumnWidth { No, Standard, Small, Large }
 
-        public enum KeyLabelHandling { Standard, No, Above, LabelPlate }
+        public enum KeyLabelHandling { FirstColumn, No, Above, Above_LabelPlate }
 
         public const int valueFieldsMinWidth = 50;
 
@@ -391,13 +391,13 @@ namespace AasxPackageLogic
         /// </summary>
         public AnyUiWrapPanel AddKeyButtons(
             AnyUiStackPanel view, string key, IEnumerable<AnyUiControl> buttons,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
             // access
             if (view == null || buttons == null)
                 return null;
 
-            if (keyHandling == KeyLabelHandling.Standard)
+            if (keyHandling == KeyLabelHandling.FirstColumn)
             {
                 // Grid with two columns
                 var g = AddSmallGrid(1, 2, new[] { "#", "*" });
@@ -628,11 +628,10 @@ namespace AasxPackageLogic
             bool auxButtonOverride = false,
             bool isValueReadOnly = false,
             bool topContextMenu = true,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard,
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn,
             AnyUiButtonOverStyle buttonOverStyle = null,
             AnyUiTextBox textBoxStyle = null,
-            AnyUiComboBox comboBoxStyle = null,
-            string plateLabelText = null)
+            AnyUiComboBox comboBoxStyle = null)
         {
             // draw anyway?
             if (repo != null && value == null)
@@ -655,21 +654,16 @@ namespace AasxPackageLogic
                 || (repo != null && auxButtons.Count > 0 && auxButtonLambdaAsync != null);
 
             // Grid
-            var g = new AnyUiGrid();
-            g.Margin = new AnyUiThickness(0, 1, 0, 1);
-            var gc1 = new AnyUiColumnDefinition();
-            gc1.Width = AnyUiGridLength.Auto;
-            g.ColumnDefinitions.Add(gc1);
-            var gc2 = new AnyUiColumnDefinition();
-            gc2.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Star);
-            g.ColumnDefinitions.Add(gc2);
-            // 2024-05-09: add a minimum width to these kinds of fields
-            gc2.MinWidth = valueFieldsMinWidth;
+            var hasKeyCol = keyHandling == KeyLabelHandling.FirstColumn;
 
-            if (firstColumnWidth != null)
+            var g = AddSmallGrid(1, 2, new[] { "#", "*" }, margin: new AnyUiThickness(0, 1, 0, 1));
+            g.ColumnDefinitions[1].MinWidth = valueFieldsMinWidth;
+
+            if (hasKeyCol)
+            {
+                // if not supposed, the first column will be empty
                 MaintainFirstColumnWidth(g, firstColumnWidth);
-            else
-                g.ColumnDefinitions[0].MinWidth = GetWidth(FirstColumnWidth.Standard);
+            }
 
             if (auxButton)
                 for (int i = 0; i < auxButtons.Count; i++)
@@ -680,7 +674,7 @@ namespace AasxPackageLogic
                 }
 
             // Label for key
-            if (firstColumnWidth != FirstColumnWidth.No)
+            if (hasKeyCol)
             {
                 var klb = AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "" + key + ":");
                 if (keyVertCenter)
@@ -725,7 +719,7 @@ namespace AasxPackageLogic
                     items: comboBoxItems,
                     isEditable: comboBoxIsEditable,
                     comboBoxStyle: comboBoxStyle,
-                    plateLabelText: plateLabelText);
+                    plateLabelText: key);
                 AnyUiUIElement.RegisterControl(cb, setValueAsync: setValueAsync, takeOverLambda: takeOverLambdaAction);
 
                 // check here, if to hightlight
@@ -740,7 +734,7 @@ namespace AasxPackageLogic
                 var tb = AddSmallTextBoxTo(
                     g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2), text: "" + value, 
                     isValReadOnly: isValueReadOnly,  
-                    textBoxStyle: textBoxStyle, plateLabelText: plateLabelText);
+                    textBoxStyle: textBoxStyle, plateLabelText: key);
                 // multiple lines
                 if (maxLines > 0)
                     tb.MaxLines = maxLines;
@@ -1079,15 +1073,13 @@ namespace AasxPackageLogic
 			FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard,
             AnyUiButtonOverStyle buttonOverStyle = null,
             bool useWrapFlexPanel = true,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
-            // generate actionStr from ticketMenu
-            //if (actionStr == null && ticketMenu != null)
-            //    actionStr = ticketMenu.Select((tmi) => (tmi is AasxMenuItem mi) ? mi.Header : "").ToArray();
-
+            // which buttons?
             var buttonList = ticketMenu?.Where((tmi) => tmi is AasxMenuItem)
                                         .Select((tmi) => (tmi as AasxMenuItem).ToButtonHeader())?.ToList();
 
+            // deprecated: buttons by string, with warning label "§§"
             if (actionStrXX != null)
             {
                 buttonList = buttonList ?? new();
@@ -1095,7 +1087,7 @@ namespace AasxPackageLogic
                     buttonList.Add(new AnyUiButtonHeader(text: "§§ " + a));
             }
 
-            // access 
+            // now, access 
             if ((actionAsync == null && ticketActionAsync == null) || buttonList == null)
                 return;
             if (repo == null && addWoEdit == null)
@@ -1126,31 +1118,24 @@ namespace AasxPackageLogic
             }
 
             // Grid
-            var g = new AnyUiGrid();
-            g.Margin = new AnyUiThickness(0, 5, 0, 5);
-
-            // 0 key
-            var gc = new AnyUiColumnDefinition();
-            gc.Width = AnyUiGridLength.Auto;
-            if (keyHandling == KeyLabelHandling.Standard)
-                gc.MinWidth = GetWidth(firstColumnWidth);
-            g.ColumnDefinitions.Add(gc);
+            var g = AddSmallGrid(1, 1, new[] { "#" }, margin: new AnyUiThickness(0, 5, 0, 5));
+            var hasKeyCol = keyHandling == KeyLabelHandling.FirstColumn;
+            if (hasKeyCol)
+            {
+                // if not supposed, the first column will be empty
+                MaintainFirstColumnWidth(g, firstColumnWidth);
+            }
 
             // 1+x button
             for (int i = 0; i < (useWrapFlexPanel ? 1 : numButton); i++)
             {
-                gc = new AnyUiColumnDefinition();
+                var gc = new AnyUiColumnDefinition();
                 gc.Width = new AnyUiGridLength(1.0, useWrapFlexPanel ? AnyUiGridUnitType.Star : AnyUiGridUnitType.Auto);
                 g.ColumnDefinitions.Add(gc);
             }
 
-            // 0 row
-            var gr = new AnyUiRowDefinition();
-            gr.Height = new AnyUiGridLength(1.0, AnyUiGridUnitType.Star);
-            g.RowDefinitions.Add(gr);
-
             // key label
-            if (keyHandling == KeyLabelHandling.Standard)
+            if (hasKeyCol)
             {
                 var x = AddSmallLabelTo(g, 0, 0, margin: new AnyUiThickness(5, 0, 0, 0),
                     setNoWrap: true,
@@ -1168,9 +1153,6 @@ namespace AasxPackageLogic
                       || (addWoEdit != null && addWoEdit.Length > i && addWoEdit[i])
                      ))
                     continue;
-
-                // prepare button header data
-
 
                 // render?
                 int currentI = i;
@@ -1236,6 +1218,7 @@ namespace AasxPackageLogic
             Aas.IReferable relatedReferable = null,
             Action setNullList = null,
 			Func<Aas.IReferable, AnyUiLambdaActionBase> emitCustomEvent = null,
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn,
             AnyUiButtonOverStyle buttonOverStyleLo = null,
             AnyUiButtonOverStyle buttonOverStyleHi = null,
             AnyUiButtonPreference buttonPreferenceLo = AnyUiButtonPreference.None,
@@ -1243,9 +1226,11 @@ namespace AasxPackageLogic
             AnyUiTextBox textBoxStyle = null,
             AnyUiComboBox comboBoxStyle = null) where T : IAbstractLangString
         {
-            // sometimes needless to show
+            // access
             if (repo == null && (langStr == null || langStr.Count < 1))
                 return;
+
+            // metrics
             int rows = 1; // default!
             if (langStr != null && langStr.Count > 1)
                 rows = langStr.Count;
@@ -1260,7 +1245,7 @@ namespace AasxPackageLogic
                 rowsAdd = 1;
             }
 
-            // default
+            // default event
             if (emitCustomEvent == null)
 				emitCustomEvent = (rf) => { 
                     this.AddDiaryEntry(rf, new DiaryEntryStructChange());
@@ -1268,40 +1253,10 @@ namespace AasxPackageLogic
                 };
 
             // Grid
-            var g = new AnyUiGrid();
-            g.Margin = new AnyUiThickness(0, 0, 0, 0);
-
-            // 0 key
-            var gc = new AnyUiColumnDefinition();
-            gc.Width = AnyUiGridLength.Auto;
-            gc.MinWidth = GetWidth(FirstColumnWidth.Standard);
-            g.ColumnDefinitions.Add(gc);
-
-            // 1 langs
-            gc = new AnyUiColumnDefinition();
-            gc.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Auto);
-            g.ColumnDefinitions.Add(gc);
-
-            // 2 values
-            gc = new AnyUiColumnDefinition();
-            gc.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Star);
-            g.ColumnDefinitions.Add(gc);
-
-            // 3++ buttons behind it
-            for (int i = 0; i < 2; i++)
-            {
-                gc = new AnyUiColumnDefinition();
-                gc.Width = new AnyUiGridLength(1.0, AnyUiGridUnitType.Auto);
-                g.ColumnDefinitions.Add(gc);
-            }
-
-            // rows
-            for (int r = 0; r < rows + rowsAdd; r++)
-            {
-                var gr = new AnyUiRowDefinition();
-                gr.Height = new AnyUiGridLength(1.0, AnyUiGridUnitType.Auto);
-                g.RowDefinitions.Add(gr);
-            }
+            var g = AddSmallGrid(rows + rowsAdd, 5, new[] { "#", "#", "*" , "#", "#" }, margin: new AnyUiThickness(0, 0, 0, 0));
+            var hasKeyCol = keyHandling == KeyLabelHandling.FirstColumn;
+            if (hasKeyCol)
+                MaintainFirstColumnWidth(g, null);
 
             // populate key
             AddSmallLabelTo(g, 0, 0, margin: new AnyUiThickness(5, 0, 0, 0),
@@ -1339,10 +1294,12 @@ namespace AasxPackageLogic
                                     g, 0 + i + rowOfs, 1,
                                     margin: NormalOrCapa(
                                         new AnyUiThickness(4, 2, 2, 2),
-                                        AnyUiContextCapability.Blazor, new AnyUiThickness(4, 2, 2, 0)),
+                                        AnyUiContextCapability.Blazor, new AnyUiThickness(4, 2, 2, 0),
+                                        AnyUiContextCapability.MAUI, new AnyUiThickness(0,0,0,0)),
                                     padding: NormalOrCapa(
                                         new AnyUiThickness(0, 0, 0, 0),
-                                        AnyUiContextCapability.Blazor, new AnyUiThickness(0, 4, 0, 4)),
+                                        AnyUiContextCapability.Blazor, new AnyUiThickness(0, 4, 0, 4),
+                                        AnyUiContextCapability.MAUI, new AnyUiThickness(0, 0, 0, 0)),
                                     text: "" + langStr[currentI].Language,
                                     minWidth: 60,
                                     items: AasxLanguageHelper.Languages.GetAllLanguages(nullForAny: true).ToArray(),
@@ -1351,6 +1308,7 @@ namespace AasxPackageLogic
                                 verticalAlignment: AnyUiVerticalAlignment.Top,
                                 verticalContentAlignment: AnyUiVerticalAlignment.Center
                             );
+                        
                         AnyUiUIElement.RegisterControl(
                             tbLang,
                             async (o) =>
@@ -1362,6 +1320,7 @@ namespace AasxPackageLogic
 									return evt;
 								return new AnyUiLambdaActionNone();
                             });
+                        
                         // check here, if to hightlight
                         if (tbLang != null && this.highlightField != null &&
                                 this.highlightField.fieldHash == langStr[currentI].Language.GetHashCode() &&
@@ -1380,6 +1339,7 @@ namespace AasxPackageLogic
                             verticalContentAlignment: AnyUiVerticalAlignment.Center,
                             textBoxStyle: textBoxStyle,
                             text: "" + langStr[currentI].Text);
+                        
                         AnyUiUIElement.RegisterControl(
                             tbStr,
                             async (o) =>
@@ -1391,6 +1351,7 @@ namespace AasxPackageLogic
 									return evt;
 								return new AnyUiLambdaActionNone();
                             });
+                        
                         // check here, if to hightlight
                         if (tbStr != null && this.highlightField != null &&
                                 this.highlightField.fieldHash == langStr[currentI].Text.GetHashCode() &&
@@ -1804,10 +1765,7 @@ namespace AasxPackageLogic
             var g = AddSmallGrid(rows + rowOfs, 6, new[] { "#", "#", "#", "#", "*", "#", },
                 margin: new AnyUiThickness(0, 0, 0, 0));
 
-            if (firstColumnWidth != null)
-                MaintainFirstColumnWidth(g, firstColumnWidth);
-            else
-                g.ColumnDefinitions[0].MinWidth = GetWidth(FirstColumnWidth.Standard);
+            MaintainFirstColumnWidth(g, firstColumnWidth);
 
             // populate key
             if (firstColumnWidth != FirstColumnWidth.No)
@@ -2364,6 +2322,7 @@ namespace AasxPackageLogic
         public bool SafeguardAccess(
             AnyUiStackPanel view, ModifyRepo repo, object data, string key, string actionStr,
             Func<int, Task<AnyUiLambdaActionBase>> actionAsync,
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn,
             FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard)
         {
             if (repo != null && data == null)
@@ -2373,11 +2332,11 @@ namespace AasxPackageLogic
                     ticketMenu: new AasxMenu(new[] { new AasxMenuItem(
                                         IconPool.Add,
                                         name: AdminShellUtil.FilterFriendlyName("add-" + key, fixMoreBlanks: true).ToLower(),
-                                        header: "Add",
+                                        header: (keyHandling == KeyLabelHandling.FirstColumn) ? "Add" : actionStr,
                                         helpText: "Add empty attribute data") }),
                     buttonOverStyle: LayoutHints.StyleButtonAction,
-                    repo: repo, actionAsync: actionAsync, firstColumnWidth: firstColumnWidth);
-                // AddAction(view, key, actionStr, repo, actionAsync: actionAsync, firstColumnWidth: firstColumnWidth);
+                    repo: repo, actionAsync: actionAsync, 
+                    keyHandling: keyHandling, firstColumnWidth: firstColumnWidth);
             }
             return (data != null);
         }
@@ -2405,11 +2364,15 @@ namespace AasxPackageLogic
             FirstColumnWidth? firstColumnWidth = FirstColumnWidth.Standard)
         {
             // access
-            if (g?.ColumnDefinitions == null || g.ColumnDefinitions.Count < 1 || firstColumnWidth == null)
+            if (g?.ColumnDefinitions == null || g.ColumnDefinitions.Count < 1)
                 return g;
 
-            // apply
-            g.ColumnDefinitions[0].MinWidth = GetWidth(firstColumnWidth.Value);
+            if (firstColumnWidth == null)
+                // default 
+                g.ColumnDefinitions[0].MinWidth = GetWidth(FirstColumnWidth.Standard);
+            else
+                // apply
+                g.ColumnDefinitions[0].MinWidth = GetWidth(firstColumnWidth.Value);
 
             // done
             return g;
@@ -2691,7 +2654,7 @@ namespace AasxPackageLogic
             Func<int, Task<AnyUiLambdaActionBase>> lambdaExtraMenuAsync = null,
             bool moveDoesNotModify = false,
             AnyUiButtonOverStyle buttonOverStyle = null,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
             if (nextFocus == null)
                 nextFocus = entity;

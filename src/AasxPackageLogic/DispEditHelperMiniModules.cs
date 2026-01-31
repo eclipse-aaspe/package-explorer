@@ -151,7 +151,7 @@ namespace AasxPackageLogic
             Action setQualifiersNull = null,
             Aas.IReferable relatedReferable = null,
             AasxMenu superMenu = null,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
             // access
             if (qualifiers == null)
@@ -426,7 +426,6 @@ namespace AasxPackageLogic
                     substack, "kind", Aas.Stringification.ToString(qual.Kind), null, repo,
                     containingObject: qual,
                     keyHandling: keyHandling,
-                    plateLabelText: "kind",
                     comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                     setValueAsync: async (v) =>
                     {

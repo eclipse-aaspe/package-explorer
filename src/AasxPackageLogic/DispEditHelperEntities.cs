@@ -2271,10 +2271,10 @@ namespace AasxPackageLogic
             bool editMode,
             AnyUiStackPanel stack, bool hintMode = false, bool checkSmt = false,
 			AasxMenu superMenu = null,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
             // TEST
-            keyHandling = KeyLabelHandling.LabelPlate;
+            keyHandling = KeyLabelHandling.Above_LabelPlate;
 
             // This panel renders first the SubmodelReference and then the Submodel, below
             if (smref != null)
@@ -3268,7 +3268,7 @@ namespace AasxPackageLogic
             bool editMode, ModifyRepo repo,
             AnyUiStackPanel stack, bool embedded = false, bool hintMode = false, bool preventMove = false,
             AasxMenu superMenu = null,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
             this.AddGroup(stack, "ConceptDescription", this.levelColors.MainSection);
 

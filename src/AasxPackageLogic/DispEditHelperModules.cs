@@ -129,7 +129,7 @@ namespace AasxPackageLogic
             DispEditInjectAction injectToIdShort = null,
             bool hideExtensions = false,
             AasxMenu superMenu = null,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
             // access
             if (stack == null || referable == null)
@@ -184,7 +184,6 @@ namespace AasxPackageLogic
             AddKeyValue(
                 stack, "idShort", referable.IdShort, null, repo,
                 textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
-                plateLabelText: "idShort",
                 containingObject: referable,
                 setValueAsync: async (v) =>
                 {
@@ -194,6 +193,7 @@ namespace AasxPackageLogic
                     return new AnyUiLambdaActionNone();
                 },
                 keyVertCenter: true,
+                keyHandling: keyHandling,
                 buttonOverStyle: LayoutHints.StyleButtonStandard, 
                 auxButtons: new AnyUiButtonHeaderList(IconPool.FixText, "Fix", 
                                 "Fix characters of idShort to be in the allowed character sets.",
@@ -238,7 +238,8 @@ namespace AasxPackageLogic
                         "Consider having Display name in multiple langauges.",
                         severityLevel: HintCheck.Severity.Notice)
             });
-            if (this.SafeguardAccess(stack, repo, referable.DisplayName, "displayName:", "Create w/ default!", async (v) =>
+            if (SafeguardAccess(stack, repo, referable.DisplayName, "displayName:", "Add displayName", keyHandling : keyHandling, 
+                actionAsync: async (v) =>
             {
                 await Task.Yield();
                 referable.DisplayName = ExtendILangStringNameType.CreateFrom(
@@ -251,6 +252,7 @@ namespace AasxPackageLogic
                     stack, "displayName", referable.DisplayName,
                     repo, relatedReferable: referable,
                     setNullList: () => referable.DisplayName = null,
+                    keyHandling: keyHandling,
                     buttonOverStyleHi: LayoutHints.StyleButtonAction,
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
@@ -273,7 +275,6 @@ namespace AasxPackageLogic
                         containingObject: referable,
                         keyVertCenter: true,
                         textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
-                        plateLabelText: "category",
                         setValueAsync: async (v) =>
                         {
                             await Task.Yield();
@@ -328,6 +329,7 @@ namespace AasxPackageLogic
                     stack, "description", referable.Description,
                     repo, relatedReferable: referable,
                     setNullList: () => referable.Description = null,
+                    keyHandling: keyHandling,
                     buttonOverStyleHi: LayoutHints.StyleButtonAction,
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
@@ -508,7 +510,7 @@ namespace AasxPackageLogic
             Aas.IIdentifiable identifiable,
             string templateForIdString,
             DispEditInjectAction injectToId = null,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
             // access
             if (stack == null || identifiable == null)
@@ -566,7 +568,6 @@ namespace AasxPackageLogic
                         this.AddDiaryEntry(identifiable, new DiaryEntryStructChange(), diaryReference: dr);
                         return new AnyUiLambdaActionNone();
                     },
-                    plateLabelText: "id",
                     containingObject: identifiable,
                     topContextMenu: false,
                     keyVertCenter: true,
@@ -659,7 +660,6 @@ namespace AasxPackageLogic
                 AddKeyValue(
                     stack, "version", identifiable.Administration.Version,
                     null, repo,
-                    plateLabelText: "version",
                     containingObject: identifiable.Administration,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     setValueAsync: async (v) =>
@@ -674,7 +674,6 @@ namespace AasxPackageLogic
                 AddKeyValue(
                     stack, "revision", identifiable.Administration.Revision,
                     null, repo,
-                    plateLabelText: "revision",
                     containingObject: identifiable.Administration,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     setValueAsync: async (v) =>
@@ -731,7 +730,6 @@ namespace AasxPackageLogic
                 AddKeyValue(
                     stack, "templateId", identifiable.Administration.TemplateId,
                     null, repo,
-                    plateLabelText: "templateId",
                     containingObject: identifiable.Administration,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     setValueAsync: async (v) =>
@@ -934,7 +932,7 @@ namespace AasxPackageLogic
             Aas.IReferable relatedReferable = null,
             AasxMenu superMenu = null,
             bool suppressNoEdsWarning = false,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
             // access
             if (stack == null)
@@ -1289,7 +1287,7 @@ namespace AasxPackageLogic
             Action<Aas.ModellingKind> setOutput,
             string instanceExceptionStatement = null,
             Aas.IReferable relatedReferable = null,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
             // access
             if (stack == null)
@@ -1333,8 +1331,7 @@ namespace AasxPackageLogic
                     keyVertCenter: true,
                     comboBoxItems: Enum.GetNames(typeof(Aas.ModellingKind)),
                     comboBoxMinWidth: 120,
-                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
-                    plateLabelText: "kind");
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling));
             }
         }
 
@@ -1350,7 +1347,7 @@ namespace AasxPackageLogic
             CopyPasteBuffer cpb = null,
             AasxMenu superMenu = null,
             Aas.IReferable relatedReferable = null,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
             // access
             if (stack == null || semElem == null)
@@ -1571,7 +1568,7 @@ namespace AasxPackageLogic
             Action<List<Aas.IQualifier>> setOutput,
             Aas.IReferable relatedReferable = null,
             AasxMenu superMenu = null,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
             // access
             if (stack == null)
@@ -1710,7 +1707,7 @@ namespace AasxPackageLogic
             Aas.DataSpecificationIec61360 dsiec,
             Aas.IReferable relatedReferable = null,
             AasxMenu superMenu = null,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
             // access
             if (stack == null || dsiec == null)

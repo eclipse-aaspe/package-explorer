@@ -1060,7 +1060,7 @@ namespace AasxPackageLogic
 			string[] addPresetNames = null, List<Aas.IKey>[] addPresetKeyLists = null,
 			Aas.IReferable relatedReferable = null,
 			AasxMenu superMenu = null,
-            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
 		{
 			// access
 			if (stack == null)
