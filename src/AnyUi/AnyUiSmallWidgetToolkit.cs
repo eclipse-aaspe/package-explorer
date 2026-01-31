@@ -341,11 +341,19 @@ namespace AnyUi
             string[] items = null, int? selectedIndex = null,
             bool isEditable = false,
             AnyUiVerticalAlignment? verticalContentAlignment = null,
-            AnyUiHorizontalAlignment? horizontalAlignment = null)
+            AnyUiHorizontalAlignment? horizontalAlignment = null,
+            AnyUiComboBox comboBoxStyle = null,
+            string plateLabelText = null)
         {
             var cb = new AnyUiComboBox();
-            cb.Margin = margin;
-            cb.Padding = padding;
+
+            if (comboBoxStyle != null)
+                cb.ApplyAsStyle(comboBoxStyle);
+
+            if (cb.Margin != null)
+                cb.Margin = margin;
+            if (cb.Padding != null)
+                cb.Padding = padding;
             if (foreground != null)
                 cb.Foreground = foreground;
             if (background != null)
@@ -366,6 +374,11 @@ namespace AnyUi
             cb.HorizontalAlignment = AnyUiHorizontalAlignment.Left;
             if (horizontalAlignment.HasValue)
                 cb.HorizontalAlignment = horizontalAlignment.Value;
+
+            // there needs to already be plate label config
+            if (plateLabelText != null && cb.PlateLabel != null)
+                cb.PlateLabel.Text = plateLabelText;
+
             AnyUiGrid.SetRow(cb, row);
             AnyUiGrid.SetColumn(cb, col);
             g.Children.Add(cb);
@@ -1085,6 +1098,7 @@ namespace AnyUi
             int rows, int cols, string[] colWidths = null,
             AnyUiThickness marginGrid = null,
             AnyUiThickness paddingCaption = null,
+            bool keyVertCenter = false,
             int minWidthFirstCol = -1)
         {
             var g = AddSmallGrid(1, 2, new[] { "#", "*" });
@@ -1092,7 +1106,7 @@ namespace AnyUi
             if (minWidthFirstCol > -1)
                 g.ColumnDefinitions[0].MinWidth = minWidthFirstCol;
 
-            AddSmallLabelTo(g, 0, 0, content: caption, padding: paddingCaption);
+            AddSmallLabelTo(g, 0, 0, content: caption, padding: paddingCaption, verticalCenter: keyVertCenter);
             var inner = AddSmallGridTo(g, 0, 1, rows, cols, colWidths, margin: marginGrid);
 
             // in total

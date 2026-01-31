@@ -1071,10 +1071,21 @@ namespace MauiTestTree
                 }),
 
                 new RenderRec(typeof(AnyUiComboBox),
-                (wts, cntl) => (wts == RenderWidgetToolSet.Transparent) ? typeof(TransparentPicker) : typeof(/*Picker*/ Border),
+                (wts, cntl) => {
+                    if (wts == RenderWidgetToolSet.Transparent)
+                        return typeof(TransparentPicker);
+
+                    if (cntl is AnyUiComboBox cb && cb.BorderRadius.HasValue)
+                        return typeof(AbsoluteLayout);
+                    else
+                        return typeof(Picker /* Border */);
+                },
                 null, (a, b, mode, rd) =>
                 {
                     // members
+                    if (a is AnyUiComboBox cntl4 && b is AbsoluteLayout maui4)
+                        RenderRecInit_AnyUiComboBox_MauiAbsoluteBorder(cntl4, maui4, mode, rd);
+
                     if (a is AnyUiComboBox cntl1 && b is Border maui1) 
                         RenderRecInit_AnyUiComboBox_MauiBorder(cntl1, maui1, mode, rd);
 
@@ -2018,7 +2029,7 @@ namespace MauiTestTree
 
                 // set absolute layout
                 absLayout.HeightRequest = rd?.ControlSizeBordered ?? -1;
-                absLayout.HorizontalOptions = LayoutOptions.Fill;
+                absLayout.HorizontalOptions = LayoutOptions.Start;
                 // absLayout.Background = Brush.LightBlue;
 
                 // ok, border is the wrapping control

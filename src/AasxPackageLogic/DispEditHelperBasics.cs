@@ -163,23 +163,44 @@ namespace AasxPackageLogic
         /// <summary>
         /// Style of Entry fields with a plate label
         /// </summary>
-        public AnyUiTextBox StyleEntryPlateLabel = null;
+        public AnyUiTextBox StyleTextBoxPlateLabel = null;
 
         /// <summary>
         /// Returns style depening on key label handling
         /// </summary>
-        public AnyUiTextBox StyleEntryFor(DispEditHelperBasics.KeyLabelHandling klh)
+        public AnyUiTextBox StyleTextBoxFor(DispEditHelperBasics.KeyLabelHandling klh)
         {
             if (klh == DispEditHelperBasics.KeyLabelHandling.LabelPlate)
-                return StyleEntryPlateLabel;
+                return StyleTextBoxPlateLabel;
             else
-                return StyleEntry;
+                return StyleTextBox;
+        }
+
+        /// <summary>
+        /// Style of combo box fields without a plate label
+        /// </summary>
+        public AnyUiComboBox StyleComboBox = null;
+
+        /// <summary>
+        /// Style of combo box fields with a plate label
+        /// </summary>
+        public AnyUiComboBox StyleComboBoxPlateLabel = null;
+
+        /// <summary>
+        /// Returns style depening on key label handling
+        /// </summary>
+        public AnyUiComboBox StyleComboBoxFor(DispEditHelperBasics.KeyLabelHandling klh)
+        {
+            if (klh == DispEditHelperBasics.KeyLabelHandling.LabelPlate)
+                return StyleComboBoxPlateLabel;
+            else
+                return StyleComboBox;
         }
 
         /// <summary>
         /// Style of Entry fields without a plate label
         /// </summary>
-        public AnyUiTextBox StyleEntry = null;
+        public AnyUiTextBox StyleTextBox = null;
 
         /// <summary>
         /// Display text and/or image for: medium clear/ obvious button
@@ -607,8 +628,10 @@ namespace AasxPackageLogic
             bool auxButtonOverride = false,
             bool isValueReadOnly = false,
             bool topContextMenu = true,
+            KeyLabelHandling keyHandling = KeyLabelHandling.Standard,
             AnyUiButtonOverStyle buttonOverStyle = null,
             AnyUiTextBox textBoxStyle = null,
+            AnyUiComboBox comboBoxStyle = null,
             string plateLabelText = null)
         {
             // draw anyway?
@@ -700,7 +723,9 @@ namespace AasxPackageLogic
                     minWidth: Math.Max(60, comboBoxMinWidth),
                     maxWidth: maxWidth,
                     items: comboBoxItems,
-                    isEditable: comboBoxIsEditable);
+                    isEditable: comboBoxIsEditable,
+                    comboBoxStyle: comboBoxStyle,
+                    plateLabelText: plateLabelText);
                 AnyUiUIElement.RegisterControl(cb, setValueAsync: setValueAsync, takeOverLambda: takeOverLambdaAction);
 
                 // check here, if to hightlight
@@ -1215,7 +1240,8 @@ namespace AasxPackageLogic
             AnyUiButtonOverStyle buttonOverStyleHi = null,
             AnyUiButtonPreference buttonPreferenceLo = AnyUiButtonPreference.None,
             AnyUiButtonPreference buttonPreferenceHi = AnyUiButtonPreference.None,
-            AnyUiTextBox textBoxStyle = null) where T : IAbstractLangString
+            AnyUiTextBox textBoxStyle = null,
+            AnyUiComboBox comboBoxStyle = null) where T : IAbstractLangString
         {
             // sometimes needless to show
             if (repo == null && (langStr == null || langStr.Count < 1))
@@ -1320,7 +1346,8 @@ namespace AasxPackageLogic
                                     text: "" + langStr[currentI].Language,
                                     minWidth: 60,
                                     items: AasxLanguageHelper.Languages.GetAllLanguages(nullForAny: true).ToArray(),
-                                    isEditable: true),
+                                    isEditable: true,
+                                    comboBoxStyle: comboBoxStyle),
                                 verticalAlignment: AnyUiVerticalAlignment.Top,
                                 verticalContentAlignment: AnyUiVerticalAlignment.Center
                             );
@@ -1752,7 +1779,8 @@ namespace AasxPackageLogic
             AnyUiButtonOverStyle buttonOverStyleLo = null,
             AnyUiButtonOverStyle buttonOverStyleHi = null,
             AnyUiButtonPreference buttonPreferenceLo = AnyUiButtonPreference.None,
-            AnyUiTextBox textBoxStyle = null)
+            AnyUiTextBox textBoxStyle = null,
+            AnyUiComboBox comboBoxStyle = null)
         {
             // sometimes needless to show
             if (repo == null && (keys == null || keys.Count < 1))
@@ -2205,7 +2233,8 @@ namespace AasxPackageLogic
                                 minWidth: 100,
                                 items: Enum.GetNames(typeof(Aas.KeyTypes)),
                                 isEditable: false,
-                                verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center,
+                                comboBoxStyle: comboBoxStyle),
                             async (o) =>
                             {
                                 await Task.Yield();

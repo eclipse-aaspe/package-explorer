@@ -392,23 +392,50 @@ public partial class DispEditAasxEntityMaui : ContentView
         };
 
         // Text Boxes
-        _helper.LayoutHints.StyleEntry = new()
-        {
-            // enable outer Border
-            BorderRadius = 8,
-            BorderPadding = new AnyUiThickness(0,-4,0,0),
-            BorderColor = AnyUiBrushes.LightGray
-        };
-        _helper.LayoutHints.StyleEntryPlateLabel = new()
+        _helper.LayoutHints.StyleTextBox = new()
         {
             // enable outer Border
             BorderRadius = 8,
             BorderPadding = new AnyUiThickness(0,-4,0,0),
             BorderColor = AnyUiBrushes.LightGray,
+            Background = AnyUiBrushes.White
+        };
+        _helper.LayoutHints.StyleTextBoxPlateLabel = new()
+        {
+            // enable outer Border
+            BorderRadius = 8,
+            BorderPadding = new AnyUiThickness(0,-4,0,0),
+            BorderColor = AnyUiBrushes.LightGray,
+            Background = AnyUiBrushes.White,
             PlateLabel = new()
             {
                 Margin = new AnyUiThickness(10, -5, 0, 0),
                 Padding = new AnyUiThickness(3,0,3,0),
+                Background = AnyUiBrushes.White,
+                Foreground = AnyUiBrushes.DarkGray
+            }
+        };
+
+        // Combo Boxes
+        _helper.LayoutHints.StyleComboBox = new()
+        {
+            // enable outer Border
+            BorderRadius = 8,
+            BorderPadding = new AnyUiThickness(0, -4, 0, 0),
+            BorderColor = AnyUiBrushes.LightGray,
+            Background = AnyUiBrushes.White
+        };
+        _helper.LayoutHints.StyleComboBoxPlateLabel = new()
+        {
+            // enable outer Border
+            BorderRadius = 8,
+            BorderPadding = new AnyUiThickness(0, -4, 0, 0),
+            BorderColor = AnyUiBrushes.LightGray,
+            Background = AnyUiBrushes.White,
+            PlateLabel = new()
+            {
+                Margin = new AnyUiThickness(10, -5, 0, 0),
+                Padding = new AnyUiThickness(3, 0, 3, 0),
                 Background = AnyUiBrushes.White,
                 Foreground = AnyUiBrushes.DarkGray
             }
@@ -426,6 +453,10 @@ public partial class DispEditAasxEntityMaui : ContentView
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Clear_all);
         IconPool.AddExisting
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Fact_check);
+        IconPool.AddKnown
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Local_library);
+        IconPool.AddEclass
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Dictionary);
         IconPool.AddPreset
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Ballot);
         IconPool.AddBlank
@@ -480,7 +511,7 @@ public partial class DispEditAasxEntityMaui : ContentView
         IconPool.IecOrg
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Power);
         IconPool.EclassOrg
-                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Key_visualizer);
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Dictionary);
         IconPool.AutoDetect
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Radar);
         IconPool.CreateNew

@@ -2300,7 +2300,8 @@ namespace AasxPackageLogic
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonOverStyleHi: LayoutHints.StyleButtonAction,
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
-                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling));
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling));
             }
 
             // check, if Submodel is sitting in Repo
@@ -3068,7 +3069,8 @@ namespace AasxPackageLogic
                     instanceExceptionStatement:
                         "Exception: if you want to declare a Submodel, which is been standardised " +
                         "by you or a standardisation body.",
-                    relatedReferable: submodel);
+                    relatedReferable: submodel,
+                    keyHandling: keyHandling);
 
                 // HasSemanticId
                 this.DisplayOrEditEntitySemanticId(stack, submodel,
@@ -3124,7 +3126,8 @@ namespace AasxPackageLogic
                     DisplayOrEditAasEntityConceptDescription(
                         packages, env, submodel, cd, editMode, repo, stack,
                         embedded: true,
-                        hintMode: hintMode);
+                        hintMode: hintMode,
+                        keyHandling: keyHandling);
                 }
             }
 
@@ -3267,9 +3270,6 @@ namespace AasxPackageLogic
             AasxMenu superMenu = null,
             KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
         {
-            // TEST
-            keyHandling = KeyLabelHandling.No;
-
             this.AddGroup(stack, "ConceptDescription", this.levelColors.MainSection);
 
             // info about sideInfo
@@ -3373,6 +3373,7 @@ namespace AasxPackageLogic
                     indexPosition: 0,
                     hideExtensions: hideExtensions,
                     superMenu: superMenu,
+                    keyHandling: keyHandling,
                     injectToIdShort: new DispEditHelperModules.DispEditInjectAction(
                         new[] { "Sync" },
                         new[] { "Copy (if target is empty) idShort to preferredName and SubmodelElement idShort." },
@@ -3417,96 +3418,97 @@ namespace AasxPackageLogic
                 this.DisplayOrEditEntityIdentifiable(
                     stack, packages?.Main, env, cd,
                     Options.Curr.TemplateIdConceptDescription,
-                    new DispEditHelperModules.DispEditInjectAction(
-                    new[] { "Rename" },
-                    auxLambda: null,
-                    auxLambdaAsync: async (i) =>
-                    {
-                        if (i == 0 && env != null)
+                    keyHandling: keyHandling,
+                    injectToId: new DispEditHelperModules.DispEditInjectAction(
+                        new[] { "Rename" },
+                        auxLambda: null,
+                        auxLambdaAsync: async (i) =>
                         {
-                            var uc = new AnyUiDialogueDataTextBox(
-                                "New ID:",
-                                symbol: AnyUiMessageBoxImage.Question,
-                                maxWidth: 1400,
-                                text: cd.Id);
-                            if (await context.StartFlyoverModalAsync(uc))
+                            if (i == 0 && env != null)
                             {
-                                var oldId = cd.Id;
-                                var newId = uc.Text.Trim();
-                                var res = false;
-
-                                try
+                                var uc = new AnyUiDialogueDataTextBox(
+                                    "New ID:",
+                                    symbol: AnyUiMessageBoxImage.Question,
+                                    maxWidth: 1400,
+                                    text: cd.Id);
+                                if (await context.StartFlyoverModalAsync(uc))
                                 {
-                                    // check, if Submodel is sitting in Repo
-                                    var sideInfo = OnDemandListIdentifiable<Aas.IConceptDescription>
-                                            .FindSideInfoInListOfIdentifiables(
-                                                env.ConceptDescriptions, cd.GetReference());
-                                    if (sideInfo != null)
+                                    var oldId = cd.Id;
+                                    var newId = uc.Text.Trim();
+                                    var res = false;
+
+                                    try
                                     {
-                                        // in any case, update Id
-                                        sideInfo.Id = newId;
-
-                                        // ask user for repo operation
-                                        if (AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
-                                                "Rename ConceptDescription in Repository as well? " +
-                                                "This operation can not be reverted!",
-                                                "Rename Identifiable",
-                                                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                        // check, if Submodel is sitting in Repo
+                                        var sideInfo = OnDemandListIdentifiable<Aas.IConceptDescription>
+                                                .FindSideInfoInListOfIdentifiables(
+                                                    env.ConceptDescriptions, cd.GetReference());
+                                        if (sideInfo != null)
                                         {
+                                            // in any case, update Id
+                                            sideInfo.Id = newId;
 
-                                            // rename in repo
-                                            // (only the side info in the _specific_ endpoint gives information, in
-                                            // which repo the Indentifiables could be deleted)
-                                            var newEndpoint = await PackageContainerHttpRepoSubset
-                                                .AssistantRenameIdfsInRepo<Aas.IConceptDescription>(
-                                                    baseUri: PackageContainerHttpRepoSubset.GetBaseUri(
-                                                        sideInfo.DesignatedEndpoint?.AbsoluteUri),
-                                                    oldId: oldId,
-                                                    newId: newId,
-                                                    runtimeOptions: packages.CentralRuntimeOptions,
-                                                    moreLog: true);
+                                            // ask user for repo operation
+                                            if (AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
+                                                    "Rename ConceptDescription in Repository as well? " +
+                                                    "This operation can not be reverted!",
+                                                    "Rename Identifiable",
+                                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                            {
 
-                                            Log.Singleton.Info("Rename in repo performed successfully.");
+                                                // rename in repo
+                                                // (only the side info in the _specific_ endpoint gives information, in
+                                                // which repo the Indentifiables could be deleted)
+                                                var newEndpoint = await PackageContainerHttpRepoSubset
+                                                    .AssistantRenameIdfsInRepo<Aas.IConceptDescription>(
+                                                        baseUri: PackageContainerHttpRepoSubset.GetBaseUri(
+                                                            sideInfo.DesignatedEndpoint?.AbsoluteUri),
+                                                        oldId: oldId,
+                                                        newId: newId,
+                                                        runtimeOptions: packages.CentralRuntimeOptions,
+                                                        moreLog: true);
 
-                                            // adopt in side info
-                                            sideInfo.QueriedEndpoint = newEndpoint;
-                                            sideInfo.DesignatedEndpoint = newEndpoint;
+                                                Log.Singleton.Info("Rename in repo performed successfully.");
+
+                                                // adopt in side info
+                                                sideInfo.QueriedEndpoint = newEndpoint;
+                                                sideInfo.DesignatedEndpoint = newEndpoint;
+                                            }
+                                        }
+
+                                        // rename
+                                        var lrf = env.RenameIdentifiable<Aas.ConceptDescription>(
+                                            cd.Id, uc.Text);
+
+                                        // use this information to emit events
+                                        if (lrf != null)
+                                        {
+                                            res = true;
+                                            foreach (var rf in lrf)
+                                            {
+                                                var rfi = rf.FindParentFirstIdentifiable();
+                                                if (rfi != null)
+                                                    this.AddDiaryEntry(rfi, new DiaryEntryStructChange());
+                                            }
                                         }
                                     }
-
-                                    // rename
-                                    var lrf = env.RenameIdentifiable<Aas.ConceptDescription>(
-                                        cd.Id, uc.Text);
-
-                                    // use this information to emit events
-                                    if (lrf != null)
+                                    catch (Exception ex)
                                     {
-                                        res = true;
-                                        foreach (var rf in lrf)
-                                        {
-                                            var rfi = rf.FindParentFirstIdentifiable();
-                                            if (rfi != null)
-                                                this.AddDiaryEntry(rfi, new DiaryEntryStructChange());
-                                        }
+                                        AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
                                     }
-                                }
-                                catch (Exception ex)
-                                {
-                                    AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
-                                }
 
-                                if (!res)
-                                    await context.MessageBoxFlyoutShowAsync(
-                                        "The renaming of the ConceptDescription or some referring elements has not " +
-                                            "performed successfully! Please review your inputs and the AAS " +
-                                            "structure for any inconsistencies.",
-                                            "Warning",
-                                            AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Warning);
-                                return new AnyUiLambdaActionRedrawAllElements(cd);
+                                    if (!res)
+                                        await context.MessageBoxFlyoutShowAsync(
+                                            "The renaming of the ConceptDescription or some referring elements has not " +
+                                                "performed successfully! Please review your inputs and the AAS " +
+                                                "structure for any inconsistencies.",
+                                                "Warning",
+                                                AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Warning);
+                                    return new AnyUiLambdaActionRedrawAllElements(cd);
+                                }
                             }
-                        }
-                        return new AnyUiLambdaActionNone();
-                    }));
+                            return new AnyUiLambdaActionNone();
+                        }));
             };
 
             // isCaseOf are MULTIPLE references. That is: multiple x multiple keys!
@@ -3529,7 +3531,8 @@ namespace AasxPackageLogic
                     new List<Aas.IKey>(){ ExtendIDataSpecificationContent.GetKeyForPhysicalUnit() */ }
                     },
                     relatedReferable: cd, superMenu: superMenu,
-                    suppressNoEdsWarning: suppressWarning);
+                    suppressNoEdsWarning: suppressWarning,
+                    keyHandling: keyHandling);
             };
 
             // experimental: SAMM elements

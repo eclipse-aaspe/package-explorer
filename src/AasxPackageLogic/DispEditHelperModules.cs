@@ -183,7 +183,7 @@ namespace AasxPackageLogic
             
             AddKeyValue(
                 stack, "idShort", referable.IdShort, null, repo,
-                textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
+                textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                 plateLabelText: "idShort",
                 containingObject: referable,
                 setValueAsync: async (v) =>
@@ -255,7 +255,8 @@ namespace AasxPackageLogic
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
                     buttonPreferenceHi: AnyUiButtonPreference.Both,
-                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling));
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling));
             }
 
             // category deprecated
@@ -270,7 +271,8 @@ namespace AasxPackageLogic
                 AddKeyValue(
                         stack, "category", referable.Category, null, repo,
                         containingObject: referable,
-                        textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
+                        keyVertCenter: true,
+                        textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                         plateLabelText: "category",
                         setValueAsync: async (v) =>
                         {
@@ -330,7 +332,8 @@ namespace AasxPackageLogic
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
                     buttonPreferenceHi: AnyUiButtonPreference.Both,
-                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling));
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling));
             }
 
             if (!hideExtensions)
@@ -574,7 +577,7 @@ namespace AasxPackageLogic
                                     LayoutHints.ButtonPrefMediumClear)
                                 .Merge(injectToId?.GetButtonHeaders()),
                     buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(preference: LayoutHints.ButtonPrefLowClear),
-                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     auxButtonLambdaAsync: async (i) =>
                     {
                         if (i == 0)
@@ -658,7 +661,7 @@ namespace AasxPackageLogic
                     null, repo,
                     plateLabelText: "version",
                     containingObject: identifiable.Administration,
-                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     setValueAsync: async (v) =>
                     {
                         await Task.Yield();
@@ -673,7 +676,7 @@ namespace AasxPackageLogic
                     null, repo,
                     plateLabelText: "revision",
                     containingObject: identifiable.Administration,
-                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     setValueAsync: async (v) =>
                     {
                         await Task.Yield();
@@ -708,7 +711,7 @@ namespace AasxPackageLogic
                         buttonOverStyleHi: LayoutHints.StyleButtonAction,
                         buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                         buttonPreferenceLo: AnyUiButtonPreference.Image,
-                        textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
+                        textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                         auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
                             new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete creator"),
                         }),
@@ -730,7 +733,7 @@ namespace AasxPackageLogic
                     null, repo,
                     plateLabelText: "templateId",
                     containingObject: identifiable.Administration,
-                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     setValueAsync: async (v) =>
                     {
                         await Task.Yield();
@@ -1074,7 +1077,9 @@ namespace AasxPackageLogic
                             showRefSemId: false,
                             buttonOverStyleHi: LayoutHints.StyleButtonAction,
                             buttonOverStyleLo: LayoutHints.StyleButtonStandard,
-                            buttonPreferenceLo: AnyUiButtonPreference.Image);
+                            buttonPreferenceLo: AnyUiButtonPreference.Image,
+                            textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                            comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling));
                     }
 
                     // indicate new section
@@ -1283,7 +1288,8 @@ namespace AasxPackageLogic
             Aas.ModellingKind? kind,
             Action<Aas.ModellingKind> setOutput,
             string instanceExceptionStatement = null,
-            Aas.IReferable relatedReferable = null)
+            Aas.IReferable relatedReferable = null,
+            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
         {
             // access
             if (stack == null)
@@ -1326,7 +1332,9 @@ namespace AasxPackageLogic
                     },
                     keyVertCenter: true,
                     comboBoxItems: Enum.GetNames(typeof(Aas.ModellingKind)),
-                    comboBoxMinWidth: 120);
+                    comboBoxMinWidth: 120,
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                    plateLabelText: "kind");
             }
         }
 
@@ -1413,7 +1421,8 @@ namespace AasxPackageLogic
                     buttonOverStyleHi: LayoutHints.StyleButtonAction,
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
-                    textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                     auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
                         new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete semanticId"),
                     }),
@@ -1530,7 +1539,7 @@ namespace AasxPackageLogic
                             buttonOverStyleHi: LayoutHints.StyleButtonAction,
                             buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                             buttonPreferenceLo: AnyUiButtonPreference.Image,
-                            textBoxStyle: LayoutHints.StyleEntryFor(keyHandling),
+                            textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                             auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
                                 new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete supplementalSemanticId"),
                             }),
@@ -1561,7 +1570,8 @@ namespace AasxPackageLogic
             List<Aas.IQualifier> qualifiers,
             Action<List<Aas.IQualifier>> setOutput,
             Aas.IReferable relatedReferable = null,
-            AasxMenu superMenu = null)
+            AasxMenu superMenu = null,
+            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
         {
             // access
             if (stack == null)
@@ -1699,7 +1709,8 @@ namespace AasxPackageLogic
             AnyUiStackPanel stack,
             Aas.DataSpecificationIec61360 dsiec,
             Aas.IReferable relatedReferable = null,
-            AasxMenu superMenu = null)
+            AasxMenu superMenu = null,
+            KeyLabelHandling keyHandling = KeyLabelHandling.Standard)
         {
             // access
             if (stack == null || dsiec == null)
@@ -1788,12 +1799,18 @@ namespace AasxPackageLogic
                     }))
                 AddKeyListLangStr<ILangStringPreferredNameTypeIec61360>(
                     stack, "preferredName", dsiec.PreferredName,
-                    repo, relatedReferable: relatedReferable,
+                    repo, relatedReferable: relatedReferable,                    
                     setNullList: () =>
                     {
                         dsiec.PreferredName = ExtendILangStringPreferredNameTypeIec61360.CreateFrom(
                             lang: AdminShellUtil.GetDefaultLngIso639(), text: "");
-                    });
+                    },
+                    buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                    buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                    buttonPreferenceLo: AnyUiButtonPreference.Image,
+                    buttonPreferenceHi: AnyUiButtonPreference.Both,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling));
 
             // ShortName
 
@@ -1835,7 +1852,13 @@ namespace AasxPackageLogic
                 AddKeyListLangStr<ILangStringShortNameTypeIec61360>(
                     stack, "shortName", dsiec.ShortName,
                     repo, relatedReferable: relatedReferable,
-                    setNullList: () => dsiec.ShortName = null);
+                    setNullList: () => dsiec.ShortName = null,
+                    buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                    buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                    buttonPreferenceLo: AnyUiButtonPreference.Image,
+                    buttonPreferenceHi: AnyUiButtonPreference.Both,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling));
 
             // Unit
 
@@ -1866,28 +1889,32 @@ namespace AasxPackageLogic
                     return new AnyUiLambdaActionRedrawEntity();
                 }))
             {
-                AddKeyValueExRef(
-                stack, "unit", dsiec, dsiec.Unit, null, repo,
-                async (v) =>
-                {
-                    await Task.Yield();
-                    dsiec.Unit = v as string;
-                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                    return new AnyUiLambdaActionNone();
-                },
-                auxButtonTitles: new[] { "Delete" },
-                auxButtonToolTips: new[] { "Delete data element" },
-                auxButtonLambdaAsync: async (i) =>
-                {
-                    await Task.Yield();
-                    if (i == 0)
+                AddKeyValue(
+                    stack, "unit", dsiec.Unit, null, repo,
+                    async (v) =>
                     {
-                        dsiec.Unit = null;
+                        await Task.Yield();
+                        dsiec.Unit = v as string;
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                        return new AnyUiLambdaActionRedrawEntity();
-                    }
-                    return new AnyUiLambdaActionNone();
-                });
+                        return new AnyUiLambdaActionNone();
+                    },
+                    containingObject: dsiec,
+                    keyVertCenter: true,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                    auxButtons: new AnyUiButtonHeaderList(IconPool.Delete, "Delete", "Delete data element", AnyUiButtonPreference.Image),
+                    auxButtonLambdaAsync: async (i) =>
+                    {
+                        await Task.Yield();
+                        if (i == 0)
+                        {
+                            dsiec.Unit = null;
+                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                            return new AnyUiLambdaActionRedrawEntity();
+                        }
+                        return new AnyUiLambdaActionNone();
+                    });
             }
 
             // UnitId
@@ -1924,7 +1951,12 @@ namespace AasxPackageLogic
                                | AddKeyListKeys_Button.Eclass | AddKeyListKeys_Button.Known,
                     highlightButton: AddKeyListKeys_Button.Existing,
                     addExistingEntities: Aas.Stringification.ToString(Aas.KeyTypes.GlobalReference),
-                    relatedReferable: relatedReferable);
+                    relatedReferable: relatedReferable,
+                    buttonOverStyleHi: LayoutHints.StyleButtonAction.Modify(preference: AnyUiButtonPreference.Image),
+                    buttonOverStyleLo: LayoutHints.StyleButtonStandard.Modify(preference: AnyUiButtonPreference.Image),
+                    buttonPreferenceLo: AnyUiButtonPreference.Image,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling));
             }
 
             // source of definition
@@ -1956,28 +1988,32 @@ namespace AasxPackageLogic
                     return new AnyUiLambdaActionRedrawEntity();
                 }))
             {
-                AddKeyValueExRef(
-                stack, "sourceOfDef.", dsiec, dsiec.SourceOfDefinition, null, repo,
-                async (v) =>
-                {
-                    await Task.Yield();
-                    dsiec.SourceOfDefinition = v as string;
-                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                    return new AnyUiLambdaActionNone();
-                },
-                auxButtonTitles: new[] { "Delete" },
-                auxButtonToolTips: new[] { "Delete data element" },
-                auxButtonLambdaAsync: async (i) =>
-                {
-                    await Task.Yield();
-                    if (i == 0)
+                AddKeyValue(
+                    stack, "sourceOfDef.", dsiec.SourceOfDefinition, null, repo,
+                    async (v) =>
                     {
-                        dsiec.SourceOfDefinition = null;
+                        await Task.Yield();
+                        dsiec.SourceOfDefinition = v as string;
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                        return new AnyUiLambdaActionRedrawEntity();
-                    }
-                    return new AnyUiLambdaActionNone();
-                });
+                        return new AnyUiLambdaActionNone();
+                    },
+                    containingObject: dsiec,
+                    keyVertCenter: true,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                    auxButtons: new AnyUiButtonHeaderList(IconPool.Delete, "Delete", "Delete data element", AnyUiButtonPreference.Image),
+                    auxButtonLambdaAsync: async (i) =>
+                    {
+                        await Task.Yield();
+                        if (i == 0)
+                        {
+                            dsiec.SourceOfDefinition = null;
+                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                            return new AnyUiLambdaActionRedrawEntity();
+                        }
+                        return new AnyUiLambdaActionNone();
+                    });
             }
 
             // Symbol
@@ -2004,28 +2040,32 @@ namespace AasxPackageLogic
                     return new AnyUiLambdaActionRedrawEntity();
                 }))
             {
-                AddKeyValueExRef(
-                stack, "symbol", dsiec, dsiec.Symbol, null, repo,
-                async (v) =>
-                {
-                    await Task.Yield();
-                    dsiec.Symbol = v as string;
-                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                    return new AnyUiLambdaActionNone();
-                },
-                auxButtonTitles: new[] { "Delete" },
-                auxButtonToolTips: new[] { "Delete data element" },
-                auxButtonLambdaAsync: async (i) =>
-                {
-                    await Task.Yield();
-                    if (i == 0)
+                AddKeyValue(
+                    stack, "symbol", dsiec.Symbol, null, repo,
+                    async (v) =>
                     {
-                        dsiec.Symbol = null;
+                        await Task.Yield();
+                        dsiec.Symbol = v as string;
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                        return new AnyUiLambdaActionRedrawEntity();
-                    }
-                    return new AnyUiLambdaActionNone();
-                });
+                        return new AnyUiLambdaActionNone();
+                    },
+                    containingObject: dsiec,
+                    keyVertCenter: true,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                    auxButtons: new AnyUiButtonHeaderList(IconPool.Delete, "Delete", "Delete data element", AnyUiButtonPreference.Image),
+                    auxButtonLambdaAsync: async (i) =>
+                    {
+                        await Task.Yield();
+                        if (i == 0)
+                        {
+                            dsiec.Symbol = null;
+                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                            return new AnyUiLambdaActionRedrawEntity();
+                        }
+                        return new AnyUiLambdaActionNone();
+                    });
             }
 
             // DataType
@@ -2053,8 +2093,8 @@ namespace AasxPackageLogic
                 // comboBoxItems: (AdminShellUtil.GetEnumValues<Aas.DataTypeIec61360>()
                 //      .Select((dt) => dt.ToString())).ToArray(),
 
-                AddKeyValueExRef(
-                    stack, "dataType", dsiec, Aas.Stringification.ToString(dsiec.DataType), null, repo,
+                AddKeyValue(
+                    stack, "dataType", Aas.Stringification.ToString(dsiec.DataType), null, repo,
                     async (v) =>
                     {
                         await Task.Yield();
@@ -2066,8 +2106,12 @@ namespace AasxPackageLogic
                     comboBoxMinWidth: 190,
                     comboBoxItems: Aas.Constants.DataTypeIec61360ForPropertyOrValue.Select(
                         (dt) => Aas.Stringification.ToString(dt)).ToArray(),
-                    auxButtonTitles: new[] { "Delete" },
-                    auxButtonToolTips: new[] { "Delete data element" },
+                    containingObject: dsiec,
+                    keyVertCenter: true,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                    auxButtons: new AnyUiButtonHeaderList(IconPool.Delete, "Delete", "Delete data element", AnyUiButtonPreference.Image),
                     auxButtonLambdaAsync: async (i) =>
                     {
                         await Task.Yield();
@@ -2111,7 +2155,13 @@ namespace AasxPackageLogic
                 this.AddKeyListLangStr<ILangStringDefinitionTypeIec61360>(
                     stack, "definition", dsiec.Definition,
                     repo, relatedReferable: relatedReferable,
-                    setNullList: () => dsiec.Definition = null);
+                    setNullList: () => dsiec.Definition = null,
+                    buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                    buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                    buttonPreferenceLo: AnyUiButtonPreference.Image,
+                    buttonPreferenceHi: AnyUiButtonPreference.Both,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling));
 
             // ValueFormat
             AddHintBubble(
@@ -2132,8 +2182,8 @@ namespace AasxPackageLogic
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
             {
-                AddKeyValueExRef(
-                    stack, "valueFormat", dsiec, dsiec.ValueFormat, null, repo,
+                AddKeyValue(
+                    stack, "valueFormat", dsiec.ValueFormat, null, repo,
                     async (v) =>
                     {
                         await Task.Yield();
@@ -2141,8 +2191,12 @@ namespace AasxPackageLogic
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
                     },
-                    auxButtonTitles: new[] { "Delete" },
-                    auxButtonToolTips: new[] { "Delete data element" },
+                    containingObject: dsiec,
+                    keyVertCenter: true,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                    auxButtons: new AnyUiButtonHeaderList(IconPool.Delete, "Delete", "Delete data element", AnyUiButtonPreference.Image),
                     auxButtonLambdaAsync: async (i) =>
                     {
                         await Task.Yield();
@@ -2222,41 +2276,6 @@ namespace AasxPackageLogic
                         "Please delete the data element or set the content.")
                 });
 
-#if OLD_SAFEGUARD
-            if (SafeguardAccess(
-                stack, repo, dsiec.Value, "value:", "Create data element!",
-                async (v) =>
-                {
-                    await Task.Yield();
-                    dsiec.Value = "";
-                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                    return new AnyUiLambdaActionRedrawEntity();
-                }))
-            {
-                AddKeyValueExRef(
-                    stack, "value", dsiec, dsiec.Value, null, repo,
-                    async (v) =>
-                    {
-                        await Task.Yield();
-                        dsiec.Value = v as string;
-                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                        return new AnyUiLambdaActionNone();
-                    },
-                    auxButtonTitles: new[] { "Delete" },
-                    auxButtonToolTips: new[] { "Delete data element" },
-                    auxButtonLambdaAsync: async (i) =>
-                    {
-                        await Task.Yield();
-                        if (i == 0)
-                        {
-                            dsiec.Value = null;
-                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                            return new AnyUiLambdaActionRedrawEntity();
-                        }
-                        return new AnyUiLambdaActionNone();
-                    });
-            }
-#else
             SafeguardAccessNew(
                 stack, repo,
                 () => dsiec.Value == null,
@@ -2272,8 +2291,8 @@ namespace AasxPackageLogic
                 },
                 lambdaSuccess: (childView) =>
                 {
-                    AddKeyValueExRefNew(
-                        childView, "value", dsiec, dsiec.Value, null, repo,
+                    AddKeyValue(
+                        childView, "value", dsiec.Value, null, repo,
                         async (v) =>
                         {
                             await Task.Yield();
@@ -2283,6 +2302,9 @@ namespace AasxPackageLogic
                         },
                         firstColumnWidth: FirstColumnWidth.No,
                         buttonOverStyle: LayoutHints.StyleButtonStandard,
+                        containingObject: dsiec,
+                        textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                        comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                         auxButtons: new AnyUiButtonHeaderList(IconPool.Delete, "Delete", "Delete data element", AnyUiButtonPreference.Image),
                         auxButtonLambdaAsync: async (i) =>
                         {
@@ -2296,7 +2318,6 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionNone();
                         });
                 });
-#endif
 
             // LevelType
 
@@ -2325,6 +2346,7 @@ namespace AasxPackageLogic
                     1, 6, new[] { "#", "#", "#", "#", "*", "#" },
                     paddingCaption: new AnyUiThickness(5, 0, 0, 0),
                     marginGrid: new AnyUiThickness(4, 0, 0, 0),
+                    keyVertCenter: true,
                     minWidthFirstCol: GetWidth(FirstColumnWidth.Standard));
 
                 Action<int, string, bool, Action<bool>> lambda = (col, name, value, setValue) =>
@@ -2351,8 +2373,8 @@ namespace AasxPackageLogic
                 AnyUiUIElement.RegisterControl(
                     AddSmallButtonTo(subg, 0, 5,
                         margin: new AnyUiThickness(2, 2, 2, 2),
-                        content: "Delete",
-                        toolTip: "Delete data element"),
+                        header: new AnyUiButtonHeader(IconPool.Delete, "Delete", "Delete data element"),
+                        buttonOverStyle: LayoutHints.StyleButtonStandard),
                         async (v) =>
                         {
                             await Task.Yield();
