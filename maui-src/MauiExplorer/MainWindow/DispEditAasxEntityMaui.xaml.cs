@@ -441,6 +441,12 @@ public partial class DispEditAasxEntityMaui : ContentView
             }
         };
 
+        // Label styles
+        _helper.LayoutHints.StyleHeadline2 = new()
+        {
+            Margin = new AnyUiThickness(0, 18, 0, 12),
+            FontSize = 1.1
+        };
 
         // for icon resolution
         displayContext.LambdaResolveImageSourceFont = ResolveImageSourceFont;

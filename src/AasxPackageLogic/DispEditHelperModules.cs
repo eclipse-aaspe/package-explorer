@@ -257,6 +257,7 @@ namespace AasxPackageLogic
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
                     buttonPreferenceHi: AnyUiButtonPreference.Both,
+                    keyStyleAbove: LayoutHints.StyleHeadline2,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling));
             }
@@ -334,6 +335,7 @@ namespace AasxPackageLogic
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
                     buttonPreferenceHi: AnyUiButtonPreference.Both,
+                    keyStyleAbove: LayoutHints.StyleHeadline2,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling));
             }
@@ -570,6 +572,7 @@ namespace AasxPackageLogic
                     },
                     containingObject: identifiable,
                     topContextMenu: false,
+                    keyHandling: keyHandling,
                     keyVertCenter: true,
                     takeOverLambdaAction: new AnyUiLambdaActionRedrawAllElements(nextFocus: identifiable),
                     auxButtonOverride: true,
@@ -604,9 +607,37 @@ namespace AasxPackageLogic
                 // further info?
                 if (identifiable.Id.HasContent())
                 {
-                    this.AddKeyValue(
-                        stack, "id (base64url)", AdminShellUtil.Base64UrlEncode(identifiable.Id),
-                        repo: null);
+                    if (context is AnyUiContextPlusDialogs cpd && cpd.HasCapability(AnyUiContextCapability.MAUI))
+                    {
+                        var idb64 = AdminShellUtil.Base64UrlEncode(identifiable.Id);
+                        AddKeyValue(
+                            stack, "id (base64url)", idb64, null,
+                            repo,
+                            containingObject: identifiable,
+                            keyHandling: keyHandling,
+                            keyVertCenter: true,
+                            isValueReadOnly: true,
+                            buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(preference: AnyUiButtonPreference.Image),
+                            textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                            auxButtons: new AnyUiButtonHeaderList(IconPool.CopyToClipboard, "Copy to clipboard",
+                                        "Copy id (base64url) to clipboard."),
+                            auxButtonLambdaAsync: async (i) =>
+                            {
+                                if (i == 0)
+                                {
+                                    await context.ClipboardSetAsync(new AnyUiClipboardData(idb64));
+                                    Log.Singleton.Info("Copied id (base64url) to clipboard: " + idb64);
+                                }
+                                return new AnyUiLambdaActionNone();
+                            });
+                    }
+                    else
+                    {
+                        // plain, but selectable
+                        AddKeyValue(
+                            stack, "id (base64url)", AdminShellUtil.Base64UrlEncode(identifiable.Id),
+                            repo: null);
+                    }
                 }
 
             }
@@ -661,6 +692,7 @@ namespace AasxPackageLogic
                     stack, "version", identifiable.Administration.Version,
                     null, repo,
                     containingObject: identifiable.Administration,
+                    keyHandling: keyHandling,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     setValueAsync: async (v) =>
                     {
@@ -675,6 +707,7 @@ namespace AasxPackageLogic
                     stack, "revision", identifiable.Administration.Revision,
                     null, repo,
                     containingObject: identifiable.Administration,
+                    keyHandling: keyHandling,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     setValueAsync: async (v) =>
                     {
@@ -685,9 +718,25 @@ namespace AasxPackageLogic
                     },
                     keyVertCenter: true);
 
+                AddKeyValue(
+                    stack, "templateId", identifiable.Administration.TemplateId,
+                    null, repo,
+                    containingObject: identifiable.Administration,
+                    keyHandling: keyHandling,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    setValueAsync: async (v) =>
+                    {
+                        await Task.Yield();
+                        identifiable.Administration.TemplateId = v as string;
+                        this.AddDiaryEntry(identifiable, new DiaryEntryStructChange());
+                        return new AnyUiLambdaActionNone();
+                    },
+                    keyVertCenter: true);
+
                 if (this.SafeguardAccess(
-                    stack, repo, identifiable.Administration.Creator, "creator:", "Create data element!",
-                    async (v) =>
+                    stack, repo, identifiable.Administration.Creator, "creator:", keyHandling: keyHandling,
+                    actionStr: "Create creator element!",
+                    actionAsync: async (v) =>
                     {
                         await Task.Yield();
                         identifiable.Administration.Creator =
@@ -710,6 +759,7 @@ namespace AasxPackageLogic
                         buttonOverStyleHi: LayoutHints.StyleButtonAction,
                         buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                         buttonPreferenceLo: AnyUiButtonPreference.Image,
+                        comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                         textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                         auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
                             new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete creator"),
@@ -726,20 +776,6 @@ namespace AasxPackageLogic
                         },
                         emitCustomEvent: (rf) => { this.AddDiaryEntry(rf, new DiaryEntryUpdateValue()); });
                 }
-
-                AddKeyValue(
-                    stack, "templateId", identifiable.Administration.TemplateId,
-                    null, repo,
-                    containingObject: identifiable.Administration,
-                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
-                    setValueAsync: async (v) =>
-                    {
-                        await Task.Yield();
-                        identifiable.Administration.TemplateId = v as string;
-                        this.AddDiaryEntry(identifiable, new DiaryEntryStructChange());
-                        return new AnyUiLambdaActionNone();
-                    },
-                    keyVertCenter: true);
             }
         }
 

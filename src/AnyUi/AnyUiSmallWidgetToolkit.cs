@@ -410,8 +410,19 @@ namespace AnyUi
             AnyUiButtonOverStyle buttonOverStyle = null)
         {
             var but = new AnyUiButton();
-            but.Margin = margin;
-            but.Padding = padding;
+
+            if (buttonStyle != null)
+                but.ApplyAsStyle(buttonStyle);
+
+            if (buttonOverStyle?.Style != null)
+                but.ApplyAsStyle(buttonOverStyle.Style);
+
+            if (margin != null)
+                but.Margin = margin;
+
+            if (padding != null)
+                but.Padding = padding;
+    
             if (foreground != null)
                 but.Foreground = foreground;
             if (background != null)
@@ -436,11 +447,6 @@ namespace AnyUi
             if (header != null)
                 but.ApplyHeader(header, buttonOverStyle);
 
-            if (buttonStyle != null)
-                but.ApplyAsStyle(buttonStyle);
-
-            if (buttonOverStyle?.Style != null)
-                but.ApplyAsStyle(buttonOverStyle.Style);
             
             return (but);
         }
@@ -1019,12 +1025,18 @@ namespace AnyUi
             AnyUiVerticalAlignment? verticalContentAlignment = null,
             double? fontSize = null,
             AnyUiTextWrapping? wrapping = null,
-            bool verticalCenter = false)
+            bool verticalCenter = false,
+            AnyUiSelectableTextBlock labelStyle = null)
         {
             var lab = new AnyUiSelectableTextBlock();
 
-            lab.Margin = margin;
-            lab.Padding = padding;
+            if (labelStyle != null)
+                lab.ApplyAsStyle(labelStyle);
+
+            if (margin != null)
+                lab.Margin = margin;
+            if (padding != null)
+                lab.Padding = padding;
             if (verticalAlignment != null)
                 lab.VerticalAlignment = verticalAlignment;
             if (verticalContentAlignment != null)

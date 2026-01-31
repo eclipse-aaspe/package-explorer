@@ -773,6 +773,9 @@ namespace MauiTestTree
                    {
                         if (mode == AnyUiRenderMode.All)
                         {
+                            if (cntl.Margin != null)
+                                ;
+
                             if (cntl.Background != null)
                                 maui.Background = GetMauiBrush(cntl.Background);
                             if (rd?.ForegroundSelfStand != null)
@@ -1317,6 +1320,9 @@ namespace MauiTestTree
                         };
 
 #else
+                        if (cntl.Content == "Add")
+                            ;
+
                         // mimick the button
                         var hsl = new HorizontalStackLayout
                         {
@@ -2029,7 +2035,10 @@ namespace MauiTestTree
 
                 // set absolute layout
                 absLayout.HeightRequest = rd?.ControlSizeBordered ?? -1;
-                absLayout.HorizontalOptions = LayoutOptions.Start;
+                if (cntl.MaxWidth.HasValue)
+                    absLayout.HorizontalOptions = LayoutOptions.Start;
+                else
+                    absLayout.HorizontalOptions = LayoutOptions.Fill;
                 // absLayout.Background = Brush.LightBlue;
 
                 // ok, border is the wrapping control

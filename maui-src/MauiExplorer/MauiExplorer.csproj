@@ -91,7 +91,7 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
-	
+
 	<ItemGroup>
 	  <Compile Update="Flyouts\EmptyFlyoutPage.xaml.cs">
 	    <DependentUpon>EmptyFlyoutPage.xaml</DependentUpon>

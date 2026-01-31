@@ -120,16 +120,6 @@ namespace AasxPackageLogic
     }
 
     /// <summary>
-    /// Bundles some format descriptions, particularily for headlines
-    /// </summary>
-    public class UITextFormat
-    {
-        public AnyUiBrush TextColor;
-        public AnyUiThickness Margin;
-        public double? FontSizeRel;
-    }
-
-    /// <summary>
     /// This class provides hints, how different controls are placed in the UI in terms of layout.
     /// </summary>
     public class UILayoutHints
@@ -224,14 +214,19 @@ namespace AasxPackageLogic
         public AnyUiButtonPreference ButtonPrefLowClear = AnyUiButtonPreference.Both;
 
         /// <summary>
+        /// Style for key information on first column
+        /// </summary>
+        public AnyUiSelectableTextBlock StyleLeftKey = null;
+
+        /// <summary>
         /// Headline most important
         /// </summary>
-        public UITextFormat Headline1 = null;
+        public AnyUiSelectableTextBlock StyleHeadline1 = null;
 
         /// <summary>
         /// Headline second important
         /// </summary>
-        public UITextFormat Headline2 = null;
+        public AnyUiSelectableTextBlock StyleHeadline2 = null;
     }
 
     //
@@ -366,23 +361,6 @@ namespace AasxPackageLogic
 
             // nope
             return normal;
-        }
-
-        //
-        // Headline formatting
-        //
-
-        public AnyUiLabel CreateHeadline(UITextFormat format, string content)
-        {
-            // access
-            if (content == null)
-                return null;
-
-            if (format == null)
-                return new AnyUiLabel() { Content = content };
-
-            // ok
-
         }
 
         //
@@ -772,7 +750,7 @@ namespace AasxPackageLogic
             {
                 // use plain text box
                 var tb = AddSmallTextBoxTo(
-                    g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2), text: "" + value, 
+                    g, 0, 1, margin: new AnyUiThickness(0, 2, 4, 2), text: "" + value, 
                     isValReadOnly: isValueReadOnly,  
                     textBoxStyle: textBoxStyle, plateLabelText: key);
                 // multiple lines
@@ -1184,7 +1162,7 @@ namespace AasxPackageLogic
             }
 
             // 1 + action button
-            var wp = !useWrapFlexPanel ? null : AddSmallWrapPanelTo(g, 0, 1, margin: new AnyUiThickness(4, 0, 4, 0));
+            var wp = !useWrapFlexPanel ? null : AddSmallWrapPanelTo(g, 0, 1, margin: new AnyUiThickness(0, 0, 4, 0));
             for (int i = 0; i < numButton; i++)
             {
                 // render?
@@ -1263,6 +1241,8 @@ namespace AasxPackageLogic
             AnyUiButtonOverStyle buttonOverStyleHi = null,
             AnyUiButtonPreference buttonPreferenceLo = AnyUiButtonPreference.None,
             AnyUiButtonPreference buttonPreferenceHi = AnyUiButtonPreference.None,
+            AnyUiSelectableTextBlock keyStyleLeft = null,
+            AnyUiSelectableTextBlock keyStyleAbove = null,
             AnyUiTextBox textBoxStyle = null,
             AnyUiComboBox comboBoxStyle = null) where T : IAbstractLangString
         {
@@ -1299,14 +1279,16 @@ namespace AasxPackageLogic
 
             // populate key
             if (keyHandling == KeyLabelHandling.FirstColumn)
-                AddSmallLabelTo(g, 1, 0, margin: new AnyUiThickness(0, 0, 0, 0),
+                AddSmallLabelTo(g, 1, 0, 
                     setNoWrap: true,
                     verticalCenter: true,
+                    labelStyle: keyStyleLeft,
                     content: "" + key + ":");
             else if (keyHandling == KeyLabelHandling.Above || keyHandling == KeyLabelHandling.Above_LabelPlate)
-                AddSmallLabelTo(g, 0, 1, margin: new AnyUiThickness(0, 0, 0, 0),
+                AddSmallLabelTo(g, 0, 1, 
                     setNoWrap: true,
                     verticalCenter: true,
+                    labelStyle: keyStyleAbove,
                     content: "" + key + ":");
 
             // contents?
@@ -1517,11 +1499,12 @@ namespace AasxPackageLogic
                             g, 
                             row: (LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Bottom) ? rowOfs + langStr.Count : 0, 
                             col: (LayoutHints.PlacementAdd == UILayoutHints.PosOfControl.Bottom) ? 1 : 3,
-                            margin: new AnyUiThickness(2, 2, 2, 2),
+                            margin: new AnyUiThickness(0, 2, 4, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             header: new AnyUiButtonHeader(IconPool.Add, "Add", "Add language string", preference: buttonPreferenceHi),
                             buttonOverStyle: buttonOverStyleHi),
                         verticalCenter: true,
+                        horizontalAlignment: AnyUiHorizontalAlignment.Left,
                         colSpan: 1),
                         async (o) =>
                         {
@@ -1778,6 +1761,7 @@ namespace AasxPackageLogic
             Func<int, AnyUiLambdaActionBase> auxContextLambda = null,
             int maxNumOfKey = int.MaxValue,
             FirstColumnWidth? firstColumnWidth = null,
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn,
             AnyUiButtonOverStyle buttonOverStyleLo = null,
             AnyUiButtonOverStyle buttonOverStyleHi = null,
             AnyUiButtonPreference buttonPreferenceLo = AnyUiButtonPreference.None,
