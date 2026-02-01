@@ -1570,6 +1570,8 @@ namespace AnyUi
                     HorizontalContentAlignment = s.HorizontalContentAlignment.Value;
                 if (s.FontSize.HasValue)
                     FontSize = s.FontSize.Value;
+                if (s.FontWeight.HasValue)
+                    FontWeight = s.FontWeight.Value;
                 if (s.FontMono)
                     FontMono = s.FontMono;
             }

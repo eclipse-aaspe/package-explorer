@@ -231,18 +231,25 @@ namespace AasxPackageLogic
 			Action<ExtensionRecordBase> setRecInst,
 			bool isNullable,
 			Func<object, string> toStringRepr,
-			Func<string, object> fromStrRepr) 
+			Func<string, object> fromStrRepr,
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn) 
 		{
 			// access
 			if (stack == null || pii == null || recInst == null)
 				return;
 
 			// 1 line
-			AddKeyValueExRef(
-				stack, "" + pii.Name, recInst,
+			AddKeyValue(
+				stack, "" + pii.Name, 
 				value: "" + toStringRepr?.Invoke(pii.GetValue(recInst)),
 				null, repo,
-                async (v) =>
+				containingObject: recInst,
+                keyVertCenter: true,
+                keyHandling: keyHandling,
+                buttonOverStyle: LayoutHints.StyleButtonStandard,
+                textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                setValueAsync: async (v) =>
 				{
                     await Task.Yield();
                     if (isNullable && (v == null || ((string)v).Trim().Length < 1))
@@ -265,7 +272,8 @@ namespace AasxPackageLogic
 			string caption,
 			Type typeForEnum,
 			object enumValue,
-			Func<object, AnyUiLambdaActionBase> setEnumValue)
+			Func<object, AnyUiLambdaActionBase> setEnumValue,
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
 		{
 			// access
 			if (grid == null || typeForEnum == null)
@@ -288,13 +296,18 @@ namespace AasxPackageLogic
 			cb = AnyUiUIElement.RegisterControl(
 				AddSmallComboBoxTo(
 					grid, row + 0, col + 0,
-					minWidth: 120,
+					minWidth: 160,
 					margin: NormalOrCapa(
 						new AnyUiThickness(4, 1, 2, 3),
-						AnyUiContextCapability.Blazor, new AnyUiThickness(4, 2, 2, 0)),
+						AnyUiContextCapability.Blazor, new AnyUiThickness(4, 2, 2, 0),
+						AnyUiContextCapability.MAUI, LayoutHints.BodyMarginOrdLarge),
 					padding: NormalOrCapa(
 						new AnyUiThickness(2, 1, 2, 1),
-						AnyUiContextCapability.Blazor, new AnyUiThickness(0, 4, 0, 4)),
+						AnyUiContextCapability.Blazor, new AnyUiThickness(0, 4, 0, 4),
+                        AnyUiContextCapability.MAUI, LayoutHints.BodyMarginOrdLarge),
+					horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
+					comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+					plateLabelText: caption,
 					selectedIndex: selectedIndex,
 					items: eMems.Select((mi) => mi.MemberDisplay).ToArray()),
 				setValueAsync: async (o) =>
@@ -355,14 +368,15 @@ namespace AasxPackageLogic
 			Func<string, T> createInstance,
             FirstColumnWidth? firstColumnWidth = null,
             string[] presetList = null,
-			bool showButtons = true) where T : ExtIdfReference
+			bool showButtons = true,
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn) where T : ExtIdfReference
 		{
 			var grid = AddSmallGrid(1, 2, colWidths: new[] { "*", "#" });
 			stack.Add(grid);
 			var g1stack = AddSmallStackPanelTo(grid, 0, 0, margin: new AnyUiThickness(0));
 
-			AddKeyValueExRef(
-				g1stack, "" + caption, recInst,
+			AddKeyValue(
+				g1stack, "" + caption, 
 				value: "" + sr?.Value, null, repo,
                 async (v) =>
 				{
@@ -370,13 +384,12 @@ namespace AasxPackageLogic
                     setValue?.Invoke(createInstance?.Invoke((string)v));
 					return new AnyUiLambdaActionNone();
 				},
-				firstColumnWidth: firstColumnWidth,
-				auxButtonTitles: !showButtons ? null : new[] { "Existing", "New", "Jump" },
-				auxButtonToolTips: !showButtons ? null : new[] {
-					"Select existing ConceptDescription.",
-					"Create a new ConceptDescription for this known extension use.",
-					"Jump to ConceptDescription with given Id."
-				},
+				containingObject: recInst,
+                firstColumnWidth: firstColumnWidth,
+				auxButtons: !showButtons ? null : new AnyUiButtonHeaderList(new[] { 
+					new AnyUiButtonHeader(IconPool.AddExisting, "Existing", "Select existing ConceptDescription."),
+                    new AnyUiButtonHeader(IconPool.CreateNew, "New", "Create a new ConceptDescription for this known extension use."),
+                    new AnyUiButtonHeader(IconPool.Jump, "Jump", "Jump to ConceptDescription with given Id.") }),
 				auxButtonLambdaAsync: async (i) =>
 				{
 					return await ExtensionHelperIdfReferenceActionAsync(
@@ -394,6 +407,7 @@ namespace AasxPackageLogic
 				ExtensionHelperAddEnumField(
 					grid, 0, 1,
 					"",
+					keyHandling: keyHandling,
 					typeForEnum: typeof(SmtCardinality),
 					enumValue: cardrf.Cardinality,
 					setEnumValue: (o) =>
@@ -546,7 +560,8 @@ namespace AasxPackageLogic
 			QuickLookupIdentifiable lookupIdf,
 			ExtensionRecordBase recInst,
 			Aas.IReferable relatedReferable,
-			Action<ExtensionRecordBase> setValue)
+			Action<ExtensionRecordBase> setValue,
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
 		{
 			// access
 			if (env == null || stack == null || recInst == null)
@@ -608,9 +623,9 @@ namespace AasxPackageLogic
 						setValue?.Invoke(recInst);
 					};
 
-					if (this.SafeguardAccess(stack, repo, lls, "" + pii.Name + ":",
-						"Create data element!",
-                        async (v) =>
+					if (this.SafeguardAccess(stack, repo, lls, "" + pii.Name + ":", keyHandling: keyHandling,
+						actionStr: "Create data element!",
+                        actionAsync: async (v) =>
 						{
                             await Task.Yield();
                             lambdaSetValue(ExtendILangStringTextType.CreateFrom(
@@ -626,8 +641,16 @@ namespace AasxPackageLogic
 						// edit fields
 						AddKeyListLangStr<Aas.ILangStringTextType>(
 							stack, "" + pii.Name, forth, repo, relatedReferable,
-							setNullList: () => lambdaSetValue(null),
-							emitCustomEvent: (rf) =>
+							setNullList: () => lambdaSetValue(null),							
+							keyHandling: keyHandling,
+							buttonOverStyleHi: LayoutHints.StyleButtonAction,
+							buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+							buttonPreferenceLo: AnyUiButtonPreference.Image,
+							buttonPreferenceHi: AnyUiButtonPreference.Both,
+							keyStyleAbove: LayoutHints.StyleHeadline2,
+							textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+							comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                            emitCustomEvent: (rf) =>
 							{
 								lambdaSetValue(forth);
 								return new AnyUiLambdaActionNone();
@@ -645,9 +668,9 @@ namespace AasxPackageLogic
 					// hint?
 					hintLambda(ls == null || ls.Count < 1);
 
-					if (this.SafeguardAccess(stack, repo, ls, "" + pii.Name + ":",
-						"Create data element!",
-                        async (v) =>
+					if (this.SafeguardAccess(stack, repo, ls, "" + pii.Name + ":", keyHandling: keyHandling,
+						actionStr: "Create data element!",
+                        actionAsync: async (v) =>
 						{
                             await Task.Yield();
                             pii.SetValue(recInst, (new List<string>(new[] { "" })));
@@ -657,10 +680,10 @@ namespace AasxPackageLogic
 					{
 
 						var sg = this.AddSubGrid(stack, "" + pii.Name + ":",
-						rows: 1 + ls.Count, cols: 2,
-						minWidthFirstCol: GetWidth(FirstColumnWidth.Standard),
-						paddingCaption: new AnyUiThickness(5, 0, 0, 0),
-						colWidths: new[] { "*", "#" });
+							rows: 1 + ls.Count, cols: 2,
+							minWidthFirstCol: GetWidth(FirstColumnWidth.Standard),
+							paddingCaption: new AnyUiThickness(5, 0, 0, 0),
+							colWidths: new[] { "*", "#" });
 
 						AnyUiUIElement.RegisterControl(
 							AddSmallButtonTo(sg, 0, 1,
@@ -803,9 +826,15 @@ namespace AasxPackageLogic
 					if (isMultiLineAttr == null)
 					{
 						// 1 line
-						AddKeyValueExRef(
-							stack, "" + pii.Name, recInst, strVal, null, repo,
-							setValueLambdaAsync);
+						AddKeyValue(
+							stack, "" + pii.Name, strVal, null, repo,
+							containingObject: recInst,
+							keyVertCenter: true,
+                            keyHandling: keyHandling,
+							buttonOverStyle: LayoutHints.StyleButtonStandard,
+							textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+							bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                            setValueAsync: setValueLambdaAsync);
 					}
 					else
 					{
@@ -813,13 +842,18 @@ namespace AasxPackageLogic
 						AddVerticalSpace(stack);
 
 						// multi line
-						AddKeyValueExRef(
-							stack, "" + pii.Name, recInst, (string)pii.GetValue(recInst), null, repo,
-							setValueLambdaAsync,
+						AddKeyValue(
+							stack, "" + pii.Name, (string)pii.GetValue(recInst), null, repo,
+							containingObject: recInst,
+                            setValueAsync: setValueLambdaAsync,
 							limitToOneRowForNoEdit: true,
 							maxLines: isMultiLineAttr.MaxLines.Value,
-							auxButtonTitles: new[] { "\u2261" },
-							auxButtonToolTips: new[] { "Edit in multiline editor" },
+							keyVertCenter: true,
+                            keyHandling: keyHandling,
+                            buttonOverStyle: LayoutHints.StyleButtonStandard,
+                            textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                            bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                            auxButtons: new AnyUiButtonHeaderList(IconPool.MultiLineEdit, "Edit multiline", "Edit in multiline editor"),
 							auxButtonLambdaAsync: async (buttonNdx) =>
 							{
 								if (buttonNdx == 0)
@@ -850,6 +884,7 @@ namespace AasxPackageLogic
 					   stack, "" + pii.Name, 
 					   value: boolVal,
 					   additionalInfo: "",
+					   verticalCenter: true,
 					   setValueAsync: async (b) => {
 						   await Task.Yield();
 						   pii.SetValue(recInst, b);
@@ -867,6 +902,7 @@ namespace AasxPackageLogic
 						ExtensionHelperAddScalarField(
 							stack, pii, recInst, setValue,
 							isNullable: true,
+							keyHandling: keyHandling,
 							toStringRepr: (o) =>
 							{
 								var val = (uint?)o;
@@ -878,7 +914,8 @@ namespace AasxPackageLogic
 						ExtensionHelperAddScalarField(
 							stack, pii, recInst, setValue,
 							isNullable: true,
-							toStringRepr: (o) =>
+                            keyHandling: keyHandling,
+                            toStringRepr: (o) =>
 							{
 								var val = (int?)o;
 								return (val.HasValue) ? val.Value.ToString() : null;
@@ -889,7 +926,8 @@ namespace AasxPackageLogic
 						ExtensionHelperAddScalarField(
 							stack, pii, recInst, setValue,
 							isNullable: true,
-							toStringRepr: (o) =>
+                            keyHandling: keyHandling,
+                            toStringRepr: (o) =>
 							{
 								var val = (double?)o;
 								return (val.HasValue) ? val.Value.ToString("G16", CultureInfo.InvariantCulture) : null;
@@ -903,21 +941,24 @@ namespace AasxPackageLogic
 					ExtensionHelperAddScalarField(
 						stack, pii, recInst, setValue,
 						isNullable: false,
-						toStringRepr: (o) => ((uint)o).ToString(),
+                        keyHandling: keyHandling,
+                        toStringRepr: (o) => ((uint)o).ToString(),
 						fromStrRepr: (s) => { if (uint.TryParse(s, out var res)) return res; else return null; });
 
 				if (pii.PropertyType.IsAssignableTo(typeof(int)))
 					ExtensionHelperAddScalarField(
 						stack, pii, recInst, setValue,
 						isNullable: false,
-						toStringRepr: (o) => ((int)o).ToString(),
+                        keyHandling: keyHandling,
+                        toStringRepr: (o) => ((int)o).ToString(),
 						fromStrRepr: (s) => { if (int.TryParse(s, out var res)) return res; else return null; });
 
 				if (pii.PropertyType.IsAssignableTo(typeof(double)))
 					ExtensionHelperAddScalarField(
 						stack, pii, recInst, setValue,
 						isNullable: false,
-						toStringRepr: (o) => ((double)o).ToString("G16", CultureInfo.InvariantCulture),
+                        keyHandling: keyHandling,
+                        toStringRepr: (o) => ((double)o).ToString("G16", CultureInfo.InvariantCulture),
 						fromStrRepr: (s) => { 
 							if (double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var res)) 
 								return res; else return null; });
@@ -935,17 +976,19 @@ namespace AasxPackageLogic
 					var currEnumValue = pii.GetValue(recInst);
 
 					// make a grid for this (have one edit function)
-					var sg = this.AddSubGrid(stack, "" + pii.Name + ":",
+					var hasFirstCol = keyHandling == KeyLabelHandling.FirstColumn;
+					var sg = this.AddSubGrid(stack, "" + (hasFirstCol ? pii.Name + ":" : ""),
 							rows: 1, cols: 2,
-							minWidthFirstCol: GetWidth(FirstColumnWidth.Standard),
-							paddingCaption: new AnyUiThickness(5, 0, 0, 0),
-							colWidths: new[] { "*", "#" });
+							minWidthFirstCol: hasFirstCol ? GetWidth(FirstColumnWidth.Standard) : 0,
+							paddingCaption: new AnyUiThickness(0, 0, 0, 0),
+							colWidths: new[] { "#", "*" });
 
 					// edit
 					ExtensionHelperAddEnumField(
-						sg, 0, 0, 
-						"" + pii.Name, 
-						typeForEnum: typeForEnum, 
+						sg, 0, 1, 
+						"" + pii.Name,
+                        keyHandling: keyHandling,
+                        typeForEnum: typeForEnum, 
 						enumValue: currEnumValue, 
 						setEnumValue: (o) =>
 						{
@@ -1060,14 +1103,19 @@ namespace AasxPackageLogic
 			string[] addPresetNames = null, List<Aas.IKey>[] addPresetKeyLists = null,
 			Aas.IReferable relatedReferable = null,
 			AasxMenu superMenu = null,
-            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn,
+			bool allowAddBlank = false)
 		{
 			// access
 			if (stack == null)
 				return;
 
 			// members
-			this.AddGroup(stack, "Known extensions \u00ab experimental \u00bb :", levelColors.MainSection);
+			if (!allowAddBlank)
+			{
+				// speak specific on known Extension
+				this.AddGroup(stack, "Known extensions:", levelColors.MainSection);
+			}
 
 			// hints
 			this.AddHintBubble(
@@ -1095,10 +1143,13 @@ namespace AasxPackageLogic
 						repo: repo,
 						superMenu: superMenu,
 						ticketMenu: new AasxMenu()
-							.AddAction("add-smt-attributes", "SMT attributes",
-								icon: IconPool.Add,
-								help: "Add attributes for Submodel template specifications.")
-							.AddAction("delete-last", "Delete last extension",
+                            .AddAction(conditional: allowAddBlank, name: "add-extension", header: "Add blank",
+                                icon: IconPool.Add,
+                                help: "Add empty extension data element.")
+                            .AddAction("add-smt-attributes", "SMT attributes",
+								icon: IconPool.AddKnown,
+								help: "Add attribute bundle for Submodel template specifications.")
+							.AddAction("delete-last", "Delete last",
 								icon: IconPool.Delete,
 								help: "Deletes last extension."),
 						buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
@@ -1107,7 +1158,16 @@ namespace AasxPackageLogic
 						ticketActionAsync: async (buttonNdx, ticket) =>
 						{
 							await Task.Yield();
-							if (buttonNdx == 0)
+
+                            if (ticket?.MenuItem?.Name == "add-extension")
+                            {
+                                // add
+                                extension = extension ?? new List<IExtension>();
+                                extension.Add(new Aas.Extension(""));
+                                setOutput?.Invoke(extension);
+                            }
+
+                            if (ticket?.MenuItem?.Name == "add-smt-attributes")
 							{
 								// create
 								var newSet = new SmtAttributeRecord();
@@ -1128,7 +1188,7 @@ namespace AasxPackageLogic
 							}
 							
 							// remove
-							if (buttonNdx == 1)
+							if (ticket?.MenuItem?.Name == "delete-last")
 							{
 								if (extension != null && extension.Count > 0)
 									extension.RemoveAt(extension.Count - 1);
@@ -1144,7 +1204,14 @@ namespace AasxPackageLogic
 			// now use the normal mechanism to deal with editMode or not ..
 			if (extension != null)
 			{
-				for (int exti = 0; exti < extension.Count; exti++)
+                // members
+                if (allowAddBlank)
+                {
+                    // speak specific on specific Extension
+                    this.AddGroup(stack, "Specific extensions:", levelColors.MainSection);
+                }
+
+                for (int exti = 0; exti < extension.Count; exti++)
 				{
 					// get
 					var se = extension[exti];
@@ -1193,6 +1260,7 @@ namespace AasxPackageLogic
 						packages.QuickLookupFirstIdent,
 						recInst: recInst,
 						relatedReferable: relatedReferable,
+						keyHandling: keyHandling,
 						setValue: (si) =>
 						{
 							GeneralExtensionHelperUpdateJson(se, si.GetType(), si);

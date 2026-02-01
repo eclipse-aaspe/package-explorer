@@ -979,7 +979,8 @@ namespace AasxPackageLogic
 			Action<List<Aas.IExtension>> setOutput,
 			string[] addPresetNames = null, List<Aas.IKey>[] addPresetKeyLists = null,
 			Aas.IReferable relatedReferable = null,
-			AasxMenu superMenu = null)
+			AasxMenu superMenu = null,
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
 		{
 			// access
 			if (stack == null)
@@ -1018,19 +1019,27 @@ namespace AasxPackageLogic
 				this.AddActionPanel(
 					stack, "Spec. records:", repo: repo,
 					superMenu: superMenu,
+					keyHandling: keyHandling,
+					buttonOverStyle: LayoutHints.StyleButtonStandard,
 					ticketMenu: new AasxMenu()
 						.AddAction("add-aspect", "Add Aspect",
-							"Add single top level of any SAMM aspect model.")
+							icon: IconPool.Add,
+							help: "Add single top level of any SAMM aspect model.")
 						.AddAction("add-property", "Add Property",
-							"Add a named value element to the aspect or its sub-entities.")
+							icon: IconPool.Add,
+							help: "Add a named value element to the aspect or its sub-entities.")
 						.AddAction("add-characteristic", "Add Characteristic",
-							"Characteristics describe abstract concepts that must be made specific when they are used.")
+							icon: IconPool.Add,
+							help: "Characteristics describe abstract concepts that must be made specific when they are used.")
 						.AddAction("auto-entity", "Add Entity",
-							"An entity is the main element to collect a set of properties.")
+							icon: IconPool.Add,
+							help: "An entity is the main element to collect a set of properties.")
 						.AddAction("auto-other", "Add other ..",
-							"Adds an other Characteristic by selecting from a list.")
+							icon: IconPool.Add,
+							help: "Adds an other Characteristic by selecting from a list.")
 						.AddAction("delete-last", "Delete last extension",
-							"Deletes last extension."),
+							icon: IconPool.Delete,
+							help: "Deletes last extension."),
 					ticketActionAsync: async (buttonNdx, ticket) =>
 					{
 						Samm.ModelElement newChar = null;

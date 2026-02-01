@@ -3089,19 +3089,22 @@ namespace AasxPackageLogic
                     stack, submodel.Qualifiers,
                     (q) => { submodel.Qualifiers = q; },
                     relatedReferable: submodel,
-                    superMenu: superMenu);
+                    superMenu: superMenu,
+                    keyHandling: keyHandling);
 
                 // HasDataSpecification are MULTIPLE references. That is: multiple x multiple keys!
                 this.DisplayOrEditEntityHasDataSpecificationReferences(stack, submodel.EmbeddedDataSpecifications,
                     (ds) => { submodel.EmbeddedDataSpecifications = ds; },
                     relatedReferable: submodel,
-                    superMenu: superMenu);
+                    superMenu: superMenu,
+                    keyHandling: keyHandling);
 
 				// IReferable (part 2)
 				this.DisplayOrEditEntityReferableContinue(
 					env, stack,
 					parentContainer: null, referable: submodel, indexPosition: 0,
-					hideExtensions: true, superMenu: superMenu);
+					hideExtensions: true, superMenu: superMenu,
+                    keyHandling: keyHandling);
 
 			}
 
@@ -3516,7 +3519,7 @@ namespace AasxPackageLogic
             {
                 this.DisplayOrEditEntityListOfReferences(stack, cd.IsCaseOf,
                     (ico) => { cd.IsCaseOf = ico; },
-                    "isCaseOf", relatedReferable: cd, superMenu: superMenu);
+                    "isCaseOf", relatedReferable: cd, superMenu: superMenu, keyHandling: keyHandling);
             };
 
             // new apprpoach: model distinct sections with [Reference + Content]
@@ -3547,7 +3550,7 @@ namespace AasxPackageLogic
                     new List<Aas.IKey>(){ ExtendIDataSpecificationContent.GetKeyForIec61360() /* ,
                     new List<Aas.IKey>(){ ExtendIDataSpecificationContent.GetKeyForPhysicalUnit() */ }
                     },
-                    relatedReferable: cd, superMenu: superMenu);
+                    relatedReferable: cd, superMenu: superMenu, keyHandling: keyHandling);
             };
 
 			// experimental: SMT elements
@@ -3577,7 +3580,7 @@ namespace AasxPackageLogic
 				DisplayOrEditEntityListOfExtension(
 	                stack: stack, extensions: cd.Extensions,
 	                setOutput: (v) => { cd.Extensions = v; },
-	                relatedReferable: cd, superMenu: superMenu);
+	                relatedReferable: cd, superMenu: superMenu, keyHandling: keyHandling);
 
 				lambdaEDS(true);
 			}
@@ -3590,7 +3593,7 @@ namespace AasxPackageLogic
 				DisplayOrEditEntityListOfExtension(
 					stack: stack, extensions: cd.Extensions,
 					setOutput: (v) => { cd.Extensions = v; },
-					relatedReferable: cd, superMenu: superMenu);
+					relatedReferable: cd, superMenu: superMenu, keyHandling: keyHandling);
 
 				lambdaEDS(false);
                 lambdaSammExt();

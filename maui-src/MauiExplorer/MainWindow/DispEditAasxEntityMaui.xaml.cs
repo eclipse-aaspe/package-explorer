@@ -444,9 +444,16 @@ public partial class DispEditAasxEntityMaui : ContentView
         // Label styles
         _helper.LayoutHints.StyleHeadline2 = new()
         {
-            Margin = new AnyUiThickness(0, 18, 0, 12),
-            FontSize = 1.1
+            Margin = new AnyUiThickness(0, 10, 0, 6),
+            FontSize = 1.1,
+            FontWeight = AnyUiFontWeight.Bold
         };
+
+        // body margins
+        _helper.LayoutHints.BodyMarginOrdOrd = new AnyUiThickness(0, 1, 0, 3);
+        _helper.LayoutHints.BodyMarginOrdLarge = new AnyUiThickness(0, 1, 0, 6);
+        _helper.LayoutHints.BodyMarginLargeOrd = new AnyUiThickness(0, 1, 0, 18);
+        _helper.LayoutHints.BodyMarginLargeLarge = new AnyUiThickness(0, 3, 0, 6);
 
         // for icon resolution
         displayContext.LambdaResolveImageSourceFont = ResolveImageSourceFont;

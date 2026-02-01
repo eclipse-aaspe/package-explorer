@@ -2039,13 +2039,14 @@ namespace MauiTestTree
                     absLayout.HorizontalOptions = LayoutOptions.Start;
                 else
                     absLayout.HorizontalOptions = LayoutOptions.Fill;
+                absLayout.VerticalOptions = LayoutOptions.Center;
                 // absLayout.Background = Brush.LightBlue;
 
                 // ok, border is the wrapping control
                 absLayout.SetLayoutBounds(border, new Rect(0, 0, 1, 1));
                 absLayout.SetLayoutFlags(border, AbsoluteLayoutFlags.All);
                 border.HorizontalOptions = LayoutOptions.Fill;
-                border.VerticalOptions = LayoutOptions.Center;
+                border.VerticalOptions = LayoutOptions.Fill;
                 border.Margin = new Thickness(0);
                 border.Padding = GetMauiTickness(cntl.BorderPadding);
                 border.StrokeShape = new RoundRectangle() { CornerRadius = cntl.BorderRadius ?? 0 };
@@ -2056,6 +2057,9 @@ namespace MauiTestTree
                     border.StrokeThickness = cntl.BorderWidth.Value;
                 if (cntl.Background != null)
                     border.Background = GetMauiBrush(cntl.Background);
+
+                //border.Stroke = Brush.Red;
+                //border.Background = Brush.Transparent;
 
                 // for the picker, set many attributes to visually neutral
                 picker.BackgroundColor = Colors.Transparent;
@@ -2173,7 +2177,7 @@ namespace MauiTestTree
 
                 // visual focus
                 var normalStrokeColor = cntl.BorderColor?.Color ?? new AnyUiColor(0xffd8d8d8);
-                SetPointerOverEffect(maui,
+                SetPointerOverEffect(border,
                     new Setter
                     {
                         Property = Border.StrokeProperty,

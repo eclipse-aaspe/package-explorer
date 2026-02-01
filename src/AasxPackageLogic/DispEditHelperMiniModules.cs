@@ -175,6 +175,7 @@ namespace AasxPackageLogic
                     stack, "Qualifier entities:",
                     repo: repo,
                     superMenu: superMenu,
+                    keyHandling: keyHandling,
                     buttonOverStyle: LayoutHints.StyleButtonStandard,
                     ticketMenu: new AasxMenu()
                         .AddAction("qualifier-blank", "Add blank",
@@ -366,35 +367,72 @@ namespace AasxPackageLogic
                 // Qualifier members
                 //
 
+                // Kind
+
+                if (this.SafeguardAccess(
+                    substack, repo, qual.Kind, "kind:", keyHandling: keyHandling,
+                    actionStr: "Create kind!",
+                    actionAsync: async (v) =>
+                    {
+                        await Task.Yield();
+                        qual.Kind = Aas.QualifierKind.ConceptQualifier;
+                        return new AnyUiLambdaActionRedrawEntity();
+                    }
+                    ))
+                {
+                    AddKeyValue(
+                        substack, "kind", Aas.Stringification.ToString(qual.Kind), null, repo,
+                        containingObject: qual,
+                        keyHandling: keyHandling,
+                        comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                        bodyMargin: LayoutHints.BodyMarginOrdLarge,
+                        setValueAsync: async (v) =>
+                        {
+                            await Task.Yield();
+                            qual.Kind = Aas.Stringification.QualifierKindFromString((string)v);
+                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                            return new AnyUiLambdaActionNone();
+                        },
+                        comboBoxItems: Enum.GetNames(typeof(Aas.QualifierKind)),
+                        keyVertCenter: true);
+                }
+
                 // SemanticId
-                SafeguardAccessNew(
+                if (SafeguardAccess(
                     substack, repo,
                     () => qual.SemanticId == null || qual.SemanticId.IsEmpty(),
-                    () => qual.SemanticId = null,
                     "semanticId:",
-                    buttonCreate: new AnyUiButtonHeader(IconPool.Add.SetIntense(), "Add", "Add empty element data"),
-                    lambdaCreate: async (v) =>
+                    keyHandling: keyHandling,
+                    actionStr: "Create semanticId",
+                    actionAsync: async (v) =>
                     {
                         await Task.Yield();
                         qual.SemanticId = Options.Curr.GetDefaultEmptyReference();
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionRedrawEntity();
-                    },
-                    lambdaSuccess: (childPanel) =>
-                    {
-                        AddKeyReference(
-                            childPanel, "semanticId",
+                    }))
+                {
+                    AddKeyReference(
+                            substack, "semanticId",
                             qual.SemanticId, () => qual.SemanticId = null,
                             repo,
                             packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                             firstColumnWidth: FirstColumnWidth.No,
-                            addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing 
+                            addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing
                                        | AddKeyListKeys_Button.Eclass | AddKeyListKeys_Button.Known,
                             highlightButton: AddKeyListKeys_Button.Existing,
                             addExistingEntities: "All",
                             showRefSemId: false,
                             relatedReferable: relatedReferable,
-                            textBoxStyle: LayoutHints.StyleTextBox,
+                            keyHandling: keyHandling,
+                            buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                            buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                            buttonPreferenceLo: AnyUiButtonPreference.Image,
+                            keyStyleLeft: LayoutHints.StyleLeftKey,
+                            keyStyleAbove: LayoutHints.StyleHeadline2,
+                            textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                            comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                            bodyMargin: LayoutHints.BodyMarginLargeOrd,
                             auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
                                 new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete semanticId"),
                             }),
@@ -408,35 +446,8 @@ namespace AasxPackageLogic
                                 }
                                 return new AnyUiLambdaActionNone();
                             });
-                    });
-
-                // Kind
-
-                if (this.SafeguardAccess(
-                    substack, repo, qual.Kind, "kind:", "Create data element!",
-                    async (v) =>
-                    {
-                        await Task.Yield();
-                        qual.Kind = Aas.QualifierKind.ConceptQualifier;
-                        return new AnyUiLambdaActionRedrawEntity();
-                    }
-                    ))
-                {
-                    AddKeyValue(
-                    substack, "kind", Aas.Stringification.ToString(qual.Kind), null, repo,
-                    containingObject: qual,
-                    keyHandling: keyHandling,
-                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
-                    setValueAsync: async (v) =>
-                    {
-                        await Task.Yield();
-                        qual.Kind = Aas.Stringification.QualifierKindFromString((string)v);
-                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                        return new AnyUiLambdaActionNone();
-                    },
-                    comboBoxItems: Enum.GetNames(typeof(Aas.QualifierKind)),
-                    keyVertCenter: true);
                 }
+
 
                 // Type
 
@@ -452,15 +463,18 @@ namespace AasxPackageLogic
 
                 AddKeyValue(
                     substack, "type", qual.Type, null, repo,
-                    containingObject: qual, 
+                    containingObject: qual,
+                    keyVertCenter: true,
+                    keyHandling: keyHandling,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
                     setValueAsync: async (v) =>
                     {
                         await Task.Yield();
                         qual.Type = v as string;
                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
-                    },
-                    keyVertCenter: true);
+                    });
 
                 // ValueType
 
@@ -471,6 +485,9 @@ namespace AasxPackageLogic
                     comboBoxIsEditable: editMode,
                     comboBoxItems: ExtendStringification.DataTypeXsdToStringArray().ToArray(),
                     comboBoxMinWidth: 190,
+                    keyHandling: keyHandling,
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
                     setValueAsync: async (v) =>
                     {
                         await Task.Yield();
@@ -495,7 +512,11 @@ namespace AasxPackageLogic
                     },
                     keyVertCenter: true,
                     limitToOneRowForNoEdit: true,
-                    auxButtons: new AnyUiButtonHeaderList(new []
+                    keyHandling: keyHandling,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(preference: AnyUiButtonPreference.Image),
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    bodyMargin: LayoutHints.BodyMarginOrdLarge,
+                    auxButtons: new AnyUiButtonHeaderList(new[]
                     {
                         new AnyUiButtonHeader(IconPool.MultiLineEdit, "Edit multiline", "Edit in multiline editor")
                     }),
@@ -521,8 +542,9 @@ namespace AasxPackageLogic
                 // ValueId
 
                 if (SafeguardAccess(
-                        substack, repo, qual.ValueId, "valueId:", "Create data element!",
-                        async (v) =>
+                        substack, repo, qual.ValueId, "valueId:", keyHandling: keyHandling,
+                        actionStr: "Create valueId!",
+                        actionAsync: async (v) =>
                         {
                             await Task.Yield();
                             qual.ValueId = Options.Curr.GetDefaultEmptyReference();
@@ -540,7 +562,15 @@ namespace AasxPackageLogic
                         addExistingEntities: "All",
                         showRefSemId: false,
                         relatedReferable: relatedReferable,
-                        textBoxStyle: LayoutHints.StyleTextBox,
+                        keyHandling: keyHandling,
+                        buttonOverStyleHi: LayoutHints.StyleButtonAction.Modify(preference: AnyUiButtonPreference.Image),
+                        buttonOverStyleLo: LayoutHints.StyleButtonStandard.Modify(preference: AnyUiButtonPreference.Image),
+                        buttonPreferenceLo: AnyUiButtonPreference.Image,
+                        keyStyleLeft: LayoutHints.StyleLeftKey,
+                        keyStyleAbove: LayoutHints.StyleHeadline2,
+                        textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                        comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                        bodyMargin: LayoutHints.BodyMarginLargeLarge,
                         auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
                             new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete valueId"),
                         }),
@@ -555,6 +585,9 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionNone();
                         });
                 }
+
+
+
 
             }
 
@@ -911,7 +944,8 @@ namespace AasxPackageLogic
             List<Aas.IExtension> extensions,
             Action<List<Aas.IExtension>> setOutput,
             Aas.IReferable relatedReferable = null,
-            AasxMenu superMenu = null)
+            AasxMenu superMenu = null,
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
             // access
             if (extensions == null)
@@ -936,15 +970,21 @@ namespace AasxPackageLogic
                     stack, "Extension entities:",
                     repo: repo,
                     superMenu: superMenu,
+                    keyHandling: keyHandling,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
                     ticketMenu: new AasxMenu()
                         .AddAction("extension-blank", "Add blank",
-                            "Adds an empty extension.")
+                            icon: IconPool.Add,
+                            help: "Adds an empty extension.")
                         .AddAction("extension-preset", "Add preset",
-                            "Adds an extension given from the list of presets.")
+                            icon: IconPool.AddPreset,
+                            help: "Adds an extension given from the list of presets.")
                         .AddAction("extension-clipboard", "Add from clipboard",
-                            "Adds an extension from parsed clipboard data (JSON).")
+                            icon: IconPool.Paste,
+                            help: "Adds an extension from parsed clipboard data (JSON).")
                         .AddAction("extension-del", "Delete last",
-                            "Deletes last extension in the list."),
+                            icon: IconPool.Delete,
+                            help: "Deletes last extension in the list."),
                     ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
@@ -1126,22 +1166,7 @@ namespace AasxPackageLogic
                 }
                 else
                 {
-                    AddHintBubble(
-                        substack, hintMode,
-                        new[] {
-                        new HintCheck(
-                            () => !extension.Name.HasContent(),
-                            "A name specification shall be given and unique within this list!")
-                        });
-                    AddKeyValueExRef(
-                        substack, "name", extension, extension.Name, null, repo,
-                        async (v) =>
-                        {
-                            await Task.Yield();
-                            extension.Name = v as string;
-                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                            return new AnyUiLambdaActionNone();
-                        });
+                    // SemanticId
 
                     AddHintBubble(
                         substack, hintMode,
@@ -1152,8 +1177,9 @@ namespace AasxPackageLogic
                             severityLevel: HintCheck.Severity.Notice)
                         });
                     if (SafeguardAccess(
-                            substack, repo, extension.SemanticId, "semanticId:", "Create w/ default!",
-                            async (v) =>
+                            substack, repo, extension.SemanticId, "semanticId:", keyHandling: keyHandling,
+                            actionStr: "Create semanticId element!",
+                            actionAsync: async (v) =>
                             {
                                 await Task.Yield();
                                 extension.SemanticId = Options.Curr.GetDefaultEmptyReference();
@@ -1173,6 +1199,15 @@ namespace AasxPackageLogic
                             highlightButton: AddKeyListKeys_Button.Existing,
                             addExistingEntities: "All", 
                             relatedReferable: relatedReferable,
+                            keyHandling: keyHandling,
+                            buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                            buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                            buttonPreferenceLo: AnyUiButtonPreference.Image,
+                            keyStyleLeft: LayoutHints.StyleLeftKey,
+                            keyStyleAbove: LayoutHints.StyleHeadline2,
+                            comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                            textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                            bodyMargin: LayoutHints.BodyMarginLargeOrd,
                             auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
                                 new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete semanticId"),
                             }),
@@ -1189,13 +1224,45 @@ namespace AasxPackageLogic
                         AddVerticalSpace(substack);
                     }
 
-                    AddKeyValueExRef(
-                        substack, "valueType", extension, Aas.Stringification.ToString(extension.ValueType), null, repo,
+                    // Name 
+
+                    AddHintBubble(
+                        substack, hintMode,
+                        new[] {
+                        new HintCheck(
+                            () => !extension.Name.HasContent(),
+                            "A name specification shall be given and unique within this list!")
+                        });
+                    AddKeyValue(
+                        substack, "name", extension.Name, null, repo,
+                        containingObject: extension,
+                        keyVertCenter: true,
+                        keyHandling: keyHandling,
+                        buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(preference: LayoutHints.ButtonPrefLowClear),
+                        textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                        bodyMargin: LayoutHints.BodyMarginOrdLarge,
+                        setValueAsync: async (v) =>
+                        {
+                            await Task.Yield();
+                            extension.Name = v as string;
+                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                            return new AnyUiLambdaActionNone();
+                        });
+
+                    // valueType
+
+                    AddKeyValue(
+                        substack, "valueType", Aas.Stringification.ToString(extension.ValueType), null, repo,
+                        containingObject: extension, 
                         comboBoxIsEditable: editMode,
                         //comboBoxItems: DataElement.ValueTypeItems,
                         //TODO (jtikekar, 0000-00-00): change
                         comboBoxItems: ExtendStringification.DataTypeXsdToStringArray().ToArray(),
                         comboBoxMinWidth: 190,
+                        keyHandling: keyHandling,
+                        buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(preference: LayoutHints.ButtonPrefLowClear),
+                        comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                        bodyMargin: LayoutHints.BodyMarginOrdOrd,
                         setValueAsync: async (v) =>
                         {
                             await Task.Yield();
@@ -1206,9 +1273,12 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionNone();
                         });
 
-                    AddKeyValueExRef(
-                        substack, "value", extension, extension.Value, null, repo,
-                        async (v) =>
+                    // value
+
+                    AddKeyValue(
+                        substack, "value", extension.Value, null, repo,
+                        containingObject: extension,
+                        setValueAsync: async (v) =>
                         {
                             await Task.Yield();
                             extension.Value = v as string;
@@ -1216,8 +1286,11 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionNone();
                         },
                         limitToOneRowForNoEdit: true,
-                        auxButtonTitles: new[] { "\u2261" },
-                        auxButtonToolTips: new[] { "Edit in multiline editor" },
+                        keyHandling: keyHandling,
+                        auxButtons: new AnyUiButtonHeaderList(IconPool.MultiLineEdit, "Edit multiline", "Edit in multiline editor"),
+                        buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(preference: AnyUiButtonPreference.Image),
+                        textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                        bodyMargin: LayoutHints.BodyMarginOrdOrd,
                         auxButtonLambdaAsync: async (buttonNdx) =>
                         {
                             if (buttonNdx == 0)
@@ -1236,10 +1309,13 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionNone();
                         });
 
+                    // refersTo
+                    
                     // refersTo are MULTIPLE ModelReference<IReferable>. That is: multiple x multiple keys!                
                     if (this.SafeguardAccess(
-                            substack, this.repo, extension.RefersTo, "refersTo:", "Create data element!",
-                            async (v) =>
+                            substack, this.repo, extension.RefersTo, "refersTo:", keyHandling: keyHandling,
+                            actionStr: "Create refersTo Reference!",
+                            actionAsync: async (v) =>
                             {
                                 await Task.Yield();
                                 extension.RefersTo = new List<IReference>() {
@@ -1254,7 +1330,16 @@ namespace AasxPackageLogic
                             // let the user control the number of references
                             this.AddActionPanel(
                                 substack, "refersTo:",
-                                new[] { "Add Reference", "Delete last reference" }, repo,
+                                repo: repo,
+                                keyHandling: keyHandling,
+                                buttonOverStyle: LayoutHints.StyleButtonStandard,
+                                ticketMenu: new AasxMenu()
+                                    .AddAction("refers-to-add", "Add refersTo",
+                                        icon: IconPool.Add,
+                                        help: "Adds a further refersTo Reference.")
+                                    .AddAction("refers-to-add-del", "Delete last",
+                                        icon: IconPool.Delete,
+                                        help: "Deletes last refersTo Reference in the list."),
                                 actionAsync: async (buttonNdx) =>
                                 {
                                     await Task.Yield();
@@ -1299,7 +1384,16 @@ namespace AasxPackageLogic
                                                    | AddKeyListKeys_Button.Eclass | AddKeyListKeys_Button.Known,
                                         highlightButton: AddKeyListKeys_Button.Existing,
                                         addExistingEntities: "All", 
-                                        showRefSemId: false);
+                                        showRefSemId: false,
+                                        keyHandling: keyHandling,
+                                        buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                                        buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                                        buttonPreferenceLo: AnyUiButtonPreference.Image,
+                                        keyStyleLeft: LayoutHints.StyleLeftKey,
+                                        keyStyleAbove: LayoutHints.StyleHeadline2,
+                                        comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                                        textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                                        bodyMargin: LayoutHints.BodyMarginLargeOrd);
                                 }
                         }
                     }
@@ -1338,8 +1432,11 @@ namespace AasxPackageLogic
             AnyUiButtonOverStyle buttonOverStyleLo = null,
             AnyUiButtonOverStyle buttonOverStyleHi = null,
             AnyUiButtonPreference buttonPreferenceLo = AnyUiButtonPreference.None,
+            AnyUiSelectableTextBlock keyStyleLeft = null,
+            AnyUiSelectableTextBlock keyStyleAbove = null,
             AnyUiTextBox textBoxStyle = null,
-            AnyUiComboBox comboBoxStyle = null)
+            AnyUiComboBox comboBoxStyle = null,
+            AnyUiThickness bodyMargin = null)
         {
             // default
             if (emitCustomEvent == null)
@@ -1456,8 +1553,10 @@ namespace AasxPackageLogic
                         buttonOverStyleLo: buttonOverStyleLo,
                         buttonOverStyleHi: buttonOverStyleHi,
                         buttonPreferenceLo: buttonPreferenceLo,
+                        keyStyleLeft: keyStyleLeft, keyStyleAbove: keyStyleAbove,
                         textBoxStyle: textBoxStyle,
                         comboBoxStyle: comboBoxStyle,
+                        bodyMargin: bodyMargin,
                         auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
                             new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete referredSemanticId"),
                         }),
@@ -1498,8 +1597,10 @@ namespace AasxPackageLogic
                 buttonOverStyleLo: buttonOverStyleLo,
                 buttonOverStyleHi: buttonOverStyleHi,
                 buttonPreferenceLo: buttonPreferenceLo,
+                keyStyleLeft: keyStyleLeft, keyStyleAbove: keyStyleAbove,
                 textBoxStyle: textBoxStyle,
                 comboBoxStyle: comboBoxStyle,
+                bodyMargin: bodyMargin,
                 emitCustomEvent: (o) =>
                 {
                     // use the custom event as event for fired when changed keys
