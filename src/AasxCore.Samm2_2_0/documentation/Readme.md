@@ -41,7 +41,7 @@ Two different ways to do so are explored:
 
 Both are in experimental sate and are realized by using pre-defined [extensions](https://admin-shell.io/aas/3/0/Extension).
 
-The umrella term "semantic model" is sometimes used to denote that there can be different ways to define a Concept Description for a Submobdel.
+The umbrella term "semantic model" is sometimes used to denote that there can be different ways to define a Concept Description for a Submobdel.
 
 
 ### Terminology
