@@ -39,7 +39,7 @@ Two different ways to do so are explored:
 - via structured concept descriptions (SMT-attribute-set) using concept repository entries based on IEC61360 for its atomic properties (i.e. [Part 3a of the Specifications of the Asset Administration Shell](https://industrialdigitaltwin.org/en/content-hub/aasspecifications))
 - via aspect models conformant to the [Semantic Aspect Meta Model (SAMM)](https://eclipse-esmf.github.io/samm-specification/2.1.0/index.html) 
 
-Both are in experimental sate and are realized by using pre-defined [extensions](https://admin-shell.io/aas/3/0/Extension).
+Both are in experimental state and are realized by using pre-defined [extensions](https://admin-shell.io/aas/3/0/Extension).
 
 The umbrella term "semantic model" is sometimes used to denote that there can be different ways to define a Concept Description for a Submobdel.
 
