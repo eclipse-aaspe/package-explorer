@@ -1680,122 +1680,132 @@ namespace AasxPackageLogic
             List<Aas.IValueReferencePair> valuePairs,
             Action<IValueList> setValueList = null,
             Aas.IReferable relatedReferable = null,
-            AasxMenu superMenu = null)
+            AasxMenu superMenu = null,
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
             if (editMode)
             {
                 // let the user control the number of pairs
-                AddActionPanel(
-                    stack, $"{key}:",
-                    new[] { "Add blank", "Add from clipboard", "Add multiple from clipboard", "Delete last" },
-                    repo,
-                    actionAsync: async (buttonNdx) =>
-                    {
-                        if (buttonNdx == 0)
+                AddKeyButtons(stack, $"{key}:",
+                    keyHandling: keyHandling,
+                    buttons: GenerateActionButton(
+                        new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Value list",
+                                "Actions on value list items", AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+                        repo: repo,
+                        superMenu: superMenu,
+                        ticketMenu: new AasxMenu()
+                            .AddAction("value-list-item-add-blank", "Add blank",
+                            icon: IconPool.AddBlank,
+                            help: "Adds a blank value list item.")
+                        .AddAction("value-list-item-paste-single", "Paste from clipboard",
+                            icon: IconPool.Paste,
+                            help: "Adds a single value list item from the clipboard.")
+                        .AddAction("value-list-item-paste-multiple", "Paste multiple",
+                            icon: IconPool.PasteMultiple,
+                            help: "Adds a single value list item from the clipboard.")
+                        .AddAction("delete-value-list-item", "Delete last",
+                            icon: IconPool.Delete,
+                            help: "Deletes the last value list item in the list.")
+                        .AddAction("create-cds", "Items to CDs",
+                            icon: IconPool.Migrate,
+                            help: "For each Value /Reference pair, create a separate ConceptDescription."),
+                        buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
+                                        preference: AnyUiButtonPreference.Both),
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
-                            valuePairs.Add(new Aas.ValueReferencePair(
-                                "", Options.Curr.GetDefaultEmptyReference()));
-                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                        }
-
-                        if (buttonNdx == 1)
-                        {
-                            try
+                            if (buttonNdx == 0)
                             {
-                                var pNew = new Aas.ValueReferencePair("", null);
-                                var jsonInput = (await context.ClipboardGetAsync())?.Text;
-                                if (PasteValueReferencePairTextIntoExisting(jsonInput, pNew))
+                                valuePairs.Add(new Aas.ValueReferencePair(
+                                    "", Options.Curr.GetDefaultEmptyReference()));
+                                this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                            }
+
+                            if (buttonNdx == 1)
+                            {
+                                try
                                 {
-                                    valuePairs.Add(pNew);
-                                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                                    var pNew = new Aas.ValueReferencePair("", null);
+                                    var jsonInput = (await context.ClipboardGetAsync())?.Text;
+                                    if (PasteValueReferencePairTextIntoExisting(jsonInput, pNew))
+                                    {
+                                        valuePairs.Add(pNew);
+                                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Singleton.Error(ex, "while accessing ValueReferencePair data in clipboard");
                                 }
                             }
-                            catch (Exception ex)
-                            {
-                                Log.Singleton.Error(ex, "while accessing ValueReferencePair data in clipboard");
-                            }
-                        }
 
-                        if (buttonNdx == 2)
-                        {
-                            try
+                            if (buttonNdx == 2)
                             {
-                                var pNew = PasteValueReferencePairsTextToList((await context.ClipboardGetAsync())?.Text);
-                                if (pNew != null && pNew.Count() > 0)
+                                try
                                 {
-                                    valuePairs.AddRange(pNew);
-                                    this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                                    var pNew = PasteValueReferencePairsTextToList((await context.ClipboardGetAsync())?.Text);
+                                    if (pNew != null && pNew.Count() > 0)
+                                    {
+                                        valuePairs.AddRange(pNew);
+                                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Singleton.Error(ex, "while accessing ValueReferencePair data in clipboard");
                                 }
                             }
-                            catch (Exception ex)
+
+                            if (buttonNdx == 3)
                             {
-                                Log.Singleton.Error(ex, "while accessing ValueReferencePair data in clipboard");
-                            }
-                        }
-
-                        if (buttonNdx == 3)
-                        {
-                            if (valuePairs.Count > 0)
-                                valuePairs.RemoveAt(valuePairs.Count - 1);
-                            if (valuePairs.Count < 1)
-                                setValueList?.Invoke(null);
-                        }
-
-                        return new AnyUiLambdaActionRedrawEntity();
-                    });
-
-                AddActionPanel(
-                    stack, "Create:",
-                    repo: repo,
-                    superMenu: superMenu,
-                    ticketMenu: new AasxMenu()
-                        .AddAction("create-cds", "CDs \U0001f844 pairs",
-                            "For each Value /Reference pair, create a separate ConceptDescription."),
-                    ticketActionAsync: async (buttonNdx, ticket) =>
-                    {
-                        if (buttonNdx == 0)
-                        {
-                            // make sure
-                            if (AnyUiMessageBoxResult.Yes != await context.MessageBoxFlyoutShowAsync(
-                                    "This operation will create additional ConceptDescriptions for each " +
-                                    "pair of Value and Reference. Do you want to proceed?",
-                                    "Create CDs",
-                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
-                                return new AnyUiLambdaActionNone();
-
-                            // do it
-                            for (int i = 0; i < valuePairs.Count; i++)
-                            {
-                                var eds = new Aas.EmbeddedDataSpecification(
-                                    ExtendIDataSpecificationContent.GetReferencForIec61360(),
-                                    new Aas.DataSpecificationIec61360(
-                                        preferredName: ExtendILangStringPreferredNameTypeIec61360
-                                            .CreateFrom(
-                                                AdminShellUtil.GetDefaultLngIso639(), "" + valuePairs[i].Value),
-                                        shortName: ExtendILangStringShortNameTypeIec61360
-                                            .CreateFrom(
-                                                AdminShellUtil.GetDefaultLngIso639(), "" + valuePairs[i].Value),
-                                        definition: ExtendILangStringDefinitionTypeIec61360
-                                            .CreateFrom("" + valuePairs[i].Value,
-                                                lang: AdminShellUtil.GetDefaultLngIso639()),
-                                        dataType: Aas.DataTypeIec61360.StringTranslatable));
-
-                                var cd = new Aas.ConceptDescription(
-                                    id: valuePairs[i].ValueId?.GetAsIdentifier(),
-                                    idShort: "" + valuePairs[i].Value,
-                                    displayName: ExtendLangStringSet.CreateLangStringNameType(
-                                        AdminShellUtil.GetDefaultLngIso639(), "" + valuePairs[i].Value),
-                                    embeddedDataSpecifications: new List<Aas.IEmbeddedDataSpecification> { eds });
-
-                                env?.Add(cd);
+                                if (valuePairs.Count > 0)
+                                    valuePairs.RemoveAt(valuePairs.Count - 1);
+                                if (valuePairs.Count < 1)
+                                    setValueList?.Invoke(null);
                             }
 
-                            // display
-                            return new AnyUiLambdaActionRedrawAllElements(nextFocus: relatedReferable);
-                        }
+                            if (buttonNdx == 4)
+                            {
+                                // make sure
+                                if (AnyUiMessageBoxResult.Yes != await context.MessageBoxFlyoutShowAsync(
+                                        "This operation will create additional ConceptDescriptions for each " +
+                                        "pair of Value and Reference. Do you want to proceed?",
+                                        "Create CDs",
+                                        AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                    return new AnyUiLambdaActionNone();
 
-                        return new AnyUiLambdaActionNone();
-                    });
+                                // do it
+                                for (int i = 0; i < valuePairs.Count; i++)
+                                {
+                                    var eds = new Aas.EmbeddedDataSpecification(
+                                        ExtendIDataSpecificationContent.GetReferencForIec61360(),
+                                        new Aas.DataSpecificationIec61360(
+                                            preferredName: ExtendILangStringPreferredNameTypeIec61360
+                                                .CreateFrom(
+                                                    AdminShellUtil.GetDefaultLngIso639(), "" + valuePairs[i].Value),
+                                            shortName: ExtendILangStringShortNameTypeIec61360
+                                                .CreateFrom(
+                                                    AdminShellUtil.GetDefaultLngIso639(), "" + valuePairs[i].Value),
+                                            definition: ExtendILangStringDefinitionTypeIec61360
+                                                .CreateFrom("" + valuePairs[i].Value,
+                                                    lang: AdminShellUtil.GetDefaultLngIso639()),
+                                            dataType: Aas.DataTypeIec61360.StringTranslatable));
+
+                                    var cd = new Aas.ConceptDescription(
+                                        id: valuePairs[i].ValueId?.GetAsIdentifier(),
+                                        idShort: "" + valuePairs[i].Value,
+                                        displayName: ExtendLangStringSet.CreateLangStringNameType(
+                                            AdminShellUtil.GetDefaultLngIso639(), "" + valuePairs[i].Value),
+                                        embeddedDataSpecifications: new List<Aas.IEmbeddedDataSpecification> { eds });
+
+                                    env?.Add(cd);
+                                }
+
+                                // display
+                                return new AnyUiLambdaActionRedrawAllElements(nextFocus: relatedReferable);
+                            }
+
+                            return new AnyUiLambdaActionRedrawEntity();
+                        }));
             }
 
             for (int i = 0; i < valuePairs.Count; i++)
@@ -1882,9 +1892,15 @@ namespace AasxPackageLogic
                     margin: new AnyUiThickness(2, 2, 2, 2),
                     padding: new AnyUiThickness(5, 0, 5, 0));
 
-                AddKeyValueExRef(
-                    substack, "value", vp, vp.Value, null, repo,
-                    async (v) =>
+                AddKeyValue(
+                    substack, "value", vp.Value, null, repo,
+                    containingObject: vp,
+                    keyVertCenter: true,
+                    keyHandling: keyHandling,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                    setValueAsync: async (v) =>
                     {
                         await Task.Yield();
                         vp.Value = v as string;
@@ -1893,8 +1909,9 @@ namespace AasxPackageLogic
                     });
 
                 if (SafeguardAccess(
-                        substack, repo, vp.ValueId, "valueId:", "Create data element!",
-                        async (v) =>
+                        substack, repo, vp.ValueId, "valueId:", keyHandling: keyHandling,
+                        actionStr: "Create data element!",
+                        actionAsync: async (v) =>
                         {
                             await Task.Yield();
                             vp.ValueId = new Aas.Reference(Aas.ReferenceTypes.ExternalReference, new List<Aas.IKey>());
@@ -1911,7 +1928,16 @@ namespace AasxPackageLogic
                         highlightButton: AddKeyListKeys_Button.Existing,
                         addExistingEntities: Aas.Stringification.ToString(Aas.KeyTypes.ConceptDescription),
                         showRefSemId: false,
-                        relatedReferable: relatedReferable);
+                        relatedReferable: relatedReferable,
+                        keyHandling: keyHandling,
+                        buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                        buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                        buttonPreferenceLo: AnyUiButtonPreference.Image,
+                        keyStyleLeft: LayoutHints.StyleLeftKey,
+                        keyStyleAbove: LayoutHints.StyleHeadline2,
+                        comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                        textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                        bodyMargin: LayoutHints.BodyMarginLargeLarge);
                 }
             }
         }

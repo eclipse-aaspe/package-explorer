@@ -453,7 +453,7 @@ public partial class DispEditAasxEntityMaui : ContentView
         _helper.LayoutHints.BodyMarginOrdOrd = new AnyUiThickness(0, 1, 0, 3);
         _helper.LayoutHints.BodyMarginOrdLarge = new AnyUiThickness(0, 1, 0, 6);
         _helper.LayoutHints.BodyMarginLargeOrd = new AnyUiThickness(0, 1, 0, 18);
-        _helper.LayoutHints.BodyMarginLargeLarge = new AnyUiThickness(0, 3, 0, 6);
+        _helper.LayoutHints.BodyMarginLargeLarge = new AnyUiThickness(0, 3, 0, 24);
 
         // for icon resolution
         displayContext.LambdaResolveImageSourceFont = ResolveImageSourceFont;
@@ -498,6 +498,8 @@ public partial class DispEditAasxEntityMaui : ContentView
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Content_copy);
         IconPool.Paste
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Content_paste);
+        IconPool.PasteMultiple
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Markdown_copy);
         IconPool.PasteAbove
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Text_select_move_up);
         IconPool.PasteBelow

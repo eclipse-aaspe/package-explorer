@@ -30,6 +30,7 @@ namespace AasxPackageLogic
         public static AnyUiImageSourceFont Cut = new("uc", "\u2702", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont Copy = new("uc", "\u29c9", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont Paste = new("uc", "\U0001f4cb", AnyUiIconColor.Normal);
+        public static AnyUiImageSourceFont PasteMultiple = new("uc", "\u2a39", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont PasteAbove = new("uc", "\U0001f4cb", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont PasteBelow = new("uc", "\U0001f4cb", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont PasteInto = new("uc", "\U0001f4cb", AnyUiIconColor.Normal);

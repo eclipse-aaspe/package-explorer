@@ -1833,54 +1833,59 @@ namespace AasxPackageLogic
             // members
             this.AddGroup(stack, "Data Specification Content IEC61360:", levelColors.SubSection);
 
-            this.AddActionPanel(
-                stack, "Actions:", repo: repo,
-                superMenu: superMenu, keyHandling: keyHandling,
-                ticketMenu: new AasxMenu()
-                    .AddAction("delete-invalid-iec61360", "Delete invalid (empty)",
-                        icon: IconPool.AutoDetect,
-                        help: "Delete element attrributes which are invalid because of being empty."),
-                buttonOverStyle: LayoutHints.StyleButtonStandard,
-                ticketActionAsync: async (buttonNdx, ticket) =>
-                {
-                    await Task.Yield();
-                    if (buttonNdx == 0)
+            AddKeyButtons(stack, "Actions:",
+                keyHandling: keyHandling,
+                buttons: GenerateActionButton(
+                    new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Manage content",
+                            "Actions on data specification content attributes", AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+                    repo: repo,
+                    superMenu: superMenu,
+                    ticketMenu: new AasxMenu()
+                        .AddAction("delete-invalid-iec61360", "Delete invalid (empty)",
+                                    icon: IconPool.AutoDetect,
+                                    help: "Delete element attrributes which are invalid because of being empty."),
+                    buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
+                                    preference: AnyUiButtonPreference.Both),
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
-                        if (dsiec.ShortName != null && dsiec.ShortName.IsValid() != true)
-                            dsiec.ShortName = null;
+                        await Task.Yield();
+                        if (buttonNdx == 0)
+                        {
+                            if (dsiec.ShortName != null && dsiec.ShortName.IsValid() != true)
+                                dsiec.ShortName = null;
 
-                        if (dsiec.Unit != null && dsiec.Unit.HasContent() != true)
-                            dsiec.Unit = null;
+                            if (dsiec.Unit != null && dsiec.Unit.HasContent() != true)
+                                dsiec.Unit = null;
 
-                        if (dsiec.UnitId != null && dsiec.UnitId.IsValid() != true)
-                            dsiec.UnitId = null;
+                            if (dsiec.UnitId != null && dsiec.UnitId.IsValid() != true)
+                                dsiec.UnitId = null;
 
-                        if (dsiec.SourceOfDefinition != null && dsiec.SourceOfDefinition.HasContent() != true)
-                            dsiec.SourceOfDefinition = null;
+                            if (dsiec.SourceOfDefinition != null && dsiec.SourceOfDefinition.HasContent() != true)
+                                dsiec.SourceOfDefinition = null;
 
-                        if (dsiec.Symbol != null && dsiec.Symbol.HasContent() != true)
-                            dsiec.Symbol = null;
+                            if (dsiec.Symbol != null && dsiec.Symbol.HasContent() != true)
+                                dsiec.Symbol = null;
 
-                        if (dsiec.Definition != null && dsiec.Definition.IsValid() != true)
-                            dsiec.Definition = null;
+                            if (dsiec.Definition != null && dsiec.Definition.IsValid() != true)
+                                dsiec.Definition = null;
 
-                        if (dsiec.ValueFormat != null && dsiec.ValueFormat.HasContent() != true)
-                            dsiec.ValueFormat = null;
+                            if (dsiec.ValueFormat != null && dsiec.ValueFormat.HasContent() != true)
+                                dsiec.ValueFormat = null;
 
-                        if (dsiec.ValueList != null && dsiec.ValueList.IsValid() != true)
-                            dsiec.ValueList = null;
+                            if (dsiec.ValueList != null && dsiec.ValueList.IsValid() != true)
+                                dsiec.ValueList = null;
 
-                        if (dsiec.Value != null && dsiec.Value.HasContent() != true)
-                            dsiec.Value = null;
+                            if (dsiec.Value != null && dsiec.Value.HasContent() != true)
+                                dsiec.Value = null;
 
-                        if (dsiec.LevelType != null && dsiec.LevelType.IsEmpty() == true)
-                            dsiec.LevelType = null;
+                            if (dsiec.LevelType != null && dsiec.LevelType.IsEmpty() == true)
+                                dsiec.LevelType = null;
 
-                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-                        return new AnyUiLambdaActionRedrawEntity();
-                    }
-                    return new AnyUiLambdaActionNone();
-                });
+                            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                            return new AnyUiLambdaActionRedrawEntity();
+                        }
+                        return new AnyUiLambdaActionNone();
+                    }));
 
             // PreferredName
 
@@ -2138,7 +2143,7 @@ namespace AasxPackageLogic
                     buttonOverStyle: LayoutHints.StyleButtonStandard,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
-                    bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
                     auxButtons: new AnyUiButtonHeaderList(IconPool.Delete, "Delete", "Delete data element", AnyUiButtonPreference.Image),
                     auxButtonLambdaAsync: async (i) =>
                     {
@@ -2193,7 +2198,7 @@ namespace AasxPackageLogic
                     buttonOverStyle: LayoutHints.StyleButtonStandard,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
-                    bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
                     auxButtons: new AnyUiButtonHeaderList(IconPool.Delete, "Delete", "Delete data element", AnyUiButtonPreference.Image),
                     auxButtonLambdaAsync: async (i) =>
                     {
@@ -2253,7 +2258,7 @@ namespace AasxPackageLogic
                     buttonOverStyle: LayoutHints.StyleButtonStandard,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
-                    bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                    bodyMargin: LayoutHints.BodyMarginOrdLarge,
                     auxButtons: new AnyUiButtonHeaderList(IconPool.Delete, "Delete", "Delete data element", AnyUiButtonPreference.Image),
                     auxButtonLambdaAsync: async (i) =>
                     {
@@ -2408,7 +2413,8 @@ namespace AasxPackageLogic
                     env, stack, repo, "valueList",
                     dsiec.ValueList.ValueReferencePairs,
                     relatedReferable: relatedReferable, superMenu: superMenu,
-                    setValueList: (val) => dsiec.ValueList = val);
+                    setValueList: (val) => dsiec.ValueList = val,
+                    keyHandling: keyHandling);
             }
 
             // Value

@@ -2276,34 +2276,6 @@ namespace AasxPackageLogic
             // TEST
             keyHandling = KeyLabelHandling.Above_LabelPlate;
 
-            // This panel renders first the SubmodelReference and then the Submodel, below
-            if (smref != null)
-            {
-                this.AddGroup(stack, "SubmodelReference of AAS", this.levelColors.MainSection);
-
-                Func<List<Aas.IKey>, AnyUiLambdaActionBase> lambda = (kl) =>
-                 {
-                     return new AnyUiLambdaActionNavigateTo(
-                         new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>(kl)), alsoDereferenceObjects: false);
-                 };
-
-                this.AddKeyListKeys(
-                    stack, "submodelRef", 
-                    smref.Keys, setSmRefNull,
-                    repo,
-                    packages, PackageCentral.PackageCentral.Selector.Main, 
-                    addButton: AddKeyListKeys_Button.Existing | AddKeyListKeys_Button.Blank,
-                    highlightButton: AddKeyListKeys_Button.Existing,
-                    addExistingEntities: "Reference Submodel ",
-                    takeOverLambdaAction: new AnyUiLambdaActionRedrawAllElements(smref),
-                    jumpLambda: lambda, relatedReferable: aas,
-                    buttonOverStyleLo: LayoutHints.StyleButtonStandard,
-                    buttonOverStyleHi: LayoutHints.StyleButtonAction,
-                    buttonPreferenceLo: AnyUiButtonPreference.Image,
-                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
-                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling));
-            }
-
             // check, if Submodel is sitting in Repo
             var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
                     .FindSideInfoInListOfIdentifiables(
@@ -2312,7 +2284,7 @@ namespace AasxPackageLogic
             // section title
             if (editMode && smref != null)
             {
-                AddGroup(stack, "Editing of entities (within specific AAS)", this.levelColors.SubSection);
+                AddGroup(stack, "Editing of Submodel or Submodel reference", this.levelColors.MainSection);
             }
 
             // prepare widget containers for ACTION BUTTONS
@@ -2341,7 +2313,7 @@ namespace AasxPackageLogic
                 };
 
                 this.EntityListUpDownDeleteHelper<Aas.IReference>(
-                    actionStack1, repo, 
+                    actionStack1, repo,
                     aas.Submodels, (lst) => { aas.Submodels = lst; },
                     smref, aas, "Reference:", sendUpdateEvent: evTemplate,
                     explicitParent: aas,
@@ -2352,7 +2324,7 @@ namespace AasxPackageLogic
                         if (actionName == "aas-elem-delete")
                         {
                             // ask for complete deletion
-                            if (ticket?.ScriptMode != true 
+                            if (ticket?.ScriptMode != true
                                 && AnyUiMessageBoxResult.Yes != await context.MessageBoxFlyoutShowAsync(
                                 "Delete selected Submodel for all AAS in the Environment? " +
                                 "This operation can not be reverted!", "AAS-ENV",
@@ -2432,7 +2404,7 @@ namespace AasxPackageLogic
                 this.EntityListUpDownDeleteHelper<Aas.ISubmodel>(
                     actionStack1, repo,
                     env.Submodels, (lst) => { env.Submodels = lst; },
-                    submodel, alternativeFocus: env, 
+                    submodel, alternativeFocus: env,
                     "Submodel:", sendUpdateEvent: evTemplate,
                     explicitParent: aas,
                     moveDoesNotModify: true,
@@ -2488,75 +2460,16 @@ namespace AasxPackageLogic
                     });
             }
 
-            // Cut, copy, paste within an aas
-            // Resharper disable once ConditionIsAlwaysTrueOrFalse
-            if (editMode && smref != null && submodel != null && aas != null)
-            {
-                // cut/ copy / paste
-                this.DispSubmodelCutCopyPasteHelper<Aas.IReference>(actionStack2, repo, this.theCopyPaste,
-                    aas.Submodels, smref, (sr) => { return new Aas.Reference(sr.Type, new List<Aas.IKey>(sr.Keys)); },
-                    smref, submodel, superMenu: superMenu,
-                    buttonOverStyle: LayoutHints.StyleButtonStandard,
-                    keyHandling: keyHandling,
-                    label: "Buffer:",
-                    checkEquality: (r1, r2) =>
-                    {
-                        if (r1 != null && r2 != null)
-                            return (r1.Matches(r2, MatchMode.Identification));
-                        return false;
-                    },
-                    extraAction: (cpi) =>
-                    {
-                        if (cpi is CopyPasteItemSubmodel item)
-                        {
-                            // special case: Submodel does not exist, as pasting was from external
-                            if (env?.Submodels != null && item.smref != null && item.sm != null)
-                            {
-                                var smtest = env.FindSubmodel(item.smref);
-                                if (smtest == null)
-                                {
-                                    env.Add(item.sm);
-                                    this.AddDiaryEntry(item.sm,
-                                        new DiaryEntryStructChange(StructuralChangeReason.Create));
-                                }
-                            }
-                        }
-                    });
-            }
-            else
-            // Cut, copy, paste within the Submodels
-            if (editMode && smref == null && submodel != null && env != null)
-            {
-                // cut/ copy / paste
-                this.DispSubmodelCutCopyPasteHelper<Aas.ISubmodel>(actionStack2, repo, this.theCopyPaste,
-                    env.Submodels, submodel, (sm) => { return sm.Copy(); },
-                    null, submodel, superMenu: superMenu,
-                    buttonOverStyle: LayoutHints.StyleButtonStandard,
-                    keyHandling: keyHandling,
-                    label: "Buffer:",
-                    checkEquality: (s1, s2) =>
-                    {
-                        if (s1?.Id != null && s2?.Id != null)
-                            return (s1.Id.Equals(s2.Id, StringComparison.InvariantCultureIgnoreCase));
-                        return false;
-                    },
-                    modifyAfterClone: (cloneSm, duplicate) =>
-                    {
-                        if (cloneSm != null && duplicate)
-                            MakeNewIdentifiableUnique(cloneSm);
-                    });
-            }
-
             // normal edit of the submodel
             if (editMode && submodel != null)
             {
                 actionsButtons.AddRange(DispSmeListAddNewGenerateButtons(
-                        env, repo,
-                        submodel.SubmodelElements,
-                        setOutput: (sml) => submodel.SubmodelElements = sml,
-                        superMenu: superMenu,
-                        basedOnSemanticId: submodel.SemanticId,
-                        buttonOverStyle: LayoutHints.StyleButtonStandard));
+                env, repo,
+                submodel.SubmodelElements,
+                setOutput: (sml) => submodel.SubmodelElements = sml,
+                superMenu: superMenu,
+                basedOnSemanticId: submodel.SemanticId,
+                buttonOverStyle: LayoutHints.StyleButtonStandard));
 
                 this.AddHintBubble(stack, hintMode, new[] {
                     new HintCheck(
@@ -2566,7 +2479,7 @@ namespace AasxPackageLogic
                 });
 
                 actionsButtons.AddRange(GenerateActionButton(
-                        new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Copy SME", 
+                        new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Copy SME",
                                 "Copy SubmodelElements", AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
                         repo: repo,
                         superMenu: superMenu,
@@ -2579,7 +2492,7 @@ namespace AasxPackageLogic
                                 "caring for ConceptDescriptions."),
                         buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
                                         preference: AnyUiButtonPreference.Both),
-                        padding: new AnyUiThickness(5,0,5,0),
+                        padding: new AnyUiThickness(5, 0, 5, 0),
                         ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx == 0 || buttonNdx == 1)
@@ -2643,7 +2556,7 @@ namespace AasxPackageLogic
 
                 actionsButtons.AddRange(GenerateActionButton(
                     new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Create CDs",
-                            "Create ConceptDescription for specifc SubmodelElement", 
+                            "Create ConceptDescription for specifc SubmodelElement",
                             AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
                     repo: repo,
                     superMenu: superMenu,
@@ -2667,8 +2580,8 @@ namespace AasxPackageLogic
                         {
                             // from ECLASS
                             // ReSharper disable RedundantCast
-                           await  this.ImportEclassCDsForTargetsAsync(
-                                env, (smref != null) ? (object)smref : (object)submodel, targets);
+                            await this.ImportEclassCDsForTargetsAsync(
+                                    env, (smref != null) ? (object)smref : (object)submodel, targets);
                             // ReSharper enable RedundantCast
                         }
 
@@ -2765,6 +2678,7 @@ namespace AasxPackageLogic
 
                         return new AnyUiLambdaActionNone();
                     }));
+                
                 actionsButtons.AddRange(GenerateActionButton(
                     new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Maintain SMEs",
                             "Maintain specific attributes of one or multiple SubmodelElements",
@@ -2856,7 +2770,7 @@ namespace AasxPackageLogic
                                 return new AnyUiLambdaActionNone();
 
                             // do it on Submodel level
-                            
+
                             if (selectedTag == "QUAL")
                                 submodel.Qualifiers = null;
                             if (selectedTag == "EXT")
@@ -2927,10 +2841,101 @@ namespace AasxPackageLogic
                 // render action buttons
                 var wp = AddKeyButtons(stack, "Actions:",
                         keyHandling: keyHandling,
-                        buttons: actionsButtons.Select((c) => Set(c, margin: new AnyUiThickness(0,0,0,4))));
+                        buttons: actionsButtons.Select((c) => Set(c, margin: new AnyUiThickness(0, 0, 0, 4))));
                 wp.Margin = new AnyUiThickness(0, 5, 0, 0);
                 wp.Padding = new AnyUiThickness(0, 0, 2, 0);
+            }
 
+            // Cut, copy, paste within an aas
+            // Resharper disable once ConditionIsAlwaysTrueOrFalse
+            if (editMode && smref != null && submodel != null && aas != null)
+            {
+                // cut/ copy / paste
+                this.DispSubmodelCutCopyPasteHelper<Aas.IReference>(actionStack2, repo, this.theCopyPaste,
+                    aas.Submodels, smref, (sr) => { return new Aas.Reference(sr.Type, new List<Aas.IKey>(sr.Keys)); },
+                    smref, submodel, superMenu: superMenu,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
+                    keyHandling: keyHandling,
+                    label: "Buffer:",
+                    checkEquality: (r1, r2) =>
+                    {
+                        if (r1 != null && r2 != null)
+                            return (r1.Matches(r2, MatchMode.Identification));
+                        return false;
+                    },
+                    extraAction: (cpi) =>
+                    {
+                        if (cpi is CopyPasteItemSubmodel item)
+                        {
+                            // special case: Submodel does not exist, as pasting was from external
+                            if (env?.Submodels != null && item.smref != null && item.sm != null)
+                            {
+                                var smtest = env.FindSubmodel(item.smref);
+                                if (smtest == null)
+                                {
+                                    env.Add(item.sm);
+                                    this.AddDiaryEntry(item.sm,
+                                        new DiaryEntryStructChange(StructuralChangeReason.Create));
+                                }
+                            }
+                        }
+                    });
+            }
+            else
+            // Cut, copy, paste within the Submodels
+            if (editMode && smref == null && submodel != null && env != null)
+            {
+                // cut/ copy / paste
+                this.DispSubmodelCutCopyPasteHelper<Aas.ISubmodel>(actionStack2, repo, this.theCopyPaste,
+                    env.Submodels, submodel, (sm) => { return sm.Copy(); },
+                    null, submodel, superMenu: superMenu,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
+                    keyHandling: keyHandling,
+                    label: "Buffer:",
+                    checkEquality: (s1, s2) =>
+                    {
+                        if (s1?.Id != null && s2?.Id != null)
+                            return (s1.Id.Equals(s2.Id, StringComparison.InvariantCultureIgnoreCase));
+                        return false;
+                    },
+                    modifyAfterClone: (cloneSm, duplicate) =>
+                    {
+                        if (cloneSm != null && duplicate)
+                            MakeNewIdentifiableUnique(cloneSm);
+                    });
+            }
+
+            // This panel renders first the SubmodelReference and then the Submodel, below
+            if (smref != null)
+            {
+                this.AddGroup(stack, "Submodel reference listed in the AAS", this.levelColors.MainSection);
+
+                Func<List<Aas.IKey>, AnyUiLambdaActionBase> lambda = (kl) =>
+                 {
+                     return new AnyUiLambdaActionNavigateTo(
+                         new Aas.Reference(Aas.ReferenceTypes.ModelReference, new List<Aas.IKey>(kl)), alsoDereferenceObjects: false);
+                 };
+
+                this.AddKeyListKeys(
+                    stack, "submodelRef", 
+                    smref.Keys, setSmRefNull,
+                    repo,
+                    packages, PackageCentral.PackageCentral.Selector.Main, 
+                    addButton: AddKeyListKeys_Button.Existing | AddKeyListKeys_Button.Blank,
+                    highlightButton: AddKeyListKeys_Button.Existing,
+                    addExistingEntities: "Reference Submodel ",
+                    takeOverLambdaAction: new AnyUiLambdaActionRedrawAllElements(smref),
+                    jumpLambda: lambda, relatedReferable: aas,
+                    buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                    buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                    buttonPreferenceLo: AnyUiButtonPreference.Image,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling));
+            }
+
+            // normal edit of the submodel
+            if (editMode && submodel != null)
+            {               
                 // Check for cardinality
                 if (checkSmt)
 					DisplayOrEditEntityCheckValue(env, stack, _checkValueHandle, submodel);
@@ -2955,7 +2960,7 @@ namespace AasxPackageLogic
             {
 
                 // Submodel
-                this.AddGroup(stack, "Submodel", this.levelColors.MainSection);
+                this.AddGroup(stack, "Submodel (looked up by the Submodel reference)", this.levelColors.MainSection);
 
                 // IReferable (part 1)
                 this.DisplayOrEditEntityReferable(
@@ -3109,6 +3114,19 @@ namespace AasxPackageLogic
 			}
 
             //
+            // Submodel Value
+            //
+
+            if (submodel != null)
+            {
+                this.AddGroup(stack, "Submodel value information", this.levelColors.MainSection);
+                if (submodel.SubmodelElements != null)
+                    this.AddKeyValue(stack, "# of elements", "" + submodel.SubmodelElements.Count);
+                else
+                    this.AddKeyValue(stack, "Elements", "Please add elements via editing of sub-ordinate entities");
+            }
+
+            //
             // ConceptDescription <- via semantic ID ?!
             //
 
@@ -3132,19 +3150,6 @@ namespace AasxPackageLogic
                         hintMode: hintMode,
                         keyHandling: keyHandling);
                 }
-            }
-
-            //
-            // Submodel Value
-            //
-
-            if (submodel != null)
-            {
-                this.AddGroup(stack, "Submodel elements", this.levelColors.MainSection);
-                if (submodel.SubmodelElements != null)
-                    this.AddKeyValue(stack, "# of elements", "" + submodel.SubmodelElements.Count);
-                else
-                    this.AddKeyValue(stack, "Elements", "Please add elements via editing of sub-ordinate entities");
             }
         }
 
@@ -3560,7 +3565,8 @@ namespace AasxPackageLogic
 				DisplayOrEditEntityExtensionRecords(
 					env, stack, cd.Extensions,
 					(v) => { cd.Extensions = v; },
-					relatedReferable: cd, superMenu: superMenu);
+					relatedReferable: cd, superMenu: superMenu,
+                    keyHandling: keyHandling);
 			};
 
 			// check if to display special order for SAMM, SMT

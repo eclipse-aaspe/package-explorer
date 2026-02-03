@@ -1016,101 +1016,105 @@ namespace AasxPackageLogic
             if (editMode)
 			{
 				// let the user control the number of references
-				this.AddActionPanel(
-					stack, "Spec. records:", repo: repo,
-					superMenu: superMenu,
-					keyHandling: keyHandling,
-					buttonOverStyle: LayoutHints.StyleButtonStandard,
-					ticketMenu: new AasxMenu()
-						.AddAction("add-aspect", "Add Aspect",
-							icon: IconPool.Add,
-							help: "Add single top level of any SAMM aspect model.")
-						.AddAction("add-property", "Add Property",
-							icon: IconPool.Add,
-							help: "Add a named value element to the aspect or its sub-entities.")
-						.AddAction("add-characteristic", "Add Characteristic",
-							icon: IconPool.Add,
-							help: "Characteristics describe abstract concepts that must be made specific when they are used.")
-						.AddAction("auto-entity", "Add Entity",
-							icon: IconPool.Add,
-							help: "An entity is the main element to collect a set of properties.")
-						.AddAction("auto-other", "Add other ..",
-							icon: IconPool.Add,
-							help: "Adds an other Characteristic by selecting from a list.")
-						.AddAction("delete-last", "Delete last extension",
-							icon: IconPool.Delete,
-							help: "Deletes last extension."),
-					ticketActionAsync: async (buttonNdx, ticket) =>
-					{
-						Samm.ModelElement newChar = null;
-						switch (buttonNdx)
+                AddKeyButtons(stack, $"Spec. records:",
+                    keyHandling: keyHandling,
+                    buttons: GenerateActionButton(
+                        new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "SAMM records",
+                                "Actions on value list items", AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+                        repo: repo,
+                        superMenu: superMenu,
+                        ticketMenu: new AasxMenu()
+                            .AddAction("add-aspect", "Add Aspect",
+                            icon: IconPool.Add,
+                            help: "Add single top level of any SAMM aspect model.")
+                        .AddAction("add-property", "Add Property",
+                            icon: IconPool.Add,
+                            help: "Add a named value element to the aspect or its sub-entities.")
+                        .AddAction("add-characteristic", "Add Characteristic",
+                            icon: IconPool.Add,
+                            help: "Characteristics describe abstract concepts that must be made specific when they are used.")
+                        .AddAction("auto-entity", "Add Entity",
+                            icon: IconPool.Add,
+                            help: "An entity is the main element to collect a set of properties.")
+                        .AddAction("auto-other", "Add other ..",
+                            icon: IconPool.Add,
+                            help: "Adds an other Characteristic by selecting from a list.")
+                        .AddAction("delete-last", "Delete last extension",
+                            icon: IconPool.Delete,
+                            help: "Deletes last extension."),
+                        buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
+                                        preference: AnyUiButtonPreference.Both),
+						ticketActionAsync: async (buttonNdx, ticket) =>
 						{
-							case 0:
-								newChar = new Samm.Aspect();
-								break;
-							case 1:
-								newChar = new Samm.Property();
-								break;
-							case 2:
-								newChar = new Samm.Characteristic();
-								break;
-							case 3:
-								newChar = new Samm.Entity();
-								break;
-						}
-
-						if (buttonNdx == 4)
-						{							
-							// select
-							var sammTypeToCreate = await SammExtensionHelperSelectSammType(
-								Samm.Constants.AddableElements);
-
-							if (sammTypeToCreate != null)
+							Samm.ModelElement newChar = null;
+							switch (buttonNdx)
 							{
-								// to which?
-								newChar = Activator.CreateInstance(
-									sammTypeToCreate, new object[] { }) as Samm.ModelElement;
+								case 0:
+									newChar = new Samm.Aspect();
+									break;
+								case 1:
+									newChar = new Samm.Property();
+									break;
+								case 2:
+									newChar = new Samm.Characteristic();
+									break;
+								case 3:
+									newChar = new Samm.Entity();
+									break;
 							}
-						}
 
-						// create a new element
-						if (newChar != null && newChar is Samm.ISammSelfDescription ssd)
-						{
-							// which id set to use
-							if (detectedIdSet == null)
-								detectedIdSet = await SammExtensionHelperSelectSammVersionAsync(
-									Samm.SammIdSets.IdSets.Values);
-							if (detectedIdSet == null)
-								return new AnyUiLambdaActionNone();
+							if (buttonNdx == 4)
+							{							
+								// select
+								var sammTypeToCreate = await SammExtensionHelperSelectSammType(
+									Samm.Constants.AddableElements);
 
-							// now add
-							sammExtension = sammExtension ?? new List<IExtension>();
-							sammExtension.Add(
-								new Aas.Extension(
-									name: ssd.GetSelfName(),
-									semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
-										(new[] {
-											new Aas.Key(KeyTypes.GlobalReference,
-											"" + detectedIdSet.SelfNamespaces.ExtendUri(
-													ssd.GetSelfUrn(detectedIdSet.Version)))
-										})
-										.Cast<Aas.IKey>().ToList()),
-									value: ""));
-							setOutput?.Invoke(sammExtension);
-						}
+								if (sammTypeToCreate != null)
+								{
+									// to which?
+									newChar = Activator.CreateInstance(
+										sammTypeToCreate, new object[] { }) as Samm.ModelElement;
+								}
+							}
+
+							// create a new element
+							if (newChar != null && newChar is Samm.ISammSelfDescription ssd)
+							{
+								// which id set to use
+								if (detectedIdSet == null)
+									detectedIdSet = await SammExtensionHelperSelectSammVersionAsync(
+										Samm.SammIdSets.IdSets.Values);
+								if (detectedIdSet == null)
+									return new AnyUiLambdaActionNone();
+
+								// now add
+								sammExtension = sammExtension ?? new List<IExtension>();
+								sammExtension.Add(
+									new Aas.Extension(
+										name: ssd.GetSelfName(),
+										semanticId: new Aas.Reference(ReferenceTypes.ExternalReference,
+											(new[] {
+												new Aas.Key(KeyTypes.GlobalReference,
+												"" + detectedIdSet.SelfNamespaces.ExtendUri(
+														ssd.GetSelfUrn(detectedIdSet.Version)))
+											})
+											.Cast<Aas.IKey>().ToList()),
+										value: ""));
+								setOutput?.Invoke(sammExtension);
+							}
 							
-						// remove
-						if (buttonNdx == 5)
-						{
-							if (sammExtension != null && sammExtension.Count > 0)
-								sammExtension.RemoveAt(sammExtension.Count - 1);
-                            if (sammExtension != null && sammExtension.Count < 1)
-                                setOutput?.Invoke(null);
-						}
+							// remove
+							if (buttonNdx == 5)
+							{
+								if (sammExtension != null && sammExtension.Count > 0)
+									sammExtension.RemoveAt(sammExtension.Count - 1);
+								if (sammExtension != null && sammExtension.Count < 1)
+									setOutput?.Invoke(null);
+							}
 
-						this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-						return new AnyUiLambdaActionRedrawEntity();
-					});
+							this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+							return new AnyUiLambdaActionRedrawEntity();
+						}));
 			}
 
 			// now use the normal mechanism to deal with editMode or not ..
