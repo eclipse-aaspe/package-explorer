@@ -1776,43 +1776,6 @@ namespace AasxPackageLogic
             }
 
         }
-        // dead-csharp off
-        //not anymore required?!
-        //public void DisplayOrEditEntitySingleIdentifierKeyValuePair(AnyUiStackPanel stack,
-        //    List<Aas.ISpecificAssetId> pair,
-        //    Action<List<Aas.ISpecificAssetId>> setOutput,
-        //    string key = "IdentifierKeyValuePair",
-        //    Aas.IReferable relatedReferable = null,
-        //    string[] auxContextHeader = null, Func<object, AnyUiLambdaActionBase> auxContextLambda = null)
-        //{
-        //    // access
-        //    if (stack == null)
-        //        return;
-
-        //    // members
-        //    this.AddGroup(stack, $"{key}:", levelColors.SubSection, 
-        //        requestAuxButton: repo != null,
-        //        auxContextHeader: auxContextHeader, auxContextLambda: auxContextLambda);
-
-        //    if (this.SafeguardAccess(
-        //        stack, repo, pair, $"{key}:", "Create data element!",
-        //        v =>
-        //        {
-        //            setOutput?.Invoke(new List<ISpecificAssetId>());
-        //            this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
-        //            return new AnyUiLambdaActionRedrawEntity();
-        //        }))
-        //    {
-        //        //TODO (jtikekar, 0000-00-00): need to test
-        //        foreach (var specificAssetId in pair)
-        //        {
-        //            this.IdentifierKeyValueSinglePairHelper(
-        //                        stack, repo, specificAssetId,
-        //                        relatedReferable: relatedReferable);
-        //        }
-        //    }
-        //}
-        // dead-csharp on
 
         //
         // DataSpecificationIEC61360
