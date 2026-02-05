@@ -1068,7 +1068,7 @@ namespace AasxPackageLogic
                 await CommandBinding_GeneralDispatchHeadless(cmd, menuItem, ticket);
 
                 // update
-                MainWindow.RedrawAllAasxElementsAsync();
+                await MainWindow.RedrawAllAasxElementsAsync();
                 await MainWindow.RedrawElementViewAsync();
             }
 

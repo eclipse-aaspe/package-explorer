@@ -284,7 +284,7 @@ namespace AasxPackageLogic
                     AasxPredefinedConcepts.IdtaSpecs.Concept.Qualifier,
                     LayoutHints.StyleHeadline2,
                     bodyMargin: LayoutHints.BodyMarginLargeLarge,
-                    borderStyle: LayoutHints.StyleBorderedBox,
+                    borderStyle: LayoutHints.StyleBorderedBox2,
                     buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop.Modify(preference: AnyUiButtonPreference.Image),
                     auxContextButtonHeader: new AnyUiButtonHeader(IconPool.MoreVert, "More",
                         "More options in context menu."),
@@ -443,7 +443,7 @@ namespace AasxPackageLogic
                             keyStyleAbove: LayoutHints.StyleHeadingItems,
                             textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                             comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
-                            bodyMargin: LayoutHints.BodyMarginLargeOrd,
+                            bodyMargin: LayoutHints.BodyMarginOrdLarge,
                             auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
                                 new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete semanticId"),
                             }),
@@ -971,6 +971,7 @@ namespace AasxPackageLogic
                         "not empty.")
                 });
 
+#if DOUBLE_IMPLEMENTED
                 // let the user control the number of elements
                 AddActionPanel(
                     stack, "Extension entities:",
@@ -1074,26 +1075,35 @@ namespace AasxPackageLogic
 
                         return new AnyUiLambdaActionRedrawEntity();
                     });
+#endif
             }
 
             for (int i = 0; i < extensions.Count; i++)
             {
                 var extension = extensions[i];
-                var substack = AddSubStackPanel(stack, "  ", minWidthFirstCol: GetWidth(FirstColumnWidth.Small));
 
+                // var substack = AddSubStackPanel(stack, "  ", minWidthFirstCol: GetWidth(FirstColumnWidth.Small));
                 int storedI = i;
-                AddGroup(
-                    substack, $"Extension {1 + i}: {AdminShellUtil.ShortenWithEllipses(extension.Name, 30)}",
-                    levelColors.SubSubSection.Bg, levelColors.SubSubSection.Fg, requestContextMenu: repo != null,
-                    contextMenuText: "\u22ee",
-                    menuHeaders: new AnyUiContextMenuHeaderList(new[] {
+                var substack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                    $"Extension {1 + i}: {AdminShellUtil.ShortenWithEllipses(extension.Name, 30)}",
+                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                    AasxPredefinedConcepts.IdtaSpecs.Concept.HasExtensions,
+                    LayoutHints.StyleHeadlineAboveHints,
+                    "Single extention attributes data.", LayoutHints.StyleHeadlineHints,
+                    hintMode: true,
+                    bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                    borderStyle: LayoutHints.StyleBorderedBox2,
+                    buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop,
+                    auxContextButtonHeader: new AnyUiButtonHeader(IconPool.MoreVert, "More",
+                        "More options in context menu."),
+                    auxContextMenuHeaders: new AnyUiContextMenuHeaderList(new[] {
                         new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete"),
                         new AnyUiContextMenuHeaderIconSource(1, IconPool.MoveUp, "Move Up"),
                         new AnyUiContextMenuHeaderIconSource(2, IconPool.MoveDown, "Move Down"),
                         new AnyUiContextMenuHeaderIconSource(3, IconPool.CopyToClipboard, "Copy to clipboard"),
                         new AnyUiContextMenuHeaderIconSource(4, IconPool.Paste, "Paste from clipboard"),
                     }),
-                    menuItemLambdaAsync: async (o) =>
+                    auxContextLambdaAsync: async (o) =>
                     {
                         var action = false;
 
@@ -1157,9 +1167,13 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawEntity();
                         }
                         return new AnyUiLambdaActionNone();
-                    },
-                    margin: new AnyUiThickness(2, 2, 2, 2),
-                    padding: new AnyUiThickness(5, 0, 5, 0));
+                    });
+
+                if (false) // WPF?
+                {
+                    substack.Margin = new AnyUiThickness(2, 2, 2, 2);
+                    substack.Padding = new AnyUiThickness(5, 0, 5, 0);
+                }
 
                 // special case: SAMM extension
                 // TODO: enable

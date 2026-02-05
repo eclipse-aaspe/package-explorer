@@ -341,8 +341,14 @@ public partial class DispEditAasxEntityMaui : ContentView
 
         var stack = new AnyUiStackPanel();
 
-        // create display context for MAUI
+        // create display context per standard
         _helper!.levelColors = DispLevelColors.GetLevelColorsFromOptions(Options.Curr);
+
+        // .. alter for MAUI
+        _helper!.levelColors.HintSeverityNotice.Fg = AnyUiDisplayContextMaui.GetAnyUiBrush(XamlHelpers.GetDynamicRessource("NoticeDark", Colors.Blue));
+        _helper!.levelColors.HintSeverityNotice.Bg = AnyUiBrushes.Transparent;
+        _helper!.levelColors.HintSeverityHigh.Fg = AnyUiDisplayContextMaui.GetAnyUiBrush(XamlHelpers.GetDynamicRessource("ErrorDark", Colors.Red));
+        _helper!.levelColors.HintSeverityHigh.Bg = AnyUiBrushes.Transparent;
 
         // layout for MAUI
         _helper.LayoutHints.PlacementAdd = UILayoutHints.PosOfControl.Bottom;
@@ -368,9 +374,9 @@ public partial class DispEditAasxEntityMaui : ContentView
         // Button Action
         _helper.LayoutHints.StyleButtonAction.Style = new()
         {
-            Background = AnyUiBrushes.White,
+            Background = new AnyUiBrush(0xffF2F5FF),
             BorderColor = AnyUiDisplayContextMaui.GetAnyUiBrush(XamlHelpers.GetDynamicRessource("Primary", Colors.Blue)),
-            BorderWidth = 1.0,
+            BorderWidth = 0.0,
             BorderRadius = 8,
             Foreground = AnyUiBrushes.Black,
             MinHeight = _renderDefaults.ControlSizeBordered,
@@ -415,7 +421,7 @@ public partial class DispEditAasxEntityMaui : ContentView
             // enable outer Border
             BorderRadius = 8,
             BorderPadding = new AnyUiThickness(0,-4,0,0),
-            BorderColor = AnyUiBrushes.LightGray,
+            BorderColor = AnyUiBrushes.MiddleGray,
             Background = AnyUiBrushes.White
         };
         _helper.LayoutHints.StyleTextBoxPlateLabel = new()
@@ -423,14 +429,14 @@ public partial class DispEditAasxEntityMaui : ContentView
             // enable outer Border
             BorderRadius = 8,
             BorderPadding = new AnyUiThickness(0,-4,0,0),
-            BorderColor = AnyUiBrushes.LightGray,
+            BorderColor = AnyUiBrushes.MiddleGray,
             Background = AnyUiBrushes.White,
             PlateLabel = new()
             {
                 Margin = new AnyUiThickness(10, -5, 0, 0),
                 Padding = new AnyUiThickness(3,0,3,0),
                 Background = AnyUiBrushes.White,
-                Foreground = AnyUiBrushes.DarkGray
+                Foreground = AnyUiDisplayContextMaui.GetAnyUiBrush(XamlHelpers.GetDynamicRessource("Primary", Colors.Blue))
             }
         };
 
@@ -455,7 +461,7 @@ public partial class DispEditAasxEntityMaui : ContentView
                 Margin = new AnyUiThickness(10, -5, 0, 0),
                 Padding = new AnyUiThickness(3, 0, 3, 0),
                 Background = AnyUiBrushes.White,
-                Foreground = AnyUiBrushes.DarkGray
+                Foreground = AnyUiDisplayContextMaui.GetAnyUiBrush(XamlHelpers.GetDynamicRessource("Primary", Colors.Blue))
             }
         };
 
@@ -487,11 +493,18 @@ public partial class DispEditAasxEntityMaui : ContentView
             FontWeight = AnyUiFontWeight.Bold
         };
 
+        _helper.LayoutHints.StyleHeadline2AboveHints = new()
+        {
+            Margin = new AnyUiThickness(0, 6, 0, 0),
+            FontSize = 1.0,
+            Foreground = new AnyUiBrush(0xff505050)
+        };
+
         _helper.LayoutHints.StyleHeadingItems = new()
         {
             Margin = new AnyUiThickness(0, 10, 0, 6),
-            FontSize = 1.1,
-            FontWeight = AnyUiFontWeight.Bold
+            FontSize = 1.0,
+            Foreground = AnyUiDisplayContextMaui.GetAnyUiBrush(XamlHelpers.GetDynamicRessource("Primary", Colors.Blue))
         };
 
         // bordered boxes
@@ -501,13 +514,22 @@ public partial class DispEditAasxEntityMaui : ContentView
             BorderThickness = new AnyUiThickness(1),
             CornerRadius = 8,
             Background = AnyUiBrushes.White,
-            Padding = new AnyUiThickness(10,8, 10, 8)
+            Padding = new AnyUiThickness(10, 0, 10, 8)
+        };
+
+        _helper.LayoutHints.StyleBorderedBox2 = new()
+        {
+            BorderBrush = AnyUiDisplayContextMaui.GetAnyUiBrush(XamlHelpers.GetDynamicRessource("PrimaryLight", Colors.Blue)),
+            BorderThickness = new AnyUiThickness(1),
+            CornerRadius = 8,
+            Background = AnyUiBrushes.White,
+            Padding = new AnyUiThickness(10, 8, 10, 8)
         };
 
         // body margins
         _helper.LayoutHints.BodyMarginOrdOrd = new AnyUiThickness(0, 1, 0, 3);
-        _helper.LayoutHints.BodyMarginOrdLarge = new AnyUiThickness(0, 1, 0, 6);
-        _helper.LayoutHints.BodyMarginLargeOrd = new AnyUiThickness(0, 1, 0, 18);
+        _helper.LayoutHints.BodyMarginOrdLarge = new AnyUiThickness(0, 1, 0, 24);
+        _helper.LayoutHints.BodyMarginLargeOrd = new AnyUiThickness(0, 6, 0, 3);
         _helper.LayoutHints.BodyMarginLargeLarge = new AnyUiThickness(0, 3, 0, 24);
 
         // for icon resolution

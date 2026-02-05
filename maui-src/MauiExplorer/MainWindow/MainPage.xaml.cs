@@ -138,7 +138,7 @@ namespace MauiTestTree
                 deh.repo = new();
                 deh.DisplayOrEditEntityReferable(
                     new AasCore.Aas3_1.Environment(), 
-                    stack, 
+                    stack, "SM",
                     parentContainer: new AasCore.Aas3_1.Submodel("http://abc.de/123"),
                     referable: new AasCore.Aas3_1.Property(AasCore.Aas3_1.DataTypeDefXsd.String, idShort: "Test123", category: "ABC"),
                     indexPosition: 0);
@@ -506,6 +506,10 @@ namespace MauiTestTree
             {
                 // special: Options
                 await EditMainMenuCheckableOptionsAsync();
+
+                // redraw all
+                await RedrawAllAasxElementsAsync();
+                await RedrawElementViewAsync();
             }
             else
                 foreach (var mh in _viewModel.RootMenuHandles)

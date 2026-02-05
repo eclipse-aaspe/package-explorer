@@ -1095,7 +1095,28 @@ namespace AasxPackageLogic
 			}
 		}
 
-		public void DisplayOrEditEntityExtensionRecords(
+        private bool PasteExtensionTextIntoExisting(
+			string jsonInput,
+			Aas.IExtension qCurr)
+        {
+            var qIn = AdminShellSerializationHelper.DeserializeAdaptiveFromJSON<Aas.Extension>(jsonInput);
+            if (qCurr != null && qIn != null)
+            {
+                qCurr.Name = qIn.Name;
+                qCurr.ValueType = qIn.ValueType;
+                qCurr.Value = qIn.Value;
+                if (qIn.RefersTo != null)
+                    qCurr.RefersTo = qIn.RefersTo;
+                if (qIn.SemanticId != null)
+                    qCurr.SemanticId = qIn.SemanticId;
+                Log.Singleton.Info("Extension data taken from clipboard.");
+                return true;
+            }
+            return false;
+        }
+
+
+        public void DisplayOrEditEntityExtensionRecords(
 			Aas.IEnvironment env, 
 			AnyUiStackPanel stack,
 			List<Aas.IExtension> extension,
@@ -1135,10 +1156,10 @@ namespace AasxPackageLogic
             if (editMode)
 			{
                 // let the user control the number of references
-                AddKeyButtons(stack, "Known extension:",
+                AddKeyButtons(stack, "Manage extensions",
                     keyHandling: keyHandling, 
 					buttons: GenerateActionButton(
-						new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Known extensions",
+						new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Manage extensions",
 								"Handle Extensions with UI support for editing", AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
 						repo: repo,
 						superMenu: superMenu,
@@ -1146,6 +1167,12 @@ namespace AasxPackageLogic
                             .AddAction(conditional: allowAddBlank, name: "add-extension", header: "Add blank",
                                 icon: IconPool.Add,
                                 help: "Add empty extension data element.")
+							.AddAction("extension-preset", "Add preset",
+								icon: IconPool.AddPreset,
+								help: "Adds an extension given from the list of presets.")
+							.AddAction("extension-clipboard", "Add from clipboard",
+								icon: IconPool.Paste,
+								help: "Adds an extension from parsed clipboard data (JSON).")
                             .AddAction("add-smt-attributes", "SMT attributes",
 								icon: IconPool.AddKnown,
 								help: "Add attribute bundle for Submodel template specifications.")
@@ -1165,6 +1192,71 @@ namespace AasxPackageLogic
                                 extension = extension ?? new List<IExtension>();
                                 extension.Add(new Aas.Extension(""));
                                 setOutput?.Invoke(extension);
+                            }
+
+                            if (ticket?.MenuItem?.Name == "extension-preset")
+                            {
+                                var pfn = Options.Curr.ExtensionsPresetFile;
+                                if (pfn == null || !System.IO.File.Exists(pfn))
+                                {
+                                    Log.Singleton.Error(
+                                        $"JSON file for IReferable.extension presets not defined nor existing ({pfn}).");
+                                    return new AnyUiLambdaActionNone();
+                                }
+                                try
+                                {
+                                    // read file contents
+                                    var init = System.IO.File.ReadAllText(pfn);
+
+                                    // TODO (MIHO, 2024-01-024): refactor this                                
+                                    JsonTextReader reader = new JsonTextReader(new StringReader(init));
+                                    JsonSerializer serializer = new JsonSerializer();
+                                    serializer.Converters.Add(new AdminShellConverters.AdaptiveAasIClassConverter(
+                                        AdminShellConverters.AdaptiveAasIClassConverter.ConversionMode.AasCore));
+                                    var presets = serializer.Deserialize<List<ExtensionPreset>>(reader);
+
+                                    // define dialogue and map presets into dialogue items
+                                    var uc = new AnyUiDialogueDataSelectFromList();
+                                    uc.ListOfItems = new AnyUiDialogueListItemList(presets.Select((pr)
+                                            => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }));
+
+                                    // perform dialogue
+                                    await context.StartFlyoverModalAsync(uc);
+                                    if (uc.Result && uc.ResultItem?.Tag is ExtensionPreset preset
+                                        && preset.extension != null)
+                                    {
+                                        // if extensions is actually containing only one
+                                        // "blank" extension, replace this
+                                        if (extension.IsOneBlank())
+                                            extension.RemoveAt(0);
+
+                                        extension.Add(preset.extension);
+                                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Singleton.Error(
+                                        ex, $"While show Extension presets ({pfn})");
+                                }
+                            }
+
+                            if (ticket?.MenuItem?.Name == "extension-clipboard")
+                            {
+                                try
+                                {
+                                    var eNew = new Aas.Extension("");
+                                    var jsonInput = (await context.ClipboardGetAsync())?.Text;
+                                    if (PasteExtensionTextIntoExisting(jsonInput, eNew))
+                                    {
+                                        extension.Add(eNew);
+                                        this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Singleton.Error(ex, "while accessing Extension data in clipboard");
+                                }
                             }
 
                             if (ticket?.MenuItem?.Name == "add-smt-attributes")
@@ -1204,12 +1296,12 @@ namespace AasxPackageLogic
 			// now use the normal mechanism to deal with editMode or not ..
 			if (extension != null)
 			{
-                // members
-                if (allowAddBlank)
-                {
-                    // speak specific on specific Extension
-                    this.AddGroup(stack, "Specific extensions:", levelColors.MainSection);
-                }
+                // separate
+                //if (allowAddBlank)
+                //{
+                //    // speak specific on specific Extension
+                //    this.AddGroup(stack, "Specific extensions:", levelColors.MainSection);
+                //}
 
                 for (int exti = 0; exti < extension.Count; exti++)
 				{

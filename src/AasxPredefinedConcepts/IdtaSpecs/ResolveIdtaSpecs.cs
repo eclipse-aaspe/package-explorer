@@ -17,11 +17,14 @@ namespace AasxPredefinedConcepts.IdtaSpecs
         AdministrativeInformation,
         HasDataSpecification,
         HasExtensions,
+        HasKind,
         HasSemantics,
         Identifiable,
         Qualifiable,
         Qualifier,
         Referable,
+        CD,
+        DataSpecs,
     };
 
     public enum Version
@@ -100,11 +103,15 @@ namespace AasxPredefinedConcepts.IdtaSpecs
             Records.Add(Concept.AdministrativeInformation,      prefix, "common.html#administrative-information-attributes");
             Records.Add(Concept.HasDataSpecification,           prefix, "common.html#has-data-specification-attributes");
             Records.Add(Concept.HasExtensions,                  prefix, "common.html#_has_extensions_attributes");
+            Records.Add(Concept.HasKind,                        prefix, "common.html#_has_kind_attributes");
             Records.Add(Concept.HasSemantics,                   prefix, "common.html#has-semantics-attributes");
             Records.Add(Concept.Identifiable,                   prefix, "common.html#identifiable-attributes");
             Records.Add(Concept.Qualifiable,                    prefix, "common.html#qualifiable-attributes");
             Records.Add(Concept.Qualifier,                      prefix, "common.html#qualifier-attributes");
             Records.Add(Concept.Referable,                      prefix, "common.html#referable-attributes");
+            Records.Add(Concept.CD,                             prefix, "concept-description.html");
+            Records.Add(Concept.DataSpecs,                      
+                "https://industrialdigitaltwin.io/aas-specifications/IDTA-01001/v3.1.2/data-specifications.html");
         }
 
         public string Resolve(Concept concept, Part part, Version? version)

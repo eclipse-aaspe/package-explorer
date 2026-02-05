@@ -1008,6 +1008,7 @@ namespace AasxPackageLogic
             AasxMenu superMenu = null,
             bool embedded = false,
             AnyUiButtonOverStyle buttonOverStyle = null,
+            AnyUiButtonPreference buttonPreference = AnyUiButtonPreference.Image,
             KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn) where T : Aas.IIdentifiable
         {
             // access
@@ -1022,7 +1023,7 @@ namespace AasxPackageLogic
                 useWrapFlexPanel: false,
                 keyHandling: keyHandling,
                 buttonOverStyle: (buttonOverStyle ?? LayoutHints.StyleButtonAction).Modify(
-                                 preference: AnyUiButtonPreference.Image),
+                                 preference: buttonPreference),
                 ticketMenu: new AasxMenu()
                     .AddAction(conditional: !embedded, 
                         name: "aas-elem-cut", header: "Cut",

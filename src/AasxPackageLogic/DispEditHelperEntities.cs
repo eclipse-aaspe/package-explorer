@@ -2031,13 +2031,13 @@ namespace AasxPackageLogic
 
             // Referable
             this.DisplayOrEditEntityReferable(
-                env, stack,
+                env, stack, "AAS ",
                 parentContainer: null, referable: aas, indexPosition: 0,
                 superMenu: superMenu);
 
             // Identifiable
             this.DisplayOrEditEntityIdentifiable(
-                stack, package, env, aas,
+                stack, package, env, "AAS ", aas,
                 Options.Curr.TemplateIdAas,
                 injectToId: new DispEditHelperModules.DispEditInjectAction(
                     new[] { "Rename" },
@@ -2280,12 +2280,6 @@ namespace AasxPackageLogic
             var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
                     .FindSideInfoInListOfIdentifiables(
                         env.Submodels, submodel?.GetReference());
-
-            // section title
-            if (editMode && smref != null)
-            {
-                AddGroup(stack, "Editing of Submodel or Submodel reference", this.levelColors.MainSection);
-            }
 
             // prepare widget containers for ACTION BUTTONS
             var actionsButtons = new List<AnyUiControl>();
@@ -2908,8 +2902,21 @@ namespace AasxPackageLogic
             // This panel renders first the SubmodelReference and then the Submodel, below
             if (smref != null)
             {
-                this.AddGroup(stack, "Submodel reference listed in the AAS", this.levelColors.MainSection);
+                //
+                // Section: Submodel Reference
+                // 
+                var childStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                    "Submodel reference listed in the AAS",
+                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                    AasxPredefinedConcepts.IdtaSpecs.Concept.Submodel,
+                    LayoutHints.StyleHeadlineAboveHints,
+                    "AAS lists multiple Submodels by means of an ordered list of References.", LayoutHints.StyleHeadlineHints,
+                    hintMode: true,
+                    bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                    borderStyle: LayoutHints.StyleBorderedBox,
+                    buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
 
+                // lambda use multiple times
                 Func<List<Aas.IKey>, AnyUiLambdaActionBase> lambda = (kl) =>
                  {
                      return new AnyUiLambdaActionNavigateTo(
@@ -2917,7 +2924,7 @@ namespace AasxPackageLogic
                  };
 
                 this.AddKeyListKeys(
-                    stack, "submodelRef", 
+                    childStack, "submodelRef", 
                     smref.Keys, setSmRefNull,
                     repo,
                     packages, PackageCentral.PackageCentral.Selector.Main, 
@@ -2959,12 +2966,33 @@ namespace AasxPackageLogic
             if (submodel != null)
             {
 
-                // Submodel
-                this.AddGroup(stack, "Submodel (looked up by the Submodel reference)", this.levelColors.MainSection);
+                //
+                // Section: Basic Submodel
+                // 
+                var childStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                    "Submodel basic data",
+                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                    AasxPredefinedConcepts.IdtaSpecs.Concept.Submodel,
+                    LayoutHints.StyleHeadlineAboveHints,
+                    "Submodel looked up by the Submodel reference. Basic data attributes, e.g. for Identification", LayoutHints.StyleHeadlineHints,
+                    hintMode: true,
+                    bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                    borderStyle: LayoutHints.StyleBorderedBox,
+                    buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
+
+                // HasKind
+                this.DisplayOrEditEntityModelingKind(
+                    childStack, submodel.Kind,
+                    (k) => { submodel.Kind = k; },
+                    instanceExceptionStatement:
+                        "Exception: if you want to declare a Submodel, which is been standardised " +
+                        "by you or a standardisation body.",
+                    relatedReferable: submodel,
+                    keyHandling: keyHandling);
 
                 // IReferable (part 1)
                 this.DisplayOrEditEntityReferable(
-                    env, stack,
+                    env, childStack, "Submodel ",
                     parentContainer: null, referable: submodel, indexPosition: 0,
                     hideExtensions: true,
                     superMenu: superMenu,
@@ -2972,7 +3000,7 @@ namespace AasxPackageLogic
 
                 // Identifiable
                 this.DisplayOrEditEntityIdentifiable(
-                    stack, packEnv, env, submodel,
+                    childStack, packEnv, env, "Submodel ", submodel,
                     (submodel.Kind == Aas.ModellingKind.Template)
                         ? Options.Curr.TemplateIdSubmodelTemplate
                         : Options.Curr.TemplateIdSubmodelInstance,
@@ -3067,18 +3095,8 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionNone();
                         }));
 
-                // HasKind
-                this.DisplayOrEditEntityModelingKind(
-                    stack, submodel.Kind,
-                    (k) => { submodel.Kind = k; },
-                    instanceExceptionStatement:
-                        "Exception: if you want to declare a Submodel, which is been standardised " +
-                        "by you or a standardisation body.",
-                    relatedReferable: submodel,
-                    keyHandling: keyHandling);
-
                 // HasSemanticId
-                this.DisplayOrEditEntitySemanticId(stack, submodel,
+                this.DisplayOrEditEntitySemanticId(childStack, submodel,
                     "The semanticId may be either a reference to a submodel " +
                     "with kind=Type (within the same or another Administration Shell) or " +
                     "it can be an external reference to an external standard " +
@@ -3088,43 +3106,55 @@ namespace AasxPackageLogic
                     relatedReferable: submodel,
                     keyHandling: keyHandling);
 
-                // Qualifiable: qualifiers are MULTIPLE structures with possible references. 
-                // That is: multiple x multiple keys!
-                this.DisplayOrEditEntityQualifierCollection(
-                    stack, submodel.Qualifiers,
-                    (q) => { submodel.Qualifiers = q; },
+                // HasDataSpecification are MULTIPLE references. That is: multiple x multiple keys!
+                this.DisplayOrEditEntityHasDataSpecificationReferences(childStack, submodel.EmbeddedDataSpecifications,
+                    (ds) => { submodel.EmbeddedDataSpecifications = ds; },
                     relatedReferable: submodel,
                     superMenu: superMenu,
                     keyHandling: keyHandling);
 
-                // HasDataSpecification are MULTIPLE references. That is: multiple x multiple keys!
-                this.DisplayOrEditEntityHasDataSpecificationReferences(stack, submodel.EmbeddedDataSpecifications,
-                    (ds) => { submodel.EmbeddedDataSpecifications = ds; },
+                //
+                // Submodel Value
+                //
+
+                if (submodel != null)
+                {
+                    var valStack = AddBorderedGroup(stack, keyHandling,
+                        "Submodel value information",
+                        LayoutHints.StyleHeadlineAboveHints,
+                        "The value of a Submodel is its SubmodelElements.", LayoutHints.StyleHeadlineHints,
+                        hintMode: true,
+                        bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                        borderStyle: LayoutHints.StyleBorderedBox,
+                        buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
+
+                    if (submodel.SubmodelElements != null)
+                        this.AddKeyValue(valStack, "# of elements", "" + submodel.SubmodelElements.Count);
+                    else
+                        this.AddKeyValue(valStack, "Elements", "Please add elements via editing of sub-ordinate entities");
+                }
+
+                //
+                // Section: Qualifiers
+                //
+
+                // Qualifiable: qualifiers are MULTIPLE structures with possible references. 
+                // That is: multiple x multiple keys!
+                this.DisplayOrEditEntityQualifierCollection(
+                    stack, "Submodel ", submodel.Qualifiers,
+                    (q) => { submodel.Qualifiers = q; },
                     relatedReferable: submodel,
                     superMenu: superMenu,
                     keyHandling: keyHandling);
 
 				// IReferable (part 2)
 				this.DisplayOrEditEntityReferableContinue(
-					env, stack,
-					parentContainer: null, referable: submodel, indexPosition: 0,
+					env, stack, "Submodel ",
+                    parentContainer: null, referable: submodel, indexPosition: 0,
 					hideExtensions: true, superMenu: superMenu,
                     keyHandling: keyHandling);
 
 			}
-
-            //
-            // Submodel Value
-            //
-
-            if (submodel != null)
-            {
-                this.AddGroup(stack, "Submodel value information", this.levelColors.MainSection);
-                if (submodel.SubmodelElements != null)
-                    this.AddKeyValue(stack, "# of elements", "" + submodel.SubmodelElements.Count);
-                else
-                    this.AddKeyValue(stack, "Elements", "Please add elements via editing of sub-ordinate entities");
-            }
 
             //
             // ConceptDescription <- via semantic ID ?!
@@ -3278,14 +3308,29 @@ namespace AasxPackageLogic
             AasxMenu superMenu = null,
             KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
-            this.AddGroup(stack, "ConceptDescription", this.levelColors.MainSection);
-
             // info about sideInfo
             var sideInfo = OnDemandListIdentifiable<Aas.IConceptDescription>
                 .FindSideInfoInListOfIdentifiables(
                     env.ConceptDescriptions, cd.GetCdReference());
 
+            //
+            // prepare Section: Basic Submodel
+            // (but decide later when to add!)
+            // 
+            var childStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                "ConceptDescription basic data",
+                AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                AasxPredefinedConcepts.IdtaSpecs.Concept.CD,
+                LayoutHints.StyleHeadlineAboveHints,
+                "CD looked up by the semanticId. Describes the underlying semantic concept of an e.g. value information.", LayoutHints.StyleHeadlineHints,
+                hintMode: true,
+                bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                borderStyle: LayoutHints.StyleBorderedBox,
+                buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
+
+            //
             // prepare widget containers for ACTION BUTTONS
+            //
             var actionsButtons = new List<AnyUiControl>();
             var actionStack1 = new AnyUiStackPanel() { Orientation = AnyUiOrientation.Horizontal };
             var actionStack2 = new AnyUiStackPanel() { Orientation = AnyUiOrientation.Horizontal };
@@ -3293,7 +3338,10 @@ namespace AasxPackageLogic
             var actionWrapPanel = new AnyUiWrapPanel() { Orientation = AnyUiOrientation.Horizontal };
             actionWrapPanel.Add(actionStack1);
             actionWrapPanel.Add(actionStack2);
-            stack.Add(actionWrapPanel);
+            if (!embedded)
+                stack.Add(actionWrapPanel);
+            else
+                childStack.Add(actionWrapPanel);
 
             // Up/ down/ del
             if (editMode && !embedded)
@@ -3309,7 +3357,7 @@ namespace AasxPackageLogic
                 };
 
                 this.EntityListUpDownDeleteHelper<Aas.IConceptDescription>(
-                    actionStack1, repo, 
+                    actionStack1, repo,
                     env.ConceptDescriptions, (lst) => { env.ConceptDescriptions = lst; },
                     cd, env, "CD:", sendUpdateEvent: evTemplate,
                     preventMove: preventMove,
@@ -3320,7 +3368,7 @@ namespace AasxPackageLogic
                     postActionHookAsync: async (actionName, ticket) =>
                     {
                         await Task.Yield();
-                        
+
                         // Note: sideinfo needs to be looked up before the helper, as the helper might
                         // delete it!
                         if (sideInfo?.Id?.HasContent() != true || sideInfo.StubLevel < AasIdentifiableSideInfoLevel.IdOnly)
@@ -3368,6 +3416,7 @@ namespace AasxPackageLogic
                     label: "Buffer:", superMenu: superMenu,
                     embedded: embedded,
                     buttonOverStyle: LayoutHints.StyleButtonStandard,
+                    buttonPreference: embedded ? AnyUiButtonPreference.Both : AnyUiButtonPreference.None,
                     keyHandling: keyHandling);
             }
 
@@ -3377,7 +3426,7 @@ namespace AasxPackageLogic
             Action<bool> lambdaRf = (hideExtensions) =>
             {
                 this.DisplayOrEditEntityReferable(
-                    env, stack, parentContainer: parentContainer, referable: cd,
+                    env, childStack, "CD ", parentContainer: parentContainer, referable: cd,
                     indexPosition: 0,
                     hideExtensions: hideExtensions,
                     superMenu: superMenu,
@@ -3424,7 +3473,7 @@ namespace AasxPackageLogic
             Action lambdaIdf = () =>
             {
                 this.DisplayOrEditEntityIdentifiable(
-                    stack, packages?.Main, env, cd,
+                    childStack, packages?.Main, env, "CD ", cd,
                     Options.Curr.TemplateIdConceptDescription,
                     keyHandling: keyHandling,
                     injectToId: new DispEditHelperModules.DispEditInjectAction(
@@ -3522,7 +3571,7 @@ namespace AasxPackageLogic
             // isCaseOf are MULTIPLE references. That is: multiple x multiple keys!
             Action lambdaIsCaseOf = () =>
             {
-                this.DisplayOrEditEntityListOfReferences(stack, cd.IsCaseOf,
+                this.DisplayOrEditEntityListOfReferences(childStack, cd.IsCaseOf,
                     (ico) => { cd.IsCaseOf = ico; },
                     "isCaseOf", relatedReferable: cd, superMenu: superMenu, keyHandling: keyHandling);
             };
@@ -3530,8 +3579,24 @@ namespace AasxPackageLogic
             // new apprpoach: model distinct sections with [Reference + Content]
             Action<bool> lambdaEDS = (suppressWarning) =>
             {
+                //
+                // extra Section: Embedded Data Specifications
+                // (but decide later when to add!)
+                // 
+                var edsStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                    "CD embedded Data Descriptions",
+                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                    AasxPredefinedConcepts.IdtaSpecs.Concept.DataSpecs,
+                    LayoutHints.StyleHeadlineAboveHints,
+                    "Embedded data specifications provide specific attribute information for concepts from concept repositories", 
+                    LayoutHints.StyleHeadlineHints,
+                    hintMode: true,
+                    bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                    borderStyle: LayoutHints.StyleBorderedBox,
+                    buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
+
                 DisplayOrEditEntityHasEmbeddedSpecification(
-                    env, stack, cd.EmbeddedDataSpecifications,
+                    env, edsStack, cd.EmbeddedDataSpecifications,
                     (v) => { cd.EmbeddedDataSpecifications = v; },
                     addPresetNames: new[] { "IEC61360" /* , "Physical Unit" */ },
                     addPresetKeyLists: new[] {
@@ -3543,12 +3608,27 @@ namespace AasxPackageLogic
                     keyHandling: keyHandling);
             };
 
-            // experimental: SAMM elements
+			// experimental: SMT elements
 
-            Action lambdaSammExt = () =>
-            {
+			Action lambdaExtRecs = () =>
+			{
+                var allowAddBlank = true;
+                
+                // members
+                var sammStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                    $"SAMM Extensions",
+                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                    AasxPredefinedConcepts.IdtaSpecs.Concept.HasExtensions,
+                    LayoutHints.StyleHeadlineAboveHints,
+                    "Semantic aspect meta model for deeply structured Submodel templates.",
+                    LayoutHints.StyleHeadlineHints,
+                    hintMode: true,
+                    bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                    borderStyle: LayoutHints.StyleBorderedBox,
+                    buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop.Modify(preference: AnyUiButtonPreference.Image));
+
                 DisplayOrEditEntitySammExtensions(
-                    env, stack, cd.Extensions,
+                    env, sammStack, cd.Extensions,
                     (v) => { cd.Extensions = v; },
                     addPresetNames: new[] { "IEC61360" /* , "Physical Unit" */ },
                     addPresetKeyLists: new[] {
@@ -3556,18 +3636,34 @@ namespace AasxPackageLogic
                     new List<Aas.IKey>(){ ExtendIDataSpecificationContent.GetKeyForPhysicalUnit() */ }
                     },
                     relatedReferable: cd, superMenu: superMenu, keyHandling: keyHandling);
-            };
 
-			// experimental: SMT elements
+                // members
+                var extStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                    $"CD Extensions",
+                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                    AasxPredefinedConcepts.IdtaSpecs.Concept.HasExtensions,
+                    LayoutHints.StyleHeadlineAboveHints,
+                    "Add keyed properietary information to the element.",
+                    LayoutHints.StyleHeadlineHints,
+                    hintMode: true,
+                    bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                    borderStyle: LayoutHints.StyleBorderedBox,
+                    buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop.Modify(preference: AnyUiButtonPreference.Image));
 
-			Action lambdaExtRecs = () =>
-			{
-				DisplayOrEditEntityExtensionRecords(
-					env, stack, cd.Extensions,
+                DisplayOrEditEntityExtensionRecords(
+					env, extStack, cd.Extensions,
 					(v) => { cd.Extensions = v; },
 					relatedReferable: cd, superMenu: superMenu,
+                    allowAddBlank: allowAddBlank,
                     keyHandling: keyHandling);
-			};
+
+                DisplayOrEditEntityListOfExtension(
+                    stack: extStack, extensions: cd.Extensions,
+                    setOutput: (v) => { cd.Extensions = v; },
+                    withoutActionPanel: allowAddBlank,
+                    relatedReferable: cd, superMenu: superMenu, keyHandling: keyHandling);
+
+            };
 
 			// check if to display special order for SAMM, SMT
 			var specialOrderSAMM_SMT = 
@@ -3577,32 +3673,16 @@ namespace AasxPackageLogic
             {
 				lambdaIdf();
 				lambdaRf(true);
-				lambdaSammExt();
 				lambdaExtRecs();
-
-				this.AddGroup(stack, "Continue Referable:", levelColors.MainSection);
 				lambdaIsCaseOf();
-
-				DisplayOrEditEntityListOfExtension(
-	                stack: stack, extensions: cd.Extensions,
-	                setOutput: (v) => { cd.Extensions = v; },
-	                relatedReferable: cd, superMenu: superMenu, keyHandling: keyHandling);
-
 				lambdaEDS(true);
 			}
 			else
             {
-                lambdaRf(true);
                 lambdaIdf();
+                lambdaRf(true);
                 lambdaIsCaseOf();
-
-				DisplayOrEditEntityListOfExtension(
-					stack: stack, extensions: cd.Extensions,
-					setOutput: (v) => { cd.Extensions = v; },
-					relatedReferable: cd, superMenu: superMenu, keyHandling: keyHandling);
-
 				lambdaEDS(false);
-                lambdaSammExt();
 				lambdaExtRecs();
 			}
 		}
@@ -4549,7 +4629,7 @@ namespace AasxPackageLogic
 
                 // IReferable (part 1)
                 this.DisplayOrEditEntityReferable(
-                    env, stack,
+                    env, stack, "SME ",
                     parentContainer: parentContainer, referable: sme, indexPosition: indexPosition,
                     hideExtensions: true,
                     superMenu: superMenu,
@@ -4600,7 +4680,7 @@ namespace AasxPackageLogic
                 // Qualifiable: qualifiers are MULTIPLE structures with possible references. 
                 // That is: multiple x multiple keys!
                 this.DisplayOrEditEntityQualifierCollection(
-                    stack, sme.Qualifiers,
+                    stack, "SME ", sme.Qualifiers, 
                     (q) => { sme.Qualifiers = q; }, relatedReferable: sme,
                     superMenu: superMenu);
 
@@ -4610,7 +4690,7 @@ namespace AasxPackageLogic
 
 				// IReferable (part 2)
 				this.DisplayOrEditEntityReferableContinue(
-					env, stack,
+					env, stack, "SME ",
 					parentContainer: null, referable: sme, indexPosition: 0,
 					hideExtensions: true, superMenu: superMenu);
 

@@ -246,6 +246,11 @@ namespace AasxPackageLogic
         public AnyUiSelectableTextBlock StyleHeadline2 = null;
 
         /// <summary>
+        /// Headline most important
+        /// </summary>
+        public AnyUiSelectableTextBlock StyleHeadline2AboveHints = null;
+
+        /// <summary>
         /// Heading for individual item collections
         /// </summary>
         public AnyUiSelectableTextBlock StyleHeadingItems = null;
@@ -254,6 +259,8 @@ namespace AasxPackageLogic
         /// If a bordered group is added, style of the border
         /// </summary>
         public AnyUiBorder StyleBorderedBox = null;
+
+        public AnyUiBorder StyleBorderedBox2 = null;
 
 
         /// <summary>
@@ -498,7 +505,8 @@ namespace AasxPackageLogic
                             return await headingLinkLambda.Invoke(o);
                         });
 
-                Set(AddSmallLabelTo(g, 1, 1, content: hint, labelStyle: hintStyle), colSpan: 2);
+                if (hint?.HasContent() == true)
+                    Set(AddSmallLabelTo(g, 1, 1, content: hint, labelStyle: hintStyle), colSpan: 2);
 
                 // add icon?
                 if (false)
@@ -535,6 +543,49 @@ namespace AasxPackageLogic
         /// Returns a child view to be used by sub-ordinate controls. 
         /// Depending on the keyHandling, this could be the original view!
         /// </summary>
+        public AnyUiStackPanel AddHeadlineForIdtaSpec(AnyUiStackPanel view, KeyLabelHandling keyHandling,
+            string heading,
+            AasxPredefinedConcepts.IdtaSpecs.Part part,
+            AasxPredefinedConcepts.IdtaSpecs.Concept concept,
+            AnyUiSelectableTextBlock headingStyle = null,
+            string hint = null,
+            AnyUiSelectableTextBlock hintStyle = null,
+            bool hintMode = false,
+            AnyUiThickness bodyMargin = null,
+            AnyUiButtonOverStyle buttonOverStyle = null,
+            AnyUiButtonHeader auxContextButtonHeader = null,
+            AnyUiContextMenuHeaderList auxContextMenuHeaders = null,
+            Func<object, Task<AnyUiLambdaActionBase>> auxContextLambdaAsync = null,
+            Func<object, Task<AnyUiLambdaActionBase>> headingLinkLambda = null)
+        {
+            return AddHeadline(
+                view, keyHandling,
+                heading, headingStyle,
+                hint, hintStyle, hintMode,
+                bodyMargin,
+                buttonOverStyle,
+                auxContextButtonHeader,
+                auxContextMenuHeaders,
+                auxContextLambdaAsync,
+                headingLinkLambda: async (o) => {
+                    // duty
+                    await Task.Yield();
+
+                    // try resolve concept
+                    var url = AasxPredefinedConcepts.IdtaSpecs.ResolveIdtaSpecs.Static.Resolve(concept, part, null);
+
+                    if (url == null)
+                        return new AnyUiLambdaActionNone();
+
+                    return new AnyUiLambdaActionDisplayContentFile(url, mimeType: "text/html");
+                });
+        }
+
+        /// <summary>
+        /// Add a visual group. 
+        /// Returns a child view to be used by sub-ordinate controls. 
+        /// Depending on the keyHandling, this could be the original view!
+        /// </summary>
         public AnyUiStackPanel AddBorderedGroup(AnyUiStackPanel parentView, KeyLabelHandling keyHandling,
             string heading,
             AnyUiSelectableTextBlock headingStyle = null,
@@ -557,7 +608,7 @@ namespace AasxPackageLogic
                 // make a 2-row grid for header, info
 
                 var g = AddSmallGrid(2, 4, new[] { "#", "*", "#", "#" }, margin: bodyMargin);
-                parentView.Add(g);
+                parentView?.Add(g);
 
                 // add labels
                 AddSmallLabelTo(g, 0, 1, content: heading, labelStyle: headingStyle);
@@ -595,7 +646,7 @@ namespace AasxPackageLogic
             {
                 // Idea make a border and then the stuff inside
                 var border = new AnyUiBorder();
-                parentView.Add(border);
+                parentView?.Add(border);
                 border.ApplyAsStyle(borderStyle);
                 if (bodyMargin != null)
                     border.Margin = bodyMargin;
@@ -1577,11 +1628,13 @@ namespace AasxPackageLogic
                     labelStyle: keyStyleLeft,
                     content: "" + key + ":");
             else if (keyHandling == KeyLabelHandling.Above || keyHandling == KeyLabelHandling.Above_LabelPlate)
-                AddSmallLabelTo(g, 0, 1, 
-                    setNoWrap: true,
-                    verticalCenter: true,
-                    labelStyle: keyStyleAbove,
-                    content: "" + key + ":");
+                Set(
+                    AddSmallLabelTo(g, 0, 1, 
+                        setNoWrap: true,
+                        verticalCenter: true,
+                        labelStyle: keyStyleAbove,
+                        content: "" + key + ":"),
+                    colSpan: 2);
 
             // contents?
             if (!langStr.IsNullOrEmpty())
@@ -3403,8 +3456,13 @@ namespace AasxPackageLogic
             {
                 var bubble = new AnyUiHintBubble();
                 bubble.FontSize = 0.8f;
-                bubble.Margin = new AnyUiThickness(2, 4, 2, 0);
+                bubble.Margin = new AnyUiThickness(2, 4, 2, 8);
                 bubble.Text = tts.Item1;
+                if (context is AnyUiContextPlusDialogs cpd && cpd.HasCapability(AnyUiContextCapability.MAUI))
+                {
+                    bubble.Text = "\u25bc " + bubble.Text;
+                    bubble.Margin.Left += 17;
+                }
                 if (tts.Item2 == HintCheck.Severity.High)
                 {
                     bubble.Background = levelColors?.HintSeverityHigh.Bg;
