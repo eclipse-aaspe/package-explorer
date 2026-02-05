@@ -15,6 +15,7 @@ using AdminShellNS.DiaryData;
 using AdminShellNS.Extensions;
 using AnyUi;
 using Extensions;
+using IO.Swagger.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -162,6 +163,12 @@ namespace AasxPackageLogic
         public AnyUiButtonOverStyle StyleButtonHero = new();
 
         /// <summary>
+        /// This style is to be taken for the particular Buttons in the upper right corner of 
+        /// a bordered box.
+        /// </summary>
+        public AnyUiButtonOverStyle StyleButtonBorderBoxTop = new();
+
+        /// <summary>
         /// Style of Entry fields with a plate label
         /// </summary>
         public AnyUiTextBox StyleTextBoxPlateLabel = null;
@@ -224,9 +231,30 @@ namespace AasxPackageLogic
         public AnyUiSelectableTextBlock StyleHeadline1 = null;
 
         /// <summary>
+        /// Headline most important
+        /// </summary>
+        public AnyUiSelectableTextBlock StyleHeadlineAboveHints = null;
+
+        /// <summary>
+        /// If headline is accompanied with a hint, the style
+        /// </summary>
+        public AnyUiSelectableTextBlock StyleHeadlineHints = null;
+
+        /// <summary>
         /// Headline second important
         /// </summary>
         public AnyUiSelectableTextBlock StyleHeadline2 = null;
+
+        /// <summary>
+        /// Heading for individual item collections
+        /// </summary>
+        public AnyUiSelectableTextBlock StyleHeadingItems = null;
+
+        /// <summary>
+        /// If a bordered group is added, style of the border
+        /// </summary>
+        public AnyUiBorder StyleBorderedBox = null;
+
 
         /// <summary>
         /// Body spacing "ordinary" control to "ordinary" control
@@ -425,6 +453,233 @@ namespace AasxPackageLogic
 
             // give back
             return cntl;
+        }
+
+        //
+        // Groups & Headlines
+        //
+
+        /// <summary>
+        /// Add a visual group. 
+        /// Returns a child view to be used by sub-ordinate controls. 
+        /// Depending on the keyHandling, this could be the original view!
+        /// </summary>
+        public AnyUiStackPanel AddHeadline(AnyUiStackPanel view, KeyLabelHandling keyHandling,
+            string heading,
+            AnyUiSelectableTextBlock headingStyle = null,
+            string hint = null,
+            AnyUiSelectableTextBlock hintStyle = null,
+            bool hintMode = false,
+            AnyUiThickness bodyMargin = null,
+            AnyUiButtonOverStyle buttonOverStyle = null,
+            AnyUiButtonHeader auxContextButtonHeader = null,
+            AnyUiContextMenuHeaderList auxContextMenuHeaders = null,
+            Func<object, Task<AnyUiLambdaActionBase>> auxContextLambdaAsync = null,
+            Func<object, Task<AnyUiLambdaActionBase>> headingLinkLambda = null)
+        {
+            // distinct modes?
+            if (true)
+            {
+                // Idea: continue to add view, re-use the view in order to have first column very stable width,
+                // make a 2-row grid for header, info
+
+                var g = AddSmallGrid(2, 5, new[] { "#", "#", "*", "#", "#" }, margin: bodyMargin);
+                view.Add(g);
+
+                // add labels
+                AddSmallLabelTo(g, 0, 1, content: heading, labelStyle: headingStyle);
+
+                if (headingLinkLambda != null)
+                    AnyUiUIElement.RegisterControl(
+                        AddSmallLabelTo(g, 0, 2, content: null, imageSourceFont: IconPool.Link.Modify(color: AnyUiIconColor.Intense), labelStyle: headingStyle, textAsHyperLink: true, verticalCenter: true),
+                        setValueAsync: async (o) => {
+                            if (headingLinkLambda == null)
+                                return new AnyUiLambdaActionNone();
+                            return await headingLinkLambda.Invoke(o);
+                        });
+
+                Set(AddSmallLabelTo(g, 1, 1, content: hint, labelStyle: hintStyle), colSpan: 2);
+
+                // add icon?
+                if (false)
+                {
+                }
+                else
+                {
+                    // make sure no effect
+                    g.ColumnDefinitions[0].Width = new AnyUiGridLength(0, AnyUiGridUnitType.Pixel);
+                }
+
+                // auxButton -> not implemented, to much visual fuzz, use context menu
+                // may be have group expand/ collapse instead
+
+                // context menu
+                if (auxContextButtonHeader != null
+                    && auxContextMenuHeaders != null && auxContextLambdaAsync != null)
+                {
+                    AddSmallContextMenuItemTo(
+                            g, 0, 3,
+                            header: auxContextButtonHeader,
+                            menuHeaders: auxContextMenuHeaders,
+                            buttonOverStyle: buttonOverStyle,
+                            menuItemLambdaAsync: auxContextLambdaAsync);
+                }
+
+                // return the parent view for efficient continuation
+                return view;
+            }
+        }
+
+        /// <summary>
+        /// Add a visual group. 
+        /// Returns a child view to be used by sub-ordinate controls. 
+        /// Depending on the keyHandling, this could be the original view!
+        /// </summary>
+        public AnyUiStackPanel AddBorderedGroup(AnyUiStackPanel parentView, KeyLabelHandling keyHandling,
+            string heading,
+            AnyUiSelectableTextBlock headingStyle = null,
+            string hint = null,
+            AnyUiSelectableTextBlock hintStyle = null,
+            bool hintMode = false,
+            AnyUiThickness bodyMargin = null,
+            AnyUiBorder borderStyle = null,
+            AnyUiButtonOverStyle buttonOverStyle = null,
+            AnyUiButtonHeader auxContextButtonHeader = null,
+            AnyUiContextMenuHeaderList auxContextMenuHeaders = null,
+            Func<object, Task<AnyUiLambdaActionBase>> auxContextLambdaAsync = null,
+            Func<object, Task<AnyUiLambdaActionBase>> headingLinkLambda = null)
+        {
+            // distinct two modes
+            if (keyHandling == KeyLabelHandling.FirstColumn)
+            {
+                // Idea: continue to add view, re-use the view in order to have first column very stable width,
+                // basically have a heading but not a bordered group
+                // make a 2-row grid for header, info
+
+                var g = AddSmallGrid(2, 4, new[] { "#", "*", "#", "#" }, margin: bodyMargin);
+                parentView.Add(g);
+
+                // add labels
+                AddSmallLabelTo(g, 0, 1, content: heading, labelStyle: headingStyle);
+                AddSmallLabelTo(g, 1, 1, content: hint, labelStyle: hintStyle);
+
+                // add icon?
+                if (false)
+                {
+                }
+                else
+                {
+                    // make sure no effect
+                    g.ColumnDefinitions[0].Width = new AnyUiGridLength(0, AnyUiGridUnitType.Pixel);
+                }
+
+                // auxButton -> not implemented, to much visual fuzz, use context menu
+                // may be have group expand/ collapse instead
+
+                // context menu
+                if (auxContextButtonHeader != null
+                    && auxContextMenuHeaders != null && auxContextLambdaAsync != null)
+                {
+                    AddSmallContextMenuItemTo(
+                            g, 0, 3,
+                            header: auxContextButtonHeader,
+                            menuHeaders: auxContextMenuHeaders,
+                            buttonOverStyle: buttonOverStyle,
+                            menuItemLambdaAsync: auxContextLambdaAsync);
+                }
+
+                // return the parent view for efficient continuation
+                return parentView;
+            }
+            else
+            {
+                // Idea make a border and then the stuff inside
+                var border = new AnyUiBorder();
+                parentView.Add(border);
+                border.ApplyAsStyle(borderStyle);
+                if (bodyMargin != null)
+                    border.Margin = bodyMargin;
+
+                var g = AddSmallGrid(3, 4, new[] { "#", "#", "*", "#", "#" }, margin: new AnyUiThickness(0, 0, 0, 0));
+                border.Child = g;
+
+                // add labels
+                AddSmallLabelTo(g, 0, 1, content: heading, labelStyle: headingStyle, verticalCenter: true);
+                if (headingLinkLambda != null)
+                    AnyUiUIElement.RegisterControl(
+                        AddSmallLabelTo(g, 0, 2, content: null, imageSourceFont: IconPool.Link.Modify(color: AnyUiIconColor.Intense), labelStyle: headingStyle, textAsHyperLink: true, verticalCenter: true),
+                        setValueAsync: async (o) => {
+                            if (headingLinkLambda == null)
+                                return new AnyUiLambdaActionNone();
+                            return await headingLinkLambda.Invoke(o);
+                        });
+                Set(AddSmallLabelTo(g, 1, 1, content: hint, labelStyle: hintStyle), colSpan: 2);
+
+                // context menu
+                if (auxContextButtonHeader != null
+                    && auxContextMenuHeaders != null && auxContextLambdaAsync != null)
+                {
+                    Set(AddSmallContextMenuItemTo(
+                        g, 0, 3,
+                        header: auxContextButtonHeader,
+                        menuHeaders: auxContextMenuHeaders,
+                        buttonOverStyle: buttonOverStyle,
+                        menuItemLambdaAsync: auxContextLambdaAsync),
+                        rowSpan: 2);
+                }
+
+                // add a child view
+                var childView = g.AddAt(
+                    new AnyUiStackPanel(),
+                    2, 0, columnSpan: 4);
+
+                // give back
+                return childView;
+            }
+        }
+
+        /// <summary>
+        /// Add a visual group. 
+        /// Returns a child view to be used by sub-ordinate controls. 
+        /// Depending on the keyHandling, this could be the original view!
+        /// </summary>
+        public AnyUiStackPanel AddBorderedGroupForIdtaSpec(AnyUiStackPanel parentView, KeyLabelHandling keyHandling,
+            string heading,
+            AasxPredefinedConcepts.IdtaSpecs.Part part,
+            AasxPredefinedConcepts.IdtaSpecs.Concept concept,
+            AnyUiSelectableTextBlock headingStyle = null,
+            string hint = null,
+            AnyUiSelectableTextBlock hintStyle = null,
+            bool hintMode = false,
+            AnyUiThickness bodyMargin = null,
+            AnyUiBorder borderStyle = null,
+            AnyUiButtonOverStyle buttonOverStyle = null,
+            AnyUiButtonHeader auxContextButtonHeader = null,
+            AnyUiContextMenuHeaderList auxContextMenuHeaders = null,
+            Func<object, Task<AnyUiLambdaActionBase>> auxContextLambdaAsync = null)
+        {
+            return AddBorderedGroup(
+                parentView, keyHandling,
+                heading, headingStyle,
+                hint, hintStyle, hintMode,
+                bodyMargin,
+                borderStyle,
+                buttonOverStyle,
+                auxContextButtonHeader,
+                auxContextMenuHeaders,
+                auxContextLambdaAsync,
+                headingLinkLambda: async (o) => {
+                    // duty
+                    await Task.Yield();
+
+                    // try resolve concept
+                    var url = AasxPredefinedConcepts.IdtaSpecs.ResolveIdtaSpecs.Static.Resolve(concept, part, null);
+
+                    if (url == null)
+                        return new AnyUiLambdaActionNone();
+
+                    return new AnyUiLambdaActionDisplayContentFile(url, mimeType: "text/html");
+                });
         }
 
         /// <summary>

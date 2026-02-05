@@ -391,6 +391,24 @@ public partial class DispEditAasxEntityMaui : ContentView
             HorizontalAlignment = AnyUiHorizontalAlignment.Center
         };
 
+        // Bordered Box Context Menu
+        _helper.LayoutHints.StyleButtonBorderBoxTop.Style = new()
+        {
+            Background = new AnyUiBrush(0xfff8f8f8),
+            BorderColor = AnyUiBrushes.Transparent,
+            BorderWidth = 0.0,
+            BorderRadius = 8,
+            Foreground = AnyUiBrushes.Black,
+            MinHeight = _renderDefaults.ControlSizeBordered,
+            MinWidth = _renderDefaults.ControlSizeBordered,
+            VerticalAlignment = AnyUiVerticalAlignment.Top,
+            HorizontalAlignment = AnyUiHorizontalAlignment.Center, // there seems to be a bug, Right is not possible
+            HorizontalContentAlignment = AnyUiHorizontalAlignment.Center,
+            Preference = AnyUiButtonPreference.Image,
+            Margin = new AnyUiThickness(0,4,4,0),
+            Padding = new AnyUiThickness(4, 0, 4, 0)
+        };
+
         // Text Boxes
         _helper.LayoutHints.StyleTextBox = new()
         {
@@ -442,11 +460,48 @@ public partial class DispEditAasxEntityMaui : ContentView
         };
 
         // Label styles
+        _helper.LayoutHints.StyleHeadline1 = new()
+        {
+            Margin = new AnyUiThickness(0, 18, 0, 10),
+            FontSize = 1.2,
+            FontWeight = AnyUiFontWeight.Bold
+        };
+
+        _helper.LayoutHints.StyleHeadlineAboveHints = new()
+        {
+            Margin = new AnyUiThickness(0, 9, 0, 0),
+            FontSize = 1.2,
+            FontWeight = AnyUiFontWeight.Bold
+        };
+        _helper.LayoutHints.StyleHeadlineHints = new()
+        {
+            Margin = new AnyUiThickness(0, 1, 0, 16),
+            FontSize = 0.6,
+            Foreground = AnyUiBrushes.DarkGray
+        };
+
         _helper.LayoutHints.StyleHeadline2 = new()
         {
             Margin = new AnyUiThickness(0, 10, 0, 6),
             FontSize = 1.1,
             FontWeight = AnyUiFontWeight.Bold
+        };
+
+        _helper.LayoutHints.StyleHeadingItems = new()
+        {
+            Margin = new AnyUiThickness(0, 10, 0, 6),
+            FontSize = 1.1,
+            FontWeight = AnyUiFontWeight.Bold
+        };
+
+        // bordered boxes
+        _helper.LayoutHints.StyleBorderedBox = new()
+        {
+            BorderBrush = AnyUiDisplayContextMaui.GetAnyUiBrush(XamlHelpers.GetDynamicRessource("Primary", Colors.Blue)),
+            BorderThickness = new AnyUiThickness(1),
+            CornerRadius = 8,
+            Background = AnyUiBrushes.White,
+            Padding = new AnyUiThickness(10,8, 10, 8)
         };
 
         // body margins
@@ -476,6 +531,8 @@ public partial class DispEditAasxEntityMaui : ContentView
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Add_box);
         IconPool.Jump
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Jump_to_element);
+        IconPool.Link
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Newsstand);
 
         IconPool.CopyToClipboard
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Content_copy);

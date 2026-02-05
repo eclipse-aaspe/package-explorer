@@ -526,8 +526,17 @@ namespace AnyUi
         {
             // construct button
             var but = new AnyUiButton();
-            but.Margin = margin;
-            but.Padding = padding;
+
+            if (buttonStyle != null)
+                but.ApplyAsStyle(buttonStyle);
+
+            if (buttonOverStyle?.Style != null)
+                but.ApplyAsStyle(buttonOverStyle.Style);
+
+            if (margin != null)
+                but.Margin = margin;
+            if (padding != null)
+                but.Padding = padding;
             if (foreground != null)
                 but.Foreground = foreground;
             if (background != null)
@@ -554,12 +563,6 @@ namespace AnyUi
                 if (buttonHeader.Preference != AnyUiButtonPreference.None)
                     but.Preference = buttonHeader.Preference;
             }
-
-            if (buttonStyle != null)
-                but.ApplyAsStyle(buttonStyle);
-
-            if (buttonOverStyle?.Style != null)
-                but.ApplyAsStyle(buttonOverStyle.Style);
 
             but.SpecialAction = new AnyUiSpecialActionContextMenu(
                     menuItemHeaders: menuHeaders,
@@ -1026,7 +1029,9 @@ namespace AnyUi
             double? fontSize = null,
             AnyUiTextWrapping? wrapping = null,
             bool verticalCenter = false,
-            AnyUiSelectableTextBlock labelStyle = null)
+            AnyUiSelectableTextBlock labelStyle = null,
+            AnyUiImageSourceFont imageSourceFont = null,
+            bool textAsHyperLink = false)
         {
             var lab = new AnyUiSelectableTextBlock();
 
@@ -1057,7 +1062,18 @@ namespace AnyUi
                 lab.TextWrapping = wrapping.Value;
             if (fontSize.HasValue)
                 lab.FontSize = fontSize.Value;
-            lab.Text = content;
+
+            if (content != null)
+            {
+                lab.Text = content;
+            }
+            else if (imageSourceFont?.IconGlyph != null)
+            {
+                lab.IconSource = imageSourceFont;
+                lab.Text = null;
+            }
+
+            lab.TextAsHyperlink = textAsHyperLink;
 
             // check, which content
             if (this.showIriMode

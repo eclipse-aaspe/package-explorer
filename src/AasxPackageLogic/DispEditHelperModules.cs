@@ -136,12 +136,21 @@ namespace AasxPackageLogic
                 return;
 
             // members
-            this.AddGroup(stack, "Referable:", levelColors.SubSection);
-
+            var childStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                "Submodel.Referable",
+                AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                AasxPredefinedConcepts.IdtaSpecs.Concept.Referable,
+                LayoutHints.StyleHeadlineAboveHints,
+                "Referables add hierarchical names and descriptions", LayoutHints.StyleHeadlineHints,
+                hintMode: true,
+                bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                borderStyle: LayoutHints.StyleBorderedBox,
+                buttonOverStyle: LayoutHints.StyleButtonStandard);
+                
             // special case SML ..
             if (parentContainer?.IsIndexed() == true)
             {
-                AddKeyValue(stack, "index", $"#{indexPosition:D2}", repo: null);
+                AddKeyValue(childStack, "index", $"#{indexPosition:D2}", repo: null);
             }
 
             // for clarity, have two kind of hints for SML and for other
@@ -149,7 +158,7 @@ namespace AasxPackageLogic
             if (!isIndexed)
             {
                 // not SML
-                this.AddHintBubble(stack, hintMode, new[] {
+                this.AddHintBubble(childStack, hintMode, new[] {
                     new HintCheck( () => !(referable is Aas.IIdentifiable) && !referable.IdShort.HasContent(),
                         "The idShort is mandatory for all Referables which are not Identifiable. " +
                         "It is a short, unique identifier that is unique just in its context, " +
@@ -174,7 +183,7 @@ namespace AasxPackageLogic
             else
             {
                 // SML ..
-                this.AddHintBubble(stack, hintMode, new[] {
+                this.AddHintBubble(childStack, hintMode, new[] {
                     new HintCheck( () => referable.IdShort.HasContent(),
                         "Constraint AASd-120: idShort of SubmodelElements being a direct child of a " +
                         "SubmodelElementList shall not be specified.")
@@ -184,7 +193,7 @@ namespace AasxPackageLogic
             // idShort
             
             AddKeyValue(
-                stack, "idShort", referable.IdShort, null, repo,
+                childStack, "idShort", referable.IdShort, null, repo,
                 containingObject: referable,
                 setValueAsync: async (v) =>
                 {
@@ -225,7 +234,7 @@ namespace AasxPackageLogic
             // category, deprecated
 
             this.AddHintBubble(
-                stack, hintMode,
+                childStack, hintMode,
                 new HintCheck(() => referable.Category?.HasContent() == true,
                 "The use of category is deprecated, hence the field is ReadOnly. Do not plan to use this information in new developments.",
                 severityLevel: HintCheck.Severity.Notice));
@@ -233,7 +242,7 @@ namespace AasxPackageLogic
             if (referable.Category?.HasContent() == true)
             {
                 AddKeyValue(
-                        stack, "category", referable.Category, null, repo,
+                        childStack, "category", referable.Category, null, repo,
                         containingObject: referable,
                         keyVertCenter: true,
                         keyHandling: keyHandling,
@@ -251,7 +260,7 @@ namespace AasxPackageLogic
             // displayName
 
             this.AddHintBubble(
-                stack, hintMode,
+                childStack, hintMode,
                 new[] {
                     new HintCheck(
                         () => referable.DisplayName != null && referable.DisplayName.IsValid() != true,
@@ -269,7 +278,7 @@ namespace AasxPackageLogic
                         "Consider having Display name in multiple langauges.",
                         severityLevel: HintCheck.Severity.Notice)
             });
-            if (SafeguardAccess(stack, repo, referable.DisplayName, "displayName:", "Add displayName", keyHandling : keyHandling, 
+            if (SafeguardAccess(childStack, repo, referable.DisplayName, "displayName:", "Add displayName", keyHandling : keyHandling, 
                 actionAsync: async (v) =>
             {
                 await Task.Yield();
@@ -280,7 +289,7 @@ namespace AasxPackageLogic
             }))
             {
                 this.AddKeyListLangStr<ILangStringNameType>(
-                    stack, "displayName", referable.DisplayName,
+                    childStack, "displayName", referable.DisplayName,
                     repo, relatedReferable: referable,
                     setNullList: () => referable.DisplayName = null,
                     keyHandling: keyHandling,
@@ -288,7 +297,7 @@ namespace AasxPackageLogic
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
                     buttonPreferenceHi: AnyUiButtonPreference.Both,
-                    keyStyleAbove: LayoutHints.StyleHeadline2,
+                    keyStyleAbove: LayoutHints.StyleHeadingItems,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                     bodyMargin: LayoutHints.BodyMarginLargeLarge);
@@ -297,7 +306,7 @@ namespace AasxPackageLogic
             // description
 
             this.AddHintBubble(
-                stack, hintMode,
+                childStack, hintMode,
                 new[] {
                     new HintCheck(
                         () => referable.Description != null && referable.Description.IsValid() != true,
@@ -318,7 +327,7 @@ namespace AasxPackageLogic
                         "Consider having description in multiple langauges.",
                         severityLevel: HintCheck.Severity.Notice)
             });
-            if (this.SafeguardAccess(stack, repo, referable.Description, "description:", "Create w/ default!", async (v) =>
+            if (this.SafeguardAccess(childStack, repo, referable.Description, "description:", "Create w/ default!", async (v) =>
             {
                 await Task.Yield();
                 referable.Description = ExtendILangStringTextType.CreateFrom(
@@ -327,7 +336,7 @@ namespace AasxPackageLogic
             }))
             {
                 this.AddHintBubble(
-                    stack, hintMode,
+                    childStack, hintMode,
                     new HintCheck(
                         () =>
                         {
@@ -338,7 +347,7 @@ namespace AasxPackageLogic
                             "of your Administration shell to understand your intentions.",
                         severityLevel: HintCheck.Severity.Notice));
                 this.AddKeyListLangStr<ILangStringTextType>(
-                    stack, "description", referable.Description,
+                    childStack, "description", referable.Description,
                     repo, relatedReferable: referable,
                     setNullList: () => referable.Description = null,
                     keyHandling: keyHandling,
@@ -346,7 +355,7 @@ namespace AasxPackageLogic
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
                     buttonPreferenceHi: AnyUiButtonPreference.Both,
-                    keyStyleAbove: LayoutHints.StyleHeadline2,
+                    keyStyleAbove: LayoutHints.StyleHeadingItems,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling));
             }
@@ -355,13 +364,13 @@ namespace AasxPackageLogic
             {
 				// before extension, some helpful records
 				DisplayOrEditEntityExtensionRecords(
-					env, stack, referable.Extensions,
+					env, childStack, referable.Extensions,
 					(v) => { referable.Extensions = v; },
 					relatedReferable: referable);
 
 				// Extensions (at the end to make them not so much impressive!)
 				DisplayOrEditEntityListOfExtension(
-                    stack: stack, extensions: referable.Extensions,
+                    stack: childStack, extensions: referable.Extensions,
                     setOutput: (v) => { referable.Extensions = v; },
                     relatedReferable: referable, superMenu: superMenu,
                     keyHandling: keyHandling);
@@ -546,11 +555,20 @@ namespace AasxPackageLogic
             var idReadOnly = isDynEnv && identifiable.Id?.HasContent() == true;
 
             // members
-            this.AddGroup(stack, "Identifiable:", levelColors.SubSection);
+            var childStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                "Submodel.Identifiable",
+                AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                AasxPredefinedConcepts.IdtaSpecs.Concept.Identifiable,
+                LayoutHints.StyleHeadlineAboveHints,
+                "Identifiables have a worldwide unique id and are the head of Referable hierarchies", LayoutHints.StyleHeadlineHints,
+                hintMode: true,
+                bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                borderStyle: LayoutHints.StyleBorderedBox,
+                buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
 
             // id
 
-            this.AddHintBubble(stack, hintMode, new[] {
+            this.AddHintBubble(childStack, hintMode, new[] {
                 new HintCheck(
                     () => { return identifiable.Id == null; },
                     "Providing a worldwide unique identification is mandatory.",
@@ -574,7 +592,7 @@ namespace AasxPackageLogic
                     breakIfTrue: false)
             });
             if (this.SafeguardAccess(
-                    stack, repo, identifiable.Id, "id:", "Create data element!",
+                    childStack, repo, identifiable.Id, "id:", "Create data element!",
                     async (v) =>
                     {
                         await Task.Yield();
@@ -584,7 +602,7 @@ namespace AasxPackageLogic
                     }))
             {
                 AddKeyValue(
-                    stack, "id", identifiable.Id, null, 
+                    childStack, "id", identifiable.Id, null, 
                     (idReadOnly) ? null : repo,
                     async (v) =>
                     {
@@ -638,7 +656,7 @@ namespace AasxPackageLogic
                     {
                         var idb64 = AdminShellUtil.Base64UrlEncode(identifiable.Id);
                         AddKeyValue(
-                            stack, "id (base64url)", idb64, null,
+                            childStack, "id (base64url)", idb64, null,
                             repo,
                             containingObject: identifiable,
                             keyHandling: keyHandling,
@@ -663,7 +681,7 @@ namespace AasxPackageLogic
                     {
                         // plain, but selectable
                         AddKeyValue(
-                            stack, "id (base64url)", AdminShellUtil.Base64UrlEncode(identifiable.Id),
+                            childStack, "id (base64url)", AdminShellUtil.Base64UrlEncode(identifiable.Id),
                             repo: null);
                     }
                 }
@@ -672,7 +690,7 @@ namespace AasxPackageLogic
 
             // Administration
 
-            this.AddHintBubble(stack, hintMode, new[] {
+            this.AddHintBubble(childStack, hintMode, new[] {
                 new HintCheck(
                     () => { return identifiable.Administration == null; },
                     "Check if providing admistrative information on version/ revision would be useful. " +
@@ -689,7 +707,7 @@ namespace AasxPackageLogic
                     severityLevel: HintCheck.Severity.Notice )
             });
             if (this.SafeguardAccess(
-                    stack, repo, identifiable.Administration, "administration:", keyHandling: keyHandling,
+                    childStack, repo, identifiable.Administration, "administration:", keyHandling: keyHandling,
                     actionStr: "Create administration element!",
                     actionAsync: async (v) =>
                     {
@@ -700,10 +718,21 @@ namespace AasxPackageLogic
                     }))
             {
                 // Allow administrative information to be deleted again
-                this.AddGroup(stack, "administration:", levelColors.SubSection,
-                    requestAuxButton: repo != null,
+
+
+                // members
+                var childStack2 = AddBorderedGroupForIdtaSpec(childStack, keyHandling,                    
+                    "AdministrativeInformation",
+                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                    AasxPredefinedConcepts.IdtaSpecs.Concept.AdministrativeInformation,
+                    LayoutHints.StyleHeadlineAboveHints,
+                    "Provide some information about the state and creation of the Identifiable data.", LayoutHints.StyleHeadlineHints,
+                    hintMode: true,
+                    bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                    borderStyle: LayoutHints.StyleBorderedBox,
+                    buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop,
                     auxContextButtonHeader: new AnyUiButtonHeader(IconPool.MoreVert, "More",
-                        "More options in context menu."),
+                        "More options in context menu.", preference: AnyUiButtonPreference.None),
                     auxContextMenuHeaders: new AnyUiContextMenuHeaderList(new[] {
                         new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete"),
                     }),
@@ -720,7 +749,7 @@ namespace AasxPackageLogic
                     });
 
                 AddKeyValue(
-                    stack, "version", identifiable.Administration.Version,
+                    childStack2, "version", identifiable.Administration.Version,
                     null, repo,
                     containingObject: identifiable.Administration,
                     keyHandling: keyHandling,
@@ -736,7 +765,7 @@ namespace AasxPackageLogic
                     keyVertCenter: true);
 
                 AddKeyValue(
-                    stack, "revision", identifiable.Administration.Revision,
+                    childStack2, "revision", identifiable.Administration.Revision,
                     null, repo,
                     containingObject: identifiable.Administration,
                     keyHandling: keyHandling,
@@ -752,7 +781,7 @@ namespace AasxPackageLogic
                     keyVertCenter: true);
 
                 AddKeyValue(
-                    stack, "templateId", identifiable.Administration.TemplateId,
+                    childStack2, "templateId", identifiable.Administration.TemplateId,
                     null, repo,
                     containingObject: identifiable.Administration,
                     keyHandling: keyHandling,
@@ -768,7 +797,7 @@ namespace AasxPackageLogic
                     keyVertCenter: true);
 
                 if (this.SafeguardAccess(
-                    stack, repo, identifiable.Administration.Creator, "creator:", keyHandling: keyHandling,
+                    childStack2, repo, identifiable.Administration.Creator, "creator:", keyHandling: keyHandling,
                     actionStr: "Create creator element!",
                     actionAsync: async (v) =>
                     {
@@ -781,7 +810,7 @@ namespace AasxPackageLogic
                     }))
                 {
                     this.AddKeyReference(
-                        stack, "creator", 
+                        childStack2, "creator", 
                         identifiable.Administration.Creator, () => identifiable.Administration.Creator = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
@@ -795,7 +824,7 @@ namespace AasxPackageLogic
                         buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                         buttonPreferenceLo: AnyUiButtonPreference.Image,
                         keyStyleLeft: LayoutHints.StyleLeftKey,
-                        keyStyleAbove: LayoutHints.StyleHeadline2,
+                        keyStyleAbove: LayoutHints.StyleHeadingItems,
                         comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                         textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                         bodyMargin: LayoutHints.BodyMarginLargeLarge,
@@ -989,7 +1018,7 @@ namespace AasxPackageLogic
                                 buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                                 buttonPreferenceLo: AnyUiButtonPreference.Image,
                                 keyStyleLeft: LayoutHints.StyleLeftKey,
-                                keyStyleAbove: LayoutHints.StyleHeadline2,
+                                keyStyleAbove: LayoutHints.StyleHeadingItems,
                                 textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                                 comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                                 bodyMargin: LayoutHints.BodyMarginLargeLarge,
@@ -1335,7 +1364,7 @@ namespace AasxPackageLogic
                             buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                             buttonPreferenceLo: AnyUiButtonPreference.Image,
                             keyStyleLeft: LayoutHints.StyleLeftKey,
-                            keyStyleAbove: LayoutHints.StyleHeadline2,
+                            keyStyleAbove: LayoutHints.StyleHeadingItems,
                             textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                             comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                             bodyMargin: LayoutHints.BodyMarginOrdLarge);
@@ -1400,9 +1429,20 @@ namespace AasxPackageLogic
                 return;
 
             // members
-            this.AddGroup(stack, "Kind (of model):", levelColors.SubSection);
+            var childStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                "Kind of model information",
+                AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                AasxPredefinedConcepts.IdtaSpecs.Concept.Submodel,
+                LayoutHints.StyleHeadlineAboveHints,
+                "Determines if the Submodel is used for a Submodel template specification or for representing " +
+                    "instance date of an asset type, instance, ..", 
+                LayoutHints.StyleHeadlineHints,
+                hintMode: true,
+                bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                borderStyle: LayoutHints.StyleBorderedBox,
+                buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
 
-            this.AddHintBubble(stack, hintMode, new[] {
+            this.AddHintBubble(childStack, hintMode, new[] {
                 new HintCheck(
                     () => { return kind == null; },
                     "Providing kind information is mandatory. Typically you want to model instances. " +
@@ -1415,7 +1455,7 @@ namespace AasxPackageLogic
             });
 
             if (this.SafeguardAccess(
-                stack, repo, kind, "kind:", "Create data element!",
+                childStack, repo, kind, "kind:", "Create data element!",
                 async (v) =>
                 {
                     await Task.Yield();
@@ -1425,7 +1465,7 @@ namespace AasxPackageLogic
                 ))
             {
                 AddKeyValue(
-                    stack, "kind", Aas.Stringification.ToString(kind), null, repo,
+                    childStack, "kind", Aas.Stringification.ToString(kind), null, repo,
                     containingObject: kind,
                     setValueAsync: async (v) =>
                     {
@@ -1464,11 +1504,23 @@ namespace AasxPackageLogic
             // SemanticId
             //
 
-            this.AddGroup(stack, "Semantic ID:", levelColors.SubSection);
+            // members
+            var childStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                "Semantics information",
+                AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                AasxPredefinedConcepts.IdtaSpecs.Concept.HasSemantics,
+                LayoutHints.StyleHeadlineAboveHints,
+                "Identifies the semantic definition of a Submodel or SubmodelElement by referring to an " +
+                    "underlying, worldwide unique, concept of a known concept repository.", 
+                LayoutHints.StyleHeadlineHints,
+                hintMode: true,
+                bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                borderStyle: LayoutHints.StyleBorderedBox,
+                buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
 
             // hint
             this.AddHintBubble(
-                    stack, hintMode,
+                    childStack, hintMode,
                     new[] {
                         new HintCheck(
                             () => { return semElem.SemanticId == null
@@ -1496,7 +1548,7 @@ namespace AasxPackageLogic
 
             // add the keys
             if (this.SafeguardAccess(
-                    stack, repo, semElem.SemanticId, "semanticId:", "Create w/ default!",
+                    childStack, repo, semElem.SemanticId, "semanticId:", "Create w/ default!",
                     async (v) =>
                     {
                         await Task.Yield();
@@ -1505,7 +1557,7 @@ namespace AasxPackageLogic
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
                 AddKeyReference(
-                    stack, "semanticId", 
+                    childStack, "semanticId", 
                     semElem.SemanticId, 
                     () => semElem.SemanticId = null,
                     repo,
@@ -1527,7 +1579,7 @@ namespace AasxPackageLogic
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
                     keyStyleLeft: LayoutHints.StyleLeftKey,
-                    keyStyleAbove: LayoutHints.StyleHeadline2,
+                    keyStyleAbove: LayoutHints.StyleHeadingItems,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                     auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
@@ -1548,10 +1600,10 @@ namespace AasxPackageLogic
             // Supplemenatal SemanticId
             //
 
-            this.AddGroup(stack, "Supplemental Semantic IDs:", levelColors.SubSection);
+            this.AddGroup(childStack, "Supplemental Semantic IDs:", levelColors.SubSection);
 
             // hasDataSpecification are MULTIPLE references. That is: multiple x multiple keys!
-            this.AddHintBubble(stack, hintMode, new[] {
+            this.AddHintBubble(childStack, hintMode, new[] {
                 new HintCheck(
                     () => semElem.SupplementalSemanticIds == null
                         || semElem.SupplementalSemanticIds.Count < 1,
@@ -1568,7 +1620,7 @@ namespace AasxPackageLogic
                     breakIfTrue: true),
             });
             if (this.SafeguardAccess(
-                    stack, this.repo, semElem.SupplementalSemanticIds, "supplementalSem.Id:", keyHandling: keyHandling, 
+                    childStack, this.repo, semElem.SupplementalSemanticIds, "supplementalSem.Id:", keyHandling: keyHandling, 
                     actionStr: "Create a supplementalSemanticId!",
                     actionAsync: async (v) =>
                     {
@@ -1582,7 +1634,7 @@ namespace AasxPackageLogic
                 {
                     // let the user control the number of references
                     this.AddActionPanel(
-                        stack, "supplementalSem.Id:",
+                        childStack, "supplementalSem.Id:",
                         repo: repo,
                         superMenu: superMenu,
                         keyHandling: keyHandling,
@@ -1623,7 +1675,7 @@ namespace AasxPackageLogic
 
                         // edit field
                         AddKeyReference(
-                            stack, String.Format("Suppl.Sem.Id[{0}]", i),
+                            childStack, String.Format("Suppl.Sem.Id[{0}]", i),
                             semElem.SupplementalSemanticIds[i], 
                             () =>
                             {
@@ -1650,7 +1702,7 @@ namespace AasxPackageLogic
                             buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                             buttonPreferenceLo: AnyUiButtonPreference.Image,
                             keyStyleLeft: LayoutHints.StyleLeftKey,
-                            keyStyleAbove: LayoutHints.StyleHeadline2,
+                            keyStyleAbove: LayoutHints.StyleHeadingItems,
                             comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                             textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                             auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
@@ -1669,7 +1721,7 @@ namespace AasxPackageLogic
 
                         // small vertical space
                         if (i < semElem.SupplementalSemanticIds.Count - 1)
-                            AddVerticalSpace(stack);
+                            AddVerticalSpace(childStack);
                     }
                 }
             }
@@ -1691,8 +1743,17 @@ namespace AasxPackageLogic
                 return;
 
             // members
-            this.AddGroup(stack, "Qualifiable:", levelColors.SubSection,
-                requestAuxButton: repo != null,
+            var childStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                "Qualifier information",
+                AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                AasxPredefinedConcepts.IdtaSpecs.Concept.Qualifiable,
+                LayoutHints.StyleHeadlineAboveHints,
+                "Make additional statements on the value, concept or further meta data of the qualified element.",
+                LayoutHints.StyleHeadlineHints,
+                hintMode: true,
+                bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                borderStyle: LayoutHints.StyleBorderedBox,
+                buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop.Modify(preference: AnyUiButtonPreference.Image),
                 auxContextButtonHeader: new AnyUiButtonHeader(IconPool.MoreVert, "More",
                         "More options in context menu."),
                 auxContextMenuHeaders: new AnyUiContextMenuHeaderList(new[] {
@@ -1725,7 +1786,7 @@ namespace AasxPackageLogic
                 });
 
             if (this.SafeguardAccess(
-                stack, repo, qualifiers, "Qualifiers:", keyHandling: keyHandling,
+                childStack, repo, qualifiers, "Qualifiers:", keyHandling: keyHandling,
                 actionStr: "Create a Qualifier!",
                 actionAsync: async (v) =>
                 {
@@ -1736,7 +1797,7 @@ namespace AasxPackageLogic
                 }))
             {
                 this.QualifierHelper(
-                    stack, repo, 
+                    childStack, repo, 
                     qualifiers, () => setOutput(null),
                     relatedReferable: relatedReferable, superMenu: superMenu, keyHandling: keyHandling);
             }
@@ -1896,7 +1957,7 @@ namespace AasxPackageLogic
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
                     buttonPreferenceHi: AnyUiButtonPreference.Both,
                     keyStyleLeft: LayoutHints.StyleLeftKey,
-                    keyStyleAbove: LayoutHints.StyleHeadline2,
+                    keyStyleAbove: LayoutHints.StyleHeadingItems,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                     bodyMargin: LayoutHints.BodyMarginLargeLarge);
@@ -1949,7 +2010,7 @@ namespace AasxPackageLogic
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
                     buttonPreferenceHi: AnyUiButtonPreference.Both,
                     keyStyleLeft: LayoutHints.StyleLeftKey,
-                    keyStyleAbove: LayoutHints.StyleHeadline2,
+                    keyStyleAbove: LayoutHints.StyleHeadingItems,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                     bodyMargin: LayoutHints.BodyMarginLargeLarge);
@@ -2055,7 +2116,7 @@ namespace AasxPackageLogic
                     buttonOverStyleLo: LayoutHints.StyleButtonStandard.Modify(preference: AnyUiButtonPreference.Image),
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
                     keyStyleLeft: LayoutHints.StyleLeftKey,
-                    keyStyleAbove: LayoutHints.StyleHeadline2,
+                    keyStyleAbove: LayoutHints.StyleHeadingItems,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                     bodyMargin: LayoutHints.BodyMarginLargeLarge);
@@ -2274,7 +2335,7 @@ namespace AasxPackageLogic
                     buttonPreferenceLo: AnyUiButtonPreference.Image,
                     buttonPreferenceHi: AnyUiButtonPreference.Both,
                     keyStyleLeft: LayoutHints.StyleLeftKey,
-                    keyStyleAbove: LayoutHints.StyleHeadline2,
+                    keyStyleAbove: LayoutHints.StyleHeadingItems,
                     textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                     comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                     bodyMargin: LayoutHints.BodyMarginLargeLarge);

@@ -19,6 +19,7 @@ namespace AasxPackageLogic
         public static AnyUiImageSourceFont AddBlank = new("uc", "\uff0b", AnyUiIconColor.Normal);
         
         public static AnyUiImageSourceFont Jump = new("uc", "\u21a6", AnyUiIconColor.Normal);
+        public static AnyUiImageSourceFont Link = new("uc", "\U0001f517", AnyUiIconColor.Normal);
         
         public static AnyUiImageSourceFont CopyToClipboard = new("uc", "\u29c9", AnyUiIconColor.Normal);
         

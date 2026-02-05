@@ -161,14 +161,14 @@ namespace AasxPackageLogic
             {
                 // some hints
                 this.AddHintBubble(
-                stack, hintMode,
-                new[] {
-                    new HintCheck(
-                        () => qualifiers?.IsValid() != true,
-                        "According to the specification, an existing list of elements shall contain " +
-                        "at least one element and for each element all mandatory fields shall be " +
-                        "not empty.")
-                });
+                    stack, hintMode,
+                    new[] {
+                        new HintCheck(
+                            () => qualifiers?.IsValid() != true,
+                            "According to the specification, an existing list of elements shall contain " +
+                            "at least one element and for each element all mandatory fields shall be " +
+                            "not empty.")
+                    });
 
                 // let the user control the number of references
                 AddActionPanel(
@@ -274,21 +274,28 @@ namespace AasxPackageLogic
             for (int i = 0; i < qualifiers.Count; i++)
             {
                 var qual = qualifiers[i];
-                var substack = AddSubStackPanel(stack, "  ", minWidthFirstCol: GetWidth(FirstColumnWidth.Small));
+                var substack = AddSubStackPanel(stack, "", 
+                        minWidthFirstCol: (keyHandling == KeyLabelHandling.FirstColumn ? GetWidth(FirstColumnWidth.Small) : 0));
 
                 int storedI = i;
-                AddGroup(
-                    substack, $"Qualifier {1 + i}",
-                    levelColors.SubSubSection.Bg, levelColors.SubSubSection.Fg, requestContextMenu: repo != null,
-                    contextMenuText: "\u22ee",
-                    menuHeaders: new AnyUiContextMenuHeaderList(new[] {
+                var childStack = AddBorderedGroupForIdtaSpec(substack, keyHandling,
+                    $"Qualifier {1 + i}",
+                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                    AasxPredefinedConcepts.IdtaSpecs.Concept.Qualifier,
+                    LayoutHints.StyleHeadline2,
+                    bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                    borderStyle: LayoutHints.StyleBorderedBox,
+                    buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop.Modify(preference: AnyUiButtonPreference.Image),
+                    auxContextButtonHeader: new AnyUiButtonHeader(IconPool.MoreVert, "More",
+                        "More options in context menu."),
+                    auxContextMenuHeaders: new AnyUiContextMenuHeaderList(new[] {
                         new AnyUiContextMenuHeaderIconSource(0, IconPool.Delete, "Delete"),
                         new AnyUiContextMenuHeaderIconSource(1, IconPool.MoveUp, "Move Up"),
                         new AnyUiContextMenuHeaderIconSource(2, IconPool.MoveDown, "Move Down"),
                         new AnyUiContextMenuHeaderIconSource(3, IconPool.CopyToClipboard, "Copy to clipboard"),
                         new AnyUiContextMenuHeaderIconSource(4, IconPool.Paste, "Paste from clipboard"),
                     }),
-                    menuItemLambdaAsync: async (o) =>
+                    auxContextLambdaAsync: async (o) =>
                     {
                         var action = false;
 
@@ -359,9 +366,13 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawEntity();
                         }
                         return new AnyUiLambdaActionNone();
-                    },
-                    margin: new AnyUiThickness(2, 2, 2, 2),
-                    padding: new AnyUiThickness(5, 0, 5, 0));
+                    });
+
+                if (false) // WPF?
+                {
+                    childStack.Margin = new AnyUiThickness(2, 2, 2, 2);
+                    childStack.Padding = new AnyUiThickness(5, 0, 5, 0);
+                }
 
                 //
                 // Qualifier members
@@ -370,7 +381,7 @@ namespace AasxPackageLogic
                 // Kind
 
                 if (this.SafeguardAccess(
-                    substack, repo, qual.Kind, "kind:", keyHandling: keyHandling,
+                    childStack, repo, qual.Kind, "kind:", keyHandling: keyHandling,
                     actionStr: "Create kind!",
                     actionAsync: async (v) =>
                     {
@@ -381,7 +392,7 @@ namespace AasxPackageLogic
                     ))
                 {
                     AddKeyValue(
-                        substack, "kind", Aas.Stringification.ToString(qual.Kind), null, repo,
+                        childStack, "kind", Aas.Stringification.ToString(qual.Kind), null, repo,
                         containingObject: qual,
                         keyHandling: keyHandling,
                         comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
@@ -399,7 +410,7 @@ namespace AasxPackageLogic
 
                 // SemanticId
                 if (SafeguardAccess(
-                    substack, repo,
+                    childStack, repo,
                     () => qual.SemanticId == null || qual.SemanticId.IsEmpty(),
                     "semanticId:",
                     keyHandling: keyHandling,
@@ -413,7 +424,7 @@ namespace AasxPackageLogic
                     }))
                 {
                     AddKeyReference(
-                            substack, "semanticId",
+                            childStack, "semanticId",
                             qual.SemanticId, () => qual.SemanticId = null,
                             repo,
                             packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
@@ -429,7 +440,7 @@ namespace AasxPackageLogic
                             buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                             buttonPreferenceLo: AnyUiButtonPreference.Image,
                             keyStyleLeft: LayoutHints.StyleLeftKey,
-                            keyStyleAbove: LayoutHints.StyleHeadline2,
+                            keyStyleAbove: LayoutHints.StyleHeadingItems,
                             textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                             comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                             bodyMargin: LayoutHints.BodyMarginLargeOrd,
@@ -452,7 +463,7 @@ namespace AasxPackageLogic
                 // Type
 
                 AddHintBubble(
-                    substack, hintMode,
+                    childStack, hintMode,
                     new[] {
                         new HintCheck(
                             () => {
@@ -462,7 +473,7 @@ namespace AasxPackageLogic
                     });
 
                 AddKeyValue(
-                    substack, "type", qual.Type, null, repo,
+                    childStack, "type", qual.Type, null, repo,
                     containingObject: qual,
                     keyVertCenter: true,
                     keyHandling: keyHandling,
@@ -479,7 +490,7 @@ namespace AasxPackageLogic
                 // ValueType
 
                 AddKeyValue(
-                    substack, "valueType", Aas.Stringification.ToString(qual.ValueType), null, repo,
+                    childStack, "valueType", Aas.Stringification.ToString(qual.ValueType), null, repo,
                     containingObject: qual,
                     keyVertCenter: true,
                     comboBoxIsEditable: editMode,
@@ -501,7 +512,7 @@ namespace AasxPackageLogic
                 // Value
 
                 AddKeyValue(
-                    substack, "value", qual.Value, null, repo,
+                    childStack, "value", qual.Value, null, repo,
                     containingObject: qual,
                     setValueAsync: async (v) =>
                     {
@@ -542,7 +553,7 @@ namespace AasxPackageLogic
                 // ValueId
 
                 if (SafeguardAccess(
-                        substack, repo, qual.ValueId, "valueId:", keyHandling: keyHandling,
+                        childStack, repo, qual.ValueId, "valueId:", keyHandling: keyHandling,
                         actionStr: "Create valueId!",
                         actionAsync: async (v) =>
                         {
@@ -552,7 +563,7 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
                 {
-                    AddKeyReference(substack, "valueId",
+                    AddKeyReference(childStack, "valueId",
                         qual.ValueId, () => qual.ValueId = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
@@ -567,7 +578,7 @@ namespace AasxPackageLogic
                         buttonOverStyleLo: LayoutHints.StyleButtonStandard.Modify(preference: AnyUiButtonPreference.Image),
                         buttonPreferenceLo: AnyUiButtonPreference.Image,
                         keyStyleLeft: LayoutHints.StyleLeftKey,
-                        keyStyleAbove: LayoutHints.StyleHeadline2,
+                        keyStyleAbove: LayoutHints.StyleHeadingItems,
                         textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                         comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                         bodyMargin: LayoutHints.BodyMarginLargeLarge,
@@ -585,12 +596,7 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionNone();
                         });
                 }
-
-
-
-
             }
-
         }
 
         //
@@ -1204,7 +1210,7 @@ namespace AasxPackageLogic
                             buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                             buttonPreferenceLo: AnyUiButtonPreference.Image,
                             keyStyleLeft: LayoutHints.StyleLeftKey,
-                            keyStyleAbove: LayoutHints.StyleHeadline2,
+                            keyStyleAbove: LayoutHints.StyleHeadingItems,
                             comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                             textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                             bodyMargin: LayoutHints.BodyMarginLargeOrd,
@@ -1390,7 +1396,7 @@ namespace AasxPackageLogic
                                         buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                                         buttonPreferenceLo: AnyUiButtonPreference.Image,
                                         keyStyleLeft: LayoutHints.StyleLeftKey,
-                                        keyStyleAbove: LayoutHints.StyleHeadline2,
+                                        keyStyleAbove: LayoutHints.StyleHeadingItems,
                                         comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                                         textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                                         bodyMargin: LayoutHints.BodyMarginLargeOrd);
@@ -1934,7 +1940,7 @@ namespace AasxPackageLogic
                         buttonOverStyleLo: LayoutHints.StyleButtonStandard,
                         buttonPreferenceLo: AnyUiButtonPreference.Image,
                         keyStyleLeft: LayoutHints.StyleLeftKey,
-                        keyStyleAbove: LayoutHints.StyleHeadline2,
+                        keyStyleAbove: LayoutHints.StyleHeadingItems,
                         comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                         textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
                         bodyMargin: LayoutHints.BodyMarginLargeLarge);

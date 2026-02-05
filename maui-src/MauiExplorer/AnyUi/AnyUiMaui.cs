@@ -537,6 +537,9 @@ namespace MauiTestTree
                 return null;
 
             // recurse (first) in the base types ..
+            if (el is AnyUiBorder)
+                ;
+
             var bt = searchType!.BaseType;
             if (bt != null)
                 GetOrCreateMauiElement(el, superType: bt,

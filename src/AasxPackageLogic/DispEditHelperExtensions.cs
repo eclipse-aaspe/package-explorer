@@ -647,7 +647,7 @@ namespace AasxPackageLogic
 							buttonOverStyleLo: LayoutHints.StyleButtonStandard,
 							buttonPreferenceLo: AnyUiButtonPreference.Image,
 							buttonPreferenceHi: AnyUiButtonPreference.Both,
-							keyStyleAbove: LayoutHints.StyleHeadline2,
+							keyStyleAbove: LayoutHints.StyleHeadingItems,
 							textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
 							comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                             emitCustomEvent: (rf) =>

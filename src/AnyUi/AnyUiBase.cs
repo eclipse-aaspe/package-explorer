@@ -1621,6 +1621,21 @@ namespace AnyUi
             Child = child;
             return child;
         }
+
+        /// <summary>
+        /// If properties are set in <c>style</c> they will overwrite the ones
+        /// in this instance.
+        /// </summary>
+        public virtual new void ApplyAsStyle(AnyUiUIElement style)
+        {
+            // base?
+            base.ApplyAsStyle(style);
+
+            // this
+            if (style is AnyUiDecorator s)
+            {
+            }
+        }
     }
 
     public class AnyUiViewbox : AnyUiDecorator
@@ -1691,6 +1706,31 @@ namespace AnyUi
         public static void SetRowSpan(AnyUiUIElement el, int value) { if (el != null) el.GridRowSpan = value; }
         public static void SetColumn(AnyUiUIElement el, int value) { if (el != null) el.GridColumn = value; }
         public static void SetColumnSpan(AnyUiUIElement el, int value) { if (el != null) el.GridColumnSpan = value; }
+
+        public T AddAt<T>(T elem,
+            int? row = null, int? column = null,
+            int? rowSpan = null, int? columnSpan = null) where T : AnyUiUIElement
+        {
+            // access
+            if (elem == null)
+                return null;
+
+            // efficient
+            if (row.HasValue)
+                elem.GridRow = row.Value;
+            if (column.HasValue)
+                elem.GridColumn = column.Value;
+            if (rowSpan.HasValue)
+                elem.GridRowSpan = rowSpan.Value;
+            if (columnSpan.HasValue)
+                elem.GridColumnSpan = columnSpan.Value;
+
+            // add
+            Add(elem);
+
+            // give back
+            return elem;
+        }
 
         public IEnumerable<AnyUiUIElement> GetChildsAt(int row, int col)
         {
@@ -1845,6 +1885,31 @@ namespace AnyUi
         public bool IsDropBox = false;
 
         public AnyUiBrush GetBackground() => Background;
+
+        /// <summary>
+        /// If properties are set in <c>style</c> they will overwrite the ones
+        /// in this instance.
+        /// </summary>
+        public virtual new void ApplyAsStyle(AnyUiUIElement style)
+        {
+            // base?
+            base.ApplyAsStyle(style);
+
+            // this
+            if (style is AnyUiBorder s)
+            {
+                if (s.Background != null)
+                    Background = s.Background;
+                if (s.BorderThickness != null)
+                    BorderThickness = s.BorderThickness;
+                if (s.BorderBrush != null)
+                    BorderBrush = s.BorderBrush;
+                if (s.Padding != null)
+                    Padding = s.Padding;
+                if (s.CornerRadius.HasValue)
+                    CornerRadius = s.CornerRadius.Value;
+            }
+        }
     }
 
     public class AnyUiLabel : AnyUiContentControl
@@ -1861,11 +1926,13 @@ namespace AnyUi
         public double? LineHeightPercent = null;
         public string Text { get { return _text; } set { _text = value; Touch(); } }
         private string _text = null;
+
+        public AnyUiImageSourceFont IconSource;
     }
 
     public class AnyUiSelectableTextBlock : AnyUiTextBlock
     {
-        public bool TextAsHyperlink = false;
+        public bool TextAsHyperlink = false;        
     }
 
     public class AnyUiHintBubble : AnyUiTextBlock
@@ -2040,6 +2107,8 @@ namespace AnyUi
             {
                 if (s.Padding != null)
                     Padding = s.Padding;
+                if (s.Preference != AnyUiButtonPreference.None)
+                    Preference = s.Preference;
             }
         }
 

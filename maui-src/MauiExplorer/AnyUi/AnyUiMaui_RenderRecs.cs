@@ -181,6 +181,7 @@ namespace MauiTestTree
                             maui.MaximumHeightRequest = GetLengthFromRelative(rd, cntl.MaxHeight.Value);
                         if (cntl.MaxWidth.HasValue)
                             maui.MaximumWidthRequest = GetLengthFromRelative(rd, cntl.MaxWidth.Value);
+
                         maui.BindingContext = cntl.Tag;
 
                         if (cntl.DisplayData is AnyUiDisplayDataMaui ddmaui
@@ -285,11 +286,12 @@ namespace MauiTestTree
                 // directly equivalent on MAUI side
                 new RenderRec(typeof(AnyUiDecorator), (wts, cntl) => typeof(ContentView), null, (a, b, mode, rd) =>
                 {
-                    if (a is AnyUiDecorator cntl && b is ContentView maui
+                    if (a is AnyUiDecorator cntl && b is IContentView maui
                         && mode == AnyUiRenderMode.All)
                     {
-                        // child
-                        maui.Content = GetOrCreateMauiElement(cntl.Child, allowReUse: false, renderDefaults: rd) as View;
+                        // child needs to be selective
+                        if (b is Border border)
+                            border.Content = GetOrCreateMauiElement(cntl.Child, allowReUse: false, renderDefaults: rd) as View;
                     }
                 }),
 
@@ -773,9 +775,6 @@ namespace MauiTestTree
                    {
                         if (mode == AnyUiRenderMode.All)
                         {
-                            if (cntl.Margin != null)
-                                ;
-
                             if (cntl.Background != null)
                                 maui.Background = GetMauiBrush(cntl.Background);
                             if (rd?.ForegroundSelfStand != null)
@@ -800,13 +799,39 @@ namespace MauiTestTree
                                 maui.FontFamily = "Consolas";
 
                             if (cntl.FontWeight.HasValue)
-                                maui.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);
-
+                                maui.FontAttributes = GetFontAttributesFrom(cntl.FontWeight.Value);     
+                            
+                            // callback
+                            if (cntl is AnyUiSelectableTextBlock stb && stb.TextAsHyperlink)
+                            {
+                                var tap = new TapGestureRecognizer();
+                                maui.GestureRecognizers.Add(tap);
+                                tap.Tapped += async (sender, e) => {
+                                    if (cntl.setValueAsyncLambda != null)
+                                        EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(cntl));
+                                };
+                            }
                         }
 
                         if (mode == AnyUiRenderMode.All || mode == AnyUiRenderMode.StatusToUi)
                         {
-                            maui.Text = cntl.Text;
+                            if (cntl.IconSource?.IconGlyph != null)
+                            {
+                                // special
+                                var reso = LambdaResolveImageSourceFont?.Invoke(this, cntl.IconSource);
+                                if (reso != null)
+                                {
+                                    maui.FontFamily = reso.FontAlias;
+                                    maui.Text = cntl.IconSource.IconGlyph;
+                                    if (cntl.IconSource.FontSize.HasValue)
+                                        maui.FontSize = cntl.IconSource.FontSize.Value;
+                                    maui.TextColor = GetMauiColor(reso.IconColor);
+                                }
+                            }
+                            else
+                            {
+                                maui.Text = cntl.Text;
+                            }
                         }
                    }
                 }),
@@ -1352,15 +1377,19 @@ namespace MauiTestTree
                             {
                                 var reso = LambdaResolveImageSourceFont?.Invoke(this, isf);
                                 if (reso != null)
-                                        feText = new Label
-                                        {
-                                            // Background = Brush.LightBlue,
-                                            FontFamily = reso.FontAlias,
-                                            Text = isf.IconGlyph,
-                                            FontSize = isf.FontSize ?? 20,
-                                            TextColor = GetMauiColor(reso.IconColor),
-                                            VerticalTextAlignment = TextAlignment.Center
-                                        };
+                                {
+                                    var lab = new Label
+                                    {
+                                        // Background = Brush.LightBlue,
+                                        FontFamily = reso.FontAlias,
+                                        Text = isf.IconGlyph,
+                                        FontSize = isf.FontSize ?? 20,
+                                        TextColor = GetMauiColor(reso.IconColor),
+                                        VerticalTextAlignment = TextAlignment.Center,
+                                    };
+
+                                    feText = lab;
+                                }
                             }
                         }
 
