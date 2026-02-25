@@ -953,7 +953,7 @@ namespace AasxPackageExplorer
                             Console.WriteLine("Access Token: " + accessToken3);
 
                             using var httpClient = new HttpClient(handler);
-                            var jwksJson = await httpClient.GetStringAsync($"{configUrl}/jwks");
+                            var jwksJson = await httpClient.GetStringAsync($"{configUrl2}/jwks");
                             var jwks = JObject.Parse(jwksJson)["keys"];
 
                             /*
@@ -1064,7 +1064,7 @@ namespace AasxPackageExplorer
                             {
                                 d3.Add("audience", target);
                             }
-                            var request4 = new HttpRequestMessage(HttpMethod.Post, $"{configUrl}/token")
+                            var request4 = new HttpRequestMessage(HttpMethod.Post, $"{configUrl3}/token")
                             {
                                 Content = new FormUrlEncodedContent(d3)
                             };
