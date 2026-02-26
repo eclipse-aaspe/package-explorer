@@ -2273,8 +2273,8 @@ namespace AasxPackageLogic
 			AasxMenu superMenu = null,
             KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
-            // TEST
-            keyHandling = KeyLabelHandling.Above_LabelPlate;
+            // how are the labels rendered?
+            keyHandling = floatingLabelsMode ? KeyLabelHandling.Above_LabelPlate : KeyLabelHandling.FirstColumn;
 
             // check, if Submodel is sitting in Repo
             var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
@@ -2458,19 +2458,19 @@ namespace AasxPackageLogic
             if (editMode && submodel != null)
             {
                 actionsButtons.AddRange(DispSmeListAddNewGenerateButtons(
-                env, repo,
-                submodel.SubmodelElements,
-                setOutput: (sml) => submodel.SubmodelElements = sml,
-                superMenu: superMenu,
-                basedOnSemanticId: submodel.SemanticId,
-                buttonOverStyle: LayoutHints.StyleButtonStandard));
+                    env, repo,
+                    submodel.SubmodelElements,
+                    setOutput: (sml) => submodel.SubmodelElements = sml,
+                    superMenu: superMenu,
+                    basedOnSemanticId: submodel.SemanticId,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard));
 
-                this.AddHintBubble(stack, hintMode, new[] {
-                    new HintCheck(
-                        () => { return this.packages.AuxAvailable;  },
-                        "You have opened an auxiliary AASX package. You can copy elements from it!",
-                        severityLevel: HintCheck.Severity.Notice)
-                });
+                    this.AddHintBubble(stack, hintMode, new[] {
+                        new HintCheck(
+                            () => { return this.packages.AuxAvailable;  },
+                            "You have opened an auxiliary AASX package. You can copy elements from it!",
+                            severityLevel: HintCheck.Severity.Notice)
+                    });
 
                 actionsButtons.AddRange(GenerateActionButton(
                         new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Copy SME",
@@ -2556,14 +2556,18 @@ namespace AasxPackageLogic
                     superMenu: superMenu,
                     ticketMenu: new AasxMenu()
                         .AddAction("create-eclass", "Create from ECLASS",
-                            "Create missing CDs searching from ECLASS.")
+                            icon: IconPool.AddExisting,
+                            help: "Create missing CDs searching from ECLASS.")
                         .AddAction("create-this", "Create from this SME",
-                            "Creates an ConceptDescription from this element and " +
+                            icon: IconPool.Migrate,
+                            help: "Creates an ConceptDescription from this element and " +
                             "assigns the SubmodelElement to it.")
                         .AddAction("create-smes", "Create for all SMEs",
-                            "Create missing CDs from semanticId of used SMEs.")
+                            icon: IconPool.Migrate,
+                            help: "Create missing CDs from semanticId of used SMEs.")
                         .AddAction("delete-cd-in-repo", "Delete respective CD in Repo",
-                            "Delete ConceptDescriptions which are referenced by semanticId of SubmodelElements " +
+                            icon: IconPool.Delete,
+                            help: "Delete ConceptDescriptions which are referenced by semanticId of SubmodelElements " +
                             "in a given Repository or Registry."),
                     buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
                                     preference: AnyUiButtonPreference.Both),
@@ -3916,8 +3920,22 @@ namespace AasxPackageLogic
             Aas.IReferable parentContainer, Aas.ISubmodelElement wrapper,
             Aas.ISubmodelElement sme, int indexPosition, bool editMode, ModifyRepo repo, AnyUiStackPanel stack,
             bool hintMode = false, bool checkSmt = false, bool nestedCds = false,
-            AasxMenu superMenu = null)
+            AasxMenu superMenu = null,
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
+            // how are the labels rendered?
+            keyHandling = floatingLabelsMode ? KeyLabelHandling.Above_LabelPlate : KeyLabelHandling.FirstColumn;
+
+            // prepare widget containers for ACTION BUTTONS
+            var actionsButtons = new List<AnyUiControl>();
+            var actionStack1 = new AnyUiStackPanel() { Orientation = AnyUiOrientation.Horizontal };
+            var actionStack2 = new AnyUiStackPanel() { Orientation = AnyUiOrientation.Horizontal };
+
+            var actionWrapPanel = new AnyUiWrapPanel() { Orientation = AnyUiOrientation.Horizontal };
+            actionWrapPanel.Add(actionStack1);
+            actionWrapPanel.Add(actionStack2);
+            stack.Add(actionWrapPanel);
+
             //
             // Submodel Element GENERAL
             //
@@ -3937,13 +3955,6 @@ namespace AasxPackageLogic
             // edit SubmodelElements's attributes
             if (editMode)
             {
-                this.AddGroup(stack, "Editing of entities", this.levelColors.MainSection);
-
-                // for sake of space efficiency, smuggle "Refactor" into this
-                var horizStack = new AnyUiWrapPanel();
-                horizStack.Orientation = AnyUiOrientation.Horizontal;
-                stack.Children.Add(horizStack);
-
                 // the event template will help speed up visual updates of the tree
                 var evTemplate = new PackCntChangeEventData()
                 {
@@ -3955,22 +3966,26 @@ namespace AasxPackageLogic
                 // entities helper
                 if (parentContainer != null && parentContainer is Aas.Submodel && wrapper != null)
                     this.EntityListUpDownDeleteHelper<Aas.ISubmodelElement>(
-                        horizStack, repo, 
+                        actionStack1, repo, 
                         (parentContainer as Aas.Submodel).SubmodelElements,
                         (lst) => { (parentContainer as Aas.Submodel).SubmodelElements = lst; },
                         wrapper, alternativeFocus: parentContainer,
                         label: "SubmodelElement:", nextFocus: wrapper, sendUpdateEvent: evTemplate,
-                        superMenu: superMenu);
+                        superMenu: superMenu,
+                        buttonOverStyle: LayoutHints.StyleButtonStandard,
+                        keyHandling: keyHandling);
 
                 if (parentContainer != null && parentContainer is Aas.SubmodelElementCollection &&
                         wrapper != null)
                     this.EntityListUpDownDeleteHelper<Aas.ISubmodelElement>(
-                        horizStack, repo, 
+                        actionStack1, repo, 
                         (parentContainer as Aas.SubmodelElementCollection).Value,
                         (lst) => { (parentContainer as Aas.SubmodelElementCollection).Value = lst; },
                         wrapper, alternativeFocus: parentContainer, label: "SubmodelElement:",
                         nextFocus: wrapper, sendUpdateEvent: evTemplate,
-                        superMenu: superMenu);
+                        superMenu: superMenu,
+                        buttonOverStyle: LayoutHints.StyleButtonStandard,
+                        keyHandling: keyHandling);
 
                 // although SML is the ideal case for acceleration, the calculation/ display of
                 // the index position prevents us from this
@@ -3978,30 +3993,41 @@ namespace AasxPackageLogic
                 if (parentContainer != null && parentContainer is Aas.SubmodelElementList &&
                         wrapper != null)
                     this.EntityListUpDownDeleteHelper<Aas.ISubmodelElement>(
-                        horizStack, repo, 
+                        actionStack1, repo, 
                         (parentContainer as Aas.SubmodelElementList).Value,
                         (lst) => { (parentContainer as Aas.SubmodelElementList).Value = lst; },
                         wrapper, alternativeFocus: parentContainer, label: "SubmodelElement:",
                         nextFocus: wrapper, sendUpdateEvent: null,
-                        superMenu: superMenu);
+                        superMenu: superMenu,
+                        buttonOverStyle: LayoutHints.StyleButtonStandard,
+                        keyHandling: keyHandling);
 
                 if (parentContainer != null && parentContainer is Aas.Entity && wrapper != null)
                     this.EntityListUpDownDeleteHelper<Aas.ISubmodelElement>(
-                        horizStack, repo, 
+                        actionStack1, repo, 
                         (parentContainer as Aas.Entity).Statements,
                         (lst) => { (parentContainer as Aas.Entity).Statements = lst; },
                         wrapper, env, "SubmodelElement:",
                         nextFocus: wrapper, sendUpdateEvent: evTemplate,
-                        superMenu: superMenu);
+                        superMenu: superMenu,
+                        buttonOverStyle: LayoutHints.StyleButtonStandard,
+                        keyHandling: keyHandling);
 
                 // refactor?
                 if (parentContainer != null && parentContainer is Aas.IReferable)
-                    this.AddActionPanel(
-                        horizStack, "Refactoring:",
-                        repo: repo, superMenu: superMenu,
+                    actionsButtons.AddRange(GenerateActionButton(
+                        new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Refactor",
+                                "Refactor SubmodelElements", AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+                        repo: repo,
+                        superMenu: superMenu,
                         ticketMenu: new AasxMenu()
-                            .AddAction("refactor", "Refactor",
-                                "Takes the selected AAS element and converts it to a new kind, keeping most of the attributes."),
+                            .AddAction("refactor-element", "Element",
+                                icon: IconPool.Migrate,
+                                help: "Takes the selected AAS element and converts it to a new kind, keeping most " +
+                                      "of the attributes."),
+                        buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
+                                            preference: AnyUiButtonPreference.Both),
+                        padding: new AnyUiThickness(5, 0, 5, 0),
                         ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx == 0)
@@ -4027,16 +4053,17 @@ namespace AasxPackageLogic
                                 }
                             }
                             return new AnyUiLambdaActionNone();
-                        });
+                        }));
 
                 // cut/ copy / paste
                 if (parentContainer != null)
                 {
-                    this.DispSmeCutCopyPasteHelper(stack, repo, env, parentContainer, this.theCopyPaste, wrapper, sme,
-                        label: "Buffer:", superMenu: superMenu);
+                    this.DispSmeCutCopyPasteHelper(actionStack2, repo, env, parentContainer, this.theCopyPaste, wrapper, sme,
+                        label: "Buffer:", superMenu: superMenu,
+                        buttonOverStyle: LayoutHints.StyleButtonStandard,
+                        keyHandling: keyHandling);
                 }
             }
-
 
             // ReSharper disable ConditionIsAlwaysTrueOrFalse
             if (editMode)
@@ -4064,27 +4091,38 @@ namespace AasxPackageLogic
                 // CDs, dynamic menu items
                 var cdmenu = new AasxMenu()
                         .AddAction("assign-existing", "Use existing",
-                            "Assign the SubmodelElement to an semanticId of an existing ConceptDescription.")
+                            icon: IconPool.AddExisting,
+                            help: "Assign the SubmodelElement to an semanticId of an existing ConceptDescription.")
                         .AddAction("create-empty", "Create empty",
-                            "Creates an empty ConceptDescription and assigns the SubmodelElement to it.")
-                        .AddAction("create-eclass", "Create \U0001f844 ECLASS",
-                            "Selects an concept from ECLASS, creates an ConceptDescription and " +
+                            icon: IconPool.AddBlank,
+                            help: "Creates an empty ConceptDescription and assigns the SubmodelElement to it.")
+                        .AddAction("create-eclass", "Create from ECLASS",
+                            icon: IconPool.AddEclass,
+                            help: "Selects an concept from ECLASS, creates an ConceptDescription and " +
                             "assigns the SubmodelElement to it.")
-                        .AddAction("create-this", "Create \U0001f844 this",
-                            "Creates an ConceptDescription from this element and " +
+                        .AddAction("create-this", "Create from this SME",
+                            icon: IconPool.Migrate,
+                            help: "Creates an ConceptDescription from this element and " +
                             "assigns the SubmodelElement to it.");
 
                 if (sme.EnumeratesChildren())
                 {
-                    cdmenu.AddAction("create-all", "Create \U0001f844 all",
-                            "Creates ConceptDescription(s) for this element and all subsequent children " +
+                    cdmenu.AddAction("create-all", "Create for all SMEs",
+                            icon: IconPool.Migrate,
+                            help: "Creates ConceptDescription(s) for this element and all subsequent children " +
                             "and assigns the SubmodelElement(s) to it.");
                 }
 
-                this.AddActionPanel(
-                    stack, "Concept Description:",
-                    repo: repo, superMenu: superMenu,
+                actionsButtons.AddRange(GenerateActionButton(
+                    new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Create CDs",
+                            "Create ConceptDescription for specifc SubmodelElement",
+                            AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+                    repo: repo,
+                    superMenu: superMenu,
                     ticketMenu: cdmenu,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
+                                    preference: AnyUiButtonPreference.Both),
+                    padding: new AnyUiThickness(5, 0, 5, 0),
                     ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
@@ -4227,7 +4265,7 @@ namespace AasxPackageLogic
                         }
 
                         return new AnyUiLambdaActionNone();
-                    });
+                    }));
 
                 // create ConceptDescriptions for ECLASS
                 var targets = new List<Aas.ISubmodelElement>();
@@ -4240,14 +4278,20 @@ namespace AasxPackageLogic
                         "Consider importing a ConceptDescription from ECLASS for the existing SubmodelElement.",
                         severityLevel: HintCheck.Severity.Notice)
                     });
-                this.AddActionPanel(
-                    stack, "ConceptDescriptions from ECLASS:",
-                    firstColumnWidth: FirstColumnWidth.Large,
-                    repo: repo, superMenu: superMenu,
+
+                actionsButtons.AddRange(GenerateActionButton(
+                    new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "ECLASS",
+                            "Use ECLASS concept repository", AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+                    repo: repo,
+                    superMenu: superMenu,
                     ticketMenu: new AasxMenu()
                         .AddAction("import-missing", "Import missing",
-                        "Checks for the element and its children, if semanticIds link to missing CD " +
-                        "and imports those from ECLASS."),
+                            icon: IconPool.Migrate,
+                            help: "Checks for the element and its children, if semanticIds link to missing CD " +
+                                  "and imports those from ECLASS."),
+                    buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
+                                        preference: AnyUiButtonPreference.Both),
+                    padding: new AnyUiThickness(5, 0, 5, 0),
                     ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
@@ -4256,14 +4300,13 @@ namespace AasxPackageLogic
                         }
 
                         return new AnyUiLambdaActionNone();
-                    });
-
+                    }));
             }
 
             if (editMode && (sme is Aas.SubmodelElementCollection
                 || sme is Aas.SubmodelElementList || sme is Aas.Entity))
             {
-                this.AddGroup(stack, "Editing of sub-ordinate entities", this.levelColors.MainSection);
+                this.AddGroup(stack, "Editing of sub-ordinate entities", this.levelColors.MainSection, keyHandling);
 
                 List<Aas.ISubmodelElement> listOfSME = null;
                 if (sme is Aas.SubmodelElementCollection)
@@ -4275,8 +4318,8 @@ namespace AasxPackageLogic
 
                 // adding of SME
 
-                DispSmeListAddNewHelper(env, stack, repo,
-                    key: "SubmodelElement:",
+                actionsButtons.AddRange(DispSmeListAddNewGenerateButtons(
+                    env, repo,
                     listOfSME,
                     setOutput: (sml) =>
                     {
@@ -4288,7 +4331,31 @@ namespace AasxPackageLogic
                             (sme as Aas.Entity).Statements = sml;
                     },
                     superMenu: superMenu,
-                    basedOnSemanticId: sme.SemanticId);
+                    basedOnSemanticId: sme.SemanticId,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard));
+
+                                this.AddHintBubble(stack, hintMode, new[] {
+                                        new HintCheck(
+                                            () => { return this.packages.AuxAvailable;  },
+                                            "You have opened an auxiliary AASX package. You can copy elements from it!",
+                                            severityLevel: HintCheck.Severity.Notice)
+                                    });
+
+
+                //DispSmeListAddNewHelper(env, stack, repo,
+                //    key: "SubmodelElement:",
+                //    listOfSME,
+                //    setOutput: (sml) =>
+                //    {
+                //        if (sme is Aas.SubmodelElementCollection)
+                //            (sme as Aas.SubmodelElementCollection).Value = sml;
+                //        if (sme is Aas.SubmodelElementList)
+                //            (sme as Aas.SubmodelElementList).Value = sml;
+                //        if (sme is Aas.Entity)
+                //            (sme as Aas.Entity).Statements = sml;
+                //    },
+                //    superMenu: superMenu,
+                //    basedOnSemanticId: sme.SemanticId);
 
                 // Copy
 
@@ -4300,14 +4367,22 @@ namespace AasxPackageLogic
                             "You have opened an auxiliary AASX package. You can copy elements from it!",
                             severityLevel: HintCheck.Severity.Notice)
                 });
-                this.AddActionPanel(
-                    stack, "Copy existing SMEs:",
-                    repo: repo, superMenu: superMenu,
+
+                actionsButtons.AddRange(GenerateActionButton(
+                    new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Copy from ..",
+                            "Refactor SubmodelElements", AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+                    repo: repo,
+                    superMenu: superMenu,
                     ticketMenu: new AasxMenu()
                         .AddAction("copy-single", "Copy single",
-                            "Copy single selected entity from another AAS, caring for ConceptDescriptions.")
+                            icon: IconPool.AddExisting,
+                            help: "Copy single selected entity from another AAS, caring for ConceptDescriptions.")
                         .AddAction("copy-recurse", "Copy recursively",
-                            "Copy selected entity and children from another AAS, caring for ConceptDescriptions."),
+                            icon: IconPool.AddRecursive,
+                            help: "Copy selected entity and children from another AAS, caring for ConceptDescriptions."),
+                    buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
+                                        preference: AnyUiButtonPreference.Both),
+                    padding: new AnyUiThickness(5, 0, 5, 0),
                     ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0 || buttonNdx == 1)
@@ -4340,7 +4415,7 @@ namespace AasxPackageLogic
                         }
 
                         return new AnyUiLambdaActionNone();
-                    });
+                    }));
 
 				// Check for cardinality
 				if (checkSmt)
@@ -4353,13 +4428,20 @@ namespace AasxPackageLogic
 
             if (jumpToCD != null && editMode)
             {
-                this.AddGroup(stack, "Navigation of entities", this.levelColors.MainSection);
-
-                AddActionPanel(stack, "Navigate to:",
-                    repo: repo, superMenu: superMenu,
+                this.AddGroup(stack, "Navigation of entities", this.levelColors.MainSection, keyHandling);
+                
+                actionsButtons.AddRange(GenerateActionButton(
+                    new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Jump",
+                            "Jump to accociated elements", AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+                    repo: repo,
+                    superMenu: superMenu,
                     ticketMenu: new AasxMenu()
-                        .AddAction("navigate-cd", "ConceptDescription",
-                            "Finds the associated ConceptDescription by semanticId and visually selects it."),
+                        .AddAction("jump-cd", "ConceptDescription",
+                            icon: IconPool.Jump,
+                            help: "Finds the associated ConceptDescription by semanticId and visually selects it."),
+                    buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
+                                        preference: AnyUiButtonPreference.Both),
+                    padding: new AnyUiThickness(5, 0, 5, 0),
                     ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         await Task.Yield();
@@ -4368,51 +4450,84 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawAllElements(nextFocus: jumpToCD, isExpanded: true);
                         }
                         return new AnyUiLambdaActionNone();
-                    });
+                    }));
             }
+
+            //
+            // render action buttons
+            //
+            if (actionsButtons.Count > 0)
+            {
+                var wp = AddKeyButtons(stack, "Actions:",
+                        keyHandling: keyHandling,
+                        buttons: actionsButtons.Select((c) => Set(c, margin: new AnyUiThickness(0, 0, 0, 4))));
+                wp.Margin = new AnyUiThickness(0, 5, 0, 0);
+                wp.Padding = new AnyUiThickness(0, 0, 2, 0);
+            }
+
+            //
+            // Actions for sub-ordinate entities on specific elements
+            //
 
             if (editMode && sme is Aas.Operation smo)
             {
-                this.AddGroup(stack, "Editing of sub-ordinate entities", this.levelColors.MainSection);
+                var substack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                    "OperationVariables",
+                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                    AasxPredefinedConcepts.IdtaSpecs.Concept.OperationAttributes,
+                    LayoutHints.StyleHeadlineAboveHints,
+                    "Operations contain SubmodelElements as variable lists.", LayoutHints.StyleHeadlineHints,
+                    hintMode: true,
+                    bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                    borderStyle: LayoutHints.StyleBorderedBox,
+                    buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
 
-                var substack = this.AddSubStackPanel(stack, "  "); // just a bit spacing to the left
-
+                // over in, out, inout vars
+                bool noVarsAny = true;
+                var buttons = new List<AnyUiControl>();
                 foreach (var dir in AdminShellUtil.GetEnumValues<OperationVariableDirection>())
                 {
                     // dispatch
                     var names = (new[] { "In", "Out", "InOut" })[(int)dir];
                     var ovl = smo.GetVars(dir);
 
-                    // group
-                    this.AddGroup(substack, "OperationVariables " + names, this.levelColors.SubSection);
+                    // any variable found?
+                    if (ovl != null && ovl.Count > 0)
+                        noVarsAny = false;
 
-                    // add, paste
-                    this.AddHintBubble(
-                        substack, hintMode,
-                        new[] {
-                            new HintCheck(
-                                () => { return ovl == null || ovl.Count < 1; },
-                                    "This list of OperationVariables currently has no elements, yet. " +
-                                    (ovl == null ? "List is null! " : "List is empty! ") +
-                                    "Please check, which in- and out-variables are required.",
-                                severityLevel: HintCheck.Severity.Notice)
-                        });
-
-                    // add
-                    this.AddActionPanel(
-                        substack, "OperationVariable:",
-                        repo: repo, superMenu: superMenu,
-                        ticketMenu: new AasxMenu()
+                    var ticketMenu = new AasxMenu()
                             .AddAction("add-prop", "Add Property",
-                                "Adds a new Property to the containing collection.")
+                                icon: IconPool.Add,
+                                help: "Adds a new Property to the containing collection.")
                             .AddAction("add-mlp", "Add MultiLang.Prop.",
-                                "Adds a new MultiLanguageProperty to the containing collection.")
+                                icon: IconPool.Add,
+                                help: "Adds a new MultiLanguageProperty to the containing collection.")
                             .AddAction("add-smc", "Add Collection",
-                                "Adds a new SubmodelElementCollection to the containing collection.")
+                                icon: IconPool.Add,
+                                help: "Adds a new SubmodelElementCollection to the containing collection.")
                             .AddAction("add-named", "Add other ..",
-                                "Adds a selected kind of SubmodelElement to the containing collection.",
+                                icon: IconPool.Add,
+                                help: "Adds a selected kind of SubmodelElement to the containing collection.",
                                 args: new AasxMenuListOfArgDefs()
-                                    .Add("Kind", "Name (not abbreviated) of kind of SubmodelElement.")),
+                                    .Add("Kind", "Name (not abbreviated) of kind of SubmodelElement."))
+                            .AddAction("operation-paste", "Paste into",
+                                icon: IconPool.PasteInto,
+                                help: "Pastes an SubmodelElement from the paste buffer into the operation variable(s).")
+                            .AddAction("copy-single", "Copy from ..",
+                                icon: IconPool.Migrate,
+                                help: "Copy from single selected entity from another AAS, caring for ConceptDescriptions.");
+
+                    buttons.AddRange(GenerateActionButton(
+                            new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "" + names,
+                                    $"Specific action on {names} variables lists.",
+                                    AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+                        repo: repo,
+                        superMenu: superMenu,
+                        ticketMenu: ticketMenu,
+                        buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
+                                        preference: AnyUiButtonPreference.Both,
+                                        margin: new AnyUiThickness(0, 0, 10, 0)),
+                        padding: new AnyUiThickness(5, 0, 5, 0),
                         ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx >= 0 && buttonNdx <= 3)
@@ -4456,20 +4571,8 @@ namespace AasxPackageLogic
                                     return new AnyUiLambdaActionRedrawAllElements(nextFocus: ov);
                                 }
                             }
-                            return new AnyUiLambdaActionNone();
-                        });
 
-                    // Buffer
-                    AddActionPanel(
-                        substack, "Buffer:",
-                        repo: repo, superMenu: superMenu,
-                        ticketMenu: new AasxMenu()
-                            .AddAction("operation-paste", "Paste into",
-                                "Pastes an SubmodelElement from the paste buffer into the operation variable(s)."),
-                        ticketActionAsync: async (buttonNdx, ticket) =>
-                        {
-                            await Task.Yield();
-                            if (buttonNdx == 0
+                            if (buttonNdx == 4
                                 && this.theCopyPaste?.Valid == true
                                 && this.theCopyPaste.Items != null
                                 && this.theCopyPaste.Items.AllOfElementType<CopyPasteItemSME>())
@@ -4508,28 +4611,7 @@ namespace AasxPackageLogic
                                 return new AnyUiLambdaActionRedrawAllElements(nextFocus: businessObj);
                             }
 
-                            return new AnyUiLambdaActionNone();
-                        });
-
-                    this.AddHintBubble(
-                        substack, hintMode,
-                        new[] {
-                            new HintCheck(
-                                () => { return this.packages.AuxAvailable;  },
-                                "You have opened an auxiliary AASX package. You can copy elements from it!",
-                                severityLevel: HintCheck.Severity.Notice)
-                        });
-                    AddActionPanel(
-                        substack, "Copy from existing OperationVariable:",
-                        repo: repo, superMenu: superMenu,
-                        ticketMenu: new AasxMenu()
-                            .AddAction("copy-single", "Copy single",
-                                "Copy single selected entity from another AAS, caring for ConceptDescriptions.")
-                            .AddAction("copy-recurse", "Copy recursively",
-                                "Copy selected entity and children from another AAS, caring for ConceptDescriptions."),
-                        ticketActionAsync: async (buttonNdx, ticket) =>
-                        {
-                            if (buttonNdx == 0 || buttonNdx == 1)
+                            if (buttonNdx == 5)
                             {
                                 var rve = await SmartSelectAasEntityVisualElementAsync(
                                     packages, PackageCentral.PackageCentral.Selector.MainAux,
@@ -4552,16 +4634,41 @@ namespace AasxPackageLogic
                                 }
                             }
 
+                            // else
                             return new AnyUiLambdaActionNone();
-                        });
-
+                        }));
                 }
 
+                // add, paste hints?
+                this.AddHintBubble(
+                    substack, hintMode,
+                    new[] {
+                        new HintCheck(
+                            () => noVarsAny,
+                                "These lists of OperationVariables currently have no elements, yet. " +
+                                "Please check, which in- and out-variables are required.",
+                            severityLevel: HintCheck.Severity.Notice)
+                    });
+
+                // copy hints?
+                this.AddHintBubble(
+                    substack, hintMode,
+                    new[] {
+                        new HintCheck(
+                            () => { return this.packages.AuxAvailable;  },
+                            "You have opened an auxiliary AASX package. You can copy elements from it!",
+                            severityLevel: HintCheck.Severity.Notice)
+                    });
+
+                // no, add these buttons
+                AddKeyButtons(substack, "Op.Variables",
+                        keyHandling: keyHandling,
+                        buttons: buttons);
             }
 
             if (editMode && sme is Aas.AnnotatedRelationshipElement are)
             {
-                this.AddGroup(stack, "Editing of sub-ordinate entities", this.levelColors.MainSection);
+                this.AddGroup(stack, "Editing of sub-ordinate entities", this.levelColors.MainSection, keyHandling);
 
                 var substack = this.AddSubStackPanel(stack, "  "); // just a bit spacing to the left
 
@@ -4618,21 +4725,37 @@ namespace AasxPackageLogic
 
                         return new AnyUiLambdaActionNone();
                     });
-
+                       
             }
 
+            var valStack = stack;
             {
                 this.AddGroup(
                     stack,
                     $"Submodel Element ({"" + sme?.GetSelfDescription().AasElementName})",
-                    this.levelColors.MainSection);
+                    this.levelColors.MainSection, keyHandling);
+
+                //
+                // Section: Basic SubmodelElement
+                // 
+                var childStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                    $"SME basic data ({"" + sme?.GetSelfDescription().AasElementName})",
+                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                    AasxPredefinedConcepts.IdtaSpecs.Concept.Submodel,
+                    LayoutHints.StyleHeadlineAboveHints,
+                    "Basic data attributes, e.g. for Identification", LayoutHints.StyleHeadlineHints,
+                    hintMode: true,
+                    bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                    borderStyle: LayoutHints.StyleBorderedBox,
+                    buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
 
                 // IReferable (part 1)
                 this.DisplayOrEditEntityReferable(
-                    env, stack, "SME ",
+                    env, childStack, "SME ",
                     parentContainer: parentContainer, referable: sme, indexPosition: indexPosition,
                     hideExtensions: true,
                     superMenu: superMenu,
+                    keyHandling: keyHandling,
                     injectToIdShort: new DispEditHelperModules.DispEditInjectAction(
                         auxTitles: new[] { "Sync" },
                         auxToolTips: new[] { "Copy (if target is empty) idShort " +
@@ -4665,7 +4788,7 @@ namespace AasxPackageLogic
 
 
                 // HasSemanticId
-                this.DisplayOrEditEntitySemanticId(stack, sme,
+                this.DisplayOrEditEntitySemanticId(childStack, sme,
                     "The use of semanticId for SubmodelElements is mandatory! " +
                     "Only by this means, an automatic system can identify and " +
                     "understand the meaning of the SubmodelElements and, for example, " +
@@ -4675,24 +4798,44 @@ namespace AasxPackageLogic
                     "a company / consortia repository.",
                     checkForCD: true,
                     addExistingEntities: Aas.KeyTypes.ConceptDescription.ToString(),
-                    cpb: theCopyPaste, relatedReferable: sme);
+                    cpb: theCopyPaste, relatedReferable: sme, keyHandling: keyHandling);
+
+                //
+                // create a place for the SME Value information
+                //
+
+                if (true)
+                {
+                    // new anchor point for this
+                    valStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                        "SME value information",
+                        AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                        AasxPredefinedConcepts.IdtaSpecs.Concept.SmeGeneral,
+                        LayoutHints.StyleHeadlineAboveHints,
+                        "The value of a Submodel depends on its type.", LayoutHints.StyleHeadlineHints,
+                        hintMode: true,
+                        bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                        borderStyle: LayoutHints.StyleBorderedBox,
+                        buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
+                }
 
                 // Qualifiable: qualifiers are MULTIPLE structures with possible references. 
                 // That is: multiple x multiple keys!
                 this.DisplayOrEditEntityQualifierCollection(
                     stack, "SME ", sme.Qualifiers, 
                     (q) => { sme.Qualifiers = q; }, relatedReferable: sme,
-                    superMenu: superMenu);
+                    superMenu: superMenu, keyHandling: keyHandling);
 
                 // HasDataSpecification are MULTIPLE references. That is: multiple x multiple keys!
-                this.DisplayOrEditEntityHasDataSpecificationReferences(stack, sme.EmbeddedDataSpecifications,
-                (ds) => { sme.EmbeddedDataSpecifications = ds; }, relatedReferable: sme, superMenu: superMenu);
+                this.DisplayOrEditEntityHasDataSpecificationReferences(childStack, sme.EmbeddedDataSpecifications,
+                (ds) => { sme.EmbeddedDataSpecifications = ds; }, 
+                relatedReferable: sme, superMenu: superMenu, keyHandling: keyHandling);
 
 				// IReferable (part 2)
 				this.DisplayOrEditEntityReferableContinue(
 					env, stack, "SME ",
 					parentContainer: null, referable: sme, indexPosition: 0,
-					hideExtensions: true, superMenu: superMenu);
+					hideExtensions: true, superMenu: superMenu, keyHandling: keyHandling);
 
 				//
 				// ConceptDescription <- via semantic ID ?!
@@ -4715,7 +4858,7 @@ namespace AasxPackageLogic
                         DisplayOrEditAasEntityConceptDescription(
                             packages, env, sme, cd, editMode, repo, stack,
                             embedded: true,
-                            hintMode: hintMode);
+                            hintMode: hintMode, superMenu: superMenu, keyHandling: keyHandling);
                     }
                 }
 
@@ -4727,7 +4870,16 @@ namespace AasxPackageLogic
             if (sme is Aas.Property)
             {
                 var p = sme as Aas.Property;
-                this.AddGroup(stack, "Property", this.levelColors.MainSection);
+
+                AddHeadlineForIdtaSpec(valStack, keyHandling,
+                    $"Property",
+                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                    AasxPredefinedConcepts.IdtaSpecs.Concept.Property,
+                    LayoutHints.StyleHeadline2AboveHints,
+                    "Measurable value or value with id information", LayoutHints.StyleHeadlineHints,
+                    hintMode: true,
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard);
 
                 this.AddHintBubble(
                     stack, hintMode,

@@ -379,6 +379,13 @@ namespace MauiTestTree
 
         protected async void OnToolbarClicked(string rootHandle)
         {
+            // special case
+            if (rootHandle == "Option")
+            {
+                await EditMainMenuCheckableOptionsAsync();
+                return;
+            }
+
             // handle action
             await ShowMobilePanelMenuAsync(rootHandle);
         }
@@ -531,7 +538,7 @@ namespace MauiTestTree
 
             // generate view model for this menu
             var mpvm = new MenuPickerViewModel();
-            mpvm.DialogHeader = $"Select option for the « {activateMenu} » menu";
+            mpvm.DialogHeader = $"Menu «{activateMenu}»";
             mpvm.AddFrom(m, omitRoot: true,
                     showDeprecated: _viewModel.MainMenu?.IsChecked("ShowDeprecated") == true,
                     filterMask: AasxMenuFilter.Maui);
@@ -566,6 +573,7 @@ namespace MauiTestTree
                 if (mfi.Text == "Edit settings")
                 {
                     await EditMainMenuCheckableOptionsAsync();
+                    return;
                 }
 
                 // regular way
@@ -1163,7 +1171,7 @@ namespace MauiTestTree
 
         public async Task PrepareDispEditEntity(
             AdminShellPackageEnvBase package, ListOfVisualElementBasic? entities,
-            bool editMode, bool hintMode, bool showIriMode, bool checkSmt,
+            bool editMode, bool hintMode, bool showIriMode, bool checkSmt, bool floatingLabels,
             DispEditHighlight.HighlightFieldInfo? hightlightField = null)
         {
             // access
@@ -1178,7 +1186,8 @@ namespace MauiTestTree
             DynamicMenu.Menu.Clear();
             var renderHints = await DispEditEntityPanel.DisplayOrEditVisualAasxElement(
                     PackageCentral, DisplayContext,
-                    entities, editMode, hintMode, showIriMode, checkSmt, tiCds?.CdSortOrder,
+                    entities, editMode, hintMode, showIriMode, checkSmt, floatingLabels,
+                    tiCds?.CdSortOrder,
                     flyoutProvider: this,
                     mainWindow: this,
                     appEventProvider: this,
@@ -1370,6 +1379,7 @@ namespace MauiTestTree
                  _viewModel.MainMenu?.IsChecked("HintsMenu") == true,
                  _viewModel.MainMenu?.IsChecked("ShowIriMenu") == true,
                  _viewModel.MainMenu?.IsChecked("CheckSmtElements") == true,
+                 _viewModel.MainMenu?.IsChecked("FloatingLabelsOption") == true,
                  hightlightField: hightlightField);
 
         }

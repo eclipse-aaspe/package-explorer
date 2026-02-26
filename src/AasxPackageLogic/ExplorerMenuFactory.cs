@@ -338,6 +338,11 @@ namespace AasxPackageExplorer
                     help: "Checks all attributes on helpful hints and violation of design rules of the AAS.",
                     args: new AasxMenuListOfArgDefs()
                         .Add("Mode", "'True' to activate hints mode, 'False' to turn off."))
+                .Add(AasxMenuFilter.All, name: "FloatingLabelsOption", header: "Floating labels",
+                    onlyDisplay: true, isCheckable: true, isChecked: true,
+                    help: "If possible, place the label of entry fields on top, sparing the first column.",
+                    args: new AasxMenuListOfArgDefs()
+                        .Add("Mode", "'True' to activate hints mode, 'False' to turn off."))
                 .Add(AasxMenuFilter.All, name: "Test", header: "Test")
                 .AddSeparator(filter: AasxMenuFilter.Wpf)
                 .Add(AasxMenuFilter.Wpf, name: "ToolsFindText", header: "Find …", inputGesture: "Ctrl+F",

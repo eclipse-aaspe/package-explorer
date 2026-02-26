@@ -1061,7 +1061,8 @@ namespace AnyUi
 
         public AnyUiButtonOverStyle Modify(
             AnyUiButtonPreference preference = AnyUiButtonPreference.None,
-            AnyUiHorizontalAlignment? horizontalAlignment = null)
+            AnyUiHorizontalAlignment? horizontalAlignment = null,
+            AnyUiThickness margin = null)
         {
             var res = this.Copy();
 
@@ -1072,6 +1073,12 @@ namespace AnyUi
             {
                 res.Style = res.Style ?? new();
                 res.Style.HorizontalAlignment = horizontalAlignment;
+            }
+
+            if (margin != null)
+            {
+                res.Style = res.Style ?? new();
+                res.Style.Margin = margin;
             }
 
             return res;

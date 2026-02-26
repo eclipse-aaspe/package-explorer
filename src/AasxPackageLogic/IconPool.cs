@@ -13,6 +13,7 @@ namespace AasxPackageLogic
         public static AnyUiImageSourceFont Add = new("uc", "\uff0b", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont ClearAll = new("uc", "\u232b", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont AddExisting = new("uc", "\uff0b", AnyUiIconColor.Normal);
+        public static AnyUiImageSourceFont AddRecursive = new("uc", "\u25a4", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont AddKnown = new("uc", "\uff0b", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont AddEclass = new("uc", "\uff0b", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont AddPreset = new("uc", "\u2248", AnyUiIconColor.Normal);
@@ -45,13 +46,21 @@ namespace AasxPackageLogic
         public static AnyUiImageSourceFont Migrate = new("uc", "\u27f4", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont Rename = new("uc", "\u270e", AnyUiIconColor.Normal);
 
+        public static AnyUiImageSourceFont LoadFresh = new("uc", "\U0001f503", AnyUiIconColor.Normal);
+        public static AnyUiImageSourceFont Save = new("uc", "\U0001f4be", AnyUiIconColor.Normal);
+        public static AnyUiImageSourceFont Close = new("uc", "\u274c", AnyUiIconColor.Normal);
+        public static AnyUiImageSourceFont Print = new("uc", "\u2699", AnyUiIconColor.Normal);
+        public static AnyUiImageSourceFont Upload = new("uc", "\U0001f879", AnyUiIconColor.Normal);
+
         public static AnyUiImageSourceFont Refresh = new("uc", "\u21bb", AnyUiIconColor.Normal);
         
         public static AnyUiImageSourceFont IecOrg = new("uc", "\U0001f50c", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont EclassOrg = new("uc", "\u2635", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont AutoDetect = new("uc", "\u26ef", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont CreateNew = new("uc", "\U0001f516", AnyUiIconColor.Normal);
-        
+
+        public static AnyUiImageSourceFont Query = new("uc", "\u26cb", AnyUiIconColor.Normal);
+
         public static AnyUiImageSourceFont ContextMenuDropDown = new("uc", "\u25bd", AnyUiIconColor.Normal);
 
     }

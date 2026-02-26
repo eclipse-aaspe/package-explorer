@@ -800,7 +800,7 @@ namespace AnyUi
                        &&
                        (mode == AnyUiRenderMode.All || mode == AnyUiRenderMode.StatusToUi))
                    {
-                        if (cntl.TextAsHyperlink)
+                        if (cntl.TextAsHyperlink && cntl?.Tag != null)
                         {
                             var hl = new System.Windows.Documents.Hyperlink()
                             {
@@ -1176,14 +1176,16 @@ namespace AnyUi
                             if (cntl.SpecialAction is AnyUiSpecialActionContextMenu cntlcm
                                 && cntlcm.MenuItemHeaders != null)
                             {
-                                var nmi = cntlcm.MenuItemHeaders.Length / 2;
+                                var nmi = cntlcm.MenuItemHeaders.Count;
                                 var cm = new ContextMenu();
-                                for (int i = 0; i < nmi; i++)
+                                for (int i = 0; i < cntlcm.MenuItemHeaders.Count; i++)
                                 {
                                     // menu item itself
+                                    var mih = cntlcm.MenuItemHeaders[i];
                                     var mi = new MenuItem();
-                                    mi.Icon = "" + cntlcm.MenuItemHeaders[2 * i + 0];
-                                    mi.Header = "" + cntlcm.MenuItemHeaders[2 * i + 1];
+                                    if (mih is AnyUiContextMenuHeader mihcmh)
+                                        mi.Icon = "" + mihcmh.IconGlyph;
+                                    mi.Header = "" + mih.Header;
                                     mi.Tag = i;
                                     cm.Items.Add(mi);
 

@@ -45,7 +45,7 @@ public class MenuCheckableOptionsViewModel
     /// <summary>
     /// If set, title for the dialog panel
     /// </summary>
-    public string DialogHeader { get; set; } = "Modify edit settings";
+    public string DialogHeader { get; set; } = "Edit settings";
 
     /// <summary>
     /// Items to be edited.

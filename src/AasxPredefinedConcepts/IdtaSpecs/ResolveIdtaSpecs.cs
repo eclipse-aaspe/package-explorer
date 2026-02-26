@@ -13,6 +13,8 @@ namespace AasxPredefinedConcepts.IdtaSpecs
         AssetKind,
         SpecificAssetId,
         Submodel,
+        SmeGeneral,
+        Property,
         SubmodelElement,
         AdministrativeInformation,
         HasDataSpecification,
@@ -25,6 +27,7 @@ namespace AasxPredefinedConcepts.IdtaSpecs
         Referable,
         CD,
         DataSpecs,
+        OperationAttributes
     };
 
     public enum Version
@@ -100,6 +103,8 @@ namespace AasxPredefinedConcepts.IdtaSpecs
             Records.Add(Concept.SpecificAssetId,                prefix, "core.html#specific-asset-id-attributes");
             Records.Add(Concept.Submodel,                       prefix, "core.html#submodel-attributes");
             Records.Add(Concept.SubmodelElement,                prefix, "core.html#submodel-element-attributes");
+            Records.Add(Concept.SmeGeneral,                     prefix, "submodel-elements.html");
+            Records.Add(Concept.Property,                       prefix, "submodel-elements.html#property-attributes");
             Records.Add(Concept.AdministrativeInformation,      prefix, "common.html#administrative-information-attributes");
             Records.Add(Concept.HasDataSpecification,           prefix, "common.html#has-data-specification-attributes");
             Records.Add(Concept.HasExtensions,                  prefix, "common.html#_has_extensions_attributes");
@@ -112,6 +117,7 @@ namespace AasxPredefinedConcepts.IdtaSpecs
             Records.Add(Concept.CD,                             prefix, "concept-description.html");
             Records.Add(Concept.DataSpecs,                      
                 "https://industrialdigitaltwin.io/aas-specifications/IDTA-01001/v3.1.2/data-specifications.html");
+            Records.Add(Concept.OperationAttributes,            prefix, "submodel-elements.html#_operation_attributes");
         }
 
         public string Resolve(Concept concept, Part part, Version? version)

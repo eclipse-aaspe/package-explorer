@@ -575,56 +575,56 @@ namespace AasxWpfControlLibrary.PackageCentral
             if (btn == PackageContainerListControl.CustomButton.Context)
             {
                 var menu = new AasxMenu()
-                    .AddAction("FileRepoClose", "Close", icon: "\u274c")
-                    .AddAction("FileRepoEditName", "Edit name", icon: "\u270e");
+                    .AddAction("FileRepoClose", "Close", icon: IconPool.Close)
+                    .AddAction("FileRepoEditName", "Edit name", icon: IconPool.Rename);
 
                 if (!(fr is PackageContainerListLastRecentlyUsed))
                 {
-                    menu.AddAction("item-up", "Move Up", icon: "\u25b2")
-                        .AddAction("item-down", "Move Down", icon: "\u25bc");
+                    menu.AddAction("item-up", "Move Up", icon: IconPool.MoveUp)
+                        .AddAction("item-down", "Move Down", icon: IconPool.MoveDown);
                 }
 
                 menu.AddSeparator()
-                    .AddAction("FileRepoSaveAs", "Save as ..", icon: "\U0001f4be");
+                    .AddAction("FileRepoSaveAs", "Save as ..", icon: IconPool.Save);
 
                 if (fr is PackageContainerListLocal frll2)
-                    menu.AddAction("FileRepoAutoSave", "Auto save when modified", icon: "\u26cb", isChecked: frll2.AutoSave);
+                    menu.AddAction("FileRepoAutoSave", "Auto save when modified", icon: IconPool.AutoDetect, isChecked: frll2.AutoSave);
 
                 menu.AddSeparator();
 
                 menu.AddAction("FileRepoEnableToQuery", 
-                        "Enable to be queried", icon: "\u26cb", isChecked: fr.ToBeQueried);
+                        "Enable to be queried", icon: IconPool.Query, isChecked: fr.ToBeQueried);
 
                 if (!(fr is PackageContainerListLastRecentlyUsed))
                 {
                     if (!(fr is PackageContainerListHttpRestBase))
                     {
                         menu.AddAction(
-                            "FileRepoLoadAllResident", "Load all resident files ..", icon: "\U0001f503");
+                            "FileRepoLoadAllResident", "Load all resident files ..", icon: IconPool.LoadFresh);
                     }
 
                     if (fr is PackageContainerListLocal)
                     {
                         menu.AddAction(
-                            "FileRepoMakeRelative", "Make AASX filenames relative ..", icon: "\u2699");
+                            "FileRepoMakeRelative", "Make AASX filenames relative ..", icon: IconPool.Migrate);
 					}
 
                     if (fr is PackageContainerListLocalBase)
                     {
-                        menu.AddAction("FileRepoAddCurrent", "Add current AAS", icon: "\u2699")
-                            .AddAction("FileRepoAddToServer", "Add AASX File to File Repository", icon: "\u2699")
-                            .AddAction("FileRepoMultiAdd", "Add multiple AASX files ..", icon: "\u2699")
-                            .AddAction("FileRepoAddFromServer", "Add from REST server ..", icon: "\u2699")
-                            .AddAction("FileRepoPrint", "Print 2D code sheet ..", icon: "\u2699");
+                        menu.AddAction("FileRepoAddCurrent", "Add current AAS", icon: IconPool.Add)
+                            .AddAction("FileRepoAddToServer", "Add AASX File to File Repository", icon: IconPool.Add)
+                            .AddAction("FileRepoMultiAdd", "Add multiple AASX files ..", icon: IconPool.Add)
+                            .AddAction("FileRepoAddFromServer", "Add from REST server ..", icon: IconPool.Add)
+                            .AddAction("FileRepoPrint", "Print 2D code sheet ..", icon: IconPool.Print);
                     }
 
                     if (fr is PackageContainerListHttpRestRepository
                         || fr is PackageContainerListHttpRestRegistry)
                     {
                         menu.AddAction(
-                            "FileRepoUploadToApi", "Upload selected Identifiable to API ..", icon: "\U0001f879");
+                            "FileRepoUploadToApi", "Upload selected Identifiable to API ..", icon: IconPool.Upload);
                         menu.AddAction(
-                            "FileRepoFilesToApi", "Upload package files to API ..", icon: "\U0001f879");
+                            "FileRepoFilesToApi", "Upload package files to API ..", icon: IconPool.Upload);
                     }
                 }
 

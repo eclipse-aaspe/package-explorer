@@ -51,6 +51,7 @@
                 IsVisible="{Binding IsScreenIdiomDesktop, Converter={StaticResource MyInverseBoolConverter}}"
                 WidthRequest="{Binding ScreenIdiom, Converter={StaticResource MyEnumToIntParamterizedConverter}, ConverterParameter=220|180|140}" 
                 AasId="{Binding AasId}" AssetId="{Binding AssetId}"
+                ShowLabels="{Binding IsScreenIdiomPhone, Converter={StaticResource MyInverseBoolConverter}}"
                 FileDropReceived="Window_Drop"/>
 
             <!-- Just a foreach-loop over the given items -->
@@ -195,17 +196,17 @@
             <Grid Grid.Row="1" Grid.Column="0" 
                   ColumnDefinitions="Auto, Auto">
 
-                <Switch Grid.Row="0" Grid.Column="0" 
+                <Label Grid.Row="0" Grid.Column="0" 
+                       VerticalOptions="Center"
+                       Margin="10,0,0,0"
+                       Text="Multi select" />
+
+                <Switch Grid.Row="0" Grid.Column="1" 
                         Margin="10,0,0,0"
                         HorizontalOptions="Start" WidthRequest="56" MaximumWidthRequest="56"
                         OnColor="{StaticResource PrimaryLight}"
                         ThumbColor="{StaticResource Primary}"
                         IsToggled="{Binding MultiSelectOn}"/>
-
-                <Label Grid.Row="0" Grid.Column="1" 
-                       VerticalOptions="Center"
-                       Margin="-100,0,0,0"
-                       Text="Multi select" />
 
             </Grid>
 

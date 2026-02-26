@@ -22,12 +22,12 @@
             x:Key="MyInverseBoolConverter" />
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto, *, Auto" ColumnDefinitions="60,*, 60">
+    <Grid RowDefinitions="Auto, *, Auto" ColumnDefinitions="*,30*,*">
         
         <!-- Top row-->
         <!-- Close -->
-        <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="2"
-            HorizontalOptions="Center"
+        <Button x:Name="CancelButton" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+            HorizontalOptions="End"
             VerticalOptions="Center"
             Padding="0" BackgroundColor="Transparent" CornerRadius="8"
             Clicked="OnOuterButtonClicked">

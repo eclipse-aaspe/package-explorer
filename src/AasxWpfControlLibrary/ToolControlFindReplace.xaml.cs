@@ -521,7 +521,7 @@ namespace AasxPackageExplorer
                     .AddAction("MLPR", "Search Multilang.Prop.", isChecked: op.SearchMultiLang)
                     .AddAction("OTHER", "Search all other", isChecked: op.SearchOther)
                     .AddSeparator()
-                    .AddTextBox("LANG", "", "Language:", 70, op.SearchLanguage, 70);
+                    .AddTextBox("LANG", null, "Language:", 70, op.SearchLanguage, 70);
 
                 var cm = DynamicContextMenu.CreateNew(menu);
                 cm.Start(sender as Button, (name, mi, ticket) =>

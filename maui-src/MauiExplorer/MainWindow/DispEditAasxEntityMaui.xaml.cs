@@ -100,6 +100,7 @@ public partial class DispEditAasxEntityMaui : ContentView
                     if (_packages != null && _theEntities != null && _helper != null)
                         await DisplayOrEditVisualAasxElement(
                             _packages, dcmaui, _theEntities, _helper.editMode, _helper.hintMode,
+                            floatingLabelsMode: _helper.floatingLabelsMode, 
                             flyoutProvider: dcmaui?.FlyoutProvider,
                             appEventProvider: _helper?.appEventsProvider);
 
@@ -305,6 +306,7 @@ public partial class DispEditAasxEntityMaui : ContentView
         AnyUiDisplayContextMaui displayContext,
         ListOfVisualElementBasic? entities,
         bool editMode, bool hintMode = false, bool showIriMode = false, bool checkSmt = false,
+        bool floatingLabelsMode = false,
         VisualElementEnvironmentItem.ConceptDescSortOrder? cdSortOrder = null,
         IFlyoutProvider? flyoutProvider = null,
         IMainWindow? mainWindow = null,
@@ -543,6 +545,8 @@ public partial class DispEditAasxEntityMaui : ContentView
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Clear_all);
         IconPool.AddExisting
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Fact_check);
+        IconPool.AddRecursive
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Layers);
         IconPool.AddKnown
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Local_library);
         IconPool.AddEclass
@@ -599,6 +603,20 @@ public partial class DispEditAasxEntityMaui : ContentView
         IconPool.Rename
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Edit);
 
+        IconPool.LoadFresh
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Autorenew);
+        IconPool.Save
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Save);
+        IconPool.Close
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Tab_close_right);
+        IconPool.Print
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Print);
+        IconPool.Upload
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Upload);
+
+        IconPool.Query
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Category_search);
+
         IconPool.Refresh
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Refresh);
 
@@ -620,6 +638,7 @@ public partial class DispEditAasxEntityMaui : ContentView
         }
         _helper.editMode = editMode;
         _helper.hintMode = hintMode;
+        _helper.floatingLabelsMode = floatingLabelsMode;
         _helper.repo = repo;
         _helper.showIriMode = showIriMode;
         _helper.context = displayContext;

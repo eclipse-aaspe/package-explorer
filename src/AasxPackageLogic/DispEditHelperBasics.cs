@@ -313,6 +313,7 @@ namespace AasxPackageLogic
 
         public bool editMode = false;
         public bool hintMode = false;
+        public bool floatingLabelsMode = false;
 
         public ModifyRepo repo = null;
 
@@ -467,6 +468,27 @@ namespace AasxPackageLogic
         //
 
         /// <summary>
+        /// Add a visual group
+        /// To be used with Brush Triple!
+        /// </summary>
+        public void AddGroup(AnyUiStackPanel view, string name, AnyUiBrushTuple colors,
+            KeyLabelHandling keyHandling,
+            bool requestAuxButton = false,
+            string auxButtonTitle = null,
+            Func<object, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
+            AnyUiButtonHeader auxContextButtonHeader = null,
+            AnyUiContextMenuHeaderList auxContextMenuHeaders = null,
+            Func<object, Task<AnyUiLambdaActionBase>> auxContextLambdaAsync = null)
+        {
+            // only add if required
+            if (keyHandling != KeyLabelHandling.Above && keyHandling != KeyLabelHandling.Above_LabelPlate)
+                AddGroup(view, name, colors?.Bg, colors?.Fg, requestAuxButton,
+                    auxButtonTitle, auxButtonLambdaAsync,
+                    auxContextButtonHeader, auxContextMenuHeaders, auxContextLambdaAsync);
+        }
+
+
+        /// <summary>
         /// Add a visual group. 
         /// Returns a child view to be used by sub-ordinate controls. 
         /// Depending on the keyHandling, this could be the original view!
@@ -607,12 +629,17 @@ namespace AasxPackageLogic
                 // basically have a heading but not a bordered group
                 // make a 2-row grid for header, info
 
-                var g = AddSmallGrid(2, 4, new[] { "#", "*", "#", "#" }, margin: bodyMargin);
+                var g = AddSmallGrid(3, 4, new[] { "#", "*", "#", "#" }, margin: bodyMargin);
                 parentView?.Add(g);
 
                 // add labels
                 AddSmallLabelTo(g, 0, 1, content: heading, labelStyle: headingStyle);
-                AddSmallLabelTo(g, 1, 1, content: hint, labelStyle: hintStyle);
+                AddSmallLabelTo(g, 2, 1, content: hint, labelStyle: hintStyle);
+
+                // fine line
+                AddSmallBorderTo(g, 1, 1, colSpan: 2, 
+                    margin: new AnyUiThickness(0,0,5,0),
+                    borderBrush: headingStyle?.Foreground, borderThickness: new AnyUiThickness(0,0,0,1));
 
                 // add icon?
                 if (false)
@@ -631,12 +658,13 @@ namespace AasxPackageLogic
                 if (auxContextButtonHeader != null
                     && auxContextMenuHeaders != null && auxContextLambdaAsync != null)
                 {
-                    AddSmallContextMenuItemTo(
+                    Set(AddSmallContextMenuItemTo(
                             g, 0, 3,
                             header: auxContextButtonHeader,
                             menuHeaders: auxContextMenuHeaders,
                             buttonOverStyle: buttonOverStyle,
-                            menuItemLambdaAsync: auxContextLambdaAsync);
+                            menuItemLambdaAsync: auxContextLambdaAsync),
+                        rowSpan: 3);
                 }
 
                 // return the parent view for efficient continuation

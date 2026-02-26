@@ -63,6 +63,11 @@ namespace MauiTestTree
         public bool IsScreenIdiomDesktop { get => ScreenIdiom == ScreenIdiomEnum.Desktop; }
 
         /// <summary>
+        /// Bool flag from Screen idiom
+        /// </summary>
+        public bool IsScreenIdiomPhone { get => ScreenIdiom == ScreenIdiomEnum.Phone; }
+
+        /// <summary>
         /// For constrained situations, the screen can only focus on left or right panel.
         /// </summary>
         public enum ScreenDivideModeEnum { LeftAndRight, Left, Right }

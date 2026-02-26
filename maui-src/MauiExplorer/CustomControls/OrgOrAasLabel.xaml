@@ -65,7 +65,8 @@
                 </Image.Source>
             </Image>
 
-            <Border Grid.Column="1" Grid.Row="0" 
+            <Border x:Name="AasIdBorder"
+                    Grid.Column="1" Grid.Row="0" 
                     Margin="2,2,0,1" Padding="2,0,2,0"
                     StrokeThickness="1.5"
                     StrokeShape="RoundRectangle 8">
@@ -92,7 +93,8 @@
 
             </Border>
 
-            <Border Grid.Column="1" Grid.Row="1" 
+            <Border x:Name="AssetIdBorder"
+                    Grid.Column="1" Grid.Row="1" 
                     Margin="2,2,0,1" Padding="2,0,2,0"
                     StrokeThickness="1.5"
                     StrokeShape="RoundRectangle 8">

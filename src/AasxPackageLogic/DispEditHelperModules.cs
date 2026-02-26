@@ -1524,7 +1524,7 @@ namespace AasxPackageLogic
                 LayoutHints.StyleHeadlineHints,
                 hintMode: true,
                 bodyMargin: LayoutHints.BodyMarginLargeLarge,
-                borderStyle: LayoutHints.StyleBorderedBox2,
+                borderStyle: LayoutHints.StyleBorderedBox,
                 buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
 
             // hint

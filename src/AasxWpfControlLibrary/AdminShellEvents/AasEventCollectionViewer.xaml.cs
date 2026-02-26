@@ -221,9 +221,9 @@ namespace AasxWpfControlLibrary.AdminShellEvents
             if (sender == ButtonOptions)
             {
                 var cm = DynamicContextMenu.CreateNew(new AasxMenu()
-                    .AddAction("ClearList", icon: "\u2205", header: "Clear list")
-                    .AddAction("CopyJson", icon: "\u29c9", header: "Copy JSON")
-                    .AddAction("SaveJson", icon: "\U0001f4be", header: "Save JSON ..")
+                    .AddAction("ClearList", icon: IconPool.ClearAll, header: "Clear list")
+                    .AddAction("CopyJson", icon: IconPool.CopyToClipboard, header: "Copy JSON")
+                    .AddAction("SaveJson", icon: IconPool.Save, header: "Save JSON ..")
                     .AddLambda((name, mi, ticket) =>
                     {
                         CommandBinding_ContextMenu(name);

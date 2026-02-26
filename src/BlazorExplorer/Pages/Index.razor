@@ -327,10 +327,16 @@
                             // AnyUiUIElement el = (AnyUiUIElement)AnyUiDisplayContextHtml.htmlEventInputs[0];
                             AnyUiSpecialActionContextMenu cntlcm =
                                 (AnyUiSpecialActionContextMenu)evs.htmlEventInputs[1];
-                            var nmi = cntlcm.MenuItemHeaders.Length / 2;
+                            var nmi = cntlcm.MenuItemHeaders.Count;
                             int i = 0;
                             string icon = "" + cntlcm.MenuItemHeaders[0];
                             string header = "" + cntlcm.MenuItemHeaders[1];
+                            if (nmi > 0)
+                            {
+                                header = cntlcm.MenuItemHeaders[0].Header;
+                                if (cntlcm.MenuItemHeaders[0] is AnyUiContextMenuHeader cmh)
+                                    icon = cmh.IconGlyph;
+                            }
                             evs.htmlEventInputs.Clear();
                             // string v = i + ": " + icon + " " + header;
                             <form method="dialog">
@@ -339,11 +345,12 @@
                                     @for (i = 0; i < nmi; i++)
                                     {
                                         // menu item itself
-                                        icon = "" + cntlcm.MenuItemHeaders[2 * i + 0];
-                                        header = "" + cntlcm.MenuItemHeaders[2 * i + 1];
+                                        header = "" + cntlcm.MenuItemHeaders[i].Header;
+                                        if (cntlcm.MenuItemHeaders[i] is AnyUiContextMenuHeader cmh)
+                                            icon = "" + cmh.IconGlyph;
                                         <option value="@(i + ": " + icon + " " + header)">@(
-                                i + ": " + icon + " " + header
-                                )</option>
+                                        i + ": " + icon + " " + header
+                                        )</option>
                                     }
                                 </select>
                             </form>

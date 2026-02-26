@@ -148,43 +148,43 @@
 
 	protected IEnumerable<AasxMenuItemBase> RepoItemEnumerateContextMenu(PackageContainerRepoItem ri)
 	{
-		yield return new AasxMenuItem() { Icon = "\u2702", Header = "Delete from list", Name = "DeleteList" };
-		yield return new AasxMenuItem() { Icon = "\u2702", Header = "Delete from Repository", Name = "DeleteFromRepo" };
-		yield return new AasxMenuItem() { Icon = "\u25b2", Header = "Move Up", Name = "MoveUp" };
-		yield return new AasxMenuItem() { Icon = "\u25bc", Header = "Move Down", Name = "MoveDown" };
-		yield return new AasxMenuItem() { Icon = "\U0001f5d1", Header = "Un-load", Name = "Unload" };
-		yield return new AasxMenuItem() { Icon = "\u27f3", Header = "Re-calculate ids", Name = "Recalc" };
-		yield return new AasxMenuItem() { Icon = "\u2699", Header = "Properties", Name = "EditProperties" };
+		yield return new AasxMenuItem() { Icon = IconPool.Delete, Header = "Delete from list", Name = "DeleteList" };
+		yield return new AasxMenuItem() { Icon = IconPool.Delete, Header = "Delete from Repository", Name = "DeleteFromRepo" };
+		yield return new AasxMenuItem() { Icon = IconPool.MoveUp, Header = "Move Up", Name = "MoveUp" };
+		yield return new AasxMenuItem() { Icon = IconPool.MoveDown, Header = "Move Down", Name = "MoveDown" };
+		yield return new AasxMenuItem() { Icon = IconPool.Close, Header = "Un-load", Name = "Unload" };
+		yield return new AasxMenuItem() { Icon = IconPool.LoadFresh, Header = "Re-calculate ids", Name = "Recalc" };
+		yield return new AasxMenuItem() { Icon = IconPool.Rename, Header = "Properties", Name = "EditProperties" };
 		yield break;
 	}
 
 	protected IEnumerable<AasxMenuItemBase> DotMenuEnumerateContextMenu(PackageContainerListBase fr)
 	{
 		var menu = new AasxMenu()
-			.AddAction("FileRepoClose", "Close", icon: "\u274c")
-			.AddAction("FileRepoEditName", "Edit name", icon: "\u270e");
+			.AddAction("FileRepoClose", "Close", icon: IconPool.Close)
+			.AddAction("FileRepoEditName", "Edit name", icon: IconPool.Rename);
 
 		if (!(fr is PackageContainerListLastRecentlyUsed))
 		{
-			menu.AddAction("item-up", "Move Up", icon: "\u25b2")
-				.AddAction("item-down", "Move Down", icon: "\u25bc");
+			menu.AddAction("item-up", "Move Up", icon: IconPool.MoveUp)
+				.AddAction("item-down", "Move Down", icon: IconPool.MoveDown);
 		}
 
 		menu.AddSeparator()
-			.AddAction("FileRepoSaveAs", "Save as ..", icon: "\U0001f4be")
+			.AddAction("FileRepoSaveAs", "Save as ..", icon: IconPool.Save)
 			.AddSeparator();
 
 		if (!(fr is PackageContainerListLastRecentlyUsed))
 		{
 			if (fr is PackageContainerListLocal)
 				menu.AddAction(
-					"FileRepoMakeRelative", "Make AASX filenames relative ..", icon: "\u2699");
+					"FileRepoMakeRelative", "Make AASX filenames relative ..", icon: IconPool.Migrate);
 
-			menu.AddAction("FileRepoAddCurrent", "Add current AAS", icon: "\u2699")
-				.AddAction("FileRepoAddToServer", "Add AASX File to File Repository", icon: "\u2699")
-				.AddAction("FileRepoMultiAdd", "Add multiple AASX files ..", icon: "\u2699")
-				.AddAction("FileRepoAddFromServer", "Add from REST server ..", icon: "\u2699")
-				.AddAction("FileRepoPrint", "Print 2D code sheet ..", icon: "\u2699");
+			menu.AddAction("FileRepoAddCurrent", "Add current AAS", icon: IconPool.Add)
+				.AddAction("FileRepoAddToServer", "Add AASX File to File Repository", icon: IconPool.Add)
+				.AddAction("FileRepoMultiAdd", "Add multiple AASX files ..", icon: IconPool.Add)
+				.AddAction("FileRepoAddFromServer", "Add from REST server ..", icon: IconPool.Add)
+				.AddAction("FileRepoPrint", "Print 2D code sheet ..", icon: IconPool.Print);
 		}
 
 		foreach (var mi in menu)

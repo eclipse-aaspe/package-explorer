@@ -33,7 +33,7 @@
 
                 <local:TreeElemChevron
                     Margin="10"
-                    Glyph="&#xf04b;|FASolid|#212121|#E1E1E1"                    
+                    Glyph="&#xe5e1;|MaterialOutlined|#212121|#E1E1E1"                    
                     IsExpanded="{TemplateBinding BindingContext.IsExpanded, Mode=TwoWay}" 
                     ShowChevron="{TemplateBinding BindingContext.ShowChevron, Mode=TwoWay}">
                     

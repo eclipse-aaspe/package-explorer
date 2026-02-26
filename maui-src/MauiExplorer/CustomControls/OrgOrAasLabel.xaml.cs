@@ -28,7 +28,7 @@ namespace MauiTestTree
             BindableProperty.Create(
                 nameof(AasId),
                 typeof(string),
-                typeof(AutoFitLabel),
+                typeof(OrgOrAasLabel),
                 string.Empty,
                 propertyChanged: OnAasIdChanged);
 
@@ -52,7 +52,7 @@ namespace MauiTestTree
             BindableProperty.Create(
                 nameof(AssetId),
                 typeof(string),
-                typeof(AutoFitLabel),
+                typeof(OrgOrAasLabel),
                 string.Empty,
                 propertyChanged: OnAssetIdChanged);
 
@@ -60,6 +60,29 @@ namespace MauiTestTree
         {
             var self = (OrgOrAasLabel)bindable;
             self.AssetIdLabel.Text = ForceCharWrap((string)newValue);
+            self.SetVisibilities();
+        }
+
+        /// <summary>
+        /// Show longer Labels
+        /// </summary>
+        public bool ShowLabels
+        {
+            get => (bool)GetValue(ShowLabelsProperty);
+            set => SetValue(ShowLabelsProperty, value);
+        }
+
+        public static readonly BindableProperty ShowLabelsProperty =
+            BindableProperty.Create(
+                nameof(ShowLabels),
+                typeof(bool),
+                typeof(OrgOrAasLabel),
+                default(bool),
+                propertyChanged: OnShowLabelsChanged);
+
+        private static void OnShowLabelsChanged(BindableObject bindable, object oldValue, object newValue)
+        {
+            var self = (OrgOrAasLabel)bindable;
             self.SetVisibilities();
         }
 
@@ -78,6 +101,9 @@ namespace MauiTestTree
             {
                 AasGrid.IsVisible = true;
                 OrgGrid.IsVisible = false;
+
+                AasIdBorder.IsVisible = ShowLabels;
+                AssetIdBorder.IsVisible = ShowLabels;
             }
             else
             {
