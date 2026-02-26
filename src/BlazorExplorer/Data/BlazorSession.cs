@@ -519,7 +519,9 @@ namespace BlazorUI.Data
                 var common = helper.DisplayOrEditCommonEntity(
                     PackageCentral,
                     elementPanel,
-                    superMenu, EditMode, HintMode, CheckSmtMode,
+                    superMenu, 
+                    keyHandling: DispEditHelperBasics.KeyLabelHandling.FirstColumn,
+                    EditMode, HintMode, CheckSmtMode,
                     tiCds?.CdSortOrder ?? VisualElementEnvironmentItem.ConceptDescSortOrder.None,
                     DisplayElements.SelectedItem,
                     mainWindow: null); // TODO: fix mainWindow

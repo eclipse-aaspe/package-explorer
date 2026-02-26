@@ -2273,9 +2273,6 @@ namespace AasxPackageLogic
 			AasxMenu superMenu = null,
             KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
-            // how are the labels rendered?
-            keyHandling = floatingLabelsMode ? KeyLabelHandling.Above_LabelPlate : KeyLabelHandling.FirstColumn;
-
             // check, if Submodel is sitting in Repo
             var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
                     .FindSideInfoInListOfIdentifiables(
@@ -3923,9 +3920,6 @@ namespace AasxPackageLogic
             AasxMenu superMenu = null,
             KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
-            // how are the labels rendered?
-            keyHandling = floatingLabelsMode ? KeyLabelHandling.Above_LabelPlate : KeyLabelHandling.FirstColumn;
-
             // prepare widget containers for ACTION BUTTONS
             var actionsButtons = new List<AnyUiControl>();
             var actionStack1 = new AnyUiStackPanel() { Orientation = AnyUiOrientation.Horizontal };
@@ -6053,6 +6047,7 @@ namespace AasxPackageLogic
             PackageCentral.PackageCentral packages,
             AnyUiStackPanel stack,
             AasxMenu superMenu,
+            KeyLabelHandling keyHandling,
             bool editMode, bool hintMode, bool checkSmt,
 			VisualElementEnvironmentItem.ConceptDescSortOrder? cdSortOrder,
             VisualElementGeneric entity,
@@ -6097,7 +6092,7 @@ namespace AasxPackageLogic
                     vesmref.theSubmodel,
                     editMode, stack,
                     hintMode: hintMode, checkSmt: checkSmt,
-					superMenu: superMenu);
+					superMenu: superMenu, keyHandling: keyHandling);
             }
             else if (entity is VisualElementSubmodel vesm && vesm.theSubmodel != null)
             {
@@ -6107,7 +6102,7 @@ namespace AasxPackageLogic
                     submodel: vesm.theSubmodel, 
                     editMode: editMode, stack: stack,
                     hintMode: hintMode, checkSmt: checkSmt,
-					superMenu: superMenu);
+					superMenu: superMenu, keyHandling: keyHandling);
             }
             else if (entity is VisualElementSubmodelStub vesms && vesms.theSideInfo != null)
             {
@@ -6125,7 +6120,8 @@ namespace AasxPackageLogic
                     vesme.IndexPosition, editMode,
                     repo, stack, hintMode: hintMode, checkSmt: checkSmt, superMenu: superMenu,
                     nestedCds: cdSortOrder.HasValue &&
-                        cdSortOrder.Value == VisualElementEnvironmentItem.ConceptDescSortOrder.BySme);
+                        cdSortOrder.Value == VisualElementEnvironmentItem.ConceptDescSortOrder.BySme,
+                    keyHandling: keyHandling);
             }
             else if (entity is VisualElementOperationVariable vepv)
             {
