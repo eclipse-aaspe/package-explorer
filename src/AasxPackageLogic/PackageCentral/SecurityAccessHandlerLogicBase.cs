@@ -449,7 +449,7 @@ namespace AasxPackageExplorer
                     var panel = new AnyUiStackPanel();
                     var helper = new AnyUiSmallWidgetToolkit();
 
-                    var g = helper.AddSmallGrid(25, 2, new[] { "200:", "*" },
+                    var g = helper.AddSmallGrid(25, 2, new[] { "350:", "*" },
                                 padding: new AnyUiThickness(0, 5, 0, 5),
                                 margin: new AnyUiThickness(10, 0, 30, 0));
 
@@ -466,7 +466,7 @@ namespace AasxPackageExplorer
                         colSpan: 2);
                     row++;
 
-                    helper.AddSmallLabelTo(g, row, 0, content: "Token Exchange 1:",
+                    helper.AddSmallLabelTo(g, row, 0, content: "Token Exchange 1 (with consumer STS)",
                             verticalAlignment: AnyUiVerticalAlignment.Center,
                             verticalContentAlignment: AnyUiVerticalAlignment.Center);
 
@@ -478,13 +478,13 @@ namespace AasxPackageExplorer
                                 items: new[] { "none", "factory-x" },
                                 margin: new AnyUiThickness(10, 0, 0, 0),
                                 padding: new AnyUiThickness(5, 0, 5, 0),
-                                minWidth: 100,
+                                minWidth: 50,
                                 horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
                             (s) => { tokenExchanges[0] = s; });
 
                     row++;
 
-                    helper.AddSmallLabelTo(g, row, 0, content: "Token Exchange 2:",
+                    helper.AddSmallLabelTo(g, row, 0, content: "Token Exchange 2 (with producer STS):",
                             verticalAlignment: AnyUiVerticalAlignment.Center,
                             verticalContentAlignment: AnyUiVerticalAlignment.Center);
 
@@ -493,30 +493,30 @@ namespace AasxPackageExplorer
                             helper.AddSmallComboBoxTo(g, row, 1,
                                 isEditable: false,
                                 text: "none",
-                                items: new[] { "none", "assetfox", "factory-x" },
+                                items: new[] { "none", /*"assetfox", */"factory-x" },
                                 margin: new AnyUiThickness(10, 0, 0, 0),
                                 padding: new AnyUiThickness(5, 0, 5, 0),
-                                minWidth: 100,
+                                minWidth: 50,
                                 horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
                             (s) => { tokenExchanges[1] = s; });
 
                     row++;
 
-                    helper.AddSmallLabelTo(g, row, 0, content: "Token Exchange 3:",
-                            verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+                    //helper.AddSmallLabelTo(g, row, 0, content: "Token Exchange 3:",
+                    //        verticalAlignment: AnyUiVerticalAlignment.Center,
+                    //        verticalContentAlignment: AnyUiVerticalAlignment.Center);
 
-                    AnyUiUIElement.SetStringFromControl(
-                        helper.Set(
-                            helper.AddSmallComboBoxTo(g, row, 1,
-                                isEditable: false,
-                                text: "none",
-                                items: new[] { "none", "assetfox"},
-                                margin: new AnyUiThickness(10, 0, 0, 0),
-                                padding: new AnyUiThickness(5, 0, 5, 0),
-                                minWidth: 100,
-                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
-                            (s) => { tokenExchanges[2] = s; });
+                    //AnyUiUIElement.SetStringFromControl(
+                    //    helper.Set(
+                    //        helper.AddSmallComboBoxTo(g, row, 1,
+                    //            isEditable: false,
+                    //            text: "none",
+                    //            items: new[] { "none", "assetfox"},
+                    //            margin: new AnyUiThickness(10, 0, 0, 0),
+                    //            padding: new AnyUiThickness(5, 0, 5, 0),
+                    //            minWidth: 100,
+                    //            horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
+                    //        (s) => { tokenExchanges[2] = s; });
                     return g;
                 });
 
@@ -789,12 +789,12 @@ namespace AasxPackageExplorer
                 Log.Singleton.Info($"Security access handler: Found 'access_token': {secretAccessToken}");
 
 
-                var tokenExchanges2 = await AskForTokenExchange();
+                var tokenExchanges = await AskForTokenExchange();
 
-                if (tokenExchanges2 != null && !String.IsNullOrEmpty(tokenExchanges2[0])
-                    && tokenExchanges2[0] != "none")
+                if (tokenExchanges != null && !String.IsNullOrEmpty(tokenExchanges[0])
+                    && tokenExchanges[0] != "none")
                 {
-                    var target = tokenExchanges2[0];
+                    var target = tokenExchanges[0];
                     var configUrl = "https://iam-security-training.com/consumer/sts";
                     var d = new Dictionary<string, string>
                     {
@@ -823,41 +823,6 @@ namespace AasxPackageExplorer
                     {
                         accessToken2 = tokenElement.GetString();
                         Console.WriteLine("Access Token: " + accessToken2);
-
-
-                        //var handler2 = new JwtSecurityTokenHandler();
-                        //var jwt2 = handler2.ReadJwtToken(accessToken2);
-                        //var kid = jwt2.Header["kid"].ToString();
-
-                        //// 3. Find matching key
-                        //var key = jwks.First(k => k["kid"].ToString() == kid);
-
-                        //// 4. Build RSA key
-                        //var e = Base64UrlEncoder.DecodeBytes(key["e"].ToString());
-                        //var n = Base64UrlEncoder.DecodeBytes(key["n"].ToString());
-                        //var rsa = new RSAParameters { Exponent = e, Modulus = n };
-                        //var rsaKey = new RsaSecurityKey(rsa);
-
-                        //// 5. Validate token
-                        //var validationParams = new TokenValidationParameters
-                        //{
-                        //    ValidateIssuer = false,
-                        //    ValidateAudience = false,
-                        //    ValidateLifetime = false,
-                        //    ValidateIssuerSigningKey = true,
-                        //    IssuerSigningKey = rsaKey,
-                        //    ClockSkew = TimeSpan.FromMinutes(5)
-                        //};
-
-                        //try
-                        //{
-                        //    handler2.ValidateToken(accessToken2, validationParams, out _);
-                        //    Console.WriteLine("Token is valid");
-                        //}
-                        //catch (Exception ex)
-                        //{
-                        //    Console.WriteLine($"Validation failed: {ex.Message}");
-                        //}
 
                         using var httpClient = new HttpClient(handler);
                         var jwksJson = await httpClient.GetStringAsync($"{configUrl}/jwks");
@@ -917,13 +882,13 @@ namespace AasxPackageExplorer
                         }
                     }
 
-                    if (tokenExchanges2[1] != "none")
+                    if (tokenExchanges[1] != "none")
                     {
                         handler = new HttpClientHandler { DefaultProxyCredentials = CredentialCache.DefaultCredentials };
                         client = new HttpClient(handler);
 
                         var configUrl2 = "https://iam-security-training.com/provider/sts";
-                        target = tokenExchanges2[1];
+                        target = tokenExchanges[1];
 
                         var d2 = new Dictionary<string, string>
                         {
@@ -946,7 +911,7 @@ namespace AasxPackageExplorer
                         var content3 = await response3.Content.ReadAsStringAsync();
 
                         var accessToken3 = "";
-                        var doc3 = JsonDocument.Parse(content);
+                        var doc3 = JsonDocument.Parse(content3);
                         if (doc3.RootElement.TryGetProperty("access_token", out var tokenElement2))
                         {
                             accessToken3 = tokenElement2.GetString();
@@ -956,48 +921,15 @@ namespace AasxPackageExplorer
                             var jwksJson = await httpClient.GetStringAsync($"{configUrl2}/jwks");
                             var jwks = JObject.Parse(jwksJson)["keys"];
 
-                            /*
-                            var handler2 = new JwtSecurityTokenHandler();
-                            var jwt2 = handler2.ReadJwtToken(accessToken);
-                            var kid = jwt2.Header["kid"].ToString();
-
-                            // 3. Find matching key
-                            var key = jwks.First(k => k["kid"].ToString() == kid);
-
-                            // 4. Build RSA key
-                            var e = Base64UrlEncoder.DecodeBytes(key["e"].ToString());
-                            var n = Base64UrlEncoder.DecodeBytes(key["n"].ToString());
-                            var rsa = new RSAParameters { Exponent = e, Modulus = n };
-                            var rsaKey = new RsaSecurityKey(rsa);
-
-                            // 5. Validate token
-                            var validationParams = new TokenValidationParameters
-                            {
-                                ValidateIssuer = false,
-                                ValidateAudience = false,
-                                ValidateLifetime = true,
-                                ValidateIssuerSigningKey = true,
-                                IssuerSigningKey = rsaKey,
-                                ClockSkew = TimeSpan.FromMinutes(5)
-                            };
-
-                            try
-                            {
-                                handler2.ValidateToken(accessToken, validationParams, out _);
-                                ioConsole.WriteLine("Token is valid");
-                            }
-                            catch (Exception ex)
-                            {
-                                ioConsole.WriteLine($"Validation failed: {ex.Message}");
-                            }
-                            */
-
                             // 1) Handler
                             var handler2 = new JsonWebTokenHandler();
 
+                            var jsonWebToken2 = new JsonWebToken(accessToken3);
+                            var jwtHeaderKid2 = jsonWebToken2.Kid; // liest 'kid' robust
+
+
                             // 2) JWK aus JWKS direkt verwenden (hier exemplarisch LINQ auf Dein jwks-Array)
-                            var jwtHeaderKid = new JsonWebToken(accessToken3).Kid; // liest 'kid' robust
-                            var jwkJson = jwks.First(k => k["kid"].ToString() == jwtHeaderKid).ToString(); // k ist i. d. R. ein JObject
+                            var jwkJson = jwks.First(k => k["kid"].ToString() == jwtHeaderKid2).ToString(); // k ist i. d. R. ein JObject
                             var jwk = new JsonWebKey(jwkJson);
 
                             // 3) Validierungsparameter
@@ -1045,134 +977,6 @@ namespace AasxPackageExplorer
                             }
                         }
 
-                        if (tokenExchanges2[2] != "none")
-                        {
-                            handler = new HttpClientHandler { DefaultProxyCredentials = CredentialCache.DefaultCredentials };
-                            client = new HttpClient(handler);
-
-                            var configUrl3 = "https://integration.assetfox.apps.siemens.cloud/auth/realms/assetfox/protocol/openid-connect";
-                            target = tokenExchanges2[2];
-
-                            var d3 = new Dictionary<string, string>
-                            {
-                                { "grant_type", "urn:ietf:params:oauth:grant-type:token-exchange" },
-                                { "subject_token_type", "urn:ietf:params:oauth:token-type:jwt" },
-                                { "requested_token_type", "urn:ietf:params:oauth:token-type:access_token" },
-                                { "subject_token", accessToken3 },
-                            };
-                            if (target != "")
-                            {
-                                d3.Add("audience", target);
-                            }
-                            var request4 = new HttpRequestMessage(HttpMethod.Post, $"{configUrl3}/token")
-                            {
-                                Content = new FormUrlEncodedContent(d3)
-                            };
-                            request4.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
-
-                            var response4 = await client.SendAsync(request3);
-                            var content4 = await response4.Content.ReadAsStringAsync();
-
-                            var accessToken4 = "";
-                            var doc4 = JsonDocument.Parse(content);
-                            if (doc4.RootElement.TryGetProperty("access_token", out var tokenElement3))
-                            {
-                                accessToken4 = tokenElement2.GetString();
-                                Console.WriteLine("Access Token: " + accessToken3);
-
-                                using var httpClient = new HttpClient(handler);
-                                var jwksJson = await httpClient.GetStringAsync($"{configUrl3}/jwks");
-                                var jwks = JObject.Parse(jwksJson)["keys"];
-
-                                /*
-                                var handler2 = new JwtSecurityTokenHandler();
-                                var jwt2 = handler2.ReadJwtToken(accessToken);
-                                var kid = jwt2.Header["kid"].ToString();
-
-                                // 3. Find matching key
-                                var key = jwks.First(k => k["kid"].ToString() == kid);
-
-                                // 4. Build RSA key
-                                var e = Base64UrlEncoder.DecodeBytes(key["e"].ToString());
-                                var n = Base64UrlEncoder.DecodeBytes(key["n"].ToString());
-                                var rsa = new RSAParameters { Exponent = e, Modulus = n };
-                                var rsaKey = new RsaSecurityKey(rsa);
-
-                                // 5. Validate token
-                                var validationParams = new TokenValidationParameters
-                                {
-                                    ValidateIssuer = false,
-                                    ValidateAudience = false,
-                                    ValidateLifetime = true,
-                                    ValidateIssuerSigningKey = true,
-                                    IssuerSigningKey = rsaKey,
-                                    ClockSkew = TimeSpan.FromMinutes(5)
-                                };
-
-                                try
-                                {
-                                    handler2.ValidateToken(accessToken, validationParams, out _);
-                                    ioConsole.WriteLine("Token is valid");
-                                }
-                                catch (Exception ex)
-                                {
-                                    ioConsole.WriteLine($"Validation failed: {ex.Message}");
-                                }
-                                */
-
-                                // 1) Handler
-                                var handler2 = new JsonWebTokenHandler();
-
-                                // 2) JWK aus JWKS direkt verwenden (hier exemplarisch LINQ auf Dein jwks-Array)
-                                var jwtHeaderKid = new JsonWebToken(accessToken3).Kid; // liest 'kid' robust
-                                var jwkJson = jwks.First(k => k["kid"].ToString() == jwtHeaderKid).ToString(); // k ist i. d. R. ein JObject
-                                var jwk = new JsonWebKey(jwkJson);
-
-                                // 3) Validierungsparameter
-                                var validationParams = new TokenValidationParameters
-                                {
-                                    // Signaturprüfung
-                                    IssuerSigningKey = jwk,            // kein manuelles RSAParameters nötig
-                                    ValidateIssuerSigningKey = true,
-
-                                    // Lebenszeit
-                                    ValidateLifetime = true,
-                                    RequireExpirationTime = true,
-                                    ClockSkew = TimeSpan.FromMinutes(5),   // bei UTC+0 gut, ggf. 2–5 Minuten
-
-                                    // Issuer/Audience je nach Bedarf (bei Tests oft aus)
-                                    ValidateIssuer = false,                // später auf true + ValidIssuer setzen
-                                    ValidateAudience = false,              // später auf true + ValidAudience setzen
-
-                                    // Keine Legacy-Claim-Mappings
-                                    // MapInboundClaims = false,
-
-                                    // Optional: Name-/Rollen-Claims aus dem JWT
-                                    NameClaimType = "name",
-                                    RoleClaimType = "role"
-                                };
-
-                                try
-                                {
-                                    var result = handler2.ValidateToken(accessToken3, validationParams);
-                                    if (!result.IsValid)
-                                    {
-                                        Console.WriteLine($"Validation failed: {result.Exception?.Message}");
-                                        return null;
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("Token is valid");
-                                        secretAccessToken = accessToken3;
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    Console.WriteLine($"Validation failed: {ex.Message}");
-                                    return null;
-                                }
-                            }
-                        }
                     }
                 }
 
@@ -1495,130 +1299,12 @@ namespace AasxPackageExplorer
 
             var accessTokenString = accessToken.ToString();
 
-            var tokenExchanges = await AskForTokenExchange();
+            //ToDo: Need token exchange here?
+            //var tokenExchanges = await AskForTokenExchange();
 
-            if (tokenExchanges != null && !String.IsNullOrEmpty(tokenExchanges[0]))
-            {
-                var target = tokenExchanges[0];
-                var configUrl = "https://iam-security-training.com/consumer/sts";
-                var d = new Dictionary<string, string>
-                {
-                    { "grant_type", "urn:ietf:params:oauth:grant-type:token-exchange" },
-                    { "subject_token_type", "urn:ietf:params:oauth:token-type:jwt" },
-                    { "requested_token_type", "urn:ietf:params:oauth:token-type:access_token" },
-                    { "subject_token", accessToken.ToString() },
-                };
-                if (target != "")
-                {
-                    d.Add("audience", target);
-                }
-                var request2 = new HttpRequestMessage(HttpMethod.Post, $"{configUrl}/token")
-                {
-                    Content = new FormUrlEncodedContent(d)
-                };
-                request2.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
-
-                var response2 = await client.SendAsync(request2);
-                var content = await response2.Content.ReadAsStringAsync();
-
-                var accessToken2 = "";
-                var doc2 = JsonDocument.Parse(content);
-                if (doc2.RootElement.TryGetProperty("access_token", out var tokenElement))
-                {
-                    accessToken2 = tokenElement.GetString();
-                    Console.WriteLine("Access Token: " + accessToken2);
-
-                    using var httpClient = new HttpClient(handler);
-                    var jwksJson = await httpClient.GetStringAsync($"{configUrl}/jwks");
-                    var jwks = JObject.Parse(jwksJson)["keys"];
-
-                    /*
-                    var handler2 = new JwtSecurityTokenHandler();
-                    var jwt2 = handler2.ReadJwtToken(accessToken);
-                    var kid = jwt2.Header["kid"].ToString();
-
-                    // 3. Find matching key
-                    var key = jwks.First(k => k["kid"].ToString() == kid);
-
-                    // 4. Build RSA key
-                    var e = Base64UrlEncoder.DecodeBytes(key["e"].ToString());
-                    var n = Base64UrlEncoder.DecodeBytes(key["n"].ToString());
-                    var rsa = new RSAParameters { Exponent = e, Modulus = n };
-                    var rsaKey = new RsaSecurityKey(rsa);
-
-                    // 5. Validate token
-                    var validationParams = new TokenValidationParameters
-                    {
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = rsaKey,
-                        ClockSkew = TimeSpan.FromMinutes(5)
-                    };
-
-                    try
-                    {
-                        handler2.ValidateToken(accessToken, validationParams, out _);
-                        ioConsole.WriteLine("Token is valid");
-                    }
-                    catch (Exception ex)
-                    {
-                        ioConsole.WriteLine($"Validation failed: {ex.Message}");
-                    }
-                    */
-
-                    // 1) Handler
-                    var handler2 = new JsonWebTokenHandler();
-
-                    // 2) JWK aus JWKS direkt verwenden (hier exemplarisch LINQ auf Dein jwks-Array)
-                    var jwtHeaderKid = new JsonWebToken(accessToken2).Kid; // liest 'kid' robust
-                    var jwkJson = jwks.First(k => k["kid"].ToString() == jwtHeaderKid).ToString(); // k ist i. d. R. ein JObject
-                    var jwk = new JsonWebKey(jwkJson);
-
-                    // 3) Validierungsparameter
-                    var validationParams = new TokenValidationParameters
-                    {
-                        // Signaturprüfung
-                        IssuerSigningKey = jwk,            // kein manuelles RSAParameters nötig
-                        ValidateIssuerSigningKey = true,
-
-                        // Lebenszeit
-                        ValidateLifetime = true,
-                        RequireExpirationTime = true,
-                        ClockSkew = TimeSpan.FromMinutes(5),   // bei UTC+0 gut, ggf. 2–5 Minuten
-
-                        // Issuer/Audience je nach Bedarf (bei Tests oft aus)
-                        ValidateIssuer = false,                // später auf true + ValidIssuer setzen
-                        ValidateAudience = false,              // später auf true + ValidAudience setzen
-
-                        // Keine Legacy-Claim-Mappings
-                        // MapInboundClaims = false,
-
-                        // Optional: Name-/Rollen-Claims aus dem JWT
-                        NameClaimType = "name",
-                        RoleClaimType = "role"
-                    };
-
-                    try
-                    {
-                        var result = handler2.ValidateToken(accessToken2, validationParams);
-                        if (!result.IsValid)
-                        {
-                            Console.WriteLine($"Validation failed: {result.Exception?.Message}");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Token is valid");
-                            accessTokenString = accessToken2;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Validation failed: {ex.Message}");
-                    }
-                }
-            }
+            //if (tokenExchanges != null && !String.IsNullOrEmpty(tokenExchanges[0]))
+            //{
+            //}
 
             // build correct header key, remember, return
             endpoint.LastRenewed = DateTime.UtcNow;
