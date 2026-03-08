@@ -534,6 +534,9 @@ public partial class DispEditAasxEntityMaui : ContentView
         _helper.LayoutHints.BodyMarginLargeOrd = new AnyUiThickness(0, 6, 0, 3);
         _helper.LayoutHints.BodyMarginLargeLarge = new AnyUiThickness(0, 3, 0, 24);
 
+        // some more margins
+        _helper.LayoutHints.BodyInfoText = new AnyUiThickness(10, 0, 0, 0);
+
         // for icon resolution
         displayContext.LambdaResolveImageSourceFont = ResolveImageSourceFont;
 

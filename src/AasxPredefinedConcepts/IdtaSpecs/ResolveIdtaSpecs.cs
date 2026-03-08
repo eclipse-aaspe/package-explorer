@@ -15,6 +15,8 @@ namespace AasxPredefinedConcepts.IdtaSpecs
         Submodel,
         SmeGeneral,
         Property,
+        SubmodelElementList,
+        SubmodelElementCollection,
         SubmodelElement,
         AdministrativeInformation,
         HasDataSpecification,
@@ -105,6 +107,8 @@ namespace AasxPredefinedConcepts.IdtaSpecs
             Records.Add(Concept.SubmodelElement,                prefix, "core.html#submodel-element-attributes");
             Records.Add(Concept.SmeGeneral,                     prefix, "submodel-elements.html");
             Records.Add(Concept.Property,                       prefix, "submodel-elements.html#property-attributes");
+            Records.Add(Concept.SubmodelElementList,            prefix, "submodel-elements.html#submodel-element-list-attributes");
+            Records.Add(Concept.SubmodelElementCollection,      prefix, "submodel-elements.html#submodel-element-collection-attributes");
             Records.Add(Concept.AdministrativeInformation,      prefix, "common.html#administrative-information-attributes");
             Records.Add(Concept.HasDataSpecification,           prefix, "common.html#has-data-specification-attributes");
             Records.Add(Concept.HasExtensions,                  prefix, "common.html#_has_extensions_attributes");

@@ -226,6 +226,11 @@ namespace AasxPackageLogic
         public AnyUiSelectableTextBlock StyleLeftKey = null;
 
         /// <summary>
+        /// Style for info information on second column of a key
+        /// </summary>
+        public AnyUiSelectableTextBlock StyleRightInfo = null;
+
+        /// <summary>
         /// Headline most important
         /// </summary>
         public AnyUiSelectableTextBlock StyleHeadline1 = null;
@@ -262,7 +267,6 @@ namespace AasxPackageLogic
 
         public AnyUiBorder StyleBorderedBox2 = null;
 
-
         /// <summary>
         /// Body spacing "ordinary" control to "ordinary" control
         /// Tentatively: The margins are near zero at top and varying at bottom.
@@ -286,6 +290,11 @@ namespace AasxPackageLogic
         /// Tentatively: The margins are near zero at top and varying at bottom.
         /// </summary>
         public AnyUiThickness BodyMarginLargeLarge = null;
+
+        /// <summary>
+        /// Body spacing of a normal info text
+        /// </summary>
+        public AnyUiThickness BodyInfoText = null;
 
     }
 
@@ -820,6 +829,55 @@ namespace AasxPackageLogic
             view.Children.Add(g);
         }
 
+        public void AddKeyInfo(
+            AnyUiStackPanel view, string key, string value,
+            FirstColumnWidth firstColumnWidth = FirstColumnWidth.Standard,
+            bool keyVertCenter = false,
+            bool addKeyToValue = false,
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn,
+            bool limitToOneRowForNoEdit = false,
+            AnyUiSelectableTextBlock styleKey = null,
+            AnyUiSelectableTextBlock styleValue = null,
+            AnyUiThickness bodyMargin = null)
+        {
+            // Grid
+            var hasKeyCol = keyHandling == KeyLabelHandling.FirstColumn;
+
+            var g = AddSmallGrid(1, 2, new[] { "#", "*" },
+                        margin: bodyMargin);
+
+            // label
+            if (hasKeyCol)
+            {
+                // if not supposed, the first column will be empty
+                MaintainFirstColumnWidth(g, firstColumnWidth);
+
+                var klb = AddSmallLabelTo(g, 0, 0, 
+                            padding: new AnyUiThickness(0, 0, 0, 0), content: "" + key + ":",
+                            labelStyle: styleKey);
+                if (keyVertCenter)
+                {
+                    klb.VerticalAlignment = AnyUiVerticalAlignment.Center;
+                    klb.VerticalContentAlignment = AnyUiVerticalAlignment.Center;
+                    klb.Margin = new AnyUiThickness(0, -1, 0, 0);
+                }
+            }
+            else
+            {
+                if (addKeyToValue)
+                    value = key + ": " + value;
+            }
+
+            // info
+            if (limitToOneRowForNoEdit)
+                value = AdminShellUtil.RemoveNewLinesAndLimit("" + value, 120, ellipsis: "\u2026");
+            AddSmallLabelTo(g, 0, 1, padding: new AnyUiThickness(0, 0, 0, 0), content: "" + value,
+                verticalCenter: true, labelStyle: styleValue);
+
+            // in total
+            view.Children.Add(g);
+        }
+
 #if ONLY_INFO
                 // This was used in former times and now replaced by using a set lambda in all times
 
@@ -1313,14 +1371,24 @@ namespace AasxPackageLogic
 			Func<bool, Task<AnyUiLambdaActionBase>> setValueAsync = null,
 			string additionalInfo = "",
 			string[] boolTexts = null,
-            bool verticalCenter = false)
+            bool verticalCenter = false,
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
+            // first column
+            var firstCol = keyHandling != KeyLabelHandling.Above && keyHandling != KeyLabelHandling.Above_LabelPlate;
+
             // make grid
-            var g = this.AddSmallGrid(1, 2, new[] { "" + this.GetWidth(FirstColumnWidth.Standard) + ":", "*" },
+            var g = this.AddSmallGrid(1, 2, new[] { 
+                        firstCol ? "" + this.GetWidth(FirstColumnWidth.Standard) + ":" : "#", 
+                        "*" 
+                    },
                     margin: new AnyUiThickness(0, 2, 0, 0));
 
             // Column 0 = Key
-            this.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: key, verticalCenter: verticalCenter);
+            if (firstCol)
+            {
+                this.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: key, verticalCenter: verticalCenter);
+            }
 
             // Column 1 = Check box or info
             if (repo == null || setValueAsync == null)
@@ -1336,7 +1404,8 @@ namespace AasxPackageLogic
             else
             {
                 AnyUiUIElement.RegisterControl(this.AddSmallCheckBoxTo(g, 0, 1, margin: new AnyUiThickness(2, 2, 2, 2),
-                    content: additionalInfo, verticalCenter: verticalCenter,
+                    content: (!firstCol ? key : "") + additionalInfo, 
+                    verticalCenter: verticalCenter,
                     isChecked: value),
                         setValueAsync: async (o) =>
                         {

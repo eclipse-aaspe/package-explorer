@@ -3124,7 +3124,7 @@ namespace AasxPackageLogic
                         "Submodel value information",
                         LayoutHints.StyleHeadlineAboveHints,
                         "The value of a Submodel is its SubmodelElements.", LayoutHints.StyleHeadlineHints,
-                        hintMode: true,
+                        hintMode: hintMode,
                         bodyMargin: LayoutHints.BodyMarginLargeLarge,
                         borderStyle: LayoutHints.StyleBorderedBox,
                         buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
@@ -4806,7 +4806,7 @@ namespace AasxPackageLogic
                         AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
                         AasxPredefinedConcepts.IdtaSpecs.Concept.SmeGeneral,
                         LayoutHints.StyleHeadlineAboveHints,
-                        "The value of a Submodel depends on its type.", LayoutHints.StyleHeadlineHints,
+                        "The value of a SubmodelElement depends on its type.", LayoutHints.StyleHeadlineHints,
                         hintMode: true,
                         bodyMargin: LayoutHints.BodyMarginLargeLarge,
                         borderStyle: LayoutHints.StyleBorderedBox,
@@ -4871,12 +4871,12 @@ namespace AasxPackageLogic
                     AasxPredefinedConcepts.IdtaSpecs.Concept.Property,
                     LayoutHints.StyleHeadline2AboveHints,
                     "Measurable value or value with id information", LayoutHints.StyleHeadlineHints,
-                    hintMode: true,
+                    hintMode: hintMode,
                     bodyMargin: LayoutHints.BodyMarginOrdOrd,
                     buttonOverStyle: LayoutHints.StyleButtonStandard);
 
                 this.AddHintBubble(
-                    stack, hintMode,
+                    valStack, hintMode,
                     new[] {
                         new HintCheck(
                             () => { return p?.ValueType == null || Aas.Stringification.ToString(p.ValueType).Trim().Length < 1; },
@@ -4885,9 +4885,17 @@ namespace AasxPackageLogic
                             severityLevel: HintCheck.Severity.Notice)
                     });
 
-                AddKeyValueExRef(
-                    stack, "valueType", p, Aas.Stringification.ToString(p.ValueType), null, repo,
-                    async (v) =>
+                AddKeyValue(
+                    valStack, "valueType", Aas.Stringification.ToString(p.ValueType), null, repo,
+                    containingObject: p,
+                    keyVertCenter: true,
+                    keyHandling: keyHandling,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxMinWidth: 190,
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                    setValueAsync: async (v) =>
                     {
                         await Task.Yield();
                         var vt = Aas.Stringification.DataTypeDefXsdFromString((string)v);
@@ -4896,13 +4904,12 @@ namespace AasxPackageLogic
                         this.AddDiaryEntry(p, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
                     },
-                    comboBoxMinWidth: 190,
                     comboBoxIsEditable: editMode,
                     comboBoxItems: ExtendStringification.DataTypeXsdToStringArray().ToArray() // Enum.GetNames(typeof(DataTypeDefXsd))
                     );
 
                 this.AddHintBubble(
-                    stack, hintMode,
+                    valStack, hintMode,
                     new[] {
                         new HintCheck(
                             () => { return p.Value == null || p.Value.Trim().Length < 1; },
@@ -4921,9 +4928,17 @@ namespace AasxPackageLogic
                     });
 
 				// now: Value
-				AddKeyValueExRef(
-                    stack, "value", p, p.Value, null, repo,
-                    async (v) =>
+				AddKeyValue(
+                    valStack, "value", p.Value, null, repo,
+                    containingObject: p,
+                    keyVertCenter: true,
+                    keyHandling: keyHandling,
+                    buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop.Modify(preference: AnyUiButtonPreference.Image),
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxMinWidth: 190,
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                    setValueAsync: async (v) =>
                     {
                         await Task.Yield();
                         // primary update
@@ -4945,8 +4960,7 @@ namespace AasxPackageLogic
                         // normal
                         return new AnyUiLambdaActionNone();
                     },
-                    auxButtonTitles: new[] { "\u2261" },
-                    auxButtonToolTips: new[] { "Edit in multiline editor" },
+                    auxButtons: new AnyUiButtonHeaderList(IconPool.MultiLineEdit, "Edit multiline", "Edit in multiline editor"),
                     auxButtonLambdaAsync: async (buttonNdx) =>
                     {
                         if (buttonNdx == 0)
@@ -4955,15 +4969,6 @@ namespace AasxPackageLogic
                                 caption: $"Edit Property '{"" + p.IdShort}'",
                                 mimeType: "text/markdown",
                                 text: p.Value);
-
-#if test
-                            // test wise
-                            uc.Presets = new List<AnyUiDialogueDataTextEditor.Preset>
-							{
-								new AnyUiDialogueDataTextEditor.Preset() { Name = "AAA", Lines = new[] { "Aaa", "AAA" } },
-								new AnyUiDialogueDataTextEditor.Preset() { Name = "BBB", Lines = new[] { "Bbb", "bbb", "bbb bbb" } }
-							};
-#endif
 
                             if (await context.StartFlyoverModalAsync(uc))
                             {
@@ -4976,10 +4981,10 @@ namespace AasxPackageLogic
                     });
 
                 if (checkSmt)
-				    DisplayOrEditEntityCheckValue(env, stack, _checkValueHandle, sme);
+				    DisplayOrEditEntityCheckValue(env, valStack, _checkValueHandle, sme);
 
-				this.AddHintBubble(
-                    stack, hintMode,
+				AddHintBubble(
+                    valStack, hintMode,
                     new[] {
                         new HintCheck(
                             () =>
@@ -4993,9 +4998,10 @@ namespace AasxPackageLogic
                             severityLevel: HintCheck.Severity.Notice)
                     });
 
-                if (this.SafeguardAccess(
-                        stack, repo, p.ValueId, "valueId:", "Create data element!",
-                        async (v) =>
+                if (SafeguardAccess(
+                        valStack, repo, p.ValueId, "valueId:", "Create valueId!",
+                        keyHandling: keyHandling,
+                        actionAsync: async (v) =>
                         {
                             await Task.Yield();
                             p.ValueId = Options.Curr.GetDefaultEmptyReference();
@@ -5005,13 +5011,35 @@ namespace AasxPackageLogic
                 {
                     this.AddGroup(stack, "ValueId:", this.levelColors.SubSection);
 
+                    if (hintMode)
+                    {
+                        AddHeadline(valStack, keyHandling,
+                            $"ValueId",
+                            LayoutHints.StyleHeadline2AboveHints,
+                            "Reference to the global unique ID of a coded value",
+                            LayoutHints.StyleHeadlineHints,
+                            hintMode: true,
+                            bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                            buttonOverStyle: LayoutHints.StyleButtonStandard);
+                    }
+
                     this.AddKeyReference(
-                        stack, "valueId", 
+                        valStack, "valueId", 
                         p.ValueId, () => p.ValueId = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
+                        addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing,
+                        highlightButton: AddKeyListKeys_Button.Existing,
                         addExistingEntities: "All", // no restriction
                         relatedReferable: p,
+                        keyHandling: keyHandling,
+                        buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                        buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                        buttonPreferenceLo: AnyUiButtonPreference.Image,
+                        keyStyleLeft: LayoutHints.StyleLeftKey,
+                        keyStyleAbove: LayoutHints.StyleHeadingItems,
+                        textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                        comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                         showRefSemId: false, // not necessary, I think
                         emitCustomEvent: (rf) => { this.AddDiaryEntry(rf, new DiaryEntryUpdateValue()); },
                         auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
@@ -5661,22 +5689,55 @@ namespace AasxPackageLogic
             else if (sme is Aas.SubmodelElementCollection smc)
             {
                 this.AddGroup(stack, "SubmodelElementCollection", this.levelColors.MainSection);
-                if (smc.Value != null)
-                    this.AddKeyValue(stack, "# of values", "" + smc.Value.Count);
-                else
-                    this.AddKeyValue(stack, "Values", "Please add elements via editing of sub-ordinate entities");
+
+                AddHeadlineForIdtaSpec(valStack, keyHandling,
+                    $"SubmodelElementCollection",
+                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                    AasxPredefinedConcepts.IdtaSpecs.Concept.SubmodelElementCollection,
+                    LayoutHints.StyleHeadline2AboveHints,
+                    "Set of elements, which each have a unique semantic",
+                    LayoutHints.StyleHeadlineHints,
+                    hintMode: hintMode,
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard);
+
+                AddKeyInfo(valStack,
+                    "SMC values",
+                    (smc.Value != null) ? "" + smc.Value.Count + " value element(s)"
+                                        : "Please add elements via editing of sub-ordinate entities",
+                    keyHandling: keyHandling,
+                    addKeyToValue: true,
+                    styleKey: LayoutHints.StyleLeftKey,
+                    styleValue: LayoutHints.StyleRightInfo,
+                    bodyMargin: LayoutHints.BodyInfoText);
             }
             else if (sme is Aas.SubmodelElementList sml)
             {
-                this.AddGroup(stack, "SubmodelElementList", this.levelColors.MainSection);
-                if (sml.Value != null)
-                    this.AddKeyValue(stack, "# of values", "" + sml.Value.Count);
-                else
-                    this.AddKeyValue(stack, "Values", "Please add elements via editing of sub-ordinate entities");
+                AddHeadlineForIdtaSpec(valStack, keyHandling,
+                    $"SubmodelElementList",
+                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                    AasxPredefinedConcepts.IdtaSpecs.Concept.SubmodelElementList,
+                    LayoutHints.StyleHeadline2AboveHints,
+                    "Indexed list of elements, which have the same semantics", 
+                    LayoutHints.StyleHeadlineHints,
+                    hintMode: hintMode,
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard);
 
-                this.AddSmallCheckBox(
-                   stack, "orderRelevant:", sml.OrderRelevant ?? false,                    
+                AddKeyInfo(valStack,
+                    "SML values",
+                    (sml.Value != null) ? "" + sml.Value.Count + " value element(s)"
+                                        : "Please add elements via editing of sub-ordinate entities",
+                    keyHandling: keyHandling,
+                    addKeyToValue: true,
+                    styleKey: LayoutHints.StyleLeftKey,
+                    styleValue: LayoutHints.StyleRightInfo,
+                    bodyMargin: LayoutHints.BodyInfoText);
+
+                AddSmallCheckBox(
+                   valStack, "orderRelevant:", sml.OrderRelevant ?? false,
                    additionalInfo: " (true if order in list is relevant)",
+                   keyHandling: keyHandling,
                    setValueAsync: async (b) => {
                        await Task.Yield();
                        sml.OrderRelevant = b; 
@@ -5689,7 +5750,7 @@ namespace AasxPackageLogic
                 // type of the items of the list
 
                 this.AddHintBubble(
-                    stack, hintMode,
+                    valStack, hintMode,
                     new[] {
                         new HintCheck(
                             () => stats?.AllChildSmeTypeMatch == false,
@@ -5697,10 +5758,18 @@ namespace AasxPackageLogic
                             "SubmodelElementList shall have the same submodel element type as specified " +
                             "in SubmodelElementList/typeValueListElement.")
                     });
-                this.AddKeyValueExRef(
-                    stack, "typeValueListElement", sml, Aas.Stringification.ToString(sml.TypeValueListElement),
+                this.AddKeyValue(
+                    valStack, "typeValueListElement", Aas.Stringification.ToString(sml.TypeValueListElement),
                     null, repo,
-                    async (v) =>
+                    containingObject: sml,
+                    keyVertCenter: true,
+                    keyHandling: keyHandling,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxMinWidth: 190,
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                    setValueAsync: async (v) =>
                     {
                         await Task.Yield();
                         var tvle = Aas.Stringification.AasSubmodelElementsFromString(v as string);
@@ -5709,13 +5778,13 @@ namespace AasxPackageLogic
                         this.AddDiaryEntry(sml, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
                     },
-                    comboBoxIsEditable: editMode, comboBoxMinWidth: 190,
+                    comboBoxIsEditable: editMode, 
                     comboBoxItems: Enum.GetNames(typeof(Aas.AasSubmodelElements)));
 
                 // ValueType for the list
 
                 this.AddHintBubble(
-                    stack, hintMode,
+                    valStack, hintMode,
                     new[] {
                         new HintCheck(
                             () => stats?.AllChildValueTypeMatch == false,
@@ -5724,23 +5793,31 @@ namespace AasxPackageLogic
                             "be set and all first level child elements in the SubmodelElementList shall " +
                             "have the the value type as specified in SubmodelElementList/valueTypeListElement")
                     });
-                this.AddKeyValueExRef(
-                    stack, "valueTypeListElement", sml, Aas.Stringification.ToString(sml.ValueTypeListElement),
+                this.AddKeyValue(
+                    valStack, "valueTypeListElement", Aas.Stringification.ToString(sml.ValueTypeListElement),
                     null, repo,
-                    async (v) =>
+                    containingObject: sml,
+                    keyVertCenter: true,
+                    keyHandling: keyHandling,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard,
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxMinWidth: 190,
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                    setValueAsync: async (v) =>
                     {
                         await Task.Yield();
                         sml.ValueTypeListElement = Aas.Stringification.DataTypeDefXsdFromString((string)v);
                         this.AddDiaryEntry(sml, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
                     },
-                    comboBoxIsEditable: editMode, comboBoxMinWidth: 190,
+                    comboBoxIsEditable: editMode, 
                     comboBoxItems: ExtendStringification.DataTypeXsdToStringArray().ToArray());
 
                 // SemanticId for the list
 
                 this.AddHintBubble(
-                   stack, hintMode,
+                   valStack, hintMode,
                    new[] {
                         new HintCheck(
                             () => stats?.AllChildSemIdMatch == false,
@@ -5756,16 +5833,18 @@ namespace AasxPackageLogic
 
                 // add the keys
                 if (this.SafeguardAccess(
-                        stack, repo, sml.SemanticIdListElement, "semanticIdListElement:", "Create w/ default!",
-                        async (v) =>
+                        valStack, repo, sml.SemanticIdListElement, "semanticIdListElement:", keyHandling: keyHandling,
+                        actionStr: "Create semanticIdListElement",
+                        actionAsync: async (v) =>
                         {
                             await Task.Yield();
                             sml.SemanticIdListElement = Options.Curr.GetDefaultEmptyReference();
                             this.AddDiaryEntry(sml, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
+                {
                     AddKeyReference(
-                        stack, "semanticIdListElement", 
+                        valStack, "semanticIdListElement",
                         sml.SemanticIdListElement, () => sml.SemanticIdListElement = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAux,
@@ -5773,7 +5852,7 @@ namespace AasxPackageLogic
                         addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing
                                    | AddKeyListKeys_Button.Eclass | AddKeyListKeys_Button.Known,
                         highlightButton: AddKeyListKeys_Button.Existing,
-                        addExistingEntities: "Submodel SubmodelElement ConceptDescription ", 
+                        addExistingEntities: "Submodel SubmodelElement ConceptDescription ",
                         modifyAddExistingKey: (inRefs) =>
                         {
                             var outRefs = inRefs.Copy();
@@ -5800,6 +5879,14 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionNavigateTo(sml.SemanticIdListElement);
                         },
                         relatedReferable: sml,
+                        keyHandling: keyHandling,
+                        buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                        buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                        buttonPreferenceLo: AnyUiButtonPreference.Image,
+                        keyStyleLeft: LayoutHints.StyleLeftKey,
+                        keyStyleAbove: LayoutHints.StyleHeadingItems,
+                        textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                        comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
                         auxContextHeader: new AnyUiContextMenuHeaderList(new[] {
                             new AnyUiContextMenuHeaderIconSource(0, IconPool.AutoDetect, "Auto-detect")
                         }),
@@ -5820,7 +5907,7 @@ namespace AasxPackageLogic
                             }
                             return new AnyUiLambdaActionNone();
                         });
-
+                }
             }
             else if (sme is Aas.Operation)
             {
