@@ -181,6 +181,22 @@ public partial class SelectFromListFlyoutPage : ContentPage, IFlyoutControl
         }
     }
 
+    private void OnItemDoubleTapped(object sender, Microsoft.Maui.Controls.TappedEventArgs e)
+    {
+        if (sender is BindableObject bo && bo.BindingContext is AnyUiDialogueListItem item)
+        {
+            // handle double-click on item
+            SetSelectEnabled(true);
+            if (ItemsView.SelectedItem == item)
+            {
+                PrepareResult();
+                DiaData.Result = true;
+                _tcs?.TrySetResult(true);
+                ControlClosed?.Invoke();
+            }
+        }
+    }
+
     protected List<string> _draggedFilePathes = new();
 
     protected async void OnDragOver(object sender, DragEventArgs e)

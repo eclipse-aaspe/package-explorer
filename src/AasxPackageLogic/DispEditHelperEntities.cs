@@ -4800,17 +4800,38 @@ namespace AasxPackageLogic
 
                 if (true)
                 {
-                    // new anchor point for this
-                    valStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
-                        "SME value information",
-                        AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
-                        AasxPredefinedConcepts.IdtaSpecs.Concept.SmeGeneral,
-                        LayoutHints.StyleHeadlineAboveHints,
-                        "The value of a SubmodelElement depends on its type.", LayoutHints.StyleHeadlineHints,
-                        hintMode: true,
-                        bodyMargin: LayoutHints.BodyMarginLargeLarge,
-                        borderStyle: LayoutHints.StyleBorderedBox,
-                        buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
+                    var elem = sme?.GetSelfDescription()?.SmeType;
+                    var concept = AasxPredefinedConcepts.IdtaSpecs.ResolveIdtaSpecs.GetConcept(elem.GetValueOrDefault());
+
+                    if (concept.HasValue)
+                    {
+                        // specific anchor point
+                        valStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                            Enum.GetName(typeof(Aas.AasSubmodelElements), elem) + " value information",
+                            AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                            concept.Value,
+                            LayoutHints.StyleHeadlineAboveHints,
+                            AdminShellUtil.GetAdequateElemPurpose(elem.Value),
+                            LayoutHints.StyleHeadlineHints,
+                            hintMode: hintMode,
+                            bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                            borderStyle: LayoutHints.StyleBorderedBox,
+                            buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
+                    }
+                    else
+                    {
+                        // basic anchor point for this
+                        valStack = AddBorderedGroupForIdtaSpec(stack, keyHandling,
+                            "SME value information",
+                            AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                            AasxPredefinedConcepts.IdtaSpecs.Concept.SmeGeneral,
+                            LayoutHints.StyleHeadlineAboveHints,
+                            "The value of a SubmodelElement depends on its type.", LayoutHints.StyleHeadlineHints,
+                            hintMode: true,
+                            bodyMargin: LayoutHints.BodyMarginLargeLarge,
+                            borderStyle: LayoutHints.StyleBorderedBox,
+                            buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop);
+                    }
                 }
 
                 // Qualifiable: qualifiers are MULTIPLE structures with possible references. 
@@ -4857,6 +4878,15 @@ namespace AasxPackageLogic
                 }
 
             }
+
+            //
+            // some lambdas
+            //
+
+            Action<Aas.AasSubmodelElements> lambdaElemHeadline = (elem) =>
+            {
+                
+            };
 
             //
             // Submodel Element VALUES
@@ -5184,10 +5214,10 @@ namespace AasxPackageLogic
             else if (sme is Aas.Range)
             {
                 var rng = sme as Aas.Range;
-                this.AddGroup(stack, "Range", this.levelColors.MainSection);
+                lambdaElemHeadline(AasSubmodelElements.Range);
 
                 this.AddHintBubble(
-                    stack, hintMode,
+                    valStack, hintMode,
                     new[] {
                         new HintCheck(
                             () => { return rng?.ValueType == null; },
@@ -5195,23 +5225,31 @@ namespace AasxPackageLogic
                                 "Value types are provided by built-in types of XML Schema Definition 1.1.",
                             severityLevel: HintCheck.Severity.Notice)
                     });
-                AddKeyValueExRef(
-                    stack, "valueType", rng, Aas.Stringification.ToString(rng.ValueType), null, repo,
-                    async (v) =>
+                AddKeyValue(
+                    valStack, "valueType", Aas.Stringification.ToString(rng.ValueType), null, repo,
+                    containingObject: rng,
+                    keyVertCenter: true,
+                    keyHandling: keyHandling,
+                    buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop.Modify(preference: AnyUiButtonPreference.Image),
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxMinWidth: 190,
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                    setValueAsync: async (v) =>
                     {
                         await Task.Yield();
                         rng.ValueType = (Aas.DataTypeDefXsd)Aas.Stringification.DataTypeDefXsdFromString((string)v);
                         this.AddDiaryEntry(rng, new DiaryEntryStructChange());
                         return new AnyUiLambdaActionNone();
                     },
-                    comboBoxIsEditable: true, comboBoxMinWidth: 190,
+                    comboBoxIsEditable: true, 
                     comboBoxItems: ExtendStringification.DataTypeXsdToStringArray().ToArray());
 
                 var mine = rng.Min == null || rng.Min.Trim().Length < 1;
                 var maxe = rng.Max == null || rng.Max.Trim().Length < 1;
 
                 this.AddHintBubble(
-                    stack, hintMode,
+                    valStack, hintMode,
                     new[] {
                         new HintCheck(
                             () => { return mine && maxe; },
@@ -5226,9 +5264,17 @@ namespace AasxPackageLogic
                             severityLevel: HintCheck.Severity.Notice)
                     });
 
-                AddKeyValueExRef(
-                    stack, "min", rng, rng.Min, null, repo,
-                    async (v) =>
+                AddKeyValue(
+                    valStack, "min", rng.Min, null, repo,
+                    containingObject: rng,
+                    keyVertCenter: true,
+                    keyHandling: keyHandling,
+                    buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop.Modify(preference: AnyUiButtonPreference.Image),
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxMinWidth: 190,
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                    setValueAsync: async (v) =>
                     {
                         await Task.Yield();
                         rng.Min = v as string;
@@ -5237,7 +5283,7 @@ namespace AasxPackageLogic
                     });
 
                 this.AddHintBubble(
-                    stack, hintMode,
+                    valStack, hintMode,
                     new[] {
                         new HintCheck(
                             () => { return maxe; },
@@ -5248,9 +5294,17 @@ namespace AasxPackageLogic
                             severityLevel: HintCheck.Severity.Notice)
                     });
 
-                AddKeyValueExRef(
-                    stack, "max", rng, rng.Max, null, repo,
-                    async (v) =>
+                AddKeyValue(
+                    valStack, "max", rng.Max, null, repo,
+                    containingObject: rng,
+                    keyVertCenter: true,
+                    keyHandling: keyHandling,
+                    buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop.Modify(preference: AnyUiButtonPreference.Image),
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxMinWidth: 190,
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                    setValueAsync: async (v) =>
                     {
                         await Task.Yield();
                         rng.Max = v as string;

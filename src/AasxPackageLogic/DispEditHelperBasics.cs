@@ -694,13 +694,21 @@ namespace AasxPackageLogic
                 // add labels
                 AddSmallLabelTo(g, 0, 1, content: heading, labelStyle: headingStyle, verticalCenter: true);
                 if (headingLinkLambda != null)
+                {
+                    var ls = headingStyle?.Copy() ?? new AnyUiSelectableTextBlock();
+                    ls.Margin.Left += 8;
                     AnyUiUIElement.RegisterControl(
-                        AddSmallLabelTo(g, 0, 2, content: null, imageSourceFont: IconPool.Link.Modify(color: AnyUiIconColor.Intense), labelStyle: headingStyle, textAsHyperLink: true, verticalCenter: true),
-                        setValueAsync: async (o) => {
+                        AddSmallLabelTo(g, 0, 2, content: null,
+                            imageSourceFont: IconPool.Link.Modify(color: AnyUiIconColor.Intense),
+                            labelStyle: ls,
+                            textAsHyperLink: true, verticalCenter: true),
+                        setValueAsync: async (o) =>
+                        {
                             if (headingLinkLambda == null)
                                 return new AnyUiLambdaActionNone();
                             return await headingLinkLambda.Invoke(o);
                         });
+                }
                 Set(AddSmallLabelTo(g, 1, 1, content: hint, labelStyle: hintStyle), colSpan: 2);
 
                 // context menu

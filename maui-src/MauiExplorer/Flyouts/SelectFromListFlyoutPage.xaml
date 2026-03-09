@@ -74,6 +74,13 @@
                     <Grid x:Name="Root"
                         Padding="10,2,10,2"
                         RowDefinitions="6,Auto,Auto,6">
+                        
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer
+                                NumberOfTapsRequired="2"
+                                Tapped="OnItemDoubleTapped" />  
+                        </Grid.GestureRecognizers>
+                        
                         <Label x:Name="TitleLabel"
                                Grid.Row="1"
                                Text="{Binding Text}"

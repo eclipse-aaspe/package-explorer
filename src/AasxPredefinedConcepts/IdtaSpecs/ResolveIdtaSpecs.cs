@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPredefinedConcepts.IdtaSpecs
 {
@@ -19,6 +20,17 @@ namespace AasxPredefinedConcepts.IdtaSpecs
         SubmodelElementList,
         SubmodelElementCollection,
         SubmodelElement,
+        AnnotatedRelationshipElement,
+        BasicEventElement,
+        Blob,
+        Capability,
+        Entity,
+        EventElement,
+        File,
+        Operation,
+        Range,
+        ReferenceElement,
+        RelationshipElement,
         AdministrativeInformation,
         HasDataSpecification,
         HasExtensions,
@@ -109,6 +121,7 @@ namespace AasxPredefinedConcepts.IdtaSpecs
             Records.Add(Concept.SmeGeneral,                     prefix, "submodel-elements.html");
             Records.Add(Concept.Property,                       prefix, "submodel-elements.html#property-attributes");
             Records.Add(Concept.MultiLanguageProperty,          prefix, "submodel-elements.html#_multi_language_property_attributes");
+            Records.Add(Concept.Range,                          prefix, "submodel-elements.html#range-attributes");
             Records.Add(Concept.SubmodelElementList,            prefix, "submodel-elements.html#submodel-element-list-attributes");
             Records.Add(Concept.SubmodelElementCollection,      prefix, "submodel-elements.html#submodel-element-collection-attributes");
             Records.Add(Concept.AdministrativeInformation,      prefix, "common.html#administrative-information-attributes");
@@ -141,6 +154,46 @@ namespace AasxPredefinedConcepts.IdtaSpecs
                         found = rec;
                 }
             return found?.Uri;
+        }
+
+        public static Concept? GetConcept(Aas.AasSubmodelElements elem)
+        {
+            switch (elem)
+            {
+                case Aas.AasSubmodelElements.AnnotatedRelationshipElement:
+                    return Concept.AnnotatedRelationshipElement;
+                case Aas.AasSubmodelElements.BasicEventElement:
+                    return Concept.BasicEventElement;
+                case Aas.AasSubmodelElements.Blob:
+                    return Concept.Blob;
+                case Aas.AasSubmodelElements.Capability:
+                    return Concept.Capability;
+                case Aas.AasSubmodelElements.Entity:
+                    return Concept.Entity;
+                case Aas.AasSubmodelElements.EventElement:
+                    return Concept.EventElement;
+                case Aas.AasSubmodelElements.File:
+                    return Concept.File;
+                case Aas.AasSubmodelElements.MultiLanguageProperty:
+                    return Concept.MultiLanguageProperty;
+                case Aas.AasSubmodelElements.Operation:
+                    return Concept.Operation; ;
+                case Aas.AasSubmodelElements.Property:
+                    return Concept.Property;
+                case Aas.AasSubmodelElements.Range:
+                    return Concept.Range;
+                case Aas.AasSubmodelElements.ReferenceElement:
+                    return Concept.ReferenceElement;
+                case Aas.AasSubmodelElements.RelationshipElement:
+                    return Concept.RelationshipElement;
+                case Aas.AasSubmodelElements.SubmodelElement:
+                    return Concept.SubmodelElement;
+                case Aas.AasSubmodelElements.SubmodelElementList:
+                    return Concept.SubmodelElementList;
+                case Aas.AasSubmodelElements.SubmodelElementCollection:
+                    return Concept.SubmodelElementCollection;
+            }
+            return null;
         }
 
     }
