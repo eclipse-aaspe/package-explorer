@@ -1897,7 +1897,9 @@ namespace AasxPackageLogic
                                                     break;
 
                                                 case 100:
-                                                    langStr.Add<T>(language: AdminShellUtil.GetDefaultLngIso639(), text: "");
+                                                    langStr.Add<T>(
+                                                        language: AasxLanguageHelper.GetFirstLangCodeNotTused<T>(Options.Curr.OfferedLangs, langStr),
+                                                        text: Options.Curr.DefaultEmptyLangText);
                                                     action = true;
                                                     break;
 
@@ -1952,7 +1954,7 @@ namespace AasxPackageLogic
                         {
                             await Task.Yield();
                             langStr.Add<T>(
-                                language: AasxLanguageHelper.GetFirstLangCodeNotTused<T>(Options.Curr.DefaultLangs, langStr), 
+                                language: AasxLanguageHelper.GetFirstLangCodeNotTused<T>(Options.Curr.OfferedLangs, langStr), 
                                 text: Options.Curr.DefaultEmptyLangText);
                             emitCustomEvent?.Invoke(relatedReferable);
                             return new AnyUiLambdaActionRedrawEntity();
@@ -2020,7 +2022,10 @@ namespace AasxPackageLogic
             // prepare a list
             var fol = new AnyUiDialogueListItemList();
             foreach (var en in AdminShellUtil.GetAdequateEnums(excludeValues, includeValues))
-                fol.Add(new AnyUiDialogueListItem(Enum.GetName(typeof(Aas.AasSubmodelElements), en), en));
+                fol.Add(new AnyUiDialogueListItem(
+                        text: Enum.GetName(typeof(Aas.AasSubmodelElements), en),
+                        subText: AdminShellUtil.GetAdequateElemPurpose(en),
+                        tag: en));
 
             // argument in ticket?
             var arg = ticket?["Kind"] as string;

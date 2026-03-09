@@ -20,6 +20,9 @@ namespace MauiTestTree
             => throw new NotImplementedException();
     }
     
+    /// <summary>
+    /// Maps a bool to two colors
+    /// </summary>
     public class BoolToColorConverter : IValueConverter
     {
         public Microsoft.Maui.Graphics.Color TrueColor { get; set; } = Colors.Transparent;
@@ -27,6 +30,18 @@ namespace MauiTestTree
 
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
             => value is bool b && b ? TrueColor : FalseColor;
+
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Returns a "true", if input argument is a non empty string
+    /// </summary>
+    public class NonEmptyStringConverter : IValueConverter
+    {
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+            => value is string str && str.Length >= 1;
 
         public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
             => throw new NotImplementedException();
@@ -53,6 +68,9 @@ namespace MauiTestTree
             => throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// Maps an enum by int to a value array
+    /// </summary>
     public class EnumToIntParamterizedConverter : IValueConverter
     {
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -78,6 +96,9 @@ namespace MauiTestTree
             => throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// Maps an enum by int to a color array
+    /// </summary>
     public class BoolEnumToColorParamterizedConverter : IValueConverter
     {
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

@@ -343,6 +343,50 @@ namespace AdminShellNS
             }
         }
 
+        public static string GetAdequateElemPurpose(AasSubmodelElements elem)
+        {
+            switch (elem)
+            {
+                case AasSubmodelElements.AnnotatedRelationshipElement:
+                    return "Relationship which is annotated by a set of value information";
+                case AasSubmodelElements.BasicEventElement:
+                    return "Declaration of an AAS Event, which can be emitted or consumed, with basic attributes";
+                case AasSubmodelElements.Blob:
+                    return "Binary large object embedded into the Submodel information";
+                case AasSubmodelElements.Capability:
+                    return "Declaration of a specified capability";
+                case AasSubmodelElements.ContainerElement:
+                    return "AAS SubmodelElement capable of containing other elements";
+                case AasSubmodelElements.DataElement:
+                    return "AAS SubmodelElement with value information";
+                case AasSubmodelElements.Entity:
+                    return "Representation of a self-managed asset or a logical decomposed entity";
+                case AasSubmodelElements.EventElement:
+                    return "Declaration of an AAS Event, which can be emitted or consumed";
+                case AasSubmodelElements.File:
+                    return "File, which is referenced by the SubmodelElement";
+                case AasSubmodelElements.MultiLanguageProperty:
+                    return "Value in multiple distinct languages";
+                case AasSubmodelElements.Operation:
+                    return "Ability to start a free-running or synchronized execution of actions";
+                case AasSubmodelElements.Property:
+                    return "Measurable value or value with distinctive id information";
+                case AasSubmodelElements.Range:
+                    return "Range of value with minimum and maximum information";
+                case AasSubmodelElements.ReferenceElement:
+                    return "Linking to a paticular AAS model element";
+                case AasSubmodelElements.RelationshipElement:
+                    return "Named relationship between two AAS model elements with subject, predicate, object";
+                case AasSubmodelElements.SubmodelElement:
+                    return "Superclass of all AAS SubmodelElements";
+                case AasSubmodelElements.SubmodelElementList:
+                    return "Indexed list of elements, which have the same semantics";
+                case AasSubmodelElements.SubmodelElementCollection:
+                    return "Set of elements, which each have a unique semantics";
+            }
+            return null;
+        }
+
         public static AasSubmodelElements? AasSubmodelElementsFrom<T>() where T : ISubmodelElement
         {
             if (typeof(T) == typeof(Property))

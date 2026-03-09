@@ -4870,7 +4870,8 @@ namespace AasxPackageLogic
                     AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
                     AasxPredefinedConcepts.IdtaSpecs.Concept.Property,
                     LayoutHints.StyleHeadline2AboveHints,
-                    "Measurable value or value with id information", LayoutHints.StyleHeadlineHints,
+                    AdminShellUtil.GetAdequateElemPurpose(AasSubmodelElements.Property), 
+                    LayoutHints.StyleHeadlineHints,
                     hintMode: hintMode,
                     bodyMargin: LayoutHints.BodyMarginOrdOrd,
                     buttonOverStyle: LayoutHints.StyleButtonStandard);
@@ -5060,11 +5061,21 @@ namespace AasxPackageLogic
             else if (sme is Aas.MultiLanguageProperty)
             {
                 var mlp = sme as Aas.MultiLanguageProperty;
-                this.AddGroup(stack, "MultiLanguageProperty", this.levelColors.MainSection);
+
+                AddHeadlineForIdtaSpec(valStack, keyHandling,
+                    $"MultiLanguageProperty",
+                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
+                    AasxPredefinedConcepts.IdtaSpecs.Concept.MultiLanguageProperty,
+                    LayoutHints.StyleHeadline2AboveHints,
+                    AdminShellUtil.GetAdequateElemPurpose(AasSubmodelElements.MultiLanguageProperty),
+                    LayoutHints.StyleHeadlineHints,
+                    hintMode: hintMode,
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard);
 
                 // Value
                 this.AddHintBubble(
-                    stack, hintMode,
+                    valStack, hintMode,
                     new[] {
                         new HintCheck(
                             () => { return mlp.Value == null || mlp.Value.Count < 1; },
@@ -5075,9 +5086,10 @@ namespace AasxPackageLogic
                             "Please add multiple languanges.",
                             severityLevel: HintCheck.Severity.Notice)
                     });
-                if (this.SafeguardAccess(
-                        stack, repo, mlp.Value, "value:", "Create data element!",
-                        async (v) =>
+                if (SafeguardAccess(
+                        valStack, repo, mlp.Value, "value:", "Create language(s) value!",
+                        keyHandling: keyHandling,
+                        actionAsync: async (v) =>
                         {
                             await Task.Yield();
                             mlp.Value = ExtendILangStringTextType.CreateFrom(
@@ -5089,9 +5101,18 @@ namespace AasxPackageLogic
                 {
                     // edit
 					this.AddKeyListLangStr<Aas.ILangStringTextType>(
-                        stack, "value", mlp.Value, repo,
+                        valStack, "value", mlp.Value, repo,
                         relatedReferable: mlp,
                         setNullList: () => mlp.Value = null,
+                        keyHandling: keyHandling,
+                        buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                        buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                        buttonPreferenceLo: AnyUiButtonPreference.Image,
+                        buttonPreferenceHi: AnyUiButtonPreference.Both,
+                        keyStyleAbove: LayoutHints.StyleHeadingItems,
+                        textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                        comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                        bodyMargin: LayoutHints.BodyMarginLargeLarge,
                         emitCustomEvent: (rf) => {
                             // primary
 							this.AddDiaryEntry(rf, new DiaryEntryUpdateValue());
@@ -5120,7 +5141,7 @@ namespace AasxPackageLogic
                 // ValueId
 
                 this.AddHintBubble(
-                    stack, hintMode,
+                    valStack, hintMode,
                     new[] {
                     new HintCheck(
                         () => mlp.ValueId != null && mlp.ValueId.IsValid() != true,
@@ -5129,9 +5150,10 @@ namespace AasxPackageLogic
                         "not empty.")
                 });
 
-                if (this.SafeguardAccess(
-                        stack, repo, mlp.ValueId, "valueId:", "Create data element!",
-                        async (v) =>
+                if (SafeguardAccess(
+                        valStack, repo, mlp.ValueId, "valueId:", "Create valueId!",
+                        keyHandling: keyHandling,
+                        actionAsync: async (v) =>
                         {
                             await Task.Yield();
                             mlp.ValueId = Options.Curr.GetDefaultEmptyReference(); 
@@ -5139,15 +5161,23 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
                 {
-                    this.AddGroup(stack, "ValueID", this.levelColors.SubSection);
-                    this.AddKeyListKeys(
-                        stack, "valueId", 
+                    AddKeyListKeys(
+                        valStack, "valueId:", 
                         mlp.ValueId.Keys, () => mlp.ValueId = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addButton: AddKeyListKeys_Button.Blank | AddKeyListKeys_Button.Existing,
                         addExistingEntities: Aas.Stringification.ToString(Aas.KeyTypes.GlobalReference),
                         relatedReferable: mlp,
+                        keyHandling: keyHandling,
+                        buttonOverStyleLo: LayoutHints.StyleButtonStandard,
+                        buttonOverStyleHi: LayoutHints.StyleButtonAction,
+                        buttonPreferenceLo: AnyUiButtonPreference.Image,
+                        keyStyleLeft: LayoutHints.StyleLeftKey,
+                        keyStyleAbove: LayoutHints.StyleHeadingItems,
+                        textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                        comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                        bodyMargin: LayoutHints.BodyMarginLargeLarge,
                         emitCustomEvent: (rf) => { this.AddDiaryEntry(rf, new DiaryEntryUpdateValue()); });
                 }
             }

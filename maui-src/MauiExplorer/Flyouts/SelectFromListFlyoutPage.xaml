@@ -20,6 +20,8 @@
         <local:InverseBoolConverter
             x:Key="MyInverseBoolConverter" />
 
+        <local:NonEmptyStringConverter
+            x:Key="MyNonEmptyStringConverter" />
     </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto, *, Auto" ColumnDefinitions="60,*, 60">
@@ -70,11 +72,18 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="anyui:AnyUiDialogueListItem">
                     <Grid x:Name="Root"
-                        Padding="10,2,10,2">
+                        Padding="10,2,10,2"
+                        RowDefinitions="6,Auto,Auto,6">
                         <Label x:Name="TitleLabel"
+                               Grid.Row="1"
                                Text="{Binding Text}"
-                               Margin="4"
-                               Padding="6,2,6,2"/>
+                               FontSize="16"/>
+
+                        <Label x:Name="SubLabel"
+                               Grid.Row="2"
+                               Text="{Binding SubText}"
+                               IsVisible="{Binding SubText, Converter={StaticResource MyNonEmptyStringConverter}}"
+                               FontSize="10"/>
 
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup Name="CommonStates">
@@ -82,6 +91,7 @@
                                     <VisualState.Setters>
                                         <Setter Property="BackgroundColor" Value="Transparent" />
                                         <Setter TargetName="TitleLabel" Property="Label.TextColor" Value="{StaticResource Backstage_Labels}"/>
+                                        <Setter TargetName="SubLabel" Property="Label.TextColor" Value="{StaticResource Secondary}"/>
                                     </VisualState.Setters>
                                 </VisualState>
 
@@ -89,6 +99,7 @@
                                     <VisualState.Setters>
                                         <Setter Property="BackgroundColor" Value="{StaticResource Secondary}" />
                                         <Setter TargetName="TitleLabel" Property="Label.TextColor" Value="Black"/>
+                                        <Setter TargetName="SubLabel" Property="Label.TextColor" Value="Black"/>
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>

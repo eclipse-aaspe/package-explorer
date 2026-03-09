@@ -488,14 +488,16 @@ namespace AnyUi
     public class AnyUiDialogueListItem
     {
         public string Text { get; set; } = "";
+        public string SubText { get; set; } = null;
         public object Tag { get; set; } = null;
 
         public AnyUiDialogueListItem() { }
 
-        public AnyUiDialogueListItem(string text, object tag)
+        public AnyUiDialogueListItem(string text, object tag, string subText = null)
         {
-            this.Text = text;
-            this.Tag = tag;
+            Text = text;
+            Tag = tag;
+            SubText = subText;
         }
     }
 

@@ -249,7 +249,13 @@ namespace AasxIntegrationBase
         {
             if (codes == null)
                 return null;
-            var lst = codes.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var lst = codes.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                           .Select((s) => {
+                               int p = s.IndexOf('-');
+                               if (p > 0)
+                                   s = s.Substring(0, p);
+                               return s;
+                           });
 
             // simple answer
             if (alreadyUsed == null || lst == null)
