@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Windows;
 using AasxIntegrationBase;
 using AasxPackageExplorer;
@@ -22,7 +23,21 @@ public partial class DispEditAasxEntityMaui : ContentView
     // Component
     //
 
-	public DispEditAasxEntityMaui()
+//    static void DumpVisualTree(Microsoft.UI.Xaml.DependencyObject obj, int level = 0)
+//    {
+//#if WINDOWS
+//        for (int i = 0; i < Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(obj); i++)
+//        {
+//            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(obj, i);
+//            System.Diagnostics.Debug.WriteLine(
+//                new string(' ', level * 2) + child.GetType().Name);
+
+//            DumpVisualTree(child, level + 1);
+//        }
+//#endif
+//    }
+
+    public DispEditAasxEntityMaui()
 	{
 		InitializeComponent();
 
@@ -40,7 +55,42 @@ public partial class DispEditAasxEntityMaui : ContentView
         {
             StopTimer();
         };
-	}
+
+        RootScrollView.HandlerChanged += (s, e) =>
+        {
+//#if WINDOWS
+//            if (RootScrollView.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.ScrollViewer sv)
+//            {
+//                sv.BringIntoViewOnFocusChange = false;
+//                sv.IsTabStop = false;
+//            }
+//#endif
+        };
+
+        RootScrollView.Loaded += (s, e) =>
+        {
+#if WINDOWS
+            //var native = RootScrollView.Handler?.PlatformView;
+
+            //System.Diagnostics.Debug.WriteLine("ROOT: " + native!.GetType().Name);
+
+            //DumpVisualTree((Microsoft.UI.Xaml.DependencyObject)native);
+
+            //if (RootScrollView.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.ScrollViewer sv)
+            //{
+            //    sv.BringIntoViewOnFocusChange = false;
+
+            //    sv.BringIntoViewRequested += (sender, args) =>
+            //    {
+            //        args.Handled = true;
+            //    };
+
+            //    sv.HorizontalAnchorRatio = 0;
+            //    sv.VerticalAnchorRatio = 0;
+            //}
+#endif
+        };
+    }
 
     //
     // Timer + Events to the outside
@@ -528,6 +578,22 @@ public partial class DispEditAasxEntityMaui : ContentView
             Padding = new AnyUiThickness(10, 8, 10, 8)
         };
 
+        _helper.NeedsReScroll = async () =>
+        {
+            await Task.Yield();
+            // InvisibleFocusField.Focus();
+
+            // try re-set the scroll position
+            //if (_lastUsedScrollPosition.HasValue)
+            //{
+            //    this.Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(500), async () =>
+            //    {
+            //        Debug.WriteLine(_lastUsedScrollPosition.Value);
+            //        await RootScrollView.ScrollToAsync(0, 1533 /* _lastUsedScrollPosition.Value*/, false);
+            //    });
+            //}
+        };
+
         // body margins
         _helper.LayoutHints.BodyMarginOrdOrd = new AnyUiThickness(0, 1, 0, 3);
         _helper.LayoutHints.BodyMarginOrdLarge = new AnyUiThickness(0, 1, 0, 24);
@@ -616,6 +682,9 @@ public partial class DispEditAasxEntityMaui : ContentView
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Print);
         IconPool.Upload
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Upload);
+
+        IconPool.FileOpen
+                .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.File_open);
 
         IconPool.Query
                 .Modify("mat-out", UraniumUI.Icons.MaterialSymbols.MaterialOutlined.Category_search);
@@ -780,6 +849,14 @@ public partial class DispEditAasxEntityMaui : ContentView
         // keep the stack
         _lastRenderedRootElement = stack;
 
+        // try re-set the scroll position
+        if (_lastUsedScrollPosition.HasValue)
+        {
+            // await rendering of the UI task
+            await Task.Yield();
+            await RootScrollView.ScrollToAsync(0, _lastUsedScrollPosition.Value, false);
+        }
+
         // return render hints
         return renderHints;
     }
@@ -832,4 +909,14 @@ public partial class DispEditAasxEntityMaui : ContentView
         MasterPanel.Content = spmaui as View;
     }
 
+    /// <summary>
+    /// Will try capture the last used scroll position of the panel, in order to 
+    /// re-set this after re-drawing the panel
+    /// </summary>
+    protected double? _lastUsedScrollPosition = null;
+
+    private void RootScrollView_Scrolled(object sender, ScrolledEventArgs e)
+    {
+        _lastUsedScrollPosition = e.ScrollY;
+    }
 }

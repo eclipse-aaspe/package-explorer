@@ -9,7 +9,7 @@ using Microsoft.Maui.Handlers;
 #if WINDOWS
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.UI;
-using Windows.UI.WindowManagement;
+using Microsoft.UI.Xaml.Controls;
 #endif
 
 namespace MauiTestTree
@@ -86,6 +86,18 @@ namespace MauiTestTree
                         };
                     });
                 });
+            });
+
+            ScrollViewHandler.Mapper.AppendToMapping("DisableFocusScrolling", (handler, view) =>
+            {
+                if (handler.PlatformView is ScrollViewer sv)
+                {
+                    // Prevent focus-triggered scrolling
+                    sv.BringIntoViewOnFocusChange = false;
+
+                    // Prevent automatic anchor repositioning when layout changes
+                    sv.VerticalAnchorRatio = 0.0;
+                }
             });
 #endif
 

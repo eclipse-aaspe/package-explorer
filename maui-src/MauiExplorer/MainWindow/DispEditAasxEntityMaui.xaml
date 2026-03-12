@@ -2,10 +2,16 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiTestTree.DispEditAasxEntityMaui">
-    <ScrollView x:Name="RootScrollView">
-        <ContentView x:Name="MasterPanel"
-                     Margin="4,4,18,4">
-            <!-- Generated elements will be set here -->
-        </ContentView>
-    </ScrollView>
+
+    <Grid RowDefinitions="Auto,*">
+        <Entry x:Name="InvisibleFocusField" Grid.Row="0" WidthRequest="30" Text="x"/>
+
+        <ScrollView x:Name="RootScrollView" Grid.Row="1"
+                    Scrolled="RootScrollView_Scrolled">
+            <ContentView x:Name="MasterPanel"
+                         Margin="4,4,18,4">
+                <!-- Generated elements will be set here -->
+            </ContentView>
+        </ScrollView>
+    </Grid>
 </ContentView>

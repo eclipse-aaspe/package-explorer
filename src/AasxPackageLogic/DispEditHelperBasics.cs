@@ -333,6 +333,8 @@ namespace AasxPackageLogic
 
         public UILayoutHints LayoutHints = new();
 
+        public Action NeedsReScroll = null;
+
         /// <summary>
         /// This tag value identifies controls, which can be substituted in order to 
         /// reduce complexity.
@@ -706,6 +708,14 @@ namespace AasxPackageLogic
                         {
                             if (headingLinkLambda == null)
                                 return new AnyUiLambdaActionNone();
+
+                            //#if WINDOWS
+                            //            await Microsoft.UI.Xaml.Input.FocusManager.TryFocusAsync(null, Microsoft.UI.Xaml.FocusState.Unfocused);
+                            //#endif
+
+                            if (NeedsReScroll != null)
+                                NeedsReScroll.Invoke();
+
                             return await headingLinkLambda.Invoke(o);
                         });
                 }

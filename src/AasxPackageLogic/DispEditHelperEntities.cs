@@ -4880,31 +4880,11 @@ namespace AasxPackageLogic
             }
 
             //
-            // some lambdas
-            //
-
-            Action<Aas.AasSubmodelElements> lambdaElemHeadline = (elem) =>
-            {
-                
-            };
-
-            //
             // Submodel Element VALUES
             //
             if (sme is Aas.Property)
             {
                 var p = sme as Aas.Property;
-
-                AddHeadlineForIdtaSpec(valStack, keyHandling,
-                    $"Property",
-                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
-                    AasxPredefinedConcepts.IdtaSpecs.Concept.Property,
-                    LayoutHints.StyleHeadline2AboveHints,
-                    AdminShellUtil.GetAdequateElemPurpose(AasSubmodelElements.Property), 
-                    LayoutHints.StyleHeadlineHints,
-                    hintMode: hintMode,
-                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
-                    buttonOverStyle: LayoutHints.StyleButtonStandard);
 
                 this.AddHintBubble(
                     valStack, hintMode,
@@ -5092,17 +5072,6 @@ namespace AasxPackageLogic
             {
                 var mlp = sme as Aas.MultiLanguageProperty;
 
-                AddHeadlineForIdtaSpec(valStack, keyHandling,
-                    $"MultiLanguageProperty",
-                    AasxPredefinedConcepts.IdtaSpecs.Part.Part1,
-                    AasxPredefinedConcepts.IdtaSpecs.Concept.MultiLanguageProperty,
-                    LayoutHints.StyleHeadline2AboveHints,
-                    AdminShellUtil.GetAdequateElemPurpose(AasSubmodelElements.MultiLanguageProperty),
-                    LayoutHints.StyleHeadlineHints,
-                    hintMode: hintMode,
-                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
-                    buttonOverStyle: LayoutHints.StyleButtonStandard);
-
                 // Value
                 this.AddHintBubble(
                     valStack, hintMode,
@@ -5214,7 +5183,6 @@ namespace AasxPackageLogic
             else if (sme is Aas.Range)
             {
                 var rng = sme as Aas.Range;
-                lambdaElemHeadline(AasSubmodelElements.Range);
 
                 this.AddHintBubble(
                     valStack, hintMode,
@@ -5314,18 +5282,16 @@ namespace AasxPackageLogic
             }
             else if (sme is Aas.File fl)
             {
-                this.AddGroup(stack, "File", this.levelColors.MainSection);
-
                 // refer to mini-module
                 DisplayOrEditEntityFileResource(
-                    stack, packages.Main,
+                    valStack, packages.Main,
                     fl, repo, superMenu,
                     fl.Value, fl.ContentType,
                     (fn, ct) =>
                     {
                         fl.Value = fn;
                         fl.ContentType = ct;
-                    }, fl);
+                    }, fl, keyHandling);
             }
             else if (sme is Aas.Blob blb)
             {

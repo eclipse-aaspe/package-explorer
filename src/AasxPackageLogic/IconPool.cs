@@ -52,6 +52,8 @@ namespace AasxPackageLogic
         public static AnyUiImageSourceFont Print = new("uc", "\u2699", AnyUiIconColor.Normal);
         public static AnyUiImageSourceFont Upload = new("uc", "\U0001f879", AnyUiIconColor.Normal);
 
+        public static AnyUiImageSourceFont FileOpen = new("uc", "\U0001f4be", AnyUiIconColor.Normal);
+
         public static AnyUiImageSourceFont Refresh = new("uc", "\u21bb", AnyUiIconColor.Normal);
         
         public static AnyUiImageSourceFont IecOrg = new("uc", "\U0001f50c", AnyUiIconColor.Normal);

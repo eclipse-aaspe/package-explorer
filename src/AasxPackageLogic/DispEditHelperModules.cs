@@ -3210,7 +3210,8 @@ namespace AasxPackageLogic
             string valuePath,
             string valueContent,
             Action<string, string> setOutput,
-            Aas.IReferable relatedReferable = null)
+            Aas.IReferable relatedReferable = null,
+            KeyLabelHandling keyHandling = KeyLabelHandling.FirstColumn)
         {
             // access
             if (stack == null)
@@ -3220,9 +3221,17 @@ namespace AasxPackageLogic
 
             // Value
 
-            AddKeyValueExRef(
-                stack, "value", containingObject, valuePath, null, repo,
-                async (v) =>
+            AddKeyValue(
+                stack, "value", valuePath, null, repo,
+                containingObject: containingObject,
+                keyVertCenter: true,
+                keyHandling: keyHandling,
+                buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop.Modify(preference: AnyUiButtonPreference.Image),
+                textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                comboBoxMinWidth: 190,
+                comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                setValueAsync: async (v) =>
                 {
                     await Task.Yield();
                     valuePath = v as string;
@@ -3230,8 +3239,7 @@ namespace AasxPackageLogic
                     this.AddDiaryEntry(containingObject, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionNone();
                 },
-                auxButtonTitles: new[] { "Choose supplemental file", },
-                auxButtonToolTips: new[] { "Select existing supplemental file" },
+                auxButtons: new AnyUiButtonHeaderList(IconPool.FileOpen, "Choose supplemental file", "Select existing supplemental file"),
                 auxButtonLambdaAsync: async (bi) =>
                 {
                     if (bi == 0)
@@ -3270,9 +3278,17 @@ namespace AasxPackageLogic
                         "See RFC2046.", severityLevel: HintCheck.Severity.Notice)
                 });
 
-            AddKeyValueExRef(
-                stack, "contentType", containingObject, valueContent, null, repo,
-                async (v) =>
+            AddKeyValue(
+                stack, "contentType", valueContent, null, repo,
+                containingObject: containingObject,
+                keyVertCenter: true,
+                keyHandling: keyHandling,
+                buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop.Modify(preference: AnyUiButtonPreference.Image),
+                textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                comboBoxMinWidth: 140,
+                comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                setValueAsync: async (v) =>
                 {
                     await Task.Yield();
                     valueContent = v as string;
@@ -3280,7 +3296,7 @@ namespace AasxPackageLogic
                     this.AddDiaryEntry(containingObject, new DiaryEntryStructChange());
                     return new AnyUiLambdaActionNone();
                 },
-                comboBoxIsEditable: true, comboBoxMinWidth: 140,
+                comboBoxIsEditable: true,
                 comboBoxItems: AdminShellUtil.GetPopularMimeTypes());
 
             this.AddHintBubble(
@@ -3304,183 +3320,208 @@ namespace AasxPackageLogic
             {
                 // Remove, create text, edit
                 // More file actions
-                this.AddActionPanel(
-                    stack, "Action",
-                    repo: repo, superMenu: superMenu,
-                    ticketMenu: new AasxMenu()
-                        .AddAction("remove-file", "Remove existing file",
-                            "Removes the file from the AASX environment.")
-                        .AddAction("create-text", "Create text file",
-                            "Creates a text file and adds it to the AAS environment.")
-                        .AddAction("edit-text", "Edit text file",
-                            "Edits the associated text file and updates it to the AAS environment.")
-                        .AddAction("centralize-file", "Centralize file",
-                            "Rename file, copy it to central file storage and potentially delete supplemental file.")
-                        ,
-                    ticketActionAsync: async (buttonNdx, ticket) =>
-
-                    {
-                        if (buttonNdx == 0 && valuePath.HasContent())
+                AddKeyButtons(stack, "Actions",
+                    keyHandling: keyHandling,
+                    buttons: GenerateActionButton(
+                        new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "Maintain information",
+                                "Actions related to existing File information",
+                                AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+                        repo: repo,
+                        superMenu: superMenu,
+                        ticketMenu: new AasxMenu()
+                            .AddAction("remove-file", "Remove existing file",
+                                icon: IconPool.Delete,
+                                help: "Removes the file from the AASX environment.")
+                            .AddAction("create-text", "Create text file",
+                                icon: IconPool.CreateNew,
+                                help: "Creates a text file and adds it to the AAS environment.")
+                            .AddAction("edit-text", "Edit text file",
+                                icon: IconPool.MultiLineEdit,
+                                help: "Edits the associated text file and updates it to the AAS environment.")
+                            .AddAction("centralize-file", "Centralize file",
+                                icon: IconPool.Migrate,
+                                help: "Rename file, copy it to central file storage and potentially delete supplemental file."),
+                        buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
+                                        preference: AnyUiButtonPreference.Both),
+                        padding: new AnyUiThickness(5, 0, 5, 0),
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
-                            if (AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
-                                "Delete selected entity? This operation can not be reverted!", "AAS-ENV",
-                                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                            if (buttonNdx == 0 && valuePath.HasContent())
                             {
-                                try
+                                if (AnyUiMessageBoxResult.Yes == await context.MessageBoxFlyoutShowAsync(
+                                    "Delete selected entity? This operation can not be reverted!", "AAS-ENV",
+                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
                                 {
-                                    // try find ..
-                                    var psfs = packages.Main.GetListOfSupplementaryFiles();
-                                    var psf = psfs?.FindByUri(valuePath);
-                                    if (psf == null)
+                                    try
+                                    {
+                                        // try find ..
+                                        var psfs = packages.Main.GetListOfSupplementaryFiles();
+                                        var psf = psfs?.FindByUri(valuePath);
+                                        if (psf == null)
+                                        {
+                                            Log.Singleton.Error(
+                                                $"Not able to locate supplementary file {valuePath} for removal! " +
+                                                $"Aborting!");
+                                        }
+                                        else
+                                        {
+                                            Log.Singleton.Info($"Removing file {valuePath} ..");
+                                            packages.Main.DeleteSupplementaryFile(psf);
+                                            Log.Singleton.Info(
+                                                $"Added {valuePath} to pending package items to be deleted. " +
+                                                "A save-operation might be required.");
+                                        }
+                                    }
+                                    catch (Exception ex)
                                     {
                                         Log.Singleton.Error(
-                                            $"Not able to locate supplementary file {valuePath} for removal! " +
-                                            $"Aborting!");
+                                            ex, $"Removing file {valuePath} in package");
+                                    }
+
+                                    // clear value
+                                    valuePath = "";
+
+                                    // value event
+                                    setOutput?.Invoke(valuePath, valueContent);
+                                    this.AddDiaryEntry(containingObject, new DiaryEntryUpdateValue());
+
+                                    // show empty
+                                    return new AnyUiLambdaActionRedrawEntity();
+                                }
+                            }
+
+                            if (buttonNdx == 1)
+                            {
+                                // ask for a name
+                                var uc = new AnyUiDialogueDataTextBox(
+                                    "Name of text file to create",
+                                    symbol: AnyUiMessageBoxImage.Question,
+                                    maxWidth: 1400,
+                                    text: "Textfile_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
+                                await context?.StartFlyoverModalAsync(uc);
+                                if (!uc.Result)
+                                {
+                                    return new AnyUiLambdaActionNone();
+                                }
+
+                                var ptd = "/aasx/";
+                                var ptfn = uc.Text.Trim();
+                                packages.Main.PrepareSupplementaryFileParameters(ref ptd, ref ptfn);
+
+                                // make sure the name is not already existing
+                                var psfs = packages.Main.GetListOfSupplementaryFiles();
+                                var psf = psfs?.FindByUri(ptd + ptfn);
+                                if (psf != null)
+                                {
+                                    await context?.MessageBoxFlyoutShowAsync(
+                                        $"The supplemental file {ptd + ptfn} is already existing in the " +
+                                        "package. Please re-try with a different file name.", "Create text file",
+                                        AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Warning);
+                                    return new AnyUiLambdaActionNone();
+                                }
+
+                                // try execute
+                                try
+                                {
+                                    // make temp file
+                                    var tempFn = System.IO.Path.GetTempFileName().Replace(".tmp", ".txt");
+                                    System.IO.File.WriteAllText(tempFn, "");
+
+                                    var mimeType = AdminShellPackageFileBasedEnv.GuessMimeType(ptfn);
+
+                                    var targetPath = packages.Main.AddSupplementaryFileToStore(
+                                        tempFn, ptd, ptfn,
+                                        embedAsThumb: false, useMimeType: mimeType);
+
+                                    if (targetPath == null)
+                                    {
+                                        Log.Singleton.Error(
+                                            $"Error creating text-file {ptd + ptfn} within package");
                                     }
                                     else
                                     {
-                                        Log.Singleton.Info($"Removing file {valuePath} ..");
-                                        packages.Main.DeleteSupplementaryFile(psf);
-                                        Log.Singleton.Info(
-                                            $"Added {valuePath} to pending package items to be deleted. " +
-                                            "A save-operation might be required.");
+                                        Log.Singleton.Info(StoredPrint.Color.Blue,
+                                            $"Added empty text-file {ptd + ptfn} to pending package items. " +
+                                            $"A save-operation is required.");
+                                        valueContent = mimeType;
+                                        valuePath = targetPath;
+                                        setOutput?.Invoke(valuePath, valueContent);
+
+                                        // value + struct event
+                                        this.AddDiaryEntry(containingObject, new DiaryEntryStructChange());
+                                        this.AddDiaryEntry(containingObject, new DiaryEntryUpdateValue());
                                     }
                                 }
                                 catch (Exception ex)
                                 {
                                     Log.Singleton.Error(
-                                        ex, $"Removing file {valuePath} in package");
+                                        ex, $"Creating text-file {ptd + ptfn} within package");
                                 }
-
-                                // clear value
-                                valuePath = "";
-
-                                // value event
-                                setOutput?.Invoke(valuePath, valueContent);
-                                this.AddDiaryEntry(containingObject, new DiaryEntryUpdateValue());
-
-                                // show empty
-                                return new AnyUiLambdaActionRedrawEntity();
-                            }
-                        }
-
-                        if (buttonNdx == 1)
-                        {
-                            // ask for a name
-                            var uc = new AnyUiDialogueDataTextBox(
-                                "Name of text file to create",
-                                symbol: AnyUiMessageBoxImage.Question,
-                                maxWidth: 1400,
-                                text: "Textfile_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
-                            await context?.StartFlyoverModalAsync(uc);
-                            if (!uc.Result)
-                            {
-                                return new AnyUiLambdaActionNone();
+                                return new AnyUiLambdaActionRedrawAllElements(nextFocus: containingObject);
                             }
 
-                            var ptd = "/aasx/";
-                            var ptfn = uc.Text.Trim();
-                            packages.Main.PrepareSupplementaryFileParameters(ref ptd, ref ptfn);
-
-                            // make sure the name is not already existing
-                            var psfs = packages.Main.GetListOfSupplementaryFiles();
-                            var psf = psfs?.FindByUri(ptd + ptfn);
-                            if (psf != null)
+                            if (buttonNdx == 2)
                             {
-                                await context?.MessageBoxFlyoutShowAsync(
-                                    $"The supplemental file {ptd + ptfn} is already existing in the " +
-                                    "package. Please re-try with a different file name.", "Create text file",
-                                    AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Warning);
-                                return new AnyUiLambdaActionNone();
-                            }
-
-                            // try execute
-                            try
-                            {
-                                // make temp file
-                                var tempFn = System.IO.Path.GetTempFileName().Replace(".tmp", ".txt");
-                                System.IO.File.WriteAllText(tempFn, "");
-
-                                var mimeType = AdminShellPackageFileBasedEnv.GuessMimeType(ptfn);
-
-                                var targetPath = packages.Main.AddSupplementaryFileToStore(
-                                    tempFn, ptd, ptfn,
-                                    embedAsThumb: false, useMimeType: mimeType);
-
-                                if (targetPath == null)
-                                {
-                                    Log.Singleton.Error(
-                                        $"Error creating text-file {ptd + ptfn} within package");
-                                }
+                                if (await DisplayOrEditEntityFileResource_EditTextFileAsync(
+                                    context, packages.Main,
+                                    valueContent: valueContent,
+                                    valuePath: valuePath))
+                                    return new AnyUiLambdaActionRedrawEntity();
                                 else
-                                {
-                                    Log.Singleton.Info(StoredPrint.Color.Blue,
-                                        $"Added empty text-file {ptd + ptfn} to pending package items. " +
-                                        $"A save-operation is required.");
-                                    valueContent = mimeType;
-                                    valuePath = targetPath;
-                                    setOutput?.Invoke(valuePath, valueContent);
-
-                                    // value + struct event
-                                    this.AddDiaryEntry(containingObject, new DiaryEntryStructChange());
-                                    this.AddDiaryEntry(containingObject, new DiaryEntryUpdateValue());
-                                }
+                                    return new AnyUiLambdaActionNone();
                             }
-                            catch (Exception ex)
+
+                            if (buttonNdx == 3 && valuePath.HasContent())
                             {
-                                Log.Singleton.Error(
-                                    ex, $"Creating text-file {ptd + ptfn} within package");
+                                var changed = false;
+                                var record = GenerateNewCentralizeFilesRecord();
+
+                                if (!await PerformCentralizeFilesDialogue(
+                                        context, 
+                                        "Centralize file",
+                                        record,
+                                        $"File: {valuePath}"))
+                                    return new AnyUiLambdaActionNone();
+
+                                await PerformCentralizeFileExecution(
+                                    packEnv, record,
+                                    valuePath,
+                                    lambdaSetFilePath: (v) =>
+                                    {
+                                        changed = true;
+                                        valuePath = v;
+                                        setOutput?.Invoke(valuePath, valueContent);
+                                        this.AddDiaryEntry(containingObject, new DiaryEntryStructChange());
+                                    });
+
+                                if (changed)
+                                    return new AnyUiLambdaActionRedrawAllElements(nextFocus: relatedReferable);
                             }
-                            return new AnyUiLambdaActionRedrawAllElements(nextFocus: containingObject);
-                        }
 
-                        if (buttonNdx == 2)
-                        {
-                            if (await DisplayOrEditEntityFileResource_EditTextFileAsync(
-                                context, packages.Main,
-                                valueContent: valueContent,
-                                valuePath: valuePath))
-                                return new AnyUiLambdaActionRedrawEntity();
-                            else
-                                return new AnyUiLambdaActionNone();
-                        }
-
-                        if (buttonNdx == 3 && valuePath.HasContent())
-                        {
-                            var changed = false;
-                            var record = GenerateNewCentralizeFilesRecord();
-
-                            if (!await PerformCentralizeFilesDialogue(
-                                    context, 
-                                    "Centralize file",
-                                    record,
-                                    $"File: {valuePath}"))
-                                return new AnyUiLambdaActionNone();
-
-                            await PerformCentralizeFileExecution(
-                                packEnv, record,
-                                valuePath,
-                                lambdaSetFilePath: (v) =>
-                                {
-                                    changed = true;
-                                    valuePath = v;
-                                    setOutput?.Invoke(valuePath, valueContent);
-                                    this.AddDiaryEntry(containingObject, new DiaryEntryStructChange());
-                                });
-
-                            if (changed)
-                                return new AnyUiLambdaActionRedrawAllElements(nextFocus: relatedReferable);
-                        }
-
-                        return new AnyUiLambdaActionNone();
-                    });
+                            return new AnyUiLambdaActionNone();
+                        }));
 
                 // Further file assistance
-                this.AddGroup(stack, "Supplemental file assistance", this.levelColors.SubSection);
+                AddHeadline(stack, keyHandling,
+                    "Supplemental file assistance",
+                    LayoutHints.StyleHeadline2AboveHints,
+                    "Supplemental file assistance",
+                    LayoutHints.StyleHeadlineHints,
+                    hintMode: hintMode,
+                    bodyMargin: LayoutHints.BodyMarginLargeOrd,
+                    buttonOverStyle: LayoutHints.StyleButtonStandard);
 
-                AddKeyValueExRef(
-                    stack, "Target path", this.uploadAssistance, this.uploadAssistance.TargetPath, null, repo,
-                    async (v) =>
+                AddKeyValue(
+                    stack, "Target path", this.uploadAssistance.TargetPath, null, repo,
+                    containingObject: this.uploadAssistance,
+                    keyVertCenter: true,
+                    keyHandling: keyHandling,
+                    buttonOverStyle: LayoutHints.StyleButtonBorderBoxTop.Modify(preference: AnyUiButtonPreference.Image),
+                    textBoxStyle: LayoutHints.StyleTextBoxFor(keyHandling),
+                    comboBoxMinWidth: 190,
+                    comboBoxStyle: LayoutHints.StyleComboBoxFor(keyHandling),
+                    bodyMargin: LayoutHints.BodyMarginOrdOrd,
+                    setValueAsync: async (v) =>
                     {
                         await Task.Yield();
                         this.uploadAssistance.TargetPath = v as string;
@@ -3500,15 +3541,25 @@ namespace AasxPackageLogic
                         return new AnyUiLambdaActionRedrawEntity();
                     }, minHeight: 40);
 
-                this.AddActionPanel(
-                    stack, "Action",
-                    repo: repo, superMenu: superMenu,
-                    ticketMenu: new AasxMenu()
+                AddKeyButtons(stack, "Actions",
+                    keyHandling: keyHandling,
+                    buttons: GenerateActionButton(
+                        new AnyUiButtonHeader(IconPool.ContextMenuDropDown, "File assistance",
+                                "Actions related to add supplementary files",
+                                AnyUiButtonPreference.Both, AnyUiHorizontalAlignment.Right),
+                        repo: repo,
+                        superMenu: superMenu,
+                        ticketMenu: new AasxMenu()
                         .AddAction("select-source", "Select source file",
-                            "Select a filename to be added later.")
+                            icon: IconPool.FileOpen,
+                            help: "Select a filename to be added later.")
                         .AddAction("add-to-aasx", "Add or update to AASX",
-                            "Add or update file given by selected filename to the AAS environment."),
-                    ticketActionAsync: async (buttonNdx, ticket) =>
+                            icon: IconPool.Add,
+                            help: "Add or update file given by selected filename to the AAS environment."),
+                        buttonOverStyle: LayoutHints.StyleButtonStandard.Modify(
+                                        preference: AnyUiButtonPreference.Both),
+                        padding: new AnyUiThickness(5, 0, 5, 0),
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx == 0)
                             {
@@ -3566,7 +3617,7 @@ namespace AasxPackageLogic
                             }
 
                             return new AnyUiLambdaActionNone();
-                        });
+                        }));
             }
 
         }
