@@ -19,9 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="LICENSE.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+  	<None Update="LICENSE.txt" CopyToOutputDirectory="Never" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿using Console = System.Console;
+using Console = System.Console;
 using Directory = System.IO.Directory;
 using File = System.IO.File;
 using InvalidOperationException = System.InvalidOperationException;
@@ -273,7 +273,7 @@ namespace CheckHeadersScript
                     doc.Load(reader);
                     XmlNode root = doc.DocumentElement;
 
-                    if (root.ChildNodes.Count == 0)
+                    if (root?.ChildNodes == null || root.ChildNodes.Count == 0)
                     {
                         return new InvalidHeader(
                             null, new List<string>

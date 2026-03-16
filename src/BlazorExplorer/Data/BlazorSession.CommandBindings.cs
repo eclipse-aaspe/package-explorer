@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -137,7 +137,7 @@ namespace BlazorUI.Data
                 // start
                 ticket.StartExec();
 
-                var _pref = AasxPackageLogic.Pref.Read();
+                var _pref = AasxPackageLogic.SoftwareInfo.Read();
                 if (_pref == null)
                 {
                     Log.Singleton.Error("Unable to create preference data.");

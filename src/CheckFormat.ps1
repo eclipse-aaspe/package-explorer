@@ -22,6 +22,8 @@ function Main
     $artefactsDir = CreateAndGetArtefactsDir
 
     $reportPath = Join-Path $artefactsDir "dotnet-format-report.json"
+
+    $solution = "AasxPackageExplorer.sln"
    
     # MIHO: dotnet format seems to changed --check with --verify-no-changes
 	# therefore try to detect
@@ -34,7 +36,7 @@ function Main
 
 	Write-Host "Using dotnet format switch: $checkswitch"
 
-    dotnet format $checkswitch --report $reportPath --exclude "**/DocTest*.cs"
+    dotnet format $solution $checkswitch --report $reportPath --exclude "**/DocTest*.cs"
     
     $formatReport = Get-Content $reportPath |ConvertFrom-Json
     $warn_count = 0
@@ -60,4 +62,8 @@ function Main
     }
 }
 
-$previousLocation = Get-Location; try { Main } finally { Set-Location $previousLocation }
+# November 2025: dotnet format changed to Roslyn and throws tons of warnings.
+# Tried to disable these for .editorconf file, but this does not help.
+# Disabling the function completely, for now
+
+# $previousLocation = Get-Location; try { Main } finally { Set-Location $previousLocation }

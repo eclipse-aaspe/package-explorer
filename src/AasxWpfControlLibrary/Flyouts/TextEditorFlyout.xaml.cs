@@ -151,13 +151,13 @@ namespace AasxPackageExplorer
         // Mechanics
         //
 
-        private void SetMimeTypeAndText()
-        {
-            if (this.pluginInstance == null && textControl is TextBox tb)
-                tb.Text = DiaData.Text;
-            if (this.pluginInstance != null && this.pluginInstance.HasAction("set-content"))
-                this.pluginInstance.InvokeAction("set-content", DiaData.MimeType, DiaData.Text);
-        }
+            private void SetMimeTypeAndText()
+            {
+                if (this.pluginInstance == null && textControl is TextBox tb)
+                    tb.Text = DiaData.Text;
+                if (this.pluginInstance != null && this.pluginInstance.HasAction("set-content"))
+                    this.pluginInstance.InvokeAction("set-content", DiaData.MimeType, DiaData.Text);
+            }
 
         public string Text
         {

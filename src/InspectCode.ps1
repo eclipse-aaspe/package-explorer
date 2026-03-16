@@ -31,8 +31,10 @@ function Main
 
     Write-Host "* Inspecting the code with dotnet jb inspectcode"
 
+    # --settings=AasxPackageExplorer.sln.DotSettings `
+
     & dotnet.exe jb inspectcode `
-        "-o=$codeInspectionPath" `
+        --format=Xml "-o=$codeInspectionPath" `
         "--caches-home=$cachesHome" `
         '--exclude=*\obj\*;packages\*;*\bin\*;*\*.json;AasxFileServerRestLibrary\**;es6numberserializer\**;jsoncanonicalizer\**' `
         "--build" `

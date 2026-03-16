@@ -17,11 +17,9 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="LICENSE.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+	<None Update="LICENSE.txt" CopyToOutputDirectory="Never" />
   </ItemGroup>
-
+	
   <ItemGroup>
     <PackageReference Include="System.IO.Packaging" Version="9.0.10" />
   </ItemGroup>

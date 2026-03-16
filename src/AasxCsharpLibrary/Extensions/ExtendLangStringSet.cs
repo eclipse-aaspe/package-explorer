@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -118,7 +118,7 @@ namespace Extensions
             if (input?.HasContent() != true)
                 return null;
             int p = input.LastIndexOf('@');
-            if (p < 0 && input.Length <= p + 1)
+            if (p < 0 || input.Length <= p + 1)
                 return null;
             var res = input.Substring(p+1);
             input = input.Substring(0, p);

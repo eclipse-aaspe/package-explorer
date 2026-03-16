@@ -41,8 +41,10 @@ function Main
         $dotnetArgs = @(
             "publish",
             "--configuration", $configuration,
-            "--runtime", "win-x64",
-            "--output", $outputPath
+            "--runtime", "win-x64"
+            # this is not anymore allow when publishing a whole solution:
+            # "--output", $outputPath
+            # approach would be to loop over several projects ..
         )
 
         if($null -ne $project)

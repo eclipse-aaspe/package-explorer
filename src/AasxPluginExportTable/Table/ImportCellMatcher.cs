@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -359,6 +359,9 @@ namespace AasxPluginExportTable.Table
             Func<string, string> commit = (s) => { res = true; return s; };
 
             var langCode = ExtendLangStringSet.GetOneTrailingLanguage(ref cell);
+
+            if (preset == "idShort")
+                cd.IdShort = commit(cell);
 
             if (preset == "preferredName")
                 cd.GetIEC61360().PreferredName = ExtendLangStringSet.Parse<Aas.LangStringPreferredNameTypeIec61360>(

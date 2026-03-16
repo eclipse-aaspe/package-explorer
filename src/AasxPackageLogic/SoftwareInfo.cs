@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2019 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -19,7 +19,7 @@ namespace AasxPackageLogic
     /// <summary>
     /// Information about the application.
     /// </summary>
-    public class Pref
+    public class SoftwareInfo
     {
         public readonly string Authors;
 
@@ -47,7 +47,7 @@ namespace AasxPackageLogic
         /// </summary>
         public readonly string Version;
 
-        public Pref(string authors, string licenseShort, string buildDate, string licenseLong, string version)
+        public SoftwareInfo(string authors, string licenseShort, string buildDate, string licenseLong, string version)
         {
             Authors = authors;
             LicenseShort = licenseShort;
@@ -61,7 +61,7 @@ namespace AasxPackageLogic
         /// information about the application.
         /// </summary>
         /// <returns>relevant information about the application</returns>
-        public static Pref Read()
+        public static SoftwareInfo Read()
         {
             string authors = "Michael Hoffmeister, Andreas Orzelski, Erich Barnstedt, Juilee Tikekar et al.";
 
@@ -123,7 +123,7 @@ namespace AasxPackageLogic
                 }
             }
 
-            return new Pref(authors, licenseShort, buildDate, licenseLong, version);
+            return new SoftwareInfo(authors, licenseShort, buildDate, licenseLong, version);
         }
     }
 }

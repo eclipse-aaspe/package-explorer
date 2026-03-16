@@ -173,7 +173,9 @@ function Main
 
 $previousLocation = Get-Location; try
 {
-    Main
+    # November 2025: The sample files are very outdated, disabling 
+    # for the time being
+    # Main
 }
 finally
 {

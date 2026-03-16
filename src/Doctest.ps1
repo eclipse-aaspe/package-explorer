@@ -77,4 +77,6 @@ function Main
     }
 }
 
-$previousLocation = Get-Location; try { Main } finally { Set-Location $previousLocation }
+# November 2025: No doctests are present; disabling for now.
+
+# $previousLocation = Get-Location; try { Main } finally { Set-Location $previousLocation }

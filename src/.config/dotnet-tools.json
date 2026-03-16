@@ -6,28 +6,32 @@
       "version": "2.0.0",
       "commands": [
         "dead-csharp"
-      ]
+      ],
+      "rollForward": false
     },
     "bitesized": {
       "version": "2.0.0",
       "commands": [
         "bite-sized"
-      ]
+      ],
+      "rollForward": false
     },
     "doctestcsharp": {
       "version": "2.0.0",
       "commands": [
         "doctest-csharp"
-      ]
+      ],
+      "rollForward": false
     },
     "opinionatedcsharptodos": {
       "version": "2.0.0",
       "commands": [
         "opinionated-csharp-todos"
-      ]
+      ],
+      "rollForward": false
     },
     "jetbrains.resharper.globaltools": {
-      "version": "2022.3.2",
+      "version": "2025.1.3",
       "commands": [
         "jb"
       ]

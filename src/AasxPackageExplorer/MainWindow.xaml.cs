@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -754,6 +754,7 @@ namespace AasxPackageExplorer
                     ContentPanelEdit.Visibility = Visibility.Visible;
                 }
             }
+            // Reload elements, Drag, Show elements visible or not
             RowContentPanels.Height = new GridLength(panelHeight);
 
             // scroll or not
@@ -4213,6 +4214,9 @@ namespace AasxPackageExplorer
 
 #endregion
 
+        /// <summary>
+        /// Tools are find & replace
+        /// </summary>
         private void ButtonTools_Click(object sender, RoutedEventArgs e)
         {
             if (sender == ButtonToolsClose)
