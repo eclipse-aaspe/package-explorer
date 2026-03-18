@@ -1,4 +1,4 @@
-﻿@page "/test4"
+@page "/test4"
 @using AdminShellNS
 @using Aas = AasCore.Aas3_1
 @using Extensions
@@ -34,32 +34,29 @@
         panelStyle.Set("border", "1px solid black", add: true);
 
     panelStyle.Set("width", "100%", add: true);
+    panelStyle.Set("display", "flex", add: true);
+    panelStyle.Set("flex-wrap", "wrap", add: true);
+    panelStyle.Set("align-items", "center", add: true);
 
     //
     // Render
     //
 
     <div style="@divOuterStyle">
-        @* Render the table. For the time being, ignore Orientation and stack always horzintally in one cell. *@
-        <table @attributes="@PanelAttributes" style="@panelStyle" data-source="AnyUiWrapPanel.razor">
-            <tr>
-                <td>
-                    @{ 
-                        if (_panel?.Children != null)
-                            foreach (var ch in _panel.Children)
-                            {
-                            @* Note: the wrap panel does NOT pass the FillMode! *@
-
-                            <AnyUiRenderElem DisplayData="@DisplayData"
-                                             Session="@Session"
-                                             Parent="@Element"
-                                             Element="@ch"
-                                             FillMode="@AnyUiHtmlFillMode.None" />
-                                }
+        <div @attributes="@PanelAttributes" style="@panelStyle" data-source="AnyUiWrapPanel.razor">
+            @{
+                if (_panel?.Children != null)
+                    foreach (var ch in _panel.Children)
+                    {
+                        @* Note: the wrap panel does NOT pass the FillMode! *@
+                        <AnyUiRenderElem DisplayData="@DisplayData"
+                                         Session="@Session"
+                                         Parent="@Element"
+                                         Element="@ch"
+                                         FillMode="@AnyUiHtmlFillMode.None" />
                     }
-                </td>
-            </tr>
-        </table>
+            }
+        </div>
     </div>
 }
 

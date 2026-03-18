@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -487,6 +487,9 @@ namespace AasxPackageLogic
             {
                 // use plain text box
                 var tb = AddSmallTextBoxTo(g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2), text: "" + value, isValReadOnly: isValueReadOnly);
+                // enforce a minimum width (approx. 30 characters) but allow the field to grow with available space
+                if (key == "id" || key == "globalAssetId")
+                    tb.MinWidth = 30 * 10; // approx. 30ch
                 // multiple lines
                 if (maxLines > 0)
                     tb.MaxLines = maxLines;
@@ -502,27 +505,66 @@ namespace AasxPackageLogic
             }
 
             if (auxButton)
-                for (int i = 0; i < intButtonTitles.Count; i++)
+            {
+                // special: for very long id fields, wrap buttons instead of fixed columns
+                if (key == "id" || key == "globalAssetId")
                 {
-                    Func<object, Task<AnyUiLambdaActionBase>> lmbAsync = null;
-                    int closureI = i;
-                    
-                    if (auxButtonLambdaAsync != null)
-                        lmbAsync = async (o) =>
-                        {
-                            return await auxButtonLambdaAsync(closureI); // exchange o with i !!
-                        };
+                    // create a wrap panel for buttons in the same row as the field
+                    var wp = new AnyUiWrapPanel();
+                    wp.Orientation = AnyUiOrientation.Horizontal;
+                    AnyUiGrid.SetRow(wp, 0);
+                    AnyUiGrid.SetColumn(wp, 2);
+                    // ensure there is at least one extra column for the button panel
+                    while (g.ColumnDefinitions.Count <= 2)
+                        g.ColumnDefinitions.Add(new AnyUiColumnDefinition() { Width = AnyUiGridLength.Auto });
+                    g.Children.Add(wp);
 
-                    var b = AnyUiUIElement.RegisterControl(
-                        AddSmallButtonTo(
-                            g, 0, 2 + i,
-                            margin: new AnyUiThickness(2, 2, 2, 2),
-                            padding: new AnyUiThickness(5, 0, 5, 0),
-                            content: intButtonTitles[i]),
-                            setValueAsync: lmbAsync) as AnyUiButton;
-                    if (i < intButtonToolTips.Count)
-                        b.ToolTip = intButtonToolTips[i];
+                    for (int i = 0; i < intButtonTitles.Count; i++)
+                    {
+                        Func<object, Task<AnyUiLambdaActionBase>> lmbAsync = null;
+                        int closureI = i;
+
+                        if (auxButtonLambdaAsync != null)
+                            lmbAsync = async (o) =>
+                            {
+                                return await auxButtonLambdaAsync(closureI); // exchange o with i !!
+                            };
+
+                        var b = new AnyUiButton();
+                        b.Margin = new AnyUiThickness(2, 2, 2, 2);
+                        b.Padding = new AnyUiThickness(5, 0, 5, 0);
+                        b.Content = intButtonTitles[i];
+                        AnyUiUIElement.RegisterControl(b, setValueAsync: lmbAsync);
+                        if (i < intButtonToolTips.Count)
+                            b.ToolTip = intButtonToolTips[i];
+                        wp.Children.Add(b);
+                    }
                 }
+                else
+                {
+                    for (int i = 0; i < intButtonTitles.Count; i++)
+                    {
+                        Func<object, Task<AnyUiLambdaActionBase>> lmbAsync = null;
+                        int closureI = i;
+
+                        if (auxButtonLambdaAsync != null)
+                            lmbAsync = async (o) =>
+                            {
+                                return await auxButtonLambdaAsync(closureI); // exchange o with i !!
+                            };
+
+                        var b = AnyUiUIElement.RegisterControl(
+                            AddSmallButtonTo(
+                                g, 0, 2 + i,
+                                margin: new AnyUiThickness(2, 2, 2, 2),
+                                padding: new AnyUiThickness(5, 0, 5, 0),
+                                content: intButtonTitles[i]),
+                                setValueAsync: lmbAsync) as AnyUiButton;
+                        if (i < intButtonToolTips.Count)
+                            b.ToolTip = intButtonToolTips[i];
+                    }
+                }
+            }
 
             // in total
             view.Children.Add(g);

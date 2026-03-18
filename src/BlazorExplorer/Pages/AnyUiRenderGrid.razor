@@ -1,4 +1,4 @@
-﻿@page "/test2"
+@page "/test2"
 @using AdminShellNS
 @using Aas = AasCore.Aas3_1
 @using AdminShellNS;
@@ -29,6 +29,10 @@
     var divOuterStyle = new StylePile();
     divOuterStyle.SetSpecifics(
         margin: _grid.Margin);
+    // keep grid within viewport and allow horizontal scrolling when needed
+    divOuterStyle.Set("max-width", "100%", add: true);
+    divOuterStyle.Set("overflow-x", "auto", add: true);
+    divOuterStyle.Set("box-sizing", "border-box", add: true);
 
     if (_grid?.Children != null && _numRow == 3 && _numCol == 3)
         ;
@@ -219,6 +223,7 @@
 
                                     // modify td style
                                     var tdStyle = GetCellStyle(ri, ci);
+                                    tdStyle.Set("white-space", "normal", add: true);
                                     if (ch is AnyUiFrameworkElement chfe)
                                     {
                                         if (chfe.VerticalAlignment == null

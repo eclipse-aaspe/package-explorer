@@ -1,4 +1,4 @@
-﻿@page "/test"
+@page "/test"
 @using AdminShellNS
 @using Aas = AasCore.Aas3_1
 @using AdminShellNS;
@@ -325,8 +325,10 @@
 
         if (Parent is AnyUiGrid)
         {
-            style += "width: 99%";
+            style += "width: 100%";
             style += "box-sizing: border-box";
+            style += "max-width: 100%";
+            style += "min-width: 0";
 
             style.SetMinMaxWidthHeight(Element);
         }
@@ -387,9 +389,10 @@
             margin: chbt.Margin,
             padding: chbt.Padding,
             fontSizeRel: chbt.FontSize,
-            forceNoWrap: true);
+            forceNoWrap: false);
 
         style.SetFillWidth(Element, FillMode, chbt.Margin, setMinMaxWidth: true);
+        style.Set("white-space", "normal", add: true);
 
         <button style="@style" @onclick="() => MyClickButton(chbt)">@chbt.Content</button>
         @code {
