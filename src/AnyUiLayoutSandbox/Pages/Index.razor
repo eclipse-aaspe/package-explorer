@@ -1,0 +1,488 @@
+@page "/"
+@using AnyUi
+
+<PageTitle>AnyUI Layout Sandbox</PageTitle>
+
+<style>
+  /* Minimum width for "long id" textboxes.
+     Keeping this constant at all viewport sizes ensures the textbox always
+     claims enough space so that buttons are forced to the next flex line when
+     the container is too narrow — regardless of zoom level. */
+  :root {
+    --anyui-long-text-min: 30ch;
+  }
+
+  /* allow layout containers to shrink as far as possible */
+  html, body, .page, main, article, .content {
+    min-width: 0 !important;
+    overflow-x: clip;
+    box-sizing: border-box;
+  }
+
+  /* Make inputs able to shrink inside CSS grid/flex */
+  .anyui-input {
+    min-width: 0;
+    box-sizing: border-box;
+    border: 2px solid #0000aa;
+    border-radius: 4px;
+  }
+  .anyui-input--long {
+    min-width: var(--anyui-long-text-min);
+  }
+  .anyui-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 0, 170, 0.25);
+  }
+
+  .anyui-button {
+    border-radius: 6px;
+    border: 2px solid #0000aa;
+    background: #f6f6f6;
+  }
+  .anyui-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 0, 170, 0.25);
+  }
+</style>
+
+<h3 style="overflow-wrap:break-word;">AnyUI Layout Sandbox (Identifiable / AssetInformation)</h3>
+
+@RenderElement(RootElement)
+
+@code {
+    private AnyUiStackPanel? RootElement;
+
+    protected override void OnInitialized()
+    {
+        var uitk = new AnyUiSmallWidgetToolkit();
+
+        var root = new AnyUiStackPanel
+        {
+            Orientation = AnyUiOrientation.Vertical,
+            Margin = new AnyUiThickness(10)
+        };
+
+        AddEditingOfEntities(root, uitk);
+        AddReferable(root, uitk);
+        AddKnownExtensions(root, uitk);
+        AddIdentifiable(root, uitk);
+        AddHasDataSpecification(root, uitk);
+        AddAssetInformation(root, uitk);
+
+        RootElement = root;
+    }
+
+    // --- AnyUI tree construction (angepasst auf das Screenshot-Layout) ---
+
+    private void AddEditingOfEntities(AnyUiStackPanel root, AnyUiSmallWidgetToolkit uitk)
+    {
+        var group = new AnyUiStackPanel
+        {
+            Orientation = AnyUiOrientation.Vertical,
+            Margin = new AnyUiThickness(0, 0, 0, 10)
+        };
+        root.Children.Add(group);
+
+        group.Children.Add(MakeHeader("Editing of entities"));
+
+        var g = new AnyUiGrid();
+        g.Tag = "dense-top";
+        group.Children.Add(g);
+
+        for (int i = 0; i < 4; i++)
+            g.RowDefinitions.Add(new AnyUiRowDefinition());
+
+        g.ColumnDefinitions.Add(new AnyUiColumnDefinition { Width = AnyUiGridLength.Auto });
+        g.ColumnDefinitions.Add(new AnyUiColumnDefinition(1.0, AnyUiGridUnitType.Star));
+        g.ColumnDefinitions.Add(new AnyUiColumnDefinition { Width = AnyUiGridLength.Auto });
+
+        // AAS
+        uitk.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "AAS:");
+        var wpAas = new AnyUiWrapPanel { Orientation = AnyUiOrientation.Horizontal };
+        AnyUiGrid.SetRow(wpAas, 0);
+        AnyUiGrid.SetColumn(wpAas, 1);
+        AnyUiGrid.SetColumnSpan(wpAas, 2);
+        g.Children.Add(wpAas);
+        foreach (var t in new[] { "Move up", "Move down", "Move top", "Move end", "Delete", "Finalize AAS" })
+            wpAas.Children.Add(MakeButtonDense(t));
+
+        // Buffer
+        uitk.AddSmallLabelTo(g, 1, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "Buffer:");
+        var wpBuffer = new AnyUiWrapPanel { Orientation = AnyUiOrientation.Horizontal };
+        AnyUiGrid.SetRow(wpBuffer, 1);
+        AnyUiGrid.SetColumn(wpBuffer, 1);
+        AnyUiGrid.SetColumnSpan(wpBuffer, 2);
+        g.Children.Add(wpBuffer);
+        foreach (var t in new[] { "Cut", "Copy", "Paste above", "Paste below", "Paste into" })
+            wpBuffer.Children.Add(MakeButtonDense(t));
+
+        // SubmodelRef
+        uitk.AddSmallLabelTo(g, 2, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "SubmodelRef:");
+        // put input + buttons into one wrapping row to avoid overlap on narrow screens
+        var wpSmrRow = new AnyUiWrapPanel { Orientation = AnyUiOrientation.Horizontal };
+        AnyUiGrid.SetRow(wpSmrRow, 2);
+        AnyUiGrid.SetColumn(wpSmrRow, 1);
+        AnyUiGrid.SetColumnSpan(wpSmrRow, 2);
+        g.Children.Add(wpSmrRow);
+
+        var tbSmr = new AnyUiTextBox
+        {
+            Text = "Reference to existing Submodel",
+            Margin = new AnyUiThickness(4, 2, 2, 2),
+            MinWidth = 30 * 10,
+            Tag = "wrap-grow"
+        };
+        wpSmrRow.Children.Add(tbSmr);
+
+        foreach (var t in new[]
+                 {
+                     "Reference to existing Submodel",
+                     "Create new Submodel of kind Template",
+                     "Create new Submodel of kind Instance"
+                 })
+            wpSmrRow.Children.Add(MakeButtonDense(t));
+
+        // Copy from existing Submodel
+        uitk.AddSmallLabelTo(g, 3, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "Copy from existing Submodel:");
+        var wpCopy = new AnyUiWrapPanel { Orientation = AnyUiOrientation.Horizontal };
+        AnyUiGrid.SetRow(wpCopy, 3);
+        AnyUiGrid.SetColumn(wpCopy, 1);
+        AnyUiGrid.SetColumnSpan(wpCopy, 2);
+        g.Children.Add(wpCopy);
+        foreach (var t in new[] { "Copy single", "Copy recursively" })
+            wpCopy.Children.Add(MakeButton(t));
+    }
+
+    private void AddReferable(AnyUiStackPanel root, AnyUiSmallWidgetToolkit uitk)
+    {
+        var group = MakeSection(root, "Referable:");
+
+        var g = new AnyUiGrid();
+        group.Children.Add(g);
+
+        g.RowDefinitions.Add(new AnyUiRowDefinition());
+        g.RowDefinitions.Add(new AnyUiRowDefinition());
+        g.RowDefinitions.Add(new AnyUiRowDefinition());
+
+        g.ColumnDefinitions.Add(new AnyUiColumnDefinition { Width = AnyUiGridLength.Auto });
+        g.ColumnDefinitions.Add(new AnyUiColumnDefinition(1.0, AnyUiGridUnitType.Star));
+
+        uitk.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "idShort:");
+        uitk.AddSmallTextBoxTo(g, 0, 1,
+            margin: new AnyUiThickness(4, 2, 2, 2),
+            text: "Hilscher_netFIELD_IO_Link_Wireless_Master_PROFINET_IO_Device");
+
+        uitk.AddSmallLabelTo(g, 1, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "displayName:");
+        uitk.AddSmallButtonTo(g, 1, 1, content: "Create w/ default!");
+
+        uitk.AddSmallLabelTo(g, 2, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "description:");
+        uitk.AddSmallButtonTo(g, 2, 1, content: "Create w/ default!");
+    }
+
+    private void AddKnownExtensions(AnyUiStackPanel root, AnyUiSmallWidgetToolkit uitk)
+    {
+        var group = MakeSection(root, "Known extensions « experimental » :");
+
+        var g = new AnyUiGrid();
+        group.Children.Add(g);
+
+        g.RowDefinitions.Add(new AnyUiRowDefinition());
+        g.ColumnDefinitions.Add(new AnyUiColumnDefinition { Width = AnyUiGridLength.Auto });
+        g.ColumnDefinitions.Add(new AnyUiColumnDefinition(1.0, AnyUiGridUnitType.Star));
+
+        uitk.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "HasExtension:");
+        uitk.AddSmallButtonTo(g, 0, 1, content: "Create w/ default!");
+    }
+
+    private void AddIdentifiable(AnyUiStackPanel root, AnyUiSmallWidgetToolkit uitk)
+    {
+        var group = MakeSection(root, "Identifiable:");
+
+        var g = new AnyUiGrid();
+        group.Children.Add(g);
+
+        g.RowDefinitions.Add(new AnyUiRowDefinition());
+        g.RowDefinitions.Add(new AnyUiRowDefinition());
+        g.RowDefinitions.Add(new AnyUiRowDefinition());
+
+        g.ColumnDefinitions.Add(new AnyUiColumnDefinition { Width = AnyUiGridLength.Auto });
+        g.ColumnDefinitions.Add(new AnyUiColumnDefinition(1.0, AnyUiGridUnitType.Star));
+        g.ColumnDefinitions.Add(new AnyUiColumnDefinition { Width = AnyUiGridLength.Auto });
+
+        // id
+        uitk.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "id:");
+        // put input + buttons into one wrapping row to avoid overlap on narrow screens
+        var wpIdRow = new AnyUiWrapPanel { Orientation = AnyUiOrientation.Horizontal };
+        AnyUiGrid.SetRow(wpIdRow, 0);
+        AnyUiGrid.SetColumn(wpIdRow, 1);
+        AnyUiGrid.SetColumnSpan(wpIdRow, 2);
+        g.Children.Add(wpIdRow);
+
+        var tbId = new AnyUiTextBox
+        {
+            Text = "https://i.hilscher.com/00000000wlt",
+            Margin = new AnyUiThickness(4, 2, 2, 2),
+            MinWidth = 30 * 10,
+            Tag = "wrap-grow"   // grows and shares line with buttons when wide
+        };
+        wpIdRow.Children.Add(tbId);
+
+        foreach (var t in new[] { "Generate", "Rename" })
+            wpIdRow.Children.Add(MakeButton(t));
+
+        // id (base64url)
+        uitk.AddSmallLabelTo(g, 1, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "id (base64url):");
+        uitk.AddSmallTextBoxTo(g, 1, 1,
+            margin: new AnyUiThickness(4, 2, 2, 2),
+            text: "aHR0cHM6Ly9pLmhp…");
+
+        // administration
+        uitk.AddSmallLabelTo(g, 2, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "administration:");
+        uitk.AddSmallButtonTo(g, 2, 1, content: "Create data element!");
+    }
+
+    private void AddHasDataSpecification(AnyUiStackPanel root, AnyUiSmallWidgetToolkit uitk)
+    {
+        var group = MakeSection(root, "HasDataSpecification (Reference):");
+
+        var g = new AnyUiGrid();
+        group.Children.Add(g);
+
+        g.RowDefinitions.Add(new AnyUiRowDefinition());
+        g.RowDefinitions.Add(new AnyUiRowDefinition());
+        g.ColumnDefinitions.Add(new AnyUiColumnDefinition { Width = AnyUiGridLength.Auto });
+        g.ColumnDefinitions.Add(new AnyUiColumnDefinition(1.0, AnyUiGridUnitType.Star));
+
+        uitk.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "DataSpecification:");
+        uitk.AddSmallButtonTo(g, 0, 1, content: "Create w/ default!");
+
+        uitk.AddSmallLabelTo(g, 1, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "derivedFrom:");
+        uitk.AddSmallButtonTo(g, 1, 1, content: "Create data element!");
+    }
+
+    private void AddAssetInformation(AnyUiStackPanel root, AnyUiSmallWidgetToolkit uitk)
+    {
+        var group = MakeSection(root, "AssetInformation");
+
+        var g = new AnyUiGrid();
+        group.Children.Add(g);
+
+        g.RowDefinitions.Add(new AnyUiRowDefinition());
+        g.RowDefinitions.Add(new AnyUiRowDefinition());
+        g.RowDefinitions.Add(new AnyUiRowDefinition());
+
+        g.ColumnDefinitions.Add(new AnyUiColumnDefinition { Width = AnyUiGridLength.Auto });
+        g.ColumnDefinitions.Add(new AnyUiColumnDefinition(1.0, AnyUiGridUnitType.Star));
+        g.ColumnDefinitions.Add(new AnyUiColumnDefinition { Width = AnyUiGridLength.Auto });
+
+        // kind
+        uitk.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "kind:");
+        uitk.AddSmallButtonTo(g, 0, 1, content: "Type");
+
+        // globalAssetId
+        uitk.AddSmallLabelTo(g, 1, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "globalAssetId:");
+        // put input + buttons into one wrapping row to avoid overlap on narrow screens
+        var wpGaRow = new AnyUiWrapPanel { Orientation = AnyUiOrientation.Horizontal };
+        AnyUiGrid.SetRow(wpGaRow, 1);
+        AnyUiGrid.SetColumn(wpGaRow, 1);
+        AnyUiGrid.SetColumnSpan(wpGaRow, 2);
+        g.Children.Add(wpGaRow);
+
+        var tbGa = new AnyUiTextBox
+        {
+            Text = "https://i.hilscher.com/00000000wlp",
+            Margin = new AnyUiThickness(4, 2, 2, 2),
+            MinWidth = 30 * 10,
+            Tag = "wrap-grow"   // grows and shares line with buttons when wide
+        };
+        wpGaRow.Children.Add(tbGa);
+
+        // individual buttons like SubmodelRef: each wraps on its own when narrow
+        foreach (var t in new[] { "Generate", "Input", "Rename", "Add existing", "Delete" })
+            wpGaRow.Children.Add(MakeButton(t));
+
+        // Actions
+        uitk.AddSmallLabelTo(g, 2, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "Actions:");
+        uitk.AddSmallButtonTo(g, 2, 1, content: "Print asset code sheet…");
+    }
+
+    private AnyUiBorder MakeHeader(string title) =>
+        new AnyUiBorder
+        {
+            Background = AnyUiBrushes.DarkBlue,
+            Padding = new AnyUiThickness(4),
+            Child = new AnyUiTextBlock
+            {
+                Text = title,
+                Foreground = AnyUiBrushes.White
+            }
+        };
+
+    private AnyUiStackPanel MakeSection(AnyUiStackPanel root, string title)
+    {
+        var group = new AnyUiStackPanel
+        {
+            Orientation = AnyUiOrientation.Vertical,
+            Margin = new AnyUiThickness(0, 5, 0, 10)
+        };
+        root.Children.Add(group);
+        group.Children.Add(MakeHeader(title));
+        return group;
+    }
+
+    private AnyUiButton MakeButton(string text) =>
+        new AnyUiButton
+        {
+            Margin = new AnyUiThickness(2, 2, 2, 2),
+            Padding = new AnyUiThickness(5, 0, 5, 0),
+            Content = text
+        };
+
+    private AnyUiButton MakeButtonDense(string text) =>
+        new AnyUiButton
+        {
+            Margin = new AnyUiThickness(1, 1, 1, 1),
+            Padding = new AnyUiThickness(5, 0, 5, 0),
+            Content = text
+        };
+
+    // --- Minimaler Renderer für die verwendeten AnyUI-Elemente ---
+
+    private RenderFragment RenderElement(AnyUiUIElement? el) => builder =>
+    {
+        if (el == null) return;
+
+        switch (el)
+        {
+            case AnyUiStackPanel sp:
+                builder.OpenElement(0, "div");
+                builder.AddAttribute(1, "style",
+                    $"display:flex;flex-direction:{(sp.Orientation == AnyUiOrientation.Horizontal ? "row" : "column")};" +
+                    $"margin:{sp.Margin?.Top ?? 0}px {sp.Margin?.Right ?? 0}px {sp.Margin?.Bottom ?? 0}px {sp.Margin?.Left ?? 0}px;" +
+                    "min-width:0;width:100%;box-sizing:border-box;");
+                int i = 2;
+                if (sp.Children != null)
+                    foreach (var c in sp.Children)
+                    {
+                        builder.AddContent(i++, RenderElement(c));
+                    }
+                builder.CloseElement();
+                break;
+
+            case AnyUiBorder brd:
+                builder.OpenElement(0, "div");
+                var bg = brd.Background != null ? "background:#0000aa;color:white;" : "";
+                builder.AddAttribute(1, "style", $"{bg}padding:4px;margin:0;");
+                builder.AddContent(2, RenderElement(brd.Child));
+                builder.CloseElement();
+                break;
+
+            case AnyUiTextBlock tb:
+                builder.OpenElement(0, "span");
+                builder.AddContent(1, tb.Text);
+                builder.CloseElement();
+                break;
+
+            case AnyUiWrapPanel wp:
+                builder.OpenElement(0, "div");
+                builder.AddAttribute(1, "style",
+                    "display:flex;flex-wrap:wrap;gap:4px;align-items:center;" +
+                    "width:100%;max-width:100%;min-width:0;");
+                int wi = 2;
+                if (wp.Children != null)
+                    foreach (var c in wp.Children)
+                        builder.AddContent(wi++, RenderElement(c));
+                builder.CloseElement();
+                break;
+
+            case AnyUiButton bt:
+                builder.OpenElement(0, "button");
+                builder.AddAttribute(1, "class", "anyui-button");
+                builder.AddAttribute(1, "style",
+                    "margin:2px;padding:2px 6px;font-size:0.8rem;" +
+                    "width:fit-content;max-width:100%;display:inline-block;" +
+                    "white-space:normal;");
+                builder.AddContent(2, bt.Content?.ToString());
+                builder.CloseElement();
+                break;
+
+            case AnyUiTextBox tbx:
+                builder.OpenElement(0, "input");
+                builder.AddAttribute(1, "type", "text");
+                builder.AddAttribute(2, "value", tbx.Text ?? "");
+                var minw = tbx.MinWidth.HasValue ? tbx.MinWidth.Value : 0;
+                var isWrapGrow = tbx.Tag is string st && st == "wrap-grow";
+                builder.AddAttribute(3, "class", $"anyui-input{(minw > 0 ? " anyui-input--long" : "")}");
+                builder.AddAttribute(4, "style",
+                    $"margin:2px;padding:2px;" +
+                    // wrap-grow: textbox shares the flex line with buttons when space allows;
+                    // the --anyui-long-text-min basis ensures buttons are pushed to the next
+                    // line once the container becomes too narrow.
+                    (isWrapGrow
+                        ? "width:auto;max-width:100%;flex:1 1 var(--anyui-long-text-min);"
+                        : "width:100%;max-width:100%;") +
+                    "min-width:0;");
+                builder.CloseElement();
+                break;
+
+            case AnyUiGrid gr:
+                builder.OpenElement(0, "div");
+                var isDenseTop = gr.Tag is string s && s == "dense-top";
+
+                var cols = (gr.ColumnDefinitions != null && gr.ColumnDefinitions.Count > 0)
+                    ? string.Join(" ",
+                        gr.ColumnDefinitions.Select((cd, idx) =>
+                        {
+                            var w = cd?.Width;
+                            if (w == null)
+                                return "auto";
+
+                            // In the top "Editing of entities" block we don't want a long label
+                            // (e.g. "Copy from existing Submodel") to push all controls to the right.
+                            // Therefore clamp the first column to a reasonable width so controls can
+                            // start earlier.
+                            if (isDenseTop && idx == 0 && w.Type == AnyUiGridUnitType.Auto)
+                                // fit-content(7em): column shrinks to label content, capped at 7em so
+                                // short labels (AAS:, Buffer:) don't leave a wide empty gap
+                                return "fit-content(7em)";
+
+                            if (w.Type == AnyUiGridUnitType.Star) return $"{w.Value}fr";
+                            if (w.Type == AnyUiGridUnitType.Pixel) return $"{w.Value}px";
+                            // allow auto columns (e.g., button columns) to shrink so wrap-panels can wrap
+                            return "minmax(0, max-content)";
+                        }))
+                    : "auto";
+                builder.AddAttribute(1, "style",
+                    $"display:grid;grid-template-columns:{cols};" +
+                    $"grid-auto-rows:auto;row-gap:{(isDenseTop ? "0.15em" : "0.4em")};column-gap:{(isDenseTop ? "0.4em" : "0.5em")};" +
+                    "width:100%;min-width:0;align-items:start;");
+
+                int gi = 2;
+                if (gr.Children != null)
+                    foreach (var c in gr.Children)
+                    {
+                        var r = (c.GridRow ?? 0) + 1;
+                        var c0 = (c.GridColumn ?? 0) + 1;
+                        var rs = c.GridRowSpan ?? 1;
+                        var cs = c.GridColumnSpan ?? 1;
+
+                        builder.OpenElement(gi++, "div");
+                        builder.AddAttribute(gi++,
+                            "style",
+                            $"grid-row:{r} / span {rs};grid-column:{c0} / span {cs};" +
+                            "min-width:0;" +
+                            (isDenseTop && c0 == 1 ? "max-width:12em;white-space:normal;" : "") +
+                            (c is AnyUiButton ? "justify-self:start;" : "") +
+                            (c is AnyUiWrapPanel ? "justify-self:stretch;width:100%;max-width:100%;" : ""));
+                        builder.AddContent(gi++, RenderElement(c));
+                        builder.CloseElement();
+                    }
+                builder.CloseElement();
+                break;
+
+            default:
+                // Fallback: nichts rendern
+                break;
+        }
+    };
+}
