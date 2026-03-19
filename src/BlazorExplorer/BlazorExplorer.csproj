@@ -1,8 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net9.0-windows</TargetFramework>
-    <UseWPF>false</UseWPF>
+    <TargetFramework>net9.0</TargetFramework>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 
@@ -80,7 +79,6 @@
 
   <ItemGroup>
     <PackageReference Include="Blazor.Extensions.Canvas" Version="1.1.1" />
-    <PackageReference Include="BlazorInputFile" Version="0.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="RestSharp" Version="112.1.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
@@ -116,6 +114,36 @@
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
+
+  <!--
+    Copy static web assets from NuGet packages and referenced projects (e.g. BlazorInputFile,
+    Blazor.Extensions.Canvas, UIComponents.Flags.Blazor) into the bin output wwwroot/_content
+    folder. Without this, the bin output only contains a runtime manifest with absolute
+    paths to the local NuGet cache, which breaks deployment on other machines (e.g. Ubuntu).
+  -->
+  <Target Name="CopyExternalStaticWebAssetsToOutput"
+          AfterTargets="Build"
+          DependsOnTargets="ResolveCoreStaticWebAssets">
+    <ItemGroup>
+      <!--
+        Collect assets from NuGet packages (SourceType=Package) and referenced projects
+        (SourceType=Project) that need to be served under wwwroot/_content/<PackageName>/.
+        Skip:
+          - Discovered: the project's own wwwroot, already copied by the standard build.
+          - .gz / .br: pre-compressed variants are only needed for production publish.
+        Use %(FileName)%(Extension) from Identity (the real on-disk filename) because
+        %(RelativePath) contains fingerprint placeholder tokens for Project assets.
+      -->
+      <_ExternalStaticWebAsset Include="@(StaticWebAsset)"
+        Condition="'%(StaticWebAsset.SourceType)' != 'Discovered'
+                 And !$([System.String]::Copy('%(StaticWebAsset.RelativePath)').EndsWith('.gz'))
+                 And !$([System.String]::Copy('%(StaticWebAsset.RelativePath)').EndsWith('.br'))" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(_ExternalStaticWebAsset)"
+      DestinationFiles="@(_ExternalStaticWebAsset->'$(OutDir)wwwroot/%(BasePath)/%(FileName)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
 
   <ItemGroup>
     <Resource Include="wwwroot\image\IDTA_AAS-Logo_312x281_RGB.png" />

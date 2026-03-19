@@ -21,6 +21,11 @@
     var divOuterStyle = new StylePile();
     divOuterStyle.SetSpecifics(
         margin: _panel.Margin);
+    // Layout wrapper: must not prevent flex-wrap inside descendants
+    divOuterStyle.Set("white-space", "normal", add: true);
+    // fill the available width of the containing block (important when inside a CSS Grid cell)
+    divOuterStyle.Set("width", "100%", add: true);
+    divOuterStyle.Set("min-width", "0", add: true);
 
     //
     // Eval different table attributes
@@ -34,9 +39,12 @@
         panelStyle.Set("border", "1px solid black", add: true);
 
     panelStyle.Set("width", "100%", add: true);
+    panelStyle.Set("min-width", "0", add: true);
+    panelStyle.Set("max-width", "100%", add: true);
     panelStyle.Set("display", "flex", add: true);
     panelStyle.Set("flex-wrap", "wrap", add: true);
     panelStyle.Set("align-items", "center", add: true);
+    panelStyle.Set("box-sizing", "border-box", add: true);
 
     //
     // Render

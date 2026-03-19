@@ -1,4 +1,4 @@
-﻿@page "/PanelAasxInfoBox"
+@page "/PanelAasxInfoBox"
 @using AdminShellNS
 @using AnyUi
 @using AasxPredefinedConcepts
@@ -127,17 +127,18 @@
 
        <switch>
 	        <foreignObject width="52.565403" height="48.94722" x="14.050892" y="82.027206">
-                <div style="margin: 2px;">
+                <div xmlns="http://www.w3.org/1999/xhtml"
+                     style="margin:2px;width:calc(100% - 4px);height:calc(100% - 4px);display:flex;align-items:center;justify-content:center;overflow:hidden;">
                     @if (InfoBox?.HtmlImageData?.HasContent() == true)
                     {
-                        <img src=data:image;base64,@(InfoBox?.HtmlImageData)
-                            style="max-width:100%;display:block;margin-left:auto;margin-right:auto; margin-top: auto" alt="Thumbnail Image" />
+                        <img src="@(InfoBox?.HtmlImageData)"
+                            style="max-width:100%;max-height:100%;object-fit:contain;display:block;" alt="Thumbnail" />
                     }
                     else
                     {
-                        <p style="@styleAssetId" >@("<no thumbnail>")</p>
+                        <p style="@styleAssetId">@("<no thumbnail>")</p>
                     }
-                    </div>
+                </div>
 		    </foreignObject>
 	   </switch>
        

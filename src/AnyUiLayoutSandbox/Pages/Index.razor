@@ -4,14 +4,6 @@
 <PageTitle>AnyUI Layout Sandbox</PageTitle>
 
 <style>
-  /* Minimum width for "long id" textboxes.
-     Keeping this constant at all viewport sizes ensures the textbox always
-     claims enough space so that buttons are forced to the next flex line when
-     the container is too narrow — regardless of zoom level. */
-  :root {
-    --anyui-long-text-min: 30ch;
-  }
-
   /* allow layout containers to shrink as far as possible */
   html, body, .page, main, article, .content {
     min-width: 0 !important;
@@ -19,15 +11,11 @@
     box-sizing: border-box;
   }
 
-  /* Make inputs able to shrink inside CSS grid/flex */
   .anyui-input {
     min-width: 0;
     box-sizing: border-box;
     border: 2px solid #0000aa;
     border-radius: 4px;
-  }
-  .anyui-input--long {
-    min-width: var(--anyui-long-text-min);
   }
   .anyui-input:focus {
     outline: none;
@@ -207,23 +195,20 @@
 
         g.ColumnDefinitions.Add(new AnyUiColumnDefinition { Width = AnyUiGridLength.Auto });
         g.ColumnDefinitions.Add(new AnyUiColumnDefinition(1.0, AnyUiGridUnitType.Star));
-        g.ColumnDefinitions.Add(new AnyUiColumnDefinition { Width = AnyUiGridLength.Auto });
 
         // id
         uitk.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "id:");
-        // put input + buttons into one wrapping row to avoid overlap on narrow screens
+        // WrapPanel in Star column: textbox and buttons share the flex line and wrap individually
         var wpIdRow = new AnyUiWrapPanel { Orientation = AnyUiOrientation.Horizontal };
         AnyUiGrid.SetRow(wpIdRow, 0);
         AnyUiGrid.SetColumn(wpIdRow, 1);
-        AnyUiGrid.SetColumnSpan(wpIdRow, 2);
         g.Children.Add(wpIdRow);
 
         var tbId = new AnyUiTextBox
         {
             Text = "https://i.hilscher.com/00000000wlt",
             Margin = new AnyUiThickness(4, 2, 2, 2),
-            MinWidth = 30 * 10,
-            Tag = "wrap-grow"   // grows and shares line with buttons when wide
+            MinWidth = 30 * 10
         };
         wpIdRow.Children.Add(tbId);
 
@@ -273,7 +258,6 @@
 
         g.ColumnDefinitions.Add(new AnyUiColumnDefinition { Width = AnyUiGridLength.Auto });
         g.ColumnDefinitions.Add(new AnyUiColumnDefinition(1.0, AnyUiGridUnitType.Star));
-        g.ColumnDefinitions.Add(new AnyUiColumnDefinition { Width = AnyUiGridLength.Auto });
 
         // kind
         uitk.AddSmallLabelTo(g, 0, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "kind:");
@@ -281,19 +265,17 @@
 
         // globalAssetId
         uitk.AddSmallLabelTo(g, 1, 0, padding: new AnyUiThickness(5, 0, 0, 0), content: "globalAssetId:");
-        // put input + buttons into one wrapping row to avoid overlap on narrow screens
+        // WrapPanel in Star column: textbox and buttons share the flex line and wrap individually
         var wpGaRow = new AnyUiWrapPanel { Orientation = AnyUiOrientation.Horizontal };
         AnyUiGrid.SetRow(wpGaRow, 1);
         AnyUiGrid.SetColumn(wpGaRow, 1);
-        AnyUiGrid.SetColumnSpan(wpGaRow, 2);
         g.Children.Add(wpGaRow);
 
         var tbGa = new AnyUiTextBox
         {
             Text = "https://i.hilscher.com/00000000wlp",
             Margin = new AnyUiThickness(4, 2, 2, 2),
-            MinWidth = 30 * 10,
-            Tag = "wrap-grow"   // grows and shares line with buttons when wide
+            MinWidth = 30 * 10
         };
         wpGaRow.Children.Add(tbGa);
 
@@ -410,16 +392,16 @@
                 builder.OpenElement(0, "input");
                 builder.AddAttribute(1, "type", "text");
                 builder.AddAttribute(2, "value", tbx.Text ?? "");
-                var minw = tbx.MinWidth.HasValue ? tbx.MinWidth.Value : 0;
-                var isWrapGrow = tbx.Tag is string st && st == "wrap-grow";
-                builder.AddAttribute(3, "class", $"anyui-input{(minw > 0 ? " anyui-input--long" : "")}");
+                var hasMinWidth = tbx.MinWidth.HasValue;
+                builder.AddAttribute(3, "class", "anyui-input");
                 builder.AddAttribute(4, "style",
                     $"margin:2px;padding:2px;" +
-                    // wrap-grow: textbox shares the flex line with buttons when space allows;
-                    // the --anyui-long-text-min basis ensures buttons are pushed to the next
-                    // line once the container becomes too narrow.
-                    (isWrapGrow
-                        ? "width:auto;max-width:100%;flex:1 1 var(--anyui-long-text-min);"
+                    // a textbox with MinWidth set is expected to share a flex line with buttons
+                    // (placed inside a WrapPanel); it grows to fill available space while
+                    // MinWidth keeps enough width so buttons are pushed to the next flex line
+                    // once the container becomes too narrow
+                    (hasMinWidth
+                        ? $"width:auto;max-width:100%;flex:1 1 {tbx.MinWidth!.Value}px;"
                         : "width:100%;max-width:100%;") +
                     "min-width:0;");
                 builder.CloseElement();

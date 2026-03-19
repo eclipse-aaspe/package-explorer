@@ -323,7 +323,8 @@ namespace AasxPackageLogic
 			int maxLines = -1,
 			bool keyVertCenter = false,
             bool auxButtonOverride = false,
-            bool isValueReadOnly = false)
+            bool isValueReadOnly = false,
+            int textBoxMinWidth = -1)
         {
             AddKeyValue(
                 view, key, value, nullValue, repo, setValueAsync, comboBoxItems, comboBoxIsEditable,
@@ -335,7 +336,8 @@ namespace AasxPackageLogic
                 firstColumnWidth: firstColumnWidth,
                 maxLines: maxLines,
                 keyVertCenter: keyVertCenter,
-                isValueReadOnly: isValueReadOnly);
+                isValueReadOnly: isValueReadOnly,
+                textBoxMinWidth: textBoxMinWidth);
         }
 
         /// <summary>
@@ -379,7 +381,8 @@ namespace AasxPackageLogic
             int maxLines = -1,
             bool keyVertCenter = false,
             bool auxButtonOverride = false,
-            bool isValueReadOnly = false)
+            bool isValueReadOnly = false,
+            int textBoxMinWidth = -1)
         {
             // draw anyway?
             if (repo != null && value == null)
@@ -411,6 +414,11 @@ namespace AasxPackageLogic
             var auxButton = auxButtonOverride
                     || (repo != null && intButtonTitles.Count > 0 && auxButtonLambdaAsync != null);
 
+            // when a minimum width is requested for the textbox, use a WrapPanel layout so that
+            // the textbox and its buttons can wrap to the next line individually on narrow screens
+            var useWrapLayout = textBoxMinWidth > 0 && auxButton && comboBoxItems == null;
+            AnyUiWrapPanel auxWrapPanel = null;
+
             // Grid
             var g = new AnyUiGrid();
             g.Margin = new AnyUiThickness(0, 1, 0, 1);
@@ -427,7 +435,9 @@ namespace AasxPackageLogic
             // 2024-05-09: add a minimum width to these kinds of fields
             gc2.MinWidth = valueFieldsMinWidth;
 
-            if (auxButton)
+            // when using wrap-panel layout the buttons go inside the WrapPanel,
+            // so no separate button columns are needed in the grid
+            if (auxButton && !useWrapLayout)
                 for (int i = 0; i < intButtonTitles.Count; i++)
                 {
                     var gc3 = new AnyUiColumnDefinition();
@@ -485,11 +495,35 @@ namespace AasxPackageLogic
             }
             else
             {
-                // use plain text box
-                var tb = AddSmallTextBoxTo(g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2), text: "" + value, isValReadOnly: isValueReadOnly);
-                // enforce a minimum width (approx. 30 characters) but allow the field to grow with available space
-                if (key == "id" || key == "globalAssetId")
-                    tb.MinWidth = 30 * 10; // approx. 30ch
+                AnyUiTextBox tb;
+                if (useWrapLayout)
+                {
+                    // WrapPanel in the Star column (col 1); button columns are not added when
+                    // useWrapLayout is true, so the WrapPanel fills the full remaining width
+                    auxWrapPanel = new AnyUiWrapPanel();
+                    auxWrapPanel.Orientation = AnyUiOrientation.Horizontal;
+                    AnyUiGrid.SetRow(auxWrapPanel, 0);
+                    AnyUiGrid.SetColumn(auxWrapPanel, 1);
+                    g.Children.Add(auxWrapPanel);
+
+                    tb = new AnyUiTextBox();
+                    tb.Margin = new AnyUiThickness(4, 2, 2, 2);
+                    tb.Text = "" + value;
+                    tb.IsReadOnly = isValueReadOnly;
+                    tb.MinWidth = textBoxMinWidth;
+                    tb.MultiLine = false;
+                    tb.MaxLines = 3;
+                    tb.VerticalScrollBarVisibility = AnyUiScrollBarVisibility.Auto;
+                    auxWrapPanel.Children.Add(tb);
+                }
+                else
+                {
+                    tb = AddSmallTextBoxTo(g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2),
+                        text: "" + value, isValReadOnly: isValueReadOnly);
+                    if (textBoxMinWidth > 0)
+                        tb.MinWidth = textBoxMinWidth;
+                }
+
                 // multiple lines
                 if (maxLines > 0)
                     tb.MaxLines = maxLines;
@@ -497,7 +531,7 @@ namespace AasxPackageLogic
                 AnyUiUIElement.RegisterControl(tb,
                     setValueAsync: setValueAsync, takeOverLambda: takeOverLambdaAction);
 
-                // check here, if to hightlight
+                // check here, if to highlight
                 if (tb != null && this.highlightField != null && valueHash != null &&
                         this.highlightField.fieldHash == valueHash.Value &&
                         (containingObject == null || containingObject == this.highlightField.containingObject))
@@ -506,19 +540,9 @@ namespace AasxPackageLogic
 
             if (auxButton)
             {
-                // special: for very long id fields, wrap buttons instead of fixed columns
-                if (key == "id" || key == "globalAssetId")
+                if (useWrapLayout && auxWrapPanel != null)
                 {
-                    // create a wrap panel for buttons in the same row as the field
-                    var wp = new AnyUiWrapPanel();
-                    wp.Orientation = AnyUiOrientation.Horizontal;
-                    AnyUiGrid.SetRow(wp, 0);
-                    AnyUiGrid.SetColumn(wp, 2);
-                    // ensure there is at least one extra column for the button panel
-                    while (g.ColumnDefinitions.Count <= 2)
-                        g.ColumnDefinitions.Add(new AnyUiColumnDefinition() { Width = AnyUiGridLength.Auto });
-                    g.Children.Add(wp);
-
+                    // buttons go into the WrapPanel beside the textbox
                     for (int i = 0; i < intButtonTitles.Count; i++)
                     {
                         Func<object, Task<AnyUiLambdaActionBase>> lmbAsync = null;
@@ -527,7 +551,7 @@ namespace AasxPackageLogic
                         if (auxButtonLambdaAsync != null)
                             lmbAsync = async (o) =>
                             {
-                                return await auxButtonLambdaAsync(closureI); // exchange o with i !!
+                                return await auxButtonLambdaAsync(closureI);
                             };
 
                         var b = new AnyUiButton();
@@ -537,7 +561,7 @@ namespace AasxPackageLogic
                         AnyUiUIElement.RegisterControl(b, setValueAsync: lmbAsync);
                         if (i < intButtonToolTips.Count)
                             b.ToolTip = intButtonToolTips[i];
-                        wp.Children.Add(b);
+                        auxWrapPanel.Children.Add(b);
                     }
                 }
                 else
@@ -550,7 +574,7 @@ namespace AasxPackageLogic
                         if (auxButtonLambdaAsync != null)
                             lmbAsync = async (o) =>
                             {
-                                return await auxButtonLambdaAsync(closureI); // exchange o with i !!
+                                return await auxButtonLambdaAsync(closureI);
                             };
 
                         var b = AnyUiUIElement.RegisterControl(

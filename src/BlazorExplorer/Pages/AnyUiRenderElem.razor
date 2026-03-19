@@ -332,6 +332,17 @@
 
             style.SetMinMaxWidthHeight(Element);
         }
+        else if (Parent is AnyUiWrapPanel && chtb.MinWidth.HasValue)
+        {
+            // inside a WrapPanel with a MinWidth: grow to fill the available flex line,
+            // using MinWidth as the flex-basis so buttons are pushed to the next line
+            // when the container becomes narrower than that basis
+            style += $"flex: 1 1 {chtb.MinWidth.Value}px";
+            style += "width: auto";
+            style += "max-width: 100%";
+            style += "min-width: 0";
+            style += "box-sizing: border-box";
+        }
 
         @* onchange only when focus changes.
            @onchange="@((ChangeEventArgs __e) => MyTextInput(chtb, __e.Value.ToString(), false))" *@
@@ -392,7 +403,7 @@
             forceNoWrap: false);
 
         style.SetFillWidth(Element, FillMode, chbt.Margin, setMinMaxWidth: true);
-        style.Set("white-space", "normal", add: true);
+        style.Set("white-space", "nowrap", add: true);
 
         <button style="@style" @onclick="() => MyClickButton(chbt)">@chbt.Content</button>
         @code {
