@@ -21,9 +21,17 @@ namespace BlazorUI.Data
     /// </summary>
     public class BlazorInputFileHandler
     {
-        const string DefaultStatus = "Drop a file here to upload it, or click to choose a file";
+        const string DefaultHint = "Drop a file here to upload it, or click to choose a file";
         const long MaxFileSize = 500 * 1024 * 1024; // 500MB
-        public string Status = DefaultStatus;
+
+        /// <summary>Short status line shown above the hint (e.g. filename or error).</summary>
+        public string StatusLine = "";
+
+        /// <summary>Hint shown below the status line.</summary>
+        public string Hint = DefaultHint;
+
+        /// <summary>Legacy property kept for compatibility.</summary>
+        public string Status => StatusLine.Length > 0 ? StatusLine + " – " + Hint : Hint;
 
         public Func<AnyUiDialogueDataOpenFile, Task> FileDropped { get; set; }
 
@@ -37,11 +45,13 @@ namespace BlazorUI.Data
                 }
                 else if (file.Size > MaxFileSize)
                 {
-                    Status = $"That's too big. Max size: {MaxFileSize} bytes.";
+                    StatusLine = $"Too big (max {MaxFileSize / (1024 * 1024)} MB)";
+                    Hint = DefaultHint;
                 }
                 else
                 {
-                    Status = "Loading...";
+                    StatusLine = "Loading…";
+                    Hint = "";
 
                     var fn = System.IO.Path.Combine(
                                 System.IO.Path.GetTempPath(),
@@ -55,7 +65,8 @@ namespace BlazorUI.Data
                     ddof.OriginalFileName = file.Name;
                     ddof.TargetFileName = fn;
 
-                    Status = System.IO.Path.GetFileName(file.Name) + " uploaded. " + DefaultStatus;
+                    StatusLine = System.IO.Path.GetFileName(file.Name) + " uploaded.";
+                    Hint = DefaultHint;
 
                     await FileDropped?.Invoke(ddof);
                 }

@@ -84,6 +84,7 @@
     <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
     <PackageReference Include="System.Formats.Asn1" Version="9.0.2" />
     <PackageReference Include="System.Text.Json" Version="9.0.2" />
+    <PackageReference Include="Toolbelt.Blazor.SplitContainer" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -121,9 +122,7 @@
     folder. Without this, the bin output only contains a runtime manifest with absolute
     paths to the local NuGet cache, which breaks deployment on other machines (e.g. Ubuntu).
   -->
-  <Target Name="CopyExternalStaticWebAssetsToOutput"
-          AfterTargets="Build"
-          DependsOnTargets="ResolveCoreStaticWebAssets">
+  <Target Name="CopyExternalStaticWebAssetsToOutput" AfterTargets="Build" DependsOnTargets="ResolveCoreStaticWebAssets">
     <ItemGroup>
       <!--
         Collect assets from NuGet packages (SourceType=Package) and referenced projects
@@ -134,15 +133,9 @@
         Use %(FileName)%(Extension) from Identity (the real on-disk filename) because
         %(RelativePath) contains fingerprint placeholder tokens for Project assets.
       -->
-      <_ExternalStaticWebAsset Include="@(StaticWebAsset)"
-        Condition="'%(StaticWebAsset.SourceType)' != 'Discovered'
-                 And !$([System.String]::Copy('%(StaticWebAsset.RelativePath)').EndsWith('.gz'))
-                 And !$([System.String]::Copy('%(StaticWebAsset.RelativePath)').EndsWith('.br'))" />
+      <_ExternalStaticWebAsset Include="@(StaticWebAsset)" Condition="'%(StaticWebAsset.SourceType)' != 'Discovered'&#xA;                 And !$([System.String]::Copy('%(StaticWebAsset.RelativePath)').EndsWith('.gz'))&#xA;                 And !$([System.String]::Copy('%(StaticWebAsset.RelativePath)').EndsWith('.br'))" />
     </ItemGroup>
-    <Copy
-      SourceFiles="@(_ExternalStaticWebAsset)"
-      DestinationFiles="@(_ExternalStaticWebAsset->'$(OutDir)wwwroot/%(BasePath)/%(FileName)%(Extension)')"
-      SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_ExternalStaticWebAsset)" DestinationFiles="@(_ExternalStaticWebAsset->'$(OutDir)wwwroot/%(BasePath)/%(FileName)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 
   <ItemGroup>

@@ -1,4 +1,3 @@
-@page "/test3"
 @using AdminShellNS
 @using Aas = AasCore.Aas3_1
 @using AdminShellNS;
@@ -45,25 +44,27 @@
     <div style="@divOuterStyle">
         @if (_panel != null && _panel.Orientation == AnyUiOrientation.Horizontal)
         {
-            @* Render the STACK HORIZONTALLY *@
-            @* Note: the stack panel with horizontal orientation does NOT pass the FillMode! *@
-            <table @attributes="@PanelAttributes" style="@panelStyle" data-source="AnyUiRenderStackPanel.razor HOR">
-                <tr>
-                    <td>
-                        @{
-                            if (_panel?.Children != null)
-                                foreach (var ch in _panel.Children)
-                                {
-                                <AnyUiRenderElem DisplayData="@DisplayData"
-                                                 Session="@Session"
-                                                 Parent="@Element"
-                                                 Element="@ch"
-                                                 FillMode="@AnyUiHtmlFillMode.None" />
-                                }
+            @* Render the STACK HORIZONTALLY as a flex-row div.
+               Note: the stack panel with horizontal orientation does NOT pass the FillMode! *@
+            var horStyle = new StylePile(panelStyle);
+            horStyle.Set("display", "flex", add: true);
+            horStyle.Set("flex-direction", "row", add: true);
+            horStyle.Set("flex-wrap", "wrap", add: true);
+            horStyle.Set("align-items", "center", add: true);
+            horStyle.Set("min-width", "0", add: true);
+            <div @attributes="@PanelAttributes" style="@horStyle" data-source="AnyUiRenderStackPanel.razor HOR">
+                @{
+                    if (_panel?.Children != null)
+                        foreach (var ch in _panel.Children)
+                        {
+                        <AnyUiRenderElem DisplayData="@DisplayData"
+                                         Session="@Session"
+                                         Parent="@Element"
+                                         Element="@ch"
+                                         FillMode="@AnyUiHtmlFillMode.None" />
                         }
-                    </td>
-                </tr>
-            </table>
+                }
+            </div>
         }
 
         @if (_panel.Orientation == null

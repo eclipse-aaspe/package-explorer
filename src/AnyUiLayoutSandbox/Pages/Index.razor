@@ -4,6 +4,8 @@
 <PageTitle>AnyUI Layout Sandbox</PageTitle>
 
 <style>
+  html, body { margin: 0; padding: 0; overflow: hidden; }
+
   /* allow layout containers to shrink as far as possible */
   html, body, .page, main, article, .content {
     min-width: 0 !important;
@@ -33,11 +35,30 @@
   }
 </style>
 
-<h3 style="overflow-wrap:break-word;">AnyUI Layout Sandbox (Identifiable / AssetInformation)</h3>
-
-@RenderElement(RootElement)
+<SplitContainer @bind-FirstPaneSize="_splitSize"
+                Orientation="SplitterOrientation.Vertical"
+                FirstPaneMinSize="100"
+                SecondPaneMinSize="150"
+                Style="height:100vh;width:100%">
+    <FirstPane>
+        <div style="padding:10px;overflow-y:auto;height:100%;box-sizing:border-box;background:#eef;">
+            <h4>Left Panel</h4>
+            <p>Splitter-Test. Ziehe den Splitter nach rechts um den rechten Bereich zu verengen.</p>
+            <p>Lorem ipsum dolor sit amet.</p>
+        </div>
+    </FirstPane>
+    <SecondPane>
+        <div style="height:100%;width:100%;overflow-y:auto;overflow-x:hidden;
+                    border:2px solid #0028cd;border-radius:8px;padding:10px;
+                    box-sizing:border-box;">
+            <h3 style="overflow-wrap:break-word;">AnyUI Layout Sandbox (Identifiable / AssetInformation)</h3>
+            @RenderElement(RootElement)
+        </div>
+    </SecondPane>
+</SplitContainer>
 
 @code {
+    private double _splitSize = 250;
     private AnyUiStackPanel? RootElement;
 
     protected override void OnInitialized()

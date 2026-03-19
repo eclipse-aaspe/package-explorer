@@ -414,9 +414,9 @@ namespace AasxPackageLogic
             var auxButton = auxButtonOverride
                     || (repo != null && intButtonTitles.Count > 0 && auxButtonLambdaAsync != null);
 
-            // when a minimum width is requested for the textbox, use a WrapPanel layout so that
-            // the textbox and its buttons can wrap to the next line individually on narrow screens
-            var useWrapLayout = textBoxMinWidth > 0 && auxButton && comboBoxItems == null;
+            // always use WrapPanel layout when aux buttons are present so that buttons can
+            // wrap to the next line on narrow screens (regardless of textBoxMinWidth)
+            var useWrapLayout = auxButton && comboBoxItems == null;
             AnyUiWrapPanel auxWrapPanel = null;
 
             // Grid
@@ -510,7 +510,8 @@ namespace AasxPackageLogic
                     tb.Margin = new AnyUiThickness(4, 2, 2, 2);
                     tb.Text = "" + value;
                     tb.IsReadOnly = isValueReadOnly;
-                    tb.MinWidth = textBoxMinWidth;
+                    if (textBoxMinWidth > 0)
+                        tb.MinWidth = textBoxMinWidth;
                     tb.MultiLine = false;
                     tb.MaxLines = 3;
                     tb.VerticalScrollBarVisibility = AnyUiScrollBarVisibility.Auto;

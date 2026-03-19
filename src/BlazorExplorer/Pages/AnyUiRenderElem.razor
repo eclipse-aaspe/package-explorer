@@ -227,9 +227,8 @@
                 fontSizeRel: hb.FontSize,
                 fontWeight: hb.FontWeight);
 
+            style.Set("background-color", hb.Background?.HtmlRgba(), add: true, doNotSetIfNull: true);
             style.Set("color", hb.Background?.HtmlRgb(), add: true, doNotSetIfNull: true);
-
-            style.Set("z-index", "-1", add: true);
 
             // inner style (pure text)
             var innerstyle = new StylePile();
@@ -332,14 +331,14 @@
 
             style.SetMinMaxWidthHeight(Element);
         }
-        else if (Parent is AnyUiWrapPanel && chtb.MinWidth.HasValue)
+        else if (Parent is AnyUiWrapPanel
+            || (chtb.MinWidth.HasValue
+                && Parent is AnyUiStackPanel spParent
+                && spParent.Orientation == AnyUiOrientation.Horizontal))
         {
-            // inside a WrapPanel with a MinWidth: grow to fill the available flex line,
-            // using MinWidth as the flex-basis so buttons are pushed to the next line
-            // when the container becomes narrower than that basis
-            style += $"flex: 1 1 {chtb.MinWidth.Value}px";
-            style += "width: auto";
-            style += "max-width: 100%";
+            // TextBox in a wrapping flex row: grow to fill remaining space and share
+            // the line with sibling buttons; buttons only wrap when space is too tight.
+            style += "flex: 1 1 auto";
             style += "min-width: 0";
             style += "box-sizing: border-box";
         }
@@ -404,6 +403,7 @@
 
         style.SetFillWidth(Element, FillMode, chbt.Margin, setMinMaxWidth: true);
         style.Set("white-space", "nowrap", add: true);
+        style.Set("border-radius", "4px", add: true);
 
         <button style="@style" @onclick="() => MyClickButton(chbt)">@chbt.Content</button>
         @code {
@@ -515,29 +515,3 @@
     }
 
 }
-
-
-<style>
-    .hintbox {
-        width: 100%;
-        margin: 5px auto;
-        padding: 5px;
-        text-align: left;
-        font-weight: normal;
-        font-family: arial;
-        position: relative;
-    }
-
-    .sb1:before {
-        content: "";
-        width: 0px;
-        height: 0px;
-        position: absolute;
-        border-left: 10px solid;
-        border-right: 10px solid transparent;
-        border-top: 10px solid;
-        border-bottom: 10px solid transparent;
-        left: 19px;
-        bottom: -19px;
-    }
-</style>
