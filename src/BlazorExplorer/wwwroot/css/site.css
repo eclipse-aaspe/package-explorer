@@ -450,9 +450,61 @@ app {
     bottom: -10px;
 }
 
-/* AnyUI rendered buttons: rounded corners + blue border */
+/* Splitter bar styling */
+.spliter-bar {
+    position: relative;
+    width: 10px !important;
+    background-color: #c8d4f8;
+    border-left: 1px solid #0028cd;
+    border-right: 1px solid #0028cd;
+    cursor: col-resize;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.spliter-bar:hover {
+    background-color: #0028cd;
+}
+
+.spliter-bar::after {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 40px;
+    border-left: 1px dotted #0028cd;
+    border-right: 1px dotted #0028cd;
+    transition: border-color 0.15s ease;
+}
+
+.spliter-bar:hover::after {
+    border-left-color: #ffffff;
+    border-right-color: #ffffff;
+}
+
+/* AnyUI rendered buttons: rounded corners + stronger blue border */
 button:not(.btn):not(.navbar-toggler):not(.btn-tiny-bl-wh) {
     border-radius: 4px;
-    border: 1px solid #0028cd;
+    border: 2px solid #0028cd;
+}
+
+/* AnyUI text inputs and selects: rounded corners + stronger blue border */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="url"],
+textarea,
+select {
+    border-radius: 4px;
+    border: 2px solid #0028cd;
+    outline: none;
+    padding: 3px 4px;
+    line-height: normal;
+    vertical-align: middle;
+    box-sizing: border-box;
 }
 

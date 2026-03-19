@@ -29,14 +29,38 @@
     Session.DisplayContext.SetJsRuntime(JSRuntime);
 }
 
+<!-- Zoom toolbar: sticky second bar, sticks just below the main navbar -->
+<div style="position:sticky; top:5rem; z-index:4; display:flex; justify-content:space-between; align-items:center; background-color:#e8eeff; border-bottom:1px solid #c0ccff; padding:2px 4px; margin-bottom:2px;">
+    <div style="display:flex; gap:3px; align-items:center;">
+        <span style="font-size:0.75rem; color:#555; margin-right:2px;">L</span>
+        <button class="btn-tiny-bl-wh" title="Zoom out left panel"
+                @onclick="() => _leftZoom = Math.Max(0.5, Math.Round(_leftZoom - 0.1, 1))">−</button>
+        <button class="btn-tiny-bl-wh" title="Reset zoom left panel"
+                @onclick="() => _leftZoom = 1.0"
+                style="min-width:3.2rem;text-align:center;">@(((int)Math.Round(_leftZoom*100)))%</button>
+        <button class="btn-tiny-bl-wh" title="Zoom in left panel"
+                @onclick="() => _leftZoom = Math.Min(2.0, Math.Round(_leftZoom + 0.1, 1))">+</button>
+    </div>
+    <div style="display:flex; gap:3px; align-items:center;">
+        <span style="font-size:0.75rem; color:#555; margin-right:2px;">R</span>
+        <button class="btn-tiny-bl-wh" title="Zoom out right panel"
+                @onclick="() => _rightZoom = Math.Max(0.5, Math.Round(_rightZoom - 0.1, 1))">−</button>
+        <button class="btn-tiny-bl-wh" title="Reset zoom right panel"
+                @onclick="() => _rightZoom = 1.0"
+                style="min-width:3.2rem;text-align:center;">@(((int)Math.Round(_rightZoom*100)))%</button>
+        <button class="btn-tiny-bl-wh" title="Zoom in right panel"
+                @onclick="() => _rightZoom = Math.Min(2.0, Math.Round(_rightZoom + 0.1, 1))">+</button>
+    </div>
+</div>
+
 <SplitContainer @bind-FirstPaneSize="_splitPaneSize"
                 Orientation="SplitterOrientation.Vertical"
                 FirstPaneMinSize="150"
                 SecondPaneMinSize="200"
-                Style="height:calc(100vh - 70px);width:100%">
+                Style="width:100%">
     <FirstPane>
-    <div style="height:100%;overflow-y:auto;overflow-x:hidden">
-        <div class="row-12">
+    <div style="overflow-x:hidden">
+        <div class="row-12" style="zoom:@(_leftZoom.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
             <!-- Modal -->
             <div class="row">
                 @{
@@ -661,8 +685,8 @@
             elementPanelStyle.Add("margin-top", "-16px");
     }
     <!-- right panel -->
-    <div style="height:calc(100vh - 70px);width:100%;overflow-y:auto;overflow-x:hidden;border-style:solid;border-color:#0028cd;border-radius:8px;border-width:2px;padding:10px;box-sizing:border-box;background-color:#f0f4ff;">
-        <div style="@elementPanelStyle">
+    <div style="width:100%;overflow-x:hidden;border-style:solid;border-color:#0028cd;border-radius:8px;border-width:2px;padding:10px;box-sizing:border-box;background-color:#f0f4ff;">
+        <div style="zoom:@(_rightZoom.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)); @elementPanelStyle">
             @{                
                 if (Session?.PrepareDisplayDataAndElementPanel(
                     JSRuntime,
@@ -701,6 +725,10 @@
 
     // Initial width of the left pane in pixels
     private double _splitPaneSize = 350;
+
+    // Independent zoom levels for left and right panels (1.0 = 100%)
+    private double _leftZoom = 1.0;
+    private double _rightZoom = 1.0;
 
     [Parameter]
     public int CounterRedraw { get; set; }
