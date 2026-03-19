@@ -1,8 +1,7 @@
-﻿@page "/AnyUiFlyoutOpenFile"
+@page "/AnyUiFlyoutOpenFile"
 @using AdminShellNS
 @using AnyUi
 @using BlazorUI.Data
-@using BlazorInputFile
 @using AasxPackageLogic
 @using AasxPackageLogic.PackageCentral
 @inject BlazorUI.Data.AASService SubmodelService
@@ -47,7 +46,7 @@
 
 		<span class="col-10 mt-4 px-0">Local files:</span>
 		<div class="drag-drop-zone col-md-10 mt-4 mx-2">			
-			<BlazorInputFile.InputFile OnChange="HandleFileSelected2" />
+			<InputFile OnChange="HandleFileSelected2" />
 			@status
 		</div>
 
@@ -73,7 +72,7 @@
 	protected string _selectedUserFile = null;
 
 	const string DefaultStatus = "Drop a file here to upload it, or click to choose a file";
-	const int MaxFileSize = 500 * 1024 * 1024; // 500MB
+	const long MaxFileSize = 500 * 1024 * 1024; // 500MB
 	string status = DefaultStatus;
 
 	protected void SetUserFileName(string ufn)
@@ -89,12 +88,11 @@
 		}
 	}
 
-	async Task HandleFileSelected2(IFileListEntry[] files)
+	async Task HandleFileSelected2(InputFileChangeEventArgs e)
 	{
-		// try get the file contents
 		try
 		{
-			var file = files.FirstOrDefault();
+			var file = e.File;
 			if (file == null)
 			{
 				return;
@@ -110,9 +108,10 @@
 				var fn = System.IO.Path.Combine(
 							System.IO.Path.GetTempPath(),
 							System.IO.Path.GetFileName(file.Name));
-				var fileStream = System.IO.File.Create(fn);
-				await file.Data.CopyToAsync(fileStream);
-				fileStream.Close();
+				using (var readStream = file.OpenReadStream(MaxFileSize))
+				using (var fileStream = System.IO.File.Create(fn))
+					await readStream.CopyToAsync(fileStream);
+				// fileStream fully closed before LeaveResult triggers the AASX loader
 
 				if (DialogueData is AnyUiDialogueDataOpenFile ddof)
 				{

@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -7,8 +7,8 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Reflection;
 using AnyUi;
@@ -24,6 +24,9 @@ namespace BlazorUI.Controllers
     [ApiController]
     public class ImageController : ControllerBase
     {
+        // Minimal 1×1 white PNG (cross-platform fallback, no GDI+ required)
+        private static readonly byte[] _whitePixelPng = Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADklEQVQI12P4z8BQDwADhQGAWjR9awAAAABJRU5ErkJggg==");
         // GET: api/<ImageController>
         [HttpGet]
         public IEnumerable<string> Get()
@@ -64,9 +67,7 @@ namespace BlazorUI.Controllers
                     }
                     else
                     {
-                        var b = new Bitmap(1, 1);
-                        b.SetPixel(0, 0, Color.White);
-                        b.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
+                        ms.Write(_whitePixelPng, 0, _whitePixelPng.Length);
                     }
                     var bb = ms.ToArray();
                     return base.File(bb, "image/png");

@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -548,7 +548,8 @@ namespace AasxPackageLogic
                             return la;
                         }
                         return new AnyUiLambdaActionNone();
-                    });
+                    },
+                    textBoxMinWidth: 300);
 
                 // further info?
                 if (identifiable.Id.HasContent())

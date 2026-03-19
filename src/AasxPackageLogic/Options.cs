@@ -306,7 +306,7 @@ namespace AasxPackageLogic
     {
         [OptionDescription(Description = "If set, start in editor mode instead of browse mode.",
             Cmd = "-edit-mode")]
-        public bool EditMode = true;
+        public bool EditMode = false;
 
         [OptionDescription(Description = "If set, do not start in hinting mode.",
             Cmd = "-no-hints")]

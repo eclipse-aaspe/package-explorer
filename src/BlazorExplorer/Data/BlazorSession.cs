@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -17,7 +17,6 @@ using System.IO;
 using System.IO.Packaging;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using AasxIntegrationBase;
 using AasxIntegrationBaseGdi;
 using AasxPackageExplorer;
@@ -140,7 +139,7 @@ namespace BlazorUI.Data
         /// This setting shall be controlled by the menu / hotkey/ script
 		/// functionality.
 		/// </summary>
-		public bool CheckSmtMode = true;
+		public bool CheckSmtMode = false;
 
 		// to be refactored in a class?
 
@@ -233,6 +232,8 @@ namespace BlazorUI.Data
             // editor modes?
             MainMenu?.SetChecked("EditMenu", Options.Curr.EditMode);
             MainMenu?.SetChecked("HintsMenu", !Options.Curr.NoHints);
+            this.EditMode = Options.Curr.EditMode;
+            this.HintMode = !Options.Curr.NoHints;
 
             // show Logo?
             if (Options.Curr.LogoFile != null)
@@ -292,6 +293,8 @@ namespace BlazorUI.Data
             MainMenu?.SetChecked("AnimateElements", Options.Curr.AnimateElements);
             MainMenu?.SetChecked("ObserveEvents", Options.Curr.ObserveEvents);
             MainMenu?.SetChecked("CompressEvents", Options.Curr.CompressEvents);
+            MainMenu?.SetChecked("CheckSmtElements", Options.Curr.CheckSmtElements);
+            this.CheckSmtMode = Options.Curr.CheckSmtElements;
 
             // the UI application might receive events from items in the package central
             PackageCentral.ChangeEventHandler = (data) =>

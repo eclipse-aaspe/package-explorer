@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -66,14 +66,21 @@ namespace BlazorUI.Data
             // image data?
             try
             {
-                try
+                var ba = env.GetThumbnailBytesFromAasOrPackage(aas?.Id);
+                if (ba != null && ba.Length > 0)
                 {
-                    var ba = env.GetThumbnailBytesFromAasOrPackage(aas?.Id);
-                    HtmlImageData = System.Convert.ToBase64String(ba);
-                }
-                catch (Exception ex)
-                {
-                    LogInternally.That.CompletelyIgnoredError(ex);
+                    // Detect MIME type from magic bytes so all browsers (incl. Linux) render correctly
+                    string mimeType = "image/png";
+                    if (ba.Length >= 3 && ba[0] == 0xFF && ba[1] == 0xD8 && ba[2] == 0xFF)
+                        mimeType = "image/jpeg";
+                    else if (ba.Length >= 4 && ba[0] == 0x89 && ba[1] == 0x50 && ba[2] == 0x4E && ba[3] == 0x47)
+                        mimeType = "image/png";
+                    else if (ba.Length >= 3 && ba[0] == 0x47 && ba[1] == 0x49 && ba[2] == 0x46)
+                        mimeType = "image/gif";
+                    else if (ba.Length >= 2 && ba[0] == 0x42 && ba[1] == 0x4D)
+                        mimeType = "image/bmp";
+
+                    HtmlImageData = $"data:{mimeType};base64,{System.Convert.ToBase64String(ba)}";
                 }
             }
             catch (Exception ex)

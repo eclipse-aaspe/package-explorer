@@ -20,18 +20,42 @@
     if (_grid == null)
         return;
 
-    if (_grid?.Children != null && _grid.Children.Count >= 1
-        && _grid.Children[0] is AnyUiSelectableTextBlock stb
-        && stb.Text == "id:")
-        ;
+    // True when a WrapPanel in a Star column *also contains a TextBox with MinWidth*.
+    // That combination is the exact signature of key-value rows like id/globalAssetId
+    // that need CSS Grid so their flex container has a genuinely constrained width.
+    // Pure action-button panels (SubmodelRef, AAS, Buffer …) do NOT match and stay
+    // with the regular <table> rendering to avoid scrollbars everywhere.
+    var hasWrapInStar = false;
+    if (_grid.Children != null && _grid.ColumnDefinitions != null)
+        foreach (var _rwch in _grid.Children)
+            if (_rwch is AnyUiWrapPanel _rwwp)
+            {
+                var _rwci = _rwch.GridColumn ?? 0;
+                if (_rwci < _grid.ColumnDefinitions.Count
+                    && _grid.ColumnDefinitions[_rwci]?.Width?.Type == AnyUiGridUnitType.Star
+                    && _rwwp.Children != null)
+                {
+                    foreach (var _rwc in _rwwp.Children)
+                        if (_rwc is AnyUiTextBox _rwtb && _rwtb.MinWidth.HasValue)
+                        {
+                            hasWrapInStar = true;
+                            break;
+                        }
+                }
+                if (hasWrapInStar) break;
+            }
 
     // because of not working with table, need an outer <div>
     var divOuterStyle = new StylePile();
     divOuterStyle.SetSpecifics(
         margin: _grid.Margin);
-    // keep grid within viewport and allow horizontal scrolling when needed
+    // Layout wrapper: must not prevent flex-wrap inside descendants
+    divOuterStyle.Set("white-space", "normal", add: true);
+    // keep grid within viewport; min-width:0 prevents this div from expanding its parent
+    // table cell beyond the available width (auto-table layout uses content min-content otherwise)
+    divOuterStyle.Set("min-width", "0", add: true);
     divOuterStyle.Set("max-width", "100%", add: true);
-    divOuterStyle.Set("overflow-x", "auto", add: true);
+    divOuterStyle.Set("overflow-x", "hidden", add: true);
     divOuterStyle.Set("box-sizing", "border-box", add: true);
 
     if (_grid?.Children != null && _numRow == 3 && _numCol == 3)
@@ -91,8 +115,8 @@
     if (hasCornerRadius)
         tablestyle += "border-collapse: separate";
 
-    // test
-    if (NewApproach && _grid.FillFixedWidth)
+    // fixed table layout when WrapPanel is in a Star column, or when explicitly requested
+    if ((NewApproach && _grid.FillFixedWidth) || _hasWrapPanelInStarColumn)
     {
         tablestyle.Add("table-layout", "fixed");
     }
@@ -114,6 +138,63 @@
     // 
     // Render
     //
+
+    if (hasWrapInStar)
+    {
+        // When a WrapPanel sits in a Star column, render as CSS Grid instead of <table>.
+        // CSS Grid's 1fr tracks provide a genuinely constrained width so flex-wrap works.
+        var _tmplParts = new List<string>();
+        foreach (var _tcd in _grid.ColumnDefinitions)
+        {
+            if (_tcd.Width?.Type == AnyUiGridUnitType.Star)
+                // Allow the Star column to shrink below the min-content width of
+                // long textbox/button rows so the WrapPanel can actually wrap.
+                _tmplParts.Add("minmax(0, 1fr)");
+            else if (_tcd.MinWidth.HasValue)
+            {
+                var _tmin = (_grid.DisplayData as AnyUiDisplayDataHtml)?.ScaleToPixel(_tcd.MinWidth.Value) ?? _tcd.MinWidth.Value;
+                _tmplParts.Add(FormattableString.Invariant($"minmax({(int)_tmin}px, auto)"));
+            }
+            else
+                _tmplParts.Add("auto");
+        }
+        var _cssTemplate = string.Join(" ", _tmplParts);
+        var _cssGridStyle = $"display:grid;grid-template-columns:{_cssTemplate};width:100%;min-width:0;align-items:start;box-sizing:border-box;";
+
+        // For CSS Grid rendering we keep a horizontal-scroll fallback (esp. under strong browser zoom),
+        // but the grid itself is shrinkable (`minmax(0, 1fr)`), so wrapping should still win normally.
+        var _divOuterCssGrid = new StylePile(divOuterStyle);
+        _divOuterCssGrid.Set("overflow-x", "auto", add: true);
+
+        <div style="@_divOuterCssGrid" data-source="AnyUiRenderGrid.razor outerStyle (css-grid)">
+            <div style="@_cssGridStyle" data-source="AnyUiRenderGrid.razor cssGrid">
+                @foreach (var _gch in _grid.Children ?? new List<AnyUiUIElement>())
+                {
+                    if (_gch == null || (_gch.SkipForTarget & AnyUiTargetPlatform.Browser) > 0)
+                        continue;
+                    var _gRow = (_gch.GridRow ?? 0) + 1;
+                    var _gCol = (_gch.GridColumn ?? 0) + 1;
+                    var _gRowSpan = _gch.GridRowSpan ?? 1;
+                    var _gColSpan = _gch.GridColumnSpan ?? 1;
+                    // For WrapPanel cells we must allow shrinking inside the 1fr track.
+                    // Avoid overflow clipping here: clipping can hide buttons at high browser zoom
+                    // if wrapping does not kick in as expected for a particular row.
+                    var _wrapPanelCellExtras = (_gch is AnyUiWrapPanel) ? "max-width:100%;min-width:0;" : "";
+                    var _gCellStyle = FormattableString.Invariant(
+                        $"grid-row:{_gRow}/span {_gRowSpan};grid-column:{_gCol}/span {_gColSpan};min-width:0;{_wrapPanelCellExtras}");
+                    <div style="@_gCellStyle" data-source="AnyUiRenderGrid.razor cssGridCell">
+                        <AnyUiRenderElem DisplayData="@DisplayData"
+                                         Session="@Session"
+                                         Parent="@Element"
+                                         Element="@_gch"
+                                         FillMode="@FillMode" />
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
 
     <div style="@divOuterStyle" data-source="AnyUiRenderGrid.razor outerStyle">
         <table @attributes="@TableAttributes" style="@tablestyle" data-source="AnyUiRenderGrid.razor">
@@ -323,6 +404,8 @@
             </tbody>
         </table>
     </div>
+
+    } // end else (table rendering)
 }
 
 @code {
@@ -345,6 +428,11 @@
 
     protected List<string> _colHeadStyles = new List<string>();
     protected List<string> _colCellStyles = new List<string>();
+
+    // true when a WrapPanel child sits in a Star column;
+    // in that case we switch to table-layout:fixed so the flex container
+    // inside that cell gets a constrained width and can wrap its children
+    protected bool _hasWrapPanelInStarColumn = false;
 
     [Parameter]
     public AnyUiUIElement Parent { get; set; }
@@ -386,7 +474,21 @@
                 if (cd?.Width?.Type == AnyUiGridUnitType.Star)
                     sumOfStars += cd.Width.Value;
 
-            // make sure to have a weight > 0.0 for balancing single columns
+            // detect WrapPanel in a Star column: requires table-layout:fixed so
+            // the <td> gets a constrained width and the flex container can wrap
+            _hasWrapPanelInStarColumn = false;
+            if (_grid.Children != null)
+                foreach (var ch in _grid.Children)
+                    if (ch is AnyUiWrapPanel)
+                    {
+                        var colIdx = ch.GridColumn ?? 0;
+                        if (colIdx < _grid.ColumnDefinitions.Count
+                            && _grid.ColumnDefinitions[colIdx]?.Width?.Type == AnyUiGridUnitType.Star)
+                        {
+                            _hasWrapPanelInStarColumn = true;
+                            break;
+                        }
+                    }
 
             _colHeadStyles = new List<string>();
             _colCellStyles = new List<string>();
@@ -400,16 +502,31 @@
                 var starWeight = Math.Max(sumOfStars, 1.0);
                 var mwpx = (_grid.DisplayData as AnyUiDisplayDataHtml)?
                     .ScaleToPixel(cd.Width.Value) ?? cd.Width.Value;
-                var wwpx = (_grid.DisplayData as AnyUiDisplayDataHtml)?
-                    .ScaleToPixel(Math.Floor(100.0 * cd.Width.Value / starWeight)) 
-                    ?? Math.Floor(100.0 * cd.Width.Value / starWeight);
+                // wwpx is a CSS percentage (0-100), not pixels → must NOT be scaled by DPI
+                var wwpx = Math.Floor(100.0 * cd.Width.Value / starWeight);
 
-                if (cd.Width?.Type == AnyUiGridUnitType.Pixel)
-                    chs = FormattableString.Invariant($"min-width:{mwpx}px;");
-                if (cd.Width?.Type == AnyUiGridUnitType.Star)
-                    chs = FormattableString.Invariant($"width:{wwpx}%;");
-                if (cd.Width?.Type == AnyUiGridUnitType.Auto)
-                    chs = $"";
+                if (_hasWrapPanelInStarColumn)
+                {
+                    // table-layout:fixed mode: Auto columns get an explicit pixel width
+                    // so table-layout:fixed knows their size; Star columns get no explicit
+                    // width and auto-fill the remaining space
+                    if (cd.Width?.Type == AnyUiGridUnitType.Auto && cd.MinWidth.HasValue)
+                    {
+                        var minwpx = (_grid.DisplayData as AnyUiDisplayDataHtml)?
+                            .ScaleToPixel(cd.MinWidth.Value) ?? cd.MinWidth.Value;
+                        chs = FormattableString.Invariant($"width:{minwpx}px;");
+                    }
+                    // Star columns: deliberately no explicit width → fills remaining space
+                }
+                else
+                {
+                    if (cd.Width?.Type == AnyUiGridUnitType.Pixel)
+                        chs = FormattableString.Invariant($"min-width:{mwpx}px;");
+                    if (cd.Width?.Type == AnyUiGridUnitType.Star)
+                        chs = FormattableString.Invariant($"width:{wwpx}%;");
+                    if (cd.Width?.Type == AnyUiGridUnitType.Auto)
+                        chs = $"";
+                }
 
                 _colHeadStyles.Add(chs);
                 _colCellStyles.Add(ccs);

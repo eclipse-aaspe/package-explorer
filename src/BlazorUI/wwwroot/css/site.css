@@ -6,6 +6,8 @@
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    min-width: 0;
+    overflow-x: clip;
 }
 
 a, .btn-link {
@@ -22,6 +24,8 @@ app {
     position: relative;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    overflow-x: clip;
 }
 
 .top-row {
@@ -32,6 +36,8 @@ app {
 
 .main {
     flex: 1;
+    min-width: 0;
+    overflow-x: clip;
 }
 
     .main .top-row {
@@ -103,6 +109,8 @@ app {
 
 .content {
     padding-top: 1.1rem;
+    min-width: 0;
+    overflow-x: clip;
 }
 
 .navbar-toggler {

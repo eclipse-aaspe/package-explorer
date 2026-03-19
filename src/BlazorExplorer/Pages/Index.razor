@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @using Aas = AasCore.Aas3_1
 @using AdminShellNS
 @using AasxIntegrationBase
@@ -210,21 +210,22 @@
                                 <span>&nbsp&nbsp&nbsp&nbsp</span>
                             </form>
                             @code {
-                        async Task HandleFileSelected2(IFileListEntry[] files)
+                        async Task HandleFileSelected2(InputFileChangeEventArgs e)
                                 {                                               
                                     // try get the file contents
                         string targetFn = null;
+                        const long MaxFileSizeLocal = 500 * 1024 * 1024;
                         try
                         {
-                            var file = files.FirstOrDefault();
+                            var file = e.File;
                             if (file != null)
                             {
                                 var fn = System.IO.Path.Combine(
                                             System.IO.Path.GetTempPath(), 
                                             System.IO.Path.GetFileName(file.Name));
-                                var fileStream = System.IO.File.Create(fn);
-                                await file.Data.CopyToAsync(fileStream);
-                                fileStream.Close();
+                                using (var readStream = file.OpenReadStream(MaxFileSizeLocal))
+                                using (var fileStream = System.IO.File.Create(fn))
+                                    await readStream.CopyToAsync(fileStream);
                                 targetFn = fn;
                             }
                         }
@@ -561,7 +562,7 @@
 
                         @* File drop? *@
                         <div class="drag-drop-zone-blue">
-                            <BlazorInputFile.InputFile OnChange="FileDrop_Handler.FileSelected" />
+                            <InputFile OnChange="@(async (e) => await FileDrop_Handler.FileSelected(e.File))" />
                             @FileDrop_Handler.Status
                         </div>
 
@@ -669,7 +670,7 @@
     <!-- right panel -->
     @{
         var elementPanelStyle = new StylePile()
-            .Add("word-wrap: break-word; width: 100%; overflow: hidden");
+            .Add("word-wrap: break-word; width: 100%; overflow-x: hidden");
 
         // by some weird reason, the top margin is to be correct, if NOT a plugin ..
         if (!(Session.DisplayElements?.SelectedItem is VisualElementPluginExtension))
