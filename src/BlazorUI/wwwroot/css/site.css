@@ -113,6 +113,11 @@ app {
     overflow-x: clip;
 }
 
+/* SplitContainer pane needs explicit height so children can use height:100% */
+.split-container .pane-of-split-container {
+    height: 100%;
+}
+
 .navbar-toggler {
     background-color: rgba(255, 255, 255, 0.1);
 }

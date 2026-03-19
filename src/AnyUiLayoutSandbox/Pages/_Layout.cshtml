@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web
 @namespace AnyUiLayoutSandbox.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
@@ -12,6 +12,13 @@
     <link href="css/site.css" rel="stylesheet" />
     <link href="AnyUiLayoutSandbox.styles.css" rel="stylesheet" />
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+    <style>
+        /* Test-Override: SplitContainer pane overflow */
+        .split-container .pane-of-split-container[b-split-container] {
+            height: 100%;
+            overflow-x: hidden;
+        }
+    </style>
 </head>
 <body>
     @RenderBody()

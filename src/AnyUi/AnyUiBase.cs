@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -1163,11 +1163,6 @@ namespace AnyUi
         /// If Grid is rendered as HTML table, set the global <table>-Background accordingly.
         /// </summary>
         public AnyUiImage BackgroundImageHtml = null;
-
-        /// <summary>
-        /// For HTML rendering, the first grid shall fill the complete width
-        /// </summary>
-        public bool FillFixedWidth = false;
 
         public static void SetRow(AnyUiUIElement el, int value) { if (el != null) el.GridRow = value; }
         public static void SetRowSpan(AnyUiUIElement el, int value) { if (el != null) el.GridRowSpan = value; }

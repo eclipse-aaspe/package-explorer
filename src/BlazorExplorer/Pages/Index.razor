@@ -29,8 +29,13 @@
     Session.DisplayContext.SetJsRuntime(JSRuntime);
 }
 
-<div class="col-12 row">
-    <div class=@($"col-{Session.DividerTreeAndElement}")>
+<SplitContainer @bind-FirstPaneSize="_splitPaneSize"
+                Orientation="SplitterOrientation.Vertical"
+                FirstPaneMinSize="150"
+                SecondPaneMinSize="200"
+                Style="height:calc(100vh - 70px);width:100%">
+    <FirstPane>
+    <div style="height:100%;overflow-y:auto;overflow-x:hidden">
         <div class="row-12">
             <!-- Modal -->
             <div class="row">
@@ -453,7 +458,7 @@
             
             <!-- Tree -->
             <div style="margin:0px 2px 1px 1px">
-                <div class="row" style="border-style:solid;border-color:#0028cd;border-radius:8px;border-width:2px; white-space: nowrap;position:sticky;padding:10px 2px 10px 2px">
+                <div class="row mx-0" style="border-style:solid;border-color:#0028cd;border-radius:8px;border-width:2px; white-space: nowrap;padding:10px 2px 10px 2px;background-color:#f0f4ff;">
                     <div class="col" style="white-space: nowrap">
                         @* @updateVisibleTree(Items, Session.DisplayElements.SelectedItem) *@
                         @* @if (Program.isLoading)
@@ -545,7 +550,7 @@
             
             <!-- Repo -->
             <div style="margin:2px 2px 0px 1px">
-                <div class="row" style="border-style:solid;border-color:#0028cd;border-radius:8px;border-width:2px; word-wrap:break-word;position:sticky;padding:10px">
+                <div class="row mx-0" style="border-style:solid;border-color:#0028cd;border-radius:8px;border-width:2px; word-wrap:break-word;padding:10px;background-color:#f0f4ff;">
 
                     <div style="overflow: hidden">
 
@@ -563,7 +568,18 @@
                         @* File drop? *@
                         <div class="drag-drop-zone-blue">
                             <InputFile OnChange="@(async (e) => await FileDrop_Handler.FileSelected(e.File))" />
-                            @FileDrop_Handler.Status
+                            <div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:2px;">
+                                @if (FileDrop_Handler.StatusLine.Length > 0)
+                                {
+                                    <span style="word-break:break-all;overflow-wrap:anywhere;
+                                                 font-weight:bold;color:#444;text-align:center;width:100%;">
+                                        @FileDrop_Handler.StatusLine
+                                    </span>
+                                }
+                                <span style="text-align:center;width:100%;">
+                                    @FileDrop_Handler.Hint
+                                </span>
+                            </div>
                         </div>
 
                         @* Leave some footer space for context menues *@
@@ -582,7 +598,7 @@
 
             <!-- Details -->
             <div style="margin:2px 2px 0px 1px">
-                <div class="row" style="border-style:solid;border-color:#0028cd;border-radius:8px;border-width:2px; word-wrap:break-word;position:sticky;padding:10px">
+                <div class="row mx-0" style="border-style:solid;border-color:#0028cd;border-radius:8px;border-width:2px; word-wrap:break-word;padding:10px;background-color:#f0f4ff;">
                     @{
                         //if (bi.env != null && (selectedNode == null || selectedNode.Tag != null))
                         //{
@@ -633,41 +649,9 @@
         
         </div>
     </div>
+    </FirstPane>
 
-    <div class="col-auto d-flex align-items-center" style="padding: 0px 2px 0px 1px">
-        <div class="btn-group-vertical" style="">
-            <button class="btn btn-tiny-bl-wh"
-                    @onclick="LeftPanelShrink">
-                &#x25c0;
-            </button>
-
-            <button class="btn btn-tiny-bl-wh"
-                    style="margin-top: 10px"
-                    @onclick="LeftPanelGrow">
-                &#x25b6;
-            </button>
-            @code {
-                private void LeftPanelShrink()
-                {
-                    if (Session.DividerTreeAndElement > 2)
-                    {
-                        Session.DividerTreeAndElement--;
-                        this.StateHasChanged();
-                    }
-                }
-                private void LeftPanelGrow()
-                {
-                    if (Session.DividerTreeAndElement < 10)
-                    {
-                        Session.DividerTreeAndElement++;
-                        this.StateHasChanged();
-                    }
-                }
-            }
-        </div>
-    </div>
-
-    <!-- right panel -->
+    <SecondPane>
     @{
         var elementPanelStyle = new StylePile()
             .Add("word-wrap: break-word; width: 100%; overflow-x: hidden");
@@ -676,9 +660,9 @@
         if (!(Session.DisplayElements?.SelectedItem is VisualElementPluginExtension))
             elementPanelStyle.Add("margin-top", "-16px");
     }
-
-    <div class=@($"col-{11-Session.DividerTreeAndElement}") style="border-style:solid;border-color:#0028cd;border-radius:8px;border-width:2px; position:sticky;padding:10px;">
-        <div class="sticky-top" style="@elementPanelStyle">
+    <!-- right panel -->
+    <div style="height:calc(100vh - 70px);width:100%;overflow-y:auto;overflow-x:hidden;border-style:solid;border-color:#0028cd;border-radius:8px;border-width:2px;padding:10px;box-sizing:border-box;background-color:#f0f4ff;">
+        <div style="@elementPanelStyle">
             @{                
                 if (Session?.PrepareDisplayDataAndElementPanel(
                     JSRuntime,
@@ -687,18 +671,6 @@
                     ref Session.ElementPanel,
                     ref Session.DynamicMenu) == true)
                 {
-                    // kind of special hack: set a flag for fixed width for the 1st Grid in the element hierachy
-                    // trust on IEnumerable: take only the first, do not bother the full hierachy
-                    // var g = Session.ElementPanel?.FindAll((el) => el is AnyUiGrid)?.FirstOrDefault() as AnyUiGrid;
-                    // if (g != null)
-                    //     g.FillFixedWidth = true;
-
-                    if (Session.ElementPanel is AnyUi.IEnumerateChildren en)
-                        foreach (var ch in en.GetChildren())
-                            if (ch is AnyUiGrid chgr)
-                                chgr.FillFixedWidth = true;
-
-                    // render
                     var _displayData = new AnyUiDisplayDataHtml(Session.DisplayContext);
                     <AnyUiRenderElem DisplayData="@_displayData"
                                 Session="@Session" 
@@ -707,15 +679,15 @@
                 }
                 else
                 {
-                    // emergency
                     <span>Nothing to display</span>
                     <br />
                 }
             }
         </div>
     </div>
+    </SecondPane>
 
-</div>
+</SplitContainer>
 
 <span>Redraws: @CounterRedraw</span>
 
@@ -726,6 +698,9 @@
     // Gets a reference to the MainLayout component
     [CascadingParameter]
     public BlazorExplorer.Shared.MainLayout Layout { get; set; }
+
+    // Initial width of the left pane in pixels
+    private double _splitPaneSize = 350;
 
     [Parameter]
     public int CounterRedraw { get; set; }

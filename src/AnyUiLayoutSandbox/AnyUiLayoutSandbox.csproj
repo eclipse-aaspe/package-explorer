@@ -10,4 +10,8 @@
     <ProjectReference Include="..\AnyUi\AnyUi.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Toolbelt.Blazor.SplitContainer" Version="2.1.0" />
+  </ItemGroup>
+
 </Project>

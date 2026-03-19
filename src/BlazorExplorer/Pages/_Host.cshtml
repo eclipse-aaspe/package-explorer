@@ -30,6 +30,16 @@
     <link rel="stylesheet" href="bootstrap/bootstrap.min.css" /> 
 
     <link href="css/site.css" rel="stylesheet" />
+    <link href="BlazorExplorer.styles.css" rel="stylesheet" />
+    <style>
+        /* Match SplitContainer's own specificity ([b-split-container]) to win the cascade.
+           height:100% lets children resolve percentage heights.
+           overflow-x:hidden prevents the pane from scrolling horizontally when content is wide. */
+        .split-container .pane-of-split-container[b-split-container] {
+            height: 100%;
+            overflow-x: hidden;
+        }
+    </style>
     <link rel="stylesheet" href="css/all.css" />
     <link rel="stylesheet" href="css/treeStyles.css" />
 </head>
@@ -51,6 +61,9 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+
+    <!-- Define Toolbelt.Blazor.getProperty before Blazor starts (used by SplitContainer) -->
+    <script src="_content/Toolbelt.Blazor.GetProperty.Script/Toolbelt.Blazor.GetProperty.Script.lib.module.js"></script>
 
     <!-- blazor boiler plate -->
     <script src="~/js/blazor-modal.js"></script>
