@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -16,8 +16,10 @@
     <EmbeddedResource Include="Resources\GitDescribe.txt" />
   </ItemGroup>
 
-  <!-- Note: Works only on Windows machines, yet! -->
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-	<Exec Command="echo %25date%25 &gt; &quot;$(ProjectDir)\Resources\BuildDate.txt&quot;" />
+  <Target Name="GenerateBuildDateResource" BeforeTargets="BeforeBuild;CoreCompile">
+    <PropertyGroup>
+      <_BuildDateStamp>$([System.DateTime]::UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"))</_BuildDateStamp>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(ProjectDir)Resources/BuildDate.txt" Lines="$(_BuildDateStamp)" Overwrite="true" />
   </Target>
 </Project>

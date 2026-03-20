@@ -1,4 +1,4 @@
-﻿  <Project Sdk="Microsoft.NET.Sdk">
+  <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net9.0</TargetFrameworks>
 	  
@@ -70,7 +70,11 @@
     -->
   </ItemGroup>
 
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="echo %25date%25 &gt; &quot;$(ProjectDir)\Resources\BuildDate.txt&quot;" />
+  <!-- Cross-platform (Windows + Linux/Docker); old cmd "echo %date%" did not run on Unix. -->
+  <Target Name="GenerateBuildDateResource" BeforeTargets="BeforeBuild;CoreCompile">
+    <PropertyGroup>
+      <_BuildDateStamp>$([System.DateTime]::UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"))</_BuildDateStamp>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(ProjectDir)Resources/BuildDate.txt" Lines="$(_BuildDateStamp)" Overwrite="true" />
   </Target>
 </Project>
