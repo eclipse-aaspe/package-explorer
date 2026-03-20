@@ -43,8 +43,7 @@
     <Content Remove="Pages\Component.razor" />
     <Content Remove="Pages\FetchData.cshtml" />
     <Content Remove="Pages\Index.cshtml" />
-    <Content Remove="wwwroot\image\IDTA_AAS-Logo_312x281_RGB.png" />
-    <Content Remove="wwwroot\image\Logo_IDTA_Custom.png" />
+    <!-- Keep wwwroot/image/* as normal static web assets (publish + /image/... URLs). -->
   </ItemGroup>
 
   <ItemGroup>
@@ -71,10 +70,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>StylePile.txt</LastGenOutput>
     </None>
-    <None Include="wwwroot\image\Logo_IDTA_Custom.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="wwwroot\image\PI40_and_IDTA.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -138,9 +133,39 @@
     <Copy SourceFiles="@(_ExternalStaticWebAsset)" DestinationFiles="@(_ExternalStaticWebAsset->'$(OutDir)wwwroot/%(BasePath)/%(FileName)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 
-  <ItemGroup>
-    <Resource Include="wwwroot\image\IDTA_AAS-Logo_312x281_RGB.png" />
-  </ItemGroup>
+  <!--
+    Eigenes wwwroot (css, js, bootstrap, image, …) landet beim SDK oft nicht physisch unter bin/.../wwwroot
+    (nur Manifest mit lokalen Pfaden). Für XCopy-Deploy aus Debug muss wwwroot vollständig im Output liegen.
+    Läuft nach CopyExternalStaticWebAssetsToOutput, damit _content/* von NuGet zuerst liegt.
+  -->
+  <Target Name="CopyProjectWwwrootToOutputDirectory" AfterTargets="CopyExternalStaticWebAssetsToOutput">
+    <ItemGroup>
+      <!-- *.* + bekannte extensionlose Dateien unter wwwroot -->
+      <_AppWwwrootOut Include="wwwroot\**\*.*" Exclude="wwwroot\_content\**\*.*" />
+      <_AppWwwrootOut Include="wwwroot\css\open-iconic\FONT-LICENSE;wwwroot\css\open-iconic\ICON-LICENSE" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_AppWwwrootOut)"
+          DestinationFiles="@(_AppWwwrootOut->'$(OutDir)wwwroot\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <!-- dotnet publish: OutDir copy is not enough — deploy folder must get package/project _content too (Linux/Ubuntu). -->
+  <Target Name="CopyExternalStaticWebAssetsToPublishDirectory" AfterTargets="Publish" DependsOnTargets="ResolveCoreStaticWebAssets">
+    <ItemGroup>
+      <_ExternalStaticWebAssetPub Include="@(StaticWebAsset)" Condition="'%(StaticWebAsset.SourceType)' != 'Discovered'&#xA;                 And !$([System.String]::Copy('%(StaticWebAsset.RelativePath)').EndsWith('.gz'))&#xA;                 And !$([System.String]::Copy('%(StaticWebAsset.RelativePath)').EndsWith('.br'))" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_ExternalStaticWebAssetPub)" DestinationFiles="@(_ExternalStaticWebAssetPub->'$(PublishDir)wwwroot/%(BasePath)/%(FileName)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyProjectWwwrootToPublishDirectory" AfterTargets="CopyExternalStaticWebAssetsToPublishDirectory">
+    <ItemGroup>
+      <_AppWwwrootPub Include="wwwroot\**\*.*" Exclude="wwwroot\_content\**\*.*" />
+      <_AppWwwrootPub Include="wwwroot\css\open-iconic\FONT-LICENSE;wwwroot\css\open-iconic\ICON-LICENSE" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_AppWwwrootPub)"
+          DestinationFiles="@(_AppWwwrootPub->'$(PublishDir)wwwroot\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TypeScriptTarget>ES2015</TypeScriptTarget>

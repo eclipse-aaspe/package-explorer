@@ -81,18 +81,34 @@
             verStyle.Set("flex-direction", "column", add: true);
             verStyle.Set("min-width", "0", add: true);
             <div @attributes="@PanelAttributes" style="@verStyle" data-source="AnyUiRenderStackPanel.razor VER">
-                @{
-                    @if (_panel?.Children != null)
-                        for (int i=0; i<_panel.Children.Count; i++)
-                        {
-                            var ch = _panel.Children[i];
-                            <div style="min-width:0;width:100%">
-                                <AnyUiRenderElem DisplayData="@DisplayData"
-                                                 Session="@Session"
-                                                 Element="@ch"
-                                                 FillMode="@FillMode" />
-                            </div>
-                        }
+                @if (_panel?.Children != null)
+                {
+                    var stickyN = System.Math.Max(0, System.Math.Min(_panel.BrowserStickyFirstChildCount, _panel.Children.Count));
+                    @if (stickyN > 0)
+                    {
+                        <div class="anyui-sticky-top-toolbar">
+                            @for (int si = 0; si < stickyN; si++)
+                            {
+                                var chSticky = _panel.Children[si];
+                                <div style="min-width:0;width:100%">
+                                    <AnyUiRenderElem DisplayData="@DisplayData"
+                                                     Session="@Session"
+                                                     Element="@chSticky"
+                                                     FillMode="@FillMode" />
+                                </div>
+                            }
+                        </div>
+                    }
+                    @for (int i = stickyN; i < _panel.Children.Count; i++)
+                    {
+                        var ch = _panel.Children[i];
+                        <div style="min-width:0;width:100%">
+                            <AnyUiRenderElem DisplayData="@DisplayData"
+                                             Session="@Session"
+                                             Element="@ch"
+                                             FillMode="@FillMode" />
+                        </div>
+                    }
                 }
             </div>
         }

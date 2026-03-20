@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using AasxIntegrationBase;
@@ -689,6 +689,11 @@ namespace MauiTestTree
 
             // right side
             //1// theContentBrowser.GoToContentBrowserAddress(Options.Curr.ContentHome);
+        }
+
+        /// <inheritdoc />
+        public void ClearTransientOpenUiState()
+        {
         }
 
         /// <summary>

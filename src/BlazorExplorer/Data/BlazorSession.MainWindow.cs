@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -316,6 +316,9 @@ namespace BlazorUI.Data
                     Program.DataRedrawMode.RebuildTreeKeepOpen, this.SessionId));
             DisplayElements.Refresh();
 
+            if (PackageCentral?.MainAvailable != true)
+                BlazorFileDropHandler?.ClearUploadBanner();
+
 #if _log_times
             Log.Singleton.Info("Time 90 is: " + DateTime.Now.ToString("hh:mm:ss.fff"));
 #endif
@@ -338,6 +341,8 @@ namespace BlazorUI.Data
             // the AAS will cause some more visual effects
             if (DisplayElements.SelectedItem is VisualElementAdminShell veaas)
                 InfoBox.SetInfos(veaas.theAas, veaas.thePackage);
+            else
+                InfoBox.SetInfos(null, null);
         }
 
         /// <summary>
@@ -345,13 +350,19 @@ namespace BlazorUI.Data
         /// </summary>
         public void ClearAllViews()
         {
-            // left side
-            InfoBox.AasId = "<id missing!>";
+            // left info card (same empty copy as SetInfos(null))
+            InfoBox.AasId = "# No information available";
             InfoBox.HtmlImageData = "";
-            InfoBox.AssetId = "<id missing!>";
+            InfoBox.AssetId = "";
 
             // middle side
             DisplayElements.Clear();
+        }
+
+        /// <inheritdoc />
+        public void ClearTransientOpenUiState()
+        {
+            BlazorFileDropHandler?.ClearUploadBanner();
         }
 
         public async Task DisplayElements_SelectedItemChanged(object sender, EventArgs e)

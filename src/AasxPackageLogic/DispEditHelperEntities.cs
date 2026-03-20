@@ -1161,25 +1161,32 @@ namespace AasxPackageLogic
             }
             else
             {
-                // Default
-                this.AddHintBubble(
-                    stack,
-                    hintMode,
-                    new[] {
-                        new HintCheck(
-                            () => { return env.AssetAdministrationShellCount() < 1; },
-                                "There are no AssetAdministrationShell entities in the environment. " +
-                                (env.AssetAdministrationShells == null ? "List is null! " : "List is empty! ") +
-                                "Select the 'Administration Shells' item on the middle panel and " +
-                                "select 'Add AAS' to add a new entity."),
-                        new HintCheck(
-                            () => { return env.ConceptDescriptionCount() < 1; },
-                                "There are no embedded ConceptDescriptions in the environment. " +
-                                (env.ConceptDescriptions == null ? "List is null! " : "List is empty! ") +
-                                "It is a good practice to have those. Select or add an AssetAdministrationShell, " +
-                                "Submodel and SubmodelElement and add a ConceptDescription.",
-                            severityLevel: HintCheck.Severity.Notice),
-                    });
+                // Default (read-only / overview). For a pristine empty env, only show counts — no hint banners
+                // (Blazor users expect a calm empty state after Close; details stay in summary lines below).
+                var envTotallyEmpty = env.AssetAdministrationShellCount() < 1
+                    && env.SubmodelCount() < 1
+                    && env.ConceptDescriptionCount() < 1;
+                if (!envTotallyEmpty)
+                {
+                    this.AddHintBubble(
+                        stack,
+                        hintMode,
+                        new[] {
+                            new HintCheck(
+                                () => { return env.AssetAdministrationShellCount() < 1; },
+                                    "There are no AssetAdministrationShell entities in the environment. " +
+                                    (env.AssetAdministrationShells == null ? "List is null! " : "List is empty! ") +
+                                    "Select the 'Administration Shells' item on the middle panel and " +
+                                    "select 'Add AAS' to add a new entity."),
+                            new HintCheck(
+                                () => { return env.ConceptDescriptionCount() < 1; },
+                                    "There are no embedded ConceptDescriptions in the environment. " +
+                                    (env.ConceptDescriptions == null ? "List is null! " : "List is empty! ") +
+                                    "It is a good practice to have those. Select or add an AssetAdministrationShell, " +
+                                    "Submodel and SubmodelElement and add a ConceptDescription.",
+                                severityLevel: HintCheck.Severity.Notice),
+                        });
+                }
 
                 // overview information
 

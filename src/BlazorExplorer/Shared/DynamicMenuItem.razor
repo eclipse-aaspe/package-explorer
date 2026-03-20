@@ -1,10 +1,11 @@
-﻿@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web
 @using MW.Blazor
 @using AasxIntegrationBase
 @using AnyUi
+@using BlazorUI.Data
 @using System.Globalization;
 @inject IJSRuntime JsRuntime
-
+@inject BlazorSession Session
 
 @{
     // calculate max width of visible items
@@ -14,8 +15,10 @@
             maxHeaderWidth = Math.Max(maxHeaderWidth, ("" + mii.Header).Length);
 }
 
-@foreach (var mi in MenuItems ?? Enumerable.Empty<AasxMenuItemBase>())
+@for (var i = 0; i < (MenuItems?.Count ?? 0); i++)
 {
+    var mi = MenuItems[i];
+
     // not for Blazor?
     if ((mi.Filter & AasxMenuFilter.Blazor) == 0)
         continue;
@@ -32,6 +35,8 @@
     // visible items?
     if (mi is AasxMenuItem mii && !mii.Hidden)
     {
+        var itemPath = string.IsNullOrEmpty(NavMenuPath) ? $"{i}" : $"{NavMenuPath}_{i}";
+
         // clean header
         var header = ("" + mii.Header).Replace("_", "");
 
@@ -48,9 +53,17 @@
             }
             else
             {
+                var itemDisabled = IsMenuItemDisabled(mii);
                 // child item, but normal
                 <li class="nav-item">
-                    <a class="dropdown-item" id="nbi_@(mii.Name)" aria-current="page" @onclick="() => ClickOnItem(mii)" style="cursor: pointer;">
+                    <a class="@(itemDisabled ? "dropdown-item disabled" : "dropdown-item")"
+                       id="nbi_@(mii.Name)"
+                       href="#"
+                       aria-disabled="@(itemDisabled ? "true" : "false")"
+                       tabindex="@(itemDisabled ? "-1" : "0")"
+                       @onclick:preventDefault="true"
+                       @onclick="() => OnDropdownLeafClick(mii)"
+                       style="cursor: @(itemDisabled ? "default" : "pointer");">
                         <div style="position: relative">
                             @if(mii.IsCheckable)
                             {
@@ -76,7 +89,7 @@
         }
         else
         {
-            // item with children
+            // item with children (toggle handled by main-layout.js — not data-bs-toggle)
             var styleDD = new StylePile().Add("cursor", "pointer");
             if (Depth >= 2)
             {
@@ -84,17 +97,24 @@
                 styleDD.Add("padding-left", "30px!important");
             }
 
+            var subToggleId = "nbm_" + itemPath.Replace(".", "_");
+
             <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" style="@styleDD" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <a class="nav-link dropdown-toggle" style="@styleDD" href="javascript:void(0)" id="@subToggleId" role="button" aria-expanded="false"
+                   @onclick="@(() => OnBranchToggleAsync(subToggleId))"
+                   @onclick:preventDefault="true"
+                   @onclick:stopPropagation="true">
                     @mii.Header
                 </a>
-                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <ul class="dropdown-menu" aria-labelledby="@subToggleId">
                         
                     @* Recursion !! *@
 
-                    <DynamicMenuItem TopMenu="TopMenu"
-                        MenuItems="mii.Childs"
-                        Depth="(Depth + 1)" />
+                    <CascadingValue Name="NavMenuPath" Value="@itemPath">
+                        <DynamicMenuItem TopMenu="TopMenu"
+                            MenuItems="mii.Childs"
+                            Depth="(Depth + 1)" />
+                    </CascadingValue>
 
                 </ul>
             </li>
@@ -110,6 +130,92 @@
     [Parameter] public AasxMenu MenuItems { get; set; }
 
     [Parameter] public int Depth { get; set; }
+
+    [CascadingParameter(Name = "NavMenuPath")] public string NavMenuPath { get; set; }
+
+    private Task OnBranchToggleAsync(string toggleId) =>
+        JsRuntime.InvokeVoidAsync("mainLayoutToggleDropDownById", toggleId).AsTask();
+
+    private static readonly HashSet<string> AlwaysEnabledWithoutPackage =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            "new", "open", "filerepoquery", "exit", "about", "helpgithub", "faqgithub", "helpissues",
+            "helpoptionsinfo", "filereponew", "filerepoopen", "filerepocreatelru",
+        };
+
+    /// <summary>Heuristic: Blazor has no WPF CommandBinding.CanExecute — approximate disabled state.</summary>
+    private bool IsMenuItemDisabled(AasxMenuItem mii)
+    {
+        if (Session == null || mii == null)
+            return false;
+        if (mii.Childs != null && mii.Childs.Count > 0)
+            return false;
+
+        var name = mii.Name?.Trim();
+        if (string.IsNullOrEmpty(name))
+            return false;
+
+        if (string.Equals(name, "CloseAux", StringComparison.OrdinalIgnoreCase))
+            return Session.PackageCentral?.AuxAvailable != true;
+
+        // Blazor: open package lives in PackageCentral.Main — Session.env is often unset (unlike WPF).
+        var hasPackage = Session.PackageCentral?.MainAvailable == true;
+        var edit = Session.EditMode;
+
+        if (!hasPackage)
+        {
+            if (AlwaysEnabledWithoutPackage.Contains(name))
+                return false;
+            if (mii.RequiredInfos != AasxMenuArgReqInfo.None)
+                return true;
+            return NeedsOpenPackage(name);
+        }
+
+        if (!edit && RequiresEditModeWhenPackageOpen(name))
+            return true;
+
+        return false;
+    }
+
+    private static bool NeedsOpenPackage(string name)
+    {
+        if (AlwaysEnabledWithoutPackage.Contains(name))
+            return false;
+        if (name.StartsWith("import", StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (name.StartsWith("export", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return name.ToLowerInvariant() switch
+        {
+            "save" or "saveas" or "fixandfinalize" or "verify" or "close" or "checkandfix" => true,
+            "closeaux" or "openaux" => true,
+            "sign" or "validatecertificate" or "encrypt" or "decrypt" => true,
+            "assesssmt" or "comparesmt" => true,
+            "addbaseaddress" or "clearbasecredentials" or "connectextended" or "apiuploadassistant"
+                or "apiuploadfiles" or "createrepofromapi" => true,
+            "connectsecure" or "connectopcua" or "connectrest" or "connectintegrated"
+                or "filerepoconnectrepository" => true,
+            "printasset" or "exportsmd" => true,
+            _ => false,
+        };
+    }
+
+    /// <summary>Actions that change package content — disabled in view mode when a package is open.
+    /// Close / CloseAux are intentionally excluded: user must be able to close without edit mode.</summary>
+    private static bool RequiresEditModeWhenPackageOpen(string name)
+    {
+        var n = name.ToLowerInvariant();
+        return n is "save" or "saveas" or "fixandfinalize" or "verify" or "checkandfix"
+            or "sign" or "validatecertificate" or "encrypt" or "decrypt";
+    }
+
+    private void OnDropdownLeafClick(AasxMenuItem mii)
+    {
+        if (IsMenuItemDisabled(mii))
+            return;
+        ClickOnItem(mii);
+    }
 
     public void ClickOnItem(AasxMenuItemBase mi)
     {

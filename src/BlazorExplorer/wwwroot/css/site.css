@@ -8,6 +8,8 @@
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    height: 100%;
+    margin: 0;
 }
 
 a, .btn-link {
@@ -130,6 +132,44 @@ dialog header {
     padding-bottom: 1px !important;
 }
 
+/*
+ * Disabled menu entries: not bold/italic (that looked like “important”, not “inactive”).
+ * Only a calmer gray — still readable on #f0f0f0; no hover bar (see rules below).
+ */
+.dropdown-item.disabled,
+.dropdown-item:disabled,
+.dropdown-item[aria-disabled="true"] {
+    color: #5c6675 !important;
+    font-style: normal;
+    font-weight: normal;
+    letter-spacing: normal;
+    opacity: 1 !important;
+    pointer-events: none;
+    cursor: default !important;
+}
+
+.dropdown-item.disabled .dropdown-item-texticon,
+.dropdown-item[aria-disabled="true"] .dropdown-item-texticon {
+    color: #6b7788 !important;
+}
+
+/* Stronger hover/focus than Bootstrap default (enabled items only) */
+.dropdown-item:hover:not(.disabled):not(:disabled):not([aria-disabled="true"]),
+.dropdown-item:focus:not(.disabled):not(:disabled):not([aria-disabled="true"]) {
+    background-color: #7a94c8 !important;
+    color: #0a0a0a !important;
+}
+
+.dropdown-item:active:not(.disabled):not(:disabled):not([aria-disabled="true"]) {
+    background-color: #5a78b0 !important;
+    color: #fff !important;
+}
+
+.dropdown-item:focus-visible:not(.disabled):not(:disabled):not([aria-disabled="true"]) {
+    outline: 2px solid #0028cd;
+    outline-offset: -2px;
+}
+
     .dropdown-item .dropdown-item-texticon {
         position: absolute;
         top: -0.18rem;
@@ -153,6 +193,164 @@ dialog header {
     color: black;
     padding: 5px;
     background-color: #f0f0f0;
+    /* Above detail panel sticky toolbars (z-index 3) and split panes */
+    z-index: 2000;
+}
+
+/* Top nav: allow menus to extend below bar (was overflow:hidden inline) */
+.app-top-navbar {
+    overflow: visible !important;
+}
+
+/* Navbar bar (IDTA + AAS links im Fluss, kein Logo mehr absolut rechts) */
+.app-top-navbar-bar {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    min-width: 0;
+}
+
+.app-top-navbar-idta {
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-right: 0;
+}
+
+.app-top-navbar-idta-img {
+    display: block;
+    height: 24px;
+    width: auto;
+    max-width: 100%;
+}
+
+@media (max-width: 575.98px) {
+    .app-top-navbar-idta-img {
+        height: 20px;
+    }
+}
+
+/* Collapsible menu block (Bootstrap .collapse + eigener Breakpoint 800px) */
+.app-top-navbar-inner.navbar-collapse {
+    box-sizing: border-box;
+    min-width: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/*
+ * Navbar „expanded“ ab 800px — ersetzt navbar-expand-lg (992px).
+ * Unter 800px: Burger + aufklappbar wie Bootstrap-Collapse.
+ */
+@media (min-width: 800px) {
+    .app-top-navbar.app-navbar-expand-800 {
+        flex-wrap: nowrap;
+    }
+
+    .app-top-navbar.app-navbar-expand-800 .navbar-toggler {
+        display: none !important;
+    }
+
+    .app-top-navbar.app-navbar-expand-800 .navbar-collapse {
+        display: flex !important;
+        flex-basis: auto;
+        flex-grow: 1;
+        flex-wrap: nowrap;
+        align-items: center;
+        width: auto !important;
+        height: auto !important;
+        visibility: visible !important;
+    }
+
+    .app-top-navbar.app-navbar-expand-800 .navbar-nav {
+        flex-direction: row;
+        margin-bottom: 0;
+        column-gap: 0.25rem;
+    }
+
+    .app-top-navbar.app-navbar-expand-800 .navbar-nav .nav-link {
+        padding-left: 0.85rem;
+        padding-right: 0.85rem;
+    }
+
+    .app-top-navbar.app-navbar-expand-800 .navbar-nav .dropdown-menu {
+        position: absolute;
+    }
+
+    .app-top-navbar-inner.navbar-collapse {
+        flex-grow: 1;
+        flex-wrap: nowrap;
+        align-items: center;
+        padding-right: 0;
+    }
+
+    .app-top-navbar-actions {
+        margin-left: 2rem;
+    }
+}
+
+@media (max-width: 799.98px) {
+    .app-top-navbar-inner.navbar-collapse {
+        flex-basis: 100%;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        margin-top: 0.35rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.28);
+    }
+
+    .app-top-navbar-inner .navbar-nav {
+        flex-direction: column;
+        flex-wrap: nowrap;
+    }
+
+    .app-top-navbar-actions {
+        margin-left: 0 !important;
+        margin-top: 0.35rem;
+        justify-content: flex-start;
+    }
+}
+
+.status-bar-wrap {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* Shorter header bar (menu + status): less vertical padding, smaller logos */
+.app-top-navbar.navbar {
+    min-height: 0;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+}
+
+/* Ohne Bootstrap navbar-expand-* greifen die padding-x-Regeln für die Zeilen-Navbar nicht — Abstand zwischen Einträgen */
+.app-top-navbar .navbar-nav .nav-link {
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+.app-top-navbar-brand {
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-right: 0.5rem;
+}
+
+.main > .top-row.auth > .col-12 {
+    padding-top: 0.15rem;
+    padding-bottom: 0.15rem;
+}
+
+/* Slightly larger tap targets for back/home next to the menu (header only) */
+.app-top-navbar .btn-sm {
+    min-height: 36px;
+    min-width: 36px;
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
+    touch-action: manipulation;
 }
 
 /* Lower left panel, repository / container list items / infos with AAS / AssetId .. */
@@ -175,7 +373,7 @@ dialog header {
     color: #a07c7c;
 }
 
-/* Lower left panel, repository / container list : tabl�e header */
+/* Lower left panel, repository / container list : tabl�e header */
 .container-list-header {
     background: #e0e0e0
 }
@@ -188,6 +386,18 @@ app {
     position: relative;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+/* Router / layout host must participate in flex chain */
+app > * {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
 }
 
 .top-row {
@@ -198,6 +408,23 @@ app {
 
 .main {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Header with menu + status: natural height (do not clip at 5rem) */
+.main > .top-row.auth {
+    height: auto;
+    min-height: 0;
+    flex-shrink: 0;
+    align-items: stretch;
+    position: relative;
+    z-index: 1000; /* above .content (0) and sticky detail toolbars (3) */
 }
 
     .main .top-row {
@@ -268,11 +495,245 @@ app {
             }
 
 .content {
-    padding-top: 1.1rem;
+    padding-top: 0.35rem;
+    flex: 1;
+    min-height: 0;
+    /* Allow flex child to shrink to viewport width (avoids horizontal clip on narrow screens) */
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    /* Kein eigenes vertikales Scroll: sonst iOS/Safari „frisst“ Wischen — nur innere Panes scrollen */
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+    /* Stacking: keep entire main workspace below header row + dropdowns */
+    position: relative;
+    z-index: 0;
+}
+
+/* Index: fill content area; zoom bar fixed; split fills rest */
+.index-workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Zoom row: flex-start + overflow-x; mobil eine Zeile (siehe Media Query) */
+.index-zoom-toolbar {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    background-color: #e8eeff;
+    border-bottom: 1px solid #c0ccff;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    gap: 10px;
+    overflow-x: auto;
+    min-height: 52px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    -webkit-overflow-scrolling: touch;
+    /* iOS: horizontales Wischen in der Zoom-Zeile */
+    touch-action: pan-x pan-y;
+}
+
+.index-zoom-toolbar button.btn-tiny-bl-wh {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 14px;
+    font-size: 1.2rem;
+    line-height: 1.1;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.index-zoom-toolbar button.index-zoom-pct {
+    min-width: 4.5rem;
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.index-zoom-toolbar-sep {
+    width: 1px;
+    height: 30px;
+    background: #b0bce8;
+    margin: 0 4px;
+    flex-shrink: 0;
+}
+
+/* Gruppen für kompaktere mobile Anordnung */
+.index-zoom-group {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    min-width: 0;
+}
+
+.index-zoom-legend {
+    display: none;
+    flex-shrink: 0;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #0028cd;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    min-width: 2.75rem;
+}
+
+.index-split-outer {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.index-split-outer .split-container {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+}
+
+/*
+ * Panel-Zoom (Index links/rechts):
+ * CSS zoom skaliert auf iOS/WebKit oft Fließtext, aber kaum native Inputs/Buttons.
+ * WebKit: zoom am Host aus, stattdessen transform: scale auf dem Innern.
+ */
+.index-panel-zoom-host {
+    --panel-zoom: 1;
+    box-sizing: border-box;
+    width: 100%;
+    zoom: var(--panel-zoom);
+}
+
+.index-panel-zoom-inner {
+    box-sizing: border-box;
+}
+
+@supports (-webkit-touch-callout: none) {
+    .index-panel-zoom-host {
+        zoom: 1 !important;
+    }
+
+    .index-panel-zoom-host--left > .index-panel-zoom-inner {
+        display: block;
+        transform: scale(var(--panel-zoom));
+        transform-origin: top left;
+        width: calc(100% / var(--panel-zoom));
+        max-width: calc(100% / var(--panel-zoom));
+    }
+
+    .index-panel-zoom-host--right {
+        overflow: hidden;
+    }
+
+    .index-panel-zoom-host--right > .index-panel-zoom-inner {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        transform: scale(var(--panel-zoom));
+        transform-origin: top left;
+        width: calc(100% / var(--panel-zoom));
+        max-width: calc(100% / var(--panel-zoom));
+        height: calc(100% / var(--panel-zoom));
+        max-height: calc(100% / var(--panel-zoom));
+        align-self: flex-start;
+    }
+
+    .index-panel-zoom-host--right .detail-panel-scroll {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+}
+
+/*
+ * Vertikales Scrollen (Baum links, Details rechts):
+ * - Global * { user-select: none } blockiert auf iPhone oft Touch-Scroll → hier zurücksetzen.
+ * - touch-action: pan-y + overscroll-behavior für sauberes Wischen in Safari.
+ */
+.left-pane-scroll,
+.detail-panel-scroll {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
+    -webkit-user-select: auto;
+    user-select: auto;
+}
+
+/* Right detail panel: internal vertical scroll (flex child inside zoom wrapper) */
+.detail-panel-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* First rows of entity panel (title + Editing of entities + buttons) */
+.anyui-sticky-top-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background-color: #f0f4ff;
+    padding-bottom: 4px;
+    margin-bottom: 2px;
+    box-shadow: 0 2px 6px rgba(0, 40, 200, 0.12);
+}
+
+.index-redraws-footer {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    color: #666;
+    padding: 2px 0;
 }
 
 .navbar-toggler {
     background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Hauptmenü: Burger gut erkennbar auf blauem Header (Touch-Ziel ≥ 44px) */
+.app-top-navbar .navbar-toggler {
+    border: 2px solid rgba(255, 255, 255, 0.95);
+    background-color: rgba(255, 255, 255, 0.22);
+    border-radius: 8px;
+    padding: 0.5rem 0.6rem;
+    min-width: 46px;
+    min-height: 46px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    touch-action: manipulation;
+}
+
+.app-top-navbar .navbar-toggler:hover {
+    background-color: rgba(255, 255, 255, 0.35);
+    border-color: #fff;
+}
+
+.app-top-navbar .navbar-toggler:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.45), 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.app-top-navbar .navbar-toggler-icon {
+    width: 1.45rem;
+    height: 1.45rem;
 }
 
 .valid.modified:not([type=checkbox]) {
@@ -317,13 +778,133 @@ app {
     font-size: 0.8rem;
 }
 
+/* Unter 800px: kompakte Zoom-Zeile (eine Zeile, scroll); gleicher Breakpoint wie Navbar */
+@media (max-width: 799.98px) {
+    .app-top-navbar {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    /*
+     * Sehr schmaler Rand links (und rechts): MainLayout .top-row.px-2 + Bootstrap .container-fluid-Gutter
+     * stapeln sich sonst zu ~16px+ links vom Viewport.
+     */
+    .main > .top-row.auth {
+        padding-left: 2px !important;
+        padding-right: 4px !important;
+    }
+
+    .app-top-navbar .app-top-navbar-bar.container-fluid {
+        padding-left: 2px !important;
+        padding-right: 4px !important;
+        --bs-gutter-x: 0.35rem;
+    }
+
+    .content {
+        padding-left: 0;
+        padding-right: 2px;
+    }
+
+    .app-top-navbar-idta {
+        margin-left: 0 !important;
+    }
+
+    /* Navbar-Brand: Standard-Padding links oft ~0.5rem */
+    .app-top-navbar .navbar-brand {
+        padding-left: 0;
+        padding-right: 0.25rem;
+    }
+
+    /* Detail-Panel: nicht breiter als Viewport; weniger Padding (inline 10px überschreiben) */
+    .right-pane-outer {
+        min-width: 0 !important;
+        max-width: 100%;
+        padding: 4px 5px !important;
+    }
+
+    /* Baum-Spalte: fast bis zum Rand */
+    .left-pane-scroll {
+        padding-left: 0;
+        padding-right: 1px;
+        box-sizing: border-box;
+    }
+
+    /* Schmalerer Splitter = weniger „Lücke“ zwischen den Spalten */
+    .spliter-bar {
+        width: 5px !important;
+    }
+
+    .spliter-bar::after {
+        width: 2px;
+        height: 26px;
+    }
+
+    /* Eine Zeile: etwas luftiger als vorher (Touch + Lesbarkeit), bei Bedarf horizontal scrollen */
+    .index-zoom-toolbar {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 6px;
+        padding: 7px 6px 7px 2px;
+        min-height: 44px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .index-zoom-legend {
+        display: none !important;
+    }
+
+    .index-zoom-group {
+        flex-shrink: 0;
+        flex-wrap: nowrap;
+        gap: 5px;
+        justify-content: flex-start;
+    }
+
+    .index-zoom-toolbar-sep {
+        display: block;
+        height: 28px;
+        margin: 0 4px;
+        flex-shrink: 0;
+    }
+
+    .index-zoom-toolbar button.btn-tiny-bl-wh {
+        min-height: 36px;
+        min-width: 32px;
+        padding: 5px 8px;
+        font-size: 0.92rem;
+        border-width: 2px;
+        line-height: 1.15;
+    }
+
+    .index-zoom-toolbar button.index-zoom-pct {
+        min-width: 2.85rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+}
+
 @media (max-width: 767.98px) {
     .main .top-row:not(.auth) {
         display: none;
     }
 
     .main .top-row.auth {
-        justify-content: space-between;
+        justify-content: flex-start;
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .main .top-row.auth > .col-12 {
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
     }
 
     .main .top-row a, .main .top-row .btn-link {
@@ -345,7 +926,7 @@ app {
 
     .main .top-row {
         position: sticky;
-        z-index: 1;
+        z-index: 1000;
         top: 0;
     }
 
@@ -354,7 +935,8 @@ app {
         padding-right: 1.5rem !important;
     }
 
-    .navbar-toggler {
+    /* Nur Sidebar-Burger ausblenden (App-Hauptmenü: eigener Breakpoint 800px) */
+    .sidebar .navbar-toggler {
         display: none;
     }
 
@@ -448,6 +1030,25 @@ app {
     border-top: 10px solid; /* ? triangle; color inherited from .hintbox */
     left: 19px;
     bottom: -10px;
+}
+
+/* Panel visibility modes */
+.panel-left-only .pane-of-split-container:last-of-type,
+.panel-left-only .spliter-bar {
+    display: none !important;
+}
+.panel-left-only .pane-of-split-container:first-of-type {
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+.panel-right-only .pane-of-split-container:first-of-type,
+.panel-right-only .spliter-bar {
+    display: none !important;
+}
+.panel-right-only .pane-of-split-container:last-of-type {
+    flex: 1 !important;
+    min-width: 0 !important;
 }
 
 /* Splitter bar styling */

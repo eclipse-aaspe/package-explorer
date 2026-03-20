@@ -37,7 +37,9 @@
            overflow-x:hidden prevents the pane from scrolling horizontally when content is wide. */
         .split-container .pane-of-split-container[b-split-container] {
             height: 100%;
+            min-height: 0;
             overflow-x: hidden;
+            overflow-y: hidden; /* each pane uses its own inner scroll (left-pane-scroll / detail-panel-scroll) */
         }
     </style>
     <link rel="stylesheet" href="css/all.css" />
