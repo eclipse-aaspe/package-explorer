@@ -1,0 +1,25 @@
+# Git / IDE
+.git
+.gitignore
+**/.vs
+**/.vscode
+**/.idea
+**/*.user
+**/*.suo
+
+# Build outputs (werden im Image neu erzeugt)
+**/bin/
+**/obj/
+**/out/
+
+# Nicht benötigt für BlazorExplorer-Web-Image
+maui-src/
+**/TestResults/
+**/*.Tests/
+**/packages/
+
+# Sonstiges
+*.md
+!README.md
+Thumbs.db
+**/.DS_Store
