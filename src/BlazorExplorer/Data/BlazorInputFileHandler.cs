@@ -35,6 +35,13 @@ namespace BlazorUI.Data
 
         public Func<AnyUiDialogueDataOpenFile, Task> FileDropped { get; set; }
 
+        /// <summary>Reset drop zone text after the main package was closed (avoid stale "… uploaded.").</summary>
+        public void ClearUploadBanner()
+        {
+            StatusLine = "";
+            Hint = DefaultHint;
+        }
+
         public async Task FileSelected(IBrowserFile file)
         {
             try

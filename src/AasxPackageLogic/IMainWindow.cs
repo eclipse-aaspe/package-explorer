@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2019 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -42,6 +42,11 @@ namespace AasxPackageExplorer
         /// Clear AAS info, tree section, browser window
         /// </summary>
         void ClearAllViews();
+
+        /// <summary>
+        /// Blazor: e.g. clear file-drop filename after the main package was closed. No-op on WPF.
+        /// </summary>
+        void ClearTransientOpenUiState();
 
         /// <summary>
         /// Clears the status line and pending errors.

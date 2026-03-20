@@ -7,34 +7,46 @@
 @inject IJSRuntime JsRuntime
 @inject BlazorUI.Data.BlazorSession Session
 
-
-<nav class="navbar navbar-expand navbar-dark bg-primary"
-     style="position:relative; overflow:hidden; min-height:50px">
-    <div id="navbarSupportedContent"
-         style="display:flex; align-items:center; flex-wrap:nowrap; padding-left:10px; padding-right:130px;">
-        <a class="navbar-brand" style="flex-shrink:0" href="#">
-            <img src="/image/IDTA_AAS-Logo_Circle.png" height="35" width="35" alt="">
+@* IDTA links, AAS, Burger; horizontales Menü ab 800px (app-navbar-expand-800 in site.css) *@
+<nav class="navbar navbar-dark bg-primary app-top-navbar app-navbar-expand-800"
+     style="position:relative; overflow:visible">
+    <div class="container-fluid app-top-navbar-bar px-2">
+        <a class="navbar-brand app-top-navbar-idta flex-shrink-0 py-0 me-1 me-sm-2" href="#" aria-label="IDTA">
+            <img src="/image/Logo_IDTA_Custom.png" height="24" alt="IDTA" class="app-top-navbar-idta-img">
         </a>
-        <ul class="navbar-nav mb-2 mb-lg-0" style="flex-shrink:0; flex-wrap:nowrap">
-            <DynamicMenuItem TopMenu="Session.MainMenu?.Menu"
-                            MenuItems="Session.MainMenu?.Menu"
-                            Depth="1" />
-        </ul>
-        <div class="d-grid gap-2 d-md-block" style="margin-left:2.0rem; flex-shrink:0">
-            <button class="btn btn-sm btn-primary-light" type="button"
-                    @onclick='async () => await ClickOnItem("NavigateBack")'>
-                &#x25C0;
-            </button>
-            <button class="btn btn-sm btn-primary-light" type="button"
-                    @onclick='async () => await ClickOnItem("NavigateHome")'>
-                &#x29CB;
-            </button>
+        <a class="navbar-brand app-top-navbar-brand flex-shrink-0" href="#" aria-label="AAS">
+            <img src="/image/IDTA_AAS-Logo_Circle.png" height="30" width="30" alt="">
+        </a>
+
+        <button class="navbar-toggler flex-shrink-0 py-2 ms-auto"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent"
+                aria-expanded="false"
+                aria-label="Menü öffnen">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse app-top-navbar-inner"
+             id="navbarSupportedContent">
+            <ul class="navbar-nav mb-2 app-top-navbar-nav" style="flex-shrink:0">
+                <DynamicMenuItem TopMenu="Session.MainMenu?.Menu"
+                                MenuItems="Session.MainMenu?.Menu"
+                                Depth="1" />
+            </ul>
+            <div class="d-flex flex-nowrap gap-1 align-items-center app-top-navbar-actions">
+                <button class="btn btn-sm btn-primary-light" type="button"
+                        @onclick='async () => await ClickOnItem("NavigateBack")'>
+                    &#x25C0;
+                </button>
+                <button class="btn btn-sm btn-primary-light" type="button"
+                        @onclick='async () => await ClickOnItem("NavigateHome")'>
+                    &#x25B6;
+                </button>
+            </div>
         </div>
     </div>
-
-    @*<img ... src="/image/PI40_and_IDTA.png" height="30" alt="">*@
-    <img src="/image/Logo_IDTA_Custom.png" height="30" alt=""
-         style="position:absolute; right:10px; top:50%; transform:translateY(-50%)">
 </nav>
 
 @code

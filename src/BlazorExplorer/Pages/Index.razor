@@ -29,38 +29,57 @@
     Session.DisplayContext.SetJsRuntime(JSRuntime);
 }
 
-<!-- Zoom toolbar: sticky second bar, sticks just below the main navbar -->
-<div style="position:sticky; top:5rem; z-index:4; display:flex; justify-content:space-between; align-items:center; background-color:#e8eeff; border-bottom:1px solid #c0ccff; padding:2px 4px; margin-bottom:2px;">
-    <div style="display:flex; gap:3px; align-items:center;">
-        <span style="font-size:0.75rem; color:#555; margin-right:2px;">L</span>
+<div class="index-workspace">
+<!-- Zoom toolbar: fixed in workspace layout (page scroll disabled; panes scroll internally) -->
+<div class="index-zoom-toolbar">
+    <div class="index-zoom-group" role="group" aria-label="Zoom linke Spalte (Baum)">
+        <span class="index-zoom-legend" title="Linke Spalte">Baum</span>
         <button class="btn-tiny-bl-wh" title="Zoom out left panel"
                 @onclick="() => _leftZoom = Math.Max(0.5, Math.Round(_leftZoom - 0.1, 1))">−</button>
-        <button class="btn-tiny-bl-wh" title="Reset zoom left panel"
-                @onclick="() => _leftZoom = 1.0"
-                style="min-width:3.2rem;text-align:center;">@(((int)Math.Round(_leftZoom*100)))%</button>
+        <button class="btn-tiny-bl-wh index-zoom-pct" title="Reset zoom left panel"
+                @onclick="() => _leftZoom = 1.0">@(((int)Math.Round(_leftZoom*100)))%</button>
         <button class="btn-tiny-bl-wh" title="Zoom in left panel"
                 @onclick="() => _leftZoom = Math.Min(2.0, Math.Round(_leftZoom + 0.1, 1))">+</button>
     </div>
-    <div style="display:flex; gap:3px; align-items:center;">
-        <span style="font-size:0.75rem; color:#555; margin-right:2px;">R</span>
+
+    <span class="index-zoom-toolbar-sep" aria-hidden="true"></span>
+
+    <div class="index-zoom-group index-zoom-layout-group" role="group" aria-label="Panel-Anordnung">
+        <span class="index-zoom-legend" title="Anordnung">Layout</span>
+        <button class="btn-tiny-bl-wh" title="Show only left panel (tree)"
+                style="@(_panelMode==1 ? "border-width:3px;" : "")"
+                @onclick="() => _panelMode = 1">◧</button>
+        <button class="btn-tiny-bl-wh" title="Show both panels"
+                style="@(_panelMode==0 ? "border-width:3px;" : "")"
+                @onclick="() => _panelMode = 0">◫</button>
+        <button class="btn-tiny-bl-wh" title="Show only right panel (details)"
+                style="@(_panelMode==2 ? "border-width:3px;" : "")"
+                @onclick="() => _panelMode = 2">◨</button>
+    </div>
+
+    <span class="index-zoom-toolbar-sep" aria-hidden="true"></span>
+
+    <div class="index-zoom-group" role="group" aria-label="Zoom rechte Spalte (Details)">
+        <span class="index-zoom-legend" title="Rechte Spalte">Detail</span>
         <button class="btn-tiny-bl-wh" title="Zoom out right panel"
                 @onclick="() => _rightZoom = Math.Max(0.5, Math.Round(_rightZoom - 0.1, 1))">−</button>
-        <button class="btn-tiny-bl-wh" title="Reset zoom right panel"
-                @onclick="() => _rightZoom = 1.0"
-                style="min-width:3.2rem;text-align:center;">@(((int)Math.Round(_rightZoom*100)))%</button>
+        <button class="btn-tiny-bl-wh index-zoom-pct" title="Reset zoom right panel"
+                @onclick="() => _rightZoom = 1.0">@(((int)Math.Round(_rightZoom*100)))%</button>
         <button class="btn-tiny-bl-wh" title="Zoom in right panel"
                 @onclick="() => _rightZoom = Math.Min(2.0, Math.Round(_rightZoom + 0.1, 1))">+</button>
     </div>
 </div>
 
+<div class="@_panelModeClass index-split-outer">
 <SplitContainer @bind-FirstPaneSize="_splitPaneSize"
                 Orientation="SplitterOrientation.Vertical"
                 FirstPaneMinSize="150"
                 SecondPaneMinSize="200"
-                Style="width:100%">
+                Style="width:100%;height:100%;min-height:0">
     <FirstPane>
-    <div style="overflow-x:hidden">
-        <div class="row-12" style="zoom:@(_leftZoom.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
+    <div class="left-pane-scroll" style="height:100%;min-height:0;overflow-x:hidden;overflow-y:auto">
+        <div class="index-panel-zoom-host index-panel-zoom-host--left" style="--panel-zoom: @(_leftZoom.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
+        <div class="index-panel-zoom-inner row-12">
             <!-- Modal -->
             <div class="row">
                 @{
@@ -487,15 +506,9 @@
                         @* @updateVisibleTree(Items, Session.DisplayElements.SelectedItem) *@
                         @* @if (Program.isLoading)
                             {<span style="color:white;background-color:blue;">Loading...</span>} *@
-                        @if (Session.DisplayElements?.TreeItems == null
-                            || Session.DisplayElements.TreeItems.Count() < 1)
-                        {
-                            <span style="color:white;background-color:#0028cd;">
-                                Enter * to read AASX from file system<br />
-                                Enter URL of AASX Server REST API (without /server/listaas)<br />
-                            </span>
-                        }
-                        else
+                        @* No legacy "Enter * / URL" banner — use File menu or drop zone below. *@
+                        @if (Session.DisplayElements?.TreeItems != null
+                            && Session.DisplayElements.TreeItems.Count() >= 1)
                         {
                             @* @bind-ExpandedNodes="Session.DisplayElements.ExpandedItems"
                                @bind-SelectedNode="Session.DisplayElements.SelectedItem"
@@ -563,7 +576,6 @@
                                 IsSelected="@(item => Session.DisplayElements.SelectedItems?.Contains(item) == true)"
                                 NodeClicked="OnNodeClicked"
                                 />
-                                
                         }
 
                         @*<br /><br />*@
@@ -672,6 +684,7 @@
             </div>
         
         </div>
+        </div>
     </div>
     </FirstPane>
 
@@ -684,9 +697,12 @@
         if (!(Session.DisplayElements?.SelectedItem is VisualElementPluginExtension))
             elementPanelStyle.Add("margin-top", "-16px");
     }
-    <!-- right panel -->
-    <div style="width:100%;overflow-x:hidden;border-style:solid;border-color:#0028cd;border-radius:8px;border-width:2px;padding:10px;box-sizing:border-box;background-color:#f0f4ff;">
-        <div style="zoom:@(_rightZoom.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)); @elementPanelStyle">
+    <!-- right panel: scroll inside pane only (no sticky header rows) -->
+    <div class="right-pane-outer" style="width:100%;height:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden;border-style:solid;border-color:#0028cd;border-radius:8px;border-width:2px;padding:10px;box-sizing:border-box;background-color:#f0f4ff;">
+        <div class="right-pane-zoomwrap" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column; @elementPanelStyle">
+            <div class="index-panel-zoom-host index-panel-zoom-host--right" style="flex:1;min-height:0;display:flex;flex-direction:column;min-width:0;--panel-zoom: @(_rightZoom.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
+            <div class="index-panel-zoom-inner index-panel-zoom-inner--right" style="flex:1;min-height:0;min-width:0;display:flex;flex-direction:column;">
+            <div class="detail-panel-scroll">
             @{                
                 if (Session?.PrepareDisplayDataAndElementPanel(
                     JSRuntime,
@@ -707,13 +723,18 @@
                     <br />
                 }
             }
+            </div>
+            </div>
+            </div>
         </div>
     </div>
     </SecondPane>
 
 </SplitContainer>
+</div>
 
-<span>Redraws: @CounterRedraw</span>
+<span class="index-redraws-footer">Redraws: @CounterRedraw</span>
+</div>
 
 @code {
 
@@ -729,6 +750,14 @@
     // Independent zoom levels for left and right panels (1.0 = 100%)
     private double _leftZoom = 1.0;
     private double _rightZoom = 1.0;
+
+    // Panel visibility: 0=both, 1=left only, 2=right only
+    private int _panelMode = 0;
+    private string _panelModeClass => _panelMode switch {
+        1 => "panel-left-only",
+        2 => "panel-right-only",
+        _ => "panel-both"
+    };
 
     [Parameter]
     public int CounterRedraw { get; set; }
@@ -1351,6 +1380,7 @@
         await Session.InitializeAsync();
 
         // wire components
+        Session.BlazorFileDropHandler = FileDrop_Handler;
         FileDrop_Handler.FileDropped = async (ddof) =>
         {
             var modi = await Layout.GetKeyboardModifiers();

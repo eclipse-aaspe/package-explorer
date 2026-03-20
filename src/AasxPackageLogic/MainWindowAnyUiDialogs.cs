@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2022 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -366,11 +366,15 @@ namespace AasxPackageLogic
                     "Close Package?", AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Question))
                     return;
 
-                // do
+                // do — empty in-memory package (same as app start after Initialize): tree + environment overview.
                 try
                 {
                     PackageCentral.MainItem.Close();
-                    MainWindow.RedrawAllAasxElementsAsync();
+                    MainWindow.ClearAllViews();
+                    PackageCentral.MainItem.New();
+                    await MainWindow.RedrawAllAasxElementsAsync();
+                    MainWindow.ClearTransientOpenUiState();
+                    MainWindow.StatusLineClear();
                 }
                 catch (Exception ex)
                 {

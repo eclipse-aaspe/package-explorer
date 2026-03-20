@@ -1283,6 +1283,12 @@ namespace AnyUi
     public class AnyUiStackPanel : AnyUiPanel
     {
         public AnyUiOrientation? Orientation;
+
+        /// <summary>
+        /// When rendering vertical stack to HTML (Blazor), wrap the first N children in one
+        /// sticky top block so headers/toolbars stay visible while the rest scrolls.
+        /// </summary>
+        public int BrowserStickyFirstChildCount = 0;
     }
 
     public class AnyUiWrapPanel : AnyUiPanel

@@ -51,10 +51,13 @@ namespace BlazorUI.Data
 
         public void SetInfos(Aas.IAssetAdministrationShell aas, AdminShellPackageEnvBase env)
         {
-            // access
-            AasId = "<id missing!>";
             if (aas == null)
+            {
+                AasId = "# No information available";
+                AssetId = "";
+                HtmlImageData = null;
                 return;
+            }
 
             // basic data
             if (aas.Id?.HasContent() == true)

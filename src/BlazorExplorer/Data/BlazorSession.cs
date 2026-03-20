@@ -171,6 +171,9 @@ namespace BlazorUI.Data
         // old stuff, to be refactored
 
         public AdminShellPackageEnvBase env = null;
+
+        /// <summary>Set by Index.razor so session can reset the file-drop banner when the main package closes.</summary>
+        public BlazorInputFileHandler BlazorFileDropHandler { get; set; }
         public IndexOfSignificantAasElements significantElements = null;
 
         public string[] aasxFiles = new string[1];
@@ -658,6 +661,9 @@ namespace BlazorUI.Data
                     }
                 }
             }
+
+            // HTML detail panel: no sticky rows — whole panel is normal scroll content.
+            elementPanel.BrowserStickyFirstChildCount = 0;
 
             // okay
             return true;
