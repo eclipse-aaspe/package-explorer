@@ -1,0 +1,20 @@
+# Blazor Explorer — lokal bauen und starten
+#
+#   docker compose build
+#   docker compose up
+#
+# Branch: vorher im Repo auschecken. Remote-Build siehe src/docker/README-docker-explorer.md
+
+services:
+  blazor-explorer:
+    build:
+      context: .
+      dockerfile: src/docker/Dockerfile-AasxPackageExplorerBlazor
+    image: aasx-blazor-explorer:latest
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+    # Optional: Konfiguration vom Host
+    # volumes:
+    #   - ./my-options.json:/app/BlazorExplorer.options.json:ro
