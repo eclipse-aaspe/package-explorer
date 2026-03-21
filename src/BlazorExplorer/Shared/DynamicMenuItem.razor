@@ -141,6 +141,8 @@
         {
             "new", "open", "filerepoquery", "exit", "about", "helpgithub", "faqgithub", "helpissues",
             "helpoptionsinfo", "filereponew", "filerepoopen", "filerepocreatelru",
+            // Remote registry / repository (same as WPF: no local package required)
+            "connectextended",
         };
 
     /// <summary>Heuristic: Blazor has no WPF CommandBinding.CanExecute — approximate disabled state.</summary>
@@ -192,7 +194,7 @@
             "closeaux" or "openaux" => true,
             "sign" or "validatecertificate" or "encrypt" or "decrypt" => true,
             "assesssmt" or "comparesmt" => true,
-            "addbaseaddress" or "clearbasecredentials" or "connectextended" or "apiuploadassistant"
+            "addbaseaddress" or "clearbasecredentials" or "apiuploadassistant"
                 or "apiuploadfiles" or "createrepofromapi" => true,
             "connectsecure" or "connectopcua" or "connectrest" or "connectintegrated"
                 or "filerepoconnectrepository" => true,

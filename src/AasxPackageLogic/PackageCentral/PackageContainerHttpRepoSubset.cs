@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -2345,6 +2345,24 @@ namespace AasxPackageLogic.PackageCentral
                 HeaderAttributes = Options.Curr.HttpHeaderAttributes;
             }
 
+            /// <summary>
+            /// If <see cref="BaseAddress"/> is still empty, fill from options (same sources as the WPF URL combo:
+            /// DefaultConnectRepositoryLocation, then BaseAddresses, then KnownEndpoints). Used for hosts that render a plain text field (e.g. Blazor).
+            /// </summary>
+            public void ApplyDefaultBaseAddressFromOptionsIfEmpty()
+            {
+                if (BaseAddress.HasContent())
+                    return;
+                var o = Options.Curr;
+                if (o.DefaultConnectRepositoryLocation.HasContent())
+                    BaseAddress = o.DefaultConnectRepositoryLocation;
+                else if (o.BaseAddresses != null && o.BaseAddresses.Count > 0)
+                    BaseAddress = o.BaseAddresses[0];
+                else if (o.KnownEndpoints != null && o.KnownEndpoints.Count > 0
+                         && o.KnownEndpoints[0].BaseAddress.HasContent())
+                    BaseAddress = o.KnownEndpoints[0].BaseAddress;
+            }
+
             public enum BaseTypeEnum { Repository, Registry, RegOfReg }
             public static string[] BaseTypeEnumNames = new[] { "Repository", "Registry", "Reg-of-Reg" };
 
@@ -2886,6 +2904,7 @@ namespace AasxPackageLogic.PackageCentral
 
             // arguments by reflection
             ticket?.ArgValue?.PopulateObjectFromArgs(record);
+            record.ApplyDefaultBaseAddressFromOptionsIfEmpty();
 
             if (ticket?.ScriptMode == true)
                 return true;
@@ -2945,16 +2964,19 @@ namespace AasxPackageLogic.PackageCentral
                                     minWidth: 200, maxWidth: 200),
                                     (i) => { record.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
 
-                        if (displayContext is AnyUiContextPlusDialogs cpd
-                                && cpd.HasCapability(AnyUiContextCapability.WPF))
+                        var baseUrlPresetItems = Options.Curr.BaseAddresses?
+                            .Concat(Options.Curr.KnownEndpoints?.Select((o) => o.BaseAddress)
+                                ?? Enumerable.Empty<string>())
+                            .Where(s => s != null && s.Trim().Length > 0)
+                            .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .ToArray();
+                        if (baseUrlPresetItems != null && baseUrlPresetItems.Length > 0)
                         {
                             AnyUiUIElement.SetStringFromControl(
                                 helper.Set(
                                     helper.AddSmallComboBoxTo(g2, 0, 1,
                                         isEditable: true,
-                                        // items: Options.Curr.BaseAddresses?.ToArray(),
-                                        items: Options.Curr.BaseAddresses?
-                                               .Concat(Options.Curr.KnownEndpoints?.Select((o) => o.BaseAddress)).ToArray(),
+                                        items: baseUrlPresetItems,
                                         text: "" + record.BaseAddress,
                                         margin: new AnyUiThickness(0, 0, 0, 0),
                                         padding: new AnyUiThickness(0, 0, 0, 0),

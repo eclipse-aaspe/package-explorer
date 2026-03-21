@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -351,6 +351,8 @@ namespace AnyUi
                 cb.SelectedIndex = selectedIndex;
             cb.Text = text;
             cb.IsEditable = isEditable;
+            if (isEditable && items != null && items.Length > 0)
+                cb.ListDomId = "anyui_cb_" + System.Guid.NewGuid().ToString("N");
             if (verticalContentAlignment != null)
                 cb.VerticalContentAlignment = verticalContentAlignment.Value;
             cb.HorizontalAlignment = AnyUiHorizontalAlignment.Left;

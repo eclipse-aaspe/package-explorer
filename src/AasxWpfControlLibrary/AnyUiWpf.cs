@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -91,6 +91,21 @@ namespace AnyUi
             FlyoutProvider = flyoutProvider;
             Packages = packages;
             InitRenderRecs();
+        }
+
+        /// <summary>
+        /// Prefer <see cref="AnyUiUIElement.setValueAsyncLambda"/>; fall back to
+        /// <see cref="AnyUiUIElement.setValueLambda"/> so legacy bindings still run on WPF.
+        /// </summary>
+        private static async Task<AnyUiLambdaActionBase> InvokeSetValueLambdaOrAsync(AnyUiUIElement cntl, object arg)
+        {
+            if (cntl == null)
+                return new AnyUiLambdaActionNone();
+            if (cntl.setValueAsyncLambda != null)
+                return await cntl.setValueAsyncLambda.Invoke(arg);
+            if (cntl.setValueLambda != null)
+                return cntl.setValueLambda.Invoke(arg);
+            return new AnyUiLambdaActionNone();
         }
 
         public static Color GetWpfColor(AnyUiColor c)
@@ -329,16 +344,16 @@ namespace AnyUi
                                         // detect and send appropriate event and emit return
                                         if ((cntl.EmitEvent & AnyUiEventMask.LeftDown) > 0)
                                         {
-                                            if (cntl.setValueAsyncLambda != null)
-                                                EmitOutsideAction(await cntl.setValueAsyncLambda?.Invoke(
+                                            if (cntl.setValueAsyncLambda != null || cntl.setValueLambda != null)
+                                                EmitOutsideAction(await InvokeSetValueLambdaOrAsync(cntl,
                                                     new AnyUiEventData(AnyUiEventMask.LeftDown, cntl, e5.ClickCount, p)));
                                         }
 
                                         if (((cntl.EmitEvent & AnyUiEventMask.LeftDouble) > 0)
                                             && e5.ClickCount == 2)
                                         {
-                                            if (cntl.setValueAsyncLambda != null)
-                                                EmitOutsideAction(await cntl.setValueAsyncLambda?.Invoke(
+                                            if (cntl.setValueAsyncLambda != null || cntl.setValueLambda != null)
+                                                EmitOutsideAction(await InvokeSetValueLambdaOrAsync(cntl,
                                                     new AnyUiEventData(AnyUiEventMask.LeftDown, cntl, e5.ClickCount, p)));
                                         }
                                     }
@@ -362,8 +377,8 @@ namespace AnyUi
                                             || Math.Abs(position.Y - _dragStartPoint.Y)
                                                 > SystemParameters.MinimumVerticalDragDistance)
                                         {
-                                            if (cntl.setValueAsyncLambda != null)
-                                                await cntl.setValueAsyncLambda?.Invoke(
+                                            if (cntl.setValueAsyncLambda != null || cntl.setValueLambda != null)
+                                                await InvokeSetValueLambdaOrAsync(cntl,
                                                     new AnyUiEventData(AnyUiEventMask.DragStart, cntl));
                                         }
                                     }
@@ -606,9 +621,9 @@ namespace AnyUi
                                     // send event and emit return
                                     if (e.ChangedButton == MouseButton.Left)
                                     {
-                                        if (cntl.setValueAsyncLambda != null)
+                                        if (cntl.setValueAsyncLambda != null || cntl.setValueLambda != null)
                                             EmitOutsideAction(
-                                                await cntl.setValueAsyncLambda?.Invoke(new AnyUiEventData(
+                                                await InvokeSetValueLambdaOrAsync(cntl, new AnyUiEventData(
                                                         AnyUiEventMask.LeftDown, auiSource, e.ClickCount, p)));
                                     }
                                 };
@@ -639,8 +654,8 @@ namespace AnyUi
                         // callbacks
                         wpf.ScrollChanged += async (object sender, ScrollChangedEventArgs e) =>
                         {
-                            if (cntl.setValueAsyncLambda != null)
-                                await cntl.setValueAsyncLambda?.Invoke(
+                            if (cntl.setValueAsyncLambda != null || cntl.setValueLambda != null)
+                                await InvokeSetValueLambdaOrAsync(cntl,
                                     new Tuple<double, double>(e.HorizontalOffset, e.VerticalOffset));
                         };
                    }
@@ -689,8 +704,8 @@ namespace AnyUi
                                                 tb2.Text = "" + files[0];
 
                                             // value changed
-                                            if (cntl.setValueAsyncLambda != null)
-                                                await cntl.setValueAsyncLambda?.Invoke(files[0]);
+                                            if (cntl.setValueAsyncLambda != null || cntl.setValueLambda != null)
+                                                await InvokeSetValueLambdaOrAsync(cntl, files[0]);
 
                                             // contents changed
                                             WishForOutsideAction.Add(new AnyUiLambdaActionContentsChanged());
@@ -708,15 +723,15 @@ namespace AnyUi
                                 {
                                     if (((cntl.EmitEvent & AnyUiEventMask.LeftDown) > 0) && (e2.ClickCount == 1))
                                     {
-                                        if (cntl.setValueAsyncLambda != null) 
-                                            await cntl.setValueAsyncLambda?.Invoke(
+                                        if (cntl.setValueAsyncLambda != null || cntl.setValueLambda != null)
+                                            await InvokeSetValueLambdaOrAsync(cntl,
                                                 new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 1));
                                     }
 
                                     if (((cntl.EmitEvent & AnyUiEventMask.LeftDouble) > 0) && (e2.ClickCount == 2))
                                     {
-                                        if (cntl.setValueAsyncLambda != null) 
-                                            await cntl.setValueAsyncLambda?.Invoke(
+                                        if (cntl.setValueAsyncLambda != null || cntl.setValueLambda != null)
+                                            await InvokeSetValueLambdaOrAsync(cntl,
                                                 new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2));
                                     }
                                 };
@@ -810,8 +825,8 @@ namespace AnyUi
                             hl.RequestNavigate += async (sender, e) =>
                             {
                                 // normal procedure
-                                if (cntl.setValueAsyncLambda != null)
-                                    EmitOutsideAction(await cntl.setValueAsyncLambda?.Invoke(cntl));
+                                if (cntl.setValueAsyncLambda != null || cntl.setValueLambda != null)
+                                    EmitOutsideAction(await InvokeSetValueLambdaOrAsync(cntl, cntl));
                             };
                             wpf.Inlines.Clear();
                             wpf.Inlines.Add(hl);
@@ -961,8 +976,8 @@ namespace AnyUi
                             // callbacks
                             cntl.originalValue = "" + cntl.Text;
                             wpf.TextChanged += async (sender, e) => {
-                                if (cntl.setValueAsyncLambda != null)
-                                    EmitOutsideAction(await cntl.setValueAsyncLambda?.Invoke(wpf.Text));
+                                if (cntl.setValueAsyncLambda != null || cntl.setValueLambda != null)
+                                    EmitOutsideAction(await InvokeSetValueLambdaOrAsync(cntl, wpf.Text));
 								EmitOutsideAction(new AnyUiLambdaActionContentsChanged());
                             };
                             wpf.KeyUp += (sender, e) =>
@@ -1031,8 +1046,8 @@ namespace AnyUi
                             // for AAS events: only invoke, if required
                             if (cntl.Text != wpf.Text)
                             {
-                                if (cntl.setValueAsyncLambda != null)
-                                    EmitOutsideAction(await cntl.setValueAsyncLambda?.Invoke(wpf.Text));
+                                if (cntl.setValueAsyncLambda != null || cntl.setValueLambda != null)
+                                    EmitOutsideAction(await InvokeSetValueLambdaOrAsync(cntl, wpf.Text));
                             }
                             cntl.Text = wpf.Text;
                         };
@@ -1044,8 +1059,8 @@ namespace AnyUi
                                 cntl.SelectedIndex = wpf.SelectedIndex;
                                 cntl.Text = wpf.Text;
                                 
-                                if (cntl.setValueAsyncLambda != null)
-                                    EmitOutsideAction(await cntl.setValueAsyncLambda?.Invoke((string) wpf.SelectedItem));
+                                if (cntl.setValueAsyncLambda != null || cntl.setValueLambda != null)
+                                    EmitOutsideAction(await InvokeSetValueLambdaOrAsync(cntl, (string) wpf.SelectedItem));
                                 
                                 EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
                                 // Note for MIHO: this was the dangerous outside event loop!
@@ -1132,8 +1147,8 @@ namespace AnyUi
                         cntl.originalValue = cntl.IsChecked;
                         RoutedEventHandler ceh = async (sender, e) =>
                         {
-                            if (cntl.setValueAsyncLambda != null)
-                                EmitOutsideAction(await cntl.setValueAsyncLambda?.Invoke(wpf.IsChecked == true));
+                            if (cntl.setValueAsyncLambda != null || cntl.setValueLambda != null)
+                                EmitOutsideAction(await InvokeSetValueLambdaOrAsync(cntl, wpf.IsChecked == true));
                             EmitOutsideAction(new AnyUiLambdaActionContentsTakeOver());
                             EmitOutsideAction(cntl.takeOverLambda);
                         };
@@ -1169,8 +1184,8 @@ namespace AnyUi
                         wpf.Click += async (sender, e) =>
                         {
                             // normal procedure
-                            if (cntl.setValueAsyncLambda != null)
-                                EmitOutsideAction(await cntl.setValueAsyncLambda.Invoke(cntl));
+                            if (cntl.setValueAsyncLambda != null || cntl.setValueLambda != null)
+                                EmitOutsideAction(await InvokeSetValueLambdaOrAsync(cntl, cntl));
 
                             // special case
                             if (cntl.SpecialAction is AnyUiSpecialActionContextMenu cntlcm
@@ -1429,9 +1444,10 @@ namespace AnyUi
                 if (key == sc.Key && modifiers == sc.Modifiers && preview == sc.Preview)
                 {
                     // found, any lambdas appicable?
-                    if (sc.Element is AnyUiButton btn && btn.setValueAsyncLambda != null)
+                    if (sc.Element is AnyUiButton btn
+                        && (btn.setValueAsyncLambda != null || btn.setValueLambda != null))
                     {
-                        EmitOutsideAction(await btn.setValueAsyncLambda?.Invoke(btn));
+                        EmitOutsideAction(await InvokeSetValueLambdaOrAsync(btn, btn));
                         res++;
                     }
                 }

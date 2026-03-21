@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web
 @using MW.Blazor
 @using BlazorUI.Data;
 
@@ -74,7 +74,8 @@
     [Parameter] public IList<TNode> ExpandedNodes { get; set; } = new List<TNode>();
     [Parameter] public EventCallback<IList<TNode>> ExpandedNodesChanged { get; set; }
 
-    [Parameter] public Action<TNode, BlazorInput.KeyboardModifiers> NodeClicked { get; set; }
+    /// <summary>Invoked when a node title is clicked; awaited so async work (e.g. repo fetch) runs on the renderer context.</summary>
+    [Parameter] public Func<TNode, BlazorInput.KeyboardModifiers, Task> NodeClicked { get; set; }
 
     /// <summary>
     /// This action is called, then the expansion state (expanded, collapsed) of a node
@@ -129,14 +130,15 @@
         SetExpanded?.Invoke(node, expand);       
     }
 
-    private async void OnSelectNode(TNode node)
+    private async Task OnSelectNode(TNode node)
     {
         var modi = BlazorUI.Data.BlazorInput.KeyboardModifiers.None;
         if (true)
             modi = await Layout.GetKeyboardModifiers();
 
         SelectedNode = node;
-        NodeClicked?.Invoke(node, modi);
+        if (NodeClicked != null)
+            await NodeClicked.Invoke(node, modi);
         await SelectedNodeChanged.InvokeAsync(node);
     }
 

@@ -29,6 +29,29 @@
   "VerboseConnect": true,
   "DefaultStayConnected": false,
   "DefaultUpdatePeriod": 1000,
+  "DefaultConnectRepositoryLocation": "https://big.aas-voyager.com/",
+  "DefaultConnectPageLimit": 20,
+  "KnownEndpoints": [
+    {
+      "BaseAddress": "https://big.aas-voyager.com/",
+      "AccessInfo": {
+        "Method": 0
+      }
+    },
+    {
+      "BaseAddress": "https://registry-of-registry.aas-voyager.com/",
+      "AccessInfo": {
+        "Method": 0
+      }
+    }
+  ],
+  "BaseAddresses": [
+    "https://cloudrepo.aas-voyager.com/",
+    "https://eis-data.aas-voyager.com/",
+    "https://big.aas-voyager.com/",
+    "http://smt-repo.admin-shell-io.com/api/v3.0",
+    "https://techday2-registry.admin-shell-io.com/"
+  ],
   "Remarks": [
     "-arg",
     "\"17a\"",

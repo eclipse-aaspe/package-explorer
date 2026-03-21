@@ -1,4 +1,4 @@
-﻿@page "/TreeOfAasxVisualElements"
+@page "/TreeOfAasxVisualElements"
 @using AdminShellNS
 @using AasxIntegrationBase
 @using AnyUi
@@ -89,6 +89,6 @@
     /// <summary>
     /// Notification, whena item was clicked. Includes keyboad modifiers.
     /// </summary>
-    [Parameter] 
-    public Action<VisualElementGeneric, BlazorInput.KeyboardModifiers> NodeClicked { get; set; }    
+    [Parameter]
+    public Func<VisualElementGeneric, BlazorInput.KeyboardModifiers, Task> NodeClicked { get; set; }
 }

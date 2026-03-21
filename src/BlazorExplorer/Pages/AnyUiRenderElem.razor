@@ -39,6 +39,18 @@
     {
         ;
     }
+
+    private async void MyComboEditable(AnyUiComboBox c, string value)
+    {
+        c.Text = value ?? "";
+        await Program.EvalSetValueLambdaAndHandleReturnAsync(Session.SessionId, c, c.Text);
+    }
+
+    private async void MyComboSelect(AnyUiComboBox comb, string value)
+    {
+        comb.EvalSelectedIndex(value);
+        await Program.EvalSetValueLambdaAndHandleReturnAsync(Session.SessionId, comb, value);
+    }
 }
 
 @{
@@ -473,28 +485,41 @@
             }
         }
 
-        if (comb.SelectedIndex.HasValue
+        if (comb.IsEditable != true
+            && comb.SelectedIndex.HasValue
             && comb.Items != null
             && comb.SelectedIndex.Value >= 0 && comb.SelectedIndex.Value < comb.Items.Count)
         {
             comb.Text = "" + comb.Items[comb.SelectedIndex.Value];
         }
-        
-        // class="form-control selectpicker"
-        <select class="" value="@comb.Text" style="@style"
-            @onchange="@((ChangeEventArgs __e) => MyComboSelect(comb, __e.Value.ToString()))">
-            @foreach (var item in comb.Items)
-            {
-                <option value="@item">@item</option>
-            }
-        </select>
 
-        @code {
-            private async void MyComboSelect(AnyUiComboBox comb, string value)
-            {
-                comb.EvalSelectedIndex(value);
-                await Program.EvalSetValueLambdaAndHandleReturnAsync(Session.SessionId, comb, value);
-            }
+        @* Editable combo with presets: match WPF ComboBox (typed URL + dropdown suggestions). *@
+        if (comb.IsEditable == true && comb.Items != null && comb.Items.Count > 0)
+        {
+            var listId = comb.ListDomId;
+            if (string.IsNullOrEmpty(listId))
+                listId = "anyui_cb_fallback";
+
+            <input type="text" class="form-control" style="@style"
+                   list="@listId"
+                   value="@comb.Text"
+                   @oninput="@((ChangeEventArgs __e) => MyComboEditable(comb, __e.Value?.ToString()))" />
+            <datalist id="@listId">
+                @foreach (var item in comb.Items)
+                {
+                    <option value="@item"></option>
+                }
+            </datalist>
+        }
+        else
+        {
+            <select class="" value="@comb.Text" style="@style"
+                @onchange="@((ChangeEventArgs __e) => MyComboSelect(comb, __e.Value.ToString()))">
+                @foreach (var item in comb.Items)
+                {
+                    <option value="@item">@item</option>
+                }
+            </select>
         }
     }
 

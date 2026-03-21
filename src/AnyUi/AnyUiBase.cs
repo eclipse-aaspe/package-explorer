@@ -834,8 +834,7 @@ namespace AnyUi
             if (cntl == null)
                 return null;
 
-            // de-tour set value lambda
-            cntl.setValueLambda = (o) =>
+            Func<object, AnyUiLambdaActionBase> sync = (o) =>
             {
                 if (o is int di)
                     setValue?.Invoke(di);
@@ -857,6 +856,9 @@ namespace AnyUi
                 }
                 return new AnyUiLambdaActionNone();
             };
+            cntl.setValueLambda = sync;
+            cntl.setValueAsyncLambda = async (o) =>
+                await Task.FromResult(sync(o));
 
             return cntl;
         }
@@ -869,8 +871,7 @@ namespace AnyUi
             if (cntl == null)
                 return null;
 
-            // de-tour set value lambda
-            cntl.setValueLambda = (o) =>
+            Func<object, AnyUiLambdaActionBase> sync = (o) =>
             {
                 if (o is string ostr)
                 {
@@ -882,6 +883,9 @@ namespace AnyUi
                 }
                 return new AnyUiLambdaActionNone();
             };
+            cntl.setValueLambda = sync;
+            cntl.setValueAsyncLambda = async (o) =>
+                await Task.FromResult(sync(o));
 
             return cntl;
         }
@@ -894,13 +898,15 @@ namespace AnyUi
             if (cntl == null)
                 return null;
 
-            // de-tour set value lambda
-            cntl.setValueLambda = (o) =>
+            Func<object, AnyUiLambdaActionBase> sync = (o) =>
             {
                 if (o is bool ob)
                     setValue?.Invoke(ob);
                 return new AnyUiLambdaActionNone();
             };
+            cntl.setValueLambda = sync;
+            cntl.setValueAsyncLambda = async (o) =>
+                await Task.FromResult(sync(o));
 
             return cntl;
         }
@@ -913,13 +919,16 @@ namespace AnyUi
             if (cntl == null)
                 return null;
 
-            // de-tour set value lambda
-            cntl.setValueLambda = (o) =>
+            Func<object, AnyUiLambdaActionBase> sync = (o) =>
             {
                 if (o is string ostr)
                     setValue?.Invoke(ostr);
                 return new AnyUiLambdaActionNone();
             };
+            cntl.setValueLambda = sync;
+            // WPF (and other hosts) wire only setValueAsyncLambda for TextBox/ComboBox.
+            cntl.setValueAsyncLambda = async (o) =>
+                await Task.FromResult(sync(o));
 
             return cntl;
         }
@@ -1379,6 +1388,11 @@ namespace AnyUi
         public string Text = null;
 
         public int? SelectedIndex;
+
+        /// <summary>
+        /// For HTML/Blazor: <c>&lt;input list="…"&gt;</c> / <c>&lt;datalist id="…"&gt;</c> must share a stable id.
+        /// </summary>
+        public string ListDomId;
 
         public void EvalSelectedIndex(string value)
         {

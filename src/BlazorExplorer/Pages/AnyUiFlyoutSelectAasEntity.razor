@@ -54,7 +54,7 @@
 						IsExpanded="@(item => item.IsExpanded)"
 						SetExpanded="@((item, state) => _displayElements.SetExpanded(item, state))"
 						IsSelected="@(item => _displayElements.SelectedItems?.Contains(item) == true)"
-						NodeClicked="(ve, modi) => { _displayElements.NotifyTreeSelectionChanged(ve, modi); this.StateHasChanged(); }" 
+						NodeClicked="(ve, modi) => { _displayElements.NotifyTreeSelectionChanged(ve, modi); this.StateHasChanged(); return Task.CompletedTask; }" 
 						/>
 				</span>	
 			</div>

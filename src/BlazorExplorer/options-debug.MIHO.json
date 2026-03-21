@@ -63,8 +63,52 @@
   "StayConnectOptions": "REST-QUEUE", // SIM
   /* "DefaultConnectRepositoryLocation": "http://localhost:51310", */
   /* "DefaultConnectRepositoryLocation": "http://admin-shell-io.com:51510", */
-  /* "DefaultConnectRepositoryLocation": "https://admin-shell-io.com:51711", */
-  "DefaultConnectRepositoryLocation": "https://admin-shell-io.com/51711",
+  /* "DefaultConnectRepositoryLocation": "https://admin-shell-io.com/51711", */
+  "DefaultConnectRepositoryLocation": "https://big.aas-voyager.com/",
+  "DefaultConnectPageLimit": 20,
+  "AutoAuthenticateUris": true,
+  "AutoAuthenticateAsk": false,
+  "KnownEndpoints": [
+    {
+      "BaseAddress": "https://big.aas-voyager.com/",
+      "AccessInfo": {
+        "Method": "Ask",
+        "Username": "Admin",
+        "Password": "",
+        "AuthServer": "https://www.admin-shell-io.com/50001/.well-known/openid-configuration",
+        "CertFile": "",
+        "CertPassword": "",
+        "CertPick": "",
+        "SecretId": "",
+        "SecretValue": ""
+      }
+    },
+    {
+      "BaseAddress": "https://registry-of-registry.aas-voyager.com/",
+      "AccessInfo": {
+        "Method": "None"
+      }
+    },
+    {
+      "BaseAddress": "https://aasx-server-pcf.dev.pxcio.net/",
+      "AccessInfo": {
+        "Method": "Basic",
+        "Username": "Albert",
+        "Password": "Alb"
+      }
+    }
+  ],
+  "BaseAddresses": [
+    "https://cloudrepo.aas-voyager.com/",
+    "https://eis-data.aas-voyager.com/",
+    "http://smt-repo.admin-shell-io.com/api/v3.0",
+    "https://techday2-registry.admin-shell-io.com/",
+    "http://localhost:5001/",
+    "http://localhost:5001/api/v3.0/",
+    "http://localhost{{\"*\" : \":8081\", \"AAS-REG\" : \":8082\", \"SM-REG\" : \":8083\", \"DIS\" : \":8084\"}}/"
+  ],
+  "MaxParallelReadOps": 10,
+  "MaxParallelWriteOps": 1,
   "MqttPublisherOptions": {
     "BrokerUrl": "192.168.178.97:1883",
     "MqttRetain": false,

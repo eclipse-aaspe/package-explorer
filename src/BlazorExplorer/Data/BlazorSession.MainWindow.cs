@@ -371,10 +371,54 @@ namespace BlazorUI.Data
             if (DisplayElements == null || sender != DisplayElements)
                 return;
 
+            // Mirror WPF MainWindow.DisplayElements_MouseDoubleClick: tree nodes "Fetch previous" / "Fetch next"
+            // trigger pagination. (WPF uses double-click; Blazor has no tree double-click — run on selection.)
+            var si = DisplayElements.SelectedItem;
+            if (si is VisualElementEnvironmentItem siei
+                && (siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev
+                    || siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext))
+            {
+                if (siei.thePackage is AdminShellPackageDynamicFetchEnv dynPack
+                    && dynPack.GetContext() is PackageContainerHttpRepoSubsetFetchContext fetchContext
+                    && fetchContext.Record != null)
+                {
+                    var goPrev = siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev;
+                    var goNext = siei.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext;
+                    var goNextFake = false;
+                    if (goNext && fetchContext.Cursor?.HasContent() != true)
+                    {
+                        Log.Singleton.Info(StoredPrint.Color.Blue,
+                            "No cursor for fetch operation available " +
+                            "(at the end of the selected subset of elements or no server support).");
+                        goNext = false;
+                        goNextFake = true;
+                    }
+
+                    await DispEditHelperEntities.ExecuteUiForFetchOfElements(
+                        PackageCentral, DisplayContext, new AasxMenuActionTicket(), this,
+                        fetchContext,
+                        preserveEditMode: true,
+                        doEditNewRecord: false,
+                        doCheckTainted: true,
+                        doFetchGoPrev: goPrev,
+                        doFetchGoNext: goNext,
+                        doFakeGoNext: goNextFake,
+                        doFetchExec: true);
+                }
+                else
+                {
+                    Log.Singleton.Error("Fetch next within dynamic environment: " +
+                        "Not enough data to provide dynamic fetch operations.");
+                }
+
+                CheckIfToFlushEvents();
+                return;
+            }
+
             // try identify the business object
             if (DisplayElements.SelectedItem != null)
             {
-
+                Logic?.LocationHistory?.Push(DisplayElements.SelectedItem);
             }
 
             // may be flush events

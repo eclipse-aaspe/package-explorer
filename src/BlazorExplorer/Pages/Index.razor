@@ -2000,10 +2000,10 @@
         }
     }
 
-    protected void OnNodeClicked(VisualElementGeneric ve, BlazorInput.KeyboardModifiers modi)
+    protected async Task OnNodeClicked(VisualElementGeneric ve, BlazorInput.KeyboardModifiers modi)
     {
         Session.DisplayElements.NotifyTreeSelectionChanged(ve, modi);
-        Session.DisplayElements_SelectedItemChanged(Session.DisplayElements, null);
+        await Session.DisplayElements_SelectedItemChanged(Session.DisplayElements, EventArgs.Empty);
         Session.DisposeLoadedPlugin();
         this.StateHasChanged();
     }
