@@ -7,7 +7,7 @@ Gleiches Muster wie beim AAS-Server (`Dockerfile-AasxServerBlazor`): Image aus *
 
 ```bash
 docker build --platform linux/amd64 \
-  -t adminshellio/aasx-package-explorer-blazor:develop \
+  -t adminshellio/aasx-package-explorer-blazor-for-demo:develop \
   -f src/docker/Dockerfile-AasxPackageExplorerBlazor \
   "https://github.com/eclipse-aaspe/package-explorer.git#AnyUiAO"
 ```
@@ -21,7 +21,7 @@ cd /pfad/zum/package-explorer
 git checkout AnyUiAO
 
 docker build --platform linux/amd64 \
-  -t adminshellio/aasx-package-explorer-blazor:develop \
+  -t adminshellio/aasx-package-explorer-blazor-for-demo:develop \
   -f src/docker/Dockerfile-AasxPackageExplorerBlazor .
 ```
 
@@ -29,14 +29,14 @@ docker build --platform linux/amd64 \
 
 ```bash
 docker login docker.io
-docker push adminshellio/aasx-package-explorer-blazor:develop
+docker push adminshellio/aasx-package-explorer-blazor-for-demo:develop
 docker builder prune -a
 ```
 
 ## Container starten
 
 ```bash
-docker run --rm -p 8080:8080 adminshellio/aasx-package-explorer-blazor:develop
+docker run --rm -p 8080:8080 adminshellio/aasx-package-explorer-blazor-for-demo:develop
 ```
 
 → **http://localhost:8080**

@@ -4,13 +4,13 @@
 #
 # Remote + Branch AnyUiAO (Ubuntu / amd64):
 #   docker build --platform linux/amd64 \
-#     -t adminshellio/aasx-package-explorer-blazor:develop \
+#     -t adminshellio/aasx-package-explorer-blazor-for-demo:develop \
 #     -f src/docker/Dockerfile-AasxPackageExplorerBlazor \
 #     "https://github.com/eclipse-aaspe/package-explorer.git#AnyUiAO"
 #
 # Lokal (Branch AnyUiAO auschecken):
 #   docker build --platform linux/amd64 \
-#     -t adminshellio/aasx-package-explorer-blazor:develop \
+#     -t adminshellio/aasx-package-explorer-blazor-for-demo:develop \
 #     -f src/docker/Dockerfile-AasxPackageExplorerBlazor .
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
