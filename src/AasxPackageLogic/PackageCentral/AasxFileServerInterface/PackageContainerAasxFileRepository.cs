@@ -20,6 +20,7 @@ namespace AasxPackageLogic.PackageCentral.AasxFileServerInterface
 
         private AasxFileServerInterfaceService _aasxFileService;
         public readonly PackCntRuntimeOptions CentralRuntimeOptions;
+        
         /// <summary>
         /// OpenIdClient to be used by the repository/ registry. To be set, when
         /// first time used.
@@ -27,25 +28,18 @@ namespace AasxPackageLogic.PackageCentral.AasxFileServerInterface
         public OpenIdClientInstance OpenIdClient = null;
 
 
-        public PackageContainerAasxFileRepository(string inputText, PackCntRuntimeOptions centralRuntimeOptions)
+        public PackageContainerAasxFileRepository(string endpoint, PackCntRuntimeOptions centralRuntimeOptions)
         {
-            // dead-csharp off
-            //if (inputText.Contains('?'))
-            //{
-            //    var splitTokens = inputText.Split(new[] { '?' }, 2);
-            //    if (splitTokens[1].Equals("asp.net", StringComparison.OrdinalIgnoreCase))
-            //    {
-            //        IsAspNetConnection = true;
-            //    }
-            //    inputText = splitTokens[0];
-            //}
-            // dead-csharp on
-            this.Header = "AASX File Server Repository";
+            this.Header = "AASX File Repository";
             IsAspNetConnection = true;
+            
             // always have a location
-            Endpoint = new Uri(inputText);
+            Endpoint = new Uri(endpoint);
 
-            _aasxFileService = new AasxFileServerInterfaceService(inputText);
+            // Note: to be checked
+            _aasxFileService = new AasxFileServerInterfaceService(endpoint);
+
+            // remember
             CentralRuntimeOptions = centralRuntimeOptions;
         }
 
@@ -73,7 +67,7 @@ namespace AasxPackageLogic.PackageCentral.AasxFileServerInterface
             {
                 var container = new AasxFilePackageContainerBase
                 {
-                    Env = new AdminShellPackageEnv(fileName, indirectLoadSave: false),
+                    Env = new AdminShellPackageFileBasedEnv(fileName, indirectLoadSave: false),
                     ContainerList = this,
                     IsFormat = PackageContainerBase.Format.AASX,        //TODO (jtikekar, 2022-04-04): Based on file
                     PackageId = packageId
@@ -125,7 +119,7 @@ namespace AasxPackageLogic.PackageCentral.AasxFileServerInterface
             try
             {
                 // load
-                var packageEnv = new AdminShellPackageEnv(fileName);
+                var packageEnv = new AdminShellPackageFileBasedEnv(fileName);
 
                 // for each Admin Shell and then each Aas.AssetInformation
                 var packageContainer = new PackageContainerRepoItem()

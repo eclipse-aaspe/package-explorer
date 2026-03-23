@@ -16,19 +16,18 @@ using System.Globalization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
 using AasxIntegrationBase;
 using AasxPackageExplorer;
 using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 using AnyUi;
 using BlazorExplorer;
 using BlazorExplorer.Shared;
 using Microsoft.JSInterop;
-using AasCore.Aas3_0;
+using AasCore.Aas3_1;
 
 namespace BlazorUI.Data
 {
@@ -99,11 +98,13 @@ namespace BlazorUI.Data
             // no such capability
         }
 
-        public void CommandExecution_RedrawAll()
+        public async Task CommandExecution_RedrawAllAsync()
         {
+            await Task.Yield();
+
             // redraw everything
-            RedrawAllAasxElements();
-            RedrawElementView();
+            await RedrawAllAasxElementsAsync();
+            await RedrawElementViewAsync();
         }
 
         private PackCntRuntimeOptions UiBuildRuntimeOptionsForMainAppLoad()
@@ -111,7 +112,7 @@ namespace BlazorUI.Data
             var ro = new PackCntRuntimeOptions()
             {
                 Log = Log.Singleton,
-                ProgressChanged = (state, tfs, tbd) =>
+                ProgressChanged = (state, tfs, tbd, msg) =>
                 {
                     ;
                 },
@@ -123,17 +124,22 @@ namespace BlazorUI.Data
             return ro;
         }
 
-        public void UiLoadPackageWithNew(
+        public async Task UiLoadPackageWithNew(
             PackageCentralItem packItem,
-            AdminShellPackageEnv takeOverEnv = null,
+            AdminShellPackageEnvBase takeOverEnv = null,
             string loadLocalFilename = null,
             string info = null,
             bool onlyAuxiliary = false,
             bool doNotNavigateAfterLoaded = false,
             PackageContainerBase takeOverContainer = null,
             string storeFnToLRU = null,
-            bool indexItems = false)
+            bool indexItems = false,
+            bool preserveEditMode = false,
+            bool? nextEditMode = null, 
+            bool autoFocusFirstRelevant = false)
         {
+            await Task.Yield();
+
             // access
             if (packItem == null)
                 return;
@@ -221,12 +227,17 @@ namespace BlazorUI.Data
             Log.Singleton.Info("AASX {0} loaded.", info);
         }
 
-        public void RestartUIafterNewPackage(bool onlyAuxiliary = false)
+        public bool CheckIsAnyTaintedIdentifiableInMain()
+        {
+            return DisplayElements.IsAnyTaintedIdentifiable();
+        }        
+
+        public async Task RestartUIafterNewPackage(bool onlyAuxiliary = false, bool? nextEditMode = null)
         {
             if (onlyAuxiliary)
             {
                 // reduced, in the background
-                RedrawAllAasxElements();
+                await RedrawAllAasxElementsAsync();
             }
             else
             {
@@ -236,8 +247,8 @@ namespace BlazorUI.Data
                 // and -> this will update the left side of the screen correctly!
                 // _mainMenu?.SetChecked("EditMenu", false);
                 // ClearAllViews();
-                RedrawAllAasxElements();
-                RedrawElementView();
+                await RedrawAllAasxElementsAsync();
+                await RedrawElementViewAsync();
                 // ShowContentBrowser(Options.Curr.ContentHome, silent: true);
                 // _eventHandling.Reset();
                 // dead-csharp on
@@ -259,7 +270,7 @@ namespace BlazorUI.Data
         /// <param name="keepFocus">Try remember which element was focussed and focus it after redrawing.</param>
         /// <param name="nextFocusMdo">Focus a new main data object attached to an tree element.</param>
         /// <param name="wishExpanded">If focussing, expand this item.</param>
-        public void RedrawAllAasxElements(
+        public async Task RedrawAllAasxElementsAsync(
             bool keepFocus = false,
             object nextFocusMdo = null,
             bool wishExpanded = true)
@@ -306,7 +317,7 @@ namespace BlazorUI.Data
             }
 
             // Info box ..
-            RedrawElementView();
+            await RedrawElementViewAsync();
 
             // display again
             Program.signalNewData(
@@ -323,8 +334,10 @@ namespace BlazorUI.Data
         /// Based on save information, will redraw the AAS entity (element) view (right).
         /// </summary>
         /// <param name="hightlightField">Highlight field (for find/ replace)</param>
-        public void RedrawElementView(DispEditHighlight.HighlightFieldInfo hightlightField = null)
+        public async Task RedrawElementViewAsync(DispEditHighlight.HighlightFieldInfo hightlightField = null)
         {
+            await Task.Yield();
+
             if (DisplayElements == null)
                 return;
 
@@ -350,7 +363,7 @@ namespace BlazorUI.Data
             DisplayElements.Clear();
         }
 
-        public void DisplayElements_SelectedItemChanged(object sender, EventArgs e)
+        public async Task DisplayElements_SelectedItemChanged(object sender, EventArgs e)
         {
             // access
             if (DisplayElements == null || sender != DisplayElements)
@@ -366,7 +379,7 @@ namespace BlazorUI.Data
             CheckIfToFlushEvents();
 
             // redraw view
-            RedrawElementView();
+            await RedrawElementViewAsync();
         }
 
         /// <summary>
@@ -452,6 +465,7 @@ namespace BlazorUI.Data
                     location,
                     location,
                     overrideLoadResident: true,
+                    autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                     null, null,
                     PackageContainerOptionsBase.CreateDefault(Options.Curr),
                     runtimeOptions: PackageCentral.CentralRuntimeOptions);
@@ -510,6 +524,19 @@ namespace BlazorUI.Data
             return null;
         }
 
+        public async Task<Aas.IIdentifiable> UiSearchRepoAndExtendEnvironmentAsync(
+            AdminShellPackageEnvBase packEnv,
+            Aas.IReference workRef = null,
+            string fullItemLocation = null,
+            bool tryDisplay = false)
+        {
+            await Task.Yield();
+
+            // TODO: take over from WPF app
+
+            return null;
+        }
+
         public async Task UiHandleNavigateTo(
             Aas.IReference targetReference,
             bool alsoDereferenceObjects = true)
@@ -550,9 +577,9 @@ namespace BlazorUI.Data
                         // find?
                         PackageContainerRepoItem fi = null;
                         if (work.Keys[0].Type == Aas.KeyTypes.GlobalReference) //TODO (jtikekar, 0000-00-00): KeyTypes.AssetInformation
-                            fi = PackageCentral.Repositories.FindByAssetId(work.Keys[0].Value.Trim());
+                            fi = await PackageCentral.Repositories.FindByAssetId(work.Keys[0].Value.Trim());
                         if (work.Keys[0].Type == Aas.KeyTypes.AssetAdministrationShell)
-                            fi = PackageCentral.Repositories.FindByAasId(work.Keys[0].Value.Trim());
+                            fi = await PackageCentral.Repositories.FindByAasId(work.Keys[0].Value.Trim());
 
                         var boInfo = await LoadFromFileRepository(fi, work);
                         bo = boInfo?.BusinessObject;
@@ -594,7 +621,7 @@ namespace BlazorUI.Data
                     // remember in history
                     // ButtonHistory.Push(veFound);
                     // fake selection
-                    RedrawElementView();
+                    await RedrawElementViewAsync();
                     DisplayElements.Refresh();
                     // ContentTakeOver.IsEnabled = false;
                 }

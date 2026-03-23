@@ -13,7 +13,7 @@ using Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 // ReSharper disable ReplaceWithSingleAssignment.True
 
@@ -21,7 +21,7 @@ namespace AasxFormatCst
 {
     public class AasxToCst
     {
-        protected AdminShellPackageEnv _env;
+        protected AdminShellPackageEnvBase _env;
 
         protected int _customIndex = 1;
         public string CustomNS = "UNSPEC";
@@ -267,7 +267,7 @@ namespace AasxFormatCst
         }
 
         public void ExportSingleSubmodel(
-            AdminShellPackageEnv env, string path,
+            AdminShellPackageEnvBase env, string path,
             Aas.Key smId,
             IEnumerable<Aas.IReferable> cdReferables,
             CstIdObjectBase firstNodeId,

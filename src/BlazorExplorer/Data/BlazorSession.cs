@@ -33,7 +33,8 @@ using Extensions;
 using Microsoft.JSInterop;
 using System.Linq;
 using AasxIntegrationBase.AdminShellEvents;
-using AasCore.Aas3_0;
+using AasCore.Aas3_1;
+using BlazorUI.Functionality;
 
 namespace BlazorUI.Data
 {
@@ -93,6 +94,11 @@ namespace BlazorUI.Data
         /// the dynamically created element panel.
         /// </summary>
         public AasxMenuBlazor DynamicMenu = new AasxMenuBlazor();
+
+        /// <summary>
+        /// Allows creating tokens.. based on user configured information or UI.
+        /// </summary>
+        public BlazorSecurityAccessHandler _securityAccessHandler = null;
 
         /// <summary>
         /// Helper class to "compress events" (group AAS event payloads together).
@@ -168,7 +174,7 @@ namespace BlazorUI.Data
         // dead-csharp on
         // old stuff, to be refactored
 
-        public AdminShellPackageEnv env = null;
+        public AdminShellPackageEnvBase env = null;
         public IndexOfSignificantAasElements significantElements = null;
 
         public string[] aasxFiles = new string[1];
@@ -227,6 +233,10 @@ namespace BlazorUI.Data
             MainMenu = new AasxMenuBlazor();
             MainMenu.LoadAndRender(logicalMainMenu, null, null);
 
+            // editor modes?
+            MainMenu?.SetChecked("EditMenu", Options.Curr.EditMode);
+            MainMenu?.SetChecked("HintsMenu", !Options.Curr.NoHints);
+
             // show Logo?
             if (Options.Curr.LogoFile != null)
                 try
@@ -262,13 +272,19 @@ namespace BlazorUI.Data
             }
 
             // Repository pointed by the Options
-            if (Options.Curr.AasxRepositoryFn.HasContent())
+            if (Options.Curr.AasxRepositoryFns != null && Options.Curr.AasxRepositoryFns.Count > 0)
             {
-                var fr2 = Logic.UiLoadFileRepository(Options.Curr.AasxRepositoryFn);
-                if (fr2 != null)
+                foreach (var arf in Options.Curr.AasxRepositoryFns)
                 {
-                    PackageCentral.Repositories ??= new PackageContainerListOfList();
-                    PackageCentral.Repositories.AddAtTop(fr2);
+                    if (arf?.HasContent() != true)
+                        continue;
+
+                    var fr2 = Logic.UiLoadFileRepository(arf);
+                    if (fr2 != null)
+                    {
+                        PackageCentral.Repositories ??= new PackageContainerListOfList();
+                        PackageCentral.Repositories.AddAtTop(fr2);
+                    }
                 }
             }
 
@@ -290,9 +306,36 @@ namespace BlazorUI.Data
             // nearly last task here ..
             Log.Singleton.Info("Application started ..");
 
+            //
+            // OLD code
+            //
+
+            env = null;
+
+            helper = new DispEditHelperMultiElement();
+            helper.levelColors = DispLevelColors.GetLevelColorsFromOptions(Options.Curr);
+
+            // some functionality still uses repo != null to detect editMode!!
+            repo = new ModifyRepo();
+            helper.editMode = EditMode;
+            helper.hintMode = HintMode;
+            helper.repo = repo;
+            helper.context = null;
+            helper.packages = PackageCentral;
+
+            ElementPanel = new AnyUiStackPanel() { Orientation = AnyUiOrientation.Vertical };
+
+            htmlDotnetThread = new Thread(AnyUiDisplayContextHtml.htmlDotnetLoop);
+            htmlDotnetThread.Start();
+
+        }
+
+        // called once by the Index.razor component
+        public async Task InitializeAsync() { 
+
             // start with a new file
             PackageCentral.MainItem.New();
-            RedrawAllAasxElements();
+            await RedrawAllAasxElementsAsync();
 
             // Try to load?            
             if (Options.Curr.AasxToLoad != null)
@@ -308,13 +351,14 @@ namespace BlazorUI.Data
                         location,
                         location,
                         overrideLoadResident: true,
+                        autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                         containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr),
                         runtimeOptions: PackageCentral.CentralRuntimeOptions);
 
                     if (container == null)
                         Log.Singleton.Error($"Failed to auto-load AASX from {location}");
                     else
-                        UiLoadPackageWithNew(PackageCentral.MainItem,
+                        await UiLoadPackageWithNew(PackageCentral.MainItem,
                             takeOverContainer: container, onlyAuxiliary: false, indexItems: true);
 
                     Log.Singleton.Info($"Successfully auto-loaded AASX {location}");
@@ -338,13 +382,14 @@ namespace BlazorUI.Data
                         location,
                         location,
                         overrideLoadResident: true,
+                        autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                         containerOptions: PackageContainerOptionsBase.CreateDefault(Options.Curr),
                         runtimeOptions: PackageCentral.CentralRuntimeOptions);
 
                     if (container == null)
                         Log.Singleton.Error($"Failed to auto-load AASX from {location}");
                     else
-                        UiLoadPackageWithNew(PackageCentral.AuxItem,
+                        await UiLoadPackageWithNew(PackageCentral.AuxItem,
                             takeOverContainer: container, onlyAuxiliary: true, indexItems: false);
 
                     Log.Singleton.Info($"Successfully auto-loaded AASX {location}");
@@ -356,30 +401,13 @@ namespace BlazorUI.Data
             }
 
             //
-            // OLD
+            // Display right side
             //
 
-            env = null;
-
-            helper = new DispEditHelperMultiElement();
-            helper.levelColors = DispLevelColors.GetLevelColorsFromOptions(Options.Curr);
-
-            // some functionality still uses repo != null to detect editMode!!
-            repo = new ModifyRepo();
-            helper.editMode = EditMode;
-            helper.hintMode = HintMode;
-            helper.repo = repo;
-            helper.context = null;
-            helper.packages = PackageCentral;
-
-            ElementPanel = new AnyUiStackPanel() { Orientation = AnyUiOrientation.Vertical };
-
             if (env?.AasEnv?.AssetAdministrationShells != null)
-                helper.DisplayOrEditAasEntityAas(PackageCentral, env.AasEnv,
+                helper.DisplayOrEditAasEntityAas(PackageCentral, env, env.AasEnv,
                     env.AasEnv.AllAssetAdministrationShells().FirstOrDefault(), EditMode, ElementPanel, hintMode: HintMode);
 
-            htmlDotnetThread = new Thread(AnyUiDisplayContextHtml.htmlDotnetLoop);
-            htmlDotnetThread.Start();
 
         }
 
@@ -496,7 +524,8 @@ namespace BlazorUI.Data
                     elementPanel,
                     superMenu, EditMode, HintMode, CheckSmtMode,
                     tiCds?.CdSortOrder ?? VisualElementEnvironmentItem.ConceptDescSortOrder.None,
-                    DisplayElements.SelectedItem);
+                    DisplayElements.SelectedItem,
+                    mainWindow: null); // TODO: fix mainWindow
 
                 if (common)
                 {
@@ -728,6 +757,7 @@ namespace BlazorUI.Data
                             location,
                             location,
                             overrideLoadResident: true,
+                            autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                             takeOver: fi,
                             fi.ContainerList,
                             containerOptions: copts,
@@ -775,6 +805,7 @@ namespace BlazorUI.Data
                         ddof.TargetFileName,
                         ddof.TargetFileName,
                         overrideLoadResident: true,
+                        autoAuthenticate: Options.Curr.AutoAuthenticateUris,
                         runtimeOptions: PackageCentral.CentralRuntimeOptions);
 
                     if (container == null)

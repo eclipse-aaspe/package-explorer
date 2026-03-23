@@ -71,6 +71,96 @@ namespace AasxPackageExplorer
                     this.ButtonsPanel.Children.Add(b);
                 }
             }
+
+            // special case: select files
+            if (DiaData.SelectFiles)
+            {
+                this.ButtonsPanel.Children.Clear();
+
+                // b1 = Plus
+                var b1 = new Button()
+                {
+                    Content = " + ",
+                    Foreground = Brushes.White,
+                    FontSize = 18,
+                    FontWeight = FontWeights.Bold,
+                    Padding = new Thickness(4),
+                    Margin = new Thickness(4)
+                };
+                b1.SetResourceReference(Control.StyleProperty, "TranspRoundCorner");
+                DockPanel.SetDock(b1, Dock.Left);
+                this.ButtonsPanel.Children.Add(b1);
+
+                // b2 = Minus
+                var b2 = new Button()
+                {
+                    Content = " \u2212 ",
+                    Foreground = Brushes.White,
+                    FontSize = 18,
+                    FontWeight = FontWeights.Bold,
+                    Padding = new Thickness(4),
+                    Margin = new Thickness(4)
+                };
+                b2.SetResourceReference(Control.StyleProperty, "TranspRoundCorner");
+                DockPanel.SetDock(b2, Dock.Left);
+                this.ButtonsPanel.Children.Add(b2);
+
+                // b3 = OK
+                var b3 = new Button()
+                {
+                    Content = "OK",
+                    Foreground = Brushes.White,
+                    FontSize = 18,
+                    Padding = new Thickness(4),
+                    Margin = new Thickness(4)
+                };
+                b3.SetResourceReference(Control.StyleProperty, "TranspRoundCorner");
+                b3.Click += ButtonSelect_Click;
+                this.ButtonsPanel.Children.Add(b3);
+
+                // add actions
+                b1.Click += (s1, e1) =>
+                {
+                    var dlg = new Microsoft.Win32.OpenFileDialog();
+                    dlg.CheckFileExists = true;
+                    dlg.Multiselect = true;
+                    if (dlg.ShowDialog() ?? false && dlg.FileNames != null)
+                        foreach (var fn in dlg.FileNames)
+                        {
+                            var fi = new AnyUiDialogueListItem() { Text = fn, Tag = fn };
+                            DiaData.ListOfItems.Add(fi);
+                            ListBoxPresets.Items.Add("" + fi.Text);
+                        }
+                };
+
+                b2.Click += (s2, e2) =>
+                {
+                    var i = ListBoxPresets.SelectedIndex;
+                    if (i >= 0 && i < DiaData.ListOfItems.Count)
+                    {
+                        DiaData.ListOfItems.RemoveAt(i);
+                        ListBoxPresets.Items.RemoveAt(i);
+                    }
+                };
+
+                // allow drop
+                ListBoxPresets.AllowDrop = true;
+                ListBoxPresets.Drop += (s4, e4) =>
+                {
+                    if (e4.Data.GetDataPresent(DataFormats.FileDrop))
+                    {
+                        string[] files = (string[])e4.Data.GetData(DataFormats.FileDrop);
+                        foreach (var fn in files)
+                        {
+                            var fi = new AnyUiDialogueListItem() { Text = fn, Tag = fn };
+                            DiaData.ListOfItems.Add(fi);
+                            ListBoxPresets.Items.Add("" + fi.Text);
+                        }
+                    }
+
+                    e4.Handled = true;
+                };
+            }
         }
 
         //
@@ -96,6 +186,14 @@ namespace AasxPackageExplorer
 
         private bool PrepareResult()
         {
+            // special case: file list
+            if (DiaData.SelectFiles)
+            {
+                DiaData.Result = true;
+                return true;
+            }
+
+            // normal case
             var i = ListBoxPresets.SelectedIndex;
             if (DiaData.ListOfItems != null && i >= 0 && i < DiaData.ListOfItems.Count)
             {

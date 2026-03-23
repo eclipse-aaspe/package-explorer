@@ -58,7 +58,9 @@
             <Label Grid.Row="1" Grid.Column="0" x:Name="LabelInfo" Margin="4" Foreground="White" FontSize="18" >123456</Label>
         </Grid>
 
-        <ProgressBar Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" x:Name="TheProgressBar" Height="20" Background="#40404040" Foreground="{DynamicResource DarkAccentColor}" Margin="8,0,8,0"/>
+        <ProgressBar Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" 
+                     x:Name="TheProgressBar" Height="20" 
+                     Background="#40404040" Foreground="{DynamicResource DarkAccentColor}" Margin="8,0,8,0"/>
 
         <Border Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="4" BorderBrush="#606060" BorderThickness="1"/>
 

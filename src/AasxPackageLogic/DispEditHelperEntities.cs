@@ -9,23 +9,20 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AasxIntegrationBase;
 using AasxIntegrationBase.AdminShellEvents;
+using AasxPackageExplorer;
 using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using AnyUi;
 using Extensions;
 using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
-using System.Runtime.Intrinsics.X86;
 using System.Text;
-using System.Windows.Documents;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
-using Aas = AasCore.Aas3_0;
-using AasCore.Samm2_2_0;
-using static AasxPackageLogic.DispEditHelperBasics;
-using System.Windows.Controls;
+using System.Threading.Tasks;
+using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic
 {
@@ -405,7 +402,9 @@ namespace AasxPackageLogic
                 //    editMode: editMode, repo: repo, stack: substack, hintMode: hintMode);
                 // dead-csharp on
                 DisplayOrEditEntityFileResource(
-                    substack, aas, repo, superMenu,
+                    substack, 
+                    packages.Main,
+                    aas, repo, superMenu,
                     asset.DefaultThumbnail.Path, asset.DefaultThumbnail.ContentType,
                     (fn, ct) =>
                     {
@@ -427,7 +426,8 @@ namespace AasxPackageLogic
             PackageCentral.PackageCentral packages, Aas.IEnvironment env,
             VisualElementEnvironmentItem ve, bool editMode, AnyUiStackPanel stack,
             bool hintMode = false,
-            AasxMenu superMenu = null)
+            AasxMenu superMenu = null,
+            IMainWindow mainWindow = null)
         {
             this.AddGroup(stack, "Environment of AssetInformation Administration Shells", this.levelColors.MainSection);
             if (env == null)
@@ -687,7 +687,12 @@ namespace AasxPackageLogic
                                                         var tmpFile =
                                                             rve.thePackage.MakePackageFileAvailableAsTempFile(fn);
                                                         var targetDir = System.IO.Path.GetDirectoryName(fn);
+
+                                                        // target dir must not contain backslashes (!)
                                                         var targetFn = System.IO.Path.GetFileName(fn);
+                                                        targetDir = targetDir.Replace("\\", "/");
+
+                                                        // add
                                                         packages.Main.AddSupplementaryFileToStore(
                                                             tmpFile, targetDir, targetFn, false);
                                                     }
@@ -939,18 +944,24 @@ namespace AasxPackageLogic
                                 var success = false;
                                 if (ve.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.IdShort)
                                 {
-                                    env.ConceptDescriptions.Sort(new ComparerIdShort());
+                                    var x = env.ConceptDescriptions.ToList();
+                                    x.Sort(new ComparerIdShort());
+                                    env.ConceptDescriptions = x;
                                     success = true;
                                 }
                                 if (ve.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.Id)
                                 {
-                                    env.ConceptDescriptions.Sort(new ComparerIdentification());
+                                    var x = env.ConceptDescriptions.ToList();
+                                    x.Sort(new ComparerIdentification());
+                                    env.ConceptDescriptions = x;
                                     success = true;
                                 }
                                 if (ve.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySubmodel)
                                 {
                                     var cmp = env.CreateIndexedComparerCdsForSmUsage();
-                                    env.ConceptDescriptions.Sort(cmp);
+                                    var x = env.ConceptDescriptions.ToList();
+                                    x.Sort(cmp);
+                                    env.ConceptDescriptions = x;
                                     success = true;
                                 }
 
@@ -1113,6 +1124,114 @@ namespace AasxPackageLogic
                     });
                 stack.Children.Add(g);
             }
+            else if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext
+                || ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev)
+            {
+                // check all pre-requisites
+                if (!(context is AnyUiContextPlusDialogs plusDialogs
+                     && ve.thePackage is AdminShellPackageDynamicFetchEnv dynPack
+                     && dynPack.GetContext() is PackageContainerHttpRepoSubsetFetchContext fetchContext
+                     && fetchContext.Record != null
+                     && mainWindow != null))
+                {
+                    AddHintBubble(stack, hintMode, new HintCheck(
+                        () => true,
+                            "Not enough data to provide dynamic fetch operations.",
+                            severityLevel: HintCheck.Severity.High));
+                    return;
+                }
+
+                // at the beginning already
+                if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev
+                    && fetchContext.Record.PageOffset == 0)
+                {
+                    AddHintBubble(stack, hintMode, new HintCheck(
+                        () => true,
+                            "No further fetch operation available " +
+                            "(at the beginning of the selected subset of elements?).",
+                            severityLevel: HintCheck.Severity.Notice));
+                    return;
+                }
+
+                // at the end?
+                if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext
+                    && fetchContext.Cursor?.HasContent() != true)
+                {
+                    AddHintBubble(stack, hintMode, new HintCheck(
+                        () => true,
+                            "No further fetch operation available " +
+                            "(at the end of the selected subset of elements?).",
+                            severityLevel: HintCheck.Severity.Notice));
+                    return;
+                }
+
+                // go ahead
+                if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev)
+                    AddHintBubble(stack, hintMode, new[] {
+                        new HintCheck(
+                            () => true,
+                                "The entities in this structure were fetched dynamically from " +
+                                "endpoints such as registries and repositories. This fetch could " +
+                                "be modified to load elements prior to the displayed set of elements. ",
+                                severityLevel: HintCheck.Severity.Notice),
+                        new HintCheck(
+                            () => true,                                
+                                "Note: This operation causes many elements to be reloaded and skipped, " +
+                                "therefore might be a long-lasting operation.",
+                                severityLevel: HintCheck.Severity.Notice) 
+                    });
+
+                if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext)
+                    AddHintBubble(stack, hintMode, new HintCheck(
+                            () => true,
+                                "The entities in this structure were fetched dynamically from " +
+                                "endpoints such as registries and repositories. This fetch could " +
+                                "be advanced to the next set of elements.",
+                                severityLevel: HintCheck.Severity.Notice));
+
+                if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchPrev)
+                    AddActionPanel(stack, "Actions:",
+                        repo: repo,
+                        superMenu: superMenu,
+                        ticketMenu: new AasxMenu()
+                            .AddAction("fetch-prev", "Fetch prev",
+                                "Fetch the previous set of elements."),
+                        ticketActionAsync: async (buttonNdx, ticket) =>
+                        {
+                            var res = await ExecuteUiForFetchOfElements(
+                                packages, context, ticket, mainWindow, fetchContext,
+                                preserveEditMode: true,
+                                doEditNewRecord: false,
+                                doCheckTainted: true,
+                                doFetchGoPrev: true,
+                                doFetchExec: true);
+
+                            // success will trigger redraw independently, therefore always return none
+                            return new AnyUiLambdaActionNone();
+                        });
+
+
+                if (ve.theItemType == VisualElementEnvironmentItem.ItemType.FetchNext)
+                    AddActionPanel(stack, "Actions:",
+                        repo: repo,
+                        superMenu: superMenu,
+                        ticketMenu: new AasxMenu()
+                            .AddAction("fetch-next", "Fetch next",
+                                "Fetch the next set of elements."),
+                        ticketActionAsync: async (buttonNdx, ticket) =>
+                        {
+                            var res = await ExecuteUiForFetchOfElements(
+                                packages, context, ticket, mainWindow, fetchContext,
+                                preserveEditMode: true,
+                                doEditNewRecord: false,
+                                doCheckTainted: true,
+                                doFetchGoNext: true,
+                                doFetchExec: true);
+
+                            // success will trigger redraw independently, therefore always return none
+                            return new AnyUiLambdaActionNone();
+                        });
+            }
             else
             {
                 // Default
@@ -1138,16 +1257,131 @@ namespace AasxPackageLogic
                 // overview information
 
                 var g = this.AddSmallGrid(
-                    6, 1, new[] { "*" }, margin: new AnyUiThickness(5, 5, 0, 0));
+                            6, 1, new[] { "*" }, margin: new AnyUiThickness(5, 5, 0, 0));
                 this.AddSmallLabelTo(
-                    g, 0, 0, content: "This structure hold the main entites of Administration shells.");
+                    g, 0, 0, content: "This structure holds the main entities of Administration shells.");
                 this.AddSmallLabelTo(
-                    g, 1, 0, content: String.Format("#admin shells: {0}.", env.AssetAdministrationShellCount()),
+                    g, 1, 0, content: String.Format("#AssetAdministrationShells: {0}.", env.AssetAdministrationShellCount()),
                     margin: new AnyUiThickness(0, 5, 0, 0));
-                this.AddSmallLabelTo(g, 3, 0, content: String.Format("#submodels: {0}.", env.SubmodelCount()));
+                this.AddSmallLabelTo(g, 3, 0, content: String.Format("#Submodels: {0}.", env.SubmodelCount()));
                 this.AddSmallLabelTo(
-                    g, 4, 0, content: String.Format("#concept descriptions: {0}.", env.ConceptDescriptionCount()));
+                    g, 4, 0, content: String.Format("#ConceptDescriptions: {0}.", env.ConceptDescriptionCount()));
                 stack.Children.Add(g);
+
+                // dynamic fetched
+                if (ve.thePackage is AdminShellPackageDynamicFetchEnv dynPack
+                    && mainWindow != null)
+                {
+                    AddHintBubble(stack, hintMode, new HintCheck(
+                        () => true,
+                            "The entities in this structure were fetched dynamically from " +
+                            "endpoints such as registries and repositories.", 
+                            severityLevel: HintCheck.Severity.Notice));
+
+                    this.AddGroup(stack, "Dynamic fetch environment", this.levelColors.SubSection);
+
+                    // more infos?
+                    if (dynPack.GetContext() is PackageContainerHttpRepoSubsetFetchContext fetchContext
+                        && fetchContext.Record != null)
+                    {
+                        var record = fetchContext.Record;
+
+                        AddKeyValue(stack, key: "BaseType", repo: null,
+                            value: record.GetBaseTypStr().ToUpper());
+
+                        AddKeyValue(stack, key: "BaseAddress", repo: null,
+                            value: record.BaseAddress);
+
+                        AddKeyValue(stack, key: "Operation", repo: null,
+                            value: record.GetFetchOperationStr());
+
+                        if (record.GetAllAas || record.GetAllSubmodel || record.GetAllCD)
+                        {
+                            AddKeyValue(stack, key: "Page limit", repo: null,
+                                value: "" + record.PageLimit);
+
+                            AddKeyValue(stack, key: "Page skip", repo: null,
+                                value: "" + record.PageSkip);
+
+                            AddKeyValue(stack, key: "Page offset", repo: null,
+                                value: "" + record.PageOffset + " (counted)");
+                        }
+                    }
+
+                    AddActionPanel(stack, "Actions:",
+                        repo: repo,
+                        superMenu: superMenu,
+                        ticketMenu: new AasxMenu()
+                            .AddAction("refine-fetch", "Refine fetch ..",
+                                "Refine the fetch parameters which led to this dynamic set of elements."),
+                        ticketActionAsync: async (buttonNdx, ticket) =>
+                        {
+                            if (buttonNdx == 0
+                                && context is AnyUiContextPlusDialogs plusDialogs)
+                            {
+                                // default, but better: used record
+                                var record = (((ve.thePackage as AdminShellPackageDynamicFetchEnv)?.GetContext()
+                                              as PackageContainerHttpRepoSubsetFetchContext)?.Record
+                                              as ConnectExtendedRecord)
+                                             ?? new PackageContainerHttpRepoSubset.ConnectExtendedRecord();
+
+                                // ok, prepare new fetch context (no continuiation)
+                                var fetchContext = new PackageContainerHttpRepoSubsetFetchContext()
+                                {
+                                    Record = record
+                                };
+
+                                // refer to (static) function
+                                var res = await ExecuteUiForFetchOfElements(
+                                    packages, context, ticket, mainWindow, fetchContext,
+                                    preserveEditMode: true,
+                                    doEditNewRecord: true,
+                                    doCheckTainted: true,
+                                    doFetchGoNext: false,
+                                    doFetchExec: true);
+
+                                // success will trigger redraw independently, therefore always return none
+                                return new AnyUiLambdaActionNone();
+
+                                //var location = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                                //if (location == null)
+                                //{
+                                //    MainWindowLogic.LogErrorToTicketStatic(ticket, 
+                                //        new InvalidDataException(),
+                                //        "Error building location from query selection. Aborting.");
+                                //    return new AnyUiLambdaActionNone();
+                                //}
+
+                                //// more details into container options
+                                //var containerOptions = new PackageContainerHttpRepoSubset.
+                                //    PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
+                                //    record);
+
+                                //// load
+                                //Log.Singleton.Info($"For refining extended connect, loading " +
+                                //    $"from {location} into container");
+
+                                //var container = await PackageContainerFactory.GuessAndCreateForAsync(
+                                //    packages,
+                                //    location,
+                                //    location,
+                                //    overrideLoadResident: true,
+                                //    containerOptions: containerOptions,
+                                //    runtimeOptions: packages.CentralRuntimeOptions);
+
+                                //if (container == null)
+                                //    Log.Singleton.Error($"Failed to load from {location}");
+                                //else
+                                //    mainWindow.UiLoadPackageWithNew(packages.MainItem,
+                                //        takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
+                                //        storeFnToLRU: location,
+                                //        nextEditMode: editMode);
+
+                                //Log.Singleton.Info($"Successfully loaded {location}");
+                            }
+                            return new AnyUiLambdaActionNone();
+                        });
+                }
             }
         }
 
@@ -1224,12 +1458,165 @@ namespace AasxPackageLogic
 
         //
         //
+        // --- Dynamic fetch of elements
+        //
+        //
+
+        /// <summary>
+        /// Fetch helper. Different <c>do...</c> flags are to be set!
+        /// </summary>
+        /// <returns><c>True</c>, when a new fetch has been executed successfully</returns>
+        public static async Task<bool> ExecuteUiForFetchOfElements(
+            PackageCentral.PackageCentral packages,
+            AnyUiContextBase displayContext,
+            AasxMenuActionTicket ticket,
+            IMainWindow mainWindow,
+            PackageContainerHttpRepoSubsetFetchContext fetchContext,
+            HttpHeaderData additionalHeaderData = null,
+            bool preserveEditMode = true,
+            bool doCheckTainted = false,
+            bool doEditNewRecord = false,
+            bool doFetchGoPrev = false,
+            bool doFetchGoNext = false,
+            bool doFakeGoNext = false,
+            bool doFetchExec = false)
+        {
+            await Task.Yield();
+
+            // fetchContext is required!!
+            if (fetchContext == null)
+                return false;
+
+            if (doCheckTainted)
+            {
+                // check if something is tainted
+                if (mainWindow?.CheckIsAnyTaintedIdentifiableInMain() == true)
+                {
+                    if (AnyUiMessageBoxResult.Yes != displayContext.MessageBoxFlyoutShow(
+                        "There are unsafed data changes in Identifiables. A fetch of elements " +
+                        "might result in data loss.",
+                        "Proceed with fetch?",
+                        AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                        return false;
+                }
+            }
+
+            if (doEditNewRecord)
+            {
+                var record = fetchContext.Record ?? new PackageContainerHttpRepoSubset.ConnectExtendedRecord();
+
+                var uiRes = await PackageContainerHttpRepoSubset.PerformConnectExtendedDialogue(
+                    ticket, displayContext,
+                    "Connect AAS repositories and registries",
+                    record);
+
+                if (!uiRes)
+                    return false;
+
+                // modify fetch context to be "fresh"
+                fetchContext.Cursor = null;
+                fetchContext.Record = record;
+            }
+
+            if (doFetchGoPrev)
+            {
+                // provide no cursor, therefore fetch from very beginning, skip elements
+                fetchContext.Cursor = null;
+                fetchContext.Record.PageSkip = Math.Max(0, fetchContext.Record.PageOffset - fetchContext.Record.PageLimit);
+                fetchContext.Record.PageOffset -= fetchContext.Record.PageLimit;
+                fetchContext.Record.PageOffset = Math.Max(0, fetchContext.Record.PageOffset);
+            }
+
+            if (doFetchGoNext)
+            {
+                // modify (!) record data to do no skip anymore, using cursor data
+                fetchContext.Record.PageOffset += (fetchContext.Record.PageLimit + fetchContext.Record.PageSkip);
+                fetchContext.Record.PageOffset = Math.Max(0, fetchContext.Record.PageOffset);
+                fetchContext.Record.PageSkip = 0;
+            }
+
+            if (doFakeGoNext)
+            {
+                // provide no cursor, therefore fetch from very beginning, skip elements
+                fetchContext.Cursor = null;
+                fetchContext.Record.PageSkip = Math.Max(0, fetchContext.Record.PageOffset + fetchContext.Record.PageLimit);
+                fetchContext.Record.PageOffset += fetchContext.Record.PageLimit;
+                fetchContext.Record.PageOffset = Math.Max(0, fetchContext.Record.PageOffset);
+            }
+
+            if (doFetchExec)
+            {
+                // build location
+                var location = PackageContainerHttpRepoSubset.BuildLocationFrom(
+                    fetchContext.Record, fetchContext.Cursor);
+
+                if (location == null)
+                {
+                    MainWindowLogic.LogErrorToTicketStatic(ticket,
+                        new InvalidDataException(),
+                        "Error building location from fetch selection. Aborting.");
+                    return false;
+                }
+
+                // more details into container options
+                var containerOptions = new PackageContainerHttpRepoSubset.
+                    PackageContainerHttpRepoSubsetOptions(PackageContainerOptionsBase.CreateDefault(Options.Curr),
+                    fetchContext.Record);
+
+                containerOptions.BaseUris = location.BaseUris;
+
+                // load
+                Log.Singleton.Info($"For refining extended connect, loading " +
+                    $"from {location} into container");
+
+                packages.CentralRuntimeOptions.CancellationTokenSource = new System.Threading.CancellationTokenSource();
+
+                var runtimeOptions = packages.CentralRuntimeOptions;
+                runtimeOptions.HttpHeaderData = fetchContext.Record.HeaderData;
+                if (additionalHeaderData != null)
+                    runtimeOptions.HttpHeaderData = HttpHeaderData.Merge(runtimeOptions.HttpHeaderData, additionalHeaderData);
+
+                var container = await PackageContainerFactory.GuessAndCreateForAsync(
+                    packages,
+                    location.Location.ToString(),
+                    location.Location.ToString(),
+                    overrideLoadResident: true,
+                    autoAuthenticate: fetchContext.Record?.AutoAuthenticate == true,
+                    containerOptions: containerOptions,
+                    runtimeOptions: runtimeOptions);
+
+                if (container == null)
+                {
+                    Log.Singleton.Error($"Failed to load from {location.Location}.");
+                    return false;
+                }
+
+                // display
+                mainWindow.UiLoadPackageWithNew(packages.MainItem,
+                    takeOverContainer: container, onlyAuxiliary: false, indexItems: true,
+                    storeFnToLRU: location.Location.ToString(),
+                    preserveEditMode: preserveEditMode,
+                    autoFocusFirstRelevant: true);
+
+                Log.Singleton.Info($"Successfully processed retrieval attempt of {location.Location}");
+
+                // okay
+                return true;
+            }
+            
+            return false;
+        }
+
+        //
+        //
         // --- AAS
         //
         //
 
         public void DisplayOrEditAasEntityAas(
-            PackageCentral.PackageCentral packages, Aas.IEnvironment env,
+            PackageCentral.PackageCentral packages, 
+            AdminShellPackageEnvBase package,
+            Aas.IEnvironment env,
             Aas.IAssetAdministrationShell aas,
             bool editMode, AnyUiStackPanel stack, bool hintMode = false,
             AasxMenu superMenu = null)
@@ -1237,6 +1624,11 @@ namespace AasxPackageLogic
             this.AddGroup(stack, "AssetAdministrationShell (according IEC63278)", this.levelColors.MainSection);
             if (aas == null)
                 return;
+
+            // check, if Submodel is sitting in Repo
+            var sideInfo = OnDemandListIdentifiable<Aas.IAssetAdministrationShell>
+                    .FindSideInfoInListOfIdentifiables(
+                        env.AssetAdministrationShells, aas.GetReference());
 
             // Entities
             if (editMode)
@@ -1246,14 +1638,181 @@ namespace AasxPackageLogic
                 //
 
                 // main group
-                this.AddGroup(stack, "Editing of entities", this.levelColors.MainSection);
+                this.AddGroup(stack, "Editing of entities", this.levelColors.SubSection);
+
+                // the event template will help speed up visual updates of the tree
+                var evTemplate = new PackCntChangeEventData()
+                {
+                    Container = packages?.GetAllContainer((cnr) => cnr?.Env?.AasEnv == env).FirstOrDefault(),
+                    ThisElem = aas,
+                    ParentElem = env
+                };
 
                 // Up/ down/ del
                 this.EntityListUpDownDeleteHelper<Aas.IAssetAdministrationShell>(
                     stack, repo, 
                     env.AssetAdministrationShells, (lst) => { env.AssetAdministrationShells = lst; },
                     aas, env, "AAS:",
-                    superMenu: superMenu);
+                    superMenu: superMenu,
+                    extraMenu: new AasxMenu()
+                        .AddAction("finalize-aas", "Finalize AAS",
+                            "Check and auto-correct AAS to be uploaded into Repository."),
+                    moveDoesNotModify: true,
+                    sendUpdateEvent: evTemplate,
+                    postActionHookAsync: async (actionName, ticket) =>
+                    {
+                        await Task.Yield();
+
+                        if (actionName == "aas-elem-delete")
+                        {
+                            // be a bit informy
+                            Log.Singleton.Info($"Deleted AAS {aas.IdShort} from local Environment.");
+                            
+                            // simply prepare some Keys!
+                            var idfKeys = (new Aas.IKey[] {
+                                new Aas.Key(KeyTypes.AssetAdministrationShell, "" + aas.Id) }).ToList();
+                            foreach (var smr in aas.Submodels.ForEachSafe())
+                                if (smr?.IsValid() == true)
+                                    idfKeys.Add(new Aas.Key(KeyTypes.Submodel, smr.Keys.First().Value));
+
+                            // check if to delete Submodels in local Environment?
+                            var delInLocal = AnyUiMessageBoxResult.Yes == await this.context.MessageBoxFlyoutShowAsync(
+                                    "Delete Submodels in local Environment as well? " +
+                                    "This operation can not be reverted!",
+                                    "Delete Submodels in local Environment?",
+                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning);
+                            if (delInLocal)
+                            {
+                                foreach (var ik in idfKeys)
+                                    if (ik.Type == KeyTypes.Submodel)
+                                    {
+                                        var sm = env?.FindSubmodelById(ik.Value);
+                                        if (sm != null)
+                                        {
+                                            env.Remove(sm);
+                                            Log.Singleton.Info($"Deleted Submodel {sm.IdShort} from local Environment.");
+                                        }
+                                    }
+                            }
+
+                            // delete in repo as well?
+                            var delInRepo = sideInfo?.Id?.HasContent() == true
+                                    && sideInfo.StubLevel >= AasIdentifiableSideInfoLevel.IdOnly;
+
+                            if (delInRepo)
+                            {
+                                if (AnyUiMessageBoxResult.Yes != await this.context.MessageBoxFlyoutShowAsync(
+                                        "Delete AAS in Repository as well? " +
+                                        "This operation can not be reverted!",
+                                        "Delete in Repository?",
+                                        AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                    delInRepo = false;
+                            }
+
+                            // delete in repo?
+                            if (delInRepo)
+                            {
+                                // call function
+                                // (only the side info in the _specific_ endpoint gives information, in which
+                                //  repo the CDs could be deleted)
+                                await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
+                                    null, context,
+                                    "Delete AAS and Submodels in Repository/ Registry",
+                                    "AAS and Submodel",
+                                    idfKeys,
+                                    runtimeOptions: packages.CentralRuntimeOptions,
+                                    presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                                    {
+                                        // assume Repo ?!
+                                        BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                        // extract base address
+                                        BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                            sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
+                                    });
+                            }
+
+                            // manually redraw
+                            this.appEventsProvider?.PushApplicationEvent(new AasxPluginResultEventRedrawAllElements());
+                        }
+                    },
+                    lambdaExtraMenuAsync: async (buttonNdx) =>
+                    {
+                        await Task.Yield();
+                        if (buttonNdx == 0)
+                        {
+                            // get a list
+                            var idfs = env?.FindAllReferencedIdentifiablesForAas(aas);
+                            if (idfs == null || idfs.Count() < 1)
+                            {
+                                Log.Singleton.Error("When finalizing AAS, no Identifiables could be found! Aborting!");
+                            }
+                            Log.Singleton.Info($"Finalize AAS {aas.IdShort}: Processing {idfs.Count()} Identifiables.");
+
+                            if (AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                                "This operation reworks the contents of the dependent Identifiables to be " +
+                                "compliant to the AAS specification. Some data might get lost! " +
+                                "Do you want to proceed?",
+                                "Finalize Identifiables",
+                                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                return new AnyUiLambdaActionNone();
+
+                            // safe
+                            try
+                            {
+                                var visitor = new AasxFixListVisitor();
+                                int naas = 0, nsm = 0, ncd = 0;
+
+                                foreach (var idf in idfs)
+                                {
+                                    // Not able to do a generic lambda, therefore multiply here ..
+                                    if (idf is Aas.IAssetAdministrationShell aas)
+                                    {
+                                        var eiaas = env.AssetAdministrationShells as OnDemandListIdentifiable<Aas.IAssetAdministrationShell>;
+                                        var ndx = eiaas?.TestIndexOf(aas);
+                                        if (eiaas == null || ndx.Value < 0)
+                                            continue;
+                                        var newaas = (Aas.AssetAdministrationShell)visitor.Transform(aas);
+                                        eiaas.Update(ndx.Value, newaas);
+                                        naas++;
+                                        idf.SetTainted(true);
+                                    }
+
+                                    if (idf is Aas.ISubmodel sm)
+                                    {
+                                        var eism = env.Submodels as OnDemandListIdentifiable<Aas.ISubmodel>;
+                                        var ndx = eism?.TestIndexOf(sm);
+                                        if (eism == null || ndx.Value < 0)
+                                            continue;
+                                        var newsm = (Aas.Submodel)visitor.Transform(sm);
+                                        eism.Update(ndx.Value, newsm);
+                                        nsm++;
+                                        idf.SetTainted(true);
+                                    }
+
+                                    if (idf is Aas.IConceptDescription cd)
+                                    {
+                                        var eicd = env.ConceptDescriptions as OnDemandListIdentifiable<Aas.IConceptDescription>;
+                                        var ndx = eicd?.TestIndexOf(cd);
+                                        if (eicd == null || ndx.Value < 0)
+                                            continue;
+                                        var newcd = (Aas.ConceptDescription)visitor.Transform(cd);
+                                        eicd.Update(ndx.Value, newcd);
+                                        ncd++;
+                                        idf.SetTainted(true);
+                                    }
+                                }
+
+                                Log.Singleton.Info($"Finalized: {naas} AAS, {nsm} Submodels, {ncd} CDs.");
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Singleton.Error(ex, $"when finalizing AAS {aas.IdShort}!");
+                            }
+                        }
+
+                        return new AnyUiLambdaActionNone();
+                    });
 
                 // Cut, copy, paste within list of AASes
                 this.DispPlainIdentifiableCutCopyPasteHelper<Aas.IAssetAdministrationShell>(
@@ -1490,8 +2049,59 @@ namespace AasxPackageLogic
                         }
 
                         return new AnyUiLambdaActionNone();
-                    });                
+                    });   
+                
+                // on demand loading?
+                if (package is AdminShellPackageDynamicFetchEnv dynPack)
+                {
+                    this.AddActionPanel(
+                    stack, "Load missing stubs:",
+                    repo: repo,
+                    superMenu: superMenu,
+                    ticketMenu: new AasxMenu()
+                        .AddAction("stub-load-submodels", "Submodels",
+                            "Load missing Submodels only for this AAS.")
+                        .AddAction("stub-load-concepts", "ConceptDescriptions",
+                            "Load missing ConceptDescriptions only for this AAS.")
+                        .AddAction("stub-load-thumbnail", "Thumbnail",
+                            "Load missing Thumbnail only for this AAS."),
+                    ticketActionAsync: async (buttonNdx, ticket) =>
+                    {
+                        if (buttonNdx >= 0 && buttonNdx <= 1)
+                        {
+
+                            List<LocatedReference> lrs = null;
+
+                            if (buttonNdx == 0)
+                                lrs = aas?.FindAllSubmodelReferences().ToList();
+
+                            if (buttonNdx == 1)
+                                lrs = env.FindAllSemanticIdsForAas(aas).ToList();
+
+                            if (lrs != null)
+                            {
+                                var ids = lrs.Select((lr) => (lr?.Reference?.IsValid() == true) ? lr.Reference.Keys[0].Value : null).ToList();
+                                var fetched = await dynPack.TryFetchSpecificIds(ids,
+                                        useParallel: Options.Curr.MaxParallelReadOps > 1);
+                                if (fetched)
+                                    return new AnyUiLambdaActionRedrawAllElements(nextFocus: aas);
+                            }
+                        }
+
+                        if (buttonNdx == 2)
+                        {
+                            var fetched = await dynPack.TryFetchThumbnail(aas);
+                            if (fetched)
+                                return new AnyUiLambdaActionRedrawAllElements(nextFocus: aas);
+                        }
+
+                        return new AnyUiLambdaActionNone();
+                    });
+                }
             }
+
+            // info about sideInfo
+            DisplayOrEditEntitySideInfo(env, stack, aas, sideInfo, "AAS", superMenu);
 
             // Referable
             this.DisplayOrEditEntityReferable(
@@ -1501,9 +2111,108 @@ namespace AasxPackageLogic
 
             // Identifiable
             this.DisplayOrEditEntityIdentifiable(
-                stack, env, aas,
+                stack, package, env, aas,
                 Options.Curr.TemplateIdAas,
-                null);
+                injectToId: new DispEditHelperModules.DispEditInjectAction(
+                    new[] { "Rename" },
+                    auxLambda: null,
+                    auxLambdaAsync: async (i) =>
+                    {
+                        if (i == 0 && env != null)
+                        {
+                            var uc = new AnyUiDialogueDataTextBox(
+                                "New ID:",
+                                symbol: AnyUiMessageBoxImage.Question,
+                                maxWidth: 1400,
+                                text: aas.Id);
+                            if (await this.context.StartFlyoverModalAsync(uc)
+                                && uc.Text?.HasContent() == true)
+                            {
+                                var oldId = aas.Id;
+                                var newId = uc.Text.Trim();
+                                var res = false;
+
+                                try
+                                {
+                                    // check, if Submodel is sitting in Repo
+                                    var sideInfo = OnDemandListIdentifiable<Aas.IAssetAdministrationShell>
+                                            .FindSideInfoInListOfIdentifiables(
+                                                env.AssetAdministrationShells, aas.GetReference());
+                                    if (sideInfo != null)
+                                    {
+                                        // in any case, update Id
+                                        sideInfo.Id = newId;
+
+                                        // ask user for repo operation
+                                        if (AnyUiMessageBoxResult.Yes == await this.context.MessageBoxFlyoutShowAsync(
+                                                "Rename AAS in Repository as well? This operation can not be reverted!",
+                                                "Rename Identifiable",
+                                                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                        {
+
+                                            // rename in repo
+                                            // (only the side info in the _specific_ endpoint gives information, in
+                                            // which repo the Indentifiables could be deleted)
+                                            var newEndpoint = await PackageContainerHttpRepoSubset
+                                                .AssistantRenameIdfsInRepo<Aas.IAssetAdministrationShell>(
+                                                baseUri: PackageContainerHttpRepoSubset.GetBaseUri(
+                                                    sideInfo.DesignatedEndpoint?.AbsoluteUri),
+                                                oldId: oldId,
+                                                newId: newId,
+                                                runtimeOptions: packages.CentralRuntimeOptions,
+                                                moreLog: true);
+
+                                            Log.Singleton.Info("Rename in repo performed successfully.");
+
+                                            // adopt in side info
+                                            sideInfo.QueriedEndpoint = newEndpoint;
+                                            sideInfo.DesignatedEndpoint = newEndpoint;
+                                        }
+                                    }
+
+                                    // rename
+                                    var lrf = env.RenameIdentifiable<Aas.AssetAdministrationShell>(
+                                        oldId, newId);
+
+                                    Log.Singleton.Info("Rename in ram-based environment performed successfully.");
+
+                                    // rename in environment helper structures?
+                                    if (package is AdminShellPackageDynamicFetchEnv dynPack)
+                                    {
+                                        // rename in dynamic fetch environment
+                                        dynPack.RenameThumbnailData(oldId, newId);
+                                        Log.Singleton.Info("Rename of thumbnail in dynamic fetch environment performed successfully.");
+                                    }
+
+                                    // use this information to emit events
+                                    if (lrf != null)
+                                    {
+                                        res = true;
+                                        foreach (var rf in lrf)
+                                        {
+                                            var rfi = rf.FindParentFirstIdentifiable();
+                                            if (rfi != null)
+                                                this.AddDiaryEntry(rfi, new DiaryEntryStructChange());
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    AdminShellNS.LogInternally.That.SilentlyIgnoredError(ex);
+                                }
+
+                                if (!res)
+                                    this.context.MessageBoxFlyoutShow(
+                                        "The renaming of the AAS or some referring elements has not " +
+                                            "performed successfully! Please review your inputs and the AAS " +
+                                            "structure for any inconsistencies.",
+                                            "Warning",
+                                            AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Warning);
+                                return new AnyUiLambdaActionRedrawAllElements(aas);
+                            }
+                        }
+                        return new AnyUiLambdaActionNone();
+                    }));
 
             // hasDataSpecification are MULTIPLE references. That is: multiple x multiple keys!
             this.DisplayOrEditEntityHasDataSpecificationReferences(stack, aas.EmbeddedDataSpecifications,
@@ -1619,11 +2328,13 @@ namespace AasxPackageLogic
         //
 
         public void DisplayOrEditAasEntitySubmodelOrRef(
-            PackageCentral.PackageCentral packages, Aas.IEnvironment env,
+            PackageCentral.PackageCentral packages,
+            AdminShellPackageEnvBase packEnv,
+            Aas.IEnvironment env,
             Aas.IAssetAdministrationShell aas,
             Aas.IReference smref, 
             Action setSmRefNull,
-            Aas.ISubmodel submodel, 
+            Aas.ISubmodel submodel,
             bool editMode,
             AnyUiStackPanel stack, bool hintMode = false, bool checkSmt = false,
 			AasxMenu superMenu = null)
@@ -1631,7 +2342,7 @@ namespace AasxPackageLogic
             // This panel renders first the SubmodelReference and then the Submodel, below
             if (smref != null)
             {
-                this.AddGroup(stack, "SubmodelReference", this.levelColors.MainSection);
+                this.AddGroup(stack, "SubmodelReference of AAS", this.levelColors.MainSection);
 
                 Func<List<Aas.IKey>, AnyUiLambdaActionBase> lambda = (kl) =>
                  {
@@ -1648,10 +2359,19 @@ namespace AasxPackageLogic
                     jumpLambda: lambda, relatedReferable: aas);
             }
 
+            // check, if Submodel is sitting in Repo
+            var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
+                    .FindSideInfoInListOfIdentifiables(
+                        env.Submodels, submodel?.GetReference());
+
             // entities when under AAS (smref)
             if (editMode && smref != null)
             {
-                this.AddGroup(stack, "Editing of entities", this.levelColors.MainSection);
+                this.AddGroup(stack, "Editing of entities (within specific AAS)", this.levelColors.SubSection);
+
+                //
+                // Up/Down Helper for SM References!
+                //
 
                 // the event template will help speed up visual updates of the tree
                 var evTemplate = new PackCntChangeEventData()
@@ -1666,10 +2386,11 @@ namespace AasxPackageLogic
                     aas.Submodels, (lst) => { aas.Submodels = lst; },
                     smref, aas, "Reference:", sendUpdateEvent: evTemplate,
                     explicitParent: aas,
-                    postActionHook: (actionName, ticket) => {
+                    postActionHookAsync: async (actionName, ticket) => {
+                        await Task.Yield();
                         if (actionName == "aas-elem-delete")
                         {
-                            // ask
+                            // ask for complete deletion
                             if (ticket?.ScriptMode != true 
                                 && AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
                                 "Delete selected Submodel for all AAS in the Environment? " +
@@ -1682,6 +2403,46 @@ namespace AasxPackageLogic
                             if (smExist != null)
                                 env.Remove(smExist);
 
+                            // delete in repo as well?
+                            var delInRepo = sideInfo?.Id?.HasContent() == true
+                                    && sideInfo.StubLevel >= AasIdentifiableSideInfoLevel.IdOnly;
+
+                            if (delInRepo)
+                            {
+                                if (AnyUiMessageBoxResult.Yes != await this.context.MessageBoxFlyoutShowAsync(
+                                        "Delete Submodel in Repository as well? " +
+                                        "This operation can not be reverted!",
+                                        "Delete Identifiable",
+                                        AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                    delInRepo = false;
+                            }
+
+                            // delete in repo?
+                            if (delInRepo)
+                            {
+                                // simply prepare one Key!
+                                var smKey = new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, "" + submodel.Id) };
+
+                                // call function
+                                // (only the side info in the _specific_ endpoint gives information, in which
+                                //  repo the CDs could be deleted)
+                                await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
+                                    null, context,
+                                    "Delete Submodel in Repository/ Registry",
+                                    "Submodel",
+                                    smKey,
+                                    runtimeOptions: packages.CentralRuntimeOptions,
+                                    presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                                    {
+                                        // assume Repo ?!
+                                        BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                        // extract base address
+                                        BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                            sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
+                                    });
+                            }
+
                             // manually redraw
                             this.appEventsProvider?.PushApplicationEvent(new AasxPluginResultEventRedrawAllElements());
                         }
@@ -1692,16 +2453,87 @@ namespace AasxPackageLogic
             if (editMode && smref == null && submodel != null)
             {
                 this.AddGroup(
-                    stack, "Editing of entities (environment's Submodel collection)",
+                    stack, "Editing of entities (within environment)",
                     this.levelColors.MainSection);
 
+                //
+                // Up/Down Helper for Submodels themself!
+                //
+
+                // the event template will help speed up visual updates of the tree
+                var evTemplate = new PackCntChangeEventData()
+                {
+                    Container = packages?.GetAllContainer((cnr) => cnr?.Env?.AasEnv == env).FirstOrDefault(),
+                    ThisElem = submodel,
+                    ParentElem = env
+                };
+
+                this.EntityListUpDownDeleteHelper<Aas.ISubmodel>(
+                    stack, repo,
+                    env.Submodels, (lst) => { env.Submodels = lst; },
+                    submodel, alternativeFocus: env, 
+                    "Submodel:", sendUpdateEvent: evTemplate,
+                    explicitParent: aas,
+                    moveDoesNotModify: true,
+                    postActionHookAsync: async (actionName, ticket) => {
+                        await Task.Yield();
+                        if (actionName == "aas-elem-delete")
+                        {
+                            // delete in repo as well?
+                            var delInRepo = sideInfo?.Id?.HasContent() == true
+                                    && sideInfo.StubLevel >= AasIdentifiableSideInfoLevel.IdOnly;
+
+                            if (delInRepo)
+                            {
+                                if (AnyUiMessageBoxResult.Yes != await this.context.MessageBoxFlyoutShowAsync(
+                                        "Delete Submodel in Repository as well? " +
+                                        "This operation can not be reverted!",
+                                        "Delete Identifiable",
+                                        AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                    delInRepo = false;
+                            }
+
+                            // delete in repo?
+                            if (delInRepo)
+                            {
+                                // simply prepare one Key!
+                                var smKey = new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, "" + submodel.Id) };
+
+                                // call function
+                                // (only the side info in the _specific_ endpoint gives information, in which
+                                //  repo the CDs could be deleted)
+                                await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
+                                    null, context,
+                                    "Delete Submodel in Repository/ Registry",
+                                    "Submodel",
+                                    smKey,
+                                    runtimeOptions: packages.CentralRuntimeOptions,
+                                    presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                                    {
+                                        // assume Repo ?!
+                                        BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                        // extract base address
+                                        BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                            sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
+                                    });
+                            }
+
+                            // manually redraw
+                            this.appEventsProvider?.PushApplicationEvent(new AasxPluginResultEventRedrawAllElements());
+                        }
+                    });
+
+#if __old_not_required_anymore
                 AddActionPanel(stack, "Submodel:",
                     repo: repo, superMenu: superMenu,
                     ticketMenu: new AasxMenu()
-                        .AddAction("aas-elem-del", "Delete",
-                            "Deletes the currently selected element.",
-                        inputGesture: "Ctrl+Shift+Delete"),
-                    ticketAction: (buttonNdx, ticket) =>
+                        .AddAction("aas-elem-del", "Delete \U0001f847 here",
+                            "Deletes the currently selected Submodel in the local environment.",
+                            inputGesture: "Ctrl+Shift+Delete")
+                        .AddAction("delete-sm-in-repo", "Delete SM \u274c in Repo",
+                            "Delete Submodel by Id in a given Repository or Registry."),
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
                             if (AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
@@ -1726,8 +2558,51 @@ namespace AasxPackageLogic
                                 return new AnyUiLambdaActionRedrawAllElements(nextFocus: null, isExpanded: null);
                             }
 
+                        if (buttonNdx == 1)
+                        {
+                            // check, if Submodel is sitting in Repo
+                            var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
+                                    .FindSideInfoInListOfIdentifiables(
+                                        env.Submodels, submodel.GetReference());
+
+                            // enough info
+                            if (sideInfo.StubLevel < AasIdentifiableSideInfoLevel.IdOnly
+                                || sideInfo.Id?.HasContent() != true)
+                            {
+                                Log.Singleton.Error("No Id information available for deleting Identifiable in " +
+                                    "Repository or Registry.");
+                                return new AnyUiLambdaActionNone();
+                            }
+
+                            // simply prepare one Key!
+                            var smKey = new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, "" + submodel.Id) };
+                            
+                            // call function
+                            // (only the side info in the _specific_ endpoint gives information, in which
+                            //  repo the CDs could be deleted)
+                            await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
+                                ticket, context,
+                                "Delete Submodel in Repository/ Registry",
+                                "Submodel",
+                                smKey,
+                                runtimeOptions: packages.CentralRuntimeOptions,
+                                presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                                {
+                                    // assume Repo ?!
+                                    BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                    // extract base address
+                                    BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                        sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
+                                });
+
+                            // ok
+                            return new AnyUiLambdaActionNone();
+                        }
+
                         return new AnyUiLambdaActionNone();
                     });
+#endif
             }
 
             // Cut, copy, paste within an aas
@@ -1874,9 +2749,8 @@ namespace AasxPackageLogic
                 });
 
                 this.AddActionPanel(
-                    stack, "ConceptDescriptions (missing):",
+                    stack, "ConceptDescriptions:",
                     repo: repo, superMenu: superMenu,
-                    firstColumnWidth: FirstColumnWidth.Large,
                     ticketMenu: new AasxMenu()
                         .AddAction("create-eclass", "Create \U0001f844 ECLASS",
                             "Create missing CDs searching from ECLASS.")
@@ -1884,8 +2758,11 @@ namespace AasxPackageLogic
                             "Creates an ConceptDescription from this element and " +
                             "assigns the SubmodelElement to it.")
                         .AddAction("create-smes", "Create \U0001f844 SMEs (all)",
-                            "Create missing CDs from semanticId of used SMEs."),
-                    ticketAction: (buttonNdx, ticket) =>
+                            "Create missing CDs from semanticId of used SMEs.")
+                        .AddAction("delete-cd-in-repo", "Delete CD \u274c in Repo",
+                            "Delete ConceptDescriptions which are referenced by semanticId of SubmodelElements " +
+                            "in a given Repository or Registry."),
+                    ticketActionAsync: async (buttonNdx, ticket) =>
                     {
                         if (buttonNdx == 0)
                         {
@@ -1943,20 +2820,68 @@ namespace AasxPackageLogic
                                         submodel, isExpanded: true);
                         }
 
+                        if (buttonNdx == 3)
+                        {
+                            // check, if Submodel is sitting in Repo
+                            var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
+                                    .FindSideInfoInListOfIdentifiables(
+                                        env.Submodels, submodel.GetReference());
+
+                            if (sideInfo == null)
+                            {
+                                Log.Singleton.Error("Not enough information to delete AAS in Repository/ Registry!");
+                                return new AnyUiLambdaActionNone();
+                            }
+
+                            // collect Ids of SubmodelElements.semanticId
+                            var lrs = env?.FindAllSemanticIdsForSubmodel(submodel);
+                            if (lrs == null)
+                                return new AnyUiLambdaActionNone();
+
+                            var cdIds = lrs.Select((lr) => lr?.Reference?.GetAsExactlyOneKey()?.Value);
+                            var cdKeys = cdIds.Select((cdid) => new Aas.Key(KeyTypes.ConceptDescription, cdid)).Cast<Aas.IKey>();
+
+                            // call function
+                            // (only the side info in the _specific_ endpoint gives information, in which
+                            //  repo the CDs could be deleted)
+                            await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
+                                ticket, context,
+                                "Delete CDs in Repository/ Registry",
+                                "ConceptDescription",
+                                cdKeys,
+                                runtimeOptions: packages.CentralRuntimeOptions,
+                                presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                                {
+                                    // assume Repo ?!
+                                    BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                    // extract base address
+                                    BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                        sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
+                                });
+
+                            // ok
+                            return new AnyUiLambdaActionNone();
+                        }
+
                         return new AnyUiLambdaActionNone();
                     });
 
                 this.AddActionPanel(
-                    stack, "Submodel & -elements:",
+                    stack, "Submodel&-elems:",
                     repo: repo, superMenu: superMenu,
-                    firstColumnWidth: FirstColumnWidth.Large,
                     ticketMenu: new AasxMenu()
                         .AddAction("upgrade-qualifiers", "Upgrade qualifiers",
                             "Upgrades particular qualifiers from V2.0 to V3.0 for selected element.")
-						.AddAction("remove-qualifiers", "Remove qualifiers",
+#if __old_approach
+                        .AddAction("remove-qualifiers", "Remove qualifiers",
                             "Removes all qualifiers for selected element.")
                         .AddAction("remove-extensions", "Remove extensions",
                             "Removes all extensions for selected element.")
+#else
+                        .AddAction("remove-attributes", "Remove attributes",
+                            "Removes specific attrributes for each selected element.")
+#endif
                         .AddAction("fix-references", "Fix References",
                             "Fix, if References first key to Identifiables use idShort instead of id."),
                     ticketAction: (buttonNdx, ticket) =>
@@ -2104,6 +3029,8 @@ namespace AasxPackageLogic
 							return new AnyUiLambdaActionRedrawAllElements(nextFocus: smref, isExpanded: true);
 						}
 #endif
+
+#if __old_approach
 						if (buttonNdx == 1)
                         {
                             if (ticket?.ScriptMode != true
@@ -2159,8 +3086,67 @@ namespace AasxPackageLogic
 
                             return new AnyUiLambdaActionRedrawAllElements(nextFocus: smref, isExpanded: true);
                         }
+#else
+                        if (buttonNdx == 1)
+                        {
+                            // define dialogue and map presets into dialogue items
+                            var uc = new AnyUiDialogueDataSelectFromList(
+                                "Select which attributes to be removed from all SubmodelElements ...");
+                            uc.ListOfItems = new AnyUiDialogueListItemList(true,
+                                "All Qualifiers", "QUAL",
+                                "All Extensions", "EXT",
+                                "Add Descriptions", "DESC");
 
+                            // perform dialogue
+                            this.context.StartFlyoverModal(uc);
+                            if (!(uc.Result && uc.ResultItem?.Tag is string selectedTag))
+                                return new AnyUiLambdaActionNone();
+
+                            // be absolute sure!
+                            if (ticket?.ScriptMode != true
+                                && AnyUiMessageBoxResult.Yes != this.context.MessageBoxFlyoutShow(
+                                    "This operation will affect the selected attributes of " +
+                                    "the Submodel and all of its SubmodelElements. Do you want to proceed?",
+                                    "Remove attributes",
+                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                return new AnyUiLambdaActionNone();
+
+                            // do it on Submodel level
+                            
+                            if (selectedTag == "QUAL")
+                                submodel.Qualifiers = null;
+                            if (selectedTag == "EXT")
+                                submodel.Extensions = null;
+                            if (selectedTag == "DESC")
+                                submodel.Description = null;
+
+                            // do it on SubmodelElements
+                            submodel.RecurseOnSubmodelElements(null, (o, parents, sme) =>
+                            {
+                                // clear
+                                if (selectedTag == "QUAL")
+                                    sme.Qualifiers = null;
+                                if (selectedTag == "EXT")
+                                    sme.Extensions = null;
+                                if (selectedTag == "DESC")
+                                    sme.Description = null;
+
+                                // recurse
+                                return true;
+                            });
+
+                            // emit event for Submodel and children
+                            this.AddDiaryEntry(submodel, new DiaryEntryStructChange(), allChildrenAffected: true);
+
+                            return new AnyUiLambdaActionRedrawAllElements(nextFocus: smref, isExpanded: true);
+                        }
+#endif
+
+#if __old_approach
                         if (buttonNdx == 3)
+#else
+                        if (buttonNdx == 2)
+#endif
                         {
                             // confirm
                             if (ticket?.ScriptMode != true
@@ -2205,7 +3191,21 @@ namespace AasxPackageLogic
 
 			}
 
-			if (submodel != null)
+            // info about sideInfo
+            if (submodel != null)
+            {
+                DisplayOrEditEntitySideInfo(env, stack, submodel, sideInfo, "Submodel", superMenu);
+            }
+            else
+            {
+                if (packEnv is AdminShellPackageDynamicFetchEnv dynPack)
+                {
+                    DisplayOrEditEntityMissingSideInfo(stack, "Submodel");
+                }
+            }
+
+            // Submodel attributes
+            if (submodel != null)
             {
 
                 // Submodel
@@ -2220,13 +3220,14 @@ namespace AasxPackageLogic
 
                 // Identifiable
                 this.DisplayOrEditEntityIdentifiable(
-                    stack, env, submodel,
+                    stack, packEnv, env, submodel,
                     (submodel.Kind == Aas.ModellingKind.Template)
                         ? Options.Curr.TemplateIdSubmodelTemplate
                         : Options.Curr.TemplateIdSubmodelInstance,
                     new DispEditHelperModules.DispEditInjectAction(
                         new[] { "Rename" },
-                        (i) =>
+                        auxLambda: null,
+                        auxLambdaAsync: async (i) =>
                         {
                             if (i == 0 && env != null)
                             {
@@ -2237,10 +3238,47 @@ namespace AasxPackageLogic
                                     text: submodel.Id);
                                 if (this.context.StartFlyoverModal(uc))
                                 {
+                                    var oldId = submodel.Id;
+                                    var newId = uc.Text.Trim();
                                     var res = false;
 
                                     try
                                     {
+                                        // check, if Submodel is sitting in Repo
+                                        var sideInfo = OnDemandListIdentifiable<Aas.ISubmodel>
+                                                .FindSideInfoInListOfIdentifiables(
+                                                    env.Submodels, submodel.GetReference());
+                                        if (sideInfo != null)
+                                        {
+                                            // in any case, update Id
+                                            sideInfo.Id = newId;
+
+                                            // ask user for repo operation
+                                            if (AnyUiMessageBoxResult.Yes == await this.context.MessageBoxFlyoutShowAsync(
+                                                    "Rename Submodel in Repository as well? This operation can not be reverted!",
+                                                    "Rename Identifiable",
+                                                    AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                            {
+                                                // rename in repo
+                                                // (only the side info in the _specific_ endpoint gives information, in
+                                                // which repo the Indentifiables could be deleted)
+                                                var newEndpoint = await PackageContainerHttpRepoSubset
+                                                    .AssistantRenameIdfsInRepo<Aas.ISubmodel>(
+                                                    baseUri: PackageContainerHttpRepoSubset.GetBaseUri(
+                                                        sideInfo.DesignatedEndpoint?.AbsoluteUri),
+                                                    oldId: oldId,
+                                                    newId: newId,
+                                                    runtimeOptions: packages.CentralRuntimeOptions,
+                                                    moreLog: true);
+
+                                                Log.Singleton.Info("Rename in repo performed successfully.");
+
+                                                // adopt in side info
+                                                sideInfo.QueriedEndpoint = newEndpoint;
+                                                sideInfo.DesignatedEndpoint = newEndpoint;
+                                            }
+                                        }
+
                                         // rename
                                         var lrf = env.RenameIdentifiable<Aas.Submodel>(
                                             submodel.Id, uc.Text);
@@ -2320,9 +3358,12 @@ namespace AasxPackageLogic
             // ConceptDescription <- via semantic ID ?!
             //
 
-            if (submodel?.SemanticId != null && submodel.SemanticId.Keys.Count > 0)
+            if (submodel?.SemanticId?.Keys != null && submodel.SemanticId.Keys.Count > 0)
             {
+                // cd is easy
                 var cd = env.FindConceptDescriptionByReference(submodel.SemanticId);
+
+                // available?
                 if (cd == null)
                 {
                     this.AddGroup(
@@ -2354,18 +3395,134 @@ namespace AasxPackageLogic
 
         //
         //
+        // --- Submodel Stub
+        //
+        //
+
+        public void DisplayOrEditAasEntitySubmodelStub(
+            PackageCentral.PackageCentral packages, 
+            AdminShellPackageEnvBase packEnv,
+            Aas.IAssetAdministrationShell aas,
+            Aas.IReference smref,
+            Action setSmRefNull,
+            AasIdentifiableSideInfo sideInfo,
+            bool editMode,
+            AnyUiStackPanel stack, bool hintMode = false, bool checkSmt = false,
+            AasxMenu superMenu = null)
+        {
+            // access the on demand classes
+            var packOD = packEnv as AdminShellPackageDynamicFetchEnv;
+
+            // header
+            this.AddGroup(stack, "Submodel stub data (Identifiable not already loaded)", this.levelColors.MainSection);
+
+            // error?
+            if (packOD == null)
+            {
+                AddHintBubble(stack, true,
+                    new HintCheck(
+                        () => true, "Package environment does not provide on demand functionality",
+                        severityLevel: HintCheck.Severity.High));
+            }
+            else
+            {
+                // infos
+                DisplayOrEditEntitySideInfo(packEnv?.AasEnv, stack, aas, sideInfo, "Submodel", superMenu);
+
+                // actions
+                AddActionPanel(stack, "Action:",
+                    repo: repo,
+                    superMenu: superMenu,
+                    ticketMenu: new AasxMenu()
+                        .AddAction("stub-load", "Load",
+                            "Loads the Identifiable data from available data source.")
+                        .AddAction("stub-load-all", "Load all",
+                            "Loads data from available data source for all " +
+                            "Identifiable stubs in environment.")
+                        .AddAction("delete-sm-in-repo", "Delete Submodel \u274c in Repo",
+                            "Delete Submodel by Id in a given Repository or Registry."),
+                    ticketActionAsync: async (buttonNdx, ticket) =>
+                    {
+                        if (buttonNdx == 0)
+                        {
+                            var fetchedSm = await packOD.FindOrFetchIdentifiable(sideInfo?.Id);
+                            if (fetchedSm != null)
+                            {
+                                return new AnyUiLambdaActionRedrawAllElements(nextFocus: fetchedSm);
+                            }
+                        }
+
+                        if (buttonNdx == 1)
+                        {
+                            var res = await packOD.TryFetchAllMissingIdentifiables();
+                            if (res)
+                            {
+                                return new AnyUiLambdaActionRedrawAllElements(nextFocus: null);
+                            }
+                        }
+
+                        if (buttonNdx == 2)
+                        {
+                            // enough info
+                            if (sideInfo.StubLevel < AasIdentifiableSideInfoLevel.IdOnly
+                                || sideInfo.Id?.HasContent() != true)
+                            {
+                                Log.Singleton.Error("No Id information available for deleting Identifiable in " +
+                                    "Repository or Registry.");
+                                return new AnyUiLambdaActionNone();
+                            }
+
+                            // simply prepare one Key!
+                            var smKey = new Aas.IKey[] { new Aas.Key(KeyTypes.Submodel, "" + sideInfo.Id) };
+
+                            // call function
+                            // (only the side info in the _specific_ endpoint gives information, in which
+                            //  repo the CDs could be deleted)
+                            await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
+                                ticket, context,
+                                "Delete Submodels in Repository/ Registry",
+                                "Submodel",
+                                smKey,
+                                runtimeOptions: packages.CentralRuntimeOptions,
+                                presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                                {
+                                    // assume Repo ?!
+                                    BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                    // extract base address
+                                    BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                        sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
+                                });
+
+                            // ok
+                            return new AnyUiLambdaActionNone();
+                        }
+
+                        return new AnyUiLambdaActionNone();
+                    });
+            }
+        }
+
+        //
+        //
         // --- Concept Description
         //
         //
 
         public void DisplayOrEditAasEntityConceptDescription(
             PackageCentral.PackageCentral packages, Aas.IEnvironment env,
-            Aas.IReferable parentContainer, Aas.IConceptDescription cd, bool editMode,
-            ModifyRepo repo,
+            Aas.IReferable parentContainer, 
+            Aas.IConceptDescription cd, 
+            bool editMode, ModifyRepo repo,
             AnyUiStackPanel stack, bool embedded = false, bool hintMode = false, bool preventMove = false,
             AasxMenu superMenu = null)
         {
             this.AddGroup(stack, "ConceptDescription", this.levelColors.MainSection);
+
+            // info about sideInfo
+            var sideInfo = OnDemandListIdentifiable<Aas.IConceptDescription>
+                .FindSideInfoInListOfIdentifiables(
+                    env.ConceptDescriptions, cd.GetCdReference());
 
             // Up/ down/ del
             if (editMode && !embedded)
@@ -2385,7 +3542,47 @@ namespace AasxPackageLogic
                     env.ConceptDescriptions, (lst) => { env.ConceptDescriptions = lst; },
                     cd, env, "CD:", sendUpdateEvent: evTemplate,
                     preventMove: preventMove,
-                    superMenu: superMenu);
+                    superMenu: superMenu,
+                    moveDoesNotModify: true,
+                    postActionHookAsync: async (actionName, ticket) =>
+                    {
+                        await Task.Yield();
+                        
+                        // Note: sideinfo needs to be looked up before the helper, as the helper might
+                        // delete it!
+                        if (sideInfo?.Id?.HasContent() != true || sideInfo.StubLevel < AasIdentifiableSideInfoLevel.IdOnly)
+                            return;
+
+                        // ask?
+                        if (AnyUiMessageBoxResult.Yes != await this.context.MessageBoxFlyoutShowAsync(
+                                "Delete ConceptDescription in Repository as well? " +
+                                "This operation can not be reverted!",
+                                "Delete Identifiable",
+                                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                            return;
+
+                        // simply prepare one Key!
+                        var cdKey = new Aas.IKey[] { new Aas.Key(KeyTypes.ConceptDescription, "" + cd.Id) };
+
+                        // call function
+                        // (only the side info in the _specific_ endpoint gives information, in which
+                        //  repo the CDs could be deleted)
+                        await PackageContainerHttpRepoSubset.AssistantDeleteIdfsInRepo(
+                            null, context,
+                            "Delete ConceptDescription in Repository/ Registry",
+                            "ConceptDescription",
+                            cdKey,
+                            runtimeOptions: packages.CentralRuntimeOptions,
+                            presetRecord: new PackageContainerHttpRepoSubset.DeleteAssistantJobRecord()
+                            {
+                                // assume Repo ?!
+                                BaseType = ConnectExtendedRecord.BaseTypeEnum.Repository,
+
+                                // extract base address
+                                BaseAddress = "" + PackageContainerHttpRepoSubset.GetBaseUri(
+                                    sideInfo?.DesignatedEndpoint?.AbsoluteUri)?.AbsoluteUri
+                            });
+                    });
             }
 
             // Cut, copy, paste within list of CDs
@@ -2397,6 +3594,8 @@ namespace AasxPackageLogic
                     env.ConceptDescriptions, cd, (o) => { return (o as Aas.ConceptDescription).Copy(); },
                     label: "Buffer:", superMenu: superMenu);
             }
+
+            DisplayOrEditEntitySideInfo(env, stack, cd, sideInfo, "ConceptDescription", superMenu);
 
             // IReferable
             Action<bool> lambdaRf = (hideExtensions) =>
@@ -2448,11 +3647,12 @@ namespace AasxPackageLogic
             Action lambdaIdf = () =>
             {
                 this.DisplayOrEditEntityIdentifiable(
-                    stack, env, cd,
+                    stack, packages?.Main, env, cd,
                     Options.Curr.TemplateIdConceptDescription,
                     new DispEditHelperModules.DispEditInjectAction(
                     new[] { "Rename" },
-                    (i) =>
+                    auxLambda: null,
+                    auxLambdaAsync: async (i) =>
                     {
                         if (i == 0 && env != null)
                         {
@@ -2463,10 +3663,49 @@ namespace AasxPackageLogic
                                 text: cd.Id);
                             if (this.context.StartFlyoverModal(uc))
                             {
+                                var oldId = cd.Id;
+                                var newId = uc.Text.Trim();
                                 var res = false;
 
                                 try
                                 {
+                                    // check, if Submodel is sitting in Repo
+                                    var sideInfo = OnDemandListIdentifiable<Aas.IConceptDescription>
+                                            .FindSideInfoInListOfIdentifiables(
+                                                env.ConceptDescriptions, cd.GetReference());
+                                    if (sideInfo != null)
+                                    {
+                                        // in any case, update Id
+                                        sideInfo.Id = newId;
+
+                                        // ask user for repo operation
+                                        if (AnyUiMessageBoxResult.Yes == await this.context.MessageBoxFlyoutShowAsync(
+                                                "Rename ConceptDescription in Repository as well? " +
+                                                "This operation can not be reverted!",
+                                                "Rename Identifiable",
+                                                AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                        {
+
+                                            // rename in repo
+                                            // (only the side info in the _specific_ endpoint gives information, in
+                                            // which repo the Indentifiables could be deleted)
+                                            var newEndpoint = await PackageContainerHttpRepoSubset
+                                                .AssistantRenameIdfsInRepo<Aas.IConceptDescription>(
+                                                baseUri: PackageContainerHttpRepoSubset.GetBaseUri(
+                                                    sideInfo.DesignatedEndpoint?.AbsoluteUri),
+                                                oldId: oldId,
+                                                newId: newId,
+                                                runtimeOptions: packages.CentralRuntimeOptions,
+                                                moreLog: true);
+
+                                            Log.Singleton.Info("Rename in repo performed successfully.");
+
+                                            // adopt in side info
+                                            sideInfo.QueriedEndpoint = newEndpoint;
+                                            sideInfo.DesignatedEndpoint = newEndpoint;
+                                        }
+                                    }
+
                                     // rename
                                     var lrf = env.RenameIdentifiable<Aas.ConceptDescription>(
                                         cd.Id, uc.Text);
@@ -2747,7 +3986,7 @@ namespace AasxPackageLogic
                                     "Adds a selected kind of SubmodelElement to the containing collection.",
                                     args: new AasxMenuListOfArgDefs()
                                         .Add("Kind", "Name (not abbreviated) of kind of SubmodelElement.")),
-                            ticketAction: (buttonNdx, ticket) =>
+                            ticketActionAsync: async (buttonNdx, ticket) =>
                             {
                                 if (buttonNdx >= 0 && buttonNdx <= 3)
                                 {
@@ -2760,12 +3999,13 @@ namespace AasxPackageLogic
                                     if (buttonNdx == 2)
                                         en = Aas.AasSubmodelElements.SubmodelElementCollection;
                                     if (buttonNdx == 3)
-                                        en = this.SelectAdequateEnum(
+                                        en = await this.SelectAdequateEnum(
                                             "Select SubmodelElement to create ..",
                                             excludeValues: new[] {
                                                 Aas.AasSubmodelElements.DataElement,
                                                 Aas.AasSubmodelElements.EventElement,
-                                                Aas.AasSubmodelElements.Operation 
+                                                Aas.AasSubmodelElements.Operation,
+                                                Aas.AasSubmodelElements.ContainerElement
                                             });
 
                                     // ok?
@@ -2982,12 +4222,12 @@ namespace AasxPackageLogic
                         ticketMenu: new AasxMenu()
                             .AddAction("refactor", "Refactor",
                                 "Takes the selected AAS element and converts it to a new kind, keeping most of the attributes."),
-                        ticketAction: (buttonNdx, ticket) =>
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx == 0)
                             {
                                 // which?
-                                var refactorSme = this.SmartRefactorSme(sme);
+                                var refactorSme = await this.SmartRefactorSme(packages.Main, sme);
                                 var parMgr = (parentContainer as Aas.IReferable);
 
                                 // ok?
@@ -3392,7 +4632,7 @@ namespace AasxPackageLogic
                                 "Adds a selected kind of SubmodelElement to the containing collection.",
                                 args: new AasxMenuListOfArgDefs()
                                     .Add("Kind", "Name (not abbreviated) of kind of SubmodelElement.")),
-                        ticketAction: (buttonNdx, ticket) =>
+                        ticketActionAsync: async (buttonNdx, ticket) =>
                         {
                             if (buttonNdx >= 0 && buttonNdx <= 3)
                             {
@@ -3405,12 +4645,13 @@ namespace AasxPackageLogic
                                 if (buttonNdx == 2)
                                     en = Aas.AasSubmodelElements.SubmodelElementCollection;
                                 if (buttonNdx == 3)
-                                    en = this.SelectAdequateEnum(
+                                    en = await this.SelectAdequateEnum(
                                         "Select SubmodelElement to create ..",
                                         excludeValues: new[] {
                                             Aas.AasSubmodelElements.DataElement,
                                             Aas.AasSubmodelElements.EventElement,
-                                            Aas.AasSubmodelElements.Operation
+                                            Aas.AasSubmodelElements.Operation,
+                                            Aas.AasSubmodelElements.ContainerElement
                                         });
 
                                 // ok?
@@ -3677,7 +4918,10 @@ namespace AasxPackageLogic
 
 				if (sme.SemanticId != null && sme.SemanticId.Keys.Count > 0 && !nestedCds)
                 {
+                    // CD
                     var cd = env.FindConceptDescriptionByReference(sme.SemanticId);
+
+                    // available
                     if (cd == null)
                     {
                         this.AddGroup(
@@ -4023,7 +5267,8 @@ namespace AasxPackageLogic
 
                 // refer to mini-module
                 DisplayOrEditEntityFileResource(
-                    stack, fl, repo, superMenu,
+                    stack, packages.Main,
+                    fl, repo, superMenu,
                     fl.Value, fl.ContentType,
                     (fn, ct) =>
                     {
@@ -4078,36 +5323,46 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionNone();
                         });
 
-                    //Note: migrated in order to show fields via "real" value hash
-                    //AddKeyValueExRef(
-                    //    stack, "value", blb, (blb.Value == null) ? "" : Encoding.Default.GetString(blb.Value),
-                    //    null, repo,
-                    //    v =>
-                    //    {
-                    //        blb.Value = Encoding.Default.GetBytes((string)v);
-                    //        this.AddDiaryEntry(blb, new DiaryEntryUpdateValue());
-                    //        return new AnyUiLambdaActionNone();
-                    //    },
-                    //    limitToOneRowForNoEdit: true,
-                    //    auxButtonTitles: new[] { "\u2261" },
-                    //    auxButtonToolTips: new[] { "Edit in multiline editor" },
-                    //    auxButtonLambda: (buttonNdx) =>
-                    //    {
-                    //        if (buttonNdx == 0)
-                    //        {
-                    //            var uc = new AnyUiDialogueDataTextEditor(
-                    //                                caption: $"Edit Blob '{"" + blb.IdShort}'",
-                    //                                mimeType: blb.ContentType,
-                    //                                text: Encoding.Default.GetString(blb.Value ?? new byte[0]));
-                    //            if (this.context.StartFlyoverModal(uc))
-                    //            {
-                    //                blb.Value = Encoding.Default.GetBytes(uc.Text);
-                    //                this.AddDiaryEntry(blb, new DiaryEntryUpdateValue());
-                    //                return new AnyUiLambdaActionRedrawEntity();
-                    //            }
-                    //        }
-                    //        return new AnyUiLambdaActionNone();
-                    //    });
+                    // Offer BASE64 to binary
+                    if (AdminShellUtil.CheckIfAsciiOnly(blb.Value))
+                    {
+                        this.AddActionPanel(
+                            stack, "Action",
+                            repo: repo, superMenu: superMenu,
+                            ticketMenu: new AasxMenu()
+                                .AddAction("base64-to-binary", "BASE64 \u2192 binary",
+                                    "Take value as BASE64 and convert to binary."),
+                            ticketActionAsync: async (buttonNdx, ticket) =>
+                            {
+                                if (buttonNdx == 0)
+                                {
+                                    // ask
+                                    if (AnyUiMessageBoxResult.Yes != await
+                                            this.context.MessageBoxFlyoutShowAsync(
+                                            "Convert? This operation cannot be reverted!",
+                                            "BASE64 \u2192 binary",
+                                            AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                        return new AnyUiLambdaActionNone();
+
+                                    // do
+                                    try
+                                    {
+                                        var strRep = Encoding.Default.GetString(blb.Value);
+                                        var byteRep = System.Convert.FromBase64String(strRep);
+                                        blb.Value = byteRep;
+                                    } 
+                                    catch (Exception ex)
+                                    {
+                                        Log.Singleton.Error(ex, "when converting BASE64 to binary.");
+                                    }
+
+                                    // show
+                                    return new AnyUiLambdaActionRedrawEntity();
+                                }
+
+                                return new AnyUiLambdaActionNone();
+                            });
+                    }
                 }
                 else
                 {
@@ -4150,6 +5405,46 @@ namespace AasxPackageLogic
                                 }
                                 return new AnyUiLambdaActionNone();
                             });
+
+                    // Offer binary to BASE64 
+                    if (true)
+                    {
+                        this.AddActionPanel(
+                            stack, "Action",
+                            repo: repo, superMenu: superMenu,
+                            ticketMenu: new AasxMenu()
+                                .AddAction("binary-to-base64", "Binary \u2192 BASE64",
+                                    "Take value as binary bytes and convert to BASE64."),
+                            ticketActionAsync: async (buttonNdx, ticket) =>
+                            {
+                                if (buttonNdx == 0)
+                                {
+                                    // ask
+                                    if (AnyUiMessageBoxResult.Yes != await
+                                            this.context.MessageBoxFlyoutShowAsync(
+                                            "Convert? This operation cannot be reverted!",
+                                            "Binary \u2192 BASE64",
+                                            AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Warning))
+                                        return new AnyUiLambdaActionNone();
+
+                                    // do
+                                    try
+                                    { 
+                                        var strRep = System.Convert.ToBase64String(blb.Value);
+                                        blb.Value = Encoding.Default.GetBytes(strRep);
+                                    } 
+                                    catch (Exception ex)
+                                    {
+                                        Log.Singleton.Error(ex, "when converting binary to BASE64.");
+                                    }
+
+                                    // show
+                                    return new AnyUiLambdaActionRedrawEntity();
+                                }
+
+                                return new AnyUiLambdaActionNone();
+                            });
+                    }
                 }
 
                 // ContentType
@@ -4162,8 +5457,8 @@ namespace AasxPackageLogic
                                 return blb.ContentType == null || blb.ContentType.Trim().Length < 1 ||
                                     blb.ContentType.IndexOf('/') < 1 || blb.ContentType.EndsWith("/");
                             },
-                            "The contenty-type of the file. Also known as MIME type. " +
-                            "Mandatory information. See RFC2046.")
+                            "The content-type of the file. Also known as MIME type. " +
+                            "See RFC2046.", severityLevel: HintCheck.Severity.Notice)
                     });
 
                 AddKeyValueExRef(
@@ -4337,7 +5632,7 @@ namespace AasxPackageLogic
                                 "In terms of a semantic triple, it would be the subject. " +
                                 "The semantics of your reference (the predicate) shall be described " +
                                 "by the concept referred by semanticId.",
-                            severityLevel: HintCheck.Severity.High)
+                            severityLevel: HintCheck.Severity.Notice)
                     });
                 if (this.SafeguardAccess(
                         stack, repo, rele.First, "First relation:", "Create w/ default!",
@@ -4350,7 +5645,8 @@ namespace AasxPackageLogic
                 {
                     this.AddKeyReference(
                         stack, "first", 
-                        rele.First, () => rele.First = Options.Curr.GetDefaultEmptyReference(),                        
+                        //rele.First, () => rele.First = Options.Curr.GetDefaultEmptyReference(),                        
+                        rele.First, () => rele.First = null,                        
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All", // no restriction
@@ -4377,7 +5673,7 @@ namespace AasxPackageLogic
                                 "In terms of a semantic triple, it would be the object. " +
                                 "The semantics of your reference (the predicate) shall be described " +
                                 "by the concept referred by semanticId.",
-                            severityLevel: HintCheck.Severity.High)
+                            severityLevel: HintCheck.Severity.Notice)
                     });
                 if (this.SafeguardAccess(
                         stack, repo, rele.Second, "Second relation:", "Create w/ default!",
@@ -4390,7 +5686,8 @@ namespace AasxPackageLogic
                 {
                     this.AddKeyReference(
                         stack, "second", 
-                        rele.Second, () => rele.Second = Options.Curr.GetDefaultEmptyReference(),
+                        //rele.Second, () => rele.Second = Options.Curr.GetDefaultEmptyReference(),
+                        rele.Second, () => rele.Second = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
                         addExistingEntities: "All", // no restriction
@@ -4654,44 +5951,8 @@ namespace AasxPackageLogic
                             this.AddDiaryEntry(ent, new DiaryEntryStructChange());
                             return new AnyUiLambdaActionNone();
                         });
-                    //AddKeyReference(
-                    //    stack, "globalAssetId", ent.GlobalAssetId, repo, packages,
-                    //    PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
-                    //    addExistingEntities: "All", showRefSemId: false,
-                    //    jumpLambda: lambda,
-                    //    noEditJumpLambda: lambda,
-                    //    relatedReferable: ent,
-                    //    auxContextHeader: new[] { "\u2573", "Delete globalAssetId" },
-                    //    auxContextLambda: (i) =>
-                    //    {
-                    //        if (i == 0)
-                    //        {
-                    //            ent.GlobalAssetId = null;
-                    //            this.AddDiaryEntry(ent, new DiaryEntryStructChange());
-                    //            return new AnyUiLambdaActionRedrawEntity();
-                    //        }
-                    //        return new AnyUiLambdaActionNone();
-                    //    });
                 }
 
-                // in V3.0RC01 this was falsely [0..1]
-                //this.DisplayOrEditEntitySingleIdentifierKeyValuePair(
-                //    stack, ent.SpecificAssetIds,
-                //    (v) => { ent.SpecificAssetIds = v; },
-                //    key: "specificAssetId",
-                //    relatedReferable: ent,
-                //    auxContextHeader: new[] { "\u2573", "Delete SpecificAssetId" },
-                //    auxContextLambda: (o) =>
-                //    {
-                //        if (o is int i && i == 0)
-                //        {
-                //            ent.SpecificAssetIds = null;
-                //            this.AddDiaryEntry(ent, new DiaryEntryStructChange());
-                //            return new AnyUiLambdaActionRedrawEntity();
-                //        }
-                //        return new AnyUiLambdaActionNone();
-                //    });
-                // dead-csharp on
                 this.DisplayOrEditEntityListOfSpecificAssetIds(stack, ent.SpecificAssetIds,
                                 (ico) => { ent.SpecificAssetIds = ico; },
                                 key: "specificAssetId",
@@ -4812,24 +6073,34 @@ namespace AasxPackageLogic
         }
 
 
+        /// <summary>
+        /// Super function to basically edit all known visual elements.
+        /// Note: With hesitation, the <c>mainWindow</c> is passed into this function and shall only 
+        ///       be used in exceptional cases.
+        /// Note: Because of Blazor principles for display of components, this function or its subordinates 
+        ///       MUST NOT be async!
+        /// </summary>
         public bool DisplayOrEditCommonEntity(
             PackageCentral.PackageCentral packages,
             AnyUiStackPanel stack,
             AasxMenu superMenu,
             bool editMode, bool hintMode, bool checkSmt,
 			VisualElementEnvironmentItem.ConceptDescSortOrder? cdSortOrder,
-            VisualElementGeneric entity)
+            VisualElementGeneric entity,
+            IMainWindow mainWindow)
         {
             if (entity is VisualElementEnvironmentItem veei)
             {
                 DisplayOrEditAasEntityAasEnv(
                     packages, veei.theEnv, veei, editMode, stack, hintMode: hintMode,
-                    superMenu: superMenu);
+                    superMenu: superMenu, mainWindow: mainWindow);
             }
             else if (entity is VisualElementAdminShell veaas)
             {
                 DisplayOrEditAasEntityAas(
-                    packages, veaas.theEnv, veaas.theAas, editMode, stack, hintMode: hintMode,
+                    packages, veaas.thePackage, veaas.theEnv, 
+                    veaas.theAas, 
+                    editMode, stack, hintMode: hintMode,
                     superMenu: superMenu);
             }
             else if (entity is VisualElementAsset veas)
@@ -4848,24 +6119,35 @@ namespace AasxPackageLogic
 
                 // edit
                 DisplayOrEditAasEntitySubmodelOrRef(
-                    packages, vesmref.theEnv, aas, 
+                    packages, vesmref.thePackage, vesmref.theEnv, aas, 
                     vesmref.theSubmodelRef, 
                     () =>
                     {
                         vesmref.theAas.Remove(vesmref.theSubmodelRef);
                     },
-                    vesmref.theSubmodel, editMode, stack,
+                    vesmref.theSubmodel,
+                    editMode, stack,
                     hintMode: hintMode, checkSmt: checkSmt,
 					superMenu: superMenu);
             }
             else if (entity is VisualElementSubmodel vesm && vesm.theSubmodel != null)
             {
                 DisplayOrEditAasEntitySubmodelOrRef(
-                    packages, vesm.theEnv, 
+                    packages, vesm.thePackage, vesm.theEnv, 
                     aas: null, smref: null, setSmRefNull: null, 
-                    submodel: vesm.theSubmodel, editMode: editMode, stack: stack,
+                    submodel: vesm.theSubmodel, 
+                    editMode: editMode, stack: stack,
                     hintMode: hintMode, checkSmt: checkSmt,
 					superMenu: superMenu);
+            }
+            else if (entity is VisualElementSubmodelStub vesms && vesms.theSideInfo != null)
+            {
+                DisplayOrEditAasEntitySubmodelStub(
+                    packages, vesms.thePackEnv,
+                    aas: null, smref: null, setSmRefNull: null,
+                    sideInfo: vesms.theSideInfo, editMode: editMode, stack: stack,
+                    hintMode: hintMode, checkSmt: checkSmt,
+                    superMenu: superMenu);
             }
             else if (entity is VisualElementSubmodelElement vesme)
             {
@@ -4886,7 +6168,9 @@ namespace AasxPackageLogic
             else if (entity is VisualElementConceptDescription vecd)
             {
                 DisplayOrEditAasEntityConceptDescription(
-                    packages, vecd.theEnv, null, vecd.theCD, editMode, repo, stack, hintMode: hintMode,
+                    packages, vecd.theEnv, null, 
+                    vecd.theCD, 
+                    editMode, repo, stack, hintMode: hintMode,
                     superMenu: superMenu,
                     preventMove: cdSortOrder.HasValue &&
                         cdSortOrder.Value != VisualElementEnvironmentItem.ConceptDescSortOrder.None);

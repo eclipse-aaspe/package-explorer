@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using AasxIntegrationBase;
 using AasxIntegrationBaseGdi;
 using AasxPredefinedConcepts;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 using AnyUi;
@@ -63,7 +63,7 @@ namespace AasxPluginDigitalNameplate
         //
 
         public static string TryGuessAssetId(
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel subModel)
         {
             // access
@@ -82,7 +82,7 @@ namespace AasxPluginDigitalNameplate
         //
 
         public static NameplateData ParseSubmodelForV10(
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageEnvBase thePackage,
             Aas.Submodel subModel, DigitalNameplateOptions options,
             string defaultLang = null)
         {
@@ -205,7 +205,7 @@ namespace AasxPluginDigitalNameplate
         //
 
         public static NameplateData ParseSubmodelForV20(
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageEnvBase thePackage,
             Aas.Submodel subModel, DigitalNameplateOptions options,
             string defaultLang = null)
         {

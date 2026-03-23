@@ -34,7 +34,8 @@
                     <DataTemplate>
                         <repo:PackageContainerListControl FileDoubleClick="PackageContainerListControl_FileDoubleClick"
                                                   ButtonClick="PackageContainerListControl_ButtonClick"
-                                                  FileDrop="PackageContainerListControl_FileDrop"/>
+                                                  FileDrop="PackageContainerListControl_FileDrop"
+                                                  DataChanged="PackageContainerListControl_DataChanged"/>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

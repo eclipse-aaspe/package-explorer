@@ -6,8 +6,10 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 
 This source code may use other Open Source software components (see LICENSE.txt).
 */
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using AdminShellNS.DiaryData;
 
 namespace Extensions
 {
@@ -21,6 +23,7 @@ namespace Extensions
         }
 
         #endregion
+        
         public static IReference GetReference(this IIdentifiable identifiable)
         {
             var key = new Key(ExtensionsUtil.GetKeyType(identifiable), identifiable.Id);
@@ -28,6 +31,18 @@ namespace Extensions
             var outputReference = new Reference(ReferenceTypes.ModelReference, new List<IKey>() { key });
 
             return outputReference;
+        }
+
+        public static void SetTainted(this IIdentifiable identifiable, bool state)
+        {
+            var tidf = identifiable as ITaintedData;
+            if (tidf != null)
+            {
+                if (state)
+                    tidf.TaintedData.Tainted = DateTime.UtcNow;
+                else
+                    tidf.TaintedData.Tainted = null;
+            }
         }
     }
 }

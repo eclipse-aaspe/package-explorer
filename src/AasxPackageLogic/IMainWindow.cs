@@ -16,9 +16,8 @@ using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using AnyUi;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageExplorer
 {
@@ -72,7 +71,7 @@ namespace AasxPackageExplorer
         /// <summary>
         /// Redraw tree elements (middle), AAS entitty (right side)
         /// </summary>
-        void CommandExecution_RedrawAll();
+        Task CommandExecution_RedrawAllAsync();
 
         /// <summary>
         /// Redraw window title, AAS info?, entity view (right), element tree (middle)
@@ -80,7 +79,7 @@ namespace AasxPackageExplorer
         /// <param name="keepFocus">Try remember which element was focussed and focus it after redrawing.</param>
         /// <param name="nextFocusMdo">Focus a new main data object attached to an tree element.</param>
         /// <param name="wishExpanded">If focussing, expand this item.</param>
-        void RedrawAllAasxElements(
+        Task RedrawAllAasxElementsAsync(
             bool keepFocus = false,
             object nextFocusMdo = null,
             bool wishExpanded = true);
@@ -94,7 +93,7 @@ namespace AasxPackageExplorer
         /// Based on save information, will redraw the AAS entity (element) view (right).
         /// </summary>
         /// <param name="hightlightField">Highlight field (for find/ replace)</param>
-        void RedrawElementView(DispEditHighlight.HighlightFieldInfo hightlightField = null);
+        Task RedrawElementViewAsync(DispEditHighlight.HighlightFieldInfo hightlightField = null);
 
         // REFACTOR: for later refactoring
         /// <summary>
@@ -103,10 +102,16 @@ namespace AasxPackageExplorer
         public void RedrawAllElementsAndFocus(object nextFocus = null, bool isExpanded = true);
 
         /// <summary>
+        /// Checks, if any identifiable is tainted (modified). Helps asking the user if to save
+        /// data before losing it.
+        /// </summary>
+        bool CheckIsAnyTaintedIdentifiableInMain();
+
+        /// <summary>
         /// Large extend. Basially redraws everything after new package has been loaded.
         /// </summary>
         /// <param name="onlyAuxiliary">Only tghe AUX package has been altered.</param>
-        void RestartUIafterNewPackage(bool onlyAuxiliary = false);
+        Task RestartUIafterNewPackage(bool onlyAuxiliary = false, bool? nextEditMode = null);
 
         /// <summary>
         /// This function serve as a kind of unified contact point for all kind
@@ -122,16 +127,25 @@ namespace AasxPackageExplorer
         /// <param name="takeOverContainer">Already loaded container to take over (alternative 3)</param>
         /// <param name="storeFnToLRU">Store this filename into last recently used list</param>
         /// <param name="indexItems">Index loaded contents, e.g. for animate of event sending</param>
-        void UiLoadPackageWithNew(
+        Task UiLoadPackageWithNew(
             PackageCentralItem packItem,
-            AdminShellPackageEnv takeOverEnv = null,
+            AdminShellPackageEnvBase takeOverEnv = null,
             string loadLocalFilename = null,
             string info = null,
             bool onlyAuxiliary = false,
             bool doNotNavigateAfterLoaded = false,
             PackageContainerBase takeOverContainer = null,
             string storeFnToLRU = null,
-            bool indexItems = false);
+            bool indexItems = false,
+            bool preserveEditMode = false,
+            bool? nextEditMode = null,
+            bool autoFocusFirstRelevant = false);
+
+        public Task<Aas.IIdentifiable> UiSearchRepoAndExtendEnvironmentAsync(
+            AdminShellPackageEnvBase packEnv,
+            Aas.IReference workRef = null,
+            string fullItemLocation = null,
+            bool trySelect = false);
 
         /// <summary>
         /// Check for menu switch and flush events, if required.

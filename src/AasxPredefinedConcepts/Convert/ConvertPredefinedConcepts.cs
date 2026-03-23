@@ -9,7 +9,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AdminShellNS;
 using System.Collections.Generic;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 // ReSharper disable MergeIntoPattern
 
@@ -37,7 +37,7 @@ namespace AasxPredefinedConcepts.Convert
         }
 
         public virtual bool ExecuteOffer(
-            AdminShellPackageEnv package, Aas.IReferable currentReferable, ConvertOfferBase offer,
+            AdminShellPackageEnvBase package, Aas.IReferable currentReferable, ConvertOfferBase offer,
             bool deleteOldCDs, bool addNewCDs)
         {
             return true;

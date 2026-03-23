@@ -59,8 +59,8 @@ namespace AasxPackageLogic.PackageCentral
                 var uploaded = 0;
                 var lastUploaded = 0;
 
-                _runtimeOptions?.ProgressChanged(
-                    PackCntRuntimeOptions.Progress.Starting, _content.Length, uploaded);
+                _runtimeOptions?.ProgressChanged?.Invoke(
+                    PackCntRuntimeOptions.Progress.StartDownload, _content.Length, uploaded);
 
                 using (var _instream = new MemoryStream(_content))
                     while (true)
@@ -73,16 +73,16 @@ namespace AasxPackageLogic.PackageCentral
 
                         if (uploaded > lastUploaded + _deltaSizeForProgress)
                         {
-                            _runtimeOptions?.ProgressChanged(
-                                PackCntRuntimeOptions.Progress.Ongoing, _content.Length, uploaded);
+                            _runtimeOptions?.ProgressChanged?.Invoke(
+                                PackCntRuntimeOptions.Progress.PerformDownload, _content.Length, uploaded);
                             lastUploaded = uploaded;
                         }
 
                         stream.Write(buffer, 0, length);
                     }
 
-                _runtimeOptions?.ProgressChanged(
-                    PackCntRuntimeOptions.Progress.Final, _content.Length, uploaded);
+                _runtimeOptions?.ProgressChanged?.Invoke(
+                    PackCntRuntimeOptions.Progress.EndDownload, _content.Length, uploaded);
             });
         }
 

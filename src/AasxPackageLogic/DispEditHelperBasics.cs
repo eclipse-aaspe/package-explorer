@@ -15,15 +15,12 @@ using AdminShellNS.DiaryData;
 using AdminShellNS.Extensions;
 using AnyUi;
 using Extensions;
-using Newtonsoft.Json;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
-using static System.Net.WebRequestMethods;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic
 {
@@ -247,6 +244,22 @@ namespace AasxPackageLogic
         // Helpers for GUI building blocks
         //
 
+        public void AddInfoText(
+            AnyUiStackPanel view, string text)
+        {
+            // Grid
+            var g = AddSmallGrid(1, 1, new[] { "*" });
+
+            // Label for key
+            var klb = AddSmallLabelTo(g, 0, 0, 
+                padding: new AnyUiThickness(5, 0, 0, 0), 
+                content: "" + text,
+                wrapping: AnyUiTextWrapping.WrapWithOverflow);
+
+            // in total
+            view.Children.Add(g);
+        }
+
 #if ONLY_INFO
                 // This was used in former times and now replaced by using a set lambda in all times
 
@@ -296,7 +309,9 @@ namespace AasxPackageLogic
             AnyUiStackPanel view, string key, object containingObject, string value, string nullValue = null,
             ModifyRepo repo = null, Func<object, AnyUiLambdaActionBase> setValue = null,
             string[] comboBoxItems = null, bool comboBoxIsEditable = false,
-            string auxButtonTitle = null, Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
+            string auxButtonTitle = null, 
+            Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
+            Func<int, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
             string auxButtonToolTip = null,
             string[] auxButtonTitles = null,
             string[] auxButtonToolTips = null,
@@ -305,18 +320,21 @@ namespace AasxPackageLogic
             int comboBoxMinWidth = -1,
 			int firstColumnWidth = -1, // -1 = Standard
 			int maxLines = -1,
-			bool keyVertCenter = false)
+			bool keyVertCenter = false,
+            bool auxButtonOverride = false,
+            bool isValueReadOnly = false)
         {
             AddKeyValue(
                 view, key, value, nullValue, repo, setValue, comboBoxItems, comboBoxIsEditable,
-                auxButtonTitle, auxButtonLambda, auxButtonToolTip,
+                auxButtonTitle, auxButtonLambda, auxButtonLambdaAsync, auxButtonToolTip,
                 auxButtonTitles, auxButtonToolTips, takeOverLambdaAction,
                 (value == null) ? 0 : value.GetHashCode(), containingObject: containingObject,
                 limitToOneRowForNoEdit: limitToOneRowForNoEdit,
                 comboBoxMinWidth: comboBoxMinWidth,
-				firstColumnWidth: firstColumnWidth,
+                firstColumnWidth: firstColumnWidth,
                 maxLines: maxLines,
-                keyVertCenter: keyVertCenter);
+                keyVertCenter: keyVertCenter,
+                isValueReadOnly: isValueReadOnly);
         }
 
         /// <summary>
@@ -346,6 +364,7 @@ namespace AasxPackageLogic
             ModifyRepo repo = null, Func<object, AnyUiLambdaActionBase> setValue = null,
             string[] comboBoxItems = null, bool comboBoxIsEditable = false,
             string auxButtonTitle = null, Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
+            Func<int, Task<AnyUiLambdaActionBase>> auxButtonLambdaAsync = null,
             string auxButtonToolTip = null,
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
             AnyUiLambdaActionBase takeOverLambdaAction = null,
@@ -355,7 +374,9 @@ namespace AasxPackageLogic
             int comboBoxMinWidth = -1,
             int firstColumnWidth = -1, // -1 = Standard
             int maxLines = -1,
-            bool keyVertCenter = false)
+            bool keyVertCenter = false,
+            bool auxButtonOverride = false,
+            bool isValueReadOnly = false)
         {
             // draw anyway?
             if (repo != null && value == null)
@@ -384,7 +405,8 @@ namespace AasxPackageLogic
             if (auxButtonToolTips != null)
                 intButtonToolTips.AddRange(auxButtonToolTips);
 
-            var auxButton = repo != null && intButtonTitles.Count > 0 && auxButtonLambda != null;
+            var auxButton = auxButtonOverride
+                    || (repo != null && intButtonTitles.Count > 0 && (auxButtonLambda != null || auxButtonLambdaAsync != null));
 
             // Grid
             var g = new AnyUiGrid();
@@ -424,7 +446,8 @@ namespace AasxPackageLogic
             {
                 if (limitToOneRowForNoEdit)
                     value = AdminShellUtil.RemoveNewLinesAndLimit("" + value, 120, ellipsis: "\u2026");
-                AddSmallLabelTo(g, 0, 1, padding: new AnyUiThickness(4, 0, 0, 0), content: "" + value);
+                AddSmallLabelTo(g, 0, 1, padding: new AnyUiThickness(4, 0, 0, 0), content: "" + value,
+                    verticalCenter: true);
             }
             else if (comboBoxItems != null)
             {
@@ -460,7 +483,7 @@ namespace AasxPackageLogic
             else
             {
                 // use plain text box
-                var tb = AddSmallTextBoxTo(g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2), text: "" + value);
+                var tb = AddSmallTextBoxTo(g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2), text: "" + value, isValReadOnly: isValueReadOnly);
                 // multiple lines
                 if (maxLines > 0)
                     tb.MaxLines = maxLines;
@@ -479,19 +502,28 @@ namespace AasxPackageLogic
                 for (int i = 0; i < intButtonTitles.Count; i++)
                 {
                     Func<object, AnyUiLambdaActionBase> lmb = null;
+                    Func<object, Task<AnyUiLambdaActionBase>> lmbAsync = null;
                     int closureI = i;
+                    
                     if (auxButtonLambda != null)
                         lmb = (o) =>
                         {
                             return auxButtonLambda(closureI); // exchange o with i !!
                         };
+
+                    if (auxButtonLambdaAsync != null)
+                        lmbAsync = async (o) =>
+                        {
+                            return await auxButtonLambdaAsync(closureI); // exchange o with i !!
+                        };
+
                     var b = AnyUiUIElement.RegisterControl(
                         AddSmallButtonTo(
                             g, 0, 2 + i,
                             margin: new AnyUiThickness(2, 2, 2, 2),
                             padding: new AnyUiThickness(5, 0, 5, 0),
                             content: intButtonTitles[i]),
-                        lmb) as AnyUiButton;
+                        lmb, lmbAsync) as AnyUiButton;
                     if (i < intButtonToolTips.Count)
                         b.ToolTip = intButtonToolTips[i];
                 }
@@ -1127,13 +1159,13 @@ namespace AasxPackageLogic
         /// <summary>
         /// Asks the user for SME element type, allowing exclusion of types.
         /// </summary>
-        public Aas.AasSubmodelElements SelectAdequateEnum(
+        public async Task<Aas.AasSubmodelElements> SelectAdequateEnum(
             string caption, Aas.AasSubmodelElements[] excludeValues = null,
             Aas.AasSubmodelElements[] includeValues = null,
             AasxMenuActionTicket ticket = null)
         {
             // prepare a list
-            var fol = new List<AnyUiDialogueListItem>();
+            var fol = new AnyUiDialogueListItemList();
             foreach (var en in AdminShellUtil.GetAdequateEnums(excludeValues, includeValues))
                 fol.Add(new AnyUiDialogueListItem(Enum.GetName(typeof(Aas.AasSubmodelElements), en), en));
 
@@ -1148,7 +1180,7 @@ namespace AasxPackageLogic
             var uc = new AnyUiDialogueDataSelectFromList(
                 caption: caption);
             uc.ListOfItems = fol;
-            this.context.StartFlyoverModal(uc);
+            await this.context.StartFlyoverModalAsync(uc);
             if (uc.Result && uc.ResultItem != null && uc.ResultItem.Tag != null &&
                     uc.ResultItem.Tag is Aas.AasSubmodelElements)
             {
@@ -1160,17 +1192,54 @@ namespace AasxPackageLogic
             return Aas.AasSubmodelElements.SubmodelElement;
         }
 
+        public async Task<bool> SmartRefactorSme_PostProcess(
+            AdminShellPackageEnvBase packEnv,
+            Aas.ISubmodelElement oldSme,
+            Aas.ISubmodelElement newSme)
+        {
+            if (newSme is Aas.IBlob newBlob && oldSme is Aas.IFile oldFile)
+            {
+                // get file contents from a file
+                var ba = await packEnv?.GetBytesFromPackageOrExternalAsync(oldFile.Value);
+                if (ba == null || ba.Length < 1)
+                    return false;
+
+                // ask back
+                if (AnyUiMessageBoxResult.Yes != await this.context.MessageBoxFlyoutShowAsync(
+                    $"Local file contents with a len of {ba.Length} bytes found. " +
+                    $"Convert these to BLOB contents? " +
+                    $"Note: This will significantly increase the size of serialized Submodel " +
+                    $"in total",
+                    "Convert local file to BLOB contents?", AnyUiMessageBoxButton.YesNo, AnyUiMessageBoxImage.Question))
+                    return false;
+
+                // work & tell
+                newBlob.Value = ba;
+                Log.Singleton.Info(StoredPrint.Color.Blue,
+                    "When refactoring File to Blob, the following file was converted to BLOB contents of {0} bytes: {1}",
+                    ba.Length, oldFile.Value);
+
+                // ok!
+                return true;
+            }
+
+            // nope
+            return false;
+        }
+
         /// <summary>
         /// Asks the user, to which SME to refactor to, create the new SME and returns it.
         /// </summary>
-        public Aas.ISubmodelElement SmartRefactorSme(Aas.ISubmodelElement oldSme)
+        public async Task<Aas.ISubmodelElement> SmartRefactorSme(
+            AdminShellPackageEnvBase packEnv,
+            Aas.ISubmodelElement oldSme)
         {
             // access
             if (oldSme == null)
                 return null;
 
             // ask
-            var en = SelectAdequateEnum(
+            var en = await SelectAdequateEnum(
                 $"Refactor {oldSme.GetSelfDescription().AasElementName} '{"" + oldSme.IdShort}' to new element type ..",
                 excludeValues: new[] {
                     Aas.AasSubmodelElements.DataElement,
@@ -1179,7 +1248,7 @@ namespace AasxPackageLogic
             if (en == Aas.AasSubmodelElements.SubmodelElement)
                 return null;
 
-            if (AnyUiMessageBoxResult.Yes == this.context.MessageBoxFlyoutShow(
+            if (AnyUiMessageBoxResult.Yes == await this.context.MessageBoxFlyoutShowAsync(
                 "Recfactor selected entity? " +
                     "This operation will change the selected submodel element and " +
                     "delete specific attributes. It can not be reverted!",
@@ -1191,6 +1260,11 @@ namespace AasxPackageLogic
                         // which?
                         var refactorSme = AdminShellUtil.CreateSubmodelElementFromEnum(en, oldSme, 
                             defaultHelper: Options.Curr.GetCreateDefaultHelper());
+
+                        // post work?
+                        await SmartRefactorSme_PostProcess(packEnv, oldSme, refactorSme);
+
+                        // ok
                         return refactorSme;
                     }
                 }
@@ -1746,7 +1820,8 @@ namespace AasxPackageLogic
             Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
             string[] auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null,
-            int maxNumOfKey = int.MaxValue)
+            int maxNumOfKey = int.MaxValue,
+            bool addKnownSemanticId = false)
         {
             // sometimes needless to show
             if (repo == null && (keys == null || keys.Count < 1))
@@ -1867,11 +1942,24 @@ namespace AasxPackageLogic
                             this.context.StartFlyoverModal(uc);
 
                             if (uc.Result &&
-                                uc.ResultItem is AasxPredefinedConcepts.DefinitionsPoolReferableEntity pe
-                                && pe.Ref is Aas.IIdentifiable id
-                                && id.Id != null)
-                                // DECISION: references to concepts are always GlobalReferences
-                                keys.AddCheckBlank(new Aas.Key(Aas.KeyTypes.GlobalReference, id.Id));
+                                uc.ResultItem is AasxPredefinedConcepts.DefinitionsPoolReferableEntity pe)
+                            {
+                                // dedicated semanticId proposed?
+                                if (addKnownSemanticId 
+                                    && pe.Ref is Aas.IHasSemantics sem
+                                    && sem.SemanticId?.IsValid() == true)
+                                {
+                                    keys.Clear();
+                                    keys.AddRange(sem.SemanticId.Keys);
+                                }
+                                // else take the Id
+                                else if (pe.Ref is Aas.IIdentifiable id
+                                    && id.Id != null)
+                                {
+                                    // DECISION: references to concepts are always GlobalReferences
+                                    keys.AddCheckBlank(new Aas.Key(Aas.KeyTypes.GlobalReference, id.Id));
+                                }
+                            }
 
                             emitCustomEvent?.Invoke(relatedReferable);
 
@@ -2303,7 +2391,7 @@ namespace AasxPackageLogic
         // List manipulations (single entities)
         //
 
-        public int MoveElementInListUpwards<T>(List<T> list, T entity)
+        public int MoveElementInListUpwards<T>(IList<T> list, T entity)
         {
             if (list == null || list.Count < 2 || entity == null)
                 return -1;
@@ -2316,7 +2404,7 @@ namespace AasxPackageLogic
             return newndx;
         }
 
-        public int MoveElementInListDownwards<T>(List<T> list, T entity)
+        public int MoveElementInListDownwards<T>(IList<T> list, T entity)
         {
             if (list == null || list.Count < 2 || entity == null)
                 return -1;
@@ -2329,7 +2417,7 @@ namespace AasxPackageLogic
             return newndx;
         }
 
-        public int MoveElementToTopOfList<T>(List<T> list, T entity)
+        public int MoveElementToTopOfList<T>(IList<T> list, T entity)
         {
             if (list == null || list.Count < 2 || entity == null)
                 return -1;
@@ -2342,7 +2430,7 @@ namespace AasxPackageLogic
             return newndx;
         }
 
-        public int MoveElementToBottomOfList<T>(List<T> list, T entity)
+        public int MoveElementToBottomOfList<T>(IList<T> list, T entity)
         {
             if (list == null || list.Count < 2 || entity == null)
                 return -1;
@@ -2355,7 +2443,7 @@ namespace AasxPackageLogic
             return newndx;
         }
 
-        public object DeleteElementInList<T>(List<T> list, T entity, object alternativeReturn)
+        public object DeleteElementInList<T>(IList<T> list, T entity, object alternativeReturn)
         {
             if (list == null || entity == null)
                 return alternativeReturn;
@@ -2368,7 +2456,7 @@ namespace AasxPackageLogic
             return alternativeReturn;
         }
 
-        public int AddElementInListBefore<T>(List<T> list, T entity, T existing)
+        public int AddElementInListBefore<T>(IList<T> list, T entity, T existing)
         {
             if (list == null || list.Count < 1 || entity == null)
                 return -1;
@@ -2379,7 +2467,7 @@ namespace AasxPackageLogic
             return ndx;
         }
 
-        public int AddElementInListAfter<T>(List<T> list, T entity, T existing)
+        public int AddElementInListAfter<T>(IList<T> list, T entity, T existing)
         {
             if (list == null || list.Count < 1 || entity == null)
                 return -1;
@@ -2394,7 +2482,7 @@ namespace AasxPackageLogic
         // List manipulations (multiple entities)
         //
 
-        public int MoveElementsToStartingIndex<T>(List<T> list, List<T> entities, int startingIndex)
+        public int MoveElementsToStartingIndex<T>(IList<T> list, List<T> entities, int startingIndex)
         {
             // check
             if (list == null || list.Count < 1 || entities == null)
@@ -2416,7 +2504,7 @@ namespace AasxPackageLogic
             return si2;
         }
 
-        public int DeleteElementsInList<T>(List<T> list, List<T> entities)
+        public int DeleteElementsInList<T>(IList<T> list, List<T> entities)
         {
             // check
             if (list == null || list.Count < 1 || entities == null)
@@ -2434,7 +2522,7 @@ namespace AasxPackageLogic
         //
 
         public int AddElementInSmeListBefore<T>(
-            List<T> list,
+            IList<T> list,
             T entity, T existing,
             bool makeUniqueIfNeeded = false)
             where T : Aas.ISubmodelElement
@@ -2453,7 +2541,7 @@ namespace AasxPackageLogic
         }
 
         public int AddElementInSmeListAfter<T>(
-            List<T> list,
+            IList<T> list,
             T entity, T existing,
             bool makeUniqueIfNeeded = false)
             where T : Aas.ISubmodelElement
@@ -2477,13 +2565,17 @@ namespace AasxPackageLogic
 
         public void EntityListUpDownDeleteHelper<T>(
             AnyUiPanel stack, ModifyRepo repo,
-            List<T> list, Action<List<T>> setOutputList,
+            IList<T> list, Action<List<T>> setOutputList,
             T entity,
             object alternativeFocus, string label = "Entities:",
             object nextFocus = null, PackCntChangeEventData sendUpdateEvent = null, bool preventMove = false,
             Aas.IReferable explicitParent = null,
             AasxMenu superMenu = null,
-            Action<string, AasxMenuActionTicket> postActionHook = null)
+            Func<string, AasxMenuActionTicket, Task> postActionHookAsync = null,
+            AasxMenu extraMenu = null,
+            Func<int, AnyUiLambdaActionBase> lambdaExtraMenu = null,
+            Func<int, Task<AnyUiLambdaActionBase>> lambdaExtraMenuAsync = null,
+            bool moveDoesNotModify = false)
         {
             if (nextFocus == null)
                 nextFocus = entity;
@@ -2512,12 +2604,15 @@ namespace AasxPackageLogic
                         "Deletes the currently selected element.",
                         inputGesture: "Ctrl+Shift+Delete");
 
+            if (extraMenu != null)
+                theMenu.AddRange(extraMenu);
+
             AddActionPanel(
                 stack, label,
                 repo: repo,
                 superMenu: superMenu,
                 ticketMenu: theMenu,
-                ticketAction: (buttonNdx, ticket) =>
+                ticketActionAsync: async (buttonNdx, ticket) =>
                 {
                     if (buttonNdx >= 0 && buttonNdx <= 3)
                     {
@@ -2537,9 +2632,10 @@ namespace AasxPackageLogic
                         if (buttonNdx == 3) newndx = MoveElementToBottomOfList<T>(list, entity);
                         if (newndx >= 0)
                         {
-                            postActionHook?.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
+                            if (postActionHookAsync != null)
+                                await postActionHookAsync.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
 
-                            if (entityRf != null)
+                            if (entityRf != null && !moveDoesNotModify)
                                 this.AddDiaryEntry(entityRf,
                                     new DiaryEntryStructChange(StructuralChangeReason.Modify, createAtIndex: newndx),
                                     explicitParent: explicitParent);
@@ -2571,8 +2667,10 @@ namespace AasxPackageLogic
                             if (list.Count < 1)
                                 setOutputList?.Invoke(null);
 
-                            postActionHook?.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
-
+                            if (postActionHookAsync != null)
+                            {
+                                await postActionHookAsync?.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
+                            }
                             this.AddDiaryEntry(entityRf,
                                 new DiaryEntryStructChange(StructuralChangeReason.Delete),
                                 explicitParent: explicitParent);
@@ -2585,6 +2683,15 @@ namespace AasxPackageLogic
                             else
                                 return new AnyUiLambdaActionRedrawAllElements(nextFocus: ret, isExpanded: null);
                         }
+
+                    if (buttonNdx > 4)
+                    {
+                        // invoke extra menu
+                        if (lambdaExtraMenu != null)
+                            return lambdaExtraMenu?.Invoke(buttonNdx - 5);
+                        if (lambdaExtraMenuAsync != null)
+                            return await lambdaExtraMenuAsync?.Invoke(buttonNdx - 5);
+                    }
 
                     return new AnyUiLambdaActionNone();
                 });
@@ -2645,6 +2752,7 @@ namespace AasxPackageLogic
                 "Import ConceptDescriptions from ECLASS",
                 info: "Preparing ...", symbol: AnyUiMessageBoxImage.Information);
             uc.Progress = 0.0;
+            
             // show this
             this.context.StartFlyover(uc);
 
@@ -3043,6 +3151,9 @@ namespace AasxPackageLogic
             // trivial
             if (de == null)
                 return;
+
+            // tainting
+            TaintedDataDef.TaintIdentifiable(rf);
 
             // structure?
             if (de is DiaryEntryStructChange desc)

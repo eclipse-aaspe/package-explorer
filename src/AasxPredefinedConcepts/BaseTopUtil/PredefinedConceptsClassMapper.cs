@@ -7,7 +7,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
-using AasCore.Aas3_0;
+using AasCore.Aas3_1;
 using AasxIntegrationBase;
 using AasxIntegrationBase.AasForms;
 using AdminShellNS;
@@ -21,7 +21,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Intrinsics.X86;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPredefinedConcepts
 {
@@ -249,8 +249,7 @@ namespace AasxPredefinedConcepts
             //
 
 			var idsff = AdminShellUtil.FilterFriendlyName(rf.IdShort, 
-                            pascalCase: true,
-                            removeEnumerationTemplate: removeEnumerationTemplate);
+                            pascalCase: true);
 
             if (idsff.HasContent() != true)
                 return;
@@ -447,8 +446,7 @@ namespace AasxPredefinedConcepts
             //
 
             var idsff = AdminShellUtil.FilterFriendlyName(rf.IdShort, 
-                            pascalCase: true, 
-                            removeEnumerationTemplate: removeEnumerationTemplate);
+                            pascalCase: true);
             
             if (idsff.HasContent() != true)
                 return;
@@ -857,8 +855,8 @@ namespace AasxPredefinedConcepts
                 using AdminShellNS;
                 using Extensions;
                 using System;
-                using System.Collections.Generic;                
-                using Aas = AasCore.Aas3_0;");
+                using System.Collections.Generic;
+                using Aas = AasCore.Aas3_1;");
             snippets.WriteLine(head);
             snippets.WriteLine("");
 

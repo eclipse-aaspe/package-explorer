@@ -23,7 +23,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using Key = System.Windows.Input.Key;
 
 namespace AasxPackageExplorer
@@ -378,6 +378,29 @@ namespace AasxPackageExplorer
         {
             if (displayedTreeViewLines != null)
                 foreach (var ve in displayedTreeViewLines.FindAllVisualElement(p))
+                    yield return ve;
+        }
+
+        /// <summary>
+        /// Identifies visual elements, which are *directly* superordinate to Identifiable.
+        /// Note: Could contain duplicates.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<VisualElementGeneric> FindAllVisualElementTopToIdentifiable()
+        {
+            if (displayedTreeViewLines != null)
+                foreach (var ve in displayedTreeViewLines.FindAllVisualElementTopToIdentifiable())
+                    yield return ve;
+        }
+
+        /// <summary>
+        /// Identifies top visual elements, which are above all content elements
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<VisualElementGeneric> FindAllVisualElementTop()
+        {
+            if (displayedTreeViewLines != null)
+                foreach (var ve in displayedTreeViewLines.FindAllVisualElementTop())
                     yield return ve;
         }
 
@@ -956,7 +979,7 @@ namespace AasxPackageExplorer
                 // more?
                 if (packages.Repositories != null && selector == PackageCentral.Selector.MainAuxFileRepo)
                 {
-                    var pkg = new AdminShellPackageEnv();
+                    var pkg = new AdminShellPackageFileBasedEnv();
                     foreach (var fr in packages.Repositories)
                         fr.PopulateFakePackage(pkg);
 
@@ -1470,6 +1493,11 @@ namespace AasxPackageExplorer
                         ves.Add(ve);
                 }
             return ves;
+        }
+
+        public bool IsAnyTaintedIdentifiable()
+        {
+            return displayedTreeViewLines?.IsAnyTaintedIdentifiable() == true;
         }
 
     }

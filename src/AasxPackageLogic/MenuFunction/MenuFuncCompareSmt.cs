@@ -11,7 +11,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 */
 
 
-using AasCore.Aas3_0;
+using AasCore.Aas3_1;
 using AasxIntegrationBase;
 using AasxPackageLogic;
 using AdminShellNS;
@@ -42,7 +42,7 @@ using System.Windows.Forms;
 using VDS.RDF.Ontology;
 using VDS.RDF.Query.Paths;
 using static System.Net.Mime.MediaTypeNames;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using VDS.RDF.Query.Algebra;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 

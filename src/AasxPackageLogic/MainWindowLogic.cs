@@ -129,6 +129,9 @@ namespace AasxPackageExplorer
 
         public void StartScriptFile(string fn, AasxMenu menu, IAasxScriptRemoteInterface remote)
         {
+            if (Options.Curr.ScriptLoglevel > 0)
+                Log.Singleton.Info("Starting script execution: ", fn);
+
             if (_aasxScript == null)
                 _aasxScript = new AasxScript();
             var script = System.IO.File.ReadAllText(Options.Curr.ScriptFn);

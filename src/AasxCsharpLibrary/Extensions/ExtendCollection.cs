@@ -22,5 +22,15 @@ namespace AdminShellNS.Extensions
 
             return true;
         }
+
+        public static bool IsNullOrEmpty<T>(this IList<T> list)
+        {
+            if (list != null && list.Count != 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }

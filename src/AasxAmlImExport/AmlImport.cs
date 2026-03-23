@@ -38,7 +38,7 @@ namespace AasxAmlImExport
 
         public class AmlParser
         {
-            public AdminShellPackageEnv package = null;
+            public AdminShellPackageEnvBase package = null;
 
             private class TargetIdAction
             {
@@ -87,7 +87,7 @@ namespace AasxAmlImExport
 
             public AmlParser() { }
 
-            public AmlParser(AdminShellPackageEnv package)
+            public AmlParser(AdminShellPackageEnvBase package)
             {
                 this.package = package;
             }
@@ -835,7 +835,7 @@ namespace AasxAmlImExport
                                 valueAttr.AttributeDataType)) ?? DataTypeDefXsd.String;
                     }
 
-                    if (sme is AasCore.Aas3_0.Range rng)
+                    if (sme is AasCore.Aas3_1.Range rng)
                     {
                         var min = FindAttributeValueByRefSemantic(ie.Attribute, AmlConst.Attributes.Range_Min);
                         var minAttr = FindAttributeByRefSemantic(ie.Attribute, AmlConst.Attributes.Range_Min);
@@ -1634,7 +1634,7 @@ namespace AasxAmlImExport
             }
         }
 
-        public static void ImportInto(AdminShellPackageEnv package, string amlfn)
+        public static void ImportInto(AdminShellPackageEnvBase package, string amlfn)
         {
             // try open file
             var doc = CAEXDocument.LoadFromFile(amlfn);

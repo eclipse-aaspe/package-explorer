@@ -15,7 +15,7 @@ using Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic
 {
@@ -739,7 +739,7 @@ namespace AasxPackageLogic
             AnyUiPanel stack,
             ModifyRepo repo,
             CopyPasteBuffer cpbInternal,
-            List<T> parentContainer,
+            IList<T> parentContainer,
             T entity,
             Func<T, T> cloneEntity,
             Aas.IReference smref,
@@ -987,7 +987,7 @@ namespace AasxPackageLogic
             AnyUiPanel stack,
             ModifyRepo repo,
             CopyPasteBuffer cpbInternal,
-            List<T> parentContainer,
+            IList<T> parentContainer,
             T entity,
             Func<T, T> cloneEntity,
             string label = "Buffer:",
@@ -1089,15 +1089,15 @@ namespace AasxPackageLogic
                             nextBusObj = entity2;
 
                             // check if really a duplicate
-                            var treatAsDuplicate = true;
-                            if (parentContainer != null && entity2 is Aas.IIdentifiable ent2idf)
-                            {
-                                treatAsDuplicate = parentContainer.Exists((p) => p.Id?.HasContent() == true
-                                        && p.Id.Trim().ToLower() == ent2idf.Id?.Trim().ToLower());
-                            }
+                            //var treatAsDuplicate = true;
+                            //if (parentContainer != null && entity2 is Aas.IIdentifiable ent2idf)
+                            //{
+                            //    treatAsDuplicate = parentContainer.Exists((p) => p.Id?.HasContent() == true
+                            //            && p.Id.Trim().ToLower() == ent2idf.Id?.Trim().ToLower());
+                            //}
 
                             // make this pseudo-unique
-                            if (treatAsDuplicate)
+                            //if (treatAsDuplicate)
                                 this.MakeNewIdentifiableUnique((T)entity2);
 
                             // different cases

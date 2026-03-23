@@ -14,7 +14,7 @@ using AasxPluginSmdExporter.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using AdminShellNS;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPluginSmdExporter
 {

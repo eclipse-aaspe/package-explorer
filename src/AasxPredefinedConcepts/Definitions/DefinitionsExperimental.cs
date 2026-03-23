@@ -8,7 +8,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 */
 
 using Extensions;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 // reSharper disable UnusedType.Global
 // reSharper disable ClassNeverInstantiated.Global

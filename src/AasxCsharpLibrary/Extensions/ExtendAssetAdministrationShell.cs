@@ -32,15 +32,17 @@ namespace Extensions
 
         public static IEnumerable<LocatedReference> FindAllReferences(this IAssetAdministrationShell assetAdministrationShell)
         {
-            // dead-csharp off
-            // Asset
-            //TODO (jtikekar, 0000-00-00): support asset
-            //if (assetAdministrationShell.AssetInformation != null)
-            //    yield return new LocatedReference(assetAdministrationShell, assetAdministrationShell.AssetInformation);
-            // dead-csharp on
-            // Submodel references
             foreach (var r in assetAdministrationShell.AllSubmodels())
                 yield return new LocatedReference(assetAdministrationShell, r);
+        }
+
+        public static IEnumerable<LocatedReference> FindAllSubmodelReferences(this IAssetAdministrationShell assetAdministrationShell)
+        {
+            // unique set of references
+            var refs = new List<LocatedReference>();
+            foreach (var smr in assetAdministrationShell.AllSubmodels())
+                refs.AddIfNew(new LocatedReference() { Identifiable = assetAdministrationShell, Reference = smr });
+            return refs;
         }
 
         #endregion

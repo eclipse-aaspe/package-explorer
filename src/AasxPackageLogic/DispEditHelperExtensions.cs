@@ -30,7 +30,7 @@ using System.Windows;
 using System.Xaml;
 using static AasxPackageLogic.AasSmtQualifiers;
 using static AasxPackageLogic.DispEditHelperMiniModules;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using Samm = AasCore.Samm2_2_0;
 
 
@@ -368,7 +368,6 @@ namespace AasxPackageLogic
 					setValue?.Invoke(createInstance?.Invoke((string)v));
 					return new AnyUiLambdaActionNone();
 				},
-				keyVertCenter: true,
 				firstColumnWidth: firstColumnWidth,
 				auxButtonTitles: !showButtons ? null : new[] { "Existing", "New", "Jump" },
 				auxButtonToolTips: !showButtons ? null : new[] {

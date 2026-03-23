@@ -11,7 +11,7 @@ using AdminShellNS;
 using Extensions;
 using System;
 using System.Collections.Generic;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 // ReSharper disable MergeIntoPattern
 
@@ -44,7 +44,7 @@ namespace AasxPredefinedConcepts.Convert
         }
 
         public override bool ExecuteOffer(
-            AdminShellPackageEnv package, Aas.IReferable currentReferable, ConvertOfferBase offerBase,
+            AdminShellPackageEnvBase package, Aas.IReferable currentReferable, ConvertOfferBase offerBase,
             bool deleteOldCDs, bool addNewCDs)
         {
             // access

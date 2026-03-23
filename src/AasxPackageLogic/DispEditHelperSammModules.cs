@@ -26,7 +26,7 @@ using System.Xaml;
 using VDS.RDF.Parsing;
 using VDS.RDF;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using Samm = AasCore.Samm2_2_0;
 using System.Text.RegularExpressions;
 using System.Runtime.Serialization;
@@ -44,7 +44,7 @@ namespace AasxPackageLogic
 		public SammIdSet SammExtensionHelperSelectSammVersion(IEnumerable<SammIdSet> idsets)
 		{
 			// create choices
-			var fol = new List<AnyUiDialogueListItem>();
+			var fol = new AnyUiDialogueListItemList();
 			foreach (var idset in idsets)
 				fol.Add(new AnyUiDialogueListItem("" + idset.Version, idset));
 
@@ -62,7 +62,7 @@ namespace AasxPackageLogic
 		public Type SammExtensionHelperSelectSammType(Type[] addableElements)
 		{
 			// create choices
-			var fol = new List<AnyUiDialogueListItem>();
+			var fol = new AnyUiDialogueListItemList();
 			foreach (var stp in addableElements)
 				fol.Add(new AnyUiDialogueListItem("" + stp.Name, stp));
 
@@ -126,7 +126,7 @@ namespace AasxPackageLogic
 				// prompt for this list
 				var uc = new AnyUiDialogueDataSelectFromList(
 					caption: "Select preset value to add ..");
-				uc.ListOfItems = presetList.Select((st) => new AnyUiDialogueListItem("" + st, st)).ToList();
+				uc.ListOfItems = new AnyUiDialogueListItemList(presetList.Select((st) => new AnyUiDialogueListItem("" + st, st)));
 				this.context.StartFlyoverModal(uc);
 				if (uc.Result && uc.ResultItem != null && uc.ResultItem.Tag != null &&
 					uc.ResultItem.Tag is string prs)
@@ -268,7 +268,6 @@ namespace AasxPackageLogic
 					setValue?.Invoke(createInstance?.Invoke((string)v));
 					return new AnyUiLambdaActionNone();
 				},
-				keyVertCenter: true,
 				firstColumnWidth: firstColumnWidth,
 				auxButtonTitles: !showButtons ? null : new[] { "Preset", "Existing", "New", "Jump" },
 				auxButtonToolTips: !showButtons ? null : new[] {
@@ -1714,7 +1713,7 @@ namespace AasxPackageLogic
 			DispEditHelperSammModules.SammExtensionHelperUpdateJson(newSammExt, si.SammType, si.SammInst);
 
 			// save CD
-			env?.ConceptDescriptions?.Add(newCD);
+			env?.Add(newCD);
 		}		
 
 		public void ImportSammModelToConceptDescriptions(

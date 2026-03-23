@@ -59,7 +59,7 @@ namespace AasxPackageLogic.PackageCentral
         /// <summary>
         /// Shortcut to PackageContainer's Environment.
         /// </summary>
-        public AdminShellPackageEnv Env { get { return _container?.Env; } }
+        public AdminShellPackageEnvBase Env { get { return _container?.Env; } }
 
         //
         // Constructors

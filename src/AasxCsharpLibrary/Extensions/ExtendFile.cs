@@ -47,7 +47,7 @@ namespace Extensions
                 elem.Value = srcProp.Value;
             }
 
-            if (source is AasCore.Aas3_0.Range srcRng)
+            if (source is AasCore.Aas3_1.Range srcRng)
             {
                 elem.Value = srcRng.Min;
             }

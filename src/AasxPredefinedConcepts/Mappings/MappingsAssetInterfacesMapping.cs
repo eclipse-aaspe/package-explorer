@@ -12,7 +12,7 @@ using AdminShellNS;
 using Extensions;
 using System;
 using System.Collections.Generic;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 // These classes were serialized by "export predefined concepts"
 // and shall allow to automatically de-serialize AAS elements structures

@@ -228,7 +228,11 @@ namespace AnyUi
             double? fontSize = null,
             AnyUiTextWrapping? textWrap = null,
             bool? multiLine = null,
-            bool verticalCenter = false)
+            bool verticalCenter = false,
+            bool? fontMono = null,
+            bool? readOnly = null,
+            AnyUiScrollBarVisibility? verticalScroll = null,
+            bool isValReadOnly = false)
         {
             var tb = new AnyUiTextBox();
             tb.Margin = margin;
@@ -240,6 +244,7 @@ namespace AnyUi
             if (fontSize != null)
                 tb.FontSize = fontSize;
             tb.Text = text;
+            tb.IsReadOnly = isValReadOnly;
             if (verticalAlignment != null)
                 tb.VerticalAlignment = verticalAlignment;
             if (verticalContentAlignment != null)
@@ -251,6 +256,14 @@ namespace AnyUi
             }
             if (textWrap.HasValue)
                 tb.TextWrapping = textWrap.Value;
+            if (fontMono.HasValue)
+                tb.FontMono = fontMono.Value;
+            if (readOnly.HasValue)
+                tb.IsReadOnly = readOnly.Value;
+                        
+            tb.VerticalScrollBarVisibility = AnyUiScrollBarVisibility.Auto;
+            if (verticalScroll.HasValue)
+                tb.VerticalScrollBarVisibility = verticalScroll.Value;
 
             // (MIHO, 2020-11-13): be default constrain to one line
             tb.MultiLine = false;
@@ -259,7 +272,6 @@ namespace AnyUi
             if (multiLine.HasValue)
                 tb.MultiLine = multiLine.Value;
 
-            tb.VerticalScrollBarVisibility = AnyUiScrollBarVisibility.Auto;
 
             AnyUiGrid.SetRow(tb, row);
             AnyUiGrid.SetColumn(tb, col);
@@ -366,7 +378,8 @@ namespace AnyUi
             AnyUiGrid g, int row, int col, AnyUiThickness margin = null, AnyUiThickness padding = null,
             string content = "", AnyUiBrush foreground = null, AnyUiBrush background = null,
             double? setHeight = null, AnyUiVerticalAlignment? verticalAlignment = null,
-            bool? directInvoke = null, string toolTip = null)
+            bool? directInvoke = null, string toolTip = null,
+            bool? modalDialogStyle = null)
         {
             var but = new AnyUiButton();
             but.Margin = margin;
@@ -385,6 +398,8 @@ namespace AnyUi
             if (directInvoke.HasValue)
                 but.DirectInvoke = directInvoke.Value;
             but.Content = content;
+            if (modalDialogStyle != null)
+                but.ModalDialogStyle = modalDialogStyle.Value;
             if (toolTip != null)
                 but.ToolTip = toolTip;
             AnyUiGrid.SetRow(but, row);
@@ -611,19 +626,26 @@ namespace AnyUi
             bool isChecked,
             Action<bool> setValue)
         {
-            AddSmallLabelTo(grid, row, 0, content: contentLeft,
-                            verticalAlignment: AnyUiVerticalAlignment.Center,
-                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+            int col = 0;
+            if (contentLeft != null)
+            {
+                AddSmallLabelTo(grid, row, col++, content: contentLeft,
+                                verticalAlignment: AnyUiVerticalAlignment.Center,
+                                verticalContentAlignment: AnyUiVerticalAlignment.Center);
+            }
 
-            AnyUiUIElement.SetBoolFromControl(
+            var cb = AnyUiUIElement.SetBoolFromControl(
                     Set(
-                        AddSmallCheckBoxTo(grid, row, 1,
+                        AddSmallCheckBoxTo(grid, row, col++,
                             content: contentRight,
                             isChecked: isChecked,
                             verticalAlignment: AnyUiVerticalAlignment.Center,
                             verticalContentAlignment: AnyUiVerticalAlignment.Center),
                         horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
                     setValue);
+
+            if (col < 2)
+                Set(cb, colSpan: 2);
 
             row++;
         }
@@ -636,9 +658,28 @@ namespace AnyUi
             int colSpan = 1,
             AnyUiTextWrapping wrapping = AnyUiTextWrapping.Wrap)
         {
-            Set(AddSmallLabelTo(grid, row, column, content:content,
+            Set(AddSmallLabelTo(grid, row, column, content: content,
                     wrapping: wrapping),
                 colSpan: colSpan);
+            row++;
+        }
+
+        public void AddSmallLabelAndInfoToRowPlus(
+            AnyUiGrid grid,
+            ref int row,
+            string contentLabel,
+            string contentInfo,
+            AnyUiTextWrapping wrapping = AnyUiTextWrapping.Wrap)
+        {
+            AddSmallLabelTo(grid, row, 0, content: contentLabel,
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+            AddSmallLabelTo(grid, row, 1, content: contentInfo,
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center,
+                            wrapping: wrapping);
+
             row++;
         }
 
@@ -649,7 +690,7 @@ namespace AnyUi
             AddSmallBorderTo(grid, row, 0,
                 borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
                 colSpan: 2,
-                margin: new AnyUiThickness(0, 0, 0, 20));
+                margin: new AnyUiThickness(0, 5, 0, 10));
             row++;
         }
 

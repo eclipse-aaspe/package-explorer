@@ -8,8 +8,18 @@
 // Tool("sammaspectimport", "File", "C:\\HOMI\\Develop\\Aasx\\repo\\samm-test\\BatteryPass-spiel.ttl");
 // Tool("sammaspectimport", "File", "C:\\HOMI\\Develop\\Aasx\\repo\\samm-test\\Batch-MM-2_0_0.ttl");
 // Tool("exportsmtasciidoc", "File", "C:\\HOMI\\Develop\\Aasx\\repo\\new.zip", "AntoraStyle", "true");
-Tool("editkey");
-Select("Submodel", "First");
+// Tool("editkey");
+// Tool("createrepofromapi", "BaseAddress", "http://localhost:5001/api/v3.0/", "BaseType", "Repository");
+// Tool("connectextended", "BaseAddress", "http://smt-repo.admin-shell-io.com/api/v3.0", "BaseType", "Repository", "GetAllAas", "false", "GetSingleAas", "true", "AasId", "https://admin-shell.io/idta/aas/DigitalNameplate/3/0", "AutoLoadOnDemand", "false", "AutoLoadCds", "true", "ParallelReads", "10");
+// Tool("connectextended", "BaseAddress", "http://localhost:5001/api/v3.0/", "BaseType", "Repository", "GetAllAas", "false", "GetSingleAas", "true", "AasId", "http://smart.festo.com/id/demo-box/aas/instance/99920202206560529000071817", "AutoLoadOnDemand", "false", "AutoLoadCds", "true", "ParallelReads", "10");
+// Tool("connectextended", "BaseAddress", "http://smt-repo.admin-shell-io.com/api/v3.0", "BaseType", "Repository", "GetSingleAas", "false", "GetAllAas", "true", "PageLimit", "4", "AutoLoadOnDemand", "false", "AutoLoadCds", "true");
+// Tool("connectextended", "BaseAddress", "http://localhost:5001/api/v3.0/", "BaseType", "Repository", "GetSingleAas", "false", "GetAllAas", "true", "PageLimit", "99", "AutoLoadOnDemand", "false");
+// Tool("connectextended", "BaseAddress", "http://localhost:5001/api/v3.0/", "BaseType", "Repository", "GetSingleAas", "true", "AasId", "http://smart.festo.com/id/demo-box/aas/instance/99920202206560529000071817", "AutoLoadOnDemand", "false");
+// Tool("connectextended", "BaseAddress", "https://eis-data.aas-voyager.com/", "BaseType", "Repository", "GetSingleAas", "true", "PageLimit", "2", "AutoLoadOnDemand", "false", "AasId", "https://new.abb.com/products/de/2CSF204101R1400/aas");
+// Tool("connectextended", "BaseAddress", "https://techday2-registry.admin-shell-io.com/", "BaseType", "Registry", "GetSingleAas", "false", "GetAasByAssetLink", "true", "PageLimit", "2", "AutoLoadOnDemand", "false", "AssetId", "https://pk.harting.com/?.20P=ZSN1");
+// Select("AAS", "First");
+// Tool("apiuploadassistant", "BaseAddress", "http://localhost:5001/api/v3.0/", "IncludeSubmodels", true, "IncludeCDs", true, "IncludeSupplFiles", true, "OverwriteIfExist", true);
+// Select("Submodel", "First");
 // Select("Submodel", "Next");
 // Tool("exportsmtasciidoc", "File", "C:\Users\homi0002\Desktop\tmp\new.zip", "ExportHtml", "true", "ExportPdf", "false", "AntoraStyle", "false", "ViewResult", "true");
 // Select("Plugin", "First");
@@ -38,3 +48,64 @@ Select("Submodel", "First");
 // Tool("ToolsReplaceText", "FindText", "A", "ReplaceText", "B", "Do", "all");
 // WriteLine(GetLastLogLine());
 // TakeScreenShot("Test123");
+// Tool("ConnectExtended", "BaseAddress", "https://big.aas-voyager.com/", "GetAllAas", false, "GetSingleAas", true, "AasId", "https://i4d.de/T/0161962/aas", "AutoAuthenticate", true);
+
+extra = 0;
+
+if (extra == 1)
+{
+    // Fill repo with contents of Festo demo box example
+    var fns = [
+        "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\00_FestoDemoBox-Module-2.aasx",
+        "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\\12_article-dpdm-32-instance_1.aasx",
+        "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\13_article-dpdm-32-instance_2.aasx",
+        "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\16_article-ovel-10.aasx",
+        "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\17_article-spau.aasx",
+        "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\18_article-vuvg-l14_1.aasx",
+        "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\18_article-vuvg-l14_2.aasx",
+        "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\20_Festo_579071_SMT-8M-A-PS-24V-E-0.3-M12_proximity_switch.aasx",
+        "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\21_article-elgs-45-200.aasx",
+        "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\22_article-CPX-E-CEC-M1-PN.aasx",
+        "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\30_Festo_SPAU_VR3.aasx",
+        "C:\\HOMI\\Develop\\Aasx\\repo_Festo_demo_case_V3\31_HMI22_Festo_CMMT.aasx"
+    ];
+
+    foreach (fn in fns)
+    {
+        Tool("Open", "File", fn);
+        Select("AAS", "First");
+        Tool("apiuploadassistant", "BaseAddress", "http://localhost:5001/api/v3.0/", "IncludeSubmodels", true, "IncludeCDs", true, "IncludeSupplFiles", true, "IncludeThumbFiles", true, "OverwriteIfExist", true);
+        Sleep(1000);
+    }
+}
+
+if (extra == 2)
+{
+    // Fill repo with contents of Festo pneumatic solution
+    var fns = [
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\153002_QS-1_2F8-6_18c1920b-04b5-47ee-9fe4-90ad64dd9399.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\153304_QSM-M5-4_13ad7ae8-0445-432b-b8cb-423c1a5a5647.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\165003_UC-M5_44fa0abc-ed8d-4454-8db4-b3c62a766037.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\19235_DSNU-16-200-PPV-A_b6e9e102-8e5d-4265-b2f9-e11a7e3ff4b8.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\19242_DSNU-20-200-PPV-A_694e2603-1108-48ec-b0e7-bbca88e2e90f.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\19251_DSNU-25-200-PPV-A_dc152bae-a04b-483a-8a98-5770fde6662e.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\193138_GRLA-M5-QS-4-D_ea1bc555-dc1c-43e1-90af-9f43524274b5.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\193144_GRLA-1_2F8-QS-6-D_1a8d2389-5110-4246-a8ae-a53c059e0516.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\197383_PUN-H-4X0_2C75-BL_59330647-20c5-4842-9649-dee08b1724b5.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\197384_PUN-H-6X1-BL_5294f911-c057-4894-a6a0-8adeba3d312b.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\2307_U-1_2F8_49028810-43f5-4d1e-ae70-743de91f45ad.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\575263_VUVS-L20-M52-AD-G18-F7-1C1_b6a3807c-1a6e-44d2-a753-cbdb0824ff97.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\575263_VUVS-only_tech_data.aasx",
+        "C:\\Users\\Micha\\Desktop\\250206 Festo Brainstorm Digi Twin Maschine Benefits\\aasx\\8042539_VUVG-LK10-M52-AT-M5-1H2L-S_4e88bc43-28fd-4399-bdb0-fc49dfde500c.aasx"
+    ];
+
+    foreach (fn in fns)
+    {
+        Tool("Open", "File", fn);
+        Select("AAS", "First");
+        Tool("apiuploadassistant", "BaseAddress", "http://localhost:5001/api/v3.0/", "IncludeSubmodels", true, "IncludeCDs", true, "IncludeSupplFiles", true, "IncludeThumbFiles", true, "OverwriteIfExist", true);
+        Sleep(1000);
+    }
+}
+
+WriteLine("DONE!");

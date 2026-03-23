@@ -43,6 +43,8 @@ namespace AasxWpfControlLibrary.PackageCentral
             FileDoubleClick;
         public event Action<Control, PackageContainerListBase, string[]>
             FileDrop;
+        public event Func<Control, PackageContainerListBase, Task>
+            DataChanged;
 
         private PackageContainerListBase theFileRepository = null;
         public PackageContainerListBase FileRepository
@@ -61,6 +63,8 @@ namespace AasxWpfControlLibrary.PackageCentral
             InitializeComponent();
         }
 
+        private int _ticksTillReLoadStatus = 0;
+
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             // might attach to data context
@@ -73,10 +77,11 @@ namespace AasxWpfControlLibrary.PackageCentral
 
             // redraw
             RedrawStatus();
+            _ticksTillReLoadStatus = 20;
 
             // Timer for animations
             System.Windows.Threading.DispatcherTimer MainTimer = new System.Windows.Threading.DispatcherTimer();
-            MainTimer.Tick += MainTimer_Tick;
+            MainTimer.Tick += async (s,e) => await MainTimer_Tick(s,e);
             MainTimer.Interval = new TimeSpan(0, 0, 0, 0, 100);
             MainTimer.Start();
         }
@@ -111,12 +116,38 @@ namespace AasxWpfControlLibrary.PackageCentral
             if (!header.HasContent())
                 header = "Unnamed repository";
             TextBoxRepoHeader.Text = "" + header;
+
+            // set one or many
+            if (theFileRepository?.IsStaticList == true)
+            {
+                // "normal" list behavior
+                TabControlOneOrMany.SelectedItem = TabItemRepoList;
+            }                
+            else
+            {
+                // only a static display
+                TabControlOneOrMany.SelectedItem = TabItemManyRepo;
+                TextBlockManyInfo.Text = "" + theFileRepository?.GetMultiLineStatusInfo();
+            }                
         }
 
-        private void MainTimer_Tick(object sender, EventArgs e)
+        private async Task MainTimer_Tick(object sender, EventArgs e)
         {
+            await Task.Yield();
+
             if (this.theFileRepository != null)
                 this.theFileRepository.DecreaseVisualTimeBy(0.1);
+
+            // async reload status, once?
+            if (_ticksTillReLoadStatus > 0)
+            {
+                _ticksTillReLoadStatus--;
+                if (_ticksTillReLoadStatus < 1)
+                {
+                    await theFileRepository?.PrepareStatus();
+                    RedrawStatus();
+                }
+            }
         }
 
         private void UserControl_MouseLeave(object sender, MouseEventArgs e)
@@ -127,9 +158,19 @@ namespace AasxWpfControlLibrary.PackageCentral
         private void RepoList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (sender == this.RepoList && e.LeftButton == MouseButtonState.Pressed)
+            {
                 // hoping, that correct item is selected
-                this.FileDoubleClick?.Invoke(this, theFileRepository,
+                this.FileDoubleClick?.Invoke(this, theFileRepository, 
                     this.RepoList.SelectedItem as PackageContainerRepoItem);
+            }
+        }
+
+        private void ImageManyIcons_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender == ImageManyIcons && e.ClickCount == 2)
+            {
+                this.FileDoubleClick?.Invoke(this, theFileRepository, null);
+            }
         }
 
         private async void Button_Click(object sender, RoutedEventArgs e)
@@ -197,22 +238,35 @@ namespace AasxWpfControlLibrary.PackageCentral
 
             if (mi?.Name == "MenuItemDelete" && fi != null)
             {
+                // set
                 this.FileRepository?.Remove(fi);
+
+                // notify
+                await this.DataChanged?.Invoke(this, theFileRepository);
             }
 
             if (mi?.Name == "MenuItemDeleteFromFileRepo" && fi != null)
             {
+                // set (but no local change)
                 this.FileRepository?.DeletePackageFromServer(fi);
             }
 
             if (mi?.Name == "MenuItemMoveUp" && fi != null)
             {
+                // set
                 this.FileRepository?.MoveUp(fi);
+
+                // notify
+                await this.DataChanged?.Invoke(this, theFileRepository);
             }
 
             if (mi?.Name == "MenuItemMoveDown" && fi != null)
             {
+                // set
                 this.FileRepository?.MoveDown(fi);
+
+                // notify
+                await this.DataChanged?.Invoke(this, theFileRepository);
             }
 
 			if (mi?.Name == "MenuItemLoad" && fi != null)
@@ -246,6 +300,7 @@ namespace AasxWpfControlLibrary.PackageCentral
             var tb = sender as TextBox;
             var fi = this.rightClickSelectedItem;
 
+            // set (particular)
             if (tb?.Name == "TextBoxTag" && fi != null)
                 fi.Tag = tb.Text;
 
@@ -301,7 +356,44 @@ namespace AasxWpfControlLibrary.PackageCentral
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (sender == TextBoxRepoHeader && FileRepository != null)
+            {
                 FileRepository.Header = TextBoxRepoHeader.Text;
+            }
+        }
+
+        // specifically added to give some change notification, when text was finalized
+
+        private async void TextBoxRepoHeader_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (sender == TextBoxRepoHeader && FileRepository != null
+                && e.Key == System.Windows.Input.Key.Enter)
+            {
+                // ends here
+                e.Handled = true;
+
+                // notify
+                await this.DataChanged?.Invoke(this, theFileRepository);
+            }
+        }
+
+        private async void TextBoxTag_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (sender is not TextBox tb)
+                return;
+
+            var isRelevant = (tb?.Name == "TextBoxTag")
+                    || (tb?.Name == "TextBoxDescription")
+                    || (tb?.Name == "TextBoxCode")
+                    || (tb?.Name == "TextBoxUpdatePeriod");
+
+            if (isRelevant && FileRepository != null)
+            {
+                // ends here
+                e.Handled = true;
+
+                // notify
+                await this.DataChanged?.Invoke(this, theFileRepository);
+            }
         }
     }
 }

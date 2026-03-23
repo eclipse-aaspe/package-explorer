@@ -372,7 +372,7 @@ namespace Extensions
             }
         }
 
-        public static List<ISubmodelElement> SmeForWrite(this Submodel submodel)
+        public static List<ISubmodelElement> SmeForWrite(this ISubmodel submodel)
         {
             if (submodel.SubmodelElements == null)
                 submodel.SubmodelElements = new();

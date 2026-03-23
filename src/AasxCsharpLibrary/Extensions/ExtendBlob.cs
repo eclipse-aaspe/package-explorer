@@ -49,7 +49,7 @@ namespace Extensions
                     elem.Value = Encoding.Default.GetBytes(srcProp.Value);
             }
 
-            if (source is AasCore.Aas3_0.Range srcRng)
+            if (source is AasCore.Aas3_1.Range srcRng)
             {
                 if (srcRng.Min != null)
                     elem.Value = Encoding.Default.GetBytes(srcRng.Min);
@@ -66,6 +66,8 @@ namespace Extensions
             {
                 if (srcFile.Value != null)
                     elem.Value = Encoding.Default.GetBytes(srcFile.Value);
+                if (srcFile.ContentType != null)
+                    elem.ContentType = srcFile.ContentType;
             }
 
             return elem;

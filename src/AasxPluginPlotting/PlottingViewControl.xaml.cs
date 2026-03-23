@@ -21,7 +21,7 @@ using AasxIntegrationBase;
 using AasxIntegrationBase.AdminShellEvents;
 using AasxPredefinedConcepts;
 using AasxPredefinedConcepts.ConceptModel;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 using ScottPlot;
@@ -39,7 +39,7 @@ namespace AasxPluginPlotting
             InitializeComponent();
         }
 
-        private AdminShellPackageEnv _package = null;
+        private AdminShellPackageEnvBase _package = null;
         private Aas.Submodel _submodel = null;
         private PlottingOptions _options = null;
         private PluginEventStack _pluginEvents = null;
@@ -52,7 +52,7 @@ namespace AasxPluginPlotting
         private string _defaultLang = null;
 
         public void Start(
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm,
             PlottingOptions options,
             PluginEventStack pluginEvents,

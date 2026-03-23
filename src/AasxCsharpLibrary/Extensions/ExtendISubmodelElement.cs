@@ -152,7 +152,7 @@ namespace Extensions
                 return multiLanguageProperty.ValueAsText(defaultLang);
             }
 
-            if (submodelElement is AasCore.Aas3_0.Range range)
+            if (submodelElement is AasCore.Aas3_1.Range range)
             {
                 return range.ValueAsText();
             }
@@ -414,7 +414,7 @@ namespace Extensions
                 }
                 else if (sourceSubmodelElement is AdminShellV20.Range sourceRange)
                 {
-                    var newRange = new AasCore.Aas3_0.Range(DataTypeDefXsd.String);
+                    var newRange = new AasCore.Aas3_1.Range(DataTypeDefXsd.String);
                     outputSubmodelElement = newRange.ConvertFromV20(sourceRange);
                 }
                 else if (sourceSubmodelElement is AdminShellV20.File sourceFile)
@@ -1043,7 +1043,7 @@ namespace Extensions
                 where T : ISubmodelElement
         {
             if (submodelELements.IsNullOrEmpty())
-                yield return default(T);
+                yield break;
             foreach (var submodelElement in submodelELements)
                 if (submodelElement != null && submodelElement is T
                     && submodelElement.SemanticId != null)
@@ -1113,6 +1113,34 @@ namespace Extensions
             foreach (var l in lists)
                 foreach (var sme in l)
                     yield return sme;
+        }
+
+        public static string CollectIdShortPathBySmeAndParents(
+            IReferable sme,
+            IEnumerable<IReferable> parents,
+            char separatorChar = '/',
+            bool excludeIdentifiable = false)
+        {
+            // access
+            if (sme == null)
+                return null;
+            var path = "" + sme.IdShort?.Trim();
+
+            // now put the parents in front
+            if (parents != null)
+                foreach (var parent in parents.Reverse())
+                {
+                    // exclude
+                    if (parent == null || string.IsNullOrEmpty(parent.IdShort))
+                        continue;
+                    if (excludeIdentifiable && parent is IIdentifiable)
+                        continue;
+                    // prepend
+                    path = parent.IdShort.Trim() + separatorChar + path;
+                }
+
+            // ok
+            return path;
         }
 
         public static void RecurseOnReferables(

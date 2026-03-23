@@ -19,7 +19,7 @@ using AasxPluginExportTable.TimeSeries;
 using AasxPluginExportTable.Uml;
 using AnyUi;
 using JetBrains.Annotations;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 using static AnyUi.AnyUiDialogueDataSaveFile;
@@ -27,6 +27,7 @@ using DocumentFormat.OpenXml.Drawing.Charts;
 using AasxPluginExportTable.Table;
 using AasxPluginExportTable;
 using AasxPluginExportTable.Smt;
+using AasxPluginExportTable.BulkChange;
 
 namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
 {
@@ -220,6 +221,23 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                     }
                 });
 
+                // change semantic ids
+                res.Add(new AasxPluginResultSingleMenuItem()
+                {
+                    AttachPoint = "Change",
+                    MenuItem = new AasxMenuItem()
+                    {
+                        Name = "BulkChangeSemanticIds",
+                        Header = "Bulk change of semanticIds …",
+                        HelpText = "Bulk change of semanticIds in package file given by a list of changes.",
+                        ArgDefs = new AasxMenuListOfArgDefs()
+                                .Add("File", "Filename and path of file to imported.")
+                                .Add("Format", "Format to be 'Excel'.")
+                                .Add("Record", "Record data", hidden: true)
+                                .AddFromReflection(new ImportTimeSeriesRecord())
+                    }
+                });
+
                 // return
                 return new AasxPluginResultProvideMenuItems()
                 {
@@ -299,6 +317,13 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                         if (cmd == "importtimeseries")
                         {
                             await AnyUiDialogueTimeSeries.ImportTimeSeriesDialogBased(
+                                _log, ticket, displayContext);
+                            return new AasxPluginResultBase();
+                        }
+
+                        if (cmd == "bulkchangesemanticids")
+                        {
+                            await AnyUiDialogueBulkChangeSemanticId.BulkChangeSemanticIdDialogBased(
                                 _log, ticket, displayContext);
                             return new AasxPluginResultBase();
                         }

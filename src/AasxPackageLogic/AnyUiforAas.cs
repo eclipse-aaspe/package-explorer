@@ -15,7 +15,7 @@ using Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic
 {
@@ -285,6 +285,7 @@ namespace AasxPackageLogic
 
         public IList<PackageContainerRepoItem> Items = null;
         public PackageContainerRepoItem ResultItem = null;
+        public string ResultId = null;
 
         public AnyUiDialogueDataSelectFromRepository(
             string caption = "",
@@ -293,6 +294,7 @@ namespace AasxPackageLogic
         {
         }
 
+#if __old
         public PackageContainerRepoItem SearchId(string aid)
         {
             // condition
@@ -315,6 +317,7 @@ namespace AasxPackageLogic
 
             return null;
         }
+#endif
     }
 
     public class AnyUiDialogueDataSelectQualifierPreset : AnyUiDialogueDataBase

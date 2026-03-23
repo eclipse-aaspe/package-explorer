@@ -13,7 +13,7 @@ using System.Linq;
 using AasxDictionaryImport.Model;
 using AasxDictionaryImport.Tests;
 using AdminShellNS;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using NUnit.Framework;
 using Extensions;
 

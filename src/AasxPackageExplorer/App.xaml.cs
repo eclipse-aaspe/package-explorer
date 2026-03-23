@@ -88,7 +88,6 @@ namespace AasxPackageExplorer
             var loadedPlugins = Plugins.TryActivatePlugins(pluginDllInfos);
 
             Plugins.TrySetOptionsForPlugins(pluginDllInfos, loadedPlugins);
-
             return loadedPlugins;
         }
 
@@ -144,7 +143,7 @@ namespace AasxPackageExplorer
 
                 // retrieve
                 Plugins.TryGetDefaultOptionsForPlugins(Options.Curr.PluginDll, Plugins.LoadedPlugins);
-                OptionsInformation.WriteJson(Options.Curr, fullFilename);
+                OptionsInformation.WriteJson(Options.Curr, fullFilename, withComments: true);
             }
 
             // colors

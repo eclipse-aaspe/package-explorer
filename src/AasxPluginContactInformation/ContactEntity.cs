@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using AasxIntegrationBase;
 using AasxIntegrationBaseGdi;
 using AasxPredefinedConcepts;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 using AnyUi;
@@ -117,7 +117,7 @@ namespace AasxPluginContactInformation
         //
 
         public static ListOfContactEntity ParseSubmodelForV10(
-            AdminShellPackageEnv thePackage,
+            AdminShellPackageEnvBase thePackage,
             Aas.Submodel subModel, AasxPluginContactInformation.ContactInformationOptions options,
             string defaultLang,
             int selectedDocClass, AasxLanguageTuple selectedLanguage)

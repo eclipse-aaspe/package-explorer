@@ -1393,6 +1393,8 @@ namespace AnyUi
         public new string Content = null;
         public string ToolTip = null;
 
+        public bool ModalDialogStyle = false;
+
         /// <summary>
         /// If set to true, Blazor will not create a special action session
         /// for executing all the implications of the lambda. This special

@@ -91,7 +91,8 @@ namespace AasxPackageLogic.PackageCentral
                 packageCentral, location, containerOptions);
 
             if (overrideLoadResident || true == res.ContainerOptions?.LoadResident)
-                await res.LoadFromSourceAsync(fullItemLocation, runtimeOptions);
+                if (!await res.LoadFromSourceAsync(fullItemLocation, containerOptions, runtimeOptions))
+                    return null;
 
             return res;
         }
@@ -205,8 +206,9 @@ namespace AasxPackageLogic.PackageCentral
                 yield return ri;
         }
 
-        public override async Task LoadFromSourceAsync(
+        public override async Task<bool> LoadFromSourceAsync(
             string fullItemLocation,
+            PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
         {
             // check extension
@@ -243,7 +245,7 @@ namespace AasxPackageLogic.PackageCentral
             try
             {
                 // TODO (MIHO, 2020-12-15): consider removing "indirectLoadSave" from AdminShellPackageEnv
-                Env = new AdminShellPackageEnv(fn, indirectLoadSave: false);
+                Env = new AdminShellPackageFileBasedEnv(fn, indirectLoadSave: false);
             }
             catch (Exception ex)
             {
@@ -253,10 +255,12 @@ namespace AasxPackageLogic.PackageCentral
             }
 
             await Task.Yield();
+
+            return true;
         }
 
         public override async Task SaveToSourceAsync(string saveAsNewFileName = null,
-            AdminShellPackageEnv.SerializationFormat prefFmt = AdminShellPackageEnv.SerializationFormat.None,
+            AdminShellPackageFileBasedEnv.SerializationFormat prefFmt = AdminShellPackageFileBasedEnv.SerializationFormat.None,
             PackCntRuntimeOptions runtimeOptions = null,
             bool doNotRememberLocation = false)
         {
@@ -350,7 +354,9 @@ namespace AasxPackageLogic.PackageCentral
             try
             {
                 if (!IsOpen && Location.HasContent())
-                    await LoadFromSourceAsync(fullItemLocation, PackageCentral?.CentralRuntimeOptions);
+                    await LoadFromSourceAsync(fullItemLocation,
+                        // Note: container options missing?!
+                        runtimeOptions: PackageCentral?.CentralRuntimeOptions);
                 OnPropertyChanged("VisualIsLoaded");
             }
             catch (Exception ex)

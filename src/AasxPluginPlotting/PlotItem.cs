@@ -26,7 +26,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using AasxIntegrationBase;
 using AasxIntegrationBase.AdminShellEvents;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 using ScottPlot;
@@ -274,7 +274,7 @@ namespace AasxPluginPlotting
         }
 
         public void RebuildFromSubmodel(
-            AdminShellPackageEnv package,
+            AdminShellPackageEnvBase package,
             Aas.Submodel sm, string lang)
         {
             // clear & access

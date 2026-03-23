@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Media;
 using AasxIntegrationBase;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 using System.Windows;
@@ -36,7 +36,7 @@ namespace AasxPluginBomStructure
     /// </summary>
     public class GenericBomControl
     {
-        private AdminShellPackageEnv _package;
+        private AdminShellPackageEnvBase _package;
         private Aas.Submodel _submodel;
         private bool _createOnPackage = false;
 
@@ -244,7 +244,7 @@ namespace AasxPluginBomStructure
             object opackage, object osm, object masterDockPanel)
         {
             // access
-            _package = opackage as AdminShellPackageEnv;
+            _package = opackage as AdminShellPackageEnvBase;
             _submodel = osm as Aas.Submodel;
             _createOnPackage = false;
             _bomOptions = bomOptions;
@@ -979,7 +979,7 @@ namespace AasxPluginBomStructure
             DockPanel master)
         {
             // access
-            _package = opackage as AdminShellPackageEnv;
+            _package = opackage as AdminShellPackageEnvBase;
             _submodel = null;
             _createOnPackage = true;
             _bomOptions = bomOptions;
@@ -1047,7 +1047,7 @@ namespace AasxPluginBomStructure
         }
 
         private Microsoft.Msagl.Drawing.Graph CreateGraph(
-            AdminShellPackageEnv env,
+            AdminShellPackageEnvBase env,
             Aas.Submodel sm,
             GenericBomCreatorOptions options,
             bool createOnPackage = false)

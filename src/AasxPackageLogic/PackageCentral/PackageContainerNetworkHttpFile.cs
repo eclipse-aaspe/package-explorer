@@ -93,7 +93,8 @@ namespace AasxPackageLogic.PackageCentral
             res.ContainerList = containerList;
 
             if (overrideLoadResident || true == res.ContainerOptions?.LoadResident)
-                await res.LoadFromSourceAsync(fullItemLocation, runtimeOptions);
+                if (!await res.LoadFromSourceAsync(fullItemLocation, containerOptions, runtimeOptions))
+                    return null;
 
             return res;
         }
@@ -264,7 +265,7 @@ namespace AasxPackageLogic.PackageCentral
                         long lastBytesRead = 0;
                         int bytesRead;
 
-                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Starting,
+                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.StartDownload,
                                 contentLength, totalBytesRead);
 
                         while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length,
@@ -278,14 +279,14 @@ namespace AasxPackageLogic.PackageCentral
                             if (totalBytesRead > lastBytesRead + deltaSize)
                             {
                                 runtimeOptions?.Log?.Info($".. downloading to temp-file {TempFn}");
-                                runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Ongoing,
+                                runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.PerformDownload,
                                     contentLength, totalBytesRead);
                                 lastBytesRead = totalBytesRead;
                             }
                         }
 
                         // assume bytes read to be total bytes
-                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.Final,
+                        runtimeOptions?.ProgressChanged?.Invoke(PackCntRuntimeOptions.Progress.EndDownload,
                             totalBytesRead, totalBytesRead);
 
                         // log                
@@ -300,8 +301,9 @@ namespace AasxPackageLogic.PackageCentral
             }
         }
 
-        public override async Task LoadFromSourceAsync(
+        public override async Task<bool> LoadFromSourceAsync(
             string fullItemLocation,
+            PackageContainerOptionsBase containerOptions = null,
             PackCntRuntimeOptions runtimeOptions = null)
         {
             // buffer to temp file
@@ -319,7 +321,7 @@ namespace AasxPackageLogic.PackageCentral
             // open
             try
             {
-                Env = new AdminShellPackageEnv(TempFn, indirectLoadSave: false);
+                Env = new AdminShellPackageFileBasedEnv(TempFn, indirectLoadSave: false);
                 runtimeOptions?.Log?.Info($".. successfully opened as AASX environment: {Env?.AasEnv?.ToString()}");
             }
             catch (Exception ex)
@@ -328,6 +330,8 @@ namespace AasxPackageLogic.PackageCentral
                     $"While opening buffered aasx {TempFn} from source {this.ToString()} " +
                     $"at {AdminShellUtil.ShortLocation(ex)} gave: {ex.Message}");
             }
+
+            return true;
         }
 
         public override async Task<bool> SaveLocalCopyAsync(
@@ -445,7 +449,7 @@ namespace AasxPackageLogic.PackageCentral
         }
 
         public override async Task SaveToSourceAsync(string saveAsNewFileName = null,
-            AdminShellPackageEnv.SerializationFormat prefFmt = AdminShellPackageEnv.SerializationFormat.None,
+            AdminShellPackageFileBasedEnv.SerializationFormat prefFmt = AdminShellPackageFileBasedEnv.SerializationFormat.None,
             PackCntRuntimeOptions runtimeOptions = null,
             bool doNotRememberLocation = false)
         {

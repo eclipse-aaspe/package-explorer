@@ -35,6 +35,8 @@ namespace AasxPackageExplorer
         // TODO (MIHO, 2020-12-21): make DiaData non-Nullable
         public AnyUiDialogueDataProgress DiaData = new AnyUiDialogueDataProgress();
 
+        private System.Windows.Threading.DispatcherTimer _timer = null;
+
         public ProgressBarFlyout(string caption = null, string info = null, AnyUiMessageBoxImage? symbol = null)
         {
             InitializeComponent();
@@ -46,6 +48,20 @@ namespace AasxPackageExplorer
                 DiaData.Info = info;
             if (symbol.HasValue)
                 DiaData.Symbol = symbol.Value;
+
+            // timer
+            _timer = new System.Windows.Threading.DispatcherTimer();
+            _timer.Interval = new TimeSpan(0, 0, 0, 0, 100);
+            _timer.Start();
+            _timer.Tick += (object sender, EventArgs e) =>
+            {                
+                if (DiaData?.DialogShallClose == true)
+                {
+                    if (this._timer != null)
+                        this._timer.Stop();
+                    ControlClosed?.Invoke();
+                }
+            };
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)

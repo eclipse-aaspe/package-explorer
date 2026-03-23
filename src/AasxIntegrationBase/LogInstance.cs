@@ -251,11 +251,17 @@ namespace AasxIntegrationBase
         public int NumberErrors = 0;
 
         /// <summary>
+        /// Incremented for each blue (important) message
+        /// </summary>
+        public int NumberBlues = 0;
+
+        /// <summary>
         /// Clears errors
         /// </summary>
         public void ClearNumberErrors()
         {
             NumberErrors = 0;
+            NumberBlues = 0;
         }
 
         #region //////// Append to Log
@@ -282,6 +288,10 @@ namespace AasxIntegrationBase
         /// </summary>
         public void Info(StoredPrint.Color color, string msg, params object[] args)
         {
+            if (color == StoredPrint.Color.Red)
+                NumberErrors++;
+            if (color == StoredPrint.Color.Blue)
+                NumberBlues++;
             var p = new StoredPrint(color, String.Format(msg, args));
             Append(p);
         }

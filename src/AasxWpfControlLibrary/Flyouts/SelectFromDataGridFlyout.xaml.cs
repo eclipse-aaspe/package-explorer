@@ -148,7 +148,7 @@ namespace AasxPackageExplorer
                     DiaData.ButtonIndex = bi;
 
             // give result
-            if (PrepareResult())
+            if (PrepareResult() || DiaData.EmptySelectOk)
             {
                 DiaData.Result = true;
                 ControlClosed?.Invoke();

@@ -21,7 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using Samm = AasCore.Samm2_2_0;
 
 namespace AasxPackageLogic
@@ -208,8 +208,8 @@ namespace AasxPackageLogic
 
                                 // define dialogue and map presets into dialogue items
                                 var uc = new AnyUiDialogueDataSelectFromList();
-                                uc.ListOfItems = presets.Select((pr)
-                                        => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }).ToList();
+                                uc.ListOfItems = new AnyUiDialogueListItemList(presets.Select((pr)
+                                        => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }));
 
                                 // perform dialogue
                                 this.context.StartFlyoverModal(uc);
@@ -375,7 +375,7 @@ namespace AasxPackageLogic
                         }))
                 {
                     AddKeyReference(
-                        substack, "semanticId", 
+                        substack, "semanticId",
                         qual.SemanticId, () => qual.SemanticId = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
@@ -497,7 +497,7 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
                 {
-                    AddKeyReference(substack, "valueId", 
+                    AddKeyReference(substack, "valueId",
                         qual.ValueId, () => qual.ValueId = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
@@ -584,7 +584,7 @@ namespace AasxPackageLogic
                     }))
             {
                 AddKeyReference(
-                    substack, "semanticId", 
+                    substack, "semanticId",
                     pair.SemanticId, () => pair.SemanticId = null,
                     repo,
                     packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
@@ -631,7 +631,7 @@ namespace AasxPackageLogic
                         return new AnyUiLambdaActionRedrawEntity();
                     }))
             {
-                AddKeyReference(substack, "externalSubjectId", 
+                AddKeyReference(substack, "externalSubjectId",
                     pair.ExternalSubjectId, () => pair.ExternalSubjectId = null,
                     repo,
                     packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
@@ -680,8 +680,8 @@ namespace AasxPackageLogic
 
                                 // define dialogue and map presets into dialogue items
                                 var uc = new AnyUiDialogueDataSelectFromList();
-                                uc.ListOfItems = presets.Select((pr)
-                                        => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }).ToList();
+                                uc.ListOfItems = new AnyUiDialogueListItemList(presets.Select((pr)
+                                        => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }));
 
                                 // perform dialogue
                                 this.context.StartFlyoverModal(uc);
@@ -916,7 +916,7 @@ namespace AasxPackageLogic
                             {
                                 // read file contents
                                 var init = System.IO.File.ReadAllText(pfn);
-                                
+
                                 // TODO (MIHO, 2024-01-024): refactor this                                
                                 JsonTextReader reader = new JsonTextReader(new StringReader(init));
                                 JsonSerializer serializer = new JsonSerializer();
@@ -926,8 +926,8 @@ namespace AasxPackageLogic
 
                                 // define dialogue and map presets into dialogue items
                                 var uc = new AnyUiDialogueDataSelectFromList();
-                                uc.ListOfItems = presets.Select((pr)
-                                        => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }).ToList();
+                                uc.ListOfItems = new AnyUiDialogueListItemList(presets.Select((pr)
+                                        => new AnyUiDialogueListItem() { Text = pr.name, Tag = pr }));
 
                                 // perform dialogue
                                 this.context.StartFlyoverModal(uc);
@@ -1111,7 +1111,7 @@ namespace AasxPackageLogic
                     {
                         AddVerticalSpace(substack);
                         AddKeyReference(
-                            substack, "semanticId", 
+                            substack, "semanticId",
                             extension.SemanticId, () => extension.SemanticId = null,
                             repo,
                             packages, PackageCentral.PackageCentral.Selector.MainAux,
@@ -1183,8 +1183,8 @@ namespace AasxPackageLogic
                             substack, this.repo, extension.RefersTo, "refersTo:", "Create data element!",
                             v =>
                             {
-                                extension.RefersTo = new List<IReference>() { 
-                                    Options.Curr.GetDefaultEmptyReference(), 
+                                extension.RefersTo = new List<IReference>() {
+                                    Options.Curr.GetDefaultEmptyReference(),
                                 };
                                 this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                                 return new AnyUiLambdaActionRedrawEntity();
@@ -1268,6 +1268,7 @@ namespace AasxPackageLogic
             Aas.IReferable relatedReferable = null,
             Action<Aas.IReferable> emitCustomEvent = null,
             bool showRefSemId = true,
+            bool addKnownSemanticId = false,
             Func<int, AnyUiLambdaActionBase> auxButtonLambda = null,
             string[] auxButtonTitles = null, string[] auxButtonToolTips = null,
             string[] auxContextHeader = null, Func<int, AnyUiLambdaActionBase> auxContextLambda = null)
@@ -1369,7 +1370,7 @@ namespace AasxPackageLogic
                 {
                     // careful! Full recursion of edit function
                     AddKeyReference(
-                        footerPanel, "referredSem.Id", 
+                        footerPanel, "referredSem.Id",
                         refkeys.ReferredSemanticId, () => refkeys.ReferredSemanticId = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.Main, addExistingEntities: "All",
@@ -1396,7 +1397,7 @@ namespace AasxPackageLogic
             //
 
             AddKeyListKeys(
-                view, key, refkeys.Keys, 
+                view, key, refkeys.Keys,
                 setReferenceNull,
                 repo, packages, selector,
                 addExistingEntities, modifyAddExistingKey,
@@ -1417,7 +1418,8 @@ namespace AasxPackageLogic
 
                     // pass on
                     emitCustomEvent?.Invoke(o);
-                });
+                },
+                addKnownSemanticId: addKnownSemanticId);
         }
 
         //
@@ -1793,7 +1795,7 @@ namespace AasxPackageLogic
                             if (valuePairs.Count > 0)
                                 valuePairs.RemoveAt(valuePairs.Count - 1);
                             if (valuePairs.Count < 1)
-                                setValueList?.Invoke(null);                            
+                                setValueList?.Invoke(null);
                         }
 
                         return new AnyUiLambdaActionRedrawEntity();
@@ -1834,7 +1836,7 @@ namespace AasxPackageLogic
                                             .CreateFrom(text: "" + valuePairs[i].Value,
                                                 lang: AdminShellUtil.GetDefaultLngIso639()),
                                         definition: ExtendILangStringDefinitionTypeIec61360
-                                            .CreateFrom("" + valuePairs[i].Value, 
+                                            .CreateFrom("" + valuePairs[i].Value,
                                                 lang: AdminShellUtil.GetDefaultLngIso639()),
                                         dataType: Aas.DataTypeIec61360.StringTranslatable));
 
@@ -1981,7 +1983,7 @@ namespace AasxPackageLogic
                             return new AnyUiLambdaActionRedrawEntity();
                         }))
                 {
-                    AddKeyReference(substack, "valueId", 
+                    AddKeyReference(substack, "valueId",
                         vp.ValueId, () => vp.ValueId = null,
                         repo,
                         packages, PackageCentral.PackageCentral.Selector.MainAuxFileRepo,
@@ -2000,7 +2002,7 @@ namespace AasxPackageLogic
             public Aas.IConceptDescription Cd;
             public AasSmtQualifiers.SmtCardinality Card = AasSmtQualifiers.SmtCardinality.One;
             public bool SmlNoOrderRelevant = false;
-			public SmtAttributeRecord SmtRec;
+            public SmtAttributeRecord SmtRec;
         }
 
         /// <summary>
@@ -2014,9 +2016,9 @@ namespace AasxPackageLogic
             public AasSubmodelElements? Sme;
         }
 
-		protected static List<AnyUiDialogueDataGridRow> DispSmeListAddNewCheckForSmtItems(
+        protected static List<AnyUiDialogueDataGridRow> DispSmeListAddNewCheckForSmtItems(
             PackageCentral.PackageCentral packages,
-			Aas.IReference basedOnSemanticId)
+            Aas.IReference basedOnSemanticId)
         {
             // access 
             var res = new List<AnyUiDialogueDataGridRow>();
@@ -2034,11 +2036,11 @@ namespace AasxPackageLogic
                     // SMT extension
                     foreach (var smtRec in DispEditHelperExtensions
                         .CheckReferableForExtensionRecords<SmtAttributeRecord>(cd))
-                    {    
+                    {
                         foreach (var item in SmtAttributeRecord.FindChildElementsForConcept(packages, cd, smtRec))
                             candidates.Add(item);
                     }
-                    
+
                     // SAMM extension
                     foreach (var me in DispEditHelperSammModules.CheckReferableForSammElements(cd))
                     {
@@ -2052,16 +2054,16 @@ namespace AasxPackageLogic
             {
                 // access
                 if (cand.Cd == null || cand.SmtRec == null)
-                    continue;                
+                    continue;
 
-				// Submodel
-				if (cand.SmtRec.IsSubmodel)
+                // Submodel
+                if (cand.SmtRec.IsSubmodel)
                 {
                     // basically makes no sense
                     res.Add(new AnyUiDialogueDataGridRow()
                     {
                         // Text = $"{cd.IdShort} (Submodel) {cd.Id}",
-                        Cells = (new[] { "-", SmtAttributeRecord.CardinalityShort(cand.Card), "SM", 
+                        Cells = (new[] { "-", SmtAttributeRecord.CardinalityShort(cand.Card), "SM",
                             cand.Cd.IdShort, cand.Cd.Id }).ToList(),
                         Tag = new DispSmeListAddNewSmtItemRecord()
                         {
@@ -2069,36 +2071,36 @@ namespace AasxPackageLogic
                             SmtRec = cand.SmtRec,
                             Sme = null
                         }
-					});
+                    });
                 }
                 else
                 {
                     if (cand.SmtRec.SubmodelElements != null)
                         foreach (var smet in cand.SmtRec.SubmodelElements)
-						    res.Add(new AnyUiDialogueDataGridRow()
-						    {
-							    // Text = $"{cd.IdShort} ({smet.ToString()}) {cd.Id}",
-								Cells = (new[] { "-", SmtAttributeRecord.CardinalityShort(cand.Card), 
-                                    ExtendISubmodelElement.ToString(smet), 
+                            res.Add(new AnyUiDialogueDataGridRow()
+                            {
+                                // Text = $"{cd.IdShort} ({smet.ToString()}) {cd.Id}",
+                                Cells = (new[] { "-", SmtAttributeRecord.CardinalityShort(cand.Card),
+                                    ExtendISubmodelElement.ToString(smet),
                                     cand.Cd.IdShort, cand.Cd.Id }).ToList(),
-								Tag = new DispSmeListAddNewSmtItemRecord()
-								{
-									Cd = cand.Cd,
-									SmtRec = cand.SmtRec,
-									Sme = smet
-								}
-							});
-				}
+                                Tag = new DispSmeListAddNewSmtItemRecord()
+                                {
+                                    Cd = cand.Cd,
+                                    SmtRec = cand.SmtRec,
+                                    Sme = smet
+                                }
+                            });
+                }
             }
 
             // ok
             return res;
-		}
+        }
 
         protected void DispSmeListAddNewDetailOnItems<T>(
             List<T> smeList,
             List<AnyUiDialogueDataGridRow> items) where T : class, ISubmodelElement
-		{
+        {
             // access
             if (smeList == null || items == null)
                 return;
@@ -2120,10 +2122,10 @@ namespace AasxPackageLogic
             }
         }
 
-		/// <summary>
-		/// Provides a menu to add a new SubmodelElement to a list of these.
-		/// </summary>
-		public void DispSmeListAddNewHelper<T>(
+        /// <summary>
+        /// Provides a menu to add a new SubmodelElement to a list of these.
+        /// </summary>
+        public void DispSmeListAddNewHelper<T>(
             Aas.IEnvironment env,
             AnyUiStackPanel stack, ModifyRepo repo, string key,
             List<T> smeList,
@@ -2138,8 +2140,8 @@ namespace AasxPackageLogic
             // gather potential SMT element items
             var smtElemItem = DispSmeListAddNewCheckForSmtItems(packages, basedOnSemanticId);
 
-			// hint
-			this.AddHintBubble(stack, hintMode, new[] {
+            // hint
+            this.AddHintBubble(stack, hintMode, new[] {
                     new HintCheck(
                         () => { return smeList == null || smeList.Count < 1; },
                             "This element currently has no SubmodelElements, yet. " +
@@ -2178,9 +2180,9 @@ namespace AasxPackageLogic
             // 4
             if (smtElemItem.Count > 0)
             {
-				menu.AddAction("add-smt-guided", "Add SMT guided ..",
-				    "Adds a element based on SMT organized elements given by semanticId.");
-			}
+                menu.AddAction("add-smt-guided", "Add SMT guided ..",
+                    "Adds a element based on SMT organized elements given by semanticId.");
+            }
 
             this.AddActionPanel(
                 stack, key,
@@ -2211,11 +2213,12 @@ namespace AasxPackageLogic
                                         Aas.AasSubmodelElements.Blob,
                                         Aas.AasSubmodelElements.ReferenceElement};
 
-                            en = this.SelectAdequateEnum("Select SubmodelElement to create ..", ticket: ticket,
+                            en = await this.SelectAdequateEnum("Select SubmodelElement to create ..", ticket: ticket,
                                 includeValues: includes,
-                                excludeValues: new[] { 
+                                excludeValues: new[] {
                                     Aas.AasSubmodelElements.DataElement,
-                                    Aas.AasSubmodelElements.EventElement
+                                    Aas.AasSubmodelElements.EventElement,
+                                    Aas.AasSubmodelElements.ContainerElement
                                 } );
                         }
 
@@ -2223,7 +2226,7 @@ namespace AasxPackageLogic
                         if (en != Aas.AasSubmodelElements.SubmodelElement)
                         {
                             T sme2 = (T)
-                                AdminShellUtil.CreateSubmodelElementFromEnum(en, 
+                                AdminShellUtil.CreateSubmodelElementFromEnum(en,
                                     defaultHelper: Options.Curr.GetCreateDefaultHelper());
 
                             // add
@@ -2259,16 +2262,16 @@ namespace AasxPackageLogic
                         // rework list
                         DispSmeListAddNewDetailOnItems(smeList, smtElemItem);
 
-						// show list
-						var uc = new AnyUiDialogueDataSelectFromDataGrid(
+                        // show list
+                        var uc = new AnyUiDialogueDataSelectFromDataGrid(
                                     "Select element(s) to be created guided by SMT attributes ..",
                                     maxWidth: 1400);
-                        
+
                         uc.ColumnDefs = AnyUiListOfGridLength.Parse(new[] { "1*", "1*", "1*", "5*", "8*" });
                         uc.ColumnHeaders = new[] { "Present", "Card.", "Type", "IdShort", "Id" };
                         uc.Rows = smtElemItem;
-                        
-						await this.context.StartFlyoverModalAsync(uc);
+
+                        await this.context.StartFlyoverModalAsync(uc);
                         var itemsAdded = 0;
                         ISubmodelElement lastSme = null;
                         if (uc.ResultItems != null)
@@ -2313,8 +2316,8 @@ namespace AasxPackageLogic
                             Log.Singleton.Info($"{itemsAdded} elements guided by SMT were added.");
 
                         if (lastSme != null)
-							return new AnyUiLambdaActionRedrawAllElements(nextFocus: lastSme, isExpanded: true);
-					}
+                            return new AnyUiLambdaActionRedrawAllElements(nextFocus: lastSme, isExpanded: true);
+                    }
 
                     return new AnyUiLambdaActionNone();
                 });

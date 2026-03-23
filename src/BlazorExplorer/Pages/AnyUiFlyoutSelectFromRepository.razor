@@ -101,12 +101,16 @@
 		if (!(DialogueData is AnyUiDialogueDataSelectFromRepository ddsfr))
 			return;
 
+		// replaced by FindByAssetId.. in repository search
+#if __old
 		var ri = ddsfr.SearchId(_assetId);
 		if (ri != null)
 		{
-			ddsfr.ResultItem = ri;
-			LeaveResult(true);
+			ddsfr.ResultItem = ri;			
 		}
+#endif
+
+		LeaveResult(true);
 	}
 
 	public void LeaveResult(bool result)

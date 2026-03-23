@@ -16,7 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using AasxIntegrationBase.AdminShellEvents;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 using JetBrains.Annotations;
@@ -167,7 +167,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
             if (action == "fill-panel-visual-extension" && args != null && args.Length >= 3)
             {
                 // access
-                var package = args[0] as AdminShellPackageEnv;
+                var package = args[0] as AdminShellPackageEnvBase;
                 var sm = args[1] as Aas.Submodel;
                 var master = args[2] as DockPanel;
                 if (package == null || sm == null || master == null)

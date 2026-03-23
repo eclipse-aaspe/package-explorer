@@ -30,15 +30,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageExplorer
-{
+{   
     /// <summary>
     /// This partial class contains all command bindings, such as for the main menu, in order to reduce the
     /// complexity of MainWindow.xaml.cs
     /// </summary>
-    public partial class MainWindow : Window, IFlyoutProvider
+    public partial class MainWindow : Window, IFlyoutProvider, IExecuteMainCommand
     {
         private string lastFnForInitialDirectory = null;
 
@@ -48,7 +48,6 @@ namespace AasxPackageExplorer
         //// or
         //// <MenuItem Header="([^"]+)"\s+([^I]|InputGestureText="([^"]+)")(.*?)Command="{StaticResource (\w+)}"/>
         //// .AddWpf\(name: "\5", header: "\1", inputGesture: "\3", \4\)
-
 
         public void RememberForInitialDirectory(string fn)
         {
@@ -86,17 +85,93 @@ namespace AasxPackageExplorer
         /// <summary>
         /// Redraw tree elements (middle), AAS entitty (right side)
         /// </summary>
-        public void CommandExecution_RedrawAll()
+        public async Task CommandExecution_RedrawAllAsync()
         {
             // redraw everything
-            RedrawAllAasxElements();
-            RedrawElementView();
+            await RedrawAllAasxElementsAsync();
+            await RedrawElementViewAsync();
         }
 
         /// <summary>
         /// Set to <c>true</c>, if the application shall be shut down via script
         /// </summary>
         public bool ScriptModeShutdown = false;
+        
+        public async Task<int> ExecuteMainMenuCommand(string menuItemName, bool scriptMode, params object[] args)
+        {
+            if (menuItemName?.HasContent() != true)
+            {
+                Log.Singleton.Error("MainWindow execute menu command: menu item name missing!");
+                return -1;
+            }
+
+            // name of tool, find it
+            var foundMenu = this.GetMainMenu();
+            var mi = foundMenu.FindName(menuItemName);
+            if (mi == null)
+            {
+                foundMenu = this.GetDynamicMenu();
+                mi = foundMenu.FindName(menuItemName);
+            }
+            if (mi == null)
+            {
+                Log.Singleton.Error($"MainWindow execute menu command: menu item name invalid: {menuItemName}");
+                return -1;
+            }
+
+            // create a ticket
+            var ticket = new AasxMenuActionTicket()
+            {
+                MenuItem = mi,
+                ScriptMode = scriptMode,
+                ArgValue = new AasxMenuArgDictionary()
+            };
+
+            // go thru the remaining arguments and find arg names and values
+            var argi = 0;
+            while (args != null && argi < args.Length)
+            {
+                // get arg name
+                if (!(args[argi] is string argname))
+                {
+                    Log.Singleton.Error($"MainWindow execute menu command: Argument at index {argi} is " +
+                        $"not string type for argument name.");
+                    return -1;
+                }
+
+                // find argname?
+                var ad = mi.ArgDefs?.Find(argname);
+                if (ad == null)
+                {
+                    Log.Singleton.Error($"MainWindow execute menu command: Argument at index {argi} is " +
+                        $"not valid argument name.");
+                    return -1;
+                }
+
+                // create arg value (not available is okay)
+                object av = null;
+                if (argi + 1 < args.Length)
+                    av = args[argi + 1];
+
+                // into ticket
+                ticket.ArgValue.Add(ad, av);
+
+                // 2 forward!
+                argi += 2;
+            }
+
+            // invoke action
+            await foundMenu.ActivateAction(mi, ticket);
+
+            // perform UI updates if required
+            if (ticket.UiLambdaAction != null && !(ticket.UiLambdaAction is AnyUiLambdaActionNone))
+            {
+                // add to "normal" event quoue
+                this.AddWishForToplevelAction(ticket.UiLambdaAction);
+            }
+
+            return 0;
+        }
 
         private async Task CommandBinding_GeneralDispatch(
             string cmd,
@@ -234,14 +309,14 @@ namespace AasxPackageExplorer
                     Log.Singleton.Info("TreeSelect2: " + rf.IdShort);
 
                 // edit mode affects the total element view
-                RedrawAllAasxElements();
+                await RedrawAllAasxElementsAsync();
+                // fake selection
+                await RedrawElementViewAsync();
                 // select last object
                 if (currMdo != null)
                 {
                     DisplayElements.TrySelectMainDataObject(currMdo, wishExpanded: true, specialTreeUpdate: true);
                 }
-                // use selection to display right panel
-                RedrawElementView();
             }
 
             // REFACTOR: DIFFERENT
@@ -395,7 +470,7 @@ namespace AasxPackageExplorer
             }
         }
 
-        public void CommandBinding_CheckAndFix()
+        public async Task CommandBinding_CheckAndFix()
         {
             // work on package
             var msgBoxHeadline = "Check, validate and fix ..";
@@ -417,7 +492,7 @@ namespace AasxPackageExplorer
 
                 // validate as XML
                 var ms = new MemoryStream();
-                PackageCentral.Main.SaveAs("noname.xml", true, AdminShellPackageEnv.SerializationFormat.Xml, ms,
+                PackageCentral.Main.SaveAs("noname.xml", true, AdminShellPackageFileBasedEnv.SerializationFormat.Xml, ms,
                     saveOnlyCopy: true);
                 ms.Flush();
                 ms.Position = 0;
@@ -426,7 +501,7 @@ namespace AasxPackageExplorer
 
                 // validate as JSON
                 var ms2 = new MemoryStream();
-                PackageCentral.Main.SaveAs("noname.json", true, AdminShellPackageEnv.SerializationFormat.Json, ms2,
+                PackageCentral.Main.SaveAs("noname.json", true, AdminShellPackageFileBasedEnv.SerializationFormat.Json, ms2,
                     saveOnlyCopy: true);
                 ms2.Flush();
                 ms2.Position = 0;
@@ -488,7 +563,7 @@ namespace AasxPackageExplorer
                    AnyUiMessageBoxButton.OK, AnyUiMessageBoxImage.Information);
 
                 // redraw
-                CommandExecution_RedrawAll();
+                await CommandExecution_RedrawAllAsync();
             }
         }
 
@@ -532,7 +607,7 @@ namespace AasxPackageExplorer
 
             // start CONNECT as a worker (will start in the background)
             var worker = new BackgroundWorker();
-            AdminShellPackageEnv envToload = null;
+            AdminShellPackageFileBasedEnv envToload = null;
             worker.DoWork += (s1, e1) =>
             {
                 for (int i = 0; i < 15; i++)
@@ -1201,7 +1276,7 @@ namespace AasxPackageExplorer
             return true;
         }
 
-        public void CommandBinding_ImportDictToSubmodel(
+        public async Task CommandBinding_ImportDictToSubmodel(
             string cmd,
             AasxMenuActionTicket ticket = null)
         {
@@ -1253,7 +1328,7 @@ namespace AasxPackageExplorer
                 if (dataChanged)
                 {
                     Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
-                    RestartUIafterNewPackage();
+                    await RestartUIafterNewPackage();
                     Mouse.OverrideCursor = null;
                 }
 #endif
@@ -1289,7 +1364,7 @@ namespace AasxPackageExplorer
                 if (dataChanged)
                 {
                     Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
-                    RestartUIafterNewPackage();
+                    await RestartUIafterNewPackage();
                     Mouse.OverrideCursor = null;
                 }
 #endif
@@ -1325,141 +1400,8 @@ namespace AasxPackageExplorer
                         $"Import/Export: While displaying html-based help.");
                 }
             };
-            // dead-csharp off
-            //if (cmd == "exporttable" || cmd == "importtable")
-            //{
-            //    if (ticket?.ScriptMode != true)
-            //    {
-            //        // interactive
-            //        // handle the export dialogue
-            //        var uc = new ExportTableFlyout((cmd == "exporttable")
-            //            ? "Export SubmodelElements as Table"
-            //            : "Import SubmodelElements from Table");
-            //        uc.Presets = Logic?.GetImportExportTablePreset().Item1;
 
-            //        StartFlyoverModal(uc);
-
-            //        if (uc.CloseForHelp)
-            //        {
-            //            callHelp?.Invoke();
-            //            return;
-            //        }
-
-            //        if (uc.Result == null)
-            //            return;
-
-            //        // have a result
-            //        var record = uc.Result;
-
-            //        // be a little bit specific
-            //        var dlgTitle = "Select text file to be exported";
-            //        var dlgFileName = "";
-            //        var dlgFilter = "";
-
-            //        if (record.Format == (int)ImportExportTableRecord.FormatEnum.TSF)
-            //        {
-            //            dlgFileName = "new.txt";
-            //            dlgFilter =
-            //                "Tab separated file (*.txt)|*.txt|Tab separated file (*.tsf)|*.tsf|All files (*.*)|*.*";
-            //        }
-            //        if (record.Format == (int)ImportExportTableRecord.FormatEnum.LaTex)
-            //        {
-            //            dlgFileName = "new.tex";
-            //            dlgFilter = "LaTex file (*.tex)|*.tex|All files (*.*)|*.*";
-            //        }
-            //        if (record.Format == (int)ImportExportTableRecord.FormatEnum.Excel)
-            //        {
-            //            dlgFileName = "new.xlsx";
-            //            dlgFilter = "Microsoft Excel (*.xlsx)|*.xlsx|All files (*.*)|*.*";
-            //        }
-            //        if (record.Format == (int)ImportExportTableRecord.FormatEnum.Word)
-            //        {
-            //            dlgFileName = "new.docx";
-            //            dlgFilter = "Microsoft Word (*.docx)|*.docx|All files (*.*)|*.*";
-            //        }
-            //        if (record.Format == (int)ImportExportTableRecord.FormatEnum.NarkdownGH)
-            //        {
-            //            dlgFileName = "new.md";
-            //            dlgFilter = "Markdown (*.md)|*.md|All files (*.*)|*.*";
-            //        }
-
-            //        // store
-            //        ticket["Record"] = record;
-
-            //        // ask now for a filename
-            //        if (!(await DisplayContext.MenuSelectSaveFilenameToTicketAsync(
-            //            ticket, "File",
-            //            dlgTitle,
-            //            dlgFileName,
-            //            dlgFilter,
-            //            "Import/ export table: No valid filename.")))
-            //            return;
-            //    }
-
-            //    // pass on
-            //    try
-            //    {
-            //        Logic?.CommandBinding_GeneralDispatchHeadless(cmd, null, ticket);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Logic?.LogErrorToTicket(ticket, ex, "Import/export table: passing on.");
-            //    }
-            //}
-
-            //if (cmd == "importtimeseries")
-            //{
-            //    if (ticket?.ScriptMode != true)
-            //    {
-            //        // interactive
-            //        // handle the export dialogue
-            //        var uc = new ImportTimeSeriesFlyout();
-            //        uc.Result = Logic?.GetImportExportTablePreset().Item3 ?? new ImportTimeSeriesRecord();
-
-            //        StartFlyoverModal(uc);
-
-            //        if (uc.Result == null)
-            //            return;
-
-            //        // have a result
-            //        var result = uc.Result;
-
-            //        // store
-            //        ticket["Record"] = result;
-
-            //        // be a little bit specific
-            //        var dlgTitle = "Select file for time series import ..";
-            //        var dlgFilter = "All files (*.*)|*.*";
-
-            //        if (result.Format == (int)ImportTimeSeriesRecord.FormatEnum.Excel)
-            //        {
-            //            dlgFilter =
-            //                "Tab separated file (*.txt)|*.txt|Tab separated file (*.tsf)|*.tsf|All files (*.*)|*.*";
-            //        }
-
-            //        // ask now for a filename
-            //        if (!(await DisplayContext.MenuSelectOpenFilenameToTicketAsync(
-            //            ticket, "File",
-            //            dlgTitle,
-            //            null,
-            //            dlgFilter,
-            //            "Import time series: No valid filename.")))
-            //            return;
-            //    }
-
-            //    // pass on
-            //    try
-            //    {
-            //        Logic?.CommandBinding_GeneralDispatchHeadless(cmd, null, ticket);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Logic?.LogErrorToTicket(ticket, ex, "Import time series: passing on.");
-            //    }
-            //}
-            // dead-csharp on
-            // redraw
-            CommandExecution_RedrawAll();
+            await CommandExecution_RedrawAllAsync();
         }
 
         public async Task CommandBinding_ToolsFind(

@@ -319,7 +319,7 @@ namespace AnyUi
                             if ( ((cntl.EmitEvent & AnyUiEventMask.LeftDown) > 0)
                                 || ((cntl.EmitEvent & AnyUiEventMask.LeftDouble) > 0) )
                             {
-                                wpf.MouseLeftButtonDown += (s5, e5) => {
+                                wpf.MouseLeftButtonDown += async (s5, e5) => {
                                     if (e5.LeftButton == MouseButtonState.Pressed)
                                     {
                                         // get the current coordinates relative to the framework element
@@ -338,6 +338,8 @@ namespace AnyUi
                                         {
                                             var la = cntl.setValueLambda?.Invoke(
                                                 new AnyUiEventData(AnyUiEventMask.LeftDown, cntl, e5.ClickCount, p));
+                                            if (la == null && cntl.setValueAsyncLambda != null)
+                                                la = await cntl.setValueAsyncLambda.Invoke(cntl);
                                             EmitOutsideAction(la);
                                         }
                                     }
@@ -699,15 +701,23 @@ namespace AnyUi
                             // double click
                             if ((cntl.EmitEvent & AnyUiEventMask.MouseAll) > 0)
                             {
-                                wpf.MouseDown += (s2,e2) =>
+                                wpf.MouseDown += async (s2,e2) =>
                                 {
                                     if (((cntl.EmitEvent & AnyUiEventMask.LeftDown) > 0) && (e2.ClickCount == 1))
-                                        cntl.setValueLambda?.Invoke(
+                                    {
+                                        var la = cntl.setValueLambda?.Invoke(
                                             new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2));
+                                        if (la == null) await cntl.setValueAsyncLambda?.Invoke(
+                                            new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2));
+                                    }
 
                                     if (((cntl.EmitEvent & AnyUiEventMask.LeftDouble) > 0) && (e2.ClickCount == 2))
-                                        cntl.setValueLambda?.Invoke(
+                                    {
+                                        var la = cntl.setValueLambda?.Invoke(
                                             new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2));
+                                        if (la == null) await cntl.setValueAsyncLambda?.Invoke(
+                                            new AnyUiEventData(AnyUiEventMask.LeftDouble, cntl, 2));
+                                    }
                                 };
                             }
                         }
@@ -942,6 +952,7 @@ namespace AnyUi
 
                             wpf.VerticalScrollBarVisibility = (ScrollBarVisibility)
                                 ((int) cntl.VerticalScrollBarVisibility);
+
                             if (cntl.MaxLines != null)
                                 wpf.MaxLines = cntl.MaxLines.Value;
                             wpf.Text = cntl.Text;
@@ -1003,7 +1014,6 @@ namespace AnyUi
                             wpf.Padding = GetWpfTickness(cntl.Padding);
                         if (cntl.IsEditable.HasValue)
                             wpf.IsEditable = cntl.IsEditable.Value;
-
                         if (cntl.Items != null)
                         {
                             foreach (var i in cntl.Items)
@@ -1144,6 +1154,12 @@ namespace AnyUi
 
                         wpf.Content = cntl.Content;
                         wpf.ToolTip = cntl.ToolTip;
+
+                        if (cntl.ModalDialogStyle)
+                        {
+                            wpf.SetResourceReference(Control.StyleProperty, "TranspRoundCorner");;
+                        }
+
                         // callbacks
                         wpf.Click += async (sender, e) =>
                         {
@@ -2176,7 +2192,8 @@ namespace AnyUi
             string caption,
             string workDir,
             string cmd,
-            string args)
+            string args,
+            string[] ignoreError = null)
         {
             // create dialogue
             var uc = new AnyUiDialogueDataLogMessage(caption);
@@ -2198,7 +2215,6 @@ namespace AnyUi
 
                 // start process??
                 proc = new Process();
-                proc.StartInfo.UseShellExecute = true;
                 proc.StartInfo.FileName = cmd;
                 proc.StartInfo.Arguments = args;
                 proc.StartInfo.RedirectStandardOutput = true;
@@ -2247,8 +2263,21 @@ namespace AnyUi
                     if (msg?.HasContent() == true)
                         lock (logBuffer)
                         {
-                            logError = true;
-                            logBuffer.Add(new StoredPrint(StoredPrint.Color.Red, "" + msg));
+                            // check if to ignore
+                            var ignore = false;
+                            if (ignoreError != null)
+                                foreach (var ign in ignoreError)
+                                    if (msg.IndexOf(ign, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                                        ignore = true;
+
+                            // how to handle?
+                            if (ignore)
+                                logBuffer.Add(new StoredPrint(StoredPrint.Color.Yellow, "" + msg));
+                            else
+                            {
+                                logError = true;
+                                logBuffer.Add(new StoredPrint(StoredPrint.Color.Red, "" + msg));
+                            }
                         };
                 };
 

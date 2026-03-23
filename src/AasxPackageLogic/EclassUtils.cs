@@ -8,6 +8,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 */
 
 using AdminShellNS;
+using AdminShellNS.Extensions;
 using AngleSharp.Text;
 using Extensions;
 using Microsoft.IdentityModel.Tokens;
@@ -17,7 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic
 {

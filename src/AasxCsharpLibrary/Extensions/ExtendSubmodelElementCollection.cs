@@ -77,7 +77,7 @@ namespace Extensions
         public static T FindFirstIdShortAs<T>(this SubmodelElementCollection submodelElementCollection, string idShort) where T : ISubmodelElement
         {
 
-            var submodelElement = submodelElementCollection.Value.Where(sme => (sme != null) && (sme is T) && sme.IdShort.Equals(idShort, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            var submodelElement = submodelElementCollection.Value.Where(sme => (sme != null) && (sme is T) && sme.IdShort?.Equals(idShort, StringComparison.OrdinalIgnoreCase) == true).FirstOrDefault();
 
             return (T)submodelElement;
         }

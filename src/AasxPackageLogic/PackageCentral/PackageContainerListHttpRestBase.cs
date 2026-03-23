@@ -32,6 +32,7 @@ namespace AasxPackageLogic.PackageCentral
         /// OpenIdClient to be used by the repository/ registry. To be set, when
         /// first time used.
         /// </summary>
+        [JsonIgnore]
         public OpenIdClientInstance OpenIdClient = null;
     }
 }

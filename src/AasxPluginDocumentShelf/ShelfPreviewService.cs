@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace AasxPluginDocumentShelf
 {
@@ -42,7 +43,7 @@ namespace AasxPluginDocumentShelf
 			_log = log;
 
 			_dispatcherTimer = new System.Timers.Timer(_timerTickMs);
-			_dispatcherTimer.Elapsed += DispatcherTimer_Tick;
+			_dispatcherTimer.Elapsed += async (s,e) => await DispatcherTimer_Tick(s,e);
 			_dispatcherTimer.Enabled = true;
 			_dispatcherTimer.Start();
 		}
@@ -61,15 +62,25 @@ namespace AasxPluginDocumentShelf
 			public string PackageFn = null;
 			public string SupplFn = null;
 
+			public string AasId = "";
+			public string SmId = "";
+			public string IdShortPath = "";
+
 			public AnyUiBitmapInfo Bitmap = null;
 
-			public AdminShellPackageEnv Package = null;
+			public AdminShellPackageEnvBase Package = null;
 
 			public DateTime LastUse = DateTime.Now;
 
-			public RenderEntity(AdminShellPackageEnv package, string supplFn)
+			public RenderEntity(
+				AdminShellPackageEnvBase package, 
+				string aasId, string smId, string idShortPart,
+                string supplFn)
 			{
 				Package = package;
+				AasId = aasId;
+				SmId = smId;
+				IdShortPath = idShortPart;
 				PackageFn = package?.Filename;
 				SupplFn = supplFn;
 			}
@@ -138,7 +149,7 @@ namespace AasxPluginDocumentShelf
 
 		private bool _inDispatcherTimer = false;
 
-		private void DispatcherTimer_Tick(object sender, EventArgs e)
+		private async Task DispatcherTimer_Tick(object sender, EventArgs e)
 		{
 			// access
 			if (_toRenderEntities == null || _renderedEntities == null || _inDispatcherTimer)
@@ -169,7 +180,8 @@ namespace AasxPluginDocumentShelf
 					if (ent?.Package != null && ent.PackageFn != null && ent.SupplFn != null)
 					{
 						// try check if Magick.NET library is available
-						var thumbBI = AnyUiGdiHelper.MakePreviewFromPackageOrUrl(ent.Package, ent.SupplFn);
+						var thumbBI = await AnyUiGdiHelper.MakePreviewFromPackageOrUrlAsync(
+							ent.Package, ent.SupplFn, ent.AasId, ent.SmId, ent.IdShortPath);
 						if (thumbBI != null)
 						{
 							ent.Bitmap = thumbBI;

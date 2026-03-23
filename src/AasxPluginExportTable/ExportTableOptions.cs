@@ -31,6 +31,8 @@ namespace AasxPluginExportTable
         public string SmtExportViewCmd = "";
         public string SmtExportViewArgs = "";
 
+        public List<string> SmtExportIgnoreError = new List<string>();
+
         public ExportUmlRecord UmlExport = null;
 
         public ImportTimeSeriesRecord TimeSeriesImport = null;

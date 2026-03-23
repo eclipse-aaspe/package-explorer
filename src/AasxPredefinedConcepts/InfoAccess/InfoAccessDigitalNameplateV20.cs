@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 using Extensions;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using System;
 using AdminShellNS;
 

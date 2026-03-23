@@ -17,20 +17,20 @@ using System.Collections.Generic;
 using System.Linq;
 using VDS.RDF;
 using VDS.RDF.Parsing;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxBammRdfImExport
 {
     public static class BAMMRDFimport
     {
 
-        public static AdminShellNS.AdminShellPackageEnv thePackageEnv;
+        public static AdminShellNS.AdminShellPackageEnvBase thePackageEnv;
 
         public static void ImportInto(
             string rdffn, Aas.IEnvironment env, Aas.ISubmodel sm,
             Aas.Reference smref)
         {
-            thePackageEnv = new AdminShellNS.AdminShellPackageEnv();
+            thePackageEnv = new AdminShellNS.AdminShellPackageFileBasedEnv();
             List<string> entity_subject = new List<string>();
             List<string> autos_list = new List<string>();
             List<string> set_list = new List<string>();
