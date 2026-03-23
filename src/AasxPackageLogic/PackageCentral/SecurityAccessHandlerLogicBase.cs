@@ -12,37 +12,25 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IdentityModel.Tokens.Jwt;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Security.RightsManagement;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
 using AasxIntegrationBase;
 using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using AnyUi;
-using Extensions;
 using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
-using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
-using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageExplorer
 {
@@ -437,7 +425,7 @@ namespace AasxPackageExplorer
 
         protected virtual async Task<string[]> AskForTokenExchange()
         {
-            string[] tokenExchanges = ["none", "none", "none"];
+            string[] tokenExchanges = ["none", "none"];
 
             var ucJob = new AnyUiDialogueDataModalPanel("With token exchange?");
             ucJob.ActivateRenderPanel(null,

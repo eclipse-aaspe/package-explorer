@@ -7,10 +7,6 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
-using AasxOpenIdClient;
-using AdminShellNS;
-using Namotion.Reflection;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,6 +18,10 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using AasxOpenIdClient;
+using AdminShellNS;
+using Namotion.Reflection;
+using Newtonsoft.Json;
 using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic.PackageCentral
@@ -290,10 +290,25 @@ namespace AasxPackageLogic.PackageCentral
             // prepare request
             var requestContent = new StringContent(requestBody, Encoding.UTF8, requestContentType);
 
-            // retrieve response
-            var response = await client.PostAsync(requestPath, requestContent);
+            // make a request
+            HttpResponseMessage response = null;
+            using (var requestMessage =
+                new HttpRequestMessage(HttpMethod.Post, requestPath))
+            {
+                // assume headers to be for authorization
+                if (runtimeOptions?.HttpHeaderData?.Headers != null)
+                    foreach (var header in runtimeOptions.HttpHeaderData?.Headers)
+                    {
+                        requestMessage.Headers.Add(header.Key, header.Value);
+                    }
 
-            if (response.IsSuccessStatusCode)
+                requestMessage.Content = requestContent;
+                response = await client.SendAsync(requestMessage,
+                    HttpCompletionOption.ResponseHeadersRead);
+
+            }
+
+            if (response != null && response.IsSuccessStatusCode)
             {
                 //
                 // this portion of the code is prepared to receive large sets of content data
@@ -304,7 +319,7 @@ namespace AasxPackageLogic.PackageCentral
 
                 // log
                 if (runtimeOptions?.ExtendedConnectionDebug == true)
-                    runtimeOptions  .Log?.Info($".. response with header-content-len {contentLength} " +
+                    runtimeOptions.Log?.Info($".. response with header-content-len {contentLength} " +
                         $"and file-name {contentFn} ..");
 
                 var contentStream = await response?.Content?.ReadAsStreamAsync();
@@ -318,7 +333,7 @@ namespace AasxPackageLogic.PackageCentral
                 if (contentFn != null)
                     givenFn = contentFn;
                 if (runtimeOptions?.ExtendedConnectionDebug == true)
-                    runtimeOptions  .Log?.Info($".. downloading and scanning by proxy/firewall {client.BaseAddress} " +
+                    runtimeOptions.Log?.Info($".. downloading and scanning by proxy/firewall {client.BaseAddress} " +
                         $"and request {requestPath} .. ");
 
                 using (var memStream = new MemoryStream())
@@ -372,7 +387,7 @@ namespace AasxPackageLogic.PackageCentral
             else
             {
                 //
-                // assume smaller conent data
+                // assume smaller content data
                 //
                 var responseContents = await response.Content.ReadAsStringAsync();
 
@@ -474,6 +489,13 @@ namespace AasxPackageLogic.PackageCentral
                 // var data = new StringContent("1.2345", Encoding.UTF8, "application/json");
             }
 
+            // assume headers to be for authorization
+            if (runtimeOptions?.HttpHeaderData?.Headers != null)
+                foreach (var header in runtimeOptions.HttpHeaderData?.Headers)
+                {
+                    overallContent.Headers.Add(header.Key, header.Value);
+                }
+
             // get response?
             using (var response = (!usePost) 
                 ? await client.PutAsync(requestPath, overallContent)
@@ -510,18 +532,35 @@ namespace AasxPackageLogic.PackageCentral
                 runtimeOptions.Log?.Info($"HttpClient DELETE() with base-address {client.BaseAddress} " +
                     $"and request {requestPath} .. ");
 
+
+            // make a request
+            HttpResponseMessage response = null;
+            using (var requestMessage =
+                new HttpRequestMessage(HttpMethod.Delete, requestPath))
+            {
+                // assume headers to be for authorization
+                if (runtimeOptions?.HttpHeaderData?.Headers != null)
+                    foreach (var header in runtimeOptions.HttpHeaderData?.Headers)
+                    {
+                        requestMessage.Headers.Add(header.Key, header.Value);
+                    }
+
+                response = await client.SendAsync(requestMessage);
+            }
+
+            var content = "";
+
             // get response?
-            using (var response = await client.DeleteAsync(requestPath))
+            if (response != null)
             {
                 // try read in any case, despite:
                 // https://stackoverflow.com/questions/17640666/httpclient-deleteasync-and-content-readadstringasync-always-return-null
-                var content = "";
                 if (response.StatusCode != HttpStatusCode.NoContent)
                     await response.Content.ReadAsStringAsync();
-
-                // ok!
-                return new Tuple<HttpStatusCode, string>(response.StatusCode, content);
             }
+            // ok!
+            return new Tuple<HttpStatusCode, string>(response.StatusCode, content);
+
         }
 
         public static async Task<Tuple<HttpStatusCode, string>> HttpPutPostIdentifiable(
