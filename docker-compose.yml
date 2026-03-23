@@ -16,6 +16,10 @@ services:
       - "8080:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-    # Optional: Konfiguration vom Host
+    # Standard: Im Image liegen BlazorExplorer.options.json (Release-Quelle) und options-debug.MIHO.json
+    # neben BlazorExplorer.dll. Zusätzliche JSON-Datei einlesen (wie Windows-Profil „BlazorUI“):
+    #   command: ["dotnet", "BlazorExplorer.dll", "-read-json", "options-debug.MIHO.json"]
+    # Optional: eigene Default-Optionen statt eingebetteter Release-Datei:
     # volumes:
     #   - ./my-options.json:/app/BlazorExplorer.options.json:ro
+    #   - ./options-debug.MIHO.json:/app/options-debug.MIHO.json:ro

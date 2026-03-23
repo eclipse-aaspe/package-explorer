@@ -6,27 +6,21 @@
   </PropertyGroup>
 
   <!--
-  The default options for Debug differ from Release such that the plugin directory is
-    ".", while Release's plugin directory is ".\\plugins"
+  Program.InferOptions() loads BlazorExplorer.options.json next to the executable.
+  Use explicit Include+Link so bin/ and publish/ always get that exact filename (Debug vs Release sources).
   -->
-  <Choose>
-    <When Condition="'$(Configuration)' == 'Debug'">
-      <ItemGroup>
-        <None Update="BlazorExplorer.options-for-debug.json">
-          <Link>BlazorExplorer.options.json</Link>
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-      </ItemGroup>
-    </When>
-    <When Condition="'$(Configuration)' == 'Release'">
-      <ItemGroup>
-        <None Update="BlazorExplorer.options-for-release.json">
-          <Link>BlazorExplorer.options.json</Link>
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-      </ItemGroup>
-    </When>
-  </Choose>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <None Include="BlazorExplorer.options-for-debug.json"
+            Link="BlazorExplorer.options.json"
+            CopyToOutputDirectory="PreserveNewest"
+            CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <None Include="BlazorExplorer.options-for-release.json"
+            Link="BlazorExplorer.options.json"
+            CopyToOutputDirectory="PreserveNewest"
+            CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
   
   <ItemGroup>
     <Compile Remove="wwwroot\_content\**" />
@@ -38,6 +32,7 @@
   <ItemGroup>
     <Compile Remove="Pages\Index.cshtml.cs" />
     <Content Remove="BlazorExplorer.options-for-release.json" />
+    <Content Remove="BlazorExplorer.options-for-debug.json" />
     <Content Remove="local-identifier-presets.json" />
     <Content Remove="options-debug.MIHO.json" />
     <Content Remove="Pages\Component.razor" />
@@ -59,12 +54,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="BlazorExplorer.options-for-release.json" />
     <None Include="local-identifier-presets.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
+    <!-- Optional overlay; use: dotnet BlazorExplorer.dll -read-json options-debug.MIHO.json (see launchSettings) -->
     <None Include="options-debug.MIHO.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
     <None Include="StylePile.cs">
       <Generator>TextTemplatingFileGenerator</Generator>

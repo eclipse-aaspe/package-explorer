@@ -44,5 +44,7 @@ docker run --rm -p 8080:8080 adminshellio/aasx-package-explorer-blazor-for-demo:
 ## Hinweise
 
 - **`.dockerignore`** liegt im **Repository-Root** (wichtig für Remote-Build).
-- **Release**-Publish → `BlazorExplorer.options-for-release.json` (siehe `.csproj`).
-- Optional: `BlazorExplorer.options.json` per Volume mounten.
+- Beim Publish landen **`BlazorExplorer.options.json`** (Inhalt aus `BlazorExplorer.options-for-release.json`) und **`options-debug.MIHO.json`** unter `/app` (siehe `BlazorExplorer.csproj`).
+- Zusätzliche Optionen wie unter Windows (Profil „BlazorUI“ / `launchSettings.json`):  
+  `command: ["dotnet", "BlazorExplorer.dll", "-read-json", "options-debug.MIHO.json"]` in `docker-compose.yml`, oder dieselben Argumente an `docker run …` anhängen.
+- Optional: `BlazorExplorer.options.json` per Volume überschreiben (siehe `docker-compose.yml`).

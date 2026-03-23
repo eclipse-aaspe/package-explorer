@@ -32,3 +32,6 @@ sample-aasx/
 /src/MsaglWpfControl/Properties/AssemblyInfo.cs
 /.vs/AASPE_Code/v17/.wsuo
 /.vs
+
+# Local dotnet publish test output (do not commit)
+_pubtest*/
