@@ -1,4 +1,4 @@
-﻿@page "/StatusBar"
+@page "/StatusBar"
 @using System.Threading
 @using Microsoft.AspNetCore.Components.Web
 @using MW.Blazor
@@ -99,6 +99,9 @@
                     break;
                 case StoredPrint.Color.Red:
                     UpdateMessage(sp.msg, AnyUiBrushes.White, AnyUiBrushes.Red);
+                    break;
+                case StoredPrint.Color.Green:
+                    UpdateMessage(sp.msg, AnyUiBrushes.White, AnyUiBrushes.DarkGreen);
                     break;
             }
 

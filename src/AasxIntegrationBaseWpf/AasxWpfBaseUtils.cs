@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -230,6 +230,9 @@ namespace AasxIntegrationBase
                     case StoredPrint.Color.Black:
                         tr.ApplyPropertyValue(TextElement.ForegroundProperty, colors.BrushBlack);
                         break;
+                    case StoredPrint.Color.Green:
+                        tr.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.DarkGreen);
+                        break;
                 }
             }
 
@@ -295,6 +298,9 @@ namespace AasxIntegrationBase
                     case StoredPrint.Color.Black:
                         pr.Foreground = colors.BrushBlack;
                         break;
+                    case StoredPrint.Color.Green:
+                        pr.Foreground = Brushes.DarkGreen;
+                        break;
                 }
             }
 
@@ -353,6 +359,9 @@ namespace AasxIntegrationBase
                         break;
                     case StoredPrint.Color.Black:
                         tr.ApplyPropertyValue(TextElement.ForegroundProperty, colors.BrushBlack);
+                        break;
+                    case StoredPrint.Color.Green:
+                        tr.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.DarkGreen);
                         break;
                 }
             }

@@ -51,6 +51,8 @@
             horStyle.Set("flex-direction", "row", add: true);
             horStyle.Set("flex-wrap", "wrap", add: true);
             horStyle.Set("align-items", "center", add: true);
+            horStyle.Set("align-content", "flex-start", add: true);
+            horStyle.Set("gap", "3px 4px", add: true);
             horStyle.Set("min-width", "0", add: true);
             <div @attributes="@PanelAttributes" style="@horStyle" data-source="AnyUiRenderStackPanel.razor HOR">
                 @{

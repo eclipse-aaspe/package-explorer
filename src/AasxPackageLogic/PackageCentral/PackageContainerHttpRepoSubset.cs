@@ -2936,7 +2936,7 @@ namespace AasxPackageLogic.PackageCentral
                     var panel = new AnyUiStackPanel();
                     var helper = new AnyUiSmallWidgetToolkit();
 
-                    var g = helper.AddSmallGrid(35, 2, new[] { "120:", "*" },
+                    var g = helper.AddSmallGrid(35, 2, new[] { "100:", "*" },
                                 padding: new AnyUiThickness(0, 5, 0, 5),
                                 margin: new AnyUiThickness(10, 0, 30, 0));
 
@@ -2952,7 +2952,8 @@ namespace AasxPackageLogic.PackageCentral
                                 verticalAlignment: AnyUiVerticalAlignment.Center,
                                 verticalContentAlignment: AnyUiVerticalAlignment.Center);
 
-                        var g2 = helper.AddSmallGridTo(g, row, 1, 1, 2, new[] { "#", "*" });
+                        // Fixed width for Repository/Registry — "#" (max-content) + select width:100% starved the URL column on narrow viewports.
+                        var g2 = helper.AddSmallGridTo(g, row, 1, 1, 2, new[] { "120:", "*" });
 
                         AnyUiUIElement.SetIntFromControl(
                                 helper.Set(
@@ -2960,8 +2961,7 @@ namespace AasxPackageLogic.PackageCentral
                                         items: ConnectExtendedRecord.BaseTypeEnumNames,
                                         selectedIndex: (int)record.BaseType,
                                         margin: new AnyUiThickness(0, 0, 5, 0),
-                                        padding: new AnyUiThickness(0, 0, 0, 0)),
-                                    minWidth: 200, maxWidth: 200),
+                                        padding: new AnyUiThickness(0, 0, 0, 0))),
                                     (i) => { record.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
 
                         var baseUrlPresetItems = Options.Curr.BaseAddresses?
@@ -3291,7 +3291,6 @@ namespace AasxPackageLogic.PackageCentral
                                         text: "" + record.QueryElementType,
                                         margin: new AnyUiThickness(10, 0, 0, 0),
                                         padding: new AnyUiThickness(5, 0, 5, 0),
-                                        minWidth: 200,
                                         horizontalAlignment: AnyUiHorizontalAlignment.Stretch)),
                                     (s) => { record.QueryElementType = s; });
                         }
@@ -3803,7 +3802,7 @@ namespace AasxPackageLogic.PackageCentral
                             verticalAlignment: AnyUiVerticalAlignment.Center,
                             verticalContentAlignment: AnyUiVerticalAlignment.Center);
 
-                    var g2 = helper.AddSmallGridTo(g, row, 1, 1, 2, new[] { "#", "*" });
+                    var g2 = helper.AddSmallGridTo(g, row, 1, 1, 2, new[] { "120:", "*" });
 
                     AnyUiUIElement.SetIntFromControl(
                             helper.Set(
@@ -3811,9 +3810,8 @@ namespace AasxPackageLogic.PackageCentral
                                     items: ConnectExtendedRecord.BaseTypeEnumNames,
                                     selectedIndex: (int)recordJob.BaseType,
                                     margin: new AnyUiThickness(0, 0, 5, 0),
-                                    padding: new AnyUiThickness(0, -1, 0, -3)),
-                                minWidth: 200, maxWidth: 200),
-                                (i) => { recordJob.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
+                                    padding: new AnyUiThickness(0, -1, 0, -3))),
+                            (i) => { recordJob.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
 
                     if (displayContext is AnyUiContextPlusDialogs cpd
                             && cpd.HasCapability(AnyUiContextCapability.WPF))
@@ -4573,7 +4571,7 @@ namespace AasxPackageLogic.PackageCentral
                             verticalAlignment: AnyUiVerticalAlignment.Center,
                             verticalContentAlignment: AnyUiVerticalAlignment.Center);
 
-                    var g2 = helper.AddSmallGridTo(g, row, 1, 1, 2, new[] { "#", "*" });
+                    var g2 = helper.AddSmallGridTo(g, row, 1, 1, 2, new[] { "120:", "*" });
 
                     AnyUiUIElement.SetIntFromControl(
                             helper.Set(
@@ -4581,9 +4579,8 @@ namespace AasxPackageLogic.PackageCentral
                                     items: ConnectExtendedRecord.BaseTypeEnumNames,
                                     selectedIndex: (int)recordJob.BaseType,
                                     margin: new AnyUiThickness(0, 0, 5, 0),
-                                    padding: new AnyUiThickness(0, -1, 0, -3)),
-                                minWidth: 200, maxWidth: 200),
-                                (i) => { recordJob.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
+                                    padding: new AnyUiThickness(0, -1, 0, -3))),
+                            (i) => { recordJob.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
 
                     if (displayContext is AnyUiContextPlusDialogs cpd
                         && cpd.HasCapability(AnyUiContextCapability.WPF))
@@ -5123,7 +5120,7 @@ namespace AasxPackageLogic.PackageCentral
                             verticalAlignment: AnyUiVerticalAlignment.Center,
                             verticalContentAlignment: AnyUiVerticalAlignment.Center);
 
-                    var g2 = helper.AddSmallGridTo(g, row, 1, 1, 2, new[] { "#", "*" });
+                    var g2 = helper.AddSmallGridTo(g, row, 1, 1, 2, new[] { "120:", "*" });
 
                     AnyUiUIElement.SetIntFromControl(
                             helper.Set(
@@ -5131,9 +5128,8 @@ namespace AasxPackageLogic.PackageCentral
                                     items: ConnectExtendedRecord.BaseTypeEnumNames,
                                     selectedIndex: (int)record.BaseType,
                                     margin: new AnyUiThickness(0, 0, 5, 0),
-                                    padding: new AnyUiThickness(0, -1, 0, -3)),
-                                minWidth: 200, maxWidth: 200),
-                                (i) => { record.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
+                                    padding: new AnyUiThickness(0, -1, 0, -3))),
+                            (i) => { record.BaseType = (ConnectExtendedRecord.BaseTypeEnum)i; });
 
                     if (displayContext is AnyUiContextPlusDialogs cpd
                         && cpd.HasCapability(AnyUiContextCapability.WPF))

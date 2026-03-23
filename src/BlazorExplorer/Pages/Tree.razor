@@ -24,8 +24,8 @@
 
         <div class="uic-tree__title">
             <span class="@Style.NodeTitleClass @(nodeSelected ? Style.NodeTitleSelectedClass : "")"
-                  @onclick="@(() => OnSelectNode(node))"
-                  @ondblclick="@(() => OnDoubleClickNode(node))">
+                  @onclick="@((MouseEventArgs e) => OnSelectNode(node, e))"
+                  @ondblclick="@((MouseEventArgs e) => OnDoubleClickNode(node, e))">
                 @TitleTemplate(node)
             </span>
         </div>
@@ -136,11 +136,9 @@
         SetExpanded?.Invoke(node, expand);       
     }
 
-    private async Task OnSelectNode(TNode node)
+    private async Task OnSelectNode(TNode node, MouseEventArgs e)
     {
-        var modi = BlazorUI.Data.BlazorInput.KeyboardModifiers.None;
-        if (true)
-            modi = await Layout.GetKeyboardModifiers();
+        var modi = BlazorInput.FromMouseEvent(e);
 
         SelectedNode = node;
         if (NodeClicked != null)
@@ -148,13 +146,11 @@
         await SelectedNodeChanged.InvokeAsync(node);
     }
 
-    private async Task OnDoubleClickNode(TNode node)
+    private async Task OnDoubleClickNode(TNode node, MouseEventArgs e)
     {
         if (NodeDoubleClicked == null)
             return;
-        var modi = BlazorUI.Data.BlazorInput.KeyboardModifiers.None;
-        if (true)
-            modi = await Layout.GetKeyboardModifiers();
+        var modi = BlazorInput.FromMouseEvent(e);
         await NodeDoubleClicked.Invoke(node, modi);
     }
 

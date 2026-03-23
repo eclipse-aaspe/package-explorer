@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -414,14 +414,12 @@ namespace BlazorUI
             // the toggle action could be used multiple times
             var toogleActiveItem = true;
 
-            // look at modifiers
-            if (modi == BlazorInput.KeyboardModifiers.Ctrl)
-            {
-                // keep internal list and (extenal) model in sync
-                _selectedItems.ForEach(item => item.IsSelected = true);
-            }
-            else
-            if (modi == BlazorInput.KeyboardModifiers.Shift)
+            // Bit flags: Shift+Ctrl must not fall through to "normal" because int 3 != enum Ctrl/Shift.
+            var hasShift = (modi & BlazorInput.KeyboardModifiers.Shift) != 0;
+            var hasCtrl = (modi & BlazorInput.KeyboardModifiers.Ctrl) != 0;
+
+            // look at modifiers (Shift range before Ctrl toggle)
+            if (hasShift)
             {
                 // make sure active treeViewItem item is in
                 SetSelectedState(ve, true);
@@ -435,6 +433,12 @@ namespace BlazorUI
                 }
 
                 toogleActiveItem = false;
+            }
+            else
+            if (hasCtrl)
+            {
+                // keep internal list and (extenal) model in sync
+                _selectedItems.ForEach(item => item.IsSelected = true);
             }
             else
             {

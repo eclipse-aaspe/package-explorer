@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -52,7 +52,9 @@ namespace AasxIntegrationBase
             Black = 0,
             Blue = 1,
             Red = 2,
-            Yellow = 3
+            Yellow = 3,
+            /// <summary>Long-running progress (e.g. repo load); Blazor status bar uses dark-green bar like WPF.</summary>
+            Green = 4
         }
 
         public enum MessageTypeEnum
@@ -126,6 +128,9 @@ namespace AasxIntegrationBase
 
                 case Color.Red:
                     return new Tuple<uint, uint>(0xFF000000, 0xFFFFADAD);
+
+                case Color.Green:
+                    return new Tuple<uint, uint>(0xFFFFFFFF, 0xFF006400);
 
                 case Color.Black:
                 default:

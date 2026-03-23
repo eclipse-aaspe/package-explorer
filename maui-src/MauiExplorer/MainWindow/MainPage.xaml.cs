@@ -1973,6 +1973,10 @@ namespace MauiTestTree
                         return isBackground
                             ? XamlHelpers.GetDynamicRessource("ErrorDark", Color.FromRgb(0xd4, 0x20, 0x44))
                             : Colors.White;
+                    case StoredPrint.Color.Green:
+                        return isBackground
+                            ? Colors.DarkGreen
+                            : Colors.White;
                 }
             }
             else
@@ -1998,6 +2002,10 @@ namespace MauiTestTree
                         return isBackground
                             ? XamlHelpers.GetDynamicRessource("ErrorLight", Colors.OrangeRed)
                             : Colors.Black;
+                    case StoredPrint.Color.Green:
+                        return isBackground
+                            ? Colors.DarkGreen
+                            : Colors.White;
                 }
             }
         }
@@ -2026,6 +2034,9 @@ namespace MauiTestTree
                         _lastMessageBlue = _viewModel.LogLine;
                         break;
                     case StoredPrint.Color.Yellow:
+                        _lastMessageBlue = _viewModel.LogLine;
+                        break;
+                    case StoredPrint.Color.Green:
                         _lastMessageBlue = _viewModel.LogLine;
                         break;
                     case StoredPrint.Color.Red:

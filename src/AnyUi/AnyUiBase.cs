@@ -296,6 +296,8 @@ namespace AnyUi
         public static AnyUiBrush LightGray { get { return new AnyUiBrush(0xffe8e8e8u); } }
         public static AnyUiBrush MiddleGray { get { return new AnyUiBrush(0xffc8c8c8u); } }
         public static AnyUiBrush DarkGray { get { return new AnyUiBrush(0xff808080u); } }
+        /// <summary>WPF Brushes.DarkGreen — progress bar for repository / long HTTP operations.</summary>
+        public static AnyUiBrush DarkGreen { get { return new AnyUiBrush(0xff006400u); } }
     }
 
     public class AnyUiBrushTuple

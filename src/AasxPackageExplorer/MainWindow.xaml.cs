@@ -1594,6 +1594,14 @@ namespace AasxPackageExplorer
                             Message.FontWeight = FontWeights.Bold;
                             break;
                         }
+                    case StoredPrint.Color.Green:
+                        {
+                            _lastMessageBlue = "" + sp.msg;
+                            Message.Background = Brushes.DarkGreen;
+                            Message.Foreground = Brushes.White;
+                            Message.FontWeight = FontWeights.Normal;
+                            break;
+                        }
                 }
 
                 // message window

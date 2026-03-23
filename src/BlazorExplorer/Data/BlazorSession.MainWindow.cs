@@ -117,7 +117,19 @@ namespace BlazorUI.Data
                 Log = Log.Singleton,
                 ProgressChanged = (state, tfs, tbd, msg) =>
                 {
-                    ;
+                    // Mirror WPF MainWindow.UiBuildRuntimeOptionsForMainAppLoad: green "overall" strip while loading from repo.
+                    switch (state)
+                    {
+                        case PackCntRuntimeOptions.Progress.StartOverall:
+                            Log.Singleton.Append(new StoredPrint(StoredPrint.Color.Green, msg ?? ""));
+                            break;
+                        case PackCntRuntimeOptions.Progress.OverallMessage:
+                            Log.Singleton.Append(new StoredPrint(StoredPrint.Color.Green, msg ?? ""));
+                            break;
+                        case PackCntRuntimeOptions.Progress.EndOverall:
+                            Log.Singleton.Append(new StoredPrint(StoredPrint.Color.Black, msg ?? ""));
+                            break;
+                    }
                 },
                 ShowMesssageBox = (content, text, title, buttons) =>
                 {
@@ -341,9 +353,17 @@ namespace BlazorUI.Data
             // no cached plugin
             DisposeLoadedPlugin();
 
-            // the AAS will cause some more visual effects
-            if (DisplayElements.SelectedItem is VisualElementAdminShell veaas)
-                InfoBox.SetInfos(veaas.theAas, veaas.thePackage);
+            // Info box (SVG + thumbnail): show the hosting AAS whenever the selection is under an AAS
+            // (Submodel, Asset, SME, …), not only when the AAS node itself is selected.
+            VisualElementAdminShell veForInfo = null;
+            if (DisplayElements.SelectedItem is VisualElementAdminShell veDirect)
+                veForInfo = veDirect;
+            else if (DisplayElements.SelectedItem is VisualElementGeneric veg)
+                veForInfo = veg.FindFirstParent(v => v is VisualElementAdminShell, includeThis: false)
+                    as VisualElementAdminShell;
+
+            if (veForInfo != null)
+                InfoBox.SetInfos(veForInfo.theAas, veForInfo.thePackage);
             else
                 InfoBox.SetInfos(null, null);
         }

@@ -116,11 +116,17 @@
     <div style="@_divOuter" data-source="AnyUiRenderGrid.razor outerDiv">
         <div style="@_gridStyle" data-source="AnyUiRenderGrid.razor cssGrid">
 
-            @foreach (var _gch in _grid.Children ?? new List<AnyUiUIElement>())
+            @{
+                // Row-major order matches visual reading order. Desktop layout ignores DOM order (explicit
+                // grid placement). Narrow modals stack as flex column (site.css) and need DOM order = visual order.
+                var _orderedChildren = (_grid.Children ?? new List<AnyUiUIElement>())
+                    .Where(_gch => _gch != null && (_gch.SkipForTarget & AnyUiTargetPlatform.Browser) == 0)
+                    .OrderBy(_gch => _gch.GridRow ?? 0)
+                    .ThenBy(_gch => _gch.GridColumn ?? 0)
+                    .ToList();
+            }
+            @foreach (var _gch in _orderedChildren)
             {
-                if (_gch == null || (_gch.SkipForTarget & AnyUiTargetPlatform.Browser) > 0)
-                    continue;
-
                 var _gRow   = (_gch.GridRow    ?? 0) + 1;
                 var _gCol   = (_gch.GridColumn ?? 0) + 1;
                 var _gRowSp = _gch.GridRowSpan    ?? 1;

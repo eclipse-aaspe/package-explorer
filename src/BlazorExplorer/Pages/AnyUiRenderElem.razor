@@ -301,11 +301,17 @@
 
         style.SetFillWidth(Element, AnyUiHtmlFillMode.None, tb.Margin, setMinMaxWidth: true);
         style.SetAlignments(Element);
+        if (Parent is AnyUiWrapPanel
+            || (Parent is AnyUiStackPanel spTb && spTb.Orientation == AnyUiOrientation.Horizontal))
+        {
+            style.Set("width", "auto", add: true);
+            style.Set("max-width", "100%", add: true);
+        }
 
         if (tb.Text.StartsWith("Edit"))
             ;
 
-        <span style="@style"><MultiLineText InputString="@tb.Text" /></span>
+        <span class="anyui-static-text" style="@style"><MultiLineText InputString="@tb.Text" /></span>
     }
     else
     if (Element is AnyUiLabel chlb)
@@ -318,11 +324,17 @@
 
         style.SetFillWidth(Element, AnyUiHtmlFillMode.None, chlb.Margin, setMinMaxWidth: true, setInlineBlock: true);
         style.SetAlignments(Element);
+        if (Parent is AnyUiWrapPanel
+            || (Parent is AnyUiStackPanel spLb && spLb.Orientation == AnyUiOrientation.Horizontal))
+        {
+            style.Set("width", "auto", add: true);
+            style.Set("max-width", "100%", add: true);
+        }
 
         if (chlb.Content.StartsWith("Edit"))
             ;
 
-        <span style="@style"><MultiLineText InputString="@chlb.Content" /></span>
+        <span class="anyui-static-text anyui-label" style="@style"><MultiLineText InputString="@chlb.Content" /></span>
     }
 
     if (Element is AnyUiTextBox chtb)
@@ -338,7 +350,7 @@
         {
             style += "width: 100%";
             style += "box-sizing: border-box";
-            style += "max-width: 100%";
+            style += "max-width: min(100%, 28rem)";
             style += "min-width: 0";
 
             style.SetMinMaxWidthHeight(Element);
@@ -351,8 +363,10 @@
             // TextBox in a wrapping flex row: grow to fill remaining space and share
             // the line with sibling buttons; buttons only wrap when space is too tight.
             style += "flex: 1 1 auto";
-            style += "min-width: 0";
+            style += "min-width: 10rem";
+            style += "flex-shrink: 0";
             style += "box-sizing: border-box";
+            style += "max-width: min(100%, 28rem)";
         }
 
         @* onchange only when focus changes.
@@ -417,7 +431,7 @@
         style.Set("white-space", "nowrap", add: true);
         style.Set("border-radius", "4px", add: true);
 
-        <button style="@style" @onclick="() => MyClickButton(chbt)">@chbt.Content</button>
+        <button class="anyui-pushbutton" style="@style" @onclick="() => MyClickButton(chbt)">@chbt.Content</button>
         @code {
             private async void MyClickButton(AnyUiButton chbt)
             {
@@ -467,21 +481,41 @@
         {
             style += "width: 100%";
             style += "box-sizing: border-box";
+            style += "max-width: min(100%, 28rem)";
+            style += "min-width: 0";
 
             style.SetMinMaxWidthHeight(Element);
         }
         else
         {
-            style += "width: auto";
             style += "box-sizing: border-box";
             style += "display:inline-block";
 
             style.SetMinMaxWidthHeight(Element);
 
-            if (comb.Text != null)
+            if (comb.IsEditable == true)
             {
-                string w = (comb.Text.Length * 11 + 60).ToString() + "px";
-                style += $"width: {w}";
+                /* URL + datalist: do not derive width from short display text — flex-wrap uses min-width */
+                style += "width: auto";
+                style += "max-width: min(100%, 28rem)";
+                style += "min-width: 10rem";
+                style += "flex: 1 1 12rem";
+                style += "flex-shrink: 0";
+            }
+            else
+            {
+                style += "width: auto";
+                if (comb.Text != null)
+                {
+                    var naturalPx = comb.Text.Length * 11 + 60;
+                    const int capPx = 448;
+                    var wPx = naturalPx < capPx ? naturalPx : capPx;
+                    style += $"width: min(100%, {wPx}px)";
+                }
+
+                style += "max-width: min(100%, 28rem)";
+                style += "min-width: 9rem";
+                style += "flex-shrink: 0";
             }
         }
 
@@ -500,7 +534,7 @@
             if (string.IsNullOrEmpty(listId))
                 listId = "anyui_cb_fallback";
 
-            <input type="text" class="form-control" style="@style"
+            <input type="text" class="form-control anyui-combo-edit" style="@style"
                    list="@listId"
                    value="@comb.Text"
                    @oninput="@((ChangeEventArgs __e) => MyComboEditable(comb, __e.Value?.ToString()))" />
@@ -513,7 +547,7 @@
         }
         else
         {
-            <select class="" value="@comb.Text" style="@style"
+            <select class="anyui-combo-select" value="@comb.Text" style="@style"
                 @onchange="@((ChangeEventArgs __e) => MyComboSelect(comb, __e.Value.ToString()))">
                 @foreach (var item in comb.Items)
                 {

@@ -92,6 +92,8 @@ dialog {
     left: 50vw;
     top: 50vh;
     width: 80vw !important;
+    max-width: calc(100vw - 1rem);
+    box-sizing: border-box;
     /*height: 70vh;*/
     /* see: https://stackoverflow.com/questions/27385126/chrome-font-appears-blurry */
     transform: translate(-50%, -50%); /* Remark: this transform seems to make the text in dialogue blurry!! */
@@ -102,6 +104,145 @@ dialog {
     border-color: #ffffff !important;
     background-color: #00118dc0;
     color: #ffffff;
+}
+
+/*
+ * AnyUI in flyout modals (AnyUiFlyoutModalPanel): not inside .detail-panel-scroll, so we mirror
+ * grid/min-width rules here — otherwise labels, checkboxes (nowrap), and selects overflow on narrow widths.
+ */
+dialog .modal-body {
+    container-type: inline-size;
+    container-name: anyui-modal;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+dialog .modal-header {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+dialog .modal-header .modal-title {
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGrid"] {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGridCell"] {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Outer grid wrapper clips overflow; allow visible once children wrap (inline nowrap otherwise wins). */
+dialog .modal-body [data-source="AnyUiRenderGrid.razor outerDiv"] {
+    overflow-x: visible;
+    max-width: 100%;
+}
+
+/*
+ * AnyUiRenderElem sets white-space: nowrap on labels/selectable text by default (inline style).
+ * In modals that clips long captions; force wrap — !important beats inline nowrap.
+ */
+dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGridCell"] .selectable-text,
+dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGridCell"] .anyui-static-text,
+dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGridCell"] .anyui-label {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    white-space: normal !important;
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGridCell"] input[type="text"],
+dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGridCell"] input[type="url"],
+dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGridCell"] input[type="search"],
+dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGridCell"] input[type="number"],
+dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGridCell"] input[type="email"],
+dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGridCell"] input[type="password"],
+dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGridCell"] select,
+dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGridCell"] textarea {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* native <select> has a large intrinsic min-width; allow shrinking inside narrow grid cells */
+dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGridCell"] select.anyui-combo-select {
+    min-width: 0 !important;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* AnyUiRenderElem sets nowrap on checkbox rows (inline); allow wrapping inside modals */
+dialog .modal-body span:has(> input[type="checkbox"]) {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.35em;
+    white-space: normal !important;
+    overflow-wrap: break-word;
+    word-break: normal;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+dialog .modal-body span:has(> input[type="checkbox"]) input[type="checkbox"] {
+    flex-shrink: 0;
+    margin-top: 0.2em;
+}
+
+dialog .modal-body [data-source="AnyUiWrapPanel.razor"] > div,
+dialog .modal-body [data-source*="AnyUiRenderStackPanel.razor HOR"] {
+    flex-wrap: wrap;
+    row-gap: 5px;
+}
+
+@container anyui-modal (max-width: 28rem) {
+    dialog .modal-body .anyui-combo-edit {
+        flex-basis: 100%;
+        width: 100%;
+    }
+
+    /*
+     * Stack form rows vertically: label / control each full width (no squeezed 2-column grid).
+     * AnyUiRenderGrid.razor now emits children in row-major DOM order so flex order matches the grid.
+     */
+    dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGrid"] {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        align-content: flex-start !important;
+        gap: 0.4rem 0;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        grid-template-columns: unset !important;
+        grid-template-rows: unset !important;
+    }
+
+    dialog .modal-body [data-source="AnyUiRenderGrid.razor cssGrid"] > [data-source="AnyUiRenderGrid.razor cssGridCell"] {
+        grid-row: auto !important;
+        grid-column: auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        align-self: stretch !important;
+    }
 }
 
 dialog header {
@@ -307,6 +448,28 @@ dialog header {
 }
 
 @media (max-width: 799.98px) {
+    /* Blue header row ~same height as zoom toolbar (44px) */
+    .app-top-navbar.navbar {
+        min-height: 44px;
+        padding-top: 0.2rem;
+        padding-bottom: 0.2rem;
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+    }
+
+    .app-top-navbar .navbar-toggler {
+        padding: 0.2rem 0.45rem;
+    }
+
+    .app-top-navbar-idta-img {
+        height: 18px;
+    }
+
+    .app-top-navbar-brand img {
+        height: 26px;
+        width: 26px;
+    }
+
     .app-top-navbar-inner.navbar-collapse {
         flex-basis: 100%;
         flex-direction: column !important;
@@ -551,7 +714,7 @@ app > * {
     border-bottom: 1px solid #c0ccff;
     padding: 8px 12px;
     margin-bottom: 4px;
-    gap: 10px;
+    gap: 5px;
     overflow-x: auto;
     min-height: 52px;
     flex-shrink: 0;
@@ -585,7 +748,7 @@ app > * {
     width: 1px;
     height: 30px;
     background: #b0bce8;
-    margin: 0 4px;
+    margin: 0 2px;
     flex-shrink: 0;
 }
 
@@ -691,6 +854,116 @@ app > * {
     min-height: 0;
     overflow-x: hidden;
     overflow-y: auto;
+    /* Narrow right pane: combo URL field can span full width (see @container below) */
+    container-type: inline-size;
+    container-name: detail-panel;
+}
+
+/*
+ * AnyUI entity editor: wrap toolbars (Semantic ID, submodelRef, …), cap field width (~28rem),
+ * keep captions from taking 100% width (fixed in AnyUiRenderElem for wrap/horizontal stack).
+ */
+.detail-panel-scroll [data-source="AnyUiWrapPanel.razor"] > div,
+.detail-panel-scroll [data-source*="AnyUiRenderStackPanel.razor HOR"] {
+    row-gap: 5px;
+}
+
+.detail-panel-scroll .anyui-static-text {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    /* Nur an Leerzeichen umbrechen — nicht mitten im Wort */
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+.detail-panel-scroll .anyui-label {
+    min-width: min(100%, 10.5rem);
+}
+
+.detail-panel-scroll .anyui-pushbutton {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+.detail-panel-scroll .anyui-combo-select,
+.detail-panel-scroll .anyui-combo-edit {
+    flex: 1 1 12rem;
+    /* Absolute min: min(100%, x) allowed shrinking to a few px when the row was narrow */
+    min-width: 9rem;
+    flex-shrink: 0;
+    max-width: 100%;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+.detail-panel-scroll .anyui-combo-edit {
+    min-width: 10rem;
+}
+
+@container detail-panel (max-width: 28rem) {
+    .detail-panel-scroll .anyui-combo-edit {
+        flex-basis: 100%;
+        width: 100%;
+    }
+}
+
+.detail-panel-scroll textarea {
+    max-width: min(100%, 28rem);
+    min-width: 0;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+/* Standard: nie breiter als Elternzeile (Rest spezifischer unten) */
+.detail-panel-scroll input[type="text"],
+.detail-panel-scroll input[type="url"],
+.detail-panel-scroll input[type="search"],
+.detail-panel-scroll input[type="number"],
+.detail-panel-scroll input[type="email"],
+.detail-panel-scroll input[type="password"] {
+    max-width: 100%;
+    box-sizing: border-box;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+/* CSS-Grid-Zellen: Felder nie breiter als die Zelle / Zeile */
+.detail-panel-scroll [data-source="AnyUiRenderGrid.razor cssGridCell"] {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.detail-panel-scroll [data-source="AnyUiRenderGrid.razor cssGridCell"] input[type="text"],
+.detail-panel-scroll [data-source="AnyUiRenderGrid.razor cssGridCell"] input[type="url"],
+.detail-panel-scroll [data-source="AnyUiRenderGrid.razor cssGridCell"] input[type="search"],
+.detail-panel-scroll [data-source="AnyUiRenderGrid.razor cssGridCell"] input[type="number"],
+.detail-panel-scroll [data-source="AnyUiRenderGrid.razor cssGridCell"] input[type="email"],
+.detail-panel-scroll [data-source="AnyUiRenderGrid.razor cssGridCell"] input[type="password"],
+.detail-panel-scroll [data-source="AnyUiRenderGrid.razor cssGridCell"] select,
+.detail-panel-scroll [data-source="AnyUiRenderGrid.razor cssGridCell"] textarea {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* Einzeilige Textfelder in Flex-Zeilen (Wrap/Stack): Mindestbreite bis Umbruch */
+.detail-panel-scroll [data-source="AnyUiWrapPanel.razor"] input[type="text"],
+.detail-panel-scroll [data-source="AnyUiWrapPanel.razor"] input[type="url"],
+.detail-panel-scroll [data-source="AnyUiWrapPanel.razor"] input[type="search"],
+.detail-panel-scroll [data-source="AnyUiWrapPanel.razor"] input[type="number"],
+.detail-panel-scroll [data-source*="AnyUiRenderStackPanel.razor HOR"] input[type="text"],
+.detail-panel-scroll [data-source*="AnyUiRenderStackPanel.razor HOR"] input[type="url"],
+.detail-panel-scroll [data-source*="AnyUiRenderStackPanel.razor HOR"] input[type="search"],
+.detail-panel-scroll [data-source*="AnyUiRenderStackPanel.razor HOR"] input[type="number"] {
+    min-width: min(100%, 10rem);
+    max-width: 100%;
+    flex-shrink: 0;
+    word-break: normal;
+    overflow-wrap: normal;
 }
 
 /* First rows of entity panel (title + Editing of entities + buttons) */
@@ -852,8 +1125,8 @@ app > * {
         flex-wrap: nowrap;
         align-items: center;
         justify-content: flex-start;
-        gap: 6px;
-        padding: 7px 6px 7px 2px;
+        gap: 3px;
+        padding: 6px 4px 6px 2px;
         min-height: 44px;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
@@ -866,14 +1139,14 @@ app > * {
     .index-zoom-group {
         flex-shrink: 0;
         flex-wrap: nowrap;
-        gap: 5px;
+        gap: 3px;
         justify-content: flex-start;
     }
 
     .index-zoom-toolbar-sep {
         display: block;
         height: 28px;
-        margin: 0 4px;
+        margin: 0 2px;
         flex-shrink: 0;
     }
 
