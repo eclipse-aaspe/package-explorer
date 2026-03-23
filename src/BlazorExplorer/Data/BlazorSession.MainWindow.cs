@@ -255,15 +255,6 @@ namespace BlazorUI.Data
             }
         }
 
-        // TODO: IMPLEMENT
-        public async Task RedrawAllAasxElementsAsync(
-            bool keepFocus = false,
-            object nextFocusMdo = null,
-            bool wishExpanded = true)
-        {
-            await Task.Yield();
-        }
-
         /// <summary>
         /// Redraw window title, AAS info?, entity view (right), element tree (middle)
         /// </summary>

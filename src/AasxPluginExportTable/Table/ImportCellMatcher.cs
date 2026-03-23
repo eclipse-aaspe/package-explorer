@@ -17,7 +17,6 @@ using AasxIntegrationBase;
 using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
-using AasCore.Aas3_0;
 
 namespace AasxPluginExportTable.Table
 {
@@ -384,7 +383,7 @@ namespace AasxPluginExportTable.Table
                     cd.Description = cd.Description
                         ?? new List<Aas.ILangStringTextType>();
                     cd.Description.Add(
-                        new LangStringTextType(langCode, commit(cell)));
+                        new Aas.LangStringTextType(langCode, commit(cell)));
                 }
                 
                 if (preset == "displayName")
@@ -392,7 +391,7 @@ namespace AasxPluginExportTable.Table
                     cd.DisplayName = cd.DisplayName
                         ?? new List<Aas.ILangStringNameType>();
                     cd.DisplayName.Add(
-                        new LangStringNameType(langCode, commit(cell)));
+                        new Aas.LangStringNameType(langCode, commit(cell)));
                 }
                 
                 if (presetStub == "preferredName")
@@ -400,7 +399,7 @@ namespace AasxPluginExportTable.Table
                     cd.GetIEC61360().PreferredName = cd.GetIEC61360().PreferredName
                         ?? new List<Aas.ILangStringPreferredNameTypeIec61360>();
                     cd.GetIEC61360().PreferredName.Add(
-                        new LangStringPreferredNameTypeIec61360(langCode, commit(cell)));
+                        new Aas.LangStringPreferredNameTypeIec61360(langCode, commit(cell)));
                 }
 
                 if (presetStub == "shortName")
@@ -408,7 +407,7 @@ namespace AasxPluginExportTable.Table
                     cd.GetIEC61360().ShortName = cd.GetIEC61360().ShortName
                         ?? new List<Aas.ILangStringShortNameTypeIec61360>();
                     cd.GetIEC61360().ShortName.Add(
-                        new LangStringShortNameTypeIec61360(langCode, commit(cell)));
+                        new Aas.LangStringShortNameTypeIec61360(langCode, commit(cell)));
                 }
 
                 if (presetStub == "definition")
@@ -416,7 +415,7 @@ namespace AasxPluginExportTable.Table
                     cd.GetIEC61360().Definition = cd.GetIEC61360().Definition
                         ?? new List<Aas.ILangStringDefinitionTypeIec61360>();
                     cd.GetIEC61360().Definition.Add(
-                        new LangStringDefinitionTypeIec61360(langCode, commit(cell)));
+                        new Aas.LangStringDefinitionTypeIec61360(langCode, commit(cell)));
                 }
             }
             else
