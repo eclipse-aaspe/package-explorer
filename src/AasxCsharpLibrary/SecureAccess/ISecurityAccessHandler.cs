@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -32,7 +32,16 @@ namespace AdminShellNS
         /// to access restricted information from an AAS server.
         /// Note: This function is async and may require the GUI thread!
         /// </summary>
-        Task<HttpHeaderDataItem> InteractiveDetermineAuthenticateHeader(string location, bool askForUnknown);
+        /// <param name="preferInteractiveWhenNone">
+        /// When <c>true</c> (user enabled Authenticate on Connect) and a matching known endpoint
+        /// prescribes security method <c>None</c>, still show the interactive method/credentials flow
+        /// (<c>Ask</c>). Otherwise <c>None</c> skips all prompts — which breaks Docker when release
+        /// options list a URL with method 0 (None).
+        /// </param>
+        Task<HttpHeaderDataItem> InteractiveDetermineAuthenticateHeader(
+            string location,
+            bool askForUnknown,
+            bool preferInteractiveWhenNone = false);
 
         void ClearAllCredentials();
     }

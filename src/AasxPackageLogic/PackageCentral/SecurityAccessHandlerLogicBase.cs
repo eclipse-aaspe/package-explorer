@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2019 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -126,7 +126,10 @@ namespace AasxPackageExplorer
         /// to access restricted information from an AAS server.
         /// Note: This function is async and may require the GUI thread!
         /// </summary>
-        public virtual async Task<HttpHeaderDataItem> InteractiveDetermineAuthenticateHeader(string location, bool askForUnknown)
+        public virtual async Task<HttpHeaderDataItem> InteractiveDetermineAuthenticateHeader(
+            string location,
+            bool askForUnknown,
+            bool preferInteractiveWhenNone = false)
         {
             // nead a certain distinction!
             if (location?.HasContent() != true)
@@ -169,6 +172,10 @@ namespace AasxPackageExplorer
             var methodToUse = SecurityAccessMethod.Ask;
             if (me?.Endpoint?.AccessInfo != null)
                 methodToUse = me.Endpoint.AccessInfo.Method;
+
+            // User checked "Authenticate" on Connect, but options preset this URL as "None" (e.g. Docker release JSON).
+            if (preferInteractiveWhenNone && methodToUse == SecurityAccessMethod.None)
+                methodToUse = SecurityAccessMethod.Ask;
 
             // if still ask?
             if (methodToUse == SecurityAccessMethod.Ask)

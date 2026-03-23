@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -195,7 +195,9 @@ namespace AasxPackageLogic.PackageCentral
                 && runtimeOptions?.SecurityAccessHandler != null)
             {
                 var extraHeader = await runtimeOptions.SecurityAccessHandler.InteractiveDetermineAuthenticateHeader(
-                        location, Options.Curr.AutoAuthenticateAsk);
+                        location,
+                        Options.Curr.AutoAuthenticateAsk,
+                        preferInteractiveWhenNone: true);
                 if (extraHeader != null)
                 {
                     runtimeOptions.HttpHeaderData = runtimeOptions.HttpHeaderData ?? new HttpHeaderData();
