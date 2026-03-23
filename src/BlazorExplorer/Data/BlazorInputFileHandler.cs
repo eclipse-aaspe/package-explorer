@@ -33,6 +33,12 @@ namespace BlazorUI.Data
         /// <summary>Legacy property kept for compatibility.</summary>
         public string Status => StatusLine.Length > 0 ? StatusLine + " – " + Hint : Hint;
 
+        /// <summary>
+        /// Set to <see cref="BlazorSession.SessionTempDirectory"/> so uploads do not collide across circuits.
+        /// If unset, falls back to <see cref="System.IO.Path.GetTempPath"/>.
+        /// </summary>
+        public string UploadBaseDirectory { get; set; }
+
         public Func<AnyUiDialogueDataOpenFile, Task> FileDropped { get; set; }
 
         /// <summary>Reset drop zone text after the main package was closed (avoid stale "… uploaded.").</summary>
@@ -60,8 +66,11 @@ namespace BlazorUI.Data
                     StatusLine = "Loading…";
                     Hint = "";
 
+                    var baseDir = UploadBaseDirectory;
+                    if (string.IsNullOrEmpty(baseDir))
+                        baseDir = System.IO.Path.GetTempPath();
                     var fn = System.IO.Path.Combine(
-                                System.IO.Path.GetTempPath(),
+                                baseDir,
                                 System.IO.Path.GetFileName(file.Name));
                     using (var readStream = file.OpenReadStream(MaxFileSize))
                     using (var fileStream = System.IO.File.Create(fn))

@@ -901,7 +901,9 @@ namespace BlazorUI.Data
                     var tempext = AdminShellUtil.GuessExtension(
                         contentType: contentFound.Item2,
                         contents: ba);
-                    var temppath = System.IO.Path.GetTempFileName().Replace(".tmp", tempext);
+                    var temppath = System.IO.Path.Combine(
+                        SessionTempDirectory,
+                        System.Guid.NewGuid().ToString("N") + tempext);
                     System.IO.File.WriteAllBytes(temppath, ba);
                     await BlazorUtils.DisplayOrDownloadFile(renderJsRuntime, temppath, contentFound.Item2);
                 }

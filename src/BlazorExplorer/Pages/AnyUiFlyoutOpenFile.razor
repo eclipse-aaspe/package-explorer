@@ -106,7 +106,7 @@
 				status = "Loading...";
 
 				var fn = System.IO.Path.Combine(
-							System.IO.Path.GetTempPath(),
+							bi.SessionTempDirectory,
 							System.IO.Path.GetFileName(file.Name));
 				using (var readStream = file.OpenReadStream(MaxFileSize))
 				using (var fileStream = System.IO.File.Create(fn))

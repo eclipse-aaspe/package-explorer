@@ -52,6 +52,11 @@ namespace BlazorUI.Data
         public int SessionId = 0;
 
         /// <summary>
+        /// Per-circuit directory under <see cref="BlazorAppTempPaths"/> for uploads and session temp files.
+        /// </summary>
+        public string SessionTempDirectory { get; private set; }
+
+        /// <summary>
         /// Number of active session; incremented an decremented (on disposal)
         /// </summary>
         public static int SessionNumActive = 0;
@@ -206,6 +211,8 @@ namespace BlazorUI.Data
             // Statistics
             SessionId = ++SessionIndex;
             SessionNumActive++;
+
+            SessionTempDirectory = BlazorAppTempPaths.EnsureSessionDirectory(SessionId);
 
             // initalize the abstract main window logic
             DisplayContext = new AnyUiDisplayContextHtml(PackageCentral, this);
@@ -423,6 +430,8 @@ namespace BlazorUI.Data
             SessionNumActive--;
             if (env != null)
                 env.Close();
+
+            BlazorAppTempPaths.TryDeleteSessionDirectory(SessionTempDirectory);
         }
 
         /// <summary>

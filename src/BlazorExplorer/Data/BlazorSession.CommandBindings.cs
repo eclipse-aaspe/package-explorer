@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -216,8 +216,10 @@ namespace BlazorUI.Data
                     // make HTML string
                     var htmlStr = Options.ReportOptions(Options.ReportOptionsFormat.Html, Options.Curr);
 
-                    // write to temp file
-                    var tempFn = System.IO.Path.GetTempFileName().Replace(".tmp", ".html");
+                    // write to temp file (session folder — isolated from other circuits)
+                    var tempFn = System.IO.Path.Combine(
+                        SessionTempDirectory,
+                        System.Guid.NewGuid().ToString("N") + ".html");
                     System.IO.File.WriteAllText(tempFn, htmlStr);
 
                     // show
