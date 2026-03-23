@@ -6,40 +6,38 @@
 
 @if(EventSession != null && DialogueData is AnyUiDialogueDataSelectFromList ddsfl)
 {
-	@* see Modal.razor: Bootstrap inner dialog classes *@
-
-	int numItems = 2;
-	if (ddsfl.ListOfItems != null && ddsfl.ListOfItems.Count >= 2)
-		numItems = (150 * ddsfl.ListOfItems.Count) / 100;
+	@* Native <select> (especially size>1 / multiple) is unreliable in iOS Safari inside modals.
+	   Radio list works on all mobile browsers. *@
 
 	<div class="modal-header">
-		<h3 class="modal-title" id="exampleModalLongTitle">@ddsfl.Caption</h3>
+		<h3 class="modal-title" id="flyoutSelectFromListTitle">@ddsfl.Caption</h3>
 		<button type="button" class="close btn btn-backdrop" aria-label="Close"
 			@onclick="() => LeaveResult(false)">
 			<span aria-hidden="true">&times;</span>
 		</button>
 	</div>
 	<div class="modal-body">
-		<form>
-			<span @ondblclick="@DblHandler">
-				<select class="form-control" multiple
-					style="height:@(numItems)rem; max-height: 60vh;"
-					aria-label="multiple select example" @onchange="@OnSelect">
-
-					@* <option selected>Open this select menu</option>
-						<option value="1">One</option>
-						<option value="2">Two</option>
-						<option value="3">Three</option> *@
-
-					@if (ddsfl.ListOfItems != null)
-						for (int i = 0; i < ddsfl.ListOfItems.Count; i++)
-						{
-							<option value="@(i)">@(ddsfl.ListOfItems[i].Text)</option>
-						}
-
-				</select>
-			</span>
-        </form>
+		<div class="list-group" role="radiogroup" aria-labelledby="flyoutSelectFromListTitle"
+		     @ondblclick="@DblHandler">
+			@if (ddsfl.ListOfItems != null)
+			{
+				for (int i = 0; i < ddsfl.ListOfItems.Count; i++)
+				{
+					var idx = i;
+					var optId = $"flyoutListOpt_{idx}";
+					<label class="list-group-item list-group-item-action d-flex align-items-center gap-2 mb-1"
+					       style="cursor:pointer;">
+						<input class="form-check-input flex-shrink-0 mt-0"
+						       type="radio"
+						       name="flyoutSelectFromListGroup"
+						       id="@optId"
+						       checked="@(_selectedIndex == idx)"
+						       @onchange="@(() => OnSelectRadio(idx))" />
+						<span class="flex-grow-1">@ddsfl.ListOfItems[i].Text</span>
+					</label>
+				}
+			}
+		</div>
 	</div>
 	<div class="modal-footer">
 
@@ -55,19 +53,29 @@
 	[Parameter]
 	public AnyUiDialogueDataBase DialogueData { get; set; }
 
-	void OnSelect(ChangeEventArgs e)
+	/// <summary>Sync UI highlight when DialogueData already has a selection (re-render).</summary>
+	private int _selectedIndex = -1;
+
+	protected override void OnParametersSet()
 	{
 		if (DialogueData is AnyUiDialogueDataSelectFromList ddsfl
-			&& e.Value is string[] varr
-			&& varr.Length > 0
-			&& int.TryParse(varr[0], out int i)
-				&& ddsfl.ListOfItems != null
-				&& i >= 0 && i < ddsfl.ListOfItems.Count)
-		{
-			ddsfl.Result = true;
-			ddsfl.ResultIndex = i;
-			ddsfl.ResultItem = ddsfl.ListOfItems[i];
-		}
+		    && ddsfl.Result && ddsfl.ResultIndex >= 0)
+			_selectedIndex = ddsfl.ResultIndex;
+		else
+			_selectedIndex = -1;
+	}
+
+	void OnSelectRadio(int index)
+	{
+		if (DialogueData is not AnyUiDialogueDataSelectFromList ddsfl || ddsfl.ListOfItems == null)
+			return;
+		if (index < 0 || index >= ddsfl.ListOfItems.Count)
+			return;
+
+		_selectedIndex = index;
+		ddsfl.Result = true;
+		ddsfl.ResultIndex = index;
+		ddsfl.ResultItem = ddsfl.ListOfItems[index];
 	}
 
 	void DblHandler(MouseEventArgs e)
