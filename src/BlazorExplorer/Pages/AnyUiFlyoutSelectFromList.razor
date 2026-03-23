@@ -1,4 +1,4 @@
-﻿@page "/AnyUiFlyoutSelectFromList"
+@page "/AnyUiFlyoutSelectFromList"
 @using AnyUi
 @using BlazorUI.Data
 @inject BlazorUI.Data.AASService SubmodelService
@@ -22,7 +22,7 @@
 	<div class="modal-body">
 		<form>
 			<span @ondblclick="@DblHandler">
-				<select class="form-control selectpicker" multiple data-max-options="2"
+				<select class="form-control" multiple
 					style="height:@(numItems)rem; max-height: 60vh;"
 					aria-label="multiple select example" @onchange="@OnSelect">
 

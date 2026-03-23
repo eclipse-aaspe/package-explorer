@@ -356,7 +356,7 @@
                                 int iDdsfl = 0;
 
                                 <form method="dialog">
-                                    <select class="form-control selectpicker" size="@sizeDdsfl"
+                                    <select class="form-control" size="@sizeDdsfl"
                                             @onchange="@((ChangeEventArgs __e) => MyDialogDataSelectFromList(__e.Value.ToString()))">
                                         @for (iDdsfl = 0; iDdsfl < sizeDdsfl; iDdsfl++)
                                         {
@@ -383,7 +383,7 @@
                             evs.htmlEventInputs.Clear();
                             // string v = i + ": " + icon + " " + header;
                             <form method="dialog">
-                                <select class="form-control selectpicker" size="@nmi"
+                                <select class="form-control" size="@nmi"
                                         @onchange="@((ChangeEventArgs __e) => MyContextMenuSelect(__e.Value.ToString()))">
                                     @for (i = 0; i < nmi; i++)
                                     {
