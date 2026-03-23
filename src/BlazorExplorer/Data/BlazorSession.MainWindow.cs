@@ -13,6 +13,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,8 +27,10 @@ using Extensions;
 using AnyUi;
 using BlazorExplorer;
 using BlazorExplorer.Shared;
+using BlazorUI.Utils;
 using Microsoft.JSInterop;
 using AasCore.Aas3_1;
+using ConnectExtendedRecord = AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset.ConnectExtendedRecord;
 
 namespace BlazorUI.Data
 {
@@ -570,17 +573,136 @@ namespace BlazorUI.Data
             return null;
         }
 
+        /// <summary>
+        /// Same logic as WPF <see cref="AasxPackageExplorer.MainWindow.UiSearchRepoAndExtendEnvironmentAsync"/>:
+        /// resolve a reference against a connected HTTP repo / dynamic-fetch environment.
+        /// </summary>
         public async Task<Aas.IIdentifiable> UiSearchRepoAndExtendEnvironmentAsync(
             AdminShellPackageEnvBase packEnv,
             Aas.IReference workRef = null,
             string fullItemLocation = null,
-            bool tryDisplay = false)
+            bool trySelect = false)
         {
             await Task.Yield();
 
-            // TODO: take over from WPF app
+            if (packEnv == null || (workRef?.IsValid() != true && fullItemLocation?.HasContent() != true))
+                return null;
 
-            return null;
+            if (packEnv is not AdminShellPackageDynamicFetchEnv dynPack)
+                return null;
+
+            var context = dynPack.GetContext() as PackageContainerHttpRepoSubsetFetchContext;
+            var record = context?.Record?.Copy();
+            if (record == null)
+                return null;
+
+            if (record.BaseAddress?.HasContent() != true)
+                return null;
+
+            BaseUriDict baseUris = null;
+            var searches = new List<Tuple<ConnectExtendedRecord, BaseUriDict, string>>();
+            if (workRef?.IsValid() == true)
+            {
+                if (workRef.Count() >= 1 && workRef.Keys[0].Type == Aas.KeyTypes.AssetAdministrationShell)
+                {
+                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleAas);
+                    record.AasId = workRef.Keys[0].Value;
+                    var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    baseUris = basedLoc.BaseUris;
+                    fullItemLocation = basedLoc.Location.ToString();
+                    searches.Add(new Tuple<ConnectExtendedRecord, BaseUriDict, string>(record, baseUris, fullItemLocation));
+                }
+
+                if (workRef.Count() >= 1 && workRef.Keys[0].Type == Aas.KeyTypes.GlobalReference)
+                {
+                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.AasByAssetLink);
+                    record.AssetId = workRef.Keys[0].Value;
+                    var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    baseUris = basedLoc.BaseUris;
+                    fullItemLocation = basedLoc.Location.ToString();
+                    searches.Add(new Tuple<ConnectExtendedRecord, BaseUriDict, string>(record, baseUris, fullItemLocation));
+                }
+
+                if (workRef.Count() >= 1 && (workRef.Keys[0].Type == Aas.KeyTypes.GlobalReference
+                                             || workRef.Keys[0].Type == Aas.KeyTypes.Submodel))
+                {
+                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleSM);
+                    record.SmId = workRef.Keys[0].Value;
+                    var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    baseUris = basedLoc.BaseUris;
+                    fullItemLocation = basedLoc.Location.ToString();
+                    searches.Add(new Tuple<ConnectExtendedRecord, BaseUriDict, string>(record, baseUris, fullItemLocation));
+                }
+
+                if (workRef.Count() >= 1 && (workRef.Keys[0].Type == Aas.KeyTypes.GlobalReference
+                                             || workRef.Keys[0].Type == Aas.KeyTypes.ConceptDescription))
+                {
+                    record.SetQueryChoices(ConnectExtendedRecord.QueryChoice.SingleCD);
+                    record.CdId = workRef.Keys[0].Value;
+                    var basedLoc = PackageContainerHttpRepoSubset.BuildLocationFrom(record);
+                    baseUris = basedLoc.BaseUris;
+                    fullItemLocation = basedLoc.Location.ToString();
+                    searches.Add(new Tuple<ConnectExtendedRecord, BaseUriDict, string>(record, baseUris, fullItemLocation));
+                }
+            }
+
+            if (searches.Count < 1)
+                return null;
+
+            var foundIdfs = new List<Aas.IIdentifiable>();
+            foreach (var search in searches)
+            {
+                var newIdfs = new List<Aas.IIdentifiable>();
+                var loadedIdfs = new List<Aas.IIdentifiable>();
+
+                var loadRes = await PackageContainerHttpRepoSubset.LoadFromSourceToTargetAsync(
+                    fullItemLocation: search.Item3,
+                    targetEnv: packEnv,
+                    loadNew: false,
+                    trackNewIdentifiables: newIdfs,
+                    trackLoadedIdentifiables: loadedIdfs,
+                    containerOptions: new PackageContainerHttpRepoSubset.PackageContainerHttpRepoSubsetOptions(
+                        PackageContainerOptionsBase.CreateDefault(Options.Curr),
+                        search.Item1)
+                    {
+                        BaseUris = search.Item2
+                    },
+                    runtimeOptions: PackageCentral.CentralRuntimeOptions);
+
+                if (loadRes != null && newIdfs.Count >= 1)
+                {
+                    foundIdfs.AddRange(newIdfs);
+                    break;
+                }
+            }
+
+            if (foundIdfs.Count < 1)
+                return null;
+
+            DisplayElements.RebuildAasxElements(
+                PackageCentral, PackageCentral.Selector.Main, EditMode,
+                lazyLoadingFirst: true);
+
+            Program.signalNewData(
+                new Program.NewDataAvailableArgs(
+                    Program.DataRedrawMode.RebuildTreeKeepOpen, SessionId));
+
+            var newIdf = foundIdfs.FirstOrDefault();
+
+            if (trySelect && newIdf != null)
+            {
+                var veFound = DisplayElements.SearchVisualElementOnMainDataObject(newIdf, alsoDereferenceObjects: true);
+                if (veFound != null)
+                {
+                    DisplayElements.ExpandAllItems();
+                    DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true);
+                    Logic?.LocationHistory?.Push(veFound);
+                    await RedrawElementViewAsync();
+                    DisplayElements.Refresh();
+                }
+            }
+
+            return newIdf;
         }
 
         public async Task UiHandleNavigateTo(
@@ -605,24 +727,27 @@ namespace BlazorUI.Data
                 // sure to find business object
                 this.DisplayElements.ExpandAllItems();
 
-                // incrementally make it unprecise
+                // incrementally make it unprecise (same order as WPF MainWindow.UiHandleNavigateTo)
+                var firstTime = true;
                 while (work.Keys.Count > 0)
                 {
-                    // try to find a business object in the package
                     object bo = null;
                     if (PackageCentral.MainAvailable && PackageCentral.Main.AasEnv != null)
                         bo = PackageCentral.Main.AasEnv.FindReferableByReference(work);
 
-                    // if not, may be in aux package
+                    if (firstTime && bo == null)
+                    {
+                        bo = await UiSearchRepoAndExtendEnvironmentAsync(PackageCentral.Main, work);
+                        firstTime = false;
+                    }
+
                     if (bo == null && PackageCentral.Aux != null && PackageCentral.Aux.AasEnv != null)
                         bo = PackageCentral.Aux.AasEnv.FindReferableByReference(work);
 
-                    // if not, may look into the AASX file repo
                     if (bo == null && PackageCentral.Repositories != null)
                     {
-                        // find?
                         PackageContainerRepoItem fi = null;
-                        if (work.Keys[0].Type == Aas.KeyTypes.GlobalReference) //TODO (jtikekar, 0000-00-00): KeyTypes.AssetInformation
+                        if (work.Keys[0].Type == Aas.KeyTypes.GlobalReference)
                             fi = await PackageCentral.Repositories.FindByAssetId(work.Keys[0].Value.Trim());
                         if (work.Keys[0].Type == Aas.KeyTypes.AssetAdministrationShell)
                             fi = await PackageCentral.Repositories.FindByAasId(work.Keys[0].Value.Trim());
@@ -631,23 +756,18 @@ namespace BlazorUI.Data
                         bo = boInfo?.BusinessObject;
                     }
 
-                    // still yes?
-                    if (bo != null)
+                    if (bo != null && DisplayElements != null)
                     {
-                        // try to look up in visual elements
-                        if (this.DisplayElements != null)
+                        DisplayElements.ExpandAllItems();
+                        var ve = DisplayElements.SearchVisualElementOnMainDataObject(bo,
+                            alsoDereferenceObjects: alsoDereferenceObjects, sri: sri);
+                        if (ve != null)
                         {
-                            var ve = this.DisplayElements.SearchVisualElementOnMainDataObject(bo,
-                                alsoDereferenceObjects: alsoDereferenceObjects, sri: sri);
-                            if (ve != null)
-                            {
-                                veFound = ve;
-                                break;
-                            }
+                            veFound = ve;
+                            break;
                         }
                     }
 
-                    // make it more unprecice
                     work.Keys.RemoveAt(work.Keys.Count - 1);
                 }
             }
@@ -661,15 +781,13 @@ namespace BlazorUI.Data
             {
                 if (veFound != null)
                 {
-                    // dead-csharp off
-                    // show ve
                     DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true);
-                    // remember in history
-                    // ButtonHistory.Push(veFound);
-                    // fake selection
+                    Logic?.LocationHistory?.Push(veFound);
                     await RedrawElementViewAsync();
                     DisplayElements.Refresh();
-                    // ContentTakeOver.IsEnabled = false;
+                    Program.signalNewData(
+                        new Program.NewDataAvailableArgs(
+                            Program.DataRedrawMode.RebuildTreeKeepOpen, SessionId));
                 }
                 else
                 {
@@ -682,6 +800,95 @@ namespace BlazorUI.Data
             catch (Exception ex)
             {
                 Log.Singleton.Error(ex, "While displaying element requested for navigate to");
+            }
+        }
+
+        /// <summary>
+        /// WPF: <c>MainWindow.ShowContent_Click</c> for a <see cref="VisualElementSubmodelElement"/> (tree double-click).
+        /// Opens file/blob content in the browser or a text editor flyout when in edit mode.
+        /// </summary>
+        public async Task TryShowSubmodelElementContentAsync(VisualElementSubmodelElement veSme)
+        {
+            if (veSme == null || !PackageCentral.MainAvailable)
+                return;
+
+            await Task.Yield();
+
+            if (veSme.theWrapper is Aas.IBlob blb
+                && EditMode
+                && AdminShellUtil.CheckForTextContentType(blb.ContentType))
+            {
+                try
+                {
+                    var uc = new AnyUiDialogueDataTextEditor(
+                        caption: $"Edit Blob '{"" + blb.IdShort}'",
+                        mimeType: blb.ContentType,
+                        text: Encoding.Default.GetString(blb.Value ?? Array.Empty<byte>()));
+                    if (await DisplayContext.StartFlyoverModalAsync(uc))
+                    {
+                        blb.Value = Encoding.Default.GetBytes(uc.Text);
+                        await RedrawElementViewAsync();
+                        Program.signalNewData(
+                            new Program.NewDataAvailableArgs(
+                                Program.DataRedrawMode.ValueChanged, SessionId));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Singleton.Error(ex, $"When editing blob content from {blb.IdShort}");
+                }
+
+                return;
+            }
+
+            if (veSme.theWrapper is Aas.IFile file
+                && EditMode
+                && AdminShellUtil.CheckForTextContentType(file.ContentType))
+            {
+                await DispEditHelperModules.DisplayOrEditEntityFileResource_EditTextFileAsync(
+                    DisplayContext, PackageCentral.Main, file.ContentType, file.Value);
+                return;
+            }
+
+            Tuple<object, string> contentFound = null;
+            if (veSme.theWrapper is Aas.IFile scFile)
+                contentFound = new Tuple<object, string>(scFile.Value, scFile.ContentType);
+            if (veSme.theWrapper is Aas.IBlob scBlob && !EditMode)
+                contentFound = new Tuple<object, string>(scBlob.Value, scBlob.ContentType);
+
+            if (contentFound == null || renderJsRuntime == null)
+                return;
+
+            try
+            {
+                if (contentFound.Item1 is string contentUri)
+                {
+                    if (!contentUri.ToLower().Trim().StartsWith("http://")
+                        && !contentUri.ToLower().Trim().StartsWith("https://"))
+                    {
+                        var x = veSme.FindAasSubmodelIdShortPath();
+                        contentUri = await PackageCentral.Main.MakePackageFileAvailableAsTempFileAsync(contentUri,
+                            aasId: x?.Item1?.Id,
+                            smId: x?.Item2?.Id,
+                            idShortPath: x?.Item3,
+                            secureAccess: _securityAccessHandler);
+                    }
+
+                    await BlazorUtils.DisplayOrDownloadFile(renderJsRuntime, contentUri, contentFound.Item2);
+                }
+                else if (contentFound.Item1 is byte[] ba)
+                {
+                    var tempext = AdminShellUtil.GuessExtension(
+                        contentType: contentFound.Item2,
+                        contents: ba);
+                    var temppath = System.IO.Path.GetTempFileName().Replace(".tmp", tempext);
+                    System.IO.File.WriteAllBytes(temppath, ba);
+                    await BlazorUtils.DisplayOrDownloadFile(renderJsRuntime, temppath, contentFound.Item2);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Error(ex, "When displaying submodel element file/blob content");
             }
         }
 

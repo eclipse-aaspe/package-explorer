@@ -23,7 +23,9 @@
         }
 
         <div class="uic-tree__title">
-            <span class="@Style.NodeTitleClass @(nodeSelected ? Style.NodeTitleSelectedClass : "")" @onclick="@(() => OnSelectNode(node))">
+            <span class="@Style.NodeTitleClass @(nodeSelected ? Style.NodeTitleSelectedClass : "")"
+                  @onclick="@(() => OnSelectNode(node))"
+                  @ondblclick="@(() => OnDoubleClickNode(node))">
                 @TitleTemplate(node)
             </span>
         </div>
@@ -44,6 +46,7 @@
                       SetExpanded="SetExpanded"
                       IsSelected="IsSelected"
                       NodeClicked="NodeClicked"
+                      NodeDoubleClicked="NodeDoubleClicked"
                       HasChildNodes="HasChildNodes" />
             }
         }
@@ -76,6 +79,9 @@
 
     /// <summary>Invoked when a node title is clicked; awaited so async work (e.g. repo fetch) runs on the renderer context.</summary>
     [Parameter] public Func<TNode, BlazorInput.KeyboardModifiers, Task> NodeClicked { get; set; }
+
+    /// <summary>Optional: e.g. WPF tree double-click → show file/blob for <c>VisualElementSubmodelElement</c>.</summary>
+    [Parameter] public Func<TNode, BlazorInput.KeyboardModifiers, Task> NodeDoubleClicked { get; set; }
 
     /// <summary>
     /// This action is called, then the expansion state (expanded, collapsed) of a node
@@ -140,6 +146,16 @@
         if (NodeClicked != null)
             await NodeClicked.Invoke(node, modi);
         await SelectedNodeChanged.InvokeAsync(node);
+    }
+
+    private async Task OnDoubleClickNode(TNode node)
+    {
+        if (NodeDoubleClicked == null)
+            return;
+        var modi = BlazorUI.Data.BlazorInput.KeyboardModifiers.None;
+        if (true)
+            modi = await Layout.GetKeyboardModifiers();
+        await NodeDoubleClicked.Invoke(node, modi);
     }
 
 }

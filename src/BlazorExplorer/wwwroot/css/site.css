@@ -195,6 +195,23 @@ dialog header {
     background-color: #f0f0f0;
     /* Above detail panel sticky toolbars (z-index 3) and split panes */
     z-index: 2000;
+    /*
+     * Long menus (e.g. File): cap height so items stay reachable on small viewports / iPhone.
+     * Body scroll is disabled (.content overflow-y: hidden); the menu must scroll internally.
+     */
+    max-height: min(90vh, calc(100dvh - 4.5rem));
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
+}
+
+/* Global * { user-select: none } breaks touch scrolling in overflow areas on iOS — reset here. */
+.dropdown-menu,
+.dropdown-menu .dropdown-item {
+    -webkit-user-select: auto;
+    user-select: auto;
 }
 
 /* Top nav: allow menus to extend below bar (was overflow:hidden inline) */
@@ -639,29 +656,18 @@ app > * {
         max-width: calc(100% / var(--panel-zoom));
     }
 
-    .index-panel-zoom-host--right {
-        overflow: hidden;
-    }
-
+    /*
+     * Right panel: .detail-panel-scroll wraps the zoom host (see Index.razor).
+     * Scroll must not sit inside transform: scale — iOS Safari then only scrolls part of the pane.
+     */
     .index-panel-zoom-host--right > .index-panel-zoom-inner {
-        flex: 1 1 auto !important;
-        min-height: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
+        display: flex;
+        flex-direction: column;
         transform: scale(var(--panel-zoom));
         transform-origin: top left;
         width: calc(100% / var(--panel-zoom));
         max-width: calc(100% / var(--panel-zoom));
-        height: calc(100% / var(--panel-zoom));
-        max-height: calc(100% / var(--panel-zoom));
-        align-self: flex-start;
-    }
-
-    .index-panel-zoom-host--right .detail-panel-scroll {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow-x: hidden;
-        overflow-y: auto;
+        box-sizing: border-box;
     }
 }
 
@@ -679,7 +685,7 @@ app > * {
     user-select: auto;
 }
 
-/* Right detail panel: internal vertical scroll (flex child inside zoom wrapper) */
+/* Right detail panel: vertical scroll (flex child of .right-pane-zoomwrap; wraps zoom host) */
 .detail-panel-scroll {
     flex: 1;
     min-height: 0;

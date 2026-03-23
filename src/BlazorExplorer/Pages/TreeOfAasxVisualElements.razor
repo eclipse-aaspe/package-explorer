@@ -16,6 +16,7 @@
       SetExpanded="SetExpanded"
       IsSelected="IsSelected"
       NodeClicked="NodeClicked"
+      NodeDoubleClicked="NodeDoubleClicked"
       HasChildNodes="@(item => item.Members != null && item.Members.Count() > 0)">
         <TitleTemplate>
             @{
@@ -91,4 +92,7 @@
     /// </summary>
     [Parameter]
     public Func<VisualElementGeneric, BlazorInput.KeyboardModifiers, Task> NodeClicked { get; set; }
+
+    [Parameter]
+    public Func<VisualElementGeneric, BlazorInput.KeyboardModifiers, Task> NodeDoubleClicked { get; set; }
 }
