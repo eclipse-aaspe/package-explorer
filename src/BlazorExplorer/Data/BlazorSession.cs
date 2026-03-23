@@ -219,6 +219,8 @@ namespace BlazorUI.Data
             Logic.DisplayContext = DisplayContext;
             Logic.MainWindow = this;
 
+            _securityAccessHandler = new BlazorSecurityAccessHandler(DisplayContext, Options.Curr.KnownEndpoints);
+
             // create a new session for plugin / event handling
             AnyUiDisplayContextHtml.AddEventSession(SessionId);
 
