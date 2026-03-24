@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -185,6 +185,13 @@ namespace AasxPackageLogic.PackageCentral
             // divert on indirect load/ save, to have dedicated try&catch
             if (IndirectLoadSave)
             {
+                // Same idea as PackageContainerUserFile: copy target must be the Save-As path when set.
+                // Otherwise "Save as" / Download wrote only to Location (original path); Blazor then
+                // downloaded TargetFileName — stale content. See doNotRememberLocation + IndirectLoadSave.
+                var copyTarget = (saveAsNewFileName != null && saveAsNewFileName.HasContent())
+                    ? saveAsNewFileName
+                    : Location;
+
                 // the container or package might be new
                 if (!Env.IsOpen || TempFn == null)
                 {
@@ -198,7 +205,7 @@ namespace AasxPackageLogic.PackageCentral
                     Env.TemporarilySaveCloseAndReOpenPackage(
                         prefFmt: prefFmt, lambda: () =>
                     {
-                        System.IO.File.Copy(Env.Filename, Location, overwrite: true);
+                        System.IO.File.Copy(Env.Filename, copyTarget, overwrite: true);
                     });
                 }
                 catch (Exception ex)
