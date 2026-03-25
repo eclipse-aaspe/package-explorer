@@ -47,179 +47,179 @@ namespace AasxPackageExplorer
 
             menu.AddMenu(header: "File",
                 childs: (new AasxMenu())
-                .AddWpfBlazor(name: "New", header: "_New …", inputGesture: "Ctrl+N",
+                .AddWpfBlazor(name: "New", header: "_New ...", inputGesture: "Ctrl+N",
                     help: "Create new AASX package.")
-                .AddWpfBlazor(name: "Open", header: "_Open (local) …", inputGesture: "Ctrl+O",
+                .AddWpfBlazor(name: "Open", header: "_Open (local) ...", inputGesture: "Ctrl+O",
                     help: "Open (local) existing AASX package.",
                     args: new AasxMenuListOfArgDefs()
                         .Add("File", "Source filename including a path and extension."))
-                .AddWpfBlazor(name: "FileRepoQuery", header: "Query open repositories/ registries …", inputGesture: "F12",
+                .AddWpfBlazor(name: "FileRepoQuery", header: "Query open repositories/ registries ...", inputGesture: "F12",
                         help: "Selects and repository item (AASX) from the open AASX file repositories.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("Index", "Zero-based integer index to the list of all open repos.")
                             .Add("AAS", "String with AAS-Id")
                             .Add("Asset", "String with Asset-Id."))
                 .AddWpfBlazor(name: "Save", header: "_Save", inputGesture: "Ctrl+S")
-                .AddWpfBlazor(name: "SaveAs", header: "_Save as …", 
+                .AddWpfBlazor(name: "SaveAs", header: "_Save as ...", 
                     help: "Saves current package to given file name and typr",
                     args: new AasxMenuListOfArgDefs()
                         .Add("File", "Filename including path and extension."))
                 .AddWpfBlazor(name: "FixAndFinalize", header: "Fix and Finalize ...")
                 .AddWpfBlazor(name: "Verify", header: "Verify ...")
-                .AddWpfBlazor(name: "Close", header: "_Close …")
-                .AddWpfBlazor(name: "CheckAndFix", header: "Check, validate and fix …")
-                .AddMenu(header: "Security …", childs: (new AasxMenu())
-                    .AddWpfBlazor(name: "Sign", header: "_Sign (Submodel, Package) …",
+                .AddWpfBlazor(name: "Close", header: "_Close ...")
+                .AddWpfBlazor(name: "CheckAndFix", header: "Check, validate and fix ...")
+                .AddMenu(header: "Security ...", childs: (new AasxMenu())
+                    .AddWpfBlazor(name: "Sign", header: "_Sign (Submodel, Package) ...",
                         help: "Sign a Submodel or SubmodelElement.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("UseX509", "Use X509 (true) or Verifiable Credential (false)")
                             .Add("Source", "Source package (.aasx) file.")
                             .Add("Certificate", "Certificate (.cer) file.")
                             .Add("Target", "Target package (.aasx2) file."))
-                    .AddWpfBlazor(name: "ValidateCertificate", header: "_Validate (Submodel, Package) …",
+                    .AddWpfBlazor(name: "ValidateCertificate", header: "_Validate (Submodel, Package) ...",
                         help: "Validate a already signed Submodel or SubmodelElement.")
-                    .AddWpfBlazor(name: "Encrypt", header: "_Encrypt (Package) …",
+                    .AddWpfBlazor(name: "Encrypt", header: "_Encrypt (Package) ...",
                         help: "Encrypts a Submodel, SubmodelElement or Package. For the latter, the arguments " +
                               "are required.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("Source", "Source package (.aasx) file.")
                             .Add("Certificate", "Certificate (.cer) file.")
                             .Add("Target", "Target package (.aasx2) file."))
-                    .AddWpfBlazor(name: "Decrypt", header: "_Decrypt (Package) …",
+                    .AddWpfBlazor(name: "Decrypt", header: "_Decrypt (Package) ...",
                         help: "Decrypts a Package.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("Source", "Source package (.aasx2) file.")
                             .Add("Certificate", "Certificate (.pfx) file.")
                             .Add("Target", "Target package (.aasx) file.")))
-                .AddMenu(header: "Reports …", childs: (new AasxMenu())
-                    .AddWpfBlazor(name: "AssessSmt", header: "_Assess Submodel template …",
+                .AddMenu(header: "Reports ...", childs: (new AasxMenu())
+                    .AddWpfBlazor(name: "AssessSmt", header: "_Assess Submodel template ...",
                         help: "Checks for a set of defined features for a Submodel template " +
                             "and reports the results. ",
                         args: new AasxMenuListOfArgDefs()
                             .Add("Target", "Target report file (*.txt, *.xlsx)."))
-                    .AddWpfBlazor(name: "CompareSmt", header: "_Compare Submodel template in main and auxiliary …",
+                    .AddWpfBlazor(name: "CompareSmt", header: "_Compare Submodel template in main and auxiliary ...",
                         help: "Compares Submodel templates given in main and auxiliary packages.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("Target", "Target report file (*.txt, *.xlsx).")))
                 .AddSeparator()
-                .AddWpfBlazor(name: "OpenAux", header: "Open Au_xiliary AAS …", inputGesture: "Ctrl+Shift+X",
+                .AddWpfBlazor(name: "OpenAux", header: "Open Au_xiliary AAS ...", inputGesture: "Ctrl+Shift+X",
                     help: "Open existing AASX package to the auxiliary buffer (non visible in the tree).",
                     args: new AasxMenuListOfArgDefs()
                         .Add("File", "Source filename including a path and extension."))
                 .AddWpfBlazor(name: "CloseAux", header: "Close Auxiliary AAS")
                 .AddSeparator()
-                .AddMenu(header: "Further connect options …", childs: (new AasxMenu())
-                    .AddWpfBlazor(name: "ConnectSecure", header: "Secure Connect (deprecated) …")
-                    .AddWpfBlazor(name: "ConnectOpcUa", header: "Connect via OPC-UA (deprecated) …")
-                    .AddWpfBlazor(name: "ConnectRest", header: "Connect via REST (deprecated) …")
-                    .AddWpfBlazor(name: "ConnectIntegrated", header: "Connect integrated (deprecated) …")
-                    .AddWpfBlazor(name: "FileRepoConnectRepository", header: "Connect HTTP/REST repository … (deprecated, for Event demo)",
+                .AddMenu(header: "Further connect options ...", childs: (new AasxMenu())
+                    .AddWpfBlazor(name: "ConnectSecure", header: "Secure Connect (deprecated) ...")
+                    .AddWpfBlazor(name: "ConnectOpcUa", header: "Connect via OPC-UA (deprecated) ...")
+                    .AddWpfBlazor(name: "ConnectRest", header: "Connect via REST (deprecated) ...")
+                    .AddWpfBlazor(name: "ConnectIntegrated", header: "Connect integrated (deprecated) ...")
+                    .AddWpfBlazor(name: "FileRepoConnectRepository", header: "Connect HTTP/REST repository ... (deprecated, for Event demo)",
                         help: "Connects to an online repository via HTTP/REST.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("Endpoint", "Endpoint of repo (without \"/server/listaas\").")))
                 .AddSeparator()
-                .AddMenu(header: "API for Registry and Repository …", childs: (new AasxMenu())
-                    .AddWpf(name: "AddBaseAddress", header: "Add preset for base address …")
-                    .AddWpf(name: "ClearBaseCredentials", header: "Clear all stored credentials …")
-                    .AddWpfBlazor(name: "ConnectExtended", header: "Connect (extended) …",
+                .AddMenu(header: "API for Registry and Repository ...", childs: (new AasxMenu())
+                    .AddWpf(name: "AddBaseAddress", header: "Add preset for base address ...")
+                    .AddWpf(name: "ClearBaseCredentials", header: "Clear all stored credentials ...")
+                    .AddWpfBlazor(name: "ConnectExtended", header: "Connect (extended) ...",
                         args: new AasxMenuListOfArgDefs()
                             .AddFromReflection(new PackageContainerHttpRepoSubset.ConnectExtendedRecord()))
-                    .AddWpfBlazor(name: "ApiUploadAssistant", header: "Upload assistant …",
+                    .AddWpfBlazor(name: "ApiUploadAssistant", header: "Upload assistant ...",
                         args: new AasxMenuListOfArgDefs()
                             .AddFromReflection(new PackageContainerHttpRepoSubset.UploadAssistantJobRecord()))
-                    .AddWpfBlazor(name: "ApiUploadFiles", header: "Upload files …",
+                    .AddWpfBlazor(name: "ApiUploadFiles", header: "Upload files ...",
                         args: new AasxMenuListOfArgDefs()
                             .AddFromReflection(new PackageContainerHttpRepoSubset.UploadFilesJobRecord()))
-                    .AddWpf(name: "CreateRepoFromApi", header: "Create (local) file repository from API base …",
+                    .AddWpf(name: "CreateRepoFromApi", header: "Create (local) file repository from API base ...",
                         args: new AasxMenuListOfArgDefs()
                             .AddFromReflection(new PackageContainerHttpRepoSubset.ConnectExtendedRecord()))
                 )
                 .AddSeparator()
-                .AddMenu(header: "AASX File Repository …", childs: (new AasxMenu())
-                    .AddWpfBlazor(name: "FileRepoNew", header: "New (local) repository …",
+                .AddMenu(header: "AASX File Repository ...", childs: (new AasxMenu())
+                    .AddWpfBlazor(name: "FileRepoNew", header: "New (local) repository ...",
                         help: "Create new (empty) file repository.")
-                    .AddWpfBlazor(name: "FileRepoOpen", header: "Open (local) repository …",
+                    .AddWpfBlazor(name: "FileRepoOpen", header: "Open (local) repository ...",
                         help: "Opens an existing AASX file repository and adds it to the list of open repos.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "Path and filename of existing AASX file repository."))
                     .AddSeparator()
-                    .AddWpfBlazor(name: "FileRepoCreateLRU", header: "Create last recently used list …"))
+                    .AddWpfBlazor(name: "FileRepoCreateLRU", header: "Create last recently used list ..."))
                 .AddSeparator()
-                .AddMenu(header: "Import …", attachPoint: "import", childs: (new AasxMenu())
-					.AddWpfBlazor(name: "ImportAASX", header: "Import further AASX file into AASX …",
+                .AddMenu(header: "Import ...", attachPoint: "import", childs: (new AasxMenu())
+					.AddWpfBlazor(name: "ImportAASX", header: "Import further AASX file into AASX ...",
 						help: "Import AASX file(s) with entities to overall AAS environment.",
 						args: new AasxMenuListOfArgDefs()
 							.Add("Files", "One or multiple AASX file(s) with AAS entities data."))
-					.AddWpfBlazor(name: "ImportAML", header: "Import AutomationML into AASX …",
+					.AddWpfBlazor(name: "ImportAML", header: "Import AutomationML into AASX ...",
                         help: "Import AML file with AAS entities to overall AAS environment.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "AML file with AAS entities data."))
-                    .AddWpfBlazor(name: "SubmodelRead", header: "Import Submodel from JSON …",
+                    .AddWpfBlazor(name: "SubmodelRead", header: "Import Submodel from JSON ...",
                         help: "Read Submodel from JSON and add/ replace existing to current AAS.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "JSON file with Submodel data."))
-                    .AddWpfBlazor(name: "SubmodelGet", header: "GET Submodel from URL …",
+                    .AddWpfBlazor(name: "SubmodelGet", header: "GET Submodel from URL ...",
                         help: "Get Submodel from REST server.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("URL", "URL to get Submodel data from."))
-                    .AddWpfBlazor(name: "ImportDictSubmodel", header: "Import Submodel from Dictionary …",
+                    .AddWpfBlazor(name: "ImportDictSubmodel", header: "Import Submodel from Dictionary ...",
                         help: "UI assisted import from dictionaries such as ECLASS and IEC CDD to a Submodel.")
-                    .AddWpfBlazor(name: "ImportDictSubmodelElements", header: "Import Submodel Elements from Dictionary …",
+                    .AddWpfBlazor(name: "ImportDictSubmodelElements", header: "Import Submodel Elements from Dictionary ...",
                         help: "UI assisted import from dictionaries such as ECLASS and IEC CDD to SubmodelElement.")
-                    .AddWpfBlazor(name: "BMEcatImport", header: "Import BMEcat-file into SubModel …",
+                    .AddWpfBlazor(name: "BMEcatImport", header: "Import BMEcat-file into SubModel ...",
                         help: "Import BMEcat data into an existing Submodel.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "BMEcat file with data."))
-                    .AddWpfBlazor(name: "SubmodelTDImport", header: "Import Thing Description JSON LD document into SubModel …",
+                    .AddWpfBlazor(name: "SubmodelTDImport", header: "Import Thing Description JSON LD document into SubModel ...",
                         help: "Import Thing Description (TD) file in JSON LD format into an existing Submodel.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "JSON LD file with TD data."))
-					.AddWpfBlazor(name: "SammAspectImport", header: "Import SAMM aspect into ConceptDescriptions …",
+					.AddWpfBlazor(name: "SammAspectImport", header: "Import SAMM aspect into ConceptDescriptions ...",
 						help: "Import SAMM (Semantic Aspect Meta Model) aspect data into dedicated ConceptDescriptions.",
 						args: new AasxMenuListOfArgDefs()
 							.Add("File", "SAMM file (*.ttl, ..) with aspect model."))
-					.AddWpfBlazor(name: "CSVImport", header: "Import CSV-file into SubModel …",
+					.AddWpfBlazor(name: "CSVImport", header: "Import CSV-file into SubModel ...",
                         help: "Import comma separated values (CSV) into an existing Submodel.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "CSV file with data."))
-                    .AddWpfBlazor(name: "OPCUAi4aasImport", header: "Import AAS from i4aas-nodeset …")
-                    .AddWpfBlazor(name: "OpcUaImportNodeSet", header: "Import OPC UA nodeset.xml as Submodel …",
+                    .AddWpfBlazor(name: "OPCUAi4aasImport", header: "Import AAS from i4aas-nodeset ...")
+                    .AddWpfBlazor(name: "OpcUaImportNodeSet", header: "Import OPC UA nodeset.xml as Submodel ...",
                         help: "Import OPC UA nodeset.xml into an existing Submodel.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "OPC UA Nodeset file."))
-                    .AddWpfBlazor(name: "OPCRead", header: "Read OPC values into SubModel …",
+                    .AddWpfBlazor(name: "OPCRead", header: "Read OPC values into SubModel ...",
                         help: "Use Qualifiers attributed in a Submodel to read actual OPC UA values.")
-                    .AddWpfBlazor(name: "RDFRead", header: "Import BAMM RDF into AASX …",
+                    .AddWpfBlazor(name: "RDFRead", header: "Import BAMM RDF into AASX ...",
                         help: "Import BAMM RDF into AASX.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "BAMM file with RDF data.")))
-                .AddMenu(header: "Export …", attachPoint: "Export", childs: (new AasxMenu())
-                    .AddWpfBlazor(name: "ExportAML", header: "Export AutomationML …",
+                .AddMenu(header: "Export ...", attachPoint: "Export", childs: (new AasxMenu())
+                    .AddWpfBlazor(name: "ExportAML", header: "Export AutomationML ...",
                         help: "Export AML file with AAS entities from AAS environment.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "AML file with AAS entities data.")
                             .Add("Location", "Location selection", hidden: true)
                             .Add("FilterIndex", "Set FilterIndex=2 for compact AML format."))
-                    .AddWpfBlazor(name: "SubmodelWrite", header: "Export Submodel to JSON …",
+                    .AddWpfBlazor(name: "SubmodelWrite", header: "Export Submodel to JSON ...",
                         help: "Write Submodel to JSON.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "JSON file to write Submodel data to.")
                             .Add("Location", "Location selection", hidden: true))
-                    .AddWpfBlazor(name: "SubmodelPut", header: "PUT Submodel to URL …",
+                    .AddWpfBlazor(name: "SubmodelPut", header: "PUT Submodel to URL ...",
                         help: "Put Submodel to REST server.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("URL", "URL to put Submodel data to."))
-                    .AddWpfBlazor(name: "ExportCst", header: "Export to TeamCenter CST …",
+                    .AddWpfBlazor(name: "ExportCst", header: "Export to TeamCenter CST ...",
                         help: "Export data to SIEMENS TeamCenter containing list of properties.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "Head-part of filenames to write data to.")
                             .Add("Location", "Location selection", hidden: true))
-                    .AddWpfBlazor(name: "ExportJsonSchema", header: "Export JSON schema for Submodel Templates …",
+                    .AddWpfBlazor(name: "ExportJsonSchema", header: "Export JSON schema for Submodel Templates ...",
                         help: "Export data in JSON schema format to describe AAS Submodel Templates.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "JSON schema file to write data to.")
                             .Add("Location", "Location selection", hidden: true))
-                    .AddWpfBlazor(name: "OPCUAi4aasExport", header: "Export AAS as i4aas-nodeset …",
+                    .AddWpfBlazor(name: "OPCUAi4aasExport", header: "Export AAS as i4aas-nodeset ...",
                         help: "Export OPC UA Nodeset2.xml format as i4aas-nodeset.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "OPC UA Nodeset2.xml file to write.")
@@ -227,12 +227,12 @@ namespace AasxPackageExplorer
                     .AddWpfBlazor(name: "CopyClipboardElementJson",
                         header: "Copy selected element JSON to clipboard", inputGesture: "Shift+Ctrl+C")
                     .AddWpfBlazor(name: "ExportGenericForms",
-                        header: "Export Submodel as options for GenericForms …",
+                        header: "Export Submodel as options for GenericForms ...",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "Export file to write.")
                             .Add("Location", "Location selection", hidden: true))
                     .AddWpfBlazor(name: "ExportPredefineConcepts",
-                        header: "Export Submodel as snippet for PredefinedConcepts …",
+                        header: "Export Submodel as snippet for PredefinedConcepts ...",
                         args: new AasxMenuListOfArgDefs()
                             .Add("File", "Text file to write.")
                             .Add("Location", "Location selection", hidden: true))
@@ -246,23 +246,23 @@ namespace AasxPackageExplorer
 						args: new AasxMenuListOfArgDefs()
 							.Add("File", "Turtle file with SAMM data.")
 							.Add("Location", "Location selection", hidden: true))
-					.AddWpfBlazor(name: "PrintAsset", header: "Print Asset as code sheet …",
+					.AddWpfBlazor(name: "PrintAsset", header: "Print Asset as code sheet ...",
                         help: "Prints a sheet with 2D codes for the selected asset.")
-                    .AddWpfBlazor(name: "ExportSMD", header: "Export TeDZ Simulation Model Description (SMD) …",
+                    .AddWpfBlazor(name: "ExportSMD", header: "Export TeDZ Simulation Model Description (SMD) ...",
                         help: "Export TeDZ Simulation Model Description (SMD).",
                         args: new AasxMenuListOfArgDefs()
                             .Add("Machine", "Designation of the machine/ equipment.")
                             .Add("Model", "Model type, either 'Physical' or 'Signal'.")))
                 .AddSeparator(filter: AasxMenuFilter.NotBlazor)
-                .AddMenu(header: "Server …", filter: AasxMenuFilter.NotBlazor,
+                .AddMenu(header: "Server ...", filter: AasxMenuFilter.NotBlazor,
                          attachPoint: "Server", childs: (new AasxMenu())
-                    .AddWpf(name: "ServerRest", header: "Serve AAS as REST …", inputGesture: "Shift+F6")
-                    .AddWpf(name: "MQTTPub", header: "Publish AAS via MQTT …")
+                    .AddWpf(name: "ServerRest", header: "Serve AAS as REST ...", inputGesture: "Shift+F6")
+                    .AddWpf(name: "MQTTPub", header: "Publish AAS via MQTT ...")
                     .AddSeparator()
-                    .AddWpf(name: "ServerPluginEmptySample", header: "Plugin: Empty Sample …")
-                    .AddWpf(name: "ServerPluginMQTT", header: "Plugin: MQTT …"))
+                    .AddWpf(name: "ServerPluginEmptySample", header: "Plugin: Empty Sample ...")
+                    .AddWpf(name: "ServerPluginMQTT", header: "Plugin: MQTT ..."))
                 .AddSeparator(filter: AasxMenuFilter.NotBlazor)
-                .AddMenu(header: "System …", filter: AasxMenuFilter.NotBlazor,
+                .AddMenu(header: "System ...", filter: AasxMenuFilter.NotBlazor,
                          attachPoint: "System", childs: (new AasxMenu())
                     .AddWpf(name: "AttachFileAssoc", header: "Attach .aasx file associations",
                         args: new AasxMenuListOfArgDefs()
@@ -292,10 +292,10 @@ namespace AasxPackageExplorer
                         .Add("Mode", "'True' to activate hints mode, 'False' to turn off."))
                 .AddWpfBlazor(name: "Test", header: "Test")
                 .AddSeparator(filter: AasxMenuFilter.Wpf)
-                .AddWpf(name: "ToolsFindText", header: "Find …", inputGesture: "Ctrl+F",
+                .AddWpf(name: "ToolsFindText", header: "Find ...", inputGesture: "Ctrl+F",
                     args: new AasxMenuListOfArgDefs()
                         .AddFromReflection(new AasxSearchUtil.SearchOptions()))
-                .AddWpf(name: "ToolsReplaceText", header: "Replace …", inputGesture: "Ctrl+Shift+H",
+                .AddWpf(name: "ToolsReplaceText", header: "Replace ...", inputGesture: "Ctrl+Shift+H",
                     args: new AasxMenuListOfArgDefs()
                         .AddFromReflection(new AasxSearchUtil.SearchOptions())
                         .Add("Do", "Either do 'stay', 'forward' or 'all'."))
@@ -305,15 +305,15 @@ namespace AasxPackageExplorer
                 .AddWpf(name: "ToolsReplaceForward", header: "Replace and stay", hidden: true)
                 .AddWpf(name: "ToolsReplaceAll", header: "Replace all", hidden: true)
                 .AddSeparator()
-                .AddMenu(header: "Navigation …", childs: (new AasxMenu())
+                .AddMenu(header: "Navigation ...", childs: (new AasxMenu())
                     .AddWpfBlazor(name: "NavigateBack", header: "Back", inputGesture: "Ctrl+Shift+Left")
                     .AddWpfBlazor(name: "NavigateHome", header: "Home", inputGesture: "Ctrl+Shift+Home"))
                 .AddSeparator()
-                .AddMenu(header: "Editing locations …", childs: (new AasxMenu())
+                .AddMenu(header: "Editing locations ...", childs: (new AasxMenu())
                     .AddWpfBlazor(name: "LocationPush", header: "Push location", inputGesture: "Ctrl+Shift+P")
                     .AddWpfBlazor(name: "LocationPop", header: "Pop location", inputGesture: "Ctrl+Shift+O"))
                 .AddSeparator()
-                .AddMenu(header: "Create …", attachPoint: "Create", childs: (new AasxMenu())
+                .AddMenu(header: "Create ...", attachPoint: "Create", childs: (new AasxMenu())
                     .AddWpfBlazor(name: "NewSubmodelFromPlugin", header: "New Submodel from plugin", inputGesture: "Ctrl+Shift+M",
                             help: "Creates a new Submodel based on defintions provided by plugin.",
                             args: new AasxMenuListOfArgDefs()
@@ -340,30 +340,30 @@ namespace AasxPackageExplorer
                         header: "New Submodel from SMT/ SAMM ConceptDescription",
                         help: "Creates a new Submodel instance from an selected root given by accessible ConceptDescriptions.")
                     )
-                .AddMenu(header: "Change …", attachPoint: "Change")
-                .AddMenu(header: "Visualize …", attachPoint: "Visualize")
-                .AddMenu(header: "Plugins …", attachPoint: "Plugins")
+                .AddMenu(header: "Change ...", attachPoint: "Change")
+                .AddMenu(header: "Visualize ...", attachPoint: "Visualize")
+                .AddMenu(header: "Plugins ...", attachPoint: "Plugins")
                 .AddSeparator()
-                .AddWpfBlazor(name: "ConvertElement", header: "Convert via plugin …",
+                .AddWpfBlazor(name: "ConvertElement", header: "Convert via plugin ...",
                         help: "Asks plugins if these could make offers to convert the current elements and " +
                             "subsequently converts the element.",
                         args: new AasxMenuListOfArgDefs()
                             .Add("Name", "Name of the potential offer (partially)")
                             .Add("Record", "Record data", hidden: true))
                 .AddSeparator()
-                .AddMenu(header: "Buffer …", childs: (new AasxMenu())
+                .AddMenu(header: "Buffer ...", childs: (new AasxMenu())
                     .AddWpfBlazor(name: "BufferClear", header: "Clear internal paste buffer"))
-                .AddMenu(header: "Log …", childs: (new AasxMenu())
+                .AddMenu(header: "Log ...", childs: (new AasxMenu())
                     .AddWpfBlazor(name: "StatusClear", header: "Clear status line and errors")
                     .AddWpfBlazor(name: "LogShow", header: "Show log"))
                 .AddSeparator(filter: AasxMenuFilter.NotBlazor)
-                .AddMenu(header: "Events …", childs: (new AasxMenu())
+                .AddMenu(header: "Events ...", childs: (new AasxMenu())
                     .AddWpf(name: "EventsShowLogMenu", header: "_Event log", inputGesture: "Ctrl+L",
                         onlyDisplay: true, isCheckable: true,
                         help: "Shows a information panel for received and emitted AAS events in the user interface.")
                     .AddWpf(name: "EventsResetLocks", header: "Reset interlocking"))
-                .AddMenu(header: "Scripts …", filter: AasxMenuFilter.WpfBlazor, childs: (new AasxMenu())
-                    .AddWpfBlazor(name: "ScriptEditLaunch", header: "Edit & launch …", inputGesture: "Ctrl+Shift+L")));
+                .AddMenu(header: "Scripts ...", filter: AasxMenuFilter.WpfBlazor, childs: (new AasxMenu())
+                    .AddWpfBlazor(name: "ScriptEditLaunch", header: "Edit & launch ...", inputGesture: "Ctrl+Shift+L")));
 
             //
             // Options
@@ -392,11 +392,11 @@ namespace AasxPackageExplorer
 
             menu.AddMenu(header: "Help",
                 childs: (new AasxMenu())
-                .AddWpfBlazor(name: "About", header: "About …")
-                .AddWpfBlazor(name: "HelpGithub", header: "Help on Github …")
-                .AddWpfBlazor(name: "FaqGithub", header: "FAQ on Github …")
-                .AddWpfBlazor(name: "HelpIssues", header: "Issues on Github …")
-                .AddWpfBlazor(name: "HelpOptionsInfo", header: "Available options …"));
+                .AddWpfBlazor(name: "About", header: "About ...")
+                .AddWpfBlazor(name: "HelpGithub", header: "Help on Github ...")
+                .AddWpfBlazor(name: "FaqGithub", header: "FAQ on Github ...")
+                .AddWpfBlazor(name: "HelpIssues", header: "Issues on Github ...")
+                .AddWpfBlazor(name: "HelpOptionsInfo", header: "Available options ..."));
 
             //
             // Hotkeys

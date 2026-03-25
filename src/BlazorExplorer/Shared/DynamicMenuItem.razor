@@ -128,7 +128,7 @@
 
     /// <summary>
     /// Menütexte aus ExplorerMenuFactory nutzen WPF-Mnemonics (_) und typografische Ellipse (…).
-    /// Letztere fehlt auf vielen Server-/Linux-Standardfonts → fehlende Glyphe (�) neben den Shortcuts.
+    /// Typografische Ellipse oder beschädigte UTF-8-Sequenz (U+FFFD) → sonst � in der UI.
     /// </summary>
     private static string SanitizeMenuHeaderForBlazor(string header)
     {
@@ -136,7 +136,8 @@
             return "";
         return header
             .Replace("_", "")
-            .Replace("\u2026", "..."); // HORIZONTAL ELLIPSIS
+            .Replace("\u2026", "...") // HORIZONTAL ELLIPSIS
+            .Replace("\uFFFD", "..."); // replacement char (mojibake / broken UTF-8 in pipeline)
     }
 
     [Parameter] public AasxMenu TopMenu { get; set; }
