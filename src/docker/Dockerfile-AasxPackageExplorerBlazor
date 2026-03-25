@@ -27,6 +27,13 @@ RUN dotnet publish src/BlazorExplorer/BlazorExplorer.csproj \
     /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+# Basis-Image läuft als Non-Root; für apt kurz root
+USER root
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends fonts-noto-core \
+ && rm -rf /var/lib/apt/lists/*
+USER app
+
 WORKDIR /app
 
 COPY --from=build /app/publish .
