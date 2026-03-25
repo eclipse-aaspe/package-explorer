@@ -37,8 +37,9 @@
     {
         var itemPath = string.IsNullOrEmpty(NavMenuPath) ? $"{i}" : $"{NavMenuPath}_{i}";
 
-        // clean header
-        var header = ("" + mii.Header).Replace("_", "");
+        // WPF mnemonic "_" entfernen; Unicode-Ellipse U+2026 (…) → "..." — auf schlanken Linux-Font-Stacks
+        // fehlt die Glyphe oft → Browser zeigt � (Ersatzzeichen) zwischen Text und Shortcut.
+        var header = SanitizeMenuHeaderForBlazor(mii.Header);
 
         if (mii.Childs == null || mii.Childs.Count < 1)
         {
@@ -104,7 +105,7 @@
                    @onclick="@(() => OnBranchToggleAsync(subToggleId))"
                    @onclick:preventDefault="true"
                    @onclick:stopPropagation="true">
-                    @mii.Header
+                    @SanitizeMenuHeaderForBlazor(mii.Header)
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="@subToggleId">
                         
@@ -124,6 +125,19 @@
 
 
 @code {
+
+    /// <summary>
+    /// Menütexte aus ExplorerMenuFactory nutzen WPF-Mnemonics (_) und typografische Ellipse (…).
+    /// Letztere fehlt auf vielen Server-/Linux-Standardfonts → fehlende Glyphe (�) neben den Shortcuts.
+    /// </summary>
+    private static string SanitizeMenuHeaderForBlazor(string header)
+    {
+        if (header == null)
+            return "";
+        return header
+            .Replace("_", "")
+            .Replace("\u2026", "..."); // HORIZONTAL ELLIPSIS
+    }
 
     [Parameter] public AasxMenu TopMenu { get; set; }
 
