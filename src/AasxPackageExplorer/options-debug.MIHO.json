@@ -53,6 +53,12 @@
       "AccessInfo": {
         "Method": "None" // None, Ask, Basic, CertificateStore, File, InteractiveEntry, Secret
       }
+    },    
+	{
+      "BaseAddress": "https://leo-discovery.admin-shell-io.com/api/v2/",
+      "AccessInfo": {
+        "Method": "None" // None, Ask, Basic, CertificateStore, File, InteractiveEntry, Secret
+      }
     },
     {
       "BaseAddress": "https://aasx-server-pcf.dev.pxcio.net/",
