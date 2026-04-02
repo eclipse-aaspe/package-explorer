@@ -446,22 +446,29 @@ namespace AasxPackageExplorer
                 d.Add("audience", target);
             }
 
-            //Get Well-Known
-            var openIdConfig = await client.GetStringAsync($"{configUrl}/.well-known/openid-configuration");
-            var openIdConfigJson = JsonDocument.Parse(openIdConfig);
-
             string jwksUri = $"{configUrl}/jwks";
-            if (openIdConfigJson.RootElement.TryGetProperty("jwks_uri", out var propJwksUri))
-            {
-                jwksUri = propJwksUri.GetString();
-            }
-
             string tokenEndpoint = $"{configUrl}/token";
-            if (openIdConfigJson.RootElement.TryGetProperty("token_endpoint", out var propTokenUrl))
-            {
-                tokenEndpoint = propTokenUrl.GetString();
-            }
 
+            //Get Well-Known
+            try
+            {
+                var openIdConfig = await client.GetStringAsync($"{configUrl}/.well-known/openid-configuration");
+                var openIdConfigJson = JsonDocument.Parse(openIdConfig);
+
+                if (openIdConfigJson.RootElement.TryGetProperty("jwks_uri", out var propJwksUri))
+                {
+                    jwksUri = propJwksUri.GetString();
+                }
+
+                if (openIdConfigJson.RootElement.TryGetProperty("token_endpoint", out var propTokenUrl))
+                {
+                    tokenEndpoint = propTokenUrl.GetString();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Info($"Could not access well-known from {configUrl}");
+            }
 
             var request = new HttpRequestMessage(HttpMethod.Post, tokenEndpoint)
             {
