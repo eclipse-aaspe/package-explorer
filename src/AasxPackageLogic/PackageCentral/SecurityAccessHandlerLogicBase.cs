@@ -426,9 +426,9 @@ namespace AasxPackageExplorer
         private async Task<string> DoTokenExchange(string[] tokenExchangeParams, string secretAccessToken)
         {
             var handler = new HttpClientHandler { DefaultProxyCredentials = CredentialCache.DefaultCredentials };
-            var client = new HttpClient(handler);
+            using var client = new HttpClient(handler);
 
-            var exchangendToken = String.Empty;
+            var exchangedToken = String.Empty;
 
             var configUrl = tokenExchangeParams[0];
             var target = tokenExchangeParams[1];
@@ -445,7 +445,25 @@ namespace AasxPackageExplorer
             {
                 d.Add("audience", target);
             }
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{configUrl}/token")
+
+            //Get Well-Known
+            var openIdConfig = await client.GetStringAsync($"{configUrl}/.well-known/openid-configuration");
+            var openIdConfigJson = JsonDocument.Parse(openIdConfig);
+
+            string jwksUri = $"{configUrl}/jwks";
+            if (openIdConfigJson.RootElement.TryGetProperty("jwks_uri", out var propJwksUri))
+            {
+                jwksUri = propJwksUri.GetString();
+            }
+
+            string tokenEndpoint = $"{configUrl}/token";
+            if (openIdConfigJson.RootElement.TryGetProperty("token_endpoint", out var propTokenUrl))
+            {
+                tokenEndpoint = propTokenUrl.GetString();
+            }
+
+
+            var request = new HttpRequestMessage(HttpMethod.Post, tokenEndpoint)
             {
                 Content = new FormUrlEncodedContent(d)
             };
@@ -461,8 +479,7 @@ namespace AasxPackageExplorer
                 accessToken = tokenElement.GetString();
                 Console.WriteLine("Access Token: " + accessToken);
 
-                using var httpClient = new HttpClient(handler);
-                var jwksJson = await httpClient.GetStringAsync($"{configUrl}/jwks");
+                var jwksJson = await client.GetStringAsync(jwksUri);
                 var jwks = JObject.Parse(jwksJson)["keys"];
 
                 // 1) Handler
@@ -509,7 +526,7 @@ namespace AasxPackageExplorer
                     else
                     {
                         Console.WriteLine("Token is valid");
-                        exchangendToken = accessToken;
+                        exchangedToken = accessToken;
                     }
                 }
                 catch (Exception ex)
@@ -519,7 +536,7 @@ namespace AasxPackageExplorer
                 }
             }
 
-            return exchangendToken;
+            return exchangedToken;
         }
 
         protected virtual async Task<Tuple<bool, string[], bool, string[]>> AskForTokenExchange()
