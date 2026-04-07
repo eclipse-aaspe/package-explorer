@@ -175,7 +175,8 @@ namespace AasxPluginProductChangeNotifications
                 PredefinedConceptsClassMapper.ParseAasElemsToObject(
                     sm, pre,
                     lambdaLookupReference: (rf) => package?.AasEnv?.FindReferableByReference(rf));
-                _pcnData = new PCNCURR.CD_ProductChangeNotifications(pre);
+                var tempPre2 = new AasxPredefinedConcepts.ProductChangeNotifications.V_1_0_pre2.CD_ProductChangeNotifications(pre);
+                _pcnData = new PCNCURR.CD_ProductChangeNotifications(tempPre2);
             }
             else
             if (foundRecs.First().Version == PcnOptionsRecord.VersionEnum.V10)
@@ -972,7 +973,7 @@ namespace AasxPluginProductChangeNotifications
                 foreach (var sme in smcSingleChange?.Value.AsNotNull())
                 {
                     if (true == sme.SemanticId?.Matches(
-                        theDefs.CD_Origin_of_change?.GetReference(), mm)
+                        theDefs.CD_OriginOfChange?.GetReference(), mm)
                         && sme is Aas.IReferenceElement rfe)
                         originOfChange = rfe;
                     else
@@ -1009,7 +1010,7 @@ namespace AasxPluginProductChangeNotifications
                     var newValue = smc2.Value.FindFirstSemanticIdAs<Aas.ISubmodelElement>(
                         theDefs.CD_NewValueOfChange?.GetReference(), matchMode: mm);
                     var originOfChange = smc2.Value.FindFirstSemanticIdAs<Aas.IReferenceElement>(
-                        theDefs.CD_Origin_of_change?.GetReference(), matchMode: mm);
+                        theDefs.CD_OriginOfChange?.GetReference(), matchMode: mm);
                     var reasonId = smc2.Value.FindFirstSemanticIdAs<Aas.IProperty>(
                         theDefs.CD_ReasonId?.GetReference(), matchMode: mm);
 
@@ -1281,9 +1282,9 @@ namespace AasxPluginProductChangeNotifications
                     data.Manufacturer.ManufacturerName?.GetDefaultString(_selectedLangStr));
 
                 var adrStr = AasxPredefinedConcepts.InfoAccessDigitalNameplateV20
-                                .ContactInfoToStrings(data.Manufacturer.AdressInformation?.__Info__?.Referable);
+                                .ContactInfoToStrings(data.Manufacturer.Address?.__Info__?.Referable);
                 
-                InnerDocAddText(uitk, grid, 0, 2, "AdressInformation:",
+                InnerDocAddText(uitk, grid, 0, 2, "Address:",
                     "" + string.Join(" \u2022 ", (adrStr ?? (new[] { "-" }).ToList())),
                     wrapText: AnyUiTextWrapping.Wrap);
 
@@ -1710,21 +1711,20 @@ namespace AasxPluginProductChangeNotifications
                 {
                     Action<string, string, string> checkLambda = (xElName, value, valueId) =>
                     {
+                        // TODO: Better format here?
                         // get date?
-                        var date = elLCD.Element(xns + xElName)?.Value;
-                        if (date == null)
-                            return;
-                        if (!date.Contains("T"))
-                            date += "T12:00Z";
-
-                        // add
-                        var ms = new PCNCURR.CD_LifeCycleMilestone()
+                        if (DateTime.TryParse("" + elLCD.Element(xns + xElName)?.Value,
+                                        CultureInfo.InvariantCulture, out var dti))
                         {
-                            MilestoneClassification = "" + value,
-                            // valueId for later extension
-                            DateOfValidity = date,
-                        };
-                        rec.LifeCycleData.Milestone.Add(ms);
+                            // add
+                            var ms = new PCNCURR.CD_LifeCycleMilestone()
+                            {
+                                MilestoneClassification = "" + value,
+                                // valueId for later extension
+                                DateOfValidity = dti,
+                            };
+                            rec.LifeCycleData.Milestone.Add(ms);
+                        }
                     };
                     checkLambda("pcnSOP",           "SOP",  "0173-10029#07-ABO117#001");
                     checkLambda("pcnEOS",           "EOS",  "0173-10029#07-ABO121#001");
@@ -1778,9 +1778,12 @@ namespace AasxPluginProductChangeNotifications
                     + " "
                     + elDiff.Element(xns + "pcnChangeIdentificationMethod")?.Value);
 
-                rec.DateOfRecord = "" + elMaster.Element(xns + "pcnIssueDate")?.Value;
-                if (!rec.DateOfRecord.Contains("T"))
-                    rec.DateOfRecord += "T12:00Z";
+                // TODO: Check, if advanced parsing is required here ..
+                if (DateTime.TryParse("" + elMaster.Element(xns + "pcnIssueDate")?.Value,
+                    CultureInfo.InvariantCulture, out var dti))
+                {
+                    rec.DateOfRecord = dti;
+                }
 
                 // now, add the item of change
                 // (smartPCN concern solely about item of change and not about 
