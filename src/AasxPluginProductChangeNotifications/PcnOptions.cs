@@ -22,7 +22,8 @@ namespace AasxPluginProductChangeNotifications
 {
     public class PcnOptionsRecord : AasxPluginOptionsLookupRecordBase
     {
-        public enum VersionEnum { V10pre, V10 }
+        // Note: By top-level IRDI, v01pre2 and V10 are not distinguishable!!
+        public enum VersionEnum { V10pre, V10pre2, V10 }
 
         public VersionEnum Version = VersionEnum.V10;
     }
