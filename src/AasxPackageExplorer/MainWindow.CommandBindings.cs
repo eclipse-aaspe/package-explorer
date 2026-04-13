@@ -305,6 +305,8 @@ namespace AasxPackageExplorer
                 object currMdo = null;
                 if (DisplayElements.SelectedItem != null)
                     currMdo = DisplayElements.SelectedItem.GetMainDataObject();
+                if (currMdo is Aas.IReferable rf)
+                    Log.Singleton.Info("TreeSelect2: " + rf.IdShort);
 
                 // edit mode affects the total element view
                 await RedrawAllAasxElementsAsync();
@@ -313,7 +315,7 @@ namespace AasxPackageExplorer
                 // select last object
                 if (currMdo != null)
                 {
-                    DisplayElements.TrySelectMainDataObject(currMdo, wishExpanded: true);
+                    DisplayElements.TrySelectMainDataObject(currMdo, wishExpanded: true, specialTreeUpdate: true);
                 }
             }
 

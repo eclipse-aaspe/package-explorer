@@ -52,6 +52,12 @@ namespace AasxPluginExportTable
         /// </summary>
         public ExportUmlRecord uml = null;
 
+        /// <summary>
+        /// When exporting an enumeration table:
+        /// Do not show the 3rd column, Description.
+        /// </summary>
+        public bool noDescription = false;
+
         // ReSharper enable UnassignedField.Global
 
         public static ExportSmtArguments Parse(string json)

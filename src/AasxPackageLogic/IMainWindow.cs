@@ -84,6 +84,11 @@ namespace AasxPackageExplorer
             object nextFocusMdo = null,
             bool wishExpanded = true);
 
+        //Task RedrawAllAasxElementsAsync(
+        //    bool keepFocus = false,
+        //    object nextFocusMdo = null,
+        //    bool wishExpanded = true);
+
         /// <summary>
         /// Based on save information, will redraw the AAS entity (element) view (right).
         /// </summary>

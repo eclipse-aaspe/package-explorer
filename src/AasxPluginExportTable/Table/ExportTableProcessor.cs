@@ -36,33 +36,36 @@ namespace AasxPluginExportTable.Table
 {
     public class ExportTableAasEntitiesItem
     {
-        public int depth;
+        public int Depth;
 
         /// <summary>
         /// This element carries data from either SM or SME.
         /// </summary>
-        public Aas.IReferable Parent;
+        public Aas.IReferable ParentRf;
+        public Aas.IConceptDescription ParentCd;
 
-        public Aas.IReferable rf;
-        public Aas.IConceptDescription cd;
+        public Aas.IReferable Rf;
+        public Aas.IConceptDescription Cd;
 
         public ExportTableAasEntitiesItem(
             int depth, Aas.IReferable rf = null,
             Aas.IConceptDescription cd = null,
-            Aas.IReferable parent = null)
+            Aas.IReferable parentRf = null,
+            Aas.IConceptDescription parentCd = null)
         {
-            this.depth = depth;
-            this.rf = rf;
-            this.cd = cd;
-            Parent = parent;
+            this.Depth = depth;
+            Rf = rf;
+            Cd = cd;
+            ParentRf = parentRf;
+            ParentCd = parentCd;
         }
 
         public Aas.IReferable GetHeadingReferable()
         {
-            if (Parent != null)
-                return Parent;
-            if (rf != null)
-                return rf;
+            if (ParentRf != null)
+                return ParentRf;
+            if (Rf != null)
+                return Rf;
             return null;
         }
     }
@@ -504,14 +507,14 @@ namespace AasxPluginExportTable.Table
                 if (Item != null)
                 {
                     // shortcuts
-                    var par = Item.Parent;
-                    var sm = Item.rf as Aas.ISubmodel;
-                    var sme = Item.rf as Aas.ISubmodelElement;
-                    var cd = Item.cd;
+                    var par = Item.ParentRf;
+                    var sm = Item.Rf as Aas.ISubmodel;
+                    var sme = Item.Rf as Aas.ISubmodelElement;
+                    var cd = Item.Cd;
 
                     // general for the item
-                    rep("depth", "" + Item.depth);
-                    rep("indent", "" + new string('~', Math.Max(0, Item.depth)));
+                    rep("depth", "" + Item.Depth);
+                    rep("indent", "" + new string('~', Math.Max(0, Item.Depth)));
 
                     //-1- {Parent}
                     if (par is Aas.Submodel parsm)
@@ -522,8 +525,6 @@ namespace AasxPluginExportTable.Table
                         repQualifiable(head, parsm.Qualifiers);
                         repMultiplicty(head, parsm.Qualifiers);
                         repIdentifiable(head, parsm);
-                        //-1- {Reference} = {semanticId, isCaseOf, unitId}
-                        repReference(head, "semanticId", parsm.SemanticId);
                     }
 
                     if (par is Aas.ISubmodelElement parsme)
@@ -532,9 +533,21 @@ namespace AasxPluginExportTable.Table
                         repReferable(head, parsme);
                         repQualifiable(head, parsme.Qualifiers);
                         repMultiplicty(head, parsme.Qualifiers);
+                    }
+
+                    if (par is Aas.IHasSemantics parsem)
+                    {
+                        var head = "Parent.";
+                        
                         //-1- {Reference} = {semanticId, isCaseOf, unitId}
-                        repReference(head, "semanticId", parsme.SemanticId);
-                        repReferenceList(head, "supplSemIds", parsme.SupplementalSemanticIds);
+                        repReference(head, "semanticId", parsem.SemanticId);
+                        repReferenceList(head, "supplSemIds", parsem.SupplementalSemanticIds);
+
+                        // very special
+                        var dfst = "";
+                        if (Item.ParentCd?.GetIEC61360()?.Definition?.IsValid() == true)
+                            dfst = Item.ParentCd.GetIEC61360().Definition.GetDefaultString();
+                        rep(head + "definition@en", dfst);
                     }
 
                     //-1- {Referable} = {SM, SME, CD}
@@ -733,14 +746,6 @@ namespace AasxPluginExportTable.Table
                 // local
                 var input = cr.Text;
 
-                // newline
-                if (ReplaceNewlineWith != null)
-                {
-                    input = input.Replace("\r\n", ReplaceNewlineWith);
-                    input = input.Replace("\n\r", ReplaceNewlineWith);
-                    input = input.Replace("\n", ReplaceNewlineWith);
-                }
-
                 // process from right to left
                 // see: https://codereview.stackexchange.com/questions/119519/
                 // regex-to-first-match-then-replace-found-matches
@@ -879,6 +884,12 @@ namespace AasxPluginExportTable.Table
                                 && i >= 2)
                                 cr.ColSpan = i;
                             break;
+                        case "trim":
+                            if (argtl == "all")
+                            {
+                                cr.Text = cr.Text.Trim();
+                            }
+                            break;
                     }
 
                     // new approach: try to remove found text in cr.TextWithHeaders
@@ -886,6 +897,14 @@ namespace AasxPluginExportTable.Table
                     int p = cr.Text.LastIndexOf(allMatch);
                     if (p >= 0)
                         cr.Text = cr.Text.Remove(p, allMatch.Length);
+                }
+
+                // newline
+                if (ReplaceNewlineWith != null)
+                {
+                    cr.Text = cr.Text.Replace("\r\n", ReplaceNewlineWith);
+                    cr.Text = cr.Text.Replace("\n\r", ReplaceNewlineWith);
+                    // Note: replacing single "\n" is not easily doable
                 }
 
             }

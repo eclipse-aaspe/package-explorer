@@ -46,6 +46,7 @@ namespace AasxPackageExplorer
         {
             DisplayElements.Background = new SolidColorBrush(Color.FromRgb(40, 40, 40));
             DisplayElements.ActivateElementStateCache();
+            DisplayElements.AllowMultiSelect = DiaData.MultiSelect;
 
             // fill combo box
             ComboBoxFilter.Items.Add("All");
@@ -107,7 +108,7 @@ namespace AasxPackageExplorer
 
         private void ButtonSelect_Click(object sender, RoutedEventArgs e)
         {
-            if (DiaData?.PrepareResult(DisplayElements.SelectedItem, DiaData?.Filter) == true)
+            if (DiaData?.PrepareResult(DisplayElements.SelectedItems, DiaData?.Filter) == true)
             {
                 DiaData.Result = true;
                 ControlClosed?.Invoke();
@@ -126,7 +127,7 @@ namespace AasxPackageExplorer
 
         private void DisplayElements_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DiaData?.PrepareResult(DisplayElements.SelectedItem, DiaData?.Filter) == true)
+            if (DiaData?.PrepareResult(new[] { DisplayElements.SelectedItem }, DiaData?.Filter) == true)
             {
                 DiaData.Result = true;
                 ControlClosed?.Invoke();

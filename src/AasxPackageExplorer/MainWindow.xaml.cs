@@ -217,24 +217,37 @@ namespace AasxPackageExplorer
             // rebuild middle section
             DisplayElements.RebuildAasxElements(
                 PackageCentral, PackageCentral.Selector.Main, MainMenu?.IsChecked("EditMenu") == true,
-                lazyLoadingFirst: true);
+                // MIHO TODO: set to "true" after testing!
+                lazyLoadingFirst: false,
+                doNotSelectFirstItem: keepFocus);
 
-            // ok .. try re-focus!!
-            if (keepFocus)
-            {
-                // make sure that Submodel is expanded
-                this.DisplayElements.ExpandAllItems();
-
-                // still proceed?
-                var veFound = this.DisplayElements.SearchVisualElementOnMainDataObject(focusMdo,
-                        alsoDereferenceObjects: true);
-
-                if (veFound != null)
-                    DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true);
-            }
-
-            // display again
             DisplayElements.Refresh();
+
+            // according to AI, give the UI first time internally rebuild the items
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+
+                // ok .. try re-focus!!
+                if (keepFocus)
+                {
+                    // make sure that Submodel is expanded
+                    this.DisplayElements.ExpandAllItems();
+
+                    // still proceed?
+                    var veFound = this.DisplayElements.SearchVisualElementOnMainDataObject(focusMdo,
+                            alsoDereferenceObjects: true);
+
+                    if (veFound != null)
+                    {
+                        DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true, 
+                            specialTreeUpdate: true);
+                    }
+                }
+
+                // display again
+                DisplayElements.Refresh();
+
+            }), DispatcherPriority.Background);
 
 #if _log_times
             Log.Singleton.Info("Time 90 is: " + DateTime.Now.ToString("hh:mm:ss.fff"));
@@ -1658,7 +1671,8 @@ namespace AasxPackageExplorer
                     // MIHO 24-06-09: add dereferenced object to find operation vars, submodelrefs?
                     DisplayElements.TrySelectMainDataObject(
                         wish.NextFocus, wish.IsExpanded,
-                        alsoDereferenceObjects: true);
+                        alsoDereferenceObjects: true, 
+                        specialTreeUpdate: true);
                 }
 
                 // fake selection
@@ -2193,7 +2207,8 @@ namespace AasxPackageExplorer
                 if (veFound != null)
                 {
                     // show ve
-                    DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true);
+                    DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true,
+                        specialTreeUpdate: true);
                     // remember in history
                     Logic?.LocationHistory?.Push(veFound);
                     // fake selection
@@ -3140,7 +3155,7 @@ namespace AasxPackageExplorer
                 {
                     // is directly contain in actual tree
                     // show it
-                    if (DisplayElements.TrySelectVisualElement(ve, wishExpanded: true))
+                    if (DisplayElements.TrySelectVisualElement(ve, wishExpanded: true, specialTreeUpdate: true))
                     {
                         // fake selection
                         await RedrawElementViewAsync();
@@ -3215,7 +3230,7 @@ namespace AasxPackageExplorer
                     try
                     {
                         // show ve
-                        DisplayElements?.TrySelectVisualElement(veFocus, wishExpanded: true);
+                        DisplayElements?.TrySelectVisualElement(veFocus, wishExpanded: true, specialTreeUpdate: true);
                         // remember in history
                         //TODO (MIHO, 0000-00-00): this was a bug??
                         // ButtonHistory.Push(veFocus);

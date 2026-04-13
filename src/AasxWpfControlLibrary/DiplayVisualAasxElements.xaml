@@ -33,6 +33,8 @@
                   ScrollViewer.HorizontalScrollBarVisibility="Auto"
                   TreeViewItem.Expanded="TreeViewInner_Expanded"
                   SelectedItemChanged="TreeViewMutiSelect_SelectedItemChanged"
+                  VirtualizingStackPanel.IsVirtualizing="True"
+                  VirtualizingStackPanel.VirtualizationMode="Recycling"
                   BorderThickness="0.0"
                   BorderBrush="White"
                   Padding="0,0,0,0">

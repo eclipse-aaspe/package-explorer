@@ -18,6 +18,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.Intrinsics.X86;
 using System.Runtime.Serialization;
 using System.Windows;
 using Aas = AasCore.Aas3_1;
@@ -850,6 +851,9 @@ namespace AasxPackageLogic
         public Aas.IReference theSubmodelRef = null;
         public Aas.ISubmodel theSubmodel = null;
 
+        private Aas.IConceptDescription _cachedCD = null;
+        public Aas.IConceptDescription CachedCD { get { return _cachedCD; } }
+
         public VisualElementSubmodelRef(
             VisualElementGeneric parent, TreeViewLineCache cache, Aas.IEnvironment env,
             AdminShellPackageEnvBase package,
@@ -908,6 +912,7 @@ namespace AasxPackageLogic
                 var ci = theSubmodel.ToCaptionInfo();
                 this.Caption = td + ((theSubmodel.Kind != null && theSubmodel.Kind == Aas.ModellingKind.Template) ? "<T> " : "") + ci.Item1;
                 this.Info = ci.Item2;
+                this._cachedCD = this.theEnv?.FindConceptDescriptionByReference(theSubmodel.SemanticId);
             }
             else
             {
@@ -922,6 +927,9 @@ namespace AasxPackageLogic
         public AdminShellPackageEnvBase thePackage = null;
         public Aas.IEnvironment theEnv = null;
         public Aas.ISubmodel theSubmodel = null;
+
+        private Aas.IConceptDescription _cachedCD = null;
+        public Aas.IConceptDescription CachedCD { get { return _cachedCD; } }
 
         public VisualElementSubmodel(
             VisualElementGeneric parent, TreeViewLineCache cache, AdminShellPackageEnvBase package, 
@@ -973,6 +981,7 @@ namespace AasxPackageLogic
                 var ci = theSubmodel.ToCaptionInfo();
                 this.Caption = td + ((theSubmodel.Kind != null && theSubmodel.Kind == Aas.ModellingKind.Template) ? "<T> " : "") + ci.Item1;
                 this.Info = ci.Item2;
+                this._cachedCD = this.theEnv?.FindConceptDescriptionByReference(theSubmodel.SemanticId);
             }
         }
 
@@ -1079,7 +1088,6 @@ namespace AasxPackageLogic
         public int IndexPosition = 0;
 
         private Aas.IConceptDescription _cachedCD = null;
-
         public Aas.IConceptDescription CachedCD { get { return _cachedCD; } }
 
         public VisualElementSubmodelElement(
@@ -1642,6 +1650,8 @@ namespace AasxPackageLogic
         public AdminShellPackageEnvBase thePackage = null;
         public AdminShellPackageSupplementaryFile theFile = null;
 
+        public string MainDataObject = "";
+
         public VisualElementSupplementalFile(
             VisualElementGeneric parent, TreeViewLineCache cache, AdminShellPackageEnvBase package,
             AdminShellPackageSupplementaryFile sf)
@@ -1659,6 +1669,8 @@ namespace AasxPackageLogic
 
             this.TagString = "\u25a4";
 
+            this.MainDataObject = sf?.Uri?.ToString();
+
             RefreshFromMainData();
             RestoreFromCache();
         }
@@ -1670,7 +1682,7 @@ namespace AasxPackageLogic
 
         public override object GetMainDataObject()
         {
-            return theFile;
+            return MainDataObject;
         }
 
         public override void RefreshFromMainData()
@@ -1876,6 +1888,9 @@ namespace AasxPackageLogic
                     // pretty paranoic
                     if (vlp?.Value?.HasContent() != true || vlp.ValueId?.Keys == null)
                         continue;
+
+                    if (vlp.ValueId.Keys.Count() > 0 && vlp.ValueId.Keys[0].Value == "0112/2///61987#ABI407")
+                        ;
 
                     // try find in CDs
                     var vrpCD = env?.FindConceptDescriptionByReference(vlp.ValueId);
@@ -2241,7 +2256,8 @@ namespace AasxPackageLogic
 				var tiStructuredRoot = new VisualElementEnvironmentItem(
 					parent: tiCDs, cache: cache,
 					package: tiCDs.thePackage, env: tiCDs.theEnv,
-					itemType: VisualElementEnvironmentItem.ItemType.Env);
+					itemType: VisualElementEnvironmentItem.ItemType.Env,
+                    mainDataObject: "ENV Structured ConceptDescriptions");
 				tiStructuredRoot.Caption = "Structured ConceptDescriptions";
                 tiStructuredRoot.IsExpanded = false;
 				tiCDs.Members.Add(tiStructuredRoot);
@@ -2327,7 +2343,8 @@ namespace AasxPackageLogic
 				var tiSubmodelsRoot = new VisualElementEnvironmentItem(
 					parent: tiCDs, cache: cache,
 					package: tiCDs.thePackage, env: tiCDs.theEnv,
-					itemType: VisualElementEnvironmentItem.ItemType.Env);
+					itemType: VisualElementEnvironmentItem.ItemType.Env,
+                    mainDataObject: "ENV Submodel ConceptDescriptions");
 				tiSubmodelsRoot.Caption = "Submodel ConceptDescriptions";
                 tiSubmodelsRoot.IsExpanded = false;
 				tiCDs.Members.Add(tiSubmodelsRoot);
@@ -2338,7 +2355,8 @@ namespace AasxPackageLogic
 					var tiSM = new VisualElementEnvironmentItem(
 					    parent: tiSubmodelsRoot, cache: cache,
 					    package: tiCDs.thePackage, env: tiCDs.theEnv,
-					    itemType: VisualElementEnvironmentItem.ItemType.Env);
+					    itemType: VisualElementEnvironmentItem.ItemType.Env,
+                        mainDataObject: "ENV Submodel ConceptDescriptions " + sm.IdShort);
 					tiSM.Caption = "Submodel: " + sm.IdShort;
                     if (sm.Administration != null)
                         tiSM.Info += $" V{sm.Administration.Version}.{sm.Administration.Revision}";
@@ -2364,7 +2382,8 @@ namespace AasxPackageLogic
 				tiUnstructuredRoot = new VisualElementEnvironmentItem(
                     parent: tiCDs, cache: cache,
                     package: tiCDs.thePackage, env: tiCDs.theEnv,
-                    itemType: VisualElementEnvironmentItem.ItemType.Env);
+                    itemType: VisualElementEnvironmentItem.ItemType.Env,
+                    mainDataObject: "ENV Unstructured ConceptDescriptions");
                 tiUnstructuredRoot.Caption = "Unstructured ConceptDescriptions";
                 tiCDs.Members.Add(tiUnstructuredRoot);
 				tiUnstructuredRoot.IsExpanded = false;
@@ -2377,6 +2396,10 @@ namespace AasxPackageLogic
             if (env != null)
                 foreach (var cd in env.AllConceptDescriptions())
                 {
+                    // test
+                    if (cd.Id.StartsWith("0112/2///61987#ABI407"))
+                        ;
+
                     // stop criteria for adding?
                     if (tiCDs.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySme
                         && _cdReferred.ContainsKey(cd))

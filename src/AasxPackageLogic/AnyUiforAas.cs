@@ -111,10 +111,12 @@ namespace AasxPackageLogic
         // in
         public PackageCentral.PackageCentral.Selector Selector;
         public string Filter;
+        public bool MultiSelect = false;
 
         // out
         public List<Aas.IKey> ResultKeys;
         public VisualElementGeneric ResultVisualElement;
+        public IEnumerable<VisualElementGeneric> ResultVisualElements;
 
         public AnyUiDialogueDataSelectAasEntity(
             string caption = "",
@@ -159,92 +161,97 @@ namespace AasxPackageLogic
         }
 
         public bool PrepareResult(
-            VisualElementGeneric selectedItem,
+            IEnumerable<VisualElementGeneric> selectedItems,
             string filter)
         {
             // access
-            if (selectedItem == null)
+            if (selectedItems == null || selectedItems.Count() < 1)
                 return false;
-            var siMdo = selectedItem.GetMainDataObject();
 
-            // already one result
-            ResultVisualElement = selectedItem;
+            // already one/ all result(s)
+            ResultVisualElement = selectedItems?.First();
+            ResultVisualElements = selectedItems?.ToArray();
 
-            //
-            // IReferable
-            //
-            if (siMdo is Aas.IReferable dataRef)
+            // more information?
+            var siMdo = selectedItems?.First().GetMainDataObject();
+            if (siMdo != null)
             {
-                // check if a valuable item was selected
-                // new special case: "GlobalReference" allows to select all (2021-09-11)
-                var skip = filter != null &&
-                    filter.Trim().ToLower() == Aas.Stringification.ToString(Aas.KeyTypes.GlobalReference).Trim().ToLower();
-                if (!skip)
+                //
+                // IReferable
+                //
+                if (siMdo is Aas.IReferable dataRef)
                 {
-                    var elemname = dataRef.GetSelfDescription().AasElementName;
-                    var fullFilter = AnyUiDialogueDataSelectAasEntity.ApplyFullFilterString(filter);
-                    if (fullFilter != null && !(fullFilter.IndexOf(elemname + " ", StringComparison.Ordinal) >= 0))
-                        return false;
-                }
+                    // check if a valuable item was selected
+                    // new special case: "GlobalReference" allows to select all (2021-09-11)
+                    var skip = filter != null &&
+                        filter.Trim().ToLower() == Aas.Stringification.ToString(Aas.KeyTypes.GlobalReference).Trim().ToLower();
+                    if (!skip)
+                    {
+                        var elemname = dataRef.GetSelfDescription().AasElementName;
+                        var fullFilter = AnyUiDialogueDataSelectAasEntity.ApplyFullFilterString(filter);
+                        if (fullFilter != null && !(fullFilter.IndexOf(elemname + " ", StringComparison.Ordinal) >= 0))
+                            return false;
+                    }
 
-                // ok, prepare list of keys
-                ResultKeys = selectedItem.BuildKeyListToTop();
+                    // ok, prepare list of keys
+                    ResultKeys = selectedItems.First().BuildKeyListToTop();
 
-                return true;
-            }
-
-            //
-            // other special cases
-            //
-            if (siMdo is Aas.Reference smref &&
-                AnyUiDialogueDataSelectAasEntity.CheckFilter(filter, "submodelref"))
-            {
-                ResultKeys = new List<Aas.IKey>();
-                ResultKeys.AddRange(smref.Keys);
-                return true;
-            }
-
-            if (selectedItem is VisualElementPluginExtension vepe)
-            {
-                // get main data object of the parent of the plug in ..
-                var parentMdo = vepe.Parent.GetMainDataObject();
-                if (parentMdo != null)
-                {
-                    // safe to return a list for the parent ..
-                    // (include AAS, as this is important to plug-ins)
-                    ResultKeys = selectedItem.BuildKeyListToTop(includeAas: true);
-
-                    // .. enriched by a last element
-                    ResultKeys.Add(new Aas.Key(Aas.KeyTypes.FragmentReference, "Plugin:" + vepe.theExt.Tag));
-
-                    // ok
                     return true;
                 }
-            }
 
-            if (selectedItem is VisualElementAsset veass
-                && AnyUiDialogueDataSelectAasEntity.CheckFilter(filter, "AssetInformation")
-                && veass.theAsset != null)
-            {
-                // prepare data
-                ResultKeys = selectedItem.BuildKeyListToTop(includeAas: true);
-                return true;
-            }
+                //
+                // other special cases
+                //
+                if (siMdo is Aas.Reference smref &&
+                    AnyUiDialogueDataSelectAasEntity.CheckFilter(filter, "submodelref"))
+                {
+                    ResultKeys = new List<Aas.IKey>();
+                    ResultKeys.AddRange(smref.Keys);
+                    return true;
+                }
 
-            if (selectedItem is VisualElementOperationVariable veov
-                && AnyUiDialogueDataSelectAasEntity.CheckFilter(filter, "OperationVariable")
-                && veov.theOpVar?.Value != null)
-            {
-                // prepare data
-                ResultKeys = selectedItem.BuildKeyListToTop(includeAas: true);
-                return true;
-            }
+                if (selectedItems is VisualElementPluginExtension vepe)
+                {
+                    // get main data object of the parent of the plug in ..
+                    var parentMdo = vepe.Parent.GetMainDataObject();
+                    if (parentMdo != null)
+                    {
+                        // safe to return a list for the parent ..
+                        // (include AAS, as this is important to plug-ins)
+                        ResultKeys = selectedItems.First().BuildKeyListToTop(includeAas: true);
 
-            if (selectedItem is VisualElementSupplementalFile vesf && vesf.theFile != null)
-            {
-                // prepare data
-                ResultKeys = selectedItem.BuildKeyListToTop(includeAas: true);
-                return true;
+                        // .. enriched by a last element
+                        ResultKeys.Add(new Aas.Key(Aas.KeyTypes.FragmentReference, "Plugin:" + vepe.theExt.Tag));
+
+                        // ok
+                        return true;
+                    }
+                }
+
+                if (selectedItems is VisualElementAsset veass
+                    && AnyUiDialogueDataSelectAasEntity.CheckFilter(filter, "AssetInformation")
+                    && veass.theAsset != null)
+                {
+                    // prepare data
+                    ResultKeys = selectedItems.First().BuildKeyListToTop(includeAas: true);
+                    return true;
+                }
+
+                if (selectedItems is VisualElementOperationVariable veov
+                    && AnyUiDialogueDataSelectAasEntity.CheckFilter(filter, "OperationVariable")
+                    && veov.theOpVar?.Value != null)
+                {
+                    // prepare data
+                    ResultKeys = selectedItems.First().BuildKeyListToTop(includeAas: true);
+                    return true;
+                }
+
+                if (selectedItems is VisualElementSupplementalFile vesf && vesf.theFile != null)
+                {
+                    // prepare data
+                    ResultKeys = selectedItems.First().BuildKeyListToTop(includeAas: true);
+                    return true;
+                }
             }
 
             // uups

@@ -2018,7 +2018,7 @@ namespace AasxPackageLogic
             }
 
             // REFACTOR: SAME
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < 10; i++)
                 if (cmd == $"launchscript{i}"
                     && Options.Curr.ScriptPresets != null)
                 {
@@ -2371,7 +2371,7 @@ namespace AasxPackageLogic
                     return false;
 
                 // ok .. focus!!
-                MainWindow.GetDisplayElements().TrySelectVisualElement(veFound, wishExpanded: true);
+                MainWindow.GetDisplayElements().TrySelectVisualElement(veFound, wishExpanded: true, specialTreeUpdate: true);
 
                 // remember in history
                 LocationHistory?.Push(veFound);
