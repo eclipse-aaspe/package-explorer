@@ -250,6 +250,7 @@ namespace AdminShellNS
 
                             var node = System.Text.Json.Nodes.JsonNode.Parse(s);
                             aasEnv = Jsonization.Deserialize.EnvironmentFrom(node);
+                            openPackage = package;
                             //}
                             // dead-csharp on
                         }
