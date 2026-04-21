@@ -7,28 +7,31 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using AasCore.Aas3_1;
+using AasxIntegrationBase;
+using AasxIntegrationBase.AdminShellEvents;
 using AasxPredefinedConcepts;
-using Aas = AasCore.Aas3_1;
+using AasxPredefinedConcepts.AssetInterfacesDescription;
 using AdminShellNS;
 using AdminShellNS.DiaryData;
-using Extensions;
-using AasxIntegrationBase;
-using AasxPredefinedConcepts.AssetInterfacesDescription;
-using FluentModbus;
-using System.Net;
-using System.Text.RegularExpressions;
-using System.Globalization;
 using AnyUi;
-using System.Windows.Media.Animation;
-using AasxIntegrationBase.AdminShellEvents;
-using System.IO;
-using Newtonsoft.Json.Linq;
+using Extensions;
+using FluentModbus;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows.Controls;
+using System.Windows.Media.Animation;
+using static System.Net.WebRequestMethods;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPluginAssetInterfaceDescription
 {
@@ -97,7 +100,7 @@ namespace AasxPluginAssetInterfaceDescription
         public AnyUiUIElement RenderedUiElement = null;
     }
 
-    public enum AidInterfaceTechnology { HTTP, Modbus, MQTT, OPCUA }
+    public enum AidInterfaceTechnology { HTTP, Modbus, MQTT, OPCUA, BACNET }
 
     public class AidInterfaceStatus
     {
@@ -120,7 +123,7 @@ namespace AasxPluginAssetInterfaceDescription
         /// <summary>
         /// The information items (properties, actions, events)
         /// </summary>
-        public MultiValueDictionary<string, AidIfxItemStatus> Items = 
+        public MultiValueDictionary<string, AidIfxItemStatus> Items =
             new MultiValueDictionary<string, AidIfxItemStatus>();
 
         /// <summary>
@@ -128,6 +131,27 @@ namespace AasxPluginAssetInterfaceDescription
         /// </summary>
         public string EndpointBase = "";
 
+        ///<summary>
+        /// For creating OPC UA secured channel. it can be either None, Sign, SignAndEncrypt
+        ///</summary>
+
+        public int SecurityMode = 1;
+
+        /// <summary>
+        /// For creating OPC UA security channel. For this version, only
+        /// None, Basic256Sha256, Aes128_Sha256_RsaOaep, Aes256_Sha256_RsaPss, 
+        /// Outdated(not recommended policies):Basic256, Basic128Rsa15
+        /// </summary>
+
+        public string SecurityPolicy = "http://opcfoundation.org/UA/SecurityPolicy#None";
+
+        /// <summary>
+        /// For creating OPC UA security channel. 
+        /// when AutoConnection is true, the client gets endpoints from server 
+        /// and pick one from the list of endpoints to set up the session.
+        /// </summary>
+
+        public bool OPCAutoConnection = false;
 
         /// <summary>
         /// Used by byteStream payload for decoding, presently, mainly used by Modbus but other protocols will also be using it
@@ -201,7 +225,7 @@ namespace AasxPluginAssetInterfaceDescription
             return key;
         }
 
-        public void SetLogLine (StoredPrint.Color color, string line)
+        public void SetLogLine(StoredPrint.Color color, string line)
         {
             LogColor = color;
             LogLine = line;
@@ -219,7 +243,7 @@ namespace AasxPluginAssetInterfaceDescription
 
             // compute key
             var key = ComputeKey(item?.FormData?.Href);
-            
+
             // now add
             Items.Add(key, item);
         }
@@ -256,6 +280,28 @@ namespace AasxPluginAssetInterfaceDescription
         /// For initiating the connection. Right now, not foreseen/ encouraged by the SMT.
         /// </summary>
         public string Password = null;
+
+        ///<summary>
+        /// For creating OPC UA secured channel. it can be either None, Sign, SignAndEncrypt
+        ///</summary>
+
+        public int SecurityMode = 1;
+
+        /// <summary>
+        /// For creating OPC UA security channel. For this version, only
+        /// None, Basic256Sha256, Aes128_Sha256_RsaOaep, Aes256_Sha256_RsaPss, 
+        /// Outdated(not recommended policies):Basic256, Basic128Rsa15
+        /// </summary>
+
+        public string SecurityPolicy = null;
+
+        /// <summary>
+        /// For creating OPC UA security channel. 
+        /// when AutoConnection is true, the client gets endpoints from server 
+        /// and pick one from the list of endpoints to set up the session.
+        /// </summary>
+
+        public bool OPCAutoConnection = false;
 
         /// <summary>
         /// Used by byteStream payload for decoding, presently, mainly used by Modbus but other protocols will also be using it
@@ -401,7 +447,7 @@ namespace AasxPluginAssetInterfaceDescription
                         }
                     }
 
-                  
+
                 }
         }
     }
@@ -429,6 +475,13 @@ namespace AasxPluginAssetInterfaceDescription
     public class AidAllInterfaceStatus
     {
         /// <summary>
+        /// Flag to enable or disable protocols in the UI based on AID version.
+        /// Version 1.0 will enable HTTP, MODBUS and MQTT.
+        /// version 1.1 will enable HTTP, MODBUS, MQTT, OPCUA and BACNET.
+        /// </summary>
+        public bool AidVersion1_1 = false;
+        
+        /// <summary>
         /// Set to logger, if logging is desired.
         /// </summary>
         protected LogInstance _log = null;
@@ -451,7 +504,7 @@ namespace AasxPluginAssetInterfaceDescription
         /// <summary>
         /// Current setting, which technologies shall be used.
         /// </summary>
-        public bool[] UseTech = { false, false, false, true };
+        public bool[] UseTech = { true, false, false, false, false };
 
         /// <summary>
         /// Will hold connections steady and continously update values, either by
@@ -464,7 +517,7 @@ namespace AasxPluginAssetInterfaceDescription
         public AidGenericConnections<AidHttpConnection> HttpConnections =
             new AidGenericConnections<AidHttpConnection>();
 
-        public AidGenericConnections<AidModbusConnection> ModbusConnections = 
+        public AidGenericConnections<AidModbusConnection> ModbusConnections =
             new AidGenericConnections<AidModbusConnection>();
 
         public AidGenericConnections<AidMqttConnection> MqttConnections =
@@ -472,6 +525,9 @@ namespace AasxPluginAssetInterfaceDescription
 
         public AidGenericConnections<AidOpcUaConnection> OpcUaConnections =
             new AidGenericConnections<AidOpcUaConnection>();
+
+        public AidGenericConnections<AidBacnetConnection> BacnetConnections =
+            new AidGenericConnections<AidBacnetConnection>();
 
         public AidAllInterfaceStatus(LogInstance log = null)
         {
@@ -494,7 +550,7 @@ namespace AasxPluginAssetInterfaceDescription
             if (sm == null || optRec == null)
                 return;
 
-            if (optRec.IsDescription)
+            if (optRec.IsDescription1_0 || optRec.IsDescription1_1)
                 SmAidDescription = sm;
 
             if (adoptUseFlags)
@@ -503,6 +559,7 @@ namespace AasxPluginAssetInterfaceDescription
                 UseTech[(int)AidInterfaceTechnology.Modbus] = optRec.UseModbus;
                 UseTech[(int)AidInterfaceTechnology.MQTT] = optRec.UseMqtt;
                 UseTech[(int)AidInterfaceTechnology.OPCUA] = optRec.UseOpcUa;
+                UseTech[(int)AidInterfaceTechnology.BACNET] = optRec.UseBacnet;
             }
         }
 
@@ -538,7 +595,15 @@ namespace AasxPluginAssetInterfaceDescription
 
                 case AidInterfaceTechnology.OPCUA:
                     conn = OpcUaConnections.GetOrCreate(endpointBase, log);
+                    conn.OPCAutoConnection = ifcStatus.OPCAutoConnection;
+                    conn.SecurityMode = ifcStatus.SecurityMode;
+                    conn.SecurityPolicy = ifcStatus.SecurityPolicy;
                     break;
+
+                case AidInterfaceTechnology.BACNET:
+                    conn = BacnetConnections.GetOrCreate(endpointBase, log);
+                    break;
+
             }
 
             conn.UpdateFreqMs = ifcStatus.UpdateFreqMs;
@@ -762,17 +827,17 @@ namespace AasxPluginAssetInterfaceDescription
 
                     // go thru all items (sync)
                     foreach (var item in ifc.Items.Values)
-                        ifc.ValueChanges += (UInt64) ifc.Connection.UpdateItemValue(item);
+                        ifc.ValueChanges += (UInt64)ifc.Connection.UpdateItemValue(item);
 
                     // go thru all items (async)
                     // see: https://www.hanselman.com/blog/parallelforeachasync-in-net-6
                     await Parallel.ForEachAsync(
-                        ifc.Items.Values, 
-                        new ParallelOptions() { MaxDegreeOfParallelism = 10 }, 
+                        ifc.Items.Values,
+                        new ParallelOptions() { MaxDegreeOfParallelism = 10 },
                         async (item, token) =>
-                    {
-                        ifc.ValueChanges += (UInt64) (await ifc.Connection.UpdateItemValueAsync(item));
-                    });
+                        {
+                            ifc.ValueChanges += (UInt64)(await ifc.Connection.UpdateItemValueAsync(item));
+                        });
                 }
             }
         }
@@ -810,17 +875,20 @@ namespace AasxPluginAssetInterfaceDescription
 
             // get data MC
             var dataMc = (smMapping != null) ?
-                new AasxPredefinedConcepts.AssetInterfacesMappingConfiguration.
-                    CD_AssetInterfacesMappingConfiguration() : null;
+                    new AasxPredefinedConcepts.AssetInterfacesMappingConfiguration.
+                        CD_AssetInterfacesMappingConfiguration() : null;
             PredefinedConceptsClassMapper.ParseAasElemsToObject(smMapping, dataMc, lambdaLookupReference);
 
             // prepare
             foreach (var tech in AdminShellUtil.GetEnumValues<AidInterfaceTechnology>())
             {
                 var ifxs = dataAid?.InterfaceHTTP;
+                ifxs = null;
+                if (tech == AidInterfaceTechnology.HTTP) ifxs = dataAid?.InterfaceHTTP;
                 if (tech == AidInterfaceTechnology.Modbus) ifxs = dataAid?.InterfaceMODBUS;
                 if (tech == AidInterfaceTechnology.MQTT) ifxs = dataAid?.InterfaceMQTT;
-                if (tech == AidInterfaceTechnology.OPCUA) ifxs = dataAid?.InterfaceOPCUA;
+                if (tech == AidInterfaceTechnology.OPCUA && AidVersion1_1) ifxs = dataAid?.InterfaceOPCUA;
+                if (tech == AidInterfaceTechnology.BACNET && AidVersion1_1) ifxs = dataAid?.InterfaceBACNET;
                 if (ifxs == null || ifxs.Count < 1)
                     continue;
                 foreach (var ifx in ifxs)
@@ -829,6 +897,7 @@ namespace AasxPluginAssetInterfaceDescription
                     var dn = AdminShellUtil.TakeFirstContent(ifx.Title, ifx.__Info__?.Referable?.IdShort);
                     var aidIfx = new AidInterfaceStatus()
                     {
+                        
                         Technology = tech,
                         DisplayName = $"{dn}",
                         Info = $"{ifx.EndpointMetadata?.Base}",
@@ -853,7 +922,7 @@ namespace AasxPluginAssetInterfaceDescription
                             FormData = propName.Forms,
                             Value = "???"
                         };
-                        
+
 
                         // does (some) mapping have a source with this property name?
                         var lst = new List<AidMappingOutputItem>();
@@ -874,7 +943,7 @@ namespace AasxPluginAssetInterfaceDescription
                             aidIfx.AddItem(ifcItem);
                             ifcItem.MapOutputItems = lst;
                         }
-                            
+
 
                         // directly recurse?
                         if (propName?.Properties?.Property != null)
@@ -884,17 +953,113 @@ namespace AasxPluginAssetInterfaceDescription
                                 child.Forms = propName.Forms;
                                 recurseProp(location + " . " + ifcItem.DisplayName, child);
                             }
-                   
+
                     };
 
                     if (ifx.InteractionMetadata?.Properties?.Property == null)
                         continue;
                     foreach (var propName in ifx.InteractionMetadata?.Properties?.Property)
                         recurseProp("\u2302", propName);
+
+                    //Handling of opc ua security
+                    if (aidIfx.Technology == AidInterfaceTechnology.OPCUA)
+                    {
+                        ExtractSecurityData(ifx, aidIfx);
+
+                    }
+
                 }
             }
         }
 
+        protected void ExtractSecurityData(CD_GenericInterface ifx, AidInterfaceStatus aidIfx)
+        {
+            if (ifx.EndpointMetadata.Security.SecurityRef.Count > 0 &&
+                ifx.EndpointMetadata.Security.SecurityRef[0].ValueHint != null &&
+                ifx.EndpointMetadata.Security.SecurityRef[0].ValueHint is SubmodelElementCollection securityRef)
+            {
+
+                if (securityRef.SemanticId?.GetAsExactlyOneKey().Value == "https://www.w3.org/2019/wot/security#NoSecurityScheme")
+                {
+                    aidIfx.SecurityMode = 1;
+                    aidIfx.SecurityPolicy = "http://opcfoundation.org/UA/SecurityPolicy#None";
+                    return;
+                }
+                else if (securityRef.SemanticId?.GetAsExactlyOneKey().Value == "https://www.w3.org/2019/wot/security#AutoSecurityScheme")
+                {
+                    aidIfx.OPCAutoConnection = true;
+                    return;
+
+                }
+                else if(securityRef.SemanticId?.GetAsExactlyOneKey().Value == "https://www.w3.org/2019/wot/security#ComboSecurityScheme")
+                {
+                    //Combo Security implementation here
+                    // Handling allOf
+                    foreach(var opcuaSecurityRef in ifx.EndpointMetadata.SecurityDefinitions.Combo_sc.AllOf.SecurityRef)
+                    {
+                        if(opcuaSecurityRef != null && opcuaSecurityRef.ValueHint is SubmodelElementCollection opcuasec)
+                        {
+                            if(opcuasec.SemanticId.GetAsExactlyOneKey().Value == "http://opcfoundation.org/UA/WoT-Binding/OPCUASecurityChannelScheme")
+                            {
+                                switch(ifx.EndpointMetadata.SecurityDefinitions.Opcua_channel_sc.Uav_securityMode.ToLower())
+                                {
+                                    case "none":
+                                        aidIfx.SecurityMode = 1;
+                                        break;
+                                    case "sign":
+                                        aidIfx.SecurityMode = 2;
+                                        break;
+                                    case "signandencrypt":
+                                        aidIfx.SecurityMode = 3;
+                                        break;
+                                    default:
+                                        aidIfx.SecurityMode = 1;
+                                        break;
+
+
+                                }
+                                switch (ifx.EndpointMetadata.SecurityDefinitions.Opcua_channel_sc.Uav_securityPolicy.ToLower())
+                                {
+                                    case "basic256sha256":
+                                        aidIfx.SecurityPolicy = "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256";
+                                        break;
+                                    case "aes128_sha256_rsaoaep":
+                                        aidIfx.SecurityPolicy = "http://opcfoundation.org/UA/SecurityPolicy#Aes128_Sha256_RsaOaep";
+                                        break;
+                                    case "aes256_sha256_rsapss":
+                                        aidIfx.SecurityPolicy = "http://opcfoundation.org/UA/SecurityPolicy#Aes256_Sha256_RsaPss";
+                                        break;
+                                    case "basic256":
+                                        aidIfx.SecurityPolicy = "http://opcfoundation.org/UA/SecurityPolicy#Basic256";
+                                        break;
+                                    case "basic128rsa15":
+                                        aidIfx.SecurityPolicy = "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15";
+                                        break;
+                                    default:
+                                        aidIfx.SecurityPolicy = "http://opcfoundation.org/UA/SecurityPolicy#None";
+                                        break;
+                                }
+                            }
+                            
+                        }
+
+                    }
+                    return;
+                }
+                else
+                {
+                    aidIfx.SecurityMode = 1;
+                    aidIfx.SecurityPolicy = "http://opcfoundation.org/UA/SecurityPolicy#None";
+                    return;
+                }
+            }
+            else
+            {
+                aidIfx.SecurityMode = 1;
+                aidIfx.SecurityPolicy = "http://opcfoundation.org/UA/SecurityPolicy#None";
+                return;
+            }
+        }
         protected List<int> SelectValuesToIntList<ITEM>(
             IEnumerable<ITEM> items,
             Func<ITEM, string> selectStringValue) where ITEM : class
@@ -955,20 +1120,6 @@ namespace AasxPluginAssetInterfaceDescription
                 SetDoubleOnDefaultOrAvgOfIntList(
                     ref ifc.TimeOutMs, 10.0, defaultTimeOutMs,
                     SelectValuesToIntList(ifc?.Items?.Values, (it) => it.FormData?.Modv_timeout));
-            }
-
-            // for OPC UA, analyze update frequency and timeout
-            foreach (var ifc in InterfaceStatus.Where((i) => i.Technology == AidInterfaceTechnology.OPCUA))
-            {
-                // polltimes
-                SetDoubleOnDefaultOrAvgOfIntList(
-                    ref ifc.UpdateFreqMs, 10.0, defaultUpdateFreqMs,
-                    SelectValuesToIntList(ifc?.Items?.Values, (it) => it.FormData?.OpcUa_pollingTime));
-
-                // time out
-                SetDoubleOnDefaultOrAvgOfIntList(
-                    ref ifc.TimeOutMs, 10.0, defaultTimeOutMs,
-                    SelectValuesToIntList(ifc?.Items?.Values, (it) => it.FormData?.OpcUa_timeout));
             }
         }
     }

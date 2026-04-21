@@ -19,6 +19,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using AasxIntegrationBase;
 using AdminShellNS;
+using AnyUi;
 
 using Workstation.ServiceModel.Ua;
 using Workstation.ServiceModel.Ua.Channels;
@@ -58,12 +59,22 @@ namespace AasxOpcUa2Client
         protected string _password;
         protected uint _timeOutMs = 2000;
 
+        //Optional parameters for secured OPC UA interface in AID 
+        protected MessageSecurityMode _securityMode;
+        protected string _securityPolicy;
+        protected static bool _autoConnect = false;
+
         protected ClientSessionChannel _channel = null;
 
-        public AasOpcUaClient2(string endpointURL, bool autoAccept, 
+        public AasOpcUaClient2(
+            string endpointURL, 
+            bool autoAccept,
             string userName, string password,
             uint timeOutMs = 2000,
-            LogInstance log = null)
+            LogInstance log = null, 
+            MessageSecurityMode? securityMode = MessageSecurityMode.None,
+            string? securityPolicy = SecurityPolicyUris.None,
+            bool? autoConnect = false)
         {
             _endpointURL = endpointURL;
             _autoAccept = autoAccept;
@@ -71,6 +82,9 @@ namespace AasxOpcUa2Client
             _password = password;
             _timeOutMs = timeOutMs;
             _log = log;
+            _securityMode = (MessageSecurityMode)securityMode;
+            _securityPolicy = securityPolicy;
+            _autoConnect = (bool)autoConnect;
         }
 
         public async Task DirectConnect()
@@ -98,19 +112,97 @@ namespace AasxOpcUa2Client
                 ApplicationType = ApplicationType.Client
             };
 
-            // create a 'ClientSessionChannel', a client-side channel that opens a 'session' with the server.
-            _channel = new ClientSessionChannel(
-                clientDescription,
-                null, // no x509 certificates
-                new AnonymousIdentity(), // no user identity
-                "" + _endpointURL,
-                SecurityPolicyUris.None); // no encryption
+            // Create Endpoint 
+            var Endpoint = new EndpointDescription
+            {
+                EndpointUrl = _endpointURL,
+                SecurityPolicyUri = _securityPolicy,
+                SecurityMode = _securityMode,
+            };
+
+            ///<summary>
+            ///Set up auto connection by getting all endpoints from server and using one of these endpoints
+            ///Used by AID Submodel
+            ///</summary>
+            if (_autoConnect)
+            {
+
+                var endpointRequest = new GetEndpointsRequest()
+                {
+                    EndpointUrl = _endpointURL,
+                };
+                GetEndpointsResponse endpoints = await DiscoveryService.GetEndpointsAsync(endpointRequest);
+                if (endpoints.Endpoints != null)
+                {
+                    foreach (var endpoint in endpoints.Endpoints)
+                    {
+                        if (endpoint.SecurityMode.ToString().ToLower() == "none" &&
+                            endpoint.SecurityPolicyUri.Split("#").Last().ToLower() == "none")
+                        {
+                            _log?.Info("Using auto connect option...");
+                            _log?.Info($"Creating channel from one of {endpoints.Endpoints.Length} Endpoints");
+                            _log?.Info($"Using Endpoint : Security Mode = {endpoint.SecurityMode} and Security Policy: {endpoint.SecurityPolicyUri.Split("#").Last()}");
+                            Endpoint.EndpointUrl = endpoint.EndpointUrl;
+                            Endpoint.SecurityMode = endpoint.SecurityMode;
+                            Endpoint.SecurityPolicyUri = endpoint.SecurityPolicyUri;
+                            _channel = new ClientSessionChannel(
+                                clientDescription,
+                                null, // no x509 certificates
+                                new AnonymousIdentity(), // no user identity                       
+                                Endpoint);
+
+                        }
+                        break;
+                    }
+                }
+
+            }
+
+            ///<summary>
+            ///Set up Secure Session. Used by AID Submodel
+            ///</summary>
+
+            else if (_securityMode != MessageSecurityMode.None && _securityPolicy != SecurityPolicyUris.None)
+            {
+                ///<summary>
+                ///create directory for client certificate.
+                ///certificate will be created if none is existing. 
+                ///If the server does not auto accept certificates, it is mandatory to copy this client's public key 
+                ///in ./pki/own/certs folder and add it to the server's trusted folders
+                ///</summary>
+                _log?.Info($"....Creating Secure channel with security mode: {_securityMode} and security policy: {_securityPolicy}");
+                var certificatestore = new DirectoryStore("./pki");
+                // create a 'ClientSessionChannel', a client-side channel that opens a 'session' with the server.
+                _channel = new ClientSessionChannel(
+                    clientDescription,
+                    certificatestore, 
+                    new AnonymousIdentity(), // no user identity                        
+                    Endpoint // endpoint built for opc ua security
+                    );
+                
+            }
+            ///<summary>
+            /// Set up Unsecure Session. Used by AID, MTP and UaClient plugins
+            ///</summary>
+
+            else if (_securityMode == MessageSecurityMode.None)
+            {
+                // create a 'ClientSessionChannel', a client-side channel that opens a 'session' with the server.
+                _log?.Info($"....Creating Unsecure channel with security mode: {_securityMode} and security policy: {_securityPolicy}");
+                _channel = new ClientSessionChannel(
+                    clientDescription,
+                    null, // no x509 certificates
+                    new AnonymousIdentity(), // no user identity
+                                             
+                    Endpoint);
+            }
 
             // try opening a session and reading a few nodes.
             try
             {
                 await _channel.OpenAsync();
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 ClientStatus = AasOpcUaClientStatus.ErrorCreateSession;
                 _log?.Error(ex, "open async");

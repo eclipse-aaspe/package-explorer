@@ -7,24 +7,25 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+using AasxIntegrationBase;
+using AasxIntegrationBaseGdi;
+using AasxPredefinedConcepts;
+using AasxPredefinedConcepts.AssetInterfacesDescription;
+using AdminShellNS;
+using AnyUi;
+using Extensions;
+using FluentModbus;
+using Newtonsoft.Json;
+using Org.BouncyCastle.Asn1.X509;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using AasxIntegrationBase;
-using Aas = AasCore.Aas3_1;
-using AdminShellNS;
-using Extensions;
-using AnyUi;
-using Newtonsoft.Json;
-using AasxPredefinedConcepts;
-using AasxPredefinedConcepts.AssetInterfacesDescription;
-using System.Windows.Shapes;
-using AasxIntegrationBaseGdi;
-using FluentModbus;
+using System.Linq;
 using System.Net;
-using Org.BouncyCastle.Asn1.X509;
+using System.Reflection;
+using System.Windows.Shapes;
 using Workstation.ServiceModel.Ua;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPluginAssetInterfaceDescription
 {
@@ -46,7 +47,7 @@ namespace AasxPluginAssetInterfaceDescription
 
         protected AnyUiSmallWidgetToolkit _uitk = new AnyUiSmallWidgetToolkit();
 
-        protected Dictionary<AidInterfaceTechnology, AnyUiBitmapInfo> _dictTechnologyToBitmap = 
+        protected Dictionary<AidInterfaceTechnology, AnyUiBitmapInfo> _dictTechnologyToBitmap =
             new Dictionary<AidInterfaceTechnology, AnyUiBitmapInfo>();
 
         private System.Timers.Timer _dispatcherTimer = null;
@@ -109,6 +110,10 @@ namespace AasxPluginAssetInterfaceDescription
             _dictTechnologyToBitmap = new Dictionary<AidInterfaceTechnology, AnyUiBitmapInfo>();
             if (OperatingSystem.IsWindowsVersionAtLeast(7))
             {
+                _dictTechnologyToBitmap.Add(AidInterfaceTechnology.BACNET,
+                    AnyUiGdiHelper.CreateAnyUiBitmapFromResource(
+                        "AasxPluginAssetInterfaceDesc.Resources.logo-bacnet.png",
+                        assembly: Assembly.GetExecutingAssembly()));
                 _dictTechnologyToBitmap.Add(AidInterfaceTechnology.HTTP,
                 AnyUiGdiHelper.CreateAnyUiBitmapFromResource(
                     "AasxPluginAssetInterfaceDesc.Resources.logo-http.png",
@@ -283,13 +288,13 @@ namespace AasxPluginAssetInterfaceDescription
 
             uitk.AddSmallLabelTo(grid, 0, 0, content: "Technologies:");
 
-            var gridTech = uitk.AddSmallGridTo(grid, 0, 1, rows: 1, cols: 6, 
+            var gridTech = uitk.AddSmallGridTo(grid, 0, 1, rows: 1, cols: 6,
                 colWidths: new[] { "#", "#", "#", "#", "#", "#" });
 
             foreach (var tech in AdminShellUtil.GetEnumValues<AidInterfaceTechnology>())
             {
                 AnyUiUIElement.SetBoolFromControl(
-                    uitk.AddSmallCheckBoxTo(gridTech, 0, 0 + ((int) tech),
+                    uitk.AddSmallCheckBoxTo(gridTech, 0, 0 + ((int)tech),
                         margin: new AnyUiThickness(0, 0, 10, 0),
                         content: "" + tech.ToString(),
                         isChecked: _allInterfaceStatus.UseTech[(int)tech],
@@ -302,7 +307,7 @@ namespace AasxPluginAssetInterfaceDescription
             //
 
             uitk.AddSmallLabelTo(grid, 1, 0, content: "Startup:");
-            
+
             AnyUiUIElement.RegisterControl(
                 uitk.AddSmallButtonTo(grid, 1, 1,
                     margin: new AnyUiThickness(2), setHeight: 21,
@@ -319,11 +324,18 @@ namespace AasxPluginAssetInterfaceDescription
                             return new AnyUiLambdaActionNone();
                         }
 
+                        // Check if at least one technology is selected
+                        if (!_allInterfaceStatus.UseTech.Any(tech => tech))
+                        {
+                            _log.Info(StoredPrint.Color.Blue, "Please select at least one technology.");
+                            return new AnyUiLambdaActionNone();
+                        }
+
                         // build up data structures
                         _allInterfaceStatus.PrepareAidInformation(
                             _allInterfaceStatus.SmAidDescription,
                             _allInterfaceStatus.SmAidMapping,
-                            lambdaLookupReference: (rf) => package?.AasEnv?.FindReferableByReference(rf) );
+                            lambdaLookupReference: (rf) => package?.AasEnv?.FindReferableByReference(rf));
                         _allInterfaceStatus.SetAidInformationForUpdateAndTimeout();
 
                         // trigger a complete redraw, as the regions might emit 
@@ -345,7 +357,7 @@ namespace AasxPluginAssetInterfaceDescription
                 setValueAsync: async (o) =>
                 {
                     try
-                    {                        
+                    {
                         // locked?
                         if (_allInterfaceStatus?.ContinousRun == true)
                         {
@@ -451,7 +463,7 @@ namespace AasxPluginAssetInterfaceDescription
 
         #region Interface items
         //=====================
-        
+
         protected void RenderTripleRowData(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             List<AidInterfaceStatus> interfaces)
@@ -460,11 +472,16 @@ namespace AasxPluginAssetInterfaceDescription
             if (interfaces == null)
                 return;
 
+            // Filter interfaces based on selected technologies
+            var filteredInterfaces = interfaces.Where(ifx =>
+                _allInterfaceStatus.UseTech[(int)ifx.Technology]).ToList();
+
             // ok
-            var grid = view.Add(uitk.AddSmallGrid(rows: interfaces.Count, cols: 5, 
+            var grid = view.Add(uitk.AddSmallGrid(rows: interfaces.Count, cols: 5,
                 colWidths: new[] { "40:", "1*", "1*", "1*", "180:" }));
             int rowIndex = 0;
-            foreach (var ifx in interfaces)
+
+            foreach (var ifx in filteredInterfaces)
             {
                 //
                 // heading
@@ -479,7 +496,7 @@ namespace AasxPluginAssetInterfaceDescription
                     colSpan: 5);
 
                 if (_dictTechnologyToBitmap.ContainsKey(ifx.Technology))
-                    uitk.AddSmallImageTo(headGrid, 0, 0, 
+                    uitk.AddSmallImageTo(headGrid, 0, 0,
                         margin: new AnyUiThickness(0, 4, 10, 4),
                         bitmap: _dictTechnologyToBitmap[ifx.Technology]);
 
@@ -503,13 +520,13 @@ namespace AasxPluginAssetInterfaceDescription
                     {
                         // normal row, 5 bordered cells
                         grid.RowDefinitions.Add(new AnyUiRowDefinition());
-                        var cols = new[] { 
+                        var cols = new[] {
                             "Prop.", item.Location, item.DisplayName, "" + item.FormData?.Href, item.Value };
                         for (int ci = 0; ci < 5; ci++)
                         {
                             var brd = uitk.AddSmallBorderTo(grid, rowIndex, ci,
-                                margin: (ci == 0) ? new AnyUiThickness(0, -1, 0, 0) 
-                                                  : new AnyUiThickness(-1, -1, 0, 0),                                
+                                margin: (ci == 0) ? new AnyUiThickness(0, -1, 0, 0)
+                                                  : new AnyUiThickness(-1, -1, 0, 0),
                                 borderThickness: new AnyUiThickness(1.0), borderBrush: AnyUiBrushes.DarkGray);
                             brd.Child = new AnyUiSelectableTextBlock()
                             {
@@ -534,7 +551,7 @@ namespace AasxPluginAssetInterfaceDescription
 
                             var innerGrid = uitk.Set(
                                 uitk.AddSmallGridTo(grid, rowIndex++, 1,
-                                    rows: item.MapOutputItems.Count, 
+                                    rows: item.MapOutputItems.Count,
                                     cols: 3, colWidths: new[] { "#", "*", "#" },
                                     margin: new AnyUiThickness(2, 0, 0, 6)),
                                 colSpan: 4);
