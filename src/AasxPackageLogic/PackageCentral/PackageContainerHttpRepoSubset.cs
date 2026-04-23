@@ -9,6 +9,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AasxIntegrationBase;
 using AdminShellNS;
+using AdminShellNS.Extensions;
 using AngleSharp.Dom;
 using AnyUi;
 using Extensions;
@@ -1016,7 +1017,7 @@ namespace AasxPackageLogic.PackageCentral
             // }
             // However, only Url and Id are currently useful
 
-            string regUrl = String.Empty;
+            List<string> regUrls = new List<string>();
 
             if (isFXLeoDiscoveryServer)
             {
@@ -1029,67 +1030,83 @@ namespace AasxPackageLogic.PackageCentral
                         if (endpoint["interface"] == "AAS-REGISTRY-3.1"
                             || endpoint["interface"] == "AAS-REGISTRY-3.0")
                         {
-                            regUrl = endpoint.protocolInformation.href;
-                            break;
+                            var regUrl = endpoint.protocolInformation["href"];
+                            regUrls.Add("" + regUrl);
                         }
                     }
                 }
             }
             else
             {
-                regUrl = "" + regDescriptor["url"];
+                regUrls.Add("" + regDescriptor["url"]);
             }
 
 
             // valid url?
-            if (regUrl == "")
+            if (regUrls.IsNullOrEmpty())
                 return false;
 
-            var basicUri = GetBaseUri(regUrl);
-            if (basicUri == null)
-                return false;
+            List<Uri> basicUris = new List<Uri>();
 
-            // build again a set of baseUris, but only one pattern set
-            var baseUris = new BaseUriDict(key: "AAS-REG", value: basicUri.ToString());
-            
-            // translate to a list of AAS-Ids ..
-            var uriGetListOfAids = BuildUriForRegistryAasByAssetId(baseUris.GetBaseUriForAasReg(), assetId);
-            if (compatOldAasxServer)
-                uriGetListOfAids = BuildUriForRegistryAasByAssetLinkDeprecated(baseUris.GetBaseUriForAasReg(), assetId);
-            var listOfAids = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
-                uriGetListOfAids, runtimeOptions, allowFakeResponses);
-
-            if (listOfAids == null || !(listOfAids is JArray) || (listOfAids as JArray).Count < 1)
+            foreach (var regUrl in regUrls)
             {
-                runtimeOptions?.Log?.Info("Registry {0} did not translate glopbalAssetId={1} to any AAS Ids. " +
-                    "Aborting! URi was: {2}",
-                    basicUri, assetId, uriGetListOfAids);
+                var basicUri = GetBaseUri(regUrl);
+                if (basicUri != null)
+                {
+                    basicUris.Add(basicUri);
+                }
+            }
+
+            if(basicUris.IsNullOrEmpty())
+            {
                 return false;
             }
 
-            // take the individual AAS ids
-            foreach (var aid in listOfAids)
+            foreach (var basicUri in basicUris)
             {
-                // prepare receiving the descriptor
-                var uriGetAasDescr = BuildUriForRegistrySingleAAS(baseUris.GetBaseUriForAasReg(), aid.ToString());
-                var resAasDescr = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
-                    uriGetAasDescr, runtimeOptions, allowFakeResponses);
+                // build again a set of baseUris, but only one pattern set
+                var baseUris = new BaseUriDict(key: "AAS-REG", value: basicUri.ToString());
 
-                // have directly a single descriptor?!
-                if (!(resAasDescr is JObject))
+                // translate to a list of AAS-Ids ..
+                var uriGetListOfAids = BuildUriForRegistryAasByAssetId(baseUris.GetBaseUriForAasReg(), assetId);
+                if (compatOldAasxServer)
+                    uriGetListOfAids = BuildUriForRegistryAasByAssetLinkDeprecated(baseUris.GetBaseUriForAasReg(), assetId);
+                var listOfAids = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
+                    uriGetListOfAids, runtimeOptions, allowFakeResponses);
+
+                if (listOfAids == null || !(listOfAids is JArray) || (listOfAids as JArray).Count < 1)
                 {
-                    runtimeOptions?.Log?.Info("Registry did not return a single AAS descriptor! Aborting. URI was: {0}",
-                        uriGetAasDescr);
-                    return false;
+                    runtimeOptions?.Log?.Info("Registry {0} did not translate glopbalAssetId={1} to any AAS Ids. " +
+                        "Aborting! URi was: {2}",
+                        basicUri, assetId, uriGetListOfAids);
                 }
+                else
+                {
+                    // take the individual AAS ids
+                    foreach (var aid in listOfAids)
+                    {
+                        // prepare receiving the descriptor
+                        var uriGetAasDescr = BuildUriForRegistrySingleAAS(baseUris.GetBaseUriForAasReg(), aid.ToString());
+                        var resAasDescr = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
+                            uriGetAasDescr, runtimeOptions, allowFakeResponses);
 
-                lambdaReportProgress?.Invoke(0, 0, 0, 1);
+                        // have directly a single descriptor?!
+                        if (!(resAasDescr is JObject))
+                        {
+                            runtimeOptions?.Log?.Info("Registry did not return a single AAS descriptor! Aborting. URI was: {0}",
+                                uriGetAasDescr);
+                            return false;
+                        }
 
-                // refer to dedicated function
-                await FromRegistryGetAasAndSubmodels(
-                    prepAas, prepSM, record, runtimeOptions, allowFakeResponses, resAasDescr,
-                    trackNewIdentifiables, trackLoadedIdentifiables,
-                    lambdaReportProgress: lambdaReportProgress);
+                        lambdaReportProgress?.Invoke(0, 0, 0, 1);
+
+                        // refer to dedicated function
+                        await FromRegistryGetAasAndSubmodels(
+                            prepAas, prepSM, record, runtimeOptions, allowFakeResponses, resAasDescr,
+                            trackNewIdentifiables, trackLoadedIdentifiables,
+                            lambdaReportProgress: lambdaReportProgress);
+                    }
+                }
             }
 
             // OK?
