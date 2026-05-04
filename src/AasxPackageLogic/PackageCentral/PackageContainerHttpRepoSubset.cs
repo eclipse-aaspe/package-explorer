@@ -9,6 +9,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AasxIntegrationBase;
 using AdminShellNS;
+using AdminShellNS.Extensions;
 using AngleSharp.Dom;
 using AnyUi;
 using Extensions;
@@ -303,14 +304,14 @@ namespace AasxPackageLogic.PackageCentral
 
         public static bool IsValidUriForRegOfRegAasByAssetId(string location)
         {
-            var m = Regex.Match(location, @"^(http(|s))://(.*?)/registry-descriptors/([-A-Za-z0-9_]{1,999})$",
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/(?:registry-descriptors/|companies\?asset_id=)([-A-Za-z0-9_]{1,999})$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             return m.Success;
         }
 
         public static string IsValidAndDecodeUriForRegOfRegAasByAssetId(string location)
         {
-            var m = Regex.Match(location, @"^(http(|s))://(.*?)/registry-descriptors/([-A-Za-z0-9_]{1,999})$",
+            var m = Regex.Match(location, @"^(http(|s))://(.*?)/(?:registry-descriptors/|companies\?asset_id=)([-A-Za-z0-9_]{1,999})$",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             if (!m.Success)
                 return null;
@@ -353,7 +354,7 @@ namespace AasxPackageLogic.PackageCentral
             // try an explicit search for known parts of ressources
             // (preserves scheme, host and leading pathes)
             var m = Regex.Match(location, @"^(.*?)(/shells|/submodel|/concept-description|/lookup|/description"
-                        + "|/shell-descriptor|/submodel-descriptor|/bulk|/serialization|/package)");
+                        + "|/shell-descriptor|/submodel-descriptor|/bulk|/serialization|/package|/registry-descriptors|/companies)");
             if (m.Success)
                 return new Uri(m.Groups[1].ToString() + "/");
 
@@ -365,6 +366,10 @@ namespace AasxPackageLogic.PackageCentral
                 if (p > 0)
                 {
                     return new Uri(location.Substring(0, p) + "/");
+                }
+                else
+                {
+                    return new Uri(location);
                 }
             }
 
@@ -732,10 +737,17 @@ namespace AasxPackageLogic.PackageCentral
             // access
             if (id?.HasContent() != true)
                 return null;
+            var route = "registry-descriptors/";
 
-            // try combine
             var assenc = encryptIds ? AdminShellUtil.Base64UrlEncode(id) : id;
-            return CombineUri(baseUri, $"registry-descriptors/{assenc}");
+
+            if (baseUri.Host.Contains("leo-discovery"))
+            {
+                route = "companies";
+                assenc = $"?asset_id={assenc}";
+            }
+
+            return CombineUri(baseUri, $"{route}{assenc}");
         }
 
         //
@@ -819,7 +831,10 @@ namespace AasxPackageLogic.PackageCentral
             {
                 // strictly check IFC
                 var aasIfc = "" + ep["interface"];
-                if (aasIfc != "AAS-1.0")
+                if (!(aasIfc == "AAS-1.0"
+                    || aasIfc == "AAS-2.0"
+                    || aasIfc == "AAS-3.0"
+                    || aasIfc == "AAS-3.1"))
                     continue;
 
                 // direct access HREF
@@ -843,8 +858,11 @@ namespace AasxPackageLogic.PackageCentral
                         {
                             // strictly check IFC
                             var smIfc = "" + smep["interface"];
-                            if (smIfc != "SUBMODEL-1.0")
-                                continue;
+                            if (!(aasIfc == "SUBMODEL-1.0"
+                                    || aasIfc == "SUBMODEL-2.0"
+                                    || aasIfc == "SUBMODEL-3.0"
+                                    || aasIfc == "SUBMODEL-3.1"))
+                                    continue;
 
                             // ok
                             string href = smep.protocolInformation.href;
@@ -969,7 +987,7 @@ namespace AasxPackageLogic.PackageCentral
             return true;
         }
 
-        private static async Task<bool> FromRegOfRegGetAasAndSubmodels(
+        private static async Task FromRegOfRegGetAasAndSubmodels(
             OnDemandListIdentifiable<IAssetAdministrationShell> prepAas,
             OnDemandListIdentifiable<ISubmodel> prepSM,
             ConnectExtendedRecord record,
@@ -980,82 +998,141 @@ namespace AasxPackageLogic.PackageCentral
             List<Aas.IIdentifiable> trackNewIdentifiables = null,
             List<Aas.IIdentifiable> trackLoadedIdentifiables = null,
             Action<int, int, int, int> lambdaReportProgress = null,
-            bool compatOldAasxServer = false)
+            bool compatOldAasxServer = false,
+            bool isLeoDiscoveryServer = false)
         {
             // access
             if (record == null || regDescriptor == null || assetId?.HasContent() != true)
-                return false;
+                return;
 
-            // The format is:
-            // {
-            //    "Url": "http://example.com/6789",
-            //    "Security": "",
-            //    "Match": "LIKE",
-            //    "Pattern": "%6789%",
-            //    "Domain": "example.com",
-            //    "Id": "xxx",
-            //    "Info": "xxx"
-            // }
-            // However, only Url and Id are currently useful
 
-            string regUrl = "" + regDescriptor["url"];
-            string regInfo = "" + regDescriptor["info"];
-            if (regInfo == "")
-                regInfo = "<Unknown>";
+
+            List<string> regUrls = new List<string>();
+
+            if (isLeoDiscoveryServer)
+            {
+                //See: https://leo-discovery.admin-shell-io.com/
+
+                var endpoints = regDescriptor?.endpoints;
+
+                if (endpoints != null)
+                {
+                    foreach (var endpoint in endpoints)
+                    {
+                        if (endpoint["interface"] == "AAS-REGISTRY-3.1"
+                            || endpoint["interface"] == "AAS-REGISTRY-3.0")
+                        {
+                            var regUrl = endpoint.protocolInformation["href"];
+                            regUrls.Add("" + regUrl);
+                        }
+                    }
+                }
+            }
+            else
+            {           
+                // The format is:
+                // {
+                //    "Url": "http://example.com/6789",
+                //    "Security": "",
+                //    "Match": "LIKE",
+                //    "Pattern": "%6789%",
+                //    "Domain": "example.com",
+                //    "Id": "xxx",
+                //    "Info": "xxx"
+                // }
+                // However, only Url and Id are currently useful
+
+                regUrls.Add("" + regDescriptor["url"]);
+            }
+
 
             // valid url?
-            if (regUrl == "")
-                return false;
+            if (regUrls.IsNullOrEmpty())
+                return;
 
-            var basicUri = GetBaseUri(regUrl);
-            if (basicUri == null)
-                return false;
+            List<Uri> basicUris = new List<Uri>();
 
-            // build again a set of baseUris, but only one pattern set
-            var baseUris = new BaseUriDict(key: "AAS-REG", value: basicUri.ToString());
-
-            // translate to a list of AAS-Ids ..
-            var uriGetListOfAids = BuildUriForRegistryAasByAssetId(baseUris.GetBaseUriForAasReg(), assetId);
-            if (compatOldAasxServer)
-                uriGetListOfAids = BuildUriForRegistryAasByAssetLinkDeprecated(baseUris.GetBaseUriForAasReg(), assetId);
-            var listOfAids = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
-                uriGetListOfAids, runtimeOptions, allowFakeResponses);
-
-            if (listOfAids == null || !(listOfAids is JArray) || (listOfAids as JArray).Count < 1)
+            foreach (var regUrl in regUrls)
             {
-                runtimeOptions?.Log?.Info("Registry {0} did not translate glopbalAssetId={1} to any AAS Ids. " +
-                    "Aborting! URi was: {2}",
-                    basicUri, assetId, uriGetListOfAids);
-                return false;
-            }
-
-            // take the individual AAS ids
-            foreach (var aid in listOfAids)
-            {
-                // prepare receiving the descriptor
-                var uriGetAasDescr = BuildUriForRegistrySingleAAS(baseUris.GetBaseUriForAasReg(), aid.ToString());
-                var resAasDescr = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
-                    uriGetAasDescr, runtimeOptions, allowFakeResponses);
-
-                // have directly a single descriptor?!
-                if (!(resAasDescr is JObject))
+                var basicUri = GetBaseUri(regUrl);
+                if (basicUri != null)
                 {
-                    runtimeOptions?.Log?.Info("Registry did not return a single AAS descriptor! Aborting. URI was: {0}",
-                        uriGetAasDescr);
-                    return false;
+                    basicUris.Add(basicUri);
                 }
-
-                lambdaReportProgress?.Invoke(0, 0, 0, 1);
-
-                // refer to dedicated function
-                await FromRegistryGetAasAndSubmodels(
-                    prepAas, prepSM, record, runtimeOptions, allowFakeResponses, resAasDescr,
-                    trackNewIdentifiables, trackLoadedIdentifiables,
-                    lambdaReportProgress: lambdaReportProgress);
             }
 
-            // OK?
-            return true;
+            if(basicUris.IsNullOrEmpty())
+            {
+                return;
+            }
+
+            foreach (var basicUri in basicUris)
+            {
+                // build again a set of baseUris, but only one pattern set
+                var baseUris = new BaseUriDict(key: "AAS-REG", value: basicUri.ToString());
+
+                // translate to a list of AAS-Ids ..
+                var uriGetListOfAids = BuildUriForRegistryAasByAssetId(baseUris.GetBaseUriForAasReg(), assetId);
+                if (compatOldAasxServer)
+                    uriGetListOfAids = BuildUriForRegistryAasByAssetLinkDeprecated(baseUris.GetBaseUriForAasReg(), assetId);
+
+                try
+                {
+                    var listOfAids = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
+                        uriGetListOfAids, runtimeOptions, allowFakeResponses);
+
+                    if (listOfAids == null || !(listOfAids is JArray) || (listOfAids as JArray).Count < 1)
+                    {
+                        runtimeOptions?.Log?.Info("Registry {0} did not translate globalAssetId={1} to any AAS Ids. " +
+                            "Aborting! URi was: {2}",
+                            basicUri, assetId, uriGetListOfAids);
+                    }
+                    else
+                    {
+                        // take the individual AAS ids
+                        foreach (var aid in listOfAids)
+                        {
+                            // prepare receiving the descriptor
+                            var uriGetAasDescr = BuildUriForRegistrySingleAAS(baseUris.GetBaseUriForAasReg(), aid.ToString());
+                            var resAasDescr = await PackageHttpDownloadUtil.DownloadEntityToDynamicObject(
+                                uriGetAasDescr, runtimeOptions, allowFakeResponses);
+
+                            // have directly a single descriptor?!
+                            if (!(resAasDescr is JObject))
+                            {
+                                runtimeOptions?.Log?.Info("Registry did not return a single AAS descriptor! Aborting. URI was: {0}",
+                                    uriGetAasDescr);
+                            }
+
+                            lambdaReportProgress?.Invoke(0, 0, 0, 1);
+
+                            try
+                            {
+                                // refer to dedicated function
+                                await FromRegistryGetAasAndSubmodels(
+                                    prepAas, prepSM, record, runtimeOptions, allowFakeResponses, resAasDescr,
+                                    trackNewIdentifiables, trackLoadedIdentifiables,
+                                    lambdaReportProgress: lambdaReportProgress);
+                            }
+                            catch (Exception e)
+                            {
+                                runtimeOptions?.Log?.Info("Download aas and submodels from registry {0} failed globalAssetId={1} to any AAS Ids. " +
+                                    "Aborting! AAS id was: {2}, message was {3}",
+                                    basicUri, assetId, aid, e.Message);
+                            }
+
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    runtimeOptions?.Log?.Info("Download descriptors from registry {0} failed globalAssetId={1} to any AAS Ids. " +
+                        "Aborting! URi was: {2}, message was {3}",
+                        basicUri, assetId, uriGetListOfAids, e.Message);
+                }
+            }
+
+            return;
         }
 
         public override async Task<bool> LoadFromSourceAsync(
@@ -1221,6 +1298,12 @@ namespace AasxPackageLogic.PackageCentral
                     }
                     else
                     {
+                        bool isFXLeoDiscoveryServer = fullItemLocation.Contains("leo-discovery");
+                        if (isFXLeoDiscoveryServer)
+                        {
+                            resObj = resObj["data"];
+                        }
+
                         foreach (var res in resObj)
                         {
                             // refer to dedicated function
@@ -1230,7 +1313,8 @@ namespace AasxPackageLogic.PackageCentral
                                 trackNewIdentifiables, trackLoadedIdentifiables,
                                 lambdaReportProgress: lambdaReportAasSm,
                                 // TODO: check!!
-                                compatOldAasxServer: true);
+                                compatOldAasxServer: isFXLeoDiscoveryServer ? false : true,
+                                isLeoDiscoveryServer : isFXLeoDiscoveryServer);
                         }
                     }
                 }

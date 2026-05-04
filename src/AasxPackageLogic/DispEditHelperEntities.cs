@@ -1557,6 +1557,7 @@ namespace AasxPackageLogic
                         "Error building location from fetch selection. Aborting.");
                     return false;
                 }
+                Options.Curr.AutoAuthenticateAsk = fetchContext.Record.AutoAuthenticate;
 
                 // more details into container options
                 var containerOptions = new PackageContainerHttpRepoSubset.

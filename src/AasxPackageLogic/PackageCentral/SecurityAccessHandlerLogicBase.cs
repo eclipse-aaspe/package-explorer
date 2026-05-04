@@ -10,34 +10,27 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 using AasxIntegrationBase;
 using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
 using AnyUi;
-using Extensions;
 using Microsoft.Identity.Client;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IdentityModel.Tokens.Jwt;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Reflection;
-using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.RightsManagement;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageExplorer
 {
@@ -430,6 +423,264 @@ namespace AasxPackageExplorer
             return null;
         }
 
+        private async Task<string> DoTokenExchange(string[] tokenExchangeParams, string secretAccessToken)
+        {
+            var handler = new HttpClientHandler { DefaultProxyCredentials = CredentialCache.DefaultCredentials };
+            using var client = new HttpClient(handler);
+
+            var exchangedToken = String.Empty;
+
+            var configUrl = tokenExchangeParams[0];
+            var target = tokenExchangeParams[1];
+
+            var d = new Dictionary<string, string>
+                    {
+                        { "grant_type", "urn:ietf:params:oauth:grant-type:token-exchange" },
+                        { "subject_token_type", "urn:ietf:params:oauth:token-type:jwt" },
+                        { "requested_token_type", "urn:ietf:params:oauth:token-type:access_token" },
+                        { "subject_token", secretAccessToken },
+                    };
+
+            if (target != "")
+            {
+                d.Add("audience", target);
+            }
+
+            string jwksUri = $"{configUrl}/jwks";
+            string tokenEndpoint = $"{configUrl}/token";
+
+            //Get Well-Known
+            try
+            {
+                var openIdConfig = await client.GetStringAsync($"{configUrl}/.well-known/openid-configuration");
+                var openIdConfigJson = JsonDocument.Parse(openIdConfig);
+
+                if (openIdConfigJson.RootElement.TryGetProperty("jwks_uri", out var propJwksUri))
+                {
+                    jwksUri = propJwksUri.GetString();
+                }
+
+                if (openIdConfigJson.RootElement.TryGetProperty("token_endpoint", out var propTokenUrl))
+                {
+                    tokenEndpoint = propTokenUrl.GetString();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Singleton.Info($"Could not access well-known from {configUrl}");
+            }
+
+            var request = new HttpRequestMessage(HttpMethod.Post, tokenEndpoint)
+            {
+                Content = new FormUrlEncodedContent(d)
+            };
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+
+            var response = await client.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+
+            var accessToken = "";
+            var doc = JsonDocument.Parse(content);
+            if (doc.RootElement.TryGetProperty("access_token", out var tokenElement))
+            {
+                accessToken = tokenElement.GetString();
+                Console.WriteLine("Access Token: " + accessToken);
+
+                var jwksJson = await client.GetStringAsync(jwksUri);
+                var jwks = JObject.Parse(jwksJson)["keys"];
+
+                // 1) Handler
+                var jsonWebTokenHandler = new JsonWebTokenHandler();
+
+                // 2) JWK aus JWKS direkt verwenden (hier exemplarisch LINQ auf Dein jwks-Array)
+                var jsonWebToken = new JsonWebToken(accessToken);
+                var jwtHeaderKid = jsonWebToken.Kid; // liest 'kid' robust
+                var jwkJson = jwks.First(k => k["kid"].ToString() == jwtHeaderKid).ToString(); // k ist i. d. R. ein JObject
+                var jwk = new JsonWebKey(jwkJson);
+
+                // 3) Validierungsparameter
+                var validationParams = new TokenValidationParameters
+                {
+                    // Signaturprüfung
+                    IssuerSigningKey = jwk,            // kein manuelles RSAParameters nötig
+                    ValidateIssuerSigningKey = true,
+
+                    // Lebenszeit
+                    ValidateLifetime = true,
+                    RequireExpirationTime = true,
+                    ClockSkew = TimeSpan.FromMinutes(5),   // bei UTC+0 gut, ggf. 2–5 Minuten
+
+                    // Issuer/Audience je nach Bedarf (bei Tests oft aus)
+                    ValidateIssuer = false,                // später auf true + ValidIssuer setzen
+                    ValidateAudience = false,              // später auf true + ValidAudience setzen
+
+                    // Keine Legacy-Claim-Mappings
+                    // MapInboundClaims = false,
+
+                    // Optional: Name-/Rollen-Claims aus dem JWT
+                    NameClaimType = "name",
+                    RoleClaimType = "role"
+                };
+
+                try
+                {
+                    var result = jsonWebTokenHandler.ValidateToken(accessToken, validationParams);
+                    if (!result.IsValid)
+                    {
+                        Console.WriteLine($"Validation failed: {result.Exception?.Message}");
+                        return null;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Token is valid");
+                        exchangedToken = accessToken;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Validation failed: {ex.Message}");
+                    return null;
+                }
+            }
+
+            return exchangedToken;
+        }
+
+        protected virtual async Task<Tuple<bool, string[], bool, string[]>> AskForTokenExchange()
+        {
+            bool needsTokenExchange1 = false;
+            bool needsTokenExchange2 = false;
+            string[] tokenExchange1Params = ["https://iam-security-training.com/consumer/sts", "factory-x",];
+            string[] tokenExchange2Params = ["https://iam-security-training.com/provider/sts", "factory-x",];
+
+            var ucJob = new AnyUiDialogueDataModalPanel("With token exchange?");
+
+            ucJob.ActivateRenderPanel(null,
+                disableScrollArea: false,
+                dialogButtons: AnyUiMessageBoxButton.OK,
+                renderPanel: (uci) =>
+                {
+                    // create panel
+                    var panel = new AnyUiStackPanel();
+                    var helper = new AnyUiSmallWidgetToolkit();
+
+                    var g = helper.AddSmallGrid(25, 2, new[] { "200:", "*" },
+                                padding: new AnyUiThickness(0, 5, 0, 5),
+                                margin: new AnyUiThickness(10, 0, 30, 0));
+
+                    panel.Add(g);
+
+                    // dynamic rows
+                    int row = 0;
+
+                    // Info
+                    helper.Set(
+                        helper.AddSmallLabelTo(g, row, 0, content: "For some authentification methods, you will need to do a token exchange", wrapping: AnyUiTextWrapping.Wrap),
+                  
+                        colSpan: 2);
+                    row++;
+
+                    // separation
+                    helper.AddSmallBorderTo(g, row, 0,
+                        borderThickness: new AnyUiThickness(0.5), borderBrush: AnyUiBrushes.White,
+                        colSpan: 2,
+                        margin: new AnyUiThickness(0, 0, 0, 20));
+                    row++;
+
+                    AnyUiUIElement.SetBoolFromControl(
+                        helper.AddSmallCheckBoxTo(g, row, 0,
+                            content: "Do token exchange 1",
+                            isChecked: needsTokenExchange1,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                        (b) => { needsTokenExchange1 = b; });
+
+                    row++;
+
+                    // Content URL
+
+                    helper.AddSmallLabelTo(g, row, 0, content: "Content URL:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g, row, 1,
+                                    text: $"{tokenExchange1Params[0]}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                            (s) => { tokenExchange1Params[0] = s; });
+
+                    row++;
+
+                    // Target (Audience)
+
+                    helper.AddSmallLabelTo(g, row, 0, content: "Target (Audience):",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g, row, 1,
+                                    text: $"{tokenExchange1Params[1]}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                            (s) => { tokenExchange1Params[1] = s; });
+
+                    row++;
+
+
+                    AnyUiUIElement.SetBoolFromControl(
+                        helper.AddSmallCheckBoxTo(g, row, 0,
+                            content: "Do token exchange 2",
+                            isChecked: needsTokenExchange2,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                        (b) => { needsTokenExchange2 = b; });
+
+                    row++;
+
+                    // Content URL
+
+                    helper.AddSmallLabelTo(g, row, 0, content: "Content URL:",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g, row, 1,
+                                    text: $"{tokenExchange2Params[0]}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                            (s) => { tokenExchange2Params[0] = s; });
+
+                    row++;
+
+                    // Target (Audience)
+
+                    helper.AddSmallLabelTo(g, row, 0, content: "Target (Audience):",
+                            verticalAlignment: AnyUiVerticalAlignment.Center,
+                            verticalContentAlignment: AnyUiVerticalAlignment.Center);
+
+                    AnyUiUIElement.SetStringFromControl(
+                            helper.Set(
+                                helper.AddSmallTextBoxTo(g, row, 1,
+                                    text: $"{tokenExchange2Params[1]}",
+                                    verticalAlignment: AnyUiVerticalAlignment.Center,
+                                    verticalContentAlignment: AnyUiVerticalAlignment.Center),
+                                horizontalAlignment: AnyUiHorizontalAlignment.Stretch),
+                            (s) => { tokenExchange2Params[1] = s; });
+
+                    // give back
+                    return g;
+                });
+
+            if (_displayContext != null && await _displayContext.StartFlyoverModalAsync(ucJob))
+                return new Tuple<bool, string[], bool, string[]>(needsTokenExchange1, tokenExchange1Params, needsTokenExchange2, tokenExchange2Params);
+            return new Tuple<bool, string[], bool, string[]>(needsTokenExchange1, tokenExchange1Params, needsTokenExchange2, tokenExchange2Params); ;
+        }
+
         protected virtual async Task<X509Certificate2Collection> AskForSelectFromCertCollection(
             string baseAddress,
             X509Certificate2Collection fcollection)
@@ -692,6 +943,20 @@ namespace AasxPackageExplorer
                 var secretAccessToken = secretContentJson["access_token"].ToString();
                 Log.Singleton.Info($"Security access handler: Found 'access_token': {secretAccessToken}");
 
+                var tokenExchanges = await AskForTokenExchange();
+
+                if (tokenExchanges != null && tokenExchanges.Item1)
+                {
+                    secretAccessToken = await DoTokenExchange(tokenExchanges.Item2, secretAccessToken);
+
+                    if (tokenExchanges.Item3)
+                    {
+                        secretAccessToken = await DoTokenExchange(tokenExchanges.Item4, secretAccessToken);
+                    }
+                }
+
+                Log.Singleton.Info($"Security access handler: Exchanged token to 'access_token': {secretAccessToken}");
+
                 // build correct header key, remember, return
                 endpoint.LastRenewed = DateTime.UtcNow;
                 endpoint.LastHeaderItem = new HttpHeaderDataItem("Authorization", $"Bearer {secretAccessToken.ToString()}");
@@ -878,7 +1143,8 @@ namespace AasxPackageExplorer
                     chain.Import(certFn, PW);
                     x5c = chain.Cast<X509Certificate2>().Reverse().Select(c => Convert.ToBase64String(c.RawData)).ToArray();
 
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
                     Log.Singleton.Error(ex, $"when building certificate chain for certificate file {certFn}. " +
                         $"Aborting. Using no security!");
@@ -887,8 +1153,8 @@ namespace AasxPackageExplorer
 
             }
             else if (preferredMethod == SecurityAccessMethod.InteractiveEntry)
-            { 
-              
+            {
+
                 // test tenant for ENTRA id
                 // TODO: configure clientId
                 var tenant = "common"; // Damit auch externe Konten wie @live.de funktionieren
@@ -1008,9 +1274,18 @@ namespace AasxPackageExplorer
             var accessToken = contentJson["access_token"];
             Log.Singleton.Info($"Security access handler: Found 'access_token': {accessToken}");
 
+            var accessTokenString = accessToken.ToString();
+
+            //ToDo: Need token exchange here?
+            //var tokenExchanges = await AskForTokenExchange();
+
+            //if (tokenExchanges != null && !String.IsNullOrEmpty(tokenExchanges[0]))
+            //{
+            //}
+
             // build correct header key, remember, return
             endpoint.LastRenewed = DateTime.UtcNow;
-            endpoint.LastHeaderItem = new HttpHeaderDataItem("Authorization", $"Bearer {accessToken.ToString()}");
+            endpoint.LastHeaderItem = new HttpHeaderDataItem("Authorization", $"Bearer {accessTokenString}");
             return endpoint.LastHeaderItem;
         }
     }
