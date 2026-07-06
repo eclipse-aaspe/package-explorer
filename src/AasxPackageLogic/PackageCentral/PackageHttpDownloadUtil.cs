@@ -7,34 +7,22 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
-using AasxIntegrationBase.AdminShellEvents;
+using AasxOpenIdClient;
 using AdminShellNS;
-using Extensions;
+using Namotion.Reflection;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Aas = AasCore.Aas3_0;
-using AasxIntegrationBase;
 using System.IO;
-using AasxOpenIdClient;
-using System.Net.Http;
 using System.Net;
-using System.Threading;
-using IdentityModel.Client;
-using System.Reflection;
-using Newtonsoft.Json;
-using static AasxPredefinedConcepts.ConceptModel.ConceptModelZveiTechnicalData;
-using System.Text.RegularExpressions;
+using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text;
-using AasCore.Aas3_0;
-using System.ServiceModel;
-using Namotion.Reflection;
 using System.Text.Json.Nodes;
-using System.Reflection.Metadata;
-using System.IO.Pipes;
-using Newtonsoft.Json.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic.PackageCentral
 {

@@ -10,7 +10,7 @@ using Extensions;
 using System.Collections.Generic;
 using System.Linq;
 using AdminShellNS;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace Extensions
 {

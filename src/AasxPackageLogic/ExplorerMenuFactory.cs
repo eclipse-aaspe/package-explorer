@@ -65,6 +65,7 @@ namespace AasxPackageExplorer
                     args: new AasxMenuListOfArgDefs()
                         .Add("File", "Filename including path and extension."))
                 .AddWpfBlazor(name: "FixAndFinalize", header: "Fix and Finalize ...")
+                .AddWpfBlazor(name: "Verify", header: "Verify ...")
                 .AddWpfBlazor(name: "Close", header: "_Close …")
                 .AddWpfBlazor(name: "CheckAndFix", header: "Check, validate and fix …")
                 .AddMenu(header: "Security …", childs: (new AasxMenu())
@@ -396,7 +397,7 @@ namespace AasxPackageExplorer
                 .AddHotkey(name: "ShowIriKey", gesture: "Ctrl+I")
                 .AddHotkey(name: "EventsShowLogKey", gesture: "Ctrl+L");
 
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < 10; i++)
                 menu.AddHotkey(name: $"LaunchScript{i}", gesture: $"Ctrl+Shift+{i}");
 
             //

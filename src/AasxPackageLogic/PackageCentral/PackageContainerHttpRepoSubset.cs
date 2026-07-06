@@ -7,35 +7,26 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+using AasxIntegrationBase;
+using AdminShellNS;
+using AngleSharp.Dom;
+using AnyUi;
+using Extensions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Reflection;
-using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using AasxIntegrationBase;
-using AasxOpenIdClient;
-using AasxPackageExplorer;
-using AdminShellNS;
-using AngleSharp.Dom;
-using AnyUi;
-using Extensions;
-using IdentityModel.Client;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using RestSharp;
-using static AasxPackageLogic.DispEditHelperMiniModules;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic.PackageCentral
 {

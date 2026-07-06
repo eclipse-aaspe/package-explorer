@@ -97,7 +97,7 @@ namespace Extensions
                     elem.ValueId = srcMlp.ValueId.Copy();
             }
 
-            if (source is AasCore.Aas3_0.Range srcRng)
+            if (source is AasCore.Aas3_1.Range srcRng)
             {
                 if (srcRng.Min != null)
                     elem.Value = new List<ILangStringTextType> {

@@ -489,16 +489,16 @@
       },
       "ConceptDescriptions": [
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "numberOfDocuments",
           "Description": [
             {
-              "$type": "AasCore.Aas3_0.LangStringTextType, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.LangStringTextType, AasCore.Aas3_1",
               "Language": "en",
               "Text": "Number of Documents"
             },
             {
-              "$type": "AasCore.Aas3_0.LangStringTextType, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.LangStringTextType, AasCore.Aas3_1",
               "Language": "de",
               "Text": "Anzahl der Dokumente"
             }
@@ -506,7 +506,7 @@
           "Id": "0173-1#02-ABH990#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -517,39 +517,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Number of documents (handover documentation)"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": " Anzahl der Dokumente (Übergabedokumentation)"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Number of documents (handover documentation)"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": " Anzahl der Dokumente (Übergabedokumentation)"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Number of documents (handover documentation)"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": " Anzahl der Dokumente (Übergabedokumentation)"
                   }
@@ -571,12 +571,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "Document",
           "Id": "0173-1#02-ABI500#001/0173-1#01-AHF579#001*01",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -587,39 +587,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document (handover documentation)"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokument (Übergabedokumentation)"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document (handover documentation)"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokument (Übergabedokumentation)"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Each SubmodelElementCollection describes a document by standard, which is associated to the particular Asset Administration Shell"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Jede SubmodelElementCollection beschreibt ein Dokument (siehe IEC 82045-1 und IEC 8245-2), das der jeweiligen Asset Administration Shell zugeordnet ist\t"
                   }
@@ -641,12 +641,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "DocumentId",
           "Id": "0173-1#02-ABI501#001/0173-1#01-AHF580#001*01",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -657,39 +657,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document identifier"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentidentifikator"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document identifier"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentidentifikator"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Set of document identifiers for the Document. One ID in this collection should be used as a preferred ID"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Satz von Dokument-IDs für das Dokument. Eine ID in dieser Sammlung sollte als bevorzugte ID verwendet werden\t"
                   }
@@ -711,12 +711,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "DocumentDomainId",
           "Id": "0173-1#02-ABH994#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -727,39 +727,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "DocumentDomainId"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Document Domain Identifikator"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "DocumentDomainId"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Document Domain Identifikator"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Identification of the domain in which the given DocumentId is unique. The domain ID can e.g., be the name or acronym of the providing organisation"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Identifikation der Domäne, in der die angegebene DocumentId eindeutig ist. Die Domain-ID kann z. B. der Name oder das Akronym der bereitstellenden Organisation sein\t"
                   }
@@ -781,12 +781,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "ValueId",
           "Id": "0173-1#02-AAO099#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -797,39 +797,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "document number"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentennummer"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "document number"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentennummer"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "alphanumeric character sequence uniquely identifying a document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "alphanumerische Zeichenfolge, die ein Dokument eindeutig identifiziert\t"
                   }
@@ -851,12 +851,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "IsPrimary",
           "Id": "0173-1#02-ABH995#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -867,39 +867,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document is primary"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokument ist primär"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document is primary"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokument ist primär"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Flag indicating that a DocumentId within a collection of at least two DocumentId`s is the ‘primary’ identifier for the document. This is the preferred ID of the document (commonly from the point of view of the owner of the asset)"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Flag, das angibt, dass eine DocumentId innerhalb einer Sammlung von mindestens zwei DocumentIds die „primäre“ Kennung für das Dokument ist. Dies ist die bevorzugte ID des Dokuments (üblicherweise aus Sicht des Eigentümers des Assets)\t"
                   }
@@ -921,12 +921,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "DocumentClassification",
           "Id": "0173-1#02-ABI502#001/0173-1#01-AHF581#001*01",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -937,39 +937,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document classification"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentenklassifizierung"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document classification"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentenklassifizierung"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Set of information for describing the classification of the Document according to ClassificationSystems"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Satz von Informationen zur Beschreibung der Klassifizierung des Dokuments gemäß Klassifizierungssystemen\t"
                   }
@@ -991,12 +991,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "ClassId",
           "Id": "0173-1#02-ABH996#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1007,39 +1007,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Class identifyer"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Klassenidentifikator"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Class identifyer"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Klassenidentifikator"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Unique ID of the document class within a ClassficationSystem"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Eindeutige ID der Dokumentenklasse innerhalb eines ClassificationSystems"
                   }
@@ -1062,12 +1062,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "ClassName",
           "Id": "0173-1#02-AAO102#003",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1078,39 +1078,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "type of document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumententyp"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "type of document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumententyp"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "classification of a document according to its purpose or the information it contains"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Charakterisierung eines Dokuments bezüglich des Zwecks oder der Information, die es beinhaltet"
                   }
@@ -1132,12 +1132,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "ClassificationSystem",
           "Id": "0173-1#02-ABH997#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1148,39 +1148,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Classification system"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Klassifizierungssystem"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Classification system"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Klassifizierungssystem"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Identification of the classification system"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Identifikation des Klassifikationssystems\t"
                   }
@@ -1202,12 +1202,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "DocumentVersion",
           "Id": "0173-1#02-ABI503#001/0173-1#01-AHF582#001*01",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1218,39 +1218,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document version"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentenversion"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document version"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentenversion"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Information elements of individual Document Version entities"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Informationselemente einzelner VDI 2770 DocumentVersion Entitäten\t"
                   }
@@ -1272,12 +1272,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "Language",
           "Id": "0173-1#02-AAN468#006",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1288,39 +1288,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "language of document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Sprache des Dokuments"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "language of document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Sprache des Dokuments"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "language style of the document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Sprachstil des Dokuments\t"
                   }
@@ -1342,12 +1342,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "DocumentVersionId",
           "Id": "0173-1#02-AAO100#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1358,39 +1358,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document version"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentenversion"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document version"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentenversion"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Information elements of individual VDI 2770 DocumentVersion entities"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Informationselemente einzelner VDI 2770 DocumentVersion Entitäten\t"
                   }
@@ -1412,12 +1412,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "Title",
           "Id": "0173-1#02-AAO105#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1428,39 +1428,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "document name"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentenname"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "document name"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentenname"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "name of the document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Name des Dokuments\t"
                   }
@@ -1482,12 +1482,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "SubTitle",
           "Id": "0173-1#02-ABH998#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1498,39 +1498,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Subtitle"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Untertitel"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Subtitle"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Untertitel"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "List of language-dependent subtitles of the Document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Liste der sprachabhängigen Untertitel des Dokuments\t"
                   }
@@ -1552,12 +1552,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "Summary",
           "Id": "0173-1#02-AAO106#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1568,39 +1568,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "document description"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentenbeschreibung"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "document description"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentenbeschreibung"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "plain text characterizing the content of the document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Klartext, der den Inhalt des Dokuments kennzeichnet\t"
                   }
@@ -1622,12 +1622,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "KeyWords",
           "Id": "0173-1#02-ABH999#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1638,39 +1638,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Keyword"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Stichwort"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Keyword"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Stichwort"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "List of language-dependent keywords of the document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Liste der sprachabhängigen Schlüsselwörter des Dokuments\t"
                   }
@@ -1692,12 +1692,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "StatusSetDate",
           "Id": "0173-1#02-ABI000#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1708,39 +1708,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document status set date"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Datum der Einstellung des Dokumentenstatus"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document status set date"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Datum der Einstellung des Dokumentenstatus"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Date when the document status was set"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Datum, an dem der Dokumentenstatus gesetzt wurde\t"
                   }
@@ -1762,12 +1762,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "StatusValue",
           "Id": "0173-1#02-ABI001#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1778,39 +1778,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document status"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentstatus"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Document status"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Dokumentstatus"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Each document version represents a point in time in the document life cycle. This status value refers to the milestones in the document life cycle. The following two values should be used for the application of this guideline: InReview (under review), Released (released)"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Jede Dokumentversion repräsentiert einen Zeitpunkt im Dokumentlebenszyklus. Dieser Statuswert bezieht sich auf die Meilensteine ​​im Dokumentenlebenszyklus. Für die Anwendung dieser Richtlinie sollten die folgenden zwei Werte verwendet werden: InReview (in Überprüfung), Released (freigegeben)\t"
                   }
@@ -1832,12 +1832,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "OrganizationName",
           "Id": "0173-1#02-ABI002#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1848,39 +1848,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Organization short name"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Kurzname der Organisation"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Organization short name"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Kurzname der Organisation"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Organiziation name of the author of the document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Name der Organisation des Autors des Dokuments\t"
                   }
@@ -1902,12 +1902,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "OrganizationOfficialName",
           "Id": "0173-1#02-ABI004#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1918,39 +1918,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Organization official name"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Offizieller Name der Organisation"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Organization official name"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Offizieller Name der Organisation"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Official name of the organization of author of the document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Offizieller Name der Organisation des Autors des Dokuments\t"
                   }
@@ -1972,12 +1972,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "RefersTo",
           "Id": "0173-1#02-ABI006#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1988,39 +1988,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Reference to other document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Verweis auf ein anderes Dokument"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Reference to other document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Verweis auf ein anderes Dokument"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Forms a generic RefersTo-relationship to another Document or DocumentVersion. They have a loose relationship"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Bildet eine generische RefersTo-Beziehung zu einem anderen Dokument oder einer anderen Dokumentversion. Sie haben ein lockeres Verhältnis\t"
                   }
@@ -2042,12 +2042,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "BasedOn",
           "Id": "0173-1#02-ABI007#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -2058,39 +2058,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Based on other document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Basierend auf einem anderen Dokument"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Based on other document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Basierend auf einem anderen Dokument"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Forms a BasedOn-relationship to another Document or DocumentVersion. Typically states, that the content of the document bases on another document (e.g. specification requirements). Both have a strong relationship"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Bildet eine BasedOn-Beziehung zu einem anderen Dokument oder einer anderen Dokumentversion. Gibt typischerweise an, dass der Inhalt des Dokuments auf einem anderen Dokument basiert (z. B. Spezifikationsanforderungen). Beide haben eine starke Beziehung\t"
                   }
@@ -2112,12 +2112,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "TranslationOf",
           "Id": "0173-1#02-ABI008#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -2128,39 +2128,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Translation of other document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Übersetzung eines anderen Dokuments"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Translation of other document"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Übersetzung eines anderen Dokuments"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Forms a TranslationOf-relationship to another Document or DocumentVersion. Both have a strong relationship"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Bildet eine TranslationOf-Beziehung zu einem anderen Dokument oder einer anderen Dokumentversion. Beide haben eine starke Beziehung\t"
                   }
@@ -2182,12 +2182,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "DigitalFile",
           "Id": "0173-1#02-ABI504#001/0173-1#01-AHF583#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -2198,39 +2198,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Digital file"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Digitale Datei"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Digital file"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Digitale Datei"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "MIME-Type, file name and file contents given by the file SubmodelElement"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "MIME-Typ, Dateiname und Dateiinhalt, die von der Datei SubmodelElement vorgegeben werden\t"
                   }
@@ -2252,12 +2252,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "PreviewFile",
           "Id": "0173-1#02-ABI505#001/0173-1#01-AHF584#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -2268,39 +2268,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Preview file"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Vorschaudatei"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Preview file"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Vorschaudatei"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Provides a preview image of the Document Version, e.g. first page, in a commonly used image format and low resolution"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Liefert ein Vorschaubild der DocumentVersion, z.B. erste Seite, in einem gängigen Bildformat und niedriger Auflösung.\t"
                   }
@@ -2322,12 +2322,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "DocumentedEntity",
           "Id": "0173-1#02-ABI501#001/0173-1#01-AHF580#001*00",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -2338,39 +2338,39 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Reference to entity documented"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Verweis auf dokumentierte Einheit"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Reference to entity documented"
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Verweis auf dokumentierte Einheit"
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Identifies entities, which are subject to the Document."
                   },
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "de",
                     "Text": "Identifiziert Einheiten, die durch dieses Dokument dokumentiert werden."
                   }

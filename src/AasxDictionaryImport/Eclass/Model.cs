@@ -23,7 +23,7 @@ using System.Runtime.Versioning;
 using System.Security.Cryptography.X509Certificates;
 using System.Xml;
 using System.Xml.Linq;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 
 namespace AasxDictionaryImport.Eclass

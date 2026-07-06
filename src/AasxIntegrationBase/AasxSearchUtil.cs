@@ -15,7 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 //TODO (jtikekar, 0000-00-00): change to AAS
 
 namespace AasxIntegrationBase

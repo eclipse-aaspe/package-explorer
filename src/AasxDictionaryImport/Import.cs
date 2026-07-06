@@ -15,7 +15,7 @@ using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxDictionaryImport
 {

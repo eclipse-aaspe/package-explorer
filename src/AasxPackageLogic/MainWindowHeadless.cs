@@ -27,7 +27,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VDS.RDF.Parsing;
 using VDS.RDF;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using static AasxPackageLogic.DispEditHelperBasics;
 using System.Drawing;
 using System.IO.Packaging;

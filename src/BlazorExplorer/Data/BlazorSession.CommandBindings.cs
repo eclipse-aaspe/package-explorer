@@ -21,7 +21,7 @@ using AasxIntegrationBase;
 using AasxPackageExplorer;
 using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 using AnyUi;
@@ -32,7 +32,7 @@ using Microsoft.JSInterop;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
-using AasCore.Aas3_0;
+using AasCore.Aas3_1;
 
 namespace BlazorUI.Data
 {

@@ -9,7 +9,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 using AdminShellNS;
 using Extensions;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AasxIntegrationBase;
 using AnyUi;
 using Newtonsoft.Json;

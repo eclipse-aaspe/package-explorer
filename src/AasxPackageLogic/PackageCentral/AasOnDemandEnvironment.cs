@@ -11,7 +11,7 @@ using AasxIntegrationBase;
 using AasxOpenIdClient;
 using AdminShellNS;
 using AdminShellNS.DiaryData;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using Extensions;
 using IdentityModel.Client;
 using System;

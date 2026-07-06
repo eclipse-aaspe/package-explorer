@@ -25,7 +25,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 using AasxIntegrationBase;
@@ -318,7 +318,14 @@ namespace BlazorUI
         }
 
 
-        public bool TrySelectVisualElement(VisualElementGeneric ve, bool? wishExpanded)
+        // TODO: IMPLEMENT
+        public async Task<bool> TrySelectVisualElementAsync(VisualElementGeneric ve, bool? wishExpanded, bool specialTreeUpdate = false)
+        {
+            await Task.Yield();
+            return false;
+        }
+
+        public bool TrySelectVisualElement(VisualElementGeneric ve, bool? wishExpanded, bool specialTreeUpdate = false)
         {
             // access?
             if (ve == null)
@@ -348,7 +355,8 @@ namespace BlazorUI
         /// </summary>
         public bool TrySelectMainDataObject(
             object dataObject, bool? wishExpanded,
-            bool alsoDereferenceObjects = false)
+            bool alsoDereferenceObjects = false,
+            bool specialTreeUpdate = false)
         {
             // access?
             var ve = SearchVisualElementOnMainDataObject(dataObject,

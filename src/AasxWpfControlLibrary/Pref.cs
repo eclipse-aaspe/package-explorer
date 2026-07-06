@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2019 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -47,13 +47,19 @@ namespace AasxPackageExplorer
         /// </summary>
         public readonly string Version;
 
-        public Pref(string authors, string licenseShort, string buildDate, string licenseLong, string version)
+        /// <summary>
+        /// The AAS Metamodel version being supported by AASX Package Explorer
+        /// </summary>
+        public readonly string MetamodelVersion;
+
+        public Pref(string authors, string licenseShort, string buildDate, string licenseLong, string version, string metamodelVersion = null)
         {
             Authors = authors;
             LicenseShort = licenseShort;
             BuildDate = buildDate;
             LicenseLong = licenseLong;
             Version = version;
+            MetamodelVersion = metamodelVersion;
         }
 
         /// <summary>
@@ -123,7 +129,7 @@ namespace AasxPackageExplorer
                 }
             }
 
-            return new Pref(authors, licenseShort, buildDate, licenseLong, version);
+            return new Pref(authors, licenseShort, buildDate, licenseLong, version, "V3.1");
         }
     }
 }

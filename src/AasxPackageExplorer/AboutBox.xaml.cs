@@ -44,7 +44,8 @@ namespace AasxPackageExplorer
                 "Authors: " + _pref.Authors + " (see below)\n" +
                 "This software is licensed under the Apache License 2.0 (see below)" + "\n" +
                 "Version: " + _pref.Version + "\n" +
-                "Build date: " + _pref.BuildDate;
+                "Build date: " + _pref.BuildDate+ "\n" +
+                "AAS Metamodel Version: " + _pref.MetamodelVersion;
 
             this.InfoBox.Text = "[AasxPackageExplorer]" + Environment.NewLine + _pref.LicenseLong;
 

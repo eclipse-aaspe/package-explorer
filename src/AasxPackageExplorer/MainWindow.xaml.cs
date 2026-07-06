@@ -7,7 +7,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
-using AasCore.Aas3_0;
+using AasCore.Aas3_1;
 using AasxIntegrationBase;
 using AasxIntegrationBase.AdminShellEvents;
 using AasxPackageLogic;
@@ -23,12 +23,10 @@ using J2N;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Packaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,10 +38,8 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using Workstation.ServiceModel.Ua;
-using static AasxPackageLogic.DispEditHelperBasics;
 using static AasxPackageLogic.PackageCentral.PackageContainerHttpRepoSubset;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using ExhaustiveMatch = ExhaustiveMatching.ExhaustiveMatch;
 
 namespace AasxPackageExplorer
@@ -202,7 +198,7 @@ namespace AasxPackageExplorer
             // focus info
             var focusMdo = DisplayElements.SelectedItem?.GetDereferencedMainDataObject();
 
-            var t = "AASX Package Explorer V3.0";
+            var t = "AASX Package Explorer V3.1";
             //TODO (jtikekar, 0000-00-00): remove V3RC02
             if (PackageCentral.MainAvailable)
                 t += " - " + PackageCentral.MainItem.ToString();
@@ -221,24 +217,37 @@ namespace AasxPackageExplorer
             // rebuild middle section
             DisplayElements.RebuildAasxElements(
                 PackageCentral, PackageCentral.Selector.Main, MainMenu?.IsChecked("EditMenu") == true,
-                lazyLoadingFirst: true);
+                // MIHO TODO: set to "true" after testing!
+                lazyLoadingFirst: false,
+                doNotSelectFirstItem: keepFocus);
 
-            // ok .. try re-focus!!
-            if (keepFocus)
-            {
-                // make sure that Submodel is expanded
-                this.DisplayElements.ExpandAllItems();
-
-                // still proceed?
-                var veFound = this.DisplayElements.SearchVisualElementOnMainDataObject(focusMdo,
-                        alsoDereferenceObjects: true);
-
-                if (veFound != null)
-                    DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true);
-            }
-
-            // display again
             DisplayElements.Refresh();
+
+            // according to AI, give the UI first time internally rebuild the items
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+
+                // ok .. try re-focus!!
+                if (keepFocus)
+                {
+                    // make sure that Submodel is expanded
+                    this.DisplayElements.ExpandAllItems();
+
+                    // still proceed?
+                    var veFound = this.DisplayElements.SearchVisualElementOnMainDataObject(focusMdo,
+                            alsoDereferenceObjects: true);
+
+                    if (veFound != null)
+                    {
+                        DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true, 
+                            specialTreeUpdate: true);
+                    }
+                }
+
+                // display again
+                DisplayElements.Refresh();
+
+            }), DispatcherPriority.Background);
 
 #if _log_times
             Log.Singleton.Info("Time 90 is: " + DateTime.Now.ToString("hh:mm:ss.fff"));
@@ -1633,7 +1642,8 @@ namespace AasxPackageExplorer
                     // MIHO 24-06-09: add dereferenced object to find operation vars, submodelrefs?
                     DisplayElements.TrySelectMainDataObject(
                         wish.NextFocus, wish.IsExpanded,
-                        alsoDereferenceObjects: true);
+                        alsoDereferenceObjects: true, 
+                        specialTreeUpdate: true);
                 }
 
                 // fake selection
@@ -2168,7 +2178,8 @@ namespace AasxPackageExplorer
                 if (veFound != null)
                 {
                     // show ve
-                    DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true);
+                    DisplayElements.TrySelectVisualElement(veFound, wishExpanded: true,
+                        specialTreeUpdate: true);
                     // remember in history
                     Logic?.LocationHistory?.Push(veFound);
                     // fake selection
@@ -3115,7 +3126,7 @@ namespace AasxPackageExplorer
                 {
                     // is directly contain in actual tree
                     // show it
-                    if (DisplayElements.TrySelectVisualElement(ve, wishExpanded: true))
+                    if (DisplayElements.TrySelectVisualElement(ve, wishExpanded: true, specialTreeUpdate: true))
                     {
                         // fake selection
                         await RedrawElementViewAsync();
@@ -3190,7 +3201,7 @@ namespace AasxPackageExplorer
                     try
                     {
                         // show ve
-                        DisplayElements?.TrySelectVisualElement(veFocus, wishExpanded: true);
+                        DisplayElements?.TrySelectVisualElement(veFocus, wishExpanded: true, specialTreeUpdate: true);
                         // remember in history
                         //TODO (MIHO, 0000-00-00): this was a bug??
                         // ButtonHistory.Push(veFocus);

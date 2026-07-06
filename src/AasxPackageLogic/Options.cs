@@ -7,6 +7,11 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+using AasxPackageLogic.PackageCentral;
+using AdminShellNS;
+using AnyUi;
+using Extensions;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -15,12 +20,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Web;
-using AasxPackageLogic.PackageCentral;
-using AdminShellNS;
-using AnyUi;
-using Extensions;
-using Newtonsoft.Json;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 // ReSharper disable UnassignedField.Global
 

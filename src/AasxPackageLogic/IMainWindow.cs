@@ -15,11 +15,9 @@ using AasxIntegrationBase;
 using AasxPackageLogic;
 using AasxPackageLogic.PackageCentral;
 using AdminShellNS;
-using Aas = AasCore.Aas3_0;
 using AnyUi;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageExplorer
 {
@@ -85,6 +83,11 @@ namespace AasxPackageExplorer
             bool keepFocus = false,
             object nextFocusMdo = null,
             bool wishExpanded = true);
+
+        //Task RedrawAllAasxElementsAsync(
+        //    bool keepFocus = false,
+        //    object nextFocusMdo = null,
+        //    bool wishExpanded = true);
 
         /// <summary>
         /// Based on save information, will redraw the AAS entity (element) view (right).

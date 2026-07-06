@@ -17,12 +17,12 @@ using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
-using AasCore.Aas3_0;
+using AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 // Note: Nice regex for searching prefix in .ttl files:
 // @prefix\s+([^:]*)\:\s+<([^>]+)>.

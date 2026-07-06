@@ -10,7 +10,7 @@
 
 using System.IO;
 using AasxPackageLogic;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using NUnit.Framework;
 

@@ -13,7 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Annotations;
 using static System.Windows.Forms.AxHost;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxIntegrationBase.AdminShellEvents
 {

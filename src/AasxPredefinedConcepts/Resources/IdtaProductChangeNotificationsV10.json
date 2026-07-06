@@ -1,2233 +1,2536 @@
 ﻿/* draft SMT Product Change Notifications from MAR 2024 */
 {
-  "SM_ProductChangeNotifications": {
-    "idShort": "ProductChangeNotifications",
-    "description": [],
-    "id": "www.example.com/ids/sm/3212_3160_4022_4516",
-    "kind": "Template",
-    "semanticId": {
-      "type": "ModelReference",
-      "keys": [
-        {
-          "type": "Submodel",
-          "value": "0173-10029#01-XFB001#001"
-        }
-      ]
+    "SM_ProductChangeNotifications": {
+        "idShort": "ProductChangeNotifications",
+        "administration": {
+            "version": "1",
+            "revision": "0"
+        },
+        "id": "0173-1#01-AHE582#003",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "ProductChangeNotifications"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Produkt\u00E4nderungsmeldung (PCN)"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "submodel containing a set of product change notifications over life-time"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Teilmodell, das eine Reihe von Produkt\u00E4nderungsbenachrichtigungen \u00FCber die Lebensdauer enth\u00E4lt"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "Submodel"
     },
-    "modelType": "Submodel"
-  },
-  "CD_PcnEventsOutgoing": {
-    "idShort": "PcnEventsOutgoing",
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/EventsOutgoing/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
+    "CD_PcnEventsOutgoing": {
+        "idShort": "PcnEventsOutgoing",
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/EventsOutgoing/1/0",
+        "embeddedDataSpecifications": [
             {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "PCN events outgoing"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "declaration of an AAS event, which is able to publish the extending of this Submodel by incementally adding product change notifications"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Deklaration eines AAS Events, das die Erweiterung dieses Teilmodells durch schrittweises Hinzuf\u00FCgen von Produkt\u00E4nderungsmeldungen ver\u00F6ffentlichen kann"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
             }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "PcnEventsOutgoing"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Declaration of an AAS event, which is able to publish the extending of this Submodel by incementally adding product change notifications."
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_RecordsOfPcn": {
-    "idShort": "RecordsOfPcn",
-    "description": [],
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/Record/List/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "List of records of single product change informations"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_Record": {
-    "idShort": "Record{0000}",
-    "id": "0173-10029#01-XFB002#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Individual records of product change notification; provided by the manufacturer; extended over life-time."
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_Manufacturer": {
-    "idShort": "Manufacturer",
-    "id": "0173-10029#01-XFB003#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "Manufacturer"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Set of information identifying the manufacturer or supplier, which puts the described items on the market."
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ManufacturerName": {
-    "idShort": "ManufacturerName",
-    "id": "0173-1#02-AAO677#003",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "legally valid designation of the natural or judicial person which is directly responsible for the design, production, packaging and labeling of a product in respect to its being brought into circulation"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_Address": {
-    "idShort": "Address",
-    "administration": {
-      "version": "",
-      "revision": "1"
+        ],
+        "modelType": "ConceptDescription"
     },
-    "id": "0173-1#02-AAQ832#005",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
+    "CD_RecordsOfPcn": {
+        "idShort": "RecordsOfPcn",
+        "description": [],
+        "id": "0173-1#02-ABI294#003",
+        "embeddedDataSpecifications": [
             {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "records of Product Change Notification (PCN)"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Datens\u00E4tze der Produkt\u00E4nderungsmeldungen (PCN) "
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "list of records of single product change informations"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Liste der Datens\u00E4tze von Produkt\u00E4nderungsmeldungen (PCN) "
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
             }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_Record": {
+        "idShort": "Record",
+        "id": "0173-1#02-ABI294#003/0173-1#01-AHE583#003",
+        "embeddedDataSpecifications": [
             {
-              "language": "en",
-              "text": "Address"
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "record of Product Change Notification"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Datensatz der Produkt\u00E4nderungsmeldung"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "individual record of product change notification data; provided by the manufacturer; extended over life-time"
+                        },
+                        {
+                            "language": "de",
+                            "text": "individueller Datensatz der Produkt\u00E4nderungsmeldung; bereitgestellt vom Hersteller; erg\u00E4nzt \u00FCber die Lebensdauer"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_Manufacturer": {
+        "idShort": "Manufacturer",
+        "id": "0173-1#02-ABI295#003/0173-1#01-AHE584#003",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Manufacturer information"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Hersteller Information"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "set of information identifying the manufacturer or supplier, which puts the described items on the market"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Reihe von Informationen zur Identifizierung des Herstellers oder Lieferanten, der die beschriebenen Artikel in Umlauf bringt"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ManufacturerName": {
+        "idShort": "ManufacturerName",
+        "id": "0173-1#02-AAO677#004",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "ManufacturerName"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Herstellername"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "legally valid designation of the natural or judicial person which is directly responsible for the design, production, packaging and labeling of a product in respect to its being brought into circulation"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Bezeichnung f\u00FCr eine nat\u00FCrliche oder juristische Person, die f\u00FCr die Auslegung, Herstellung und Verpackung sowie die Etikettierung eines Produkts im Hinblick auf das \u0027Inverkehrbringen\u0027 im eigenen Namen verantwortlich ist"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_Address_IEC": {
+        "idShort": "Address_IEC",
+        "administration": {
+            "version": "",
+            "revision": "1"
+        },
+        "id": "0112/2///61360_7#AAS034",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "address"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Adresse"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "properties characterizing an address used by a contact person or organisation"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Mermale, die eine von einer Kontaktperson oder einer Organisation verwendete Adresse charakterisieren"
+                        }
+                    ],
+                    "value": "",
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "isCaseOf": [
+            {
+                "type": "ExternalReference",
+                "keys": [
+                    {
+                        "type": "GlobalReference",
+                        "value": "0173-1#02-ABG791#003"
+                    }
+                ]
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ManufacturerChangeID": {
+        "idShort": "ManufacturerChangeID",
+        "id": "0173-1#02-ABG772#002",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Manufacturer change idenitifier"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Herstellerkennung der \u00C4nderung"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "id of change given by and specific to individual namespace of the manufacturer"
+                        },
+                        {
+                            "language": "de",
+                            "text": "ID der \u00C4nderung, die von und spezifisch f\u00FCr den individuellen Namensraum des Herstellers angegeben ist"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_PcnType": {
+        "idShort": "PcnType",
+        "description": [
+            {
+                "language": "en",
+                "text": "Note: Ideally, the Property/valueId is used to reference the IRI/ IRDI of the reason id given by ECLASS."
+            }
+        ],
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnType/1/0",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "PCN-Type"
+                        },
+                        {
+                            "language": "de",
+                            "text": "PCN-Typ"
+                        }
+                    ],
+                    "dataType": "STRING",
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "definition, if the PCN record represents a product change notification (PCN) or a product discontinuance notice (PDN)"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Angabe, ob der PCN-Datensatz eine Produkt\u00E4nderungsmitteilung (PCN) oder eine Produktabk\u00FCndigungsmitteilung (PDN) darstellt"
+                        }
+                    ],
+                    "valueList": {
+                        "valueReferencePairs": [
+                            {
+                                "value": "PCN",
+                                "valueId": {
+                                    "type": "ExternalReference",
+                                    "keys": [
+                                        {
+                                            "type": "GlobalReference",
+                                            "value": "0173-1#07-ABU000#003"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "value": "PDN",
+                                "valueId": {
+                                    "type": "ExternalReference",
+                                    "keys": [
+                                        {
+                                            "type": "GlobalReference",
+                                            "value": "0173-1#07-ABU001#003"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_LifeCycleData": {
+        "idShort": "LifeCycleData",
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/LifeCycleData/List/1/0",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Life-cycle data"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Lebenszyklusdaten"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "set of life-cycle milestones, which are set with a new validity date"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Meihe von Meilensteinen im Lebenszyklus, f\u00FCr die ein neues G\u00FCltigkeitsdatum festgelegt wird"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_LifeCycleMilestone": {
+        "idShort": "LifeCycleMilestone",
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/LifeCycleData/Milestone/1/0",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Life-cycle milestone"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Meilenstein im Lebenszyklus"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "definition of one milestone in the life-cycle of a industrial item or product"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Definition eines Meilensteins im Lebenszyklus eines industriellen Gegenstands oder Produkts"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_MilestoneClassification": {
+        "idShort": "MilestoneClassification",
+        "id": "0173-1#02-ABG773#002",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Milestone"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Meilenstein"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "defined point in time with a specific meaning for life-cycle management"
+                        },
+                        {
+                            "language": "de",
+                            "text": "definierter Zeitpunkt mit spezifischer Bedeutung im Lebenszyklus-Management"
+                        }
+                    ],
+                    "valueList": {
+                        "valueReferencePairs": [
+                            {
+                                "value": "SOP",
+                                "valueId": {
+                                    "type": "ExternalReference",
+                                    "keys": [
+                                        {
+                                            "type": "GlobalReference",
+                                            "value": "0173-1#07-ABT998#003"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "value": "NRND",
+                                "valueId": {
+                                    "type": "ExternalReference",
+                                    "keys": [
+                                        {
+                                            "type": "GlobalReference",
+                                            "value": "0173-1#07-ABT999#003"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "value": "PCN",
+                                "valueId": {
+                                    "type": "ExternalReference",
+                                    "keys": [
+                                        {
+                                            "type": "GlobalReference",
+                                            "value": "0173-1#07-ABU000#003"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "value": "EOS",
+                                "valueId": {
+                                    "type": "ExternalReference",
+                                    "keys": [
+                                        {
+                                            "type": "GlobalReference",
+                                            "value": "0173-1#07-ABU002#003"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "value": "EOP",
+                                "valueId": {
+                                    "type": "ExternalReference",
+                                    "keys": [
+                                        {
+                                            "type": "GlobalReference",
+                                            "value": "0173-1#07-ABU003#003"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "value": "LTD",
+                                "valueId": {
+                                    "type": "ExternalReference",
+                                    "keys": [
+                                        {
+                                            "type": "GlobalReference",
+                                            "value": "0173-1#07-ABU004#003"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "value": "EOSR",
+                                "valueId": {
+                                    "type": "ExternalReference",
+                                    "keys": [
+                                        {
+                                            "type": "GlobalReference",
+                                            "value": "0173-1#07-ABU087#003"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_DateOfValidityOfPcn": {
+        "idShort": "DateOfValidityOfPcn",
+        "id": "0173-1#02-ABF815#002",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Date of validity of PCN"
+                        },
+                        {
+                            "language": "de",
+                            "text": "fr\u00FChester Geltungszeitpunkt der \u00C4nderung"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "UTC calendar date when the change will take place"
+                        },
+                        {
+                            "language": "de",
+                            "text": "UTC-Kalenderdatum, an dem die \u00C4nderung wirksam wird"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ReasonsOfChange": {
+        "idShort": "ReasonsOfChange",
+        "id": "0173-1#02-ABI296#002",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Classifications of Product Change Notification reason "
+                        },
+                        {
+                            "language": "en",
+                            "text": "Klassifizierungen des Benachrichtigungsgrundes f\u00FCr Produkt\u00E4nderungen"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "one or more classifications of reason of change"
+                        },
+                        {
+                            "language": "de",
+                            "text": "mindestens eine oder mehrere Klassifkationen des \u00C4nderungsgrundes"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ReasonOfChange": {
+        "idShort": "ReasonOfChange",
+        "id": "0173-1#02-ABI296#002/0173-1#01-AHE585#002",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Classification of Product Change Notification reason "
+                        },
+                        {
+                            "language": "de",
+                            "text": "Klassifizierung des Benachrichtigungsgrundes f\u00FCr Produkt\u00E4nderungen"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "individual classification of reason of change"
+                        },
+                        {
+                            "language": "de",
+                            "text": "individuelle Klassifkationen des \u00C4nderungsgrundes"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ClassificationOfPcnReason": {
+        "idShort": "ClassificationOfPcnReason",
+        "id": "0173-1#02-ABF813#002",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Classification of PCN Reason"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Klassifzierung der \u00C4nderung"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "rough categorization of the unit for rule-based processing"
+                        },
+                        {
+                            "language": "de",
+                            "text": "grobe Kategorisierung der Einheit f\u00FCr die regelbasierte Verarbeitung"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_VersionOfClassificationSystem": {
+        "idShort": "VersionOfClassificationSystem",
+        "id": "0173-1#02-AAR710#002",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Version of classification system"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Version des Klassifikationssystems"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "referenced state of development of documents and applications"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Referenziertes Entwicklungsstadium von Dokumenten und Applikationen"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ReasonId": {
+        "idShort": "ReasonId",
+        "id": "0173-1#02-ABG774#002",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Reason identifier"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Ursachenidentifizierer"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "class of the reason itself with code as alphanumerical string"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Klasse des Grundes selbst. Code als alphanumerische Zeichenfolge"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ItemCategories": {
+        "idShort": "ItemCategories",
+        "description": [
+            {
+                "language": "en",
+                "text": "Note: Multiple classification systems might be used."
             },
             {
-              "language": "de",
-              "text": "Adresse"
+                "language": "en",
+                "text": "Constraint: At least one item classification according VDM24903 shall be given."
             }
-          ],
-          "shortName": [
+        ],
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ItemCategory/List/1/0",
+        "embeddedDataSpecifications": [
             {
-              "language": "en",
-              "text": "Add"
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Item categories"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "set of categorizations of the item of change either as a whole or affect sub-item according VDMA 24903 and further norms"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Kategorisierungen des \u00C4nderungsgegenstands als Ganzes oder als Teilgegenstand gem\u00E4\u00DF VDMA 24903 und weiteren Normen"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
             }
-          ],
-          "definition": [
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ItemCategory": {
+        "idShort": "ItemCategory",
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ItemCategory/1/0",
+        "embeddedDataSpecifications": [
             {
-              "language": "en",
-              "text": "Address information of a business partner"
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Item category"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Produktkategorie"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "categorization of the item of change either as a whole or affect sub-item according VDMA 24903 and further norms"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Beschreibung der Produktkategorie, wenn die Einheiten zu einer bestimmten Produktkategorien geh\u00F6rt"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ItemClassificationSystem": {
+        "idShort": "ItemClassificationSystem",
+        "description": [
+            {
+                "language": "en",
+                "text": "Note: Examples for common names for classification systems are \u0022VDMA24903\u0022."
+            }
+        ],
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ItemCategory/ItemClassificationSystem/1/0",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Version of classification system"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Version des Klassifikationssystems"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "classification system used for the item categorization of the item of change for rule-based processing"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Klassifizierungssystem zur Einordnung des \u00C4nderungsobjekts f\u00FCr die regelbasierte Verarbeitung"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_AffectedPartNumbers": {
+        "idShort": "AffectedPartNumbers",
+        "description": [
+            {
+                "language": "en",
+                "text": "Note: Multiple classification systems might be used."
             },
             {
-              "language": "de",
-              "text": "Adressinformationen zu einem Gesch\u00E4ftspartner"
+                "language": "en",
+                "text": "Constraint: At least one item category according VDM24903 shall be given."
             }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "isCaseOf": [
-      {
-        "type": "ModelReference",
-        "keys": [
-          {
-            "type": "GlobalReference",
-            "value": "0173-1#02-AAQ832#005"
-          }
-        ]
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ManufacturerChangeID": {
-    "idShort": "ManufacturerChangeID",
-    "id": "0173-10029#02-ABC507#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
+        ],
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/AffectedPartNumber/List/1/0",
+        "embeddedDataSpecifications": [
             {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Affected part numbers"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Betroffene Teilnummern"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "set of part numbers affected by the present product change notification, if not the whole set for product family and designation"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Menge der von der Produkt\u00E4nderungsmitteilung betroffene Teilnummern"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
             }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_AffectedPartNumber": {
+        "idShort": "AffectedPartNumber",
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/AffectedPartNumber/1/0",
+        "embeddedDataSpecifications": [
             {
-              "language": "en",
-              "text": "ManufacturerChangeID"
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Affected part number"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Betroffene Teilnummer"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "part numbers affected by the present product change notification"
+                        },
+                        {
+                            "language": "de",
+                            "text": "von der Produkt\u00E4nderungsmitteilung betroffene Teilnummer"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
             }
-          ],
-          "shortName": [
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_PcnReasonComment": {
+        "idShort": "PcnReasonComment",
+        "id": "0173-1#02-ABF814#002",
+        "embeddedDataSpecifications": [
             {
-              "language": "en",
-              "text": ""
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "PCN reason comment"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Kommentar zur \u00C4nderung"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "comment explaining the reason of change and further circumstances in natural language. "
+                        },
+                        {
+                            "language": "de",
+                            "text": "Kommentar, der den Grund der \u00C4nderung und weitere Umst\u00E4nde in allgemeiner Sprache erl\u00E4utert"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
             }
-          ],
-          "definition": [
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_PcnChangeInformation": {
+        "idShort": "PcnChangeInformation",
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnChangeInformation/1/0",
+        "embeddedDataSpecifications": [
             {
-              "language": "en",
-              "text": "Id of change given by and specific to individual namespace of the manufacturer."
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Text based change information"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Textbasierte \u00C4nderungsinformationen"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "set of information detailing on the particular changes of a product change notification"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Menge von textbasierten Informationen, die die konkreten \u00C4nderungen einer Produkt\u00E4nderungsmitteilung detailliert beschreiben"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
             }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_PcnType": {
-    "idShort": "PcnType",
-    "description": [
-      {
-        "language": "en",
-        "text": "Note: Ideally, the Property/valueId is used to reference the IRI/ IRDI of the reason id given by ECLASS."
-      }
-    ],
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnType/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ChangeTitle": {
+        "idShort": "ChangeTitle",
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnChangeInformation/ChangeTitle/1/0",
+        "embeddedDataSpecifications": [
             {
-              "type": "GlobalReference",
-              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Change title"
+                        },
+                        {
+                            "language": "de",
+                            "text": "\u00C4nderungstitel"
+                        }
+                    ],
+                    "dataType": "STRING",
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "human readable title (summary) of information of particular changes of a product change notification"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Lesbarer Titel (Zusammenfassung) der Informationen zu bestimmten \u00C4nderungen in einer Produkt\u00E4nderungsmitteilung"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
             }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ChangeDetail": {
+        "idShort": "ChangeDetail",
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnChangeInformation/ChangeDetail/1/0",
+        "embeddedDataSpecifications": [
             {
-              "language": "en",
-              "text": "PCN-Type"
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Change detail"
+                        },
+                        {
+                            "language": "de",
+                            "text": "\u00C4nderungsdetails"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "human readable body (details) of information of particular changes of a product change notification"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Lesbarer Text (Details) zu den Informationen \u00FCber bestimmte \u00C4nderungen in einer Produkt\u00E4nderungsmitteilung"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_AdditionalInformations": {
+        "idShort": "AdditionalInformations",
+        "description": [
+            {
+                "language": "en",
+                "text": "Note: The list of File elements can be used to attach a set of conventional \u0022product change information\u0022 already provided by many suppliers."
+            }
+        ],
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/AdditionalInformation/List/1/0",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Additional informations"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Zusatzinformationen"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "files in common data format providing further descriptive information or information in natuaral language or graphical representation"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Datei(en) in g\u00E4ngigen Datenformaten, die weitere beschreibende Informationen oder Informationen in nat\u00FCrlicher Sprache oder grafischer Darstellung enthalten"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_AdditionalInformation": {
+        "idShort": "AdditionalInformation",
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/AdditionalInformation/AdditionalInformation/1/0",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Additional information"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Zusatzinformation"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "file in common data format providing further descriptive information or information in natuaral language or graphical representation"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Datei im g\u00E4ngigen Datenformat, die weitere beschreibende Informationen oder Informationen in nat\u00FCrlicher Sprache oder grafischer Darstellung enth\u00E4lt"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_DateOfRecordOfPcn": {
+        "idShort": "DateOfRecordOfPcn",
+        "id": "0173-1#02-ABF816#003",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Date of record of PCN"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Anlage- oder \u00C4nderungsdatum des Datensatzes"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "UTC calendar date when the record of change was initially published by the manufacturer"
+                        },
+                        {
+                            "language": "de",
+                            "text": "UTC-Kalenderdatum, an dem die Aufzeichnung der \u00C4nderung erstmals vom Hersteller ver\u00F6ffentlicht wurde"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ItemOfChange": {
+        "idShort": "ItemOfChange",
+        "id": "0173-1#02-ABI297#003/0173-1#01-AHE586#003",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "item of change"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Ge\u00E4nderter Artikel "
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "information set which describes an item of change by the manufacturer"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Datensatz, der den ge\u00E4nderten Artikel beschreibt"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ManufacturerProductFamily": {
+        "idShort": "ManufacturerProductFamily",
+        "id": "0173-1#02-AAU731#003",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Manufacturer product family"
+                        },
+                        {
+                            "language": "en",
+                            "text": "Herstellerproduktfamilie"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "2nd level of a 3 level manufacturer specific product hierarchy"
+                        },
+                        {
+                            "language": "de",
+                            "text": "2. Ebene einer 3 stufigen herstellerspezifischen Produkthierarchie"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ManufacturerProductDesignation": {
+        "idShort": "ManufacturerProductDesignation",
+        "id": "0173-1#02-AAW338#002",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Manufacturer product designation"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Herstellerproduktbezeichnung"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "short description of the product (short text) "
+                        },
+                        {
+                            "language": "de",
+                            "text": "Kurze Beschreibung des Produktes (Kurztext)"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_OrderCodeOfManufacturer": {
+        "idShort": "OrderCodeOfManufacturer",
+        "description": [
+            {
+                "language": "en",
+                "text": "Note: Optional, as it might not exist for long term used items."
+            }
+        ],
+        "id": "0173-1#02-AAO227#004",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Manufacturers order code"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Bestellcode des Herstellers"
+                        }
+                    ],
+                    "dataType": "STRING_TRANSLATABLE",
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "by manufacturer issued unique combination of numbers and letters used to identify the device for ordering"
+                        },
+                        {
+                            "language": "de",
+                            "text": "vom Hersteller vergebene eindeutige Zahlen- und Buchstabenkombination, mit der das Ger\u00E4t f\u00FCr die Bestellung identifiziert wird"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ManufacturerAssetID": {
+        "idShort": "ManufacturerAssetID",
+        "id": "0173-1#02-ABG775#002",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Manufacturer asset identifier"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Hersteller Asset Identifier"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "reference to asset identification of the item in the domain of the manufacturer"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Verweis auf die Identifizierung des Assets in der Dom\u00E4ne des Herstellers"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ProductClassifications": {
+        "idShort": "ProductClassifications",
+        "id": "0173-1#02-ABI298#002",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Product classifications"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Produktklassifikationen"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "set of product classifications"
+                        },
+                        {
+                            "language": "en",
+                            "text": "Menge an Produktklassifikationen"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ProductClassification": {
+        "idShort": "ProductClassification",
+        "description": [
+            {
+                "language": "en",
+                "text": "Note: it is recommended to provide at least a classification of the item according to VDMA24903 and according ECLASS. "
+            }
+        ],
+        "id": "0173-1#02-ABI298#002/0173-1#01-AHE587#002",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Product classification"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Produktklassifikation"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "single product classification item by association with product class in a particular classification system or property dictionary"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Einzelnes Produktklassifikationselement nach Zuordnung zur Produktklasse in einem bestimmten Klassifikationssystem oder Eigenschaftsverzeichnis"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ClassificationSystem": {
+        "idShort": "ClassificationSystem",
+        "description": [
+            {
+                "language": "en",
+                "text": "Note: Examples for common names for classification systems are \u0022ECLASS\u0022 or \u0022IEC CDD\u0022."
             },
             {
-              "language": "de",
-              "text": "PCN-Typ"
+                "language": "en",
+                "text": "Note: the SMT \u0022Technical Data\u0022 refers to this as: [IRI] https://admin-shell.io/ZVEI/TechnicalData/ProductClassificationSystem/1/1"
             }
-          ],
-          "dataType": "STRING",
-          "definition": [
+        ],
+        "id": "0173-1#02-AAR709#002",
+        "embeddedDataSpecifications": [
             {
-              "language": "en",
-              "text": "definition, if the PCN record represents a product change notification (PCN) or a product discontinuance notice (PDN)"
-            }
-          ],
-          "valueFormat": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_LifeCycleData": {
-    "idShort": "LifeCycleData",
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/LifeCycleData/List/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "LifeCycleData"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Set of life cycle milestones, which are set with a new validity date"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_LifeCycleMilestone": {
-    "idShort": "LifeCycleMilestone",
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/LifeCycleData/Milestone/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "LifeCycleMilestone"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Definition of one milestone in the life cycle of a industrial item or product"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_MilestoneClassification": {
-    "idShort": "MilestoneClassification",
-    "id": "0173-10029#02-ABC548#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "Classification of PCN milestone"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Classification of milestone according to VDMA24903"
-            }
-          ],
-          "valueList": {
-            "valueReferencePairs": [
-              {
-                "value": "SOP",
-                "valueId": {
-                  "type": "ExternalReference",
-                  "keys": [
-                    {
-                      "type": "GlobalReference",
-                      "value": "0173-10029#07-ABO117#001"
-                    }
-                  ]
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Classification system"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Klassifikationssystem"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "reference to the scheduled collection of abstract concepts that are used to distinguish and order objects"
+                        },
+                        {
+                            "language": "de",
+                            "text": "referenz der planm\u00E4\u00DFigen Sammlung von abstrakten Konzepten, die zur Abgrenzung und Ordnung von Objekten verwendet werden"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
                 }
-              },
-              {
-                "value": "NRND",
-                "valueId": {
-                  "type": "ExternalReference",
-                  "keys": [
-                    {
-                      "type": "GlobalReference",
-                      "value": "0173-10029#07-ABO118#001"
-                    }
-                  ]
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ProductClassId": {
+        "idShort": "ProductClassId",
+        "id": "0173-1#02-ABG776#002",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Product class ID"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Produktklassen ID"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "class of the associated product or industrial equipment in the classification system. According to the notation of the system"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Klasse des zugeh\u00F6rigen Produkts oder der zugeh\u00F6rigen Industrieausr\u00FCstung im Klassifikationssystem. Entsprechend der Notation des Systems (IRDI)"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
                 }
-              },
-              {
-                "value": "PCN",
-                "valueId": {
-                  "type": "ExternalReference",
-                  "keys": [
-                    {
-                      "type": "GlobalReference",
-                      "value": "0173-10029#07-ABO119#001"
-                    }
-                  ]
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_HardwareVersion": {
+        "idShort": "HardwareVersion",
+        "id": "0173-1#02-AAN270#003",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Hardware version"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Hardwareversion"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "version of the hardware supplied with the device"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Version der Hardware, mit der das Ger\u00E4t ausgeliefert wird"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
                 }
-              },
-              {
-                "value": "PDN",
-                "valueId": {
-                  "type": "ExternalReference",
-                  "keys": [
-                    {
-                      "type": "GlobalReference",
-                      "value": "0173-10029#07-ABO120#001"
-                    }
-                  ]
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_StockInStorage": {
+        "idShort": "StockInStorage",
+        "id": "0173-1#02-BAF551#004",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Stock in storage"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Lagerbestand"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "quantitative statement about the set of products in warehouse / storage"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Quantitative Angabe zur Menge von Produkten, sie sich auf Lager befinden"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
                 }
-              },
-              {
-                "value": "EOS",
-                "valueId": {
-                  "type": "ExternalReference",
-                  "keys": [
-                    {
-                      "type": "GlobalReference",
-                      "value": "0173-10029#07-ABO121#001"
-                    }
-                  ]
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_TechnicalData_Changes": {
+        "idShort": "TechnicalData_Changes",
+        "description": [],
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_Changes/List/1/0",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Changes in technical data"
+                        },
+                        {
+                            "language": "de",
+                            "text": "\u00C4nderungen in technischen Daten"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "set of information elements provided to describe changes in (existing) technical data of the item in a semantically enabled way"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Menge von Informationselementen, die bereitgestellt werden, um \u00C4nderungen an den (vorhandenen) technischen Daten des Gegenstands auf semantisch aussagekr\u00E4ftige Weise zu beschreiben"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
                 }
-              },
-              {
-                "value": "EOP",
-                "valueId": {
-                  "type": "ExternalReference",
-                  "keys": [
-                    {
-                      "type": "GlobalReference",
-                      "value": "0173-10029#07-ABO122#001"
-                    }
-                  ]
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_SingleChange": {
+        "idShort": "SingleChange",
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_Changes/Change/1/0",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Single technical change"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Einzelne technische \u00C4nderung"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "single change element to changes of techncial data containing semantically enabled information"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Einzelnes \u00C4nderungselement f\u00FCr \u00C4nderungen an technischen Daten, die semantisch verarbeitbare Informationen enthalten"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
                 }
-              },
-              {
-                "value": "LTD",
-                "valueId": {
-                  "type": "ExternalReference",
-                  "keys": [
-                    {
-                      "type": "GlobalReference",
-                      "value": "0173-10029#07-ABO123#001"
-                    }
-                  ]
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_OriginOfChange": {
+        "idShort": "OriginOfChange",
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_Changes/OriginOfChange/1/0",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Origin of change"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "back-reference to the respective element in the set of technical data, where the change originates"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Verweis auf das entsprechende Element in den technischen Daten, von dem die \u00C4nderung stammt"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
                 }
-              },
-              {
-                "value": "EOSR",
-                "valueId": {
-                  "type": "ExternalReference",
-                  "keys": [
-                    {
-                      "type": "GlobalReference",
-                      "value": "0173-10029#07-ABO124#001"
-                    }
-                  ]
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_TechnicalData_CurrentState": {
+        "idShort": "TechnicalData_CurrentState",
+        "description": [],
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_CurrentState/List/1/0",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Technical data current state"
+                        },
+                        {
+                            "language": "en",
+                            "text": "Technische Daten \u2013 aktueller Stand"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "set of technical data elements describing the current state of the item of change compared with other recommended items"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Menge von technischen Datenelementen, die den aktuellen Status des \u00C4nderungsgegenstands im Vergleich zu anderen empfohlenen Gegenst\u00E4nden beschreiben"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
                 }
-              }
-            ]
-          },
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_DateOfValidityOfPcn": {
-    "idShort": "DateOfValidityOfPcn",
-    "id": " 0173-1#02-ABF815#002",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "Date of validity of PCN"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "UTC calendar date when the change will take place"
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ReasonsOfChange": {
-    "idShort": "ReasonsOfChange",
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ReasonOfChange/List/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ReasonsOfChange"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "One or more classifications of reason of change."
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ReasonOfChange": {
-    "idShort": "ReasonOfChange",
-    "id": "0173-10029#01-XFB005#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ReasonOfChange"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Classifications of reason of change."
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ClassificationOfPcnReason": {
-    "idShort": "ClassificationOfPcnReason",
-    "id": "0173-1#02-ABF813#002",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "Classification of PCN Reason"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "classification system used for the rough categorization of the reason of change for rule-based processing"
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_VersionOfClassificationSystem": {
-    "idShort": "VersionOfClassificationSystem",
-    "id": "0173-1#02-AAR710#002",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "VersionOfClassificationSystem"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Referenced state of development of documents and applications"
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ReasonId": {
-    "idShort": "ReasonId",
-    "id": "0173-10029#02-ABC727#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ReasonId"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Class of the reason of a change according VDMA24903 coded as alphanumerical string"
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ItemCategories": {
-    "idShort": "ItemCategories",
-    "description": [
-      {
-        "language": "en",
-        "text": "Note: Multiple classification systems might be used."
-      },
-      {
-        "language": "en",
-        "text": "Constraint: At least one item classification according VDM24903 shall be given."
-      }
-    ],
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ItemCategory/List/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ItemCategories"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Categorizations of the item of change either as a whole or affect sub-item according VDMA 24903 and further norms"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ItemCategory": {
-    "idShort": "ItemCategory",
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ItemCategory/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ItemCategory"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Categorization of the item of change either as a whole or affect sub-item according VDMA 24903 and further norms"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ItemClassificationSystem": {
-    "idShort": "ItemClassificationSystem",
-    "description": [
-      {
-        "language": "en",
-        "text": "Note: Examples for common names for classification systems are \u0022VDMA24903\u0022."
-      }
-    ],
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ItemCategory/ItemClassificationSystem/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "classification system used for the item categorization of the item of change for rule-based processing"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_AffectedPartNumbers": {
-    "idShort": "AffectedPartNumbers",
-    "description": [
-      {
-        "language": "en",
-        "text": "Note: Multiple classification systems might be used."
-      },
-      {
-        "language": "en",
-        "text": "Constraint: At least one item category according VDM24903 shall be given."
-      }
-    ],
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/AffectedPartNumber/List/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "AffectedPartNumbers"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Set of part numbers affected by the present product change notification, if not the whole set for product family and designation"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_AffectedPartNumber": {
-    "idShort": "AffectedPartNumber",
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/AffectedPartNumber/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "AffectedPartNumber"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "part numbers affected by the present product change notification"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_PcnReasonComment": {
-    "idShort": "PcnReasonComment",
-    "id": "0173-1#02-ABF814#002",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "PCN reason comment"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Comment explaining the reason of change and further circumstances in natural language. "
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_PcnChangeInformation": {
-    "idShort": "PcnChangeInformation",
-    "description": [
-      {
-        "language": "en",
-        "text": "NEW!!"
-      }
-    ],
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnChangeInformation/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "PcnChangeInformation"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Set of information detailing on the particular changes of a product change notification"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ChangeTitle": {
-    "idShort": "ChangeTitle",
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnChangeInformation/ChangeTitle/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ChangeTitle"
-            }
-          ],
-          "dataType": "STRING",
-          "definition": [
-            {
-              "language": "en",
-              "text": "Human readable title (summary) of information of particular changes of a product change notification"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ChangeDetail": {
-    "idShort": "ChangeDetail",
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/PcnChangeInformation/ChangeDetail/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ChangeDetail"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Human readable body (details) of information of particular changes of a product change notification"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_AdditionalInformations": {
-    "idShort": "AdditionalInformations",
-    "description": [
-      {
-        "language": "en",
-        "text": "Note: The list of File elements can be used to attach a set of conventional \u0022product change information\u0022 already provided by many suppliers."
-      }
-    ],
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/AdditionalInformation/List/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "AdditionalInformations"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Sets of information to provide human readable content, e.g. conventional PCN document"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_AdditionalInformation": {
-    "idShort": "AdditionalInformation",
-    "id": "0173-1#01-ADN356#009",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "AdditionalInformation"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Addition information provided to the information of this record, for example human-readable documents to provide more details"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_DateOfRecordOfPcn": {
-    "idShort": "DateOfRecordOfPcn",
-    "id": "0173-1#02-ABF816#002",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "Date of record of PCN"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "UTC calendar date when the record of change was initially published by the manufacturer"
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ItemOfChange": {
-    "idShort": "ItemOfChange",
-    "id": "0173-10029#01-XFB006#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ItemOfChange"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Information set which describes an item of change by the manufacturer"
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ManufacturerProductFamily": {
-    "idShort": "ManufacturerProductFamily",
-    "id": "0173-1#02-AAU731#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ManufacturerProductFamily"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "2nd level of a 3 level manufacturer specific product hierarchy"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ManufacturerProductDesignation": {
-    "idShort": "ManufacturerProductDesignation",
-    "id": "0173-1#02-AAW338#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ManufacturerProductDesignation"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Short description of the product (short text) "
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ManufacturerAssetID": {
-    "idShort": "ManufacturerAssetID",
-    "id": "0173-10029#02-ABF978#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ManufacturerAssetID"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Reference to asset identification of the item in the domain of the manufacturer."
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ProductClassifications": {
-    "idShort": "ProductClassifications",
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/ProductClassification/List/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ProductClassifications"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Set of product classifications"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ProductClassification": {
-    "idShort": "ProductClassification",
-    "description": [
-      {
-        "language": "en",
-        "text": "Note: it is recommended to provide at least a classification of the item according to VDMA24903 and according ECLASS. "
-      },
-      {
-        "language": "en",
-        "text": "Note: ECLASS refers to this as 0173-10029#02-XFR007#001, but for the time being, the above IRI for SMT Technical Data is used."
-      }
-    ],
-    "id": "0173-10029#01-XFB007#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ProductClassification"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Single product classification item by association with product class in a particular classification system or property dictionary. "
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ClassificationSystem": {
-    "idShort": "ClassificationSystem",
-    "description": [
-      {
-        "language": "en",
-        "text": "Note: Examples for common names for classification systems are \u0022ECLASS\u0022 or \u0022IEC CDD\u0022."
-      },
-      {
-        "language": "en",
-        "text": "Note: the SMT \u0022Technical Data\u0022 refers to this as: [IRI] https://admin-shell.io/ZVEI/TechnicalData/ProductClassificationSystem/1/1"
-      }
-    ],
-    "id": "0173-1#02-AAR709#002",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ClassificationSystem"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Reference to the scheduled collection of abstract concepts that are used to distinguish and order objects"
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ProductClassId": {
-    "idShort": "ProductClassId",
-    "id": "0173-10029#02-ABF979#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ProductClassId"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Class of the associated product or industrial equipment in the classification system. According to the notation of the system."
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_HardwareVersion": {
-    "idShort": "HardwareVersion",
-    "id": "0173-1#02-AAN270#002",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "HardwareVersion"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "version of the hardware supplied with the device"
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_StockInStorage": {
-    "idShort": "StockInStorage",
-    "id": "0173-1#02-BAF551#003",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "StockInStorage"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Quantitative statement about the set of products in warehouse / storage"
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_TechnicalData_Changes": {
-    "idShort": "TechnicalData_Changes",
-    "description": [],
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_Changes/List/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "Changes in technical data"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Information elements provided to describe changes in (existing) technical data of the item in a semantically enabled way"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_NewValueOfChange": {
-    "idShort": "NewValueOfChange",
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_Changes/NewValue/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "NewValueOfChange"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "A value information representing the new value of a technical data element"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_Origin_of_change": {
-    "idShort": "Origin_of_change",
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_Changes/Origin_of_Change/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "back-reference to the respective element in the set of technical data, where the change originates"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_SingleChange": {
-    "idShort": "SingleChange",
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_Changes/Change/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "SingleChange"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Single change element to changes of techncial data containaing semantically enabled information"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_TechnicalData_CurrentState": {
-    "idShort": "TechnicalData_CurrentState",
-    "description": [],
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_CurrentState/List/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "TechnicalData_CurrentState"
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Set of technical data elements describing the current state of the item of change compared with other recommended items"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_RecommendedItems": {
-    "idShort": "RecommendedItems",
-    "description": [
-      {
-        "language": "en",
-        "text": "Note: A number of recommened items, which propose substitution of the item of change, if this becomes unavailable"
-      }
-    ],
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/RecommendedItem/List/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "A number of recommened items, which propose substitution of the item of change, if this becomes unavailable"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_RecommendedItem": {
-    "idShort": "RecommendedItem{00}",
-    "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/RecommendedItem/1/0",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Information set which describes a recommended substitution by the manufacturer"
-            }
-          ],
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_TechnicalData_Fit": {
-    "idShort": "TechnicalData_Fit",
-    "id": "0173-10029#01-XFB008#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "TechnicalData_Fit"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Set of SubmodelElements describing technical properties of the item, in particular regarding the fit, form or function of the product."
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_TargetEstimate": {
-    "idShort": "TargetEstimate",
-    "id": "0173-10029#02-ABF980#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Indicator, to which degree in terms of fit, form, function the match to the item of change is achieved by the particualr given item. Ranges from 0.0 to 1.0, or 0% to 100%."
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_TechnicalData_Form": {
-    "idShort": "TechnicalData_Form",
-    "id": "0173-10029#01-XFB009#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "TechnicalData_Form"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Set of SubmodelElements describing technical properties of the item, in particular regarding the fit, form or function of the product."
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_TechnicalData_Function": {
-    "idShort": "TechnicalData_Function",
-    "id": "0173-10029#01-XFB010#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "TechnicalData_Function"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Set of SubmodelElements describing technical properties of the item, in particular regarding the fit, form or function of the product."
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_TechnicalData_Other": {
-    "idShort": "TechnicalData_Other",
-    "id": "0173-10029#01-XFB011#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "TechnicalData_Other"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Set of SubmodelElements describing technical properties of the item, in particular regarding the fit, form or function of the product."
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_Incotermcode": {
-    "idShort": "Incotermcode",
-    "id": "0173-1#02-AAO280#003",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "Incotermcode"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "international coding of transport, costs and insurance according to INCOTERMS 2000, UN/ECE, Recommendation No. 5 (ECE/TRADE/259)"
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_DeliveryTimeClassOtherRegion": {
-    "idShort": "DeliveryTimeClassOtherRegion",
-    "id": "0173-10029#02-ABF982#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "DeliveryTimeClassOtherRegion"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Describes the expected duration in working days of delivery towards representative customers in other regions "
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_DeliveryTimeClassSameRegion": {
-    "idShort": "DeliveryTimeClassSameRegion",
-    "id": "0173-10029#02-ABF981#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "DeliveryTimeClassSameRegion"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Describes the expected duration in working days of delivery towards representative customers in the same region"
-            }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  },
-  "CD_ConformityDeclarations": {
-    "idShort": "ConformityDeclarations",
-    "id": "0173-10029#01-XFB012#001",
-    "embeddedDataSpecifications": [
-      {
-        "dataSpecification": {
-          "type": "ExternalReference",
-          "keys": [
-            {
-              "type": "GlobalReference",
-              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
-            }
-          ]
-        },
-        "dataSpecificationContent": {
-          "preferredName": [
-            {
-              "language": "en",
-              "text": "ConformityDeclarations"
-            }
-          ],
-          "shortName": [
-            {
-              "language": "en",
-              "text": ""
-            }
-          ],
-          "definition": [
-            {
-              "language": "en",
-              "text": "Set of information describing conformity declaration, certificate and suitability for different industrial sectors (branches)."
             }
-          ],
-          "value": "",
-          "modelType": "DataSpecificationIec61360"
-        }
-      }
-    ],
-    "modelType": "ConceptDescription"
-  }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_RecommendedItems": {
+        "idShort": "RecommendedItems",
+        "description": [
+            {
+                "language": "en",
+                "text": "Note: A number of recommened items, which propose substitution of the item of change, if this becomes unavailable"
+            }
+        ],
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/RecommendedItem/List/1/0",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Recommended items"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Empfohlene Ersatzgegenst\u00E4nde"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "set of recommened items, which propose substitution of the item of change, if this becomes unavailable"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Menge empfohlener Gegenst\u00E4nde, die als Ersatz f\u00FCr den ge\u00E4nderten Gegenstand vorgeschlagen werden, falls dieser nicht mehr verf\u00FCgbar ist"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_RecommendedItem": {
+        "idShort": "RecommendedItem",
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/RecommendedItem/1/0",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Recommended item"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Empfohlener Ersatz"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "information set which describes a recommended substitution by the manufacturer"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Informationssatz, der eine vom Hersteller empfohlene Ersatz eines Gegenstandes beschreibt"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_TechnicalData_Fit": {
+        "idShort": "TechnicalData_Fit",
+        "id": "0173-1#02-ABI299#003/0173-1#01-AHE588#003",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Technical data - fit"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Technische Daten - Fit"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "set of SubmodelElements describing technical properties of the item, in particular regarding the fit of the product"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Menge von Submodel-Elementen, die die technischen Eigenschaften des Artikels beschreiben, insbesondere in Bezug auf die Eignung des Produkts"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_TargetEstimate": {
+        "idShort": "TargetEstimate",
+        "id": "0173-1#02-ABG777#003",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Target estimate"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Zielsch\u00E4tzung"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "indicator, to which degree in terms of fit, form, function the match to the item of change is achieved by the particualr given item. Ranges from 0.0 to 1.0, or 0% to 100%."
+                        },
+                        {
+                            "language": "de",
+                            "text": "Indikator, in welchem Ma\u00DFe in Bezug auf Anpassung, Form, Funktion die \u00DCbereinstimmung mit dem Ver\u00E4nderungsposten durch den jeweils gegebenen Posten erreicht wird. Reicht von 0,0 bis 1,0 oder 0% bis 100%"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_TechnicalData_Form": {
+        "idShort": "TechnicalData_Form",
+        "id": "0173-1#02-ABI300#003/0173-1#01-AHE589#003",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Technical data - form"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Technische Daten - Form"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "set of SubmodelElements describing technical properties of the item, in particular regarding the (outer) form of the product"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Menge von Submodel-Elementen, die die technischen Eigenschaften des Artikels beschreiben, insbesondere in Bezug auf die \u00E4u\u00DFere Form des Produkts"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_TechnicalData_Function": {
+        "idShort": "TechnicalData_Function",
+        "id": "0173-1#02-ABI301#003/0173-1#01-AHE590#003",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Technical data - function"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Technische Daten - Funktion"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "set of SubmodelElements describing technical properties of the item, in particular regarding the function of the product"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Menge von Submodel-Elementen, die die technischen Eigenschaften des Artikels beschreiben, insbesondere in Bezug auf die Funktion des Produkts"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_TechnicalData_Other": {
+        "idShort": "TechnicalData_Other",
+        "id": "0173-1#02-ABI302#003/0173-1#01-AHE591#003",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Technical data - other"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Technische Daten - Andere"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "set of SubmodelElements describing technical properties of the item, not being regarding the fit, form or function of the product"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Menge von Submodel-Elementen, die die technischen Eigenschaften des Artikels beschreiben, nicht in Bezug auf die Eignung, Form oder Funktion des Produkts"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_Incotermcode": {
+        "idShort": "Incotermcode",
+        "id": "0173-1#02-AAO280#004",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Incotermcode"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Incotermcode"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "international coding of transport, costs and insurance according to INCOTERMS 2000, UN/ECE, Recommendation No. 5 (ECE/TRADE/259)"
+                        },
+                        {
+                            "language": "de",
+                            "text": "internationale Kodierung von Transport, Kosten und Versicherung gem\u00E4\u00DF INCOTERMS 2000, UN/ECE, Recommendation No. 5 (ECE/TRADE/259)"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_DeliveryTimeClassOtherRegion": {
+        "idShort": "DeliveryTimeClassOtherRegion",
+        "id": "0173-1#02-ABG779#003",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Delivery time in other region"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Lieferzeit in eine andere Region"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "expected duration in working days of delivery towards representative customers in other regions "
+                        },
+                        {
+                            "language": "de",
+                            "text": "Angabe der voraussichtlichen Dauer in Werktagen der Lieferung an repr\u00E4sentative Kunden in anderen Regioen"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_DeliveryTimeClassSameRegion": {
+        "idShort": "DeliveryTimeClassSameRegion",
+        "id": "0173-1#02-ABG778#003",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Delivery time in same region"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Lieferzeit in die gleiche Region"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "expected duration in working days of delivery towards representative customers in the same region"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Angabe der voraussichtlichen Dauer in Werktagen der Lieferung an repr\u00E4sentative Kunden in der gleichen Region"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_ConformityDeclarations": {
+        "idShort": "ConformityDeclarations",
+        "id": "0173-1#02-ABI303#003/0173-1#01-AHE592#003",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "Conformity declarations"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Konformit\u00E4tserkl\u00E4rungen"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "set of information describing conformity declaration, certificate and suitability for different industrial sectors (branches)"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Menge von Informationen, die Konformit\u00E4tserkl\u00E4rungen, Zertifikate und die Eignung f\u00FCr verschiedene Industriezweige (Branchen) beschreiben"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    },
+    "CD_NewValueOfChange": {
+        "idShort": "NewValueOfChange",
+        "id": "http://admin-shell.io/VDMA/Fluidics/ProductChangeNotification/TechnicalData_Changes/NewValue/1/0",
+        "embeddedDataSpecifications": [
+            {
+                "dataSpecification": {
+                    "type": "ExternalReference",
+                    "keys": [
+                        {
+                            "type": "GlobalReference",
+                            "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+                        }
+                    ]
+                },
+                "dataSpecificationContent": {
+                    "preferredName": [
+                        {
+                            "language": "en",
+                            "text": "New value of change"
+                        },
+                        {
+                            "language": "en",
+                            "text": "Neuer Wert"
+                        }
+                    ],
+                    "definition": [
+                        {
+                            "language": "en",
+                            "text": "A value information representing the new value of a technical data element"
+                        },
+                        {
+                            "language": "de",
+                            "text": "Eine Wertangabe, die den neuen Wert eines technischen Datenelements angibt"
+                        }
+                    ],
+                    "modelType": "DataSpecificationIec61360"
+                }
+            }
+        ],
+        "modelType": "ConceptDescription"
+    }
 }

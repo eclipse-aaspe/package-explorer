@@ -8,7 +8,7 @@ This source code may use other Open Source software components (see LICENSE.txt)
 
 #nullable enable
 
-using AasCore.Aas3_0;
+using AasCore.Aas3_1;
 using AasxPackageLogic;
 using AdminShellNS;
 using Extensions;
@@ -16,7 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxDictionaryImport
 {

@@ -16,7 +16,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPluginExportTable.Table
 {
@@ -593,7 +593,8 @@ namespace AasxPluginExportTable.Table
 
                     // add
                     listItem.Add(new ExportTableAasEntitiesItem(depth, sme2, cd,
-                        parent: coll as Aas.IReferable));
+                        parentRf: coll as Aas.IReferable,
+                        parentCd: env?.FindConceptDescriptionByReference((coll as Aas.IHasSemantics)?.SemanticId)));
 
                     // go directly deeper?
                     if (!broadSearch && ci != null &&

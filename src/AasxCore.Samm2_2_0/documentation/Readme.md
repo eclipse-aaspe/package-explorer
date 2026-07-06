@@ -39,9 +39,9 @@ Two different ways to do so are explored:
 - via structured concept descriptions (SMT-attribute-set) using concept repository entries based on IEC61360 for its atomic properties (i.e. [Part 3a of the Specifications of the Asset Administration Shell](https://industrialdigitaltwin.org/en/content-hub/aasspecifications))
 - via aspect models conformant to the [Semantic Aspect Meta Model (SAMM)](https://eclipse-esmf.github.io/samm-specification/2.1.0/index.html) 
 
-Both are in experimental sate and are realized by using pre-defined [extensions](https://admin-shell.io/aas/3/0/Extension).
+Both are in experimental state and are realized by using pre-defined [extensions](https://admin-shell.io/aas/3/0/Extension).
 
-The umrella term "semantic model" is sometimes used to denote that there can be different ways to define a Concept Description for a Submobdel.
+The umbrella term "semantic model" is sometimes used to denote that there can be different ways to define a Concept Description for a Submobdel.
 
 
 ### Terminology
@@ -145,19 +145,24 @@ A more convenient view to see the structure of a Concept Description is the "Dyn
 ![Dynamic Order Structured](src/aasx-package-explorer_DynamicOrder_Structured.png "Example for Dynamic Order: Structured")
 
 
-Please note that in the structured view elements that are used in several concept descriptions etc. are contained several times. However, in the model they only exist once.
+Please note that in the structured view elements that are used in several concept descriptions etc. are contained several times. 
+However, in the model they only exist once.
 
-Additionally, all concept descriptions are listed in the section "Unstructured ConceptDescriptions". Again, it does not matter whether a concept description was created using the standardized *data specification IEC61360*, or the *SAMM extension* or the *SMT Attribute Set extension*.
+Additionally, all concept descriptions are listed in the section "Unstructured ConceptDescriptions". 
+Again, it does not matter whether a concept description was created using the standardized *data specification IEC61360*, or the *SAMM extension* or the *SMT Attribute Set extension*.
 
 ![aasx-package-explorer_DynamicOrder_UnstructuredCDs](src/aasx-package-explorer_DynamicOrder_UnstructuredCDs.png "aasx-package-explorer_DynamicOrder_UnstructuredCDs")
 
-The section "Submodel ConceptDescription" shows which semantic IDs and thus Concept Descriptions are used within concrete Submodels. The example shows that additional properties, e.g. from the "Unstructured ConceptDescriptions" section can be added (here: "speedLimitWarning"). Since "speedLimitWarning" is now used within a Submodel it is not listed in the section "Unstructured ConcdeptDescriptions" any longer.
+The section "Submodel ConceptDescription" shows which semantic IDs and thus Concept Descriptions are used within concrete Submodels. 
+The example shows that additional properties, e.g. from the "Unstructured ConceptDescriptions" section can be added (here: "speedLimitWarning"). 
+Since "speedLimitWarning" is now used within a Submodel it is not listed in the section "Unstructured ConcdeptDescriptions" any longer.
 
 ![Submodel Concept Descriptions](src/aasx-package-explorer_ConceptDescriptions_SubmodelConceptDescriptions.png "Submodel Concept Descriptions")
 
 ### Guided Submodel (Instance) Creation
 
-The creation of a Submodel can be guided via existing structured Concept Descriptions. In the following the needed actions are described steps by step.
+The creation of a Submodel can be guided via existing structured Concept Descriptions. 
+In the following the needed actions are described step by step.
 
 **Step 1: Create Asset Administration Shell**
 
@@ -169,14 +174,17 @@ The creation of a Submodel can be guided via existing structured Concept Descrip
 
 ![Select Concept Description that shall Guide a Submodel Creation](src/aasx-package-explorer_Select-SMT-SAMM.png "Select Concept Description that shall Guide a Submodel Creation")
 
-The attribute "kind" reflects whether the Concept Description available is based on the *SMT-attribute-set* or *SAMM *extension. Currently no other kinds of Concept Descriptions are available for Submodels.
+The attribute "kind" reflects whether the Concept Description available is based on the *SMT-attribute-set* or *SAMM *extension. 
+Currently no other kinds of Concept Descriptions are available for Submodels.
 
 ![semantic ID of submodel ](src/aasx_package_explorer_semanticId-submodel.png "Semantic ID of submodel")
 
 
 **Step 4: Select "Create root" or "Create root and all childs"**
 
-After selecting a submodel either all elements can be created at once including all optional elements ("Create root and all childs") or only the root ("Create root"). In the latter case the additional elements will be added one by one in a guided way. Only mandatory elements will be added at once.
+After selecting a submodel either all elements can be created at once including all optional elements ("Create root and all childs") or only the root ("Create root"). 
+In the latter case the additional elements will be added one by one in a guided way. 
+Only mandatory elements will be added at once.
 
 
 The newly created submodel will have the ID of the selected semantic model as value of its semanticId (here the ID of the aspect model "Movement" with namespace "urn:samm:org.eclipse.examples:1.0.0#").
@@ -193,7 +201,7 @@ After referencing the submodel that was created in the previous step the submode
 
 ![Create root of submodel guided by aspect model ](src/aasx-package-explorer_guidedSM-bySAMM.png "Select Submodel Template or SAMM aspect model to create a submodel")
 
-In a next step new elements can be added in a guided way by choosing SubmodelElement -> "Add SMT guided ...". In our example this is only relevant for the SubmodelElementCollection "position". All other elements are atomic and there is not optional property on Submodel Level for Concept Description "Movement".
+In a next step new elements can be added in a guided way by choosing SubmodelElement -> "Add SMT guided ...". In our example this is only relevant for the SubmodelElementCollection "position". All other elements are atomic and there is no optional property on Submodel level for Concept Description "Movement".
 
 **Step 6: Use "Add SMT guided ..." to complete new Submodel and select needed elements. Repeat this steps as often as needed.**
 
@@ -291,7 +299,9 @@ Importing of existing aspect models is supported.
 
 **Step 1: Call use "File/Import .../Import SAMM aspect into ConceptDescriptions ..."**
 
-Note: you should start with a new environment via "File/New ..." and switch to edit mode with"Workspace/Edit".
+Note: you should start with a new environment via "File/New ..." and switch to edit mode with"Workspace/Edit". 
+You need to create a concept description first and then start importing the SAMM aspect model. 
+After you should delete the concept description created for this purpose because it is not needed.
 
 ![Import Aspect Model](src/aasx-package-explorer_import-SAMM-into-CD.png "Import aspect model to concept descriptions")
 

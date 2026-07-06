@@ -612,17 +612,17 @@
       },
       "ConceptDescriptions": [
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "ContactInformation",
           "Administration": {
-            "$type": "AasCore.Aas3_0.AdministrativeInformation, AasCore.Aas3_0",
+            "$type": "AasCore.Aas3_1.AdministrativeInformation, AasCore.Aas3_1",
             "Version": "",
             "Revision": ""
           },
           "Id": "https://admin-shell.io/zvei/nameplate/1/0/ContactInformations/ContactInformation",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -633,24 +633,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "ContactInformation"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "The SMC “ContactInformation” contains information on how to contact the manufacturer or an authorised service provider, e.g. when a maintenance service is required"
                   }
@@ -672,12 +672,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "RoleOfContactPerson",
           "Id": "0173-1#02-AAO204#003",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -688,24 +688,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "RoleOfContactPerson"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "function of a contact person in a process"
                   }
@@ -716,12 +716,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "NationalCode",
           "Id": "0173-1#02-AAO134#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -732,24 +732,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "NationalCode"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "code of a country"
                   }
@@ -760,12 +760,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "Language",
           "Id": "https://admin-shell.io/zvei/nameplate/1/0/ContactInformations/ContactInformation/Language",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -776,24 +776,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Language"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Available language"
                   }
@@ -815,12 +815,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "TimeZone",
           "Id": "https://admin-shell.io/zvei/nameplate/1/0/ContactInformations/ContactInformation/TimeZone",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -831,24 +831,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "TimeZone"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "offsets from Coordinated Universal Time (UTC)"
                   }
@@ -859,12 +859,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "CityTown",
           "Id": "0173-1#02-AAO132#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -875,24 +875,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "CityTown"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "town or city"
                   }
@@ -903,12 +903,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "Company",
           "Id": "0173-1#02-AAW001#001",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -919,24 +919,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Company"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "name of the company"
                   }
@@ -947,12 +947,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "Department",
           "Id": "0173-1#02-AAO127#003",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -963,24 +963,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Department"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "administrative section within an organisation where a business partner is located"
                   }
@@ -991,12 +991,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "Phone",
           "Id": "https://admin-shell.io/zvei/nameplate/1/0/ContactInformations/ContactInformation/Phone",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1007,24 +1007,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Phone"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Phone number including type"
                   }
@@ -1035,12 +1035,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "TelephoneNumber",
           "Id": "0173-1#02-AAO136#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1051,24 +1051,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "TelephoneNumber"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "complete telephone number to be called to reach a business partner"
                   }
@@ -1079,12 +1079,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "TypeOfTelephone",
           "Id": "0173-1#02-AAO137#003",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1095,24 +1095,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "TypeOfTelephone"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "characterization of a telephone according to its location or usage"
                   }
@@ -1123,12 +1123,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "AvailableTime",
           "Id": "https://admin-shell.io/zvei/nameplate/1/0/ContactInformations/ContactInformation/AvailableTime/",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1139,24 +1139,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "AvailableTime"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Specification of the available time window"
                   }
@@ -1167,12 +1167,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "Fax",
           "Id": "0173-1#02-AAQ834#005",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1183,24 +1183,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Fax"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Fax number including type"
                   }
@@ -1211,12 +1211,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "FaxNumber",
           "Id": "0173-1#02-AAO195#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1227,24 +1227,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "FaxNumber"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "complete telephone number to be called to reach a business partner's fax machine"
                   }
@@ -1255,12 +1255,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "TypeOfFaxNumber",
           "Id": "0173-1#02-AAO196#003",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1271,24 +1271,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "TypeOfFaxNumber"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "characterization of the fax according its location or usage"
                   }
@@ -1299,12 +1299,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "Email",
           "Id": "0173-1#02-AAQ836#005",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1315,24 +1315,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Email"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "E-mail address and encryption method"
                   }
@@ -1343,12 +1343,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "EmailAddress",
           "Id": "0173-1#02-AAO198#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1359,24 +1359,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "EmailAddress"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "electronic mail address of a business partner"
                   }
@@ -1387,12 +1387,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "PublicKey",
           "Id": "0173-1#02-AAO200#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1403,24 +1403,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "PublicKey"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "public part of an unsymmetrical key pair to sign or encrypt text or messages"
                   }
@@ -1431,12 +1431,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "TypeOfEmailAddress",
           "Id": "0173-1#02-AAO199#003",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1447,24 +1447,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "TypeOfEmailAddress"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "characterization of an e-mail address according to its location or usage"
                   }
@@ -1475,12 +1475,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "TypeOfPublicKey",
           "Id": "0173-1#02-AAO201#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1491,24 +1491,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "TypeOfPublicKey"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "characterization of a public key according to its encryption process"
                   }
@@ -1519,12 +1519,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "IPCommunication",
           "Id": "https://admin-shell.io/zvei/nameplate/1/0/ContactInformations/",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1535,24 +1535,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "IPCommunication"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "ContactInformation/IPCommunication IP-based communication channels, e.g. chat or video call"
                   }
@@ -1563,12 +1563,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "AddressOfAdditionalLink",
           "Id": "0173-1#02-AAQ326#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1579,24 +1579,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "AddressOfAdditionalLink"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "web site address where information about the product or contact is given"
                   }
@@ -1607,12 +1607,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "TypeOfCommunication",
           "Id": "https://admin-shell.io/zvei/nameplate/1/0/ ContactInformations/ContactInformation/IPCommunication/TypeOfCommunication",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1623,24 +1623,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "TypeOfCommunication"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "characterization of an IP-based communication channel"
                   }
@@ -1651,12 +1651,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "Street",
           "Id": "0173-1#02-AAO128#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1667,24 +1667,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Street"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "street name and house number"
                   }
@@ -1695,12 +1695,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "Zipcode",
           "Id": "0173-1#02-AAO129#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1711,24 +1711,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Zipcode"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "ZIP code of address"
                   }
@@ -1739,12 +1739,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "POBox",
           "Id": "0173-1#02-AAO130#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1755,24 +1755,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "POBox"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "P.O. box number"
                   }
@@ -1783,12 +1783,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "ZipCodeOfPOBox",
           "Id": "0173-1#02-AAO131#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1799,24 +1799,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "ZipCodeOfPOBox"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "ZIP code of P.O. box address"
                   }
@@ -1827,12 +1827,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "StateCounty",
           "Id": "0173-1#02-AAO133#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1843,24 +1843,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "StateCounty"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "federal state a part of a state"
                   }
@@ -1871,12 +1871,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "NameOfContact",
           "Id": "0173-1#02-AAO205#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1887,24 +1887,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "NameOfContact"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "surname of a contact person"
                   }
@@ -1915,12 +1915,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "FirstName",
           "Id": "0173-1#02-AAO206#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1931,24 +1931,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "FirstName"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "first name of a contact person"
                   }
@@ -1959,12 +1959,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "MiddleNames",
           "Id": "0173-1#02-AAO207#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -1975,24 +1975,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "MiddleNames"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "middle names of contact person"
                   }
@@ -2003,12 +2003,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "Title",
           "Id": "0173-1#02-AAO208#003",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -2019,24 +2019,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "Title"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "common, formal, religious, or other title preceding a contact person's name"
                   }
@@ -2047,12 +2047,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "AcademicTitle",
           "Id": "0173-1#02-AAO209#003",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -2063,24 +2063,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "AcademicTitle"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "academic title preceding a contact person's name"
                   }
@@ -2091,12 +2091,12 @@
           ]
         },
         {
-          "$type": "AasCore.Aas3_0.ConceptDescription, AasCore.Aas3_0",
+          "$type": "AasCore.Aas3_1.ConceptDescription, AasCore.Aas3_1",
           "IdShort": "FurtherDetailsOfContact",
           "Id": "0173-1#02-AAO210#002",
           "EmbeddedDataSpecifications": [
             {
-              "$type": "AasCore.Aas3_0.EmbeddedDataSpecification, AasCore.Aas3_0",
+              "$type": "AasCore.Aas3_1.EmbeddedDataSpecification, AasCore.Aas3_1",
               "DataSpecification": {
                 "type": "ExternalReference",
                 "keys": [
@@ -2107,24 +2107,24 @@
                 ]
               },
               "DataSpecificationContent": {
-                "$type": "AasCore.Aas3_0.DataSpecificationIec61360, AasCore.Aas3_0",
+                "$type": "AasCore.Aas3_1.DataSpecificationIec61360, AasCore.Aas3_1",
                 "PreferredName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringPreferredNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringPreferredNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "FurtherDetailsOfContact"
                   }
                 ],
                 "ShortName": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringShortNameTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringShortNameTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": ""
                   }
                 ],
                 "Definition": [
                   {
-                    "$type": "AasCore.Aas3_0.LangStringDefinitionTypeIec61360, AasCore.Aas3_0",
+                    "$type": "AasCore.Aas3_1.LangStringDefinitionTypeIec61360, AasCore.Aas3_1",
                     "Language": "en",
                     "Text": "additional information of the contact person"
                   }

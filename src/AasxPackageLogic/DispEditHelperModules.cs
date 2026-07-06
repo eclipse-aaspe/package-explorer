@@ -27,7 +27,7 @@ using System.Xaml;
 using VDS.RDF.Parsing;
 using VDS.RDF;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using Samm = AasCore.Samm2_2_0;
 using System.Text.RegularExpressions;
 using System.Runtime.Intrinsics.X86;
@@ -152,9 +152,10 @@ namespace AasxPackageLogic
                     new HintCheck(
                         () => {
                             if (referable.IdShort == null) return false;
-                            return !AdminShellUtil.ComplyIdShort(referable.IdShort);
+                            return !Verification.MatchesIdShort(referable.IdShort);
+                            //return !AdminShellUtil.ComplyIdShort(referable.IdShort);
                         },
-                        "The idShort shall only feature letters, digits, underscore ('_'); " +
+                        "The idShort shall only feature letters, digits, underscore ('_'), hyphen ('-'); " +
                         "starting mandatory with a letter."),
                     new HintCheck(
                         () => {
@@ -162,7 +163,7 @@ namespace AasxPackageLogic
                         },
                         "The idShort contains 3 dashes. Probably, the entitiy was auto-named " +
                         "to keep it unique because of an operation such a copy/ paste.",
-                        severityLevel: HintCheck.Severity.Notice)
+                        severityLevel: HintCheck.Severity.High)
                     });
             }
             else
@@ -242,18 +243,22 @@ namespace AasxPackageLogic
             this.AddHintBubble(
                 stack, hintMode,
                 new HintCheck(() => referable.Category?.HasContent() == true,
-                "The use of category is deprecated. Do not plan to use this information in new developments.",
+                "The use of category is deprecated, hence the field is ReadOnly. Do not plan to use this information in new developments.",
                 severityLevel: HintCheck.Severity.Notice));
 
-            AddKeyValueExRef(
-                stack, "category", referable, referable.Category, null, repo,
-                v =>
-                {
-                    referable.Category = v as string;
-                    this.AddDiaryEntry(referable, new DiaryEntryStructChange());
-                    return new AnyUiLambdaActionNone();
-                },
-                comboBoxItems: new string[] { "CONSTANT", "PARAMETER", "VARIABLE" }, comboBoxIsEditable: true);
+            if (referable.Category?.HasContent() == true)
+            {
+                AddKeyValueExRef(
+                        stack, "category", referable, referable.Category, null, repo,
+                        v =>
+                        {
+                            referable.Category = v as string;
+                            this.AddDiaryEntry(referable, new DiaryEntryStructChange());
+                            return new AnyUiLambdaActionNone();
+                        }, isValueReadOnly: true);
+                //},
+                //comboBoxItems: new string[] { "CONSTANT", "PARAMETER", "VARIABLE" }, comboBoxIsEditable: true); 
+            }
 
             this.AddHintBubble(
                 stack, hintMode,
@@ -2830,8 +2835,8 @@ namespace AasxPackageLogic
                             return valueContent == null || valueContent.Trim().Length < 1 ||
                                 valueContent.IndexOf('/') < 1 || valueContent.EndsWith("/");
                         },
-                        "The content type of the file. Former known as MIME type. This is " +
-                        "mandatory information. See RFC2046.")
+                        "The content type of the file. Former known as MIME type. " +
+                        "See RFC2046.", severityLevel: HintCheck.Severity.Notice)
                 });
 
             AddKeyValueExRef(

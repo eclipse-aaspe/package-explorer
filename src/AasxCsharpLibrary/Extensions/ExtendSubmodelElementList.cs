@@ -203,7 +203,7 @@ namespace Extensions
 
                 if (valueTypeToCheck.HasValue
                     && res.AllChildValueTypeMatch
-                    && sme is AasCore.Aas3_0.Range range
+                    && sme is AasCore.Aas3_1.Range range
                     && range.ValueType != valueTypeToCheck.Value)
                     res.AllChildValueTypeMatch = false;
             }

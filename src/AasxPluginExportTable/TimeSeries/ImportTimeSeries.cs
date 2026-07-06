@@ -23,7 +23,7 @@ using AasxIntegrationBase;
 using AasxIntegrationBase.AasForms;
 using ClosedXML.Excel;
 using Newtonsoft.Json;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 using AdminShellNS;
 using Extensions;
 using AasxPluginExportTable.Table;

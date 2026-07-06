@@ -15,15 +15,12 @@ using AdminShellNS.DiaryData;
 using AdminShellNS.Extensions;
 using AnyUi;
 using Extensions;
-using Newtonsoft.Json;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
-using static System.Net.WebRequestMethods;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageLogic
 {
@@ -324,7 +321,8 @@ namespace AasxPackageLogic
 			int firstColumnWidth = -1, // -1 = Standard
 			int maxLines = -1,
 			bool keyVertCenter = false,
-            bool auxButtonOverride = false)
+            bool auxButtonOverride = false,
+            bool isValueReadOnly = false)
         {
             AddKeyValue(
                 view, key, value, nullValue, repo, setValue, comboBoxItems, comboBoxIsEditable,
@@ -336,7 +334,7 @@ namespace AasxPackageLogic
                 firstColumnWidth: firstColumnWidth,
                 maxLines: maxLines,
                 keyVertCenter: keyVertCenter,
-                auxButtonOverride: auxButtonOverride);
+                isValueReadOnly: isValueReadOnly);
         }
 
         /// <summary>
@@ -376,8 +374,9 @@ namespace AasxPackageLogic
             int comboBoxMinWidth = -1,
             int firstColumnWidth = -1, // -1 = Standard
             int maxLines = -1,
-            bool keyVertCenter = true,
-            bool auxButtonOverride = false)
+            bool keyVertCenter = false,
+            bool auxButtonOverride = false,
+            bool isValueReadOnly = false)
         {
             // draw anyway?
             if (repo != null && value == null)
@@ -484,7 +483,7 @@ namespace AasxPackageLogic
             else
             {
                 // use plain text box
-                var tb = AddSmallTextBoxTo(g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2), text: "" + value);
+                var tb = AddSmallTextBoxTo(g, 0, 1, margin: new AnyUiThickness(4, 2, 2, 2), text: "" + value, isValReadOnly: isValueReadOnly);
                 // multiple lines
                 if (maxLines > 0)
                     tb.MaxLines = maxLines;
@@ -1122,6 +1121,23 @@ namespace AasxPackageLogic
 
             return null;
         }
+
+        public IEnumerable<VisualElementGeneric> SmartSelectAasEntitiesVisualElement(
+            PackageCentral.PackageCentral packages,
+            PackageCentral.PackageCentral.Selector selector,
+            string filter = null)
+        {
+            var uc = new AnyUiDialogueDataSelectAasEntity(
+                caption: "Select entity of AAS ..",
+                selector: selector, filter: filter);
+            uc.MultiSelect = true;
+            this.context.StartFlyoverModal(uc);
+            if (uc.Result && uc.ResultVisualElements != null)
+                return uc.ResultVisualElements;
+
+            return null;
+        }
+
 
         public bool SmartSelectEclassEntity(
             AnyUiDialogueDataSelectEclassEntity.SelectMode mode, ref string resIRDI,
@@ -2652,8 +2668,9 @@ namespace AasxPackageLogic
                                 setOutputList?.Invoke(null);
 
                             if (postActionHookAsync != null)
-                                await postActionHookAsync.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
-
+                            {
+                                await postActionHookAsync?.Invoke(theMenu?.ElementAt(buttonNdx)?.Name, ticket);
+                            }
                             this.AddDiaryEntry(entityRf,
                                 new DiaryEntryStructChange(StructuralChangeReason.Delete),
                                 explicitParent: explicitParent);

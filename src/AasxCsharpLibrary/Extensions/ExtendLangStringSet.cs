@@ -113,7 +113,7 @@ namespace Extensions
         /// If <c>input</c> has a trailing '@xx' code, the 'xx' will be returned and the
         /// <c>input</c> is shortened. Else: returns <c>null</c>.
         /// </summary>
-        public static string GetOneTrailingLanguage(ref string input)
+        public static string GetOneTrailingLanguageTag(ref string input)
         {
             if (input?.HasContent() != true)
                 return null;

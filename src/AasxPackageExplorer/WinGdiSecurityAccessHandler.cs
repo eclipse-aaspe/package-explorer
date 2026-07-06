@@ -10,6 +10,8 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+using AasxPackageLogic.PackageCentral;
+using AnyUi;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -29,17 +31,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using AasxIntegrationBase;
-using AasxMqttClient;
-using AasxPackageLogic;
-using AasxPackageLogic.PackageCentral;
-using AdminShellNS;
-using AnyUi;
-using Extensions;
-using Microsoft.Identity.Client;
-using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Linq;
-using Aas = AasCore.Aas3_0;
+using Aas = AasCore.Aas3_1;
 
 namespace AasxPackageExplorer
 {

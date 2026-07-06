@@ -4,9 +4,9 @@
     <Nullable>enable</Nullable>
     <Configurations>Debug;Release;DebugSlow</Configurations>
     <Platforms>AnyCPU</Platforms>
-    <LangVersion>8</LangVersion>
+    <LangVersion>12</LangVersion>
 
-    <PackageId>AasCore.Aas3_0</PackageId>
+    <PackageId>AasCore.Aas3_1</PackageId>
     <Version>1.0.0-rc1</Version>
     <Authors>Marko Ristin</Authors>
     <Description>
