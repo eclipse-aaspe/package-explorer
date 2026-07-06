@@ -1,7 +1,8 @@
 ﻿{
   "Records": [
     {
-      "IsDescription": true,
+      "IsDescription1_0": true,
+      "IsDescription1_1": false,
       "IsMapping": false,
       "AllowSubmodelSemanticId": [
         {
@@ -9,13 +10,31 @@
           "value": "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Submodel"
         }
       ],
-      "UseHttp": false,
+      "UseHttp": true,
       "UseModbus": false,
       "UseMqtt": false,
-      "UseOpcUa": true
+      "UseOpcUa": false,
+      "UseBacnet": false
     },
     {
-      "IsDescription": false,
+      "IsDescription1_0": false,
+      "IsDescription1_1": true,
+      "IsMapping": false,
+      "AllowSubmodelSemanticId": [
+        {
+          "type": "Submodel",
+          "value": "https://admin-shell.io/idta/AssetInterfacesDescription/1/1/Submodel"
+        }
+      ],
+      "UseHttp": true,
+      "UseModbus": false,
+      "UseMqtt": false,
+      "UseOpcUa": false,
+      "UseBacnet": false
+    },
+    {
+      "IsDescription1_0": false,
+      "IsDescription1_1": false,
       "IsMapping": true,
       "AllowSubmodelSemanticId": [
         {

@@ -118,9 +118,22 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                     return null;
 
                 // remember for later / background
-                if (foundOptRec.IsDescription)
+                if (foundOptRec.IsDescription1_0)
+                {
+                    _allInterfaceStatus.RememberAidSubmodel(sm, foundOptRec,
+                       adoptUseFlags: true);
+                    _allInterfaceStatus.AidVersion1_1 = false;
+                }
+                   
+
+                // remember for later / background
+                if (foundOptRec.IsDescription1_1)
+                {
                     _allInterfaceStatus.RememberAidSubmodel(sm, foundOptRec,
                         adoptUseFlags: true);
+                    _allInterfaceStatus.AidVersion1_1 = true;
+                }
+                    
                 if (foundOptRec.IsMapping)
                     _allInterfaceStatus.RememberMappingSubmodel(sm);
 
@@ -273,7 +286,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                                         if (foundOptRec == null)
                                             continue;
 
-                                        if (foundOptRec.IsDescription)
+                                        if (foundOptRec.IsDescription1_0)
                                             _allInterfaceStatus.RememberAidSubmodel(sm, foundOptRec,
                                                 adoptUseFlags: true);
                                         if (foundOptRec.IsMapping)

@@ -22,13 +22,15 @@ namespace AasxPluginAssetInterfaceDescription
 {
     public class AssetInterfaceOptionsRecord : AasxPluginOptionsLookupRecordBase
     {
-        public bool IsDescription = false;
+        public bool IsDescription1_0 = false;
+        public bool IsDescription1_1 = false;
         public bool IsMapping = false;
 
         public bool UseHttp = true;
         public bool UseModbus = true;
         public bool UseMqtt = true;
         public bool UseOpcUa = true;
+        public bool UseBacnet = true;
     }
 
     public class AssetInterfaceOptions : AasxPluginLookupOptionsBase
@@ -43,13 +45,19 @@ namespace AasxPluginAssetInterfaceDescription
             var defs = new DefinitionsMTP.ModuleTypePackage();
 
             var rec1 = new AssetInterfaceOptionsRecord();
-            rec1.IsDescription = true;
-            rec1.AllowSubmodelSemanticId = new[] { 
-                new Aas.Key(Aas.KeyTypes.Submodel, 
+            rec1.IsDescription1_0 = true;
+            rec1.AllowSubmodelSemanticId = new[] {
+                new Aas.Key(Aas.KeyTypes.Submodel,
                 "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Submodel") }.ToList();
 
             var rec2 = new AssetInterfaceOptionsRecord();
-            rec2.IsMapping = true;
+            rec2.IsDescription1_1 = true;
+            rec1.AllowSubmodelSemanticId = new[] {
+                new Aas.Key(Aas.KeyTypes.Submodel,
+                "https://admin-shell.io/idta/AssetInterfacesDescription/1/1/Submodel") }.ToList();
+
+            var rec3 = new AssetInterfaceOptionsRecord();
+            rec3.IsMapping = true;
             rec1.AllowSubmodelSemanticId = new[] {
                 new Aas.Key(Aas.KeyTypes.Submodel,
                 "https://admin-shell.io/idta/AssetInterfacesMappingConfiguration/1/0/Submodel") }.ToList();
