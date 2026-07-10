@@ -258,6 +258,24 @@
     }
   },
   {
+    "name": "Submodel elements | Unit of measure (experimental)",
+    "qualifier": {
+      "kind": "TemplateQualifier",
+      "semanticId": {
+        "type": "ExternalReference",
+        "keys": [
+          {
+            "type": "GlobalReference",
+            "value": "https://admin-shell.io/SubmodelElements/UnitOfMeasure/1/0"
+          }
+        ]
+      },
+      "type": "SME/UnitOfMeasure",
+      "value": "",
+      "valueId": null
+    }
+  },
+  {
     "name": "Expression semantic | Requirement",
     "qualifier": {
       "kind": "ConceptQualifier",

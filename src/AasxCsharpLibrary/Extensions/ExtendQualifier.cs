@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -131,6 +131,17 @@ namespace Extensions
 
         #region QualifierCollection
 
+        public static bool IsBlank(this IQualifier qual)
+        {
+            if (qual == null)
+                return true;
+            if (qual.Type?.HasContent() == true
+                || qual.Value?.HasContent() == true
+                || qual.SemanticId != null)
+                return false;
+            return true;
+        }
+
         public static bool IsValid(this List<IQualifier> elems)
         {
             if (elems == null || elems.Count < 1)
@@ -145,7 +156,13 @@ namespace Extensions
         {
             if (elems == null || elems.Count != 1)
                 return false;
-            return elems[0].Value?.HasContent() != true;
+            return elems[0].IsBlank() != true;
+        }
+
+        public static void RemoveAllBlank(this List<IQualifier> elems)
+        {
+            foreach (var q in elems.FindAll((x) => x.IsBlank()).ToArray())
+                elems.Remove(q);
         }
 
         public static IQualifier FindQualifierOfType(this IEnumerable<IQualifier> qualifiers, string qualifierType)

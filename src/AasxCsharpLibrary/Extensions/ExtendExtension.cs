@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -15,6 +15,16 @@ namespace Extensions
 {
     public static class ExtendExtension
     {
+        public static bool IsBlank(this IExtension qual)
+        {
+            if (qual == null)
+                return true;
+            if (qual.Name?.HasContent() == true
+                || qual.Value?.HasContent() == true
+                || qual.SemanticId != null)
+                return false;
+            return true;
+        }
 
         public static bool IsValid(this List<IExtension> elems)
         {
@@ -30,7 +40,13 @@ namespace Extensions
         {
             if (elems == null || elems.Count != 1)
                 return false;
-            return elems[0].Value?.HasContent() != true;
+            return elems[0].IsBlank() != true;
+        }
+
+        public static void RemoveAllBlank(this List<IExtension> elems)
+        {
+            foreach (var e in elems.FindAll((x) => x.IsBlank()).ToArray())
+                elems.Remove(e);
         }
     }
 }

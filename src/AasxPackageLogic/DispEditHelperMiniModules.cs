@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -216,11 +216,8 @@ namespace AasxPackageLogic
                                 if (uc.Result && uc.ResultItem?.Tag is QualifierPreset preset
                                     && preset.qualifier != null)
                                 {
-                                    // if qualifiers is actually containing only one
-                                    // "blank" qualifier, replace this
-                                    if (qualifiers.IsOneBlank())
-                                        qualifiers.RemoveAt(0);
-
+                                    // substitute a blank one
+                                    qualifiers.RemoveAllBlank();
                                     qualifiers.Add(preset.qualifier);
                                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                                 }
@@ -242,6 +239,8 @@ namespace AasxPackageLogic
                                 {
                                     if (PasteQualifierTextIntoExisting(jsonInput, qNew))
                                     {
+                                        // substitute a blank one
+                                        qualifiers.RemoveAllBlank();
                                         qualifiers.Add(qNew);
                                         this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                                     }
@@ -934,10 +933,8 @@ namespace AasxPackageLogic
                                 if (uc.Result && uc.ResultItem?.Tag is ExtensionPreset preset
                                     && preset.extension != null)
                                 {
-                                    // if extensions is actually containing only one
-                                    // "blank" extension, replace this
-                                    if (extensions.IsOneBlank())
-                                        extensions.RemoveAt(0);
+                                    // substitute a blank one
+                                    extensions.RemoveAllBlank();
 
                                     extensions.Add(preset.extension);
                                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
@@ -958,6 +955,9 @@ namespace AasxPackageLogic
                                 var jsonInput = this.context?.ClipboardGet()?.Text;
                                 if (PasteExtensionTextIntoExisting(jsonInput, eNew))
                                 {
+                                    // substitute a blank one
+                                    extensions.RemoveAllBlank();
+
                                     extensions.Add(eNew);
                                     this.AddDiaryEntry(relatedReferable, new DiaryEntryStructChange());
                                 }
