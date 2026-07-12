@@ -27,6 +27,7 @@
     <EmbeddedResource Include="Resources\IdtaHandoverDocumentationV12.json" />
     <EmbeddedResource Include="Resources\IdtaHierarchicalStructV10.json" />
     <EmbeddedResource Include="Resources\IdtaContactInformationV10.json" />
+    <EmbeddedResource Include="Resources\IdtaTechnicalDataV20.json" />
     <EmbeddedResource Include="Resources\ZveiDigitalTypeplate.json" />
     <EmbeddedResource Include="Resources\DigitalNameplateV20.json" />
     <EmbeddedResource Include="Resources\ZveiNameplateV10.json" />

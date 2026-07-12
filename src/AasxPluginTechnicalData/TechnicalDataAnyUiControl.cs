@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -139,6 +139,17 @@ namespace AasxPluginTechnicalData
         #region Display Submodel
         //=============
 
+        public static bool CheckSuppleSemId (Aas.ISubmodel sm, TechnicalDataOptions options)
+        {
+            if (sm.SupplementalSemanticIds != null
+                    && options.AllowSupplementalSemanticId != null)
+                foreach (var k in options.AllowSupplementalSemanticId)
+                    foreach (var ssid in sm.SupplementalSemanticIds)
+                        if (ssid?.Matches(k.Value) == true)
+                            return true;
+            return false;
+        }
+
         private void RenderFullView(
             AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk,
             AdminShellPackageEnvBase package,
@@ -153,6 +164,10 @@ namespace AasxPluginTechnicalData
             foreach (var rec in _options.LookupAllIndexKey<TechnicalDataOptionsRecord>(
                 _submodel?.SemanticId?.GetAsExactlyOneKey()))
                 foundRec = rec;
+
+            // extra rule
+            if (CheckSuppleSemId(sm, _options))
+                foundRec = new TechnicalDataOptionsRecord();
 
             if (foundRec == null)
                 return;
@@ -297,6 +312,7 @@ namespace AasxPluginTechnicalData
             public string System { get; set; }
             public string Version { get; set; }
             public string ClassTxt { get; set; }
+            public string ClassName { get; set; }
         }
 
         protected void RenderPanelHeader(
@@ -319,20 +335,20 @@ namespace AasxPluginTechnicalData
 
             // section General
             var smcGeneral = sm.SubmodelElements.FindFirstSemanticIdAs<Aas.SubmodelElementCollection>(
-                theDefs.CD_GeneralInformation.GetSingleKey(), MatchMode.Relaxed);
+                theDefs.CD_GeneralInformation?.GetSingleKey(), MatchMode.Relaxed);
             if (smcGeneral != null)
             {
                 // gather information
 
                 var prodDesig = "" +
                     smcGeneral.Value.FindFirstSemanticId(
-                        theDefs.CD_ManufacturerProductDesignation.GetSingleKey(),
+                        theDefs.CD_ManufacturerProductDesignation?.GetSingleKey(),
                         allowedTypes: ExtendISubmodelElement.PROP_MLP, MatchMode.Relaxed)?
                             .ValueAsText(defaultLang);
 
                 var prodCode = "" +
                     smcGeneral.Value.FindFirstSemanticIdAs<Aas.Property>(
-                        theDefs.CD_ManufacturerOrderCode.GetSingleKey(), MatchMode.Relaxed)?.Value;
+                        theDefs.CD_ManufacturerOrderCode?.GetSingleKey(), MatchMode.Relaxed)?.Value;
 
                 var partNumber = "" +
                     smcGeneral.Value.FindFirstSemanticIdAs<Aas.Property>(
@@ -346,41 +362,7 @@ namespace AasxPluginTechnicalData
 
                 var manuName = "" +
                     smcGeneral.Value.FindFirstSemanticIdAs<Aas.Property>(
-                        theDefs.CD_ManufacturerName.GetSingleKey(), MatchMode.Relaxed)?.Value;
-
-                AnyUiBitmapInfo biManuLogo = null;
-                AnyUiImage imageManuLogo = null;
-                if (package != null)
-                {
-#if USE_WPF
-                    var bi = AasxWpfBaseUtils.LoadBitmapImageFromPackage(
-                        package,
-                        smcGeneral.value.FindFirstSemanticIdAs<AdminShell.File>(
-                            theDefs.CD_ManufacturerLogo.GetSingleKey())?.value
-                        );
-                    imageManuLogo = AnyUiHelper.CreateAnyUiBitmapInfo(bi);
-#else
-                    {
-                        // File
-                        var fe = smcGeneral.Value.FindFirstSemanticIdAs<Aas.File>(
-                            theDefs.CD_ManufacturerLogo.GetSingleKey(), MatchMode.Relaxed);
-
-                        if (OperatingSystem.IsWindowsVersionAtLeast(7, 0, 0))
-                        {
-                            // for now
-                            biManuLogo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(
-                                package, fe?.Value,
-                                secureAccess: _secureAccess);
-
-                            // for later
-                            _bitmapLoader.Add(package, _aas, _submodel, fe, (fcl, bi) =>
-                            {
-                                imageManuLogo.BitmapInfo = bi;
-                            });
-                        }
-                    }
-#endif
-                }
+                        theDefs.CD_ManufacturerName?.GetSingleKey(), MatchMode.Relaxed)?.Value;
 
                 // render information
 
@@ -407,7 +389,8 @@ namespace AasxPluginTechnicalData
                     setBold: false,
                     content: manuName);
 
-                imageManuLogo = uitk.Set(
+                AnyUiBitmapInfo biManuLogo = null;
+                AnyUiImage imageManuLogo = uitk.Set(
                     uitk.AddSmallImageTo(outer, 1, 1,
                         margin: new AnyUiThickness(2),
                         stretch: AnyUiStretch.Uniform,
@@ -417,13 +400,65 @@ namespace AasxPluginTechnicalData
                     horizontalAlignment: AnyUiHorizontalAlignment.Stretch,
                     verticalAlignment: AnyUiVerticalAlignment.Stretch);
 
+                // subscribe to file information
+                if (package != null)
+                {
+#if USE_WPF
+                    var bi = AasxWpfBaseUtils.LoadBitmapImageFromPackage(
+                        package,
+                        smcGeneral.value.FindFirstSemanticIdAs<AdminShell.File>(
+                            theDefs.CD_ManufacturerLogo.GetSingleKey())?.value
+                        );
+                    imageManuLogo = AnyUiHelper.CreateAnyUiBitmapInfo(bi);
+#else
+                    {
+                        // File
+                        var fe = smcGeneral.Value.FindFirstSemanticIdAs<Aas.File>(
+                            theDefs.CD_ManufacturerLogo?.GetSingleKey(), MatchMode.Relaxed);
+
+                        if (OperatingSystem.IsWindowsVersionAtLeast(7, 0, 0))
+                        {
+                            // for now
+                            biManuLogo = AnyUiGdiHelper.LoadBitmapInfoFromPackage(
+                                package, fe?.Value,
+                                secureAccess: _secureAccess);
+
+                            // for later
+                            _bitmapLoader.Add(package, _aas, _submodel, fe, (fcl, bi) =>
+                            {
+                                imageManuLogo.BitmapInfo = bi;
+                            });
+                        }
+                    }
+#endif
+                }
+
                 //
                 // Product Images
                 //
 
                 // list of file elements
-                var fePIs = smcGeneral.Value.FindAllSemanticIdAs<Aas.File>(
-                                theDefs.CD_ProductImage.GetSingleKey(), MatchMode.Relaxed).ToList();
+                var fePIs = new List<Aas.IFile>();
+
+                // old style
+                fePIs.AddRange(
+                    smcGeneral.Value.FindAllSemanticIdAs<Aas.File>(
+                        theDefs.CD_ProductImage?.GetSingleKey(), MatchMode.Relaxed).ToList());
+
+                // new style
+                if (theDefs.ActiveVersion >= ConceptModelZveiTechnicalData.Version.V2_0)
+                {
+                    var smlPI = smcGeneral.Value.FindFirstSemanticIdAs<Aas.ISubmodelElementList>(
+                        theDefs.CD_ProductImages?.GetSingleKey(), MatchMode.Relaxed);
+                    foreach (var smcPI in smlPI?.Value?.FindAllSemanticIdAs<Aas.ISubmodelElementCollection>(
+                        theDefs.CD_ProductImage?.GetSingleKey(), MatchMode.Relaxed))
+                    {
+                        var fPI = smcPI?.Value?.FindFirstSemanticIdAs<Aas.IFile>(
+                            theDefs.CD_ProductImageFile?.GetSingleKey(), MatchMode.Relaxed);
+                        if (fPI != null)
+                            fePIs.Add(fPI);
+                    }
+                }
 
                 // make an outer grid, very simple grid of two rows: header & body
                 var pilGrid = uitk.AddSmallGridTo(outer, 3, 0, rows: 1, cols: fePIs.Count);
@@ -466,31 +501,39 @@ namespace AasxPluginTechnicalData
             //
 
             foreach (var childProdClass in sm.SubmodelElements.GetChildListsFromAllSemanticId(
-                theDefs.CD_ProductClassifications.GetSingleKey(), MatchMode.Relaxed))
+                theDefs.CD_ProductClassifications?.GetSingleKey(), MatchMode.Relaxed))
             {
                 // gather
 
                 var clr = new List<ClassificationRecord>();
                 foreach (var smc in
                     childProdClass.FindAllSemanticIdAs<Aas.SubmodelElementCollection>(
-                        theDefs.CD_ProductClassificationItem.GetSingleKey(),
+                        theDefs.CD_ProductClassificationItem?.GetSingleKey(),
                         MatchMode.Relaxed))
                 {
                     var sys = (
                         "" +
                         smc.Value.FindFirstSemanticIdAs<Aas.Property>(
-                            theDefs.CD_ProductClassificationSystem.GetSingleKey(), MatchMode.Relaxed)?.Value)?.Trim();
+                            theDefs.CD_ProductClassificationSystem?.GetSingleKey(), MatchMode.Relaxed)?.Value)?.Trim();
                     var ver = (
                         "" +
                         smc.Value.FindFirstSemanticIdAs<Aas.Property>(
-                            theDefs.CD_ClassificationSystemVersion.GetSingleKey(), MatchMode.Relaxed)?.Value)?.Trim();
+                            theDefs.CD_ClassificationSystemVersion?.GetSingleKey(), MatchMode.Relaxed)?.Value)?.Trim();
                     var cls = (
                         "" +
                         smc.Value.FindFirstSemanticIdAs<Aas.Property>(
-                            theDefs.CD_ProductClassId.GetSingleKey(), MatchMode.Relaxed)?.Value)?.Trim();
+                            (theDefs.ActiveVersion >= ConceptModelZveiTechnicalData.Version.V2_0
+                             ? theDefs.CD_ProductClassCodedName?.GetSingleKey()
+                             : theDefs.CD_ProductClassId?.GetSingleKey()
+                            ), MatchMode.Relaxed)?.Value)?.Trim();
+
+                    var name = "";
+                    if (theDefs.ActiveVersion >= ConceptModelZveiTechnicalData.Version.V2_0)
+                        name = "" + smc.Value.FindFirstSemanticIdAs<Aas.MultiLanguageProperty>(
+                            theDefs.CD_ProductClassName?.GetSingleKey(), MatchMode.Relaxed)?.ValueAsText(defaultLang);
 
                     if (sys != "" && cls != "")
-                        clr.Add(new ClassificationRecord() { System = sys, Version = ver, ClassTxt = cls });
+                        clr.Add(new ClassificationRecord() { System = sys, Version = ver, ClassTxt = cls, ClassName = name });
                 }
 
                 // render
@@ -506,7 +549,7 @@ namespace AasxPluginTechnicalData
                                         borderThickness: new AnyUiThickness(1.5), borderBrush: AnyUiBrushes.DarkBlue,
                                         margin: new AnyUiThickness(2),
                                         cornerRadius: 2.0);
-                        var clrgi = uitk.AddSmallGrid(rows: 2, cols: 2, colWidths: new[] { "*", "#" });
+                        var clrgi = uitk.AddSmallGrid(rows: 3, cols: 2, colWidths: new[] { "*", "#" });
                         clrbrd.Child = clrgi;
 
                         // labels
@@ -531,6 +574,15 @@ namespace AasxPluginTechnicalData
                             setBold: true,
                             colSpan: 2,
                             content: clr[i].ClassTxt);
+
+                        // note: adopt to the length of class name
+                        uitk.AddSmallBasicLabelTo(clrgi, 2, 0, margin: new AnyUiThickness(1),
+                            horizontalAlignment: AnyUiHorizontalAlignment.Center,
+                            horizontalContentAlignment: AnyUiHorizontalAlignment.Center,
+                            fontSize: (clr[i].ClassName.Length <= 24) ? 0.8f : 0.6f,
+                            setBold: true,
+                            colSpan: 2,
+                            content: clr[i].ClassName);
                     }
                 }
 
@@ -546,6 +598,10 @@ namespace AasxPluginTechnicalData
         {
             public string Heading = null;
             public AnyUiThickness HeadMargin = null;
+
+            public bool Footer = false;
+            public double FooterHeight = 5;
+
             public double? FontSize;
             public AnyUiFontWeight FontWeight;
             public string Name = "", Semantics = "", Value = "";
@@ -576,6 +632,10 @@ namespace AasxPluginTechnicalData
                         content: row.Heading);
                     hlb.FontSize = row.FontSize;
                     hlb.FontWeight = row.FontWeight;
+                }
+                else if (row.Footer)
+                {
+                    uitk.AddVerticalSpaceTo(grid, ri, row.FooterHeight);
                 }
                 else
                 {
@@ -624,7 +684,7 @@ namespace AasxPluginTechnicalData
                 if (sme.SemanticId != null)
                 {
                     if (sme.SemanticId.MatchesExactlyOneKey(
-                        theDefs.CD_SemanticIdNotAvailable.GetSingleKey(), MatchMode.Relaxed))
+                        theDefs.CD_SemanticIdNotAvailable?.GetSingleKey(), MatchMode.Relaxed))
                         semantics = "(not available)";
                     else
                     {
@@ -650,6 +710,14 @@ namespace AasxPluginTechnicalData
                     }
                 }
 
+                // may be add unit ad-hoc
+                if (!unit.HasContent())
+                {
+                    var q = sme.Qualifiers?.FindQualifierOfType("SME/UnitOfMeasure");
+                    if (q?.Value?.HasContent() == true)
+                        unit = q.Value;
+                }
+
                 // make up even better better property name (prio 1b)
                 var descDef = "" + sme.Description?.GetDefaultString(defaultLang);
                 if (descDef.HasContent())
@@ -670,7 +738,7 @@ namespace AasxPluginTechnicalData
                 // special function?
                 if (sme is Aas.SubmodelElementCollection &&
                         true == sme.SemanticId?.MatchesExactlyOneKey(
-                            theDefs.CD_MainSection.GetSingleKey(), MatchMode.Relaxed))
+                            theDefs.CD_MainSection?.GetSingleKey(), MatchMode.Relaxed))
                 {
                     // Main Section
                     rows.Add(new TripleRowData()
@@ -689,7 +757,7 @@ namespace AasxPluginTechnicalData
                 else
                 if (sme is Aas.SubmodelElementCollection &&
                     true == sme.SemanticId?.MatchesExactlyOneKey(
-                        theDefs.CD_SubSection.GetSingleKey(), MatchMode.Relaxed))
+                        theDefs.CD_SubSection?.GetSingleKey(), MatchMode.Relaxed))
                 {
                     // Sub Section
                     rows.Add(new TripleRowData()
@@ -719,7 +787,6 @@ namespace AasxPluginTechnicalData
                 if (sme is Aas.SubmodelElementCollection smc)
                 {
                     // SMC which is not dedicated main/ sub-section
-                    // as specific in SMT spec, only allow SMC for that
                     // decide automatically about main/ sub section
 
                     if (depth == 0)
@@ -743,6 +810,40 @@ namespace AasxPluginTechnicalData
                     // recurse into that
                     TableAddPropertyRows_Recurse(
                         theDefs, defaultLang, package, rows, smc.Value, depth + 1);
+
+                    // small footer
+                    rows.Add(new TripleRowData() { Footer = true, FooterHeight = (depth == 0) ? 5 : 3 });
+                }
+                else
+                if (sme is Aas.SubmodelElementList sml)
+                {
+                    // SML which is not dedicated main/ sub-section
+                    // decide automatically about main/ sub section
+
+                    if (depth == 0)
+                        // Main Section
+                        rows.Add(new TripleRowData()
+                        {
+                            Heading = "" + dispName,
+                            HeadMargin = new AnyUiThickness(-2 + 4 * depth, 6, 0, 4),
+                            FontSize = 1.4f,
+                            FontWeight = AnyUiFontWeight.Bold
+                        });
+                    else
+                        rows.Add(new TripleRowData()
+                        {
+                            Heading = "" + dispName,
+                            HeadMargin = new AnyUiThickness(-2 + 4 * depth, 4, 0, 2),
+                            FontSize = 1.2f,
+                            FontWeight = AnyUiFontWeight.Bold
+                        });
+
+                    // recurse into that
+                    TableAddPropertyRows_Recurse(
+                        theDefs, defaultLang, package, rows, sml.Value, depth + 1);
+
+                    // small footer
+                    rows.Add(new TripleRowData() { Footer = true, FooterHeight = (depth == 0) ? 5 : 3 });
                 }
             }
         }
@@ -757,13 +858,6 @@ namespace AasxPluginTechnicalData
             if (view == null || uitk == null || sm == null)
                 return;
 
-            // section Properties
-            var smcProps =
-                sm.SubmodelElements.FindFirstSemanticIdAs<Aas.SubmodelElementCollection>(
-                    theDefs.CD_TechnicalProperties.GetSingleKey(), MatchMode.Relaxed);
-            if (smcProps == null)
-                return;
-
             // rows and header
             var rows = new List<TripleRowData>();
             rows.Add(new TripleRowData()
@@ -774,8 +868,42 @@ namespace AasxPluginTechnicalData
                 FontWeight = AnyUiFontWeight.Bold
             });
 
+            // collect starting points
+            var startPoints = new List<Aas.ISubmodelElementCollection>();
+
+            // section Properties
+            var smcProps =
+                sm.SubmodelElements.FindFirstSemanticIdAs<Aas.ISubmodelElementCollection>(
+                    theDefs.CD_TechnicalProperties?.GetSingleKey(), MatchMode.Relaxed);
+            if (smcProps != null)
+                startPoints.Add(smcProps);
+
+            if (theDefs.ActiveVersion >= ConceptModelZveiTechnicalData.Version.V2_0)
+            {
+                // technical property areas
+                var smlTPA = sm.SubmodelElements.FindFirstSemanticIdAs<Aas.ISubmodelElementList>(
+                        theDefs.CD_TechnicalPropertyAreas?.GetSingleKey(), MatchMode.Relaxed);
+                if (smlTPA?.Value != null)
+                    foreach (var smc in smlTPA.Value.FindAllSemanticIdAs<Aas.ISubmodelElementCollection>(
+                            theDefs.CD_TechnicalPropertyArea?.GetSingleKey(), MatchMode.Relaxed).ForEachSafe())
+                        startPoints.Add(smc);
+
+                // specific descriptions
+                var smlSPD = sm.SubmodelElements.FindFirstSemanticIdAs<Aas.ISubmodelElementList>(
+                        theDefs.CD_SpecificDescriptions?.GetSingleKey(), MatchMode.Relaxed);
+                if (smlSPD?.Value != null)
+                    foreach (var smc in (smlSPD.Value.FindAllSemanticIdAs<Aas.ISubmodelElementCollection>(
+                            theDefs.CD_SpecificDescription?.GetSingleKey(), MatchMode.Relaxed))?.ForEachSafe())
+                        startPoints.Add(smc);
+            }
+
+            // something
+            if (startPoints.Count < 1)
+                return;
+
             // recurse
-            TableAddPropertyRows_Recurse(theDefs, defaultLang, package, rows, smcProps.Value);
+            foreach (var smc in startPoints)
+                TableAddPropertyRows_Recurse(theDefs, defaultLang, package, rows, smc?.Value);
 
             // render
             RenderTripleRowData(view, uitk, rows.ToArray());

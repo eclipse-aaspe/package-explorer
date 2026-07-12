@@ -296,13 +296,13 @@ namespace AasxIntegrationBaseGdi
             public async Task<bool> TickToLoad(
                 ISecurityAccessHandler secureAccess)
             {
-                if (_jobs.Count < 1)
-                    return false;
-
                 // pick one and start
                 DelayedFileContentLoadBase job = null;
                 lock (_jobs)
                 {
+                    if (_jobs.Count < 1)
+                        return false;
+
                     job = _jobs.First();
                     _jobs.RemoveAt(0);
                 }

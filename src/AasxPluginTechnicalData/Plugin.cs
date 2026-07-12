@@ -111,6 +111,11 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 foreach (var rec in _options.LookupAllIndexKey<TechnicalDataOptionsRecord>(
                     sm.SemanticId?.GetAsExactlyOneKey()))
                     found = true;
+
+                // EXTRA rule for techical data of NAMUR
+                found = found || TechnicalDataAnyUiControl.CheckSuppleSemId(sm, _options);
+
+                // ok
                 if (!found)
                     return null;
 

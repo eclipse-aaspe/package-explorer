@@ -258,6 +258,24 @@
     }
   },
   {
+    "name": "Submodel templates | No definition (experimental)",
+    "qualifier": {
+      "kind": "TemplateQualifier",
+      "semanticId": {
+        "type": "ExternalReference",
+        "keys": [
+          {
+            "type": "GlobalReference",
+            "value": "https://admin-shell.io/SubmodelTemplates/NoDefinition/1/0"
+          }
+        ]
+      },
+      "type": "SMT/NoDefinition",
+      "value": "",
+      "valueId": null
+    }
+  },
+  {
     "name": "Submodel elements | Unit of measure (experimental)",
     "qualifier": {
       "kind": "TemplateQualifier",

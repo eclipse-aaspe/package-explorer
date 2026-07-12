@@ -29,6 +29,12 @@ namespace AasxPluginTechnicalData
         public List<TechnicalDataOptionsRecord> Records = new List<TechnicalDataOptionsRecord>();
 
         /// <summary>
+        /// Extra rule: Allow this plugin to trigger also, WHEN ONLY the
+        /// supplemental semId is correct!
+        /// </summary>
+        public List<Aas.Key> AllowSupplementalSemanticId = new List<Aas.Key>();
+
+        /// <summary>
         /// Create a set of minimal options
         /// </summary>
         public static TechnicalDataOptions CreateDefault()

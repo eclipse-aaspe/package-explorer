@@ -1,0 +1,1428 @@
+{
+  "SM_TechnicalData": {
+    "idShort": "TechnicalData",
+    "description": [
+      {
+        "language": "en",
+        "text": "Submodel containing technical data of the asset and associated product classificatons"
+      },
+      {
+        "language": "de",
+        "text": "Teilmodell, das die technischen Daten des Assets und die zugeh\u00F6rigen Produktklassifizierungen enth\u00E4lt"
+      }
+    ],
+    "administration": {
+      "version": "2",
+      "revision": "0",
+      "templateId": "https://admin-shell.io/idta-02003-2-0"
+    },
+    "id": "https://admin-shell.io/idta/SubmodelTemplate/TechnicalData/2/0",
+    "kind": "Template",
+    "semanticId": {
+      "type": "ModelReference",
+      "keys": [
+        {
+          "type": "Submodel",
+          "value": "0173-1#01-AHX837#002"
+        }
+      ]
+    },
+    "supplementalSemanticIds": [
+      {
+        "type": "ExternalReference",
+        "keys": [
+          {
+            "type": "GlobalReference",
+            "value": "https://api.eclass-cdp.com/0173-1-01-AHX837-002"
+          }
+        ]
+      }
+    ],
+    "modelType": "Submodel"
+  },
+  "CD_GeneralInformation": {
+    "idShort": "GeneralInformation",
+    "id": "0173-1#02-ABK161#002/0173-1#01-AHX838#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "General information"
+            },
+            {
+              "language": "de",
+              "text": "Allgemeine Informationen"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "General"
+            },
+            {
+              "language": "de",
+              "text": "Allgemein"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "General information, for example ordering and manufacturer information"
+            },
+            {
+              "language": "de",
+              "text": "Generelle Informationen, zum Beispiel Bestell- und Herstellerinformationen"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ManufacturerName": {
+    "idShort": "ManufacturerName",
+    "id": "0173-1#02-AAO677#004",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Manufacturer name"
+            },
+            {
+              "language": "de",
+              "text": "Herstellername"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "Manufacturer"
+            },
+            {
+              "language": "de",
+              "text": "Hersteller"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "Legally valid designation of the natural or judicial person which is directly responsible for the design, production, packaging and labeling of a product in respect to its being brought into circulation"
+            },
+            {
+              "language": "de",
+              "text": "Bezeichnung f\u00FCr eine nat\u00FCrliche oder juristische Person, die f\u00FCr die Auslegung, Herstellung und Verpackung sowie die Etikettierung eines Produkts im Hinblick auf das \u0027Inverkehrbringen\u0027 im eigenen Namen verantwortlich ist"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_CompanyLogo": {
+    "idShort": "CompanyLogo",
+    "id": "0173-1#02-ABI776#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Company logo"
+            },
+            {
+              "language": "de",
+              "text": "Firmenlogo"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "Logo"
+            },
+            {
+              "language": "de",
+              "text": "Logo"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "Imagefile for logo of the company provided in common format (.png, .jpg)"
+            },
+            {
+              "language": "de",
+              "text": "Bilddatei f\u00FCr Logo der Firma im gebr\u00E4uchlichen Format (.png, .jpg)"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ManufacturerProductDesignation": {
+    "idShort": "ManufacturerProductDesignation",
+    "id": "0173-1#02-AAW338#003",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Manufacturer product designation"
+            },
+            {
+              "language": "de",
+              "text": "Herstellerproduktbezeichnung"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "Designation"
+            },
+            {
+              "language": "de",
+              "text": "Bezeichnung"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "Short description of the product (short text)"
+            },
+            {
+              "language": "de",
+              "text": "Kurze Beschreibung des Produktes (Kurztext)"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ManufacturerArticleNumber": {
+    "idShort": "ManufacturerArticleNumber",
+    "id": "0173-1#02-AAO676#005",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Manufacturer article number"
+            },
+            {
+              "language": "de",
+              "text": "Herstellerartikelnummer"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "Articlenumber"
+            },
+            {
+              "language": "de",
+              "text": "Artikelnummer"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "unique product identifier of the manufacturer"
+            },
+            {
+              "language": "de",
+              "text": "eindeutiger Produktidentifikator des Herstellers"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ManufacturerOrderCode": {
+    "idShort": "ManufacturerOrderCode",
+    "id": "0173-1#02-AAO227#004",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Manufacturer order code"
+            },
+            {
+              "language": "de",
+              "text": "Bestellcode des Herstellers"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "Ordercode"
+            },
+            {
+              "language": "de",
+              "text": "Bestellcode"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "by manufactures issued unique combination of numbers and letters used to identify the device for ordering"
+            },
+            {
+              "language": "de",
+              "text": "vom Hersteller vergebene eindeutige Zahlen- und Buchstabenkombination, mit der das Ger\u00E4t f\u00FCr die Bestellung identifiziert wird"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ProductImages": {
+    "displayName": [
+      {
+        "language": "en",
+        "text": "Product images"
+      },
+      {
+        "language": "de",
+        "text": "Produktbilder"
+      }
+    ],
+    "id": "0173-1#02-ABM220#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Product images"
+            },
+            {
+              "language": "de",
+              "text": "Produktbilder"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "Images"
+            },
+            {
+              "language": "de",
+              "text": "Bilder"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Pictorial representations of the product also related to different applications"
+            },
+            {
+              "language": "de",
+              "text": "Bildliche Darstellungen des Produktes auch bezogen auf verschiedene Anwendungsf\u00E4lle"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ProductImage": {
+    "idShort": "ProductImage",
+    "displayName": [
+      {
+        "language": "en",
+        "text": "Product image"
+      },
+      {
+        "language": "de",
+        "text": "Produktbild"
+      }
+    ],
+    "id": "0173-1#02-ABM220#001/0173-1#01-AHY911#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Produkt image"
+            },
+            {
+              "language": "de",
+              "text": "Produktbild"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "Image"
+            },
+            {
+              "language": "de",
+              "text": "Bild"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Pictorial representation of the product related to an application"
+            },
+            {
+              "language": "de",
+              "text": "Bildliche Darstellung des Produktes bezogen auf einen Anwendungsfall"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ImageFile": {
+    "idShort": "ImageFile",
+    "displayName": [
+      {
+        "language": "en",
+        "text": "Product image"
+      },
+      {
+        "language": "de",
+        "text": "Bild Sachaufnahme"
+      }
+    ],
+    "id": "0173-1#02-ABK291#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Product image"
+            },
+            {
+              "language": "de",
+              "text": "Bild Sachaufnahme"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "Productimage"
+            },
+            {
+              "language": "de",
+              "text": "Produktbild"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "Picture of the product (low resolution) 72 dpi / rgb (GIF or JPG)"
+            },
+            {
+              "language": "de",
+              "text": "Bild des Produkts (niedrige Aufl\u00F6sung) 72 dpi / rgb (GIF oder JPG)"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ImageNote": {
+    "idShort": "ImageNote",
+    "description": [
+      {
+        "language": "en",
+        "text": "Notes or explanations about the image provided"
+      },
+      {
+        "language": "de",
+        "text": "Hinweise oder Erkl\u00E4rungen zum bereitgestellten Bild"
+      }
+    ],
+    "id": "0173-1#02-ABL423#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Image note"
+            },
+            {
+              "language": "de",
+              "text": "Bildbeschreibung"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "Imagenote"
+            },
+            {
+              "language": "de",
+              "text": "Bildbeschreibung"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "Notes or explanations about the image provided"
+            },
+            {
+              "language": "de",
+              "text": "Hinweise oder Erkl\u00E4rungen zum bereitgestellten Bild"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ProductClassifications": {
+    "idShort": "ProductClassifications",
+    "id": "0173-1#02-ABK162#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Product classifications"
+            },
+            {
+              "language": "de",
+              "text": "Produktklassifikationen"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "Classifications"
+            },
+            {
+              "language": "de",
+              "text": "Klassifikationen"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Product classifications by association of product classes with common classification systems"
+            },
+            {
+              "language": "de",
+              "text": "Produktklassifizierungen durch Zuordnung von Produktklassen zu g\u00E4ngigen Klassifizierungssystemen"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ProductClassification": {
+    "idShort": "ProductClassification",
+    "id": "0173-1#02-ABK162#002/0173-1#01-AHX839#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Product classification"
+            },
+            {
+              "language": "de",
+              "text": "Produktklassifikation"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "Classification"
+            },
+            {
+              "language": "de",
+              "text": "Klassifikation"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Single product classification item by association with product class in a particular classification system or property dictionary"
+            },
+            {
+              "language": "de",
+              "text": "Einzelnes Produktklassifizierungselement durch Zuordnung zu einer Produktklasse in einem bestimmten Klassifizierungssystem oder Eigenschaftsw\u00F6rterbuch"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ClassificationSystem": {
+    "idShort": "ClassificationSystem",
+    "id": "0173-1#02-ABL424#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Classification system"
+            },
+            {
+              "language": "de",
+              "text": "Klassifikationssystem"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "ClassSystem"
+            },
+            {
+              "language": "de",
+              "text": "KlassenSystem"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "Reference to the scheduled collection of abstract concepts that are used to distinguish and order objects"
+            },
+            {
+              "language": "de",
+              "text": "Referenz der planm\u00E4\u00DFige Sammlung von abstrakten Konzepten, die zur Abgrenzung und Ordnung von Objekten verwendet werden"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ClassificationSystemVersion": {
+    "idShort": "ClassificationSystemVersion",
+    "id": "0173-1#02-AAR710#003",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Version of the classification system"
+            },
+            {
+              "language": "de",
+              "text": "Version des Klassifikationssystems"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "ClassVersion"
+            },
+            {
+              "language": "de",
+              "text": "KlassenVersion"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "Referenced state of the published classification system"
+            },
+            {
+              "language": "de",
+              "text": "Referenziertes Stadium des publizierten Klassifikationssystems"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ClassificationSystemUrl": {
+    "idShort": "ClassificationSystemUrl",
+    "id": "https://admin-shell.io/IDTA/TechnicalData/ProductClassifications/ProduktClassification/ClassificationSystemUrl/2/0",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Classification system URL"
+            },
+            {
+              "language": "de",
+              "text": "URL des Klassifikationssystems"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "ClassUrl"
+            },
+            {
+              "language": "de",
+              "text": "KlassenURL"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "Classification system URL"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ProductClassId": {
+    "idShort": "ProductClassId",
+    "id": "0173-1#02-ABG776#003",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Product class ID"
+            },
+            {
+              "language": "de",
+              "text": "Produktklassen ID"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "ClassID"
+            },
+            {
+              "language": "de",
+              "text": "KlassenID"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "Class of the associated product or industrial equipment in the classification system. According to the notation of the system (IRDI)"
+            },
+            {
+              "language": "de",
+              "text": "Klasse des zugeh\u00F6rigen Produkts oder der zugeh\u00F6rigen Industrieausr\u00FCstung im Klassifikationssystem. Entsprechend der Notation des Systems (IRDI)"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ProductClassCodedName": {
+    "idShort": "ProductClassCodedName",
+    "id": "0173-1#02-ABK128#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Product Class Coded Name"
+            },
+            {
+              "language": "de",
+              "text": "Produktklasse Coded Name"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "ProductCCN"
+            },
+            {
+              "language": "de",
+              "text": "ProduktCCN"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "Unique class code in a classification hierarchy"
+            },
+            {
+              "language": "de",
+              "text": "Eindeutige Kodierung einer Klasse in einer Klassifikationshierarchie"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ProductClassName": {
+    "idShort": "ProductClassName",
+    "id": "0173-1#02-ABK273#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Product class name"
+            },
+            {
+              "language": "de",
+              "text": "Produktklasse Name"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "ClassName"
+            },
+            {
+              "language": "de",
+              "text": "Klassenname"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "Name of product class in the used classification system"
+            },
+            {
+              "language": "de",
+              "text": "Name der Produktklasse im verwendeten Klassifikationssystem"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ReferenceToTechnicalPropertyArea": {
+    "idShort": "ReferenceToTechnicalPropertyArea",
+    "id": "0173-1#02-ABL358#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Reference to technical property area"
+            },
+            {
+              "language": "de",
+              "text": "Referenz auf einen technsichen Merkmalsbereich"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "RefPropArea"
+            },
+            {
+              "language": "de",
+              "text": "RefMerkmBereich"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "Reference to technical property area"
+            },
+            {
+              "language": "de",
+              "text": "Referenz auf einen technsichen Merkmalsbereich"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_TechnicalPropertyAreas": {
+    "id": "0173-1#02-ABK163#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Technical property areas"
+            },
+            {
+              "language": "de",
+              "text": "Technsiche Merkmalsbereiche"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "PropAreas"
+            },
+            {
+              "language": "de",
+              "text": "Merkmalsbereiche"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "List of all technical property areas"
+            },
+            {
+              "language": "de",
+              "text": "Liste aller technischen Merkmalsbereiche"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_TechnicalPropertyArea": {
+    "idShort": "TechnicalPropertyArea",
+    "id": "0173-1#02-ABL358#002/0173-1#01-AHX773#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Technical property area"
+            },
+            {
+              "language": "de",
+              "text": "Technischer Merkmalsbereich"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "PropArea"
+            },
+            {
+              "language": "de",
+              "text": "MerkmalsBereich"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Specific property area referenced by a product classification"
+            },
+            {
+              "language": "de",
+              "text": "Spezifischer Merkmalsbereich referenziert von einer Produktklassifikation"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_FurtherInformation": {
+    "idShort": "FurtherInformation",
+    "id": "0173-1#02-ABK164#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Further information"
+            },
+            {
+              "language": "de",
+              "text": "Weitere Informationen"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "FurtherInfo"
+            },
+            {
+              "language": "de",
+              "text": "WeitereInfo"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Further information on the product, the validity of the information provided and this data record"
+            },
+            {
+              "language": "de",
+              "text": "Weitere Informationen \u00FCber das Produkt, die G\u00FCltigkeit der bereitgestellten Informationen und diesen Datensatz"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_TextStatement": {
+    "idShort": "TextStatement",
+    "id": "0173-1#02-ABK134#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Text statement"
+            },
+            {
+              "language": "de",
+              "text": "Anweisung im Text"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "TextStatement"
+            },
+            {
+              "language": "de",
+              "text": "TextAnweisung"
+            }
+          ],
+          "dataType": "STRING_TRANSLATABLE",
+          "definition": [
+            {
+              "language": "en",
+              "text": "Statement by the manufacturer in text form, e.g. scope of validity of the statements, scopes of application, conditions of operation."
+            },
+            {
+              "language": "de",
+              "text": "Erkl\u00E4rung des Herstellers in Textform, z.B. G\u00FCltigkeitsbereich der Aussagen, Anwendungsbereiche, Einsatzbedingungen"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ValidDate": {
+    "idShort": "ValidDate",
+    "id": "0173-1#02-ABL775#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Validity date"
+            },
+            {
+              "language": "de",
+              "text": "Verfallsdatum"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "ValidDate"
+            },
+            {
+              "language": "en",
+              "text": "Verfallsdatum"
+            }
+          ],
+          "dataType": "DATE",
+          "definition": [
+            {
+              "language": "en",
+              "text": "Date at which a product, process, norm or similar becomes invalid"
+            },
+            {
+              "language": "de",
+              "text": "Datum, bis zu dem ein Produkt, ein Verfahren, eine Norm o.\u00E4. g\u00FCltig ist"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_SpecificDescriptions": {
+    "id": "0173-1#02-ABM221#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Specific descriptions"
+            },
+            {
+              "language": "de",
+              "text": "Spezifiche Beschreibungen"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "SpecDescrisptions"
+            },
+            {
+              "language": "de",
+              "text": "SpezBeschreibungen"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Specific description areas for multiple use cases or areas of \u200B\u200Bapplication"
+            },
+            {
+              "language": "de",
+              "text": "Spezifische Beschreibungsbereiche f\u00FCr mehrere Anwendungsf\u00E4lle oder Anwendungsbereiche"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_SpecificDescription": {
+    "idShort": "SpecificDescription",
+    "description": [
+      {
+        "language": "en",
+        "text": "Note: The idShort is arbitrary."
+      },
+      {
+        "language": "en",
+        "text": "Note: Using displayName is recommended for the titel of the specific description."
+      }
+    ],
+    "id": "0173-1#02-ABM221#001/0173-1#01-AHY912#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Specific description"
+            },
+            {
+              "language": "de",
+              "text": "Spezifiche Beschreibung"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "SpecDescription"
+            },
+            {
+              "language": "de",
+              "text": "SpezBeschreibung"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Specific description for a use case or area of \u200B\u200Bapplication"
+            },
+            {
+              "language": "de",
+              "text": "Spezifische Beschreibung f\u00FCr einen Anwendungsfall oder ein Einsatzgebiet"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  }
+}

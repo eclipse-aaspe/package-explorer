@@ -7,6 +7,7 @@ This source code is licensed under the Apache License 2.0 (see LICENSE.txt).
 This source code may use other Open Source software components (see LICENSE.txt).
 */
 
+using AdminShellNS;
 using Extensions;
 using Aas = AasCore.Aas3_1;
 
@@ -18,7 +19,7 @@ namespace AasxPredefinedConcepts.ConceptModel
     /// </summary>
     public class ConceptModelZveiTechnicalData
     {
-        public enum Version { Unknown, V1_0, V1_1, V1_2 }
+        public enum Version { Unknown, V1_0, V1_1, V1_2, V2_0 }
 
         public Version ActiveVersion = Version.Unknown;
 
@@ -33,19 +34,30 @@ namespace AasxPredefinedConcepts.ConceptModel
             CD_ManufacturerPartNumber,
             CD_ManufacturerArticleNumber,
             CD_ManufacturerOrderCode,
+            CD_ProductImages,
             CD_ProductImage,
+            CD_ProductImageFile,
+            CD_ProductImageNote,
             CD_ProductClassifications,
             CD_ProductClassificationItem,
             CD_ProductClassificationSystem,
             CD_ClassificationSystemVersion,
+            CD_ClassificationSystemUrl,
             CD_ProductClassId,
+            CD_ProductClassCodedName,
+            CD_ProductClassName,
             CD_TechnicalProperties,
+            CD_ReferenceToTechnicalPropertyArea,
+            CD_TechnicalPropertyAreas,
+            CD_TechnicalPropertyArea,
             CD_SemanticIdNotAvailable,
             CD_MainSection,
             CD_SubSection,
             CD_FurtherInformation,
             CD_TextStatement,
-            CD_ValidDate;
+            CD_ValidDate,
+            CD_SpecificDescriptions,
+            CD_SpecificDescription;
 
         public ConceptModelZveiTechnicalData(Aas.ISubmodel sm)
         {
@@ -153,6 +165,45 @@ namespace AasxPredefinedConcepts.ConceptModel
                 CD_TextStatement = defsV12.CD_TextStatement;
                 CD_ValidDate = defsV12.CD_ValidDate;
             }
+
+            //
+            // V2.0
+            //
+
+            if (ver == Version.V2_0)
+            {
+                var defsV20 = AasxPredefinedConcepts.IdtaTechnicalDataV20.Static;
+
+                ActiveVersion = Version.V2_0;
+
+                SM_TechnicalData = defsV20.SM_TechnicalData;
+
+                CD_GeneralInformation = defsV20.CD_GeneralInformation;
+                CD_ManufacturerName = defsV20.CD_ManufacturerName;
+                CD_ManufacturerLogo = defsV20.CD_CompanyLogo;
+                CD_ManufacturerProductDesignation = defsV20.CD_ManufacturerProductDesignation;
+                CD_ManufacturerArticleNumber = defsV20.CD_ManufacturerArticleNumber;
+                CD_ManufacturerOrderCode = defsV20.CD_ManufacturerOrderCode;
+                CD_ProductImages = defsV20.CD_ProductImages;
+                CD_ProductImage = defsV20.CD_ProductImage;
+                CD_ProductImageFile = defsV20.CD_ImageFile;
+                CD_ProductImageNote = defsV20.CD_ImageNote;
+                CD_ProductClassifications = defsV20.CD_ProductClassifications;
+                CD_ProductClassificationItem = defsV20.CD_ProductClassification;
+                CD_ProductClassificationSystem = defsV20.CD_ClassificationSystem;
+                CD_ClassificationSystemVersion = defsV20.CD_ClassificationSystemVersion;
+                CD_ClassificationSystemUrl = defsV20.CD_ClassificationSystemUrl;
+                CD_ProductClassId = defsV20.CD_ProductClassId;
+                CD_ProductClassCodedName = defsV20.CD_ProductClassCodedName;
+                CD_ProductClassName = defsV20.CD_ProductClassName;
+                CD_TechnicalPropertyAreas = defsV20.CD_TechnicalPropertyAreas;
+                CD_TechnicalPropertyArea = defsV20.CD_TechnicalPropertyArea;
+                CD_FurtherInformation = defsV20.CD_FurtherInformation;
+                CD_TextStatement = defsV20.CD_TextStatement;
+                CD_ValidDate = defsV20.CD_ValidDate;
+                CD_SpecificDescriptions = defsV20.CD_SpecificDescriptions;
+                CD_SpecificDescription = defsV20.CD_SpecificDescription;
+            }
         }
 
         public void InitFromSubmodel(Aas.ISubmodel sm)
@@ -172,6 +223,18 @@ namespace AasxPredefinedConcepts.ConceptModel
             if (sm.SemanticId.MatchesExactlyOneKey(
                     defsV12.SM_TechnicalData.SemanticId.GetAsExactlyOneKey(), MatchMode.Relaxed))
                 InitFromVersion(Version.V1_2);
+
+            var defsV20 = AasxPredefinedConcepts.IdtaTechnicalDataV20.Static;
+            if (sm.SemanticId.MatchesExactlyOneKey(
+                    defsV20.SM_TechnicalData.SemanticId.GetAsExactlyOneKey(), MatchMode.Relaxed))
+                InitFromVersion(Version.V2_0);
+
+            // EXTRA rule
+            foreach (var ssid in sm.SupplementalSemanticIds.ForEachSafe())
+                if (true == ssid?.MatchesExactlyOneKey(
+                    defsV20.SM_TechnicalData.SemanticId.GetAsExactlyOneKey(), MatchMode.Relaxed))
+                    InitFromVersion(Version.V2_0);
+
         }
     }
 }

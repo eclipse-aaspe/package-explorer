@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -37,6 +37,14 @@ namespace AdminShellNS
         }
 
         public static IEnumerable<T> ForEachSafe<T>(this List<T> list)
+        {
+            if (list == null)
+                yield break;
+            foreach (var x in list)
+                yield return x;
+        }
+
+        public static IEnumerable<T> ForEachSafe<T>(this IEnumerable<T> list)
         {
             if (list == null)
                 yield break;

@@ -1,10 +1,10 @@
-﻿{
+{
   "Records": [
     {
       "AllowSubmodelSemanticId": [
         {
           "type": "Submodel",
-          "value": "http://admin-shell.io/tmp/SG2/TechnicalData/Submodel/1/0",
+          "value": "http://admin-shell.io/tmp/SG2/TechnicalData/Submodel/1/0"
         }
       ]
     },
@@ -12,7 +12,7 @@
       "AllowSubmodelSemanticId": [
         {
           "type": "Submodel",
-          "value": "http://admin-shell.io/sandbox/SG2/TechnicalData/Submodel/1/1",
+          "value": "http://admin-shell.io/sandbox/SG2/TechnicalData/Submodel/1/1"
         }
       ]
     },
@@ -20,9 +20,32 @@
       "AllowSubmodelSemanticId": [
         {
           "type": "Submodel",
-          "value": "https://admin-shell.io/ZVEI/TechnicalData/Submodel/1/2",
+          "value": "https://admin-shell.io/ZVEI/TechnicalData/Submodel/1/2"
         }
       ]
+    },
+    {
+      "AllowSubmodelSemanticId": [
+        {
+          "type": "Submodel",
+          "value": "https://admin-shell.io/idta/SubmodelTemplate/TechnicalData/2/0"
+        }
+      ]
+    },
+    {
+      "AllowSubmodelSemanticId": [
+        {
+          "type": "Submodel",
+          "value": "0173-1#01-AHX837#002"
+        }
+      ]
+    }
+  ],
+  // EXTRA handling: specified SUPPLEMENTAL semanticId!!
+  "AllowSupplementalSemanticId": [
+    {
+      "type": "Submodel",
+      "value": "0173-1#01-AHX837#002"
     }
   ]
 }
