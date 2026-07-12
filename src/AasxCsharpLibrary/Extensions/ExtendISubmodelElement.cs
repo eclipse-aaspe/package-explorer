@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -12,6 +12,7 @@ using AdminShellNS.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Extensions
@@ -84,6 +85,13 @@ namespace Extensions
                         property.ValueFromText(text);
                         break;
                     }
+
+                case Blob blob:
+                    {
+                        blob.Value = Encoding.Default.GetBytes("" + text);
+                        break;
+                    }
+
                 case MultiLanguageProperty multiLanguageProperty:
                     {
                         multiLanguageProperty.ValueFromText(text, defaultLang);
@@ -160,6 +168,11 @@ namespace Extensions
             if (submodelElement is File file)
             {
                 return file.ValueAsText();
+            }
+
+            if (submodelElement is Blob blob)
+            {
+                return System.Text.Encoding.UTF8.GetString(blob.Value);
             }
 
             return "";

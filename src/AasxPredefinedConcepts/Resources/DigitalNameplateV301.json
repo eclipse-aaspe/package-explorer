@@ -1,0 +1,954 @@
+/* official Submodel Template Spec Digital Nameplate V3.0.1 from OCT 2025 */
+{
+  "SM_Nameplate": {
+    "idShort": "Nameplate",
+    "description": [
+      {
+        "language": "en",
+        "text": "Contains the nameplate information attached to the product"
+      }
+    ],
+    "administration": {
+      "version": "3",
+      "revision": "0",
+      "templateId": "https://admin-shell.io/idta-02006-3-0"
+    },
+    "id": "https://admin-shell.io/idta/nameplate/3/0/Nameplate",
+    "kind": "Template",
+    "semanticId": {
+      "type": "ExternalReference",
+      "keys": [
+        {
+          "type": "GlobalReference",
+          "value": "https://admin-shell.io/idta/nameplate/3/0/Nameplate"
+        }
+      ]
+    },
+    "modelType": "Submodel"
+  },
+  "CD_ManufacturerName": {
+    "idShort": "ManufacturerName",
+    "id": "0112/2///61987#ABA565#009",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "ManufacturerName"
+            }
+          ],
+          "dataType": "STRING_TRANSLATABLE",
+          "definition": [
+            {
+              "language": "en",
+              "text": "legally valid designation of the natural or judicial person which is directly responsible for the design, production, packaging and labeling of a product in respect to its being brought into circulation"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ManufacturerProductDesignation": {
+    "idShort": "ManufacturerProductDesignation",
+    "id": "0112/2///61987#ABA567#009",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "ManufacturerProductDesignation"
+            }
+          ],
+          "dataType": "STRING_TRANSLATABLE",
+          "definition": [
+            {
+              "language": "en",
+              "text": "short description of the product (short text), third or lowest level of a 3 level manufacturer specific product hierarchy"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ManufacturerProductRoot": {
+    "idShort": "ManufacturerProductRoot",
+    "id": "0112/2///61360_7#AAS011#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "ManufacturerProductRoot"
+            }
+          ],
+          "dataType": "STRING_TRANSLATABLE",
+          "definition": [
+            {
+              "language": "en",
+              "text": "top level of a 3 level manufacturer specific product hierarchy"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ManufacturerProductFamily": {
+    "idShort": "ManufacturerProductFamily",
+    "id": "0112/2///61987#ABP464#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "ManufacturerProductFamily"
+            }
+          ],
+          "dataType": "STRING_TRANSLATABLE",
+          "definition": [
+            {
+              "language": "en",
+              "text": "second level of a 3 level manufacturer specific product hierarchy"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ManufacturerProductType": {
+    "idShort": "ManufacturerProductType",
+    "id": "0112/2///61987#ABA300#008",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "ManufacturerProductType"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "characteristic to differentiate between different products of a product family or special variants"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_OrderCodeOfManufacturer": {
+    "idShort": "OrderCodeOfManufacturer",
+    "id": "0112/2///61987#ABA950#008",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "OrderCodeOfManufacturer"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "unique combination of numbers and letters issued by the manufacturer that is used to identify the device for ordering"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ProductArticleNumberOfManufacturer": {
+    "idShort": "ProductArticleNumberOfManufacturer",
+    "id": "0112/2///61987#ABA581#007",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "ProductArticleNumberOfManufacturer"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "unique product identifier of the manufacturer"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_SerialNumber": {
+    "idShort": "SerialNumber",
+    "id": "0112/2///61987#ABA951#009",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "SerialNumber"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "unique combination of numbers and letters used to identify the device once it has been manufactured"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_YearOfConstruction": {
+    "idShort": "YearOfConstruction",
+    "id": "0112/2///61987#ABP000#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "YearOfConstruction"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "year in which the manufacturing process is completed"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_DateOfManufacture": {
+    "idShort": "DateOfManufacture",
+    "id": "0112/2///61987#ABB757#007",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "DateOfManufacture"
+            }
+          ],
+          "dataType": "DATE",
+          "definition": [
+            {
+              "language": "en",
+              "text": "date when an item was manufactured"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_HardwareVersion": {
+    "idShort": "HardwareVersion",
+    "id": "0112/2///61987#ABA926#008",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "HardwareVersion"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "version of the hardware supplied with the device"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_FirmwareVersion": {
+    "idShort": "FirmwareVersion",
+    "id": "0112/2///61987#ABA302#006",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "FirmwareVersion"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "version of the firmware supplied with the device"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_SoftwareVersion": {
+    "idShort": "SoftwareVersion",
+    "id": "0112/2///61987#ABA601#008",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "SoftwareVersion"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "version of the software used by the device"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_CountryOfOrigin": {
+    "idShort": "CountryOfOrigin",
+    "id": "0112/2///61987#ABP462#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "CountryOfOrigin"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "country where the product was manufactured"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_UniqueFacilityIdentifier": {
+    "idShort": "UniqueFacilityIdentifier",
+    "id": "https://admin-shell.io/idta/nameplate/3/0/UniqueFacilityIdentifier",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "UniqueFacilityIdentifier"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "unique string of characters for the identification of locations or buildings involved in a product\u2019s value chain or used by actors involved in a product\u2019s value chain"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_CompanyLogo": {
+    "idShort": "CompanyLogo",
+    "id": "0112/2///61987#ABP463#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "CompanyLogo"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "a graphic mark used to represent a company, an organisation or a product"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_Markings": {
+    "idShort": "Markings",
+    "description": [
+      {
+        "language": "en",
+        "text": "Note: CE marking is declared as mandatory according to EU Machine Directive 2006/42/EC."
+      }
+    ],
+    "id": "0112/2///61360_7#AAS006#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Markings"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Collection of product markings"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_Marking": {
+    "idShort": "Marking",
+    "description": [
+      {
+        "language": "en",
+        "text": "Note: CE marking is declared as mandatory according to the Blue Guide of the EU-Commission"
+      }
+    ],
+    "id": "0112/2///61360_7#AAS009#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "Marking"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Single marking information"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_MarkingName": {
+    "idShort": "MarkingName",
+    "id": "0112/2///61987#ABA231#009",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "MarkingName"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "common name of the marking"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_DesignationOfCertificateOrApproval": {
+    "idShort": "DesignationOfCertificateOrApproval",
+    "id": "0112/2///61987#ABH783#003",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "DesignationOfCertificateOrApproval"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "alphanumeric character sequence identifying a certificate or approval"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_IssueDate": {
+    "idShort": "IssueDate",
+    "id": "0112/2///61987#ABO097#001",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "IssueDate"
+            }
+          ],
+          "dataType": "DATE",
+          "definition": [
+            {
+              "language": "en",
+              "text": "date, at which the specified certificate is issued "
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_ExpiryDate": {
+    "idShort": "ExpiryDate",
+    "id": "0112/2///61987#ABH830#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "ExpiryDate"
+            }
+          ],
+          "dataType": "DATE",
+          "definition": [
+            {
+              "language": "en",
+              "text": "date, at which the specified certificate expires "
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_MarkingFile": {
+    "idShort": "MarkingFile",
+    "id": "0112/2///61987#ABO100#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "MarkingFile"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "conformity symbol of the marking "
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_MarkingAdditionalText": {
+    "idShort": "MarkingAdditionalText",
+    "id": "0112/2///61987#ABB146#007",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "MarkingAdditionalText"
+            }
+          ],
+          "dataType": "STRING",
+          "definition": [
+            {
+              "language": "en",
+              "text": "where applicable, additional information on the marking in plain text, e.g. the ID-number of the notified body involved in the conformity process"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_AssetSpecificProperties": {
+    "idShort": "AssetSpecificProperties",
+    "id": "0173-1#02-ABI218#003/0173-1#01-AGZ672#004",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "AssetSpecificProperties"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Group of properties that are listed on the asset\u0027s nameplate and are grouped based on guidelines"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_GuidelineSpecificProperties": {
+    "idShort": "GuidelineSpecificProperties",
+    "id": "0173-1#02-ABI219#003/0173-1#01-AHD205#004",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "GuidelineSpecificProperties"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "Information elements guided by a specific standard or guideline"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  "CD_GuidelineForConformityDeclaration": {
+    "idShort": "GuidelineForConformityDeclaration",
+    "id": "0173-1#02-AAO856#002",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "GuidelineForConformityDeclaration"
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "guideline, stipulation or legislation used for determining conformity"
+            }
+          ],
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  }
+}

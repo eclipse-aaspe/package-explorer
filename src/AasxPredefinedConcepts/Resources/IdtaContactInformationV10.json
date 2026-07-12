@@ -1,4 +1,4 @@
-﻿/* official Submodel Template Spec ZVEI ContactInformation V1.0 from 13 APR 2021;
+/* official Submodel Template Spec ZVEI ContactInformation V1.0 from 13 APR 2021;
 updated by the IDTA 24 MAY 2022 */
 {
   "SM_ContactInformations": {
@@ -1402,6 +1402,62 @@ updated by the IDTA 24 MAY 2022 */
           "value": "",
           "modelType": "DataSpecificationIec61360"
         }
+      }
+    ],
+    "modelType": "ConceptDescription"
+  },
+  // manually copied in order to copy with drop-in for Digi Nameplate V3.01
+  "CD_AddressInformation": {
+    "idShort": "AddressInformation",
+    "administration": {
+      "version": "",
+      "revision": ""
+    },
+    "id": "https://admin-shell.io/zvei/nameplate/1/0/ContactInformations/AddressInformation",
+    "embeddedDataSpecifications": [
+      {
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "AddressInformation"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": ""
+            }
+          ],
+          "definition": [
+            {
+              "language": "en",
+              "text": "The SMC \u201CAddressInformation\u201D contains information on how to contact the manufacturer or an authorised service provider, e.g. when a maintenance service is required"
+            }
+          ],
+          "value": "",
+          "modelType": "DataSpecificationIec61360"
+        }
+      }
+    ],
+    "isCaseOf": [
+      {
+        "type": "ModelReference",
+        "keys": [
+          {
+            "type": "GlobalReference",
+            "value": "0173-1#02-AAQ837#005"
+          }
+        ]
       }
     ],
     "modelType": "ConceptDescription"

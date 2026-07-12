@@ -22,6 +22,7 @@
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\DigitalNameplateV301.json" />
     <EmbeddedResource Include="Resources\IdtaHierarchicalStructV11.json" />
     <EmbeddedResource Include="Resources\IdtaProductChangeNotificationsV10.json" />
     <EmbeddedResource Include="Resources\IdtaHandoverDocumentationV12.json" />

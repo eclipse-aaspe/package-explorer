@@ -435,6 +435,47 @@ namespace AasxPluginExportTable.Smt
             _adoc.AppendLine("");
         }
 
+        protected void ProcessPlaceholder(string st, Action<string> setLambda, string itemA, string itemB)
+        {
+            if (st == null || setLambda == null)
+                return;
+
+            if (st.Contains("%ITEMA%"))
+                setLambda(st.Replace("%ITEMA%", itemA));
+            if (st.Contains("%ITEMB%"))
+                setLambda(st.Replace("%ITEMB%", itemB));
+        }
+
+        protected Aas.ISubmodelElement CopyWithItemPlaceholders(
+            Aas.ISubmodelElement origSme,
+            string itemA, string itemB)
+        {
+            // create
+            var sme = origSme.Copy();
+
+            // some attributes
+            ProcessPlaceholder(sme.IdShort, (s) => sme.IdShort = s, itemA, itemB);
+
+            if (sme.Description != null)
+                foreach (var x in sme.Description)
+                    ProcessPlaceholder(x.Text, (s) => x.Text = s, itemA, itemB);
+
+            if (sme.DisplayName != null)
+                foreach (var x in sme.DisplayName)
+                    ProcessPlaceholder(x.Text, (s) => x.Text = s, itemA, itemB);
+
+            if (sme is Aas.Blob smeBlob)
+                ProcessPlaceholder(smeBlob.ValueAsText(), (s) => smeBlob.ValueFromText(s), itemA, itemB);
+
+            if (sme is Aas.IReferenceElement smeRefel)
+                if (smeRefel?.Value?.IsValid() == true)
+                    foreach (var k in smeRefel.Value.Keys)
+                        ProcessPlaceholder(k.Value, (s) => k.Value = s, itemA, itemB);
+
+            // return the modified copy
+            return sme;
+        }
+
         public async Task ExportSmtToFile(
             LogInstance log,
             AnyUiContextPlusDialogs displayContext,
@@ -520,6 +561,55 @@ namespace AasxPluginExportTable.Smt
                 var semId = sme?.SemanticId;
                 if (semId?.IsValid() != true)
                     return true;
+
+                // special case: iterating via an SMC
+                if (sme is Aas.ISubmodelElementCollection iterSmc
+                    && semId.Matches(defs.CD_IterateList.GetCdReference(), mm))
+                {
+                    // special path, find arguments?
+                    var q = sme.HasExtensionOfName("ExportSmt.Args");
+                    var args = ExportSmtArguments.Parse(q?.Value);
+                    if (args?.itemsA == null || args.itemsA.Length < 1)
+                    {
+                        log.Error("Iterator element with semId = " +
+                            "http://admin-shell.io/aasx-package-explorer/functions/asciidoc/iterate-list/1/0 " +
+                            "found but no list ExportSmt.Args.itemsA provided. Aborting!");
+                        return false;
+                    }
+
+                    // ok, go over the items
+                    for (int i = 0; i < args.itemsA.Length; i++)
+                    {
+                        // items
+                        var itemA = args.itemsA[i];
+                        var itemB = (args.itemsB != null && args.itemsB.Length > i) ? args.itemsB[i] : "";
+
+                        // do our own version of recursion!
+                        iterSmc.RecurseOnReferables(null, (o, parents, rf) =>
+                        {
+                            // Referable?
+                            if (rf is not Aas.ISubmodelElement sme2)
+                                return true;
+
+                            // semantic id
+                            var semId = sme2?.SemanticId;
+                            if (semId?.IsValid() != true)
+                                return true;
+
+                            // add, but as an INDEPENDENT COPY!
+                            linearSmes.Add(new SmeLinearItem()
+                            {
+                                SemId = semId,
+                                Sme = CopyWithItemPlaceholders(sme2, itemA, itemB),
+                                Parents = parents.ToList()
+                            });
+                            return true;
+                        });
+                    }
+
+                    // no standard recursion ..
+                    return false;
+                }
 
                 // add
                 linearSmes.Add(new SmeLinearItem()

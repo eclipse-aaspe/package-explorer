@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -90,6 +90,11 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 foreach (var rec in _options.LookupAllIndexKey<DigitalNameplateOptionsRecord>(
                     sm.SemanticId?.GetAsExactlyOneKey()))
                     found = true;
+
+                // EXTRA rule for techical data of NAMUR
+                found = found || NameplateAnyUiControl.CheckSuppleSemId(sm, _options);
+
+                // OK
                 if (!found)
                     return null;
 

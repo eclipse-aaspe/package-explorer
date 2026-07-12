@@ -63,6 +63,21 @@ namespace AasxPluginExportTable
         /// </summary>
         public double[] columnWidths = null;
 
+        /// <summary>
+        /// List of items to be iterated. Will provide placeholder %ITEMA%
+        /// </summary>
+        public string[] itemsA = null;
+
+        /// <summary>
+        /// List of items to be iterated. Will provide placeholder %ITEMB%
+        /// </summary>
+        public string[] itemsB = null;
+
+        /// <summary>
+        /// List of element names (idShort) for various informations
+        /// </summary>
+        public string[] idShorts = null;
+
         // ReSharper enable UnassignedField.Global
 
         public static ExportSmtArguments Parse(string json)

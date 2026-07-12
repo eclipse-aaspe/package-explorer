@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -28,7 +28,7 @@ namespace AasxPluginDigitalNameplate
     /// </summary>
     public class DigitalNameplateOptionsRecord : AasxPluginOptionsLookupRecordBase
     {
-        public enum ParserEnum { V10, V20 };
+        public enum ParserEnum { V10, V20, V301 };
 
         public ParserEnum Parser = DigitalNameplateOptionsRecord.ParserEnum.V10;
         public string Explanation = "";
@@ -37,6 +37,12 @@ namespace AasxPluginDigitalNameplate
     public class DigitalNameplateOptions : AasxPluginLookupOptionsBase
     {
         public List<DigitalNameplateOptionsRecord> Records = new List<DigitalNameplateOptionsRecord>();
+
+        /// <summary>
+        /// Extra rule: Allow this plugin to trigger also, WHEN ONLY the
+        /// supplemental semId is correct!
+        /// </summary>
+        public List<Aas.Key> AllowSupplementalSemanticId = new List<Aas.Key>();
 
         /// <summary>
         /// Create a set of minimal options
@@ -81,6 +87,24 @@ namespace AasxPluginDigitalNameplate
                "This is version V2.0 of the Submodel for digital nameplate. It is maintained by " +
                "the Industrial Digital Twin Association (IDTA). It currently features a mix of URI and " +
                "ECLASS properties and is already prepared to be updated with IEC CDD properties.";
+
+            // V3.0.1
+
+            rec = new DigitalNameplateOptionsRecord();
+            opt.Records.Add(rec);
+
+            rec.AllowSubmodelSemanticId.Add(
+                AasxPredefinedConcepts.DigitalNameplateV301.Static.SM_Nameplate.GetSemanticKey());
+
+            rec.Parser = DigitalNameplateOptionsRecord.ParserEnum.V301;
+
+            rec.Explanation = dpp +
+               "This is version V3.0.1 of the Submodel for digital nameplate. It is maintained by " +
+               "the Industrial Digital Twin Association (IDTA). It features already IEC CDD properties.";
+
+            opt.AllowSupplementalSemanticId = new();
+            opt.AllowSupplementalSemanticId.Add(
+                AasxPredefinedConcepts.DigitalNameplateV301.Static.SM_Nameplate.GetSemanticKey());
 
             return opt;
         }

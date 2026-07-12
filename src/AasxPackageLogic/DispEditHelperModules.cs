@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -3337,5 +3337,44 @@ namespace AasxPackageLogic
 					});            
 		}
 
+
+        public void DisplayOrEditSubmodelActions(
+            Aas.IEnvironment env, AnyUiStackPanel stack,
+            Aas.ISubmodel sm, Aas.ISubmodelElement sme,
+            AasxMenu superMenu = null)
+        {
+            // access
+            if (stack == null || sm == null)
+                return;
+
+            // list of context specific actions
+            var menu = new AasxMenu();
+
+            // Submodel template helper
+            if (true == sm.SemanticId?.Matches(AasxPredefinedConcepts.SmtAdditions.Static.CD_SmtTemplateTemplate.GetCdReference())
+                && sm.SubmodelElements != null && sm.SubmodelElements.Count >= 1)
+            {
+                menu.AddAction("start-template-gen", "Start template generation",
+                            "Takes the Submodel template template and starts the generation.");
+            }
+
+            // nothing
+            if (menu.Count < 1)
+                return;
+
+            // ok, panel
+            this.AddActionPanel(
+                    stack, "Context actions:",
+                    repo: repo, superMenu: superMenu,
+                    ticketMenu: menu,
+                    ticketAction: (buttonNdx, ticket) =>
+                    {
+                        if (buttonNdx == 0)
+                        {
+                        }
+
+                        // ok
+                        return new AnyUiLambdaActionNone();
+                    });
 	}
 }

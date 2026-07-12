@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -142,6 +142,17 @@ namespace AasxPluginDigitalNameplate
         #region Display Submodel
         //=============
 
+        public static bool CheckSuppleSemId(Aas.ISubmodel sm, DigitalNameplateOptions options)
+        {
+            if (sm.SupplementalSemanticIds != null
+                    && options.AllowSupplementalSemanticId != null)
+                foreach (var k in options.AllowSupplementalSemanticId)
+                    foreach (var ssid in sm.SupplementalSemanticIds)
+                        if (ssid?.Matches(k.Value) == true)
+                            return true;
+            return false;
+        }
+
         private void RenderFullNameplate(AnyUiStackPanel view, AnyUiSmallWidgetToolkit uitk)
         {
             // test trivial access
@@ -153,6 +164,12 @@ namespace AasxPluginDigitalNameplate
                 _submodel?.SemanticId?.GetAsExactlyOneKey()))
                 _foundRecord = rec;
 
+            // extra rule
+            if (CheckSuppleSemId(_submodel, _options))
+                _foundRecord = new DigitalNameplateOptionsRecord() {
+                    Parser = DigitalNameplateOptionsRecord.ParserEnum.V301
+                };
+
             if (_foundRecord == null)
                 return;
 
@@ -162,6 +179,9 @@ namespace AasxPluginDigitalNameplate
 
             if (_foundRecord.Parser == DigitalNameplateOptionsRecord.ParserEnum.V20)
                 _nameplateData = NameplateData.ParseSubmodelForV20(_package, _submodel, _options);
+
+            if (_foundRecord.Parser == DigitalNameplateOptionsRecord.ParserEnum.V301)
+                _nameplateData = NameplateData.ParseSubmodelForV301(_package, _submodel, _options);
 
             // bring it to the panel            
             RenderPanelOutside(view, uitk, _renderedVersion);

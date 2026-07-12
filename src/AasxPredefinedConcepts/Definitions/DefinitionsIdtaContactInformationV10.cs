@@ -28,6 +28,7 @@ namespace AasxPredefinedConcepts
         public
             Aas.ConceptDescription
             CD_ContactInformation,
+            CD_AddressInformation,          // manually for Digi Nameplate V3.0.1
             CD_RoleOfContactPerson,
             CD_NationalCode,
             CD_Language,

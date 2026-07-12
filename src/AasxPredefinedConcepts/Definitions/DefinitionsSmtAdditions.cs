@@ -24,7 +24,9 @@ namespace AasxPredefinedConcepts
         public static SmtAdditions Static = new SmtAdditions();
 
         public Aas.ConceptDescription
-            CD_ContactInfoPreviewFile;
+            CD_ContactInfoPreviewFile,
+            CD_SmtTemplateTemplate,
+            CD_SmtCopyElements;
 
         public Aas.IKey
             Key_SmtDropinDefinition,
@@ -48,6 +50,16 @@ namespace AasxPredefinedConcepts
             Key_SmtDropinUse = new Aas.Key(Aas.KeyTypes.GlobalReference,
                 "https://admin-shell.io/smt-dropin/smt-dropin-use/1/0");
 
+            // Template templates
+            CD_SmtTemplateTemplate = CreateSparseConceptDescription("en", "IRI",
+                "SMT/TemplateTemplate",
+                "https://admin-shell.io/tmp/SMT/Additions/SmtTemplateTemplate/Submodel/1/0",
+                @"Submodel template containing information about another Submodel template is to be built.");
+
+            CD_SmtCopyElements = CreateSparseConceptDescription("en", "IRI",
+                "SMT/CopyElements",
+                "https://admin-shell.io/tmp/SMT/Additions/SmtTemplateTemplate/CopyElements/1/0",
+                @"Copy named elements to another Submodel element.");
 
             // reflect
             AddEntriesByReflection(this.GetType(), useAttributes: false, useFieldNames: true);

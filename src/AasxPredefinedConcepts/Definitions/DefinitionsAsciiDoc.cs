@@ -32,7 +32,8 @@ namespace AasxPredefinedConcepts
             CD_ImageFile,
             CD_GenerateUml,
             CD_GenerateTables,
-            CD_GenerateEnum;
+            CD_GenerateEnum,
+            CD_IterateList;
 
         public AsciiDoc()
         {
@@ -93,6 +94,11 @@ namespace AasxPredefinedConcepts
                 "GenerateEnumTable",
                 "http://admin-shell.io/aasx-package-explorer/functions/asciidoc/generate-enum-table/1/0",
                 @"Reference element linking to a SubmodelElement or ConceptDescription with associatede value list.");
+
+            CD_IterateList = CreateSparseConceptDescription("en", "IRI",
+                "IterateList",
+                "http://admin-shell.io/aasx-package-explorer/functions/asciidoc/iterate-list/1/0",
+                @"Iteration over list. ExportSmt.Args has option ItemsA, ItemsB, .. which will define %ITEMA%, %ITEMB%.");
 
             // reflect
             AddEntriesByReflection(this.GetType(), useAttributes: false, useFieldNames: true);

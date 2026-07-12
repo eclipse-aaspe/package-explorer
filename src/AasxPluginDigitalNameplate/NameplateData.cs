@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -308,6 +308,143 @@ namespace AasxPluginDigitalNameplate
                 .FindFirstSemanticIdAs<Aas.ISubmodelElementCollection>(defs.CD_Markings?.GetSingleKey(), mm)?.Value;
             if (collMarkings == null)
                 collMarkings = subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.ISubmodelElementList>(defs.CD_Markings?.GetSingleKey(), mm)?.Value;
+            if (collMarkings != null)
+            {
+                res.Markings = new List<MarkingInfo>();
+
+                foreach (var smcMark in collMarkings
+                    .FindAllSemanticIdAs<Aas.SubmodelElementCollection>(defs.CD_Marking?.GetSingleKey(), mm))
+                {
+                    var mi = new MarkingInfo();
+                    res.Markings.Add(mi);
+
+                    mi.Name = "" + smcMark?.Value
+                        .FindFirstSemanticIdAs<Aas.IProperty>(defs.CD_MarkingName?.GetSingleKey(), mm)?
+                        .Value;
+
+                    mi.File = smcMark?.Value
+                        .FindFirstSemanticIdAs<Aas.IFile>(defs.CD_MarkingFile?.GetSingleKey(), mm);
+
+                    mi.AddText = new List<string>();
+                    foreach (var mat in smcMark?.Value
+                        .FindAllSemanticIdAs<Aas.IProperty>(defs.CD_MarkingAdditionalText?.GetSingleKey(), mm))
+                    {
+                        mi.AddText.Add("" + mat?.Value);
+                    }
+                }
+            }
+
+            // done
+            return res;
+        }
+
+        //
+        // V301
+        //
+
+        public static NameplateData ParseSubmodelForV301(
+            AdminShellPackageEnvBase thePackage,
+            Aas.Submodel subModel, DigitalNameplateOptions options,
+            string defaultLang = null)
+        {
+            // access 
+            if (subModel == null || options == null)
+                return null;
+
+            // make result
+            var res = new NameplateData();
+
+            // shortcuts
+            var defs   = AasxPredefinedConcepts.DigitalNameplateV301.Static;
+            var defsCI = AasxPredefinedConcepts.IdtaContactInformationV10.Static;
+            var mm = MatchMode.Relaxed;
+
+            // SME on top level
+            res.URIOfTheProduct = "" + subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IProperty>(
+                    defs.CD_URIOfTheProduct?.GetSingleKey(), mm)?
+                .Value;
+
+            res.ManufacturerName = "" + subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IMultiLanguageProperty>(
+                    defs.CD_ManufacturerName?.GetSingleKey(), mm)?
+                .Value?.GetDefaultString(defaultLang);
+
+            res.ManufacturerProductDesignation = "" + subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IMultiLanguageProperty>(
+                    defs.CD_ManufacturerProductDesignation?.GetSingleKey(), mm)?
+                .Value?.GetDefaultString(defaultLang);
+
+            res.ManufacturerProductRoot = "" + subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IMultiLanguageProperty>(
+                    defs.CD_ManufacturerProductRoot?.GetSingleKey(), mm)?
+                .Value?.GetDefaultString(defaultLang);
+
+            res.ManufacturerProductFamily = "" + subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IMultiLanguageProperty>(
+                    defs.CD_ManufacturerProductFamily?.GetSingleKey(), mm)?
+                .Value?.GetDefaultString(defaultLang);
+
+            res.ManufacturerProductType = "" + subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IProperty>(
+                    defs.CD_ManufacturerProductType?.GetSingleKey(), mm)?
+                .Value;
+
+            res.OrderCodeOfManufacturer = "" + subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IProperty>(
+                    defs.CD_OrderCodeOfManufacturer?.GetSingleKey(), mm)?
+                .Value;
+
+            res.ProductArticleNumberOfManufacturer = "" + subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IProperty>(
+                    defs.CD_ProductArticleNumberOfManufacturer?.GetSingleKey(), mm)?
+                .Value;
+
+            res.SerialNumber = "" + subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IProperty>(defs.CD_SerialNumber?.GetSingleKey(), mm)?
+                .Value;
+
+            res.YearOfConstruction = "" + subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IProperty>(defs.CD_YearOfConstruction?.GetSingleKey(), mm)?
+                .Value;
+
+            res.DateOfManufacture = "" + subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IProperty>(defs.CD_DateOfManufacture?.GetSingleKey(), mm)?
+                .Value;
+
+            res.HardwareVersion = "" + subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IProperty>(
+                    defs.CD_HardwareVersion?.GetSingleKey(), mm)?
+                .Value;
+
+            res.FirmwareVersion = "" + subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IProperty>(
+                    defs.CD_FirmwareVersion?.GetSingleKey(), mm)?
+                .Value;
+
+            res.SoftwareVersion = "" + subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IProperty>(
+                    defs.CD_SoftwareVersion?.GetSingleKey(), mm)?
+                .Value;
+
+            res.CountryOfOrigin = "" + subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IProperty>(defs.CD_CountryOfOrigin?.GetSingleKey(), mm)?
+                .Value;
+
+            res.CompanyLogo = subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.IFile>(defs.CD_CompanyLogo?.GetSingleKey(), mm);
+
+            // find contact info?
+            var smcContInf = subModel.SubmodelElements
+                .FindFirstSemanticIdAs<Aas.ISubmodelElementCollection>(
+                    defsCI.CD_AddressInformation?.GetSingleKey(), mm);
+
+            res.ContactInformation = AasxPredefinedConcepts.InfoAccessDigitalNameplateV301
+                .ContactInfoToStrings(smcContInf);
+
+            // find markings?
+            var collMarkings = subModel.SubmodelElements
                 .FindFirstSemanticIdAs<Aas.ISubmodelElementList>(defs.CD_Markings?.GetSingleKey(), mm)?.Value;
             if (collMarkings != null)
             {
