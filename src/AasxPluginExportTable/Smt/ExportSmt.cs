@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -74,7 +74,7 @@ namespace AasxPluginExportTable.Smt
             _adoc.AppendLine(header + text);
         }
 
-        protected static string EscapeAdText(string input)
+        protected static string EscapedText(string input)
         {
             if (input == null)
                 return null;
@@ -91,7 +91,7 @@ namespace AasxPluginExportTable.Smt
 
             var titStr = sme?.Description?.GetDefaultString();
             if (titStr?.HasContent() == true)
-                astr += $",title=\"{EscapeAdText(titStr)}\"";
+                astr += $",title=\"{EscapedText(titStr)}\"";
 
             astr = astr.Trim(',');
 
@@ -281,6 +281,7 @@ namespace AasxPluginExportTable.Smt
 
             // check arguments
             var q = refel.HasExtensionOfName("ExportSmt.Args");
+
             var args = ExportSmtArguments.Parse(q?.Value);
             var processDepth = int.MaxValue;
             if (args?.depth != null)
@@ -312,7 +313,8 @@ namespace AasxPluginExportTable.Smt
                 _optionsAll, optionsTable, absTableFn,
                 target, _package?.AasEnv, ticket, _log, maxDepth: processDepth,
                 idOfElem: refel.IdShort,
-                titleOfTable: EscapeAdText(refel.Description?.GetDefaultString()));
+                titleOfTable: EscapedText(refel.Description?.GetDefaultString()),
+                columnWidths: args?.columnWidths);
 
             // include file into AsciiDoc
             if (_optionsSmt.IncludeTables)

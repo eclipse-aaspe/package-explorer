@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -57,6 +57,11 @@ namespace AasxPluginExportTable
         /// Do not show the 3rd column, Description.
         /// </summary>
         public bool noDescription = false;
+
+        /// <summary>
+        /// If set, stores the individual widths of the columns.
+        /// </summary>
+        public double[] columnWidths = null;
 
         // ReSharper enable UnassignedField.Global
 

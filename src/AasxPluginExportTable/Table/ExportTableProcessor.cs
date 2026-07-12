@@ -90,6 +90,11 @@ namespace AasxPluginExportTable.Table
         /// </summary>
         public string TitleOfExport = null;
 
+        /// <summary>
+        /// If set, stores the individual widths of the columns as preferred by the application
+        /// </summary>
+        public double[] ColumnWidthPref = null;
+
         //
         // Constructurs
         //
@@ -112,6 +117,11 @@ namespace AasxPluginExportTable.Table
 
             public int ColSpan = 1;
 
+            /// <summary>
+            /// Set automatically by the indexers
+            /// </summary>
+            public int ColIndex = -1;
+
             public CellRecord() { }
 
             public CellRecord(string text)
@@ -131,6 +141,7 @@ namespace AasxPluginExportTable.Table
             cr.TextWithHeaders =
                 Record.Top[0] + " " + Record.Top[(1 + row) * (1 + Record.Cols)] + " " +
                 Record.Top[1 + col] + " " + cr.Text;
+            cr.ColIndex = col;
             return cr;
         }
 
@@ -145,6 +156,7 @@ namespace AasxPluginExportTable.Table
             cr.TextWithHeaders =
                 Record.Body[0] + " " + Record.Body[(1 + row) * (1 + Record.Cols)] + " " +
                 Record.Body[1 + col] + " " + cr.Text;
+            cr.ColIndex = col;
             return cr;
         }
 
@@ -852,7 +864,7 @@ namespace AasxPluginExportTable.Table
                 return builder.ToString();
             }
 
-            public void ProcessCellRecord(CellRecord cr)
+            public void ProcessCellRecord(CellRecord cr, ExportTableProcessor proc)
             {
                 if (Record == null || regexReplacements == null || regexCommands == null)
                     return;
@@ -990,8 +1002,18 @@ namespace AasxPluginExportTable.Table
                             cr.Frame = argtl;
                             break;
                         case "width":
-                            if (double.TryParse(argtl, NumberStyles.Float, CultureInfo.InvariantCulture, out var f))
+                            // set width or take preference by the application
+                            if (cr.ColIndex >= 0
+                                && proc?.ColumnWidthPref != null
+                                && proc.ColumnWidthPref.Length > cr.ColIndex
+                                && proc.ColumnWidthPref[cr.ColIndex] >= 0 && proc.ColumnWidthPref[cr.ColIndex] <= 100.0)
+                            {
+                                cr.Width = proc.ColumnWidthPref[cr.ColIndex];
+                            }
+                            else if (double.TryParse(argtl, NumberStyles.Float, CultureInfo.InvariantCulture, out var f))
+                            {
                                 cr.Width = f;
+                            }
                             break;
                         case "md":
                             cr.Md = argtl;
@@ -1060,7 +1082,7 @@ namespace AasxPluginExportTable.Table
                             var cr = GetTopCell(ri, ci);
 
                             // process text
-                            proc.ProcessCellRecord(cr);
+                            proc.ProcessCellRecord(cr, this);
 
                             // add
                             if (line != "")
@@ -1092,7 +1114,7 @@ namespace AasxPluginExportTable.Table
                                 var cr = GetBodyCell(ri, ci);
 
                                 // process text
-                                proc.ProcessCellRecord(cr);
+                                proc.ProcessCellRecord(cr, this);
 
                                 // add
                                 if (line != "")
@@ -1259,7 +1281,7 @@ namespace AasxPluginExportTable.Table
                             var cr = GetTopCell(ri, ci);
 
                             // process text
-                            proc.ProcessCellRecord(cr);
+                            proc.ProcessCellRecord(cr, this);
 
                             // add
                             ExportExcel_AppendTableCell(ws, cr, rowIdx + ri, 1 + ci);
@@ -1287,7 +1309,7 @@ namespace AasxPluginExportTable.Table
                                 var cr = GetBodyCell(ri, ci);
 
                                 // process text
-                                proc.ProcessCellRecord(cr);
+                                proc.ProcessCellRecord(cr, this);
 
                                 // add
                                 ExportExcel_AppendTableCell(ws, cr, rowIdx + ri, 1 + ci);
@@ -1318,7 +1340,7 @@ namespace AasxPluginExportTable.Table
                         var proc = new ItemProcessor(Record, null);
                         proc.Start();
                         var cr = GetTopCell(0, 0);
-                        proc.ProcessCellRecord(cr);
+                        proc.ProcessCellRecord(cr, this);
 
                         // borders?
                         if (cr.Frame != null)
@@ -1352,7 +1374,7 @@ namespace AasxPluginExportTable.Table
                         {
                             // get the cell width from the very first top row
                             var cr2 = GetTopCell(0, ci);
-                            proc.ProcessCellRecord(cr2);
+                            proc.ProcessCellRecord(cr2, this);
                             if (cr2?.Width != null && cr2.Width.Value > 0)
                                 ws.Column(1 + ci).Width = cr2.Width.Value;
                         }
@@ -1520,7 +1542,7 @@ namespace AasxPluginExportTable.Table
                         var proc = new ItemProcessor(Record, null);
                         proc.Start();
                         var cr = GetTopCell(0, 0);
-                        proc.ProcessCellRecord(cr);
+                        proc.ProcessCellRecord(cr, this);
 
                         // do some borders?
                         if (cr?.Frame != null)
@@ -1600,7 +1622,7 @@ namespace AasxPluginExportTable.Table
                                 var cr = GetTopCell(ri, ci);
 
                                 // process text
-                                proc.ProcessCellRecord(cr);
+                                proc.ProcessCellRecord(cr, this);
 
                                 // add
                                 ExportWord_AppendTableCell(tr, cr);
@@ -1634,7 +1656,7 @@ namespace AasxPluginExportTable.Table
                                     var cr = GetBodyCell(ri, ci);
 
                                     // process text
-                                    proc.ProcessCellRecord(cr);
+                                    proc.ProcessCellRecord(cr, this);
 
                                     // add
                                     ExportWord_AppendTableCell(tr, cr);
@@ -1721,7 +1743,7 @@ namespace AasxPluginExportTable.Table
                             var cr = GetTopCell(ri, ci);
 
                             // process text
-                            proc.ProcessCellRecord(cr);
+                            proc.ProcessCellRecord(cr, this);
 
                             // flags
                             if (cr.Md.Contains("headline"))
@@ -1767,7 +1789,7 @@ namespace AasxPluginExportTable.Table
                                 var cr = GetBodyCell(ri, ci);
 
                                 // process text
-                                proc.ProcessCellRecord(cr);
+                                proc.ProcessCellRecord(cr, this);
 
                                 // add
                                 line += " " + cr.Text + "|";
@@ -1950,7 +1972,7 @@ namespace AasxPluginExportTable.Table
                     {
                         // get the cell width from the very first top row
                         var cr = GetTopCell(0, ci);
-                        proc.ProcessCellRecord(cr);
+                        proc.ProcessCellRecord(cr, this);
                         if (cr?.Width.HasValue == true)
                             colSpeci.Add($"{cr.Width.Value:f0}%");
                         else
@@ -1966,7 +1988,7 @@ namespace AasxPluginExportTable.Table
                     AsciiDocColorState colorState = null;
                     {
                         var cr = GetTopCell(0, 0);
-                        proc.ProcessCellRecord(cr);
+                        proc.ProcessCellRecord(cr, this);
                         if (cr.TableBg?.HasContent() == true)
                             colorState = new AsciiDocColorState() { TableBg = cr.TableBg };
                     }
@@ -1989,7 +2011,7 @@ namespace AasxPluginExportTable.Table
                             var cr = GetTopCell(ri, ci);
 
                             // process text
-                            proc.ProcessCellRecord(cr);
+                            proc.ProcessCellRecord(cr, this);
 
                             // cell formatting
                             var colText = ExportAsciiDocEvalColumnText(cr, colorState, ref colSkip);
@@ -2036,7 +2058,7 @@ namespace AasxPluginExportTable.Table
                                 var cr = GetBodyCell(ri, ci);
 
                                 // process text
-                                proc.ProcessCellRecord(cr);
+                                proc.ProcessCellRecord(cr, this);
 
                                 // cell formatting
                                 var colText = ExportAsciiDocEvalColumnText(cr, colorState, ref colSkip);

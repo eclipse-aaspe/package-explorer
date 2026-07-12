@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -628,7 +628,8 @@ namespace AasxPluginExportTable.Table
             LogInstance log = null,
             int maxDepth = int.MaxValue,
             string idOfElem = null,
-            string titleOfTable = null)
+            string titleOfTable = null,
+            double[] columnWidths = null)
         {
             // prepare list of items to be exported
             var list = new List<ExportTableAasEntitiesList>();
@@ -652,6 +653,7 @@ namespace AasxPluginExportTable.Table
 
                     proc.IdOfExport = idOfElem;
                     proc.TitleOfExport = titleOfTable;
+                    proc.ColumnWidthPref = columnWidths;
 
                     if (record.Format == (int)ImportExportTableRecord.FormatEnum.TSF)
                         success = proc.ExportTabSeparated(fn, list);
