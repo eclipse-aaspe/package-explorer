@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -192,6 +192,9 @@ namespace AasxPluginExportTable.Table
 
             private List<AdvancedMatch> _advancedMatches = new List<AdvancedMatch>();
 
+            /// <summary>
+            /// Note: <c>trigger</c> without escaping, <c>pattern</c> WITH escaping of regex chars!
+            /// </summary>
             private void advancedRep(string trigger, string pattern, string replace)
             {
                 _advancedMatches.Add(new AdvancedMatch() {
@@ -464,6 +467,13 @@ namespace AasxPluginExportTable.Table
                 }
             }
 
+            /// <summary>
+            /// Adds different potential replacements,
+            /// just with {refName},
+            /// with {refName}[br] to add line breaks,
+            /// with {refName}[label=..] to add a label if present
+            /// with {refName}[br-label=..] to add a label if present and line breaks
+            /// </summary>
             private void repReferenceList(string head, string refName, List<Aas.IReference> rids)
             {
                 if (refName == null)
@@ -483,6 +493,97 @@ namespace AasxPluginExportTable.Table
                     pattern: head + refName + @"\[br-label=([^]]*)\]", 
                     replace: (rids?.IsValid() != true) ? "" 
                         :  "%GROUP1%: " + rids?.ToStringExtended(2, ", ") + "%BRPOST%%BRPOST%");
+            }
+
+            /// <summary>
+            /// Adds different potential replacements,
+            /// all listing semanticId, supplSemIds and isCaseOf
+            /// with {refName}[fmt=1] to just have the ids
+            /// with {refName}[fmt=2] to have the ids and very short labels in the same line
+            /// with {refName}[fmt=3] to have the ids and long labels in one line above
+            /// with {refName}[fmt=4] to have the ids and long labels in one line above with extra spacing after
+            /// </summary>
+            private void repPackSemIds(string head, string refName,
+                Aas.IReference semId,
+                List<Aas.IReference> supIds,
+                List<Aas.IReference> isCaseOf)
+            {
+                if (refName == null)
+                    return;
+
+                for (int fmt = 1; fmt <= 4; fmt++)
+                {
+                    string value = $"";
+
+                    // just take it simple and do it case by case
+                    if (fmt == 1)
+                    {
+                        if (semId?.IsValid() == true)
+                            value += semId.ToStringExtended(2, ", ") + " ";
+
+                        if (supIds?.IsValid() == true)
+                        {
+                            if (value.HasContent())
+                                value += "\r\n%BRPOST%";
+                            value += supIds.ToStringExtended(2, "%BRPOST%") + " ";
+                        }
+
+                        if (isCaseOf?.IsValid() == true)
+                        {
+                            if (value.HasContent())
+                                value += "\r\n%BRPOST%";
+                            value += isCaseOf.ToStringExtended(2, "%BRPOST%") + " ";
+                        }
+                    }
+
+                    if (fmt == 2)
+                    {
+                        if (semId?.IsValid() == true)
+                            value += semId.ToStringExtended(2, ", ") + " ";
+
+                        if (supIds?.IsValid() == true)
+                        {
+                            if (value.HasContent())
+                                value += "\r\n%BRPOST%SSI: ";
+                            value += supIds.ToStringExtended(2, "%BRPOST%SSI: ") + " ";
+                        }
+
+                        if (isCaseOf?.IsValid() == true)
+                        {
+                            if (value.HasContent())
+                                value += "\r\n%BRPOST%ICO: ";
+                            value += isCaseOf.ToStringExtended(2, "%BRPOST%ICO: ") + " ";
+                        }
+                    }
+
+                    if (fmt == 3 || fmt == 4)
+                    {
+                        if (semId?.IsValid() == true)
+                            value += semId.ToStringExtended(2, ", ") + " ";
+
+                        if (supIds?.IsValid() == true)
+                        {
+                            if (value.HasContent())
+                                value += "\r\n%BRPOST%supplementalSemanticId(s):\r\n";
+                            value += supIds.ToStringExtended(2, "%BRPOST% ") + " ";
+                        }
+
+                        if (isCaseOf?.IsValid() == true)
+                        {
+                            if (value.HasContent())
+                                value += "\r\n%BRPOST%isCaseOf:\r\n";
+                            value += isCaseOf.ToStringExtended(2, "%BRPOST% ") + " ";
+                        }
+
+                        // vertical space at end?
+                        if (fmt == 4 && value.HasContent())
+                            value += "\r\n%BRPOST%";
+                    }
+
+                    rep(
+                        head + refName + $"[fmt={fmt}]",
+                        value);
+                }
             }
 
             public void Start()
@@ -543,6 +644,11 @@ namespace AasxPluginExportTable.Table
                         repReference(head, "semanticId", parsem.SemanticId);
                         repReferenceList(head, "supplSemIds", parsem.SupplementalSemanticIds);
 
+                        repPackSemIds(head, "packSemIds",
+                            parsem.SemanticId,
+                            parsem.SupplementalSemanticIds,
+                            Item.ParentCd?.IsCaseOf);
+
                         // very special
                         var dfst = "";
                         if (Item.ParentCd?.GetIEC61360()?.Definition?.IsValid() == true)
@@ -562,6 +668,10 @@ namespace AasxPluginExportTable.Table
                         //-1- {Reference} = {semanticId, isCaseOf, unitId}
                         repReference(head, "semanticId", sm.SemanticId);
                         repReferenceList(head, "supplSemIds", sm.SupplementalSemanticIds);
+                        repPackSemIds(head, "packSemIds",
+                            sm.SemanticId,
+                            sm.SupplementalSemanticIds,
+                            cd?.IsCaseOf);
                     }
 
                     if (sme != null)
@@ -572,6 +682,10 @@ namespace AasxPluginExportTable.Table
                         repMultiplicty(head, sme.Qualifiers);
                         repReference(head, "semanticId", sme.SemanticId);
                         repReferenceList(head, "supplSemIds", sme.SupplementalSemanticIds);
+                        repPackSemIds(head, "packSemIds",
+                            sme.SemanticId,
+                            sme.SupplementalSemanticIds,
+                            cd?.IsCaseOf);
 
                         //-2- SME.value
 
@@ -746,6 +860,11 @@ namespace AasxPluginExportTable.Table
                 // local
                 var input = cr.Text;
 
+                if (input.Contains("packSemIds"))
+                {
+                    ;
+                }
+
                 // process from right to left
                 // see: https://codereview.stackexchange.com/questions/119519/
                 // regex-to-first-match-then-replace-found-matches
@@ -762,6 +881,7 @@ namespace AasxPluginExportTable.Table
                     // try match advanced
                     string advancedReplace = null;
                     foreach (var am in _advancedMatches)
+                    {
                         // fast condition
                         if (tagLC.Contains(am.Trigger))
                         {
@@ -780,6 +900,7 @@ namespace AasxPluginExportTable.Table
                                         .Replace($"%GROUP{i}%", m.Groups[i].ToString());
                             }
                         }
+                    }
 
                     // further matching and actual replace of input
                     if (advancedReplace != null)
@@ -1767,6 +1888,9 @@ namespace AasxPluginExportTable.Table
         private string ExportAsciiDocPostProcessAsciiDoc(string st)
         {
             var lines = Regex.Split(st, @"\+\r\n|\+\r|\r\n\r\n").ToList();
+
+            if (st.Contains("%BRPOST%"))
+                ;
             
             // remove empty
             lines.RemoveAll((s) => s?.HasContent() != true );
@@ -1869,6 +1993,9 @@ namespace AasxPluginExportTable.Table
 
                             // cell formatting
                             var colText = ExportAsciiDocEvalColumnText(cr, colorState, ref colSkip);
+
+                            // post process
+                            colText = ExportAsciiDocPostProcessAsciiDoc(colText);
 
                             // add
                             line += colText;

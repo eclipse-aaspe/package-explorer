@@ -6,12 +6,12 @@
   // the following options, if Podman (open source replacement for Docker) is installed:
   // "SmtExportHtmlCmd": "podman",
   // "SmtExportPdfCmd": "podman",
-  "SmtExportHtmlArgs": "run -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor -r asciidoctor-diagram -a toc=left -a stylesheet=asciidoc-style-idta.css %ADOC%",
-  "SmtExportPdfArgs": "run -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor-pdf -r asciidoctor-diagram -r ./extended.rb -a toc=macro -a pdf-theme=my-theme.yml -a env-pdf %ADOC%",
+  "SmtExportHtmlArgs": "run --rm -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor -r asciidoctor-diagram -a toc=left -a stylesheet=asciidoc-style-idta.css %ADOC%",
+  "SmtExportPdfArgs": "run --rm -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor-pdf -r asciidoctor-diagram -r ./extended.rb -a toc=macro -a pdf-theme=my-theme.yml -a env-pdf %ADOC%",
   // this is required to ignore a non-critical error message from podman, preventing the export to stop.
   "SmtExportIgnoreError": [ "Failed to obtain TTY size" ],
   // without line numbers:
-  // "SmtExportPdfArgs": "run -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor-pdf -r asciidoctor-diagram -a pdf-theme=my-theme.yml %ADOC%",
+  // "SmtExportPdfArgs": "run --rm -it -v %WD%:/documents/ asciidoctor/docker-asciidoctor asciidoctor-pdf -r asciidoctor-diagram -a pdf-theme=my-theme.yml %ADOC%",
   "SmtExportViewCmd": "cmd.exe",
   "SmtExportViewArgs": "/c start %WD%\\%HTML% && ping 127.0.0.1 -n 5 >nul",
   /*
@@ -224,8 +224,12 @@
         "",
         "",
         "",
-        "%font=bold%semanticId: %bg=#0029cc% %fg=white%",
-        "%Parent.semanticId[0].value% %colspan=3%",
+        // MIHO 2026-07-12: Improve semId header of the table
+        // "%font=bold%semanticId: %bg=#0029cc% %fg=white%",
+        // "%Parent.semanticId[0].value% %colspan=3%",
+        "%font=bold%Semantic id(s): %bg=#0029cc% %fg=white%",
+        "%Parent.packSemIds[fmt=3]% %colspan=3%",
+        // -- end of
         "",
         "",
         "",
@@ -257,7 +261,10 @@
         "",
         "",
         "[%SME.elementShort%]\r\n%brpost%%SME.idShort%",
-        "%SME.semanticId[0].value%\r\n%brpost%%SME.supplSemIds[br-label=supplementalSemanticId]%%CD.definition@en%\r\n%SME.description@en%",
+        // MIHO 2026-07-12: Improve semId + description column
+        // "%SME.semanticId[0].value%\r\n%brpost%%SME.supplSemIds[br-label=supplementalSemanticId]%%CD.definition@en%\r\n%SME.description@en%",
+        "%SME.packSemIds[fmt=4]%%CD.definition@en%\r\n%SME.description@en%",
+        // -- end of
         "[%Property.valueType%]\r\n%brpost%%SME.value%",
         "%SME.multiplicity%"
       ]
