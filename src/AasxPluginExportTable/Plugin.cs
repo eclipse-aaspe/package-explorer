@@ -344,7 +344,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                         {
                             await GenerateSmt.SmtTemplateTemplateStart(
                                 _options, _log, ticket, displayContext, _options);
-                            return new AasxPluginResultBase();
+                            return new AasxPluginResultEventRedrawAllElements();
                         }
                     }
                     catch (Exception ex)
