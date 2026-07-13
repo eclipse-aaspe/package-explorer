@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -15,6 +15,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using Aas = AasCore.Aas3_1;
@@ -218,6 +219,30 @@ namespace AasxPredefinedConcepts
 
             // ok
             return cd;
+        }
+
+        public static Aas.Qualifier CreateSparseQualifier(
+            Aas.QualifierKind kind,
+            string type,
+            Aas.DataTypeDefXsd valueType,
+            string semanticId)
+        {
+            // access
+            if (type == null || semanticId == null)
+                return null;
+
+            // create Qualifier
+            var qual = new Aas.Qualifier(
+                kind: kind,
+                type: type,
+                semanticId: new Aas.Reference(Aas.ReferenceTypes.ExternalReference,
+                    (new Aas.IKey[] {
+                        new Aas.Key(Aas.KeyTypes.GlobalReference, semanticId)
+                    }).ToList()),
+                valueType: valueType);
+
+            // ok
+            return qual;
         }
 
         /// <summary>

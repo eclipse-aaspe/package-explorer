@@ -137,7 +137,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                     MenuItem = new AasxMenuItem()
                     {
                         Name = "ImportTable",
-                        Header = "Import SubmodelElements from Table …",
+                        Header = "Import SubmodelElements from Table â€¦",
                         HelpText = "Import sets of SubmodelElements from table data in multiple common formats.",
                         ArgDefs = new AasxMenuListOfArgDefs()
                                 .Add("File", "Filename and path of file to imported.")
@@ -155,7 +155,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                     MenuItem = new AasxMenuItem()
                     {
                         Name = "ExportTable",
-                        Header = "Export SubmodelElements as Table …",
+                        Header = "Export SubmodelElements as Table â€¦",
                         HelpText = "Export table(s) for sets of SubmodelElements in multiple common formats.",
                         ArgDefs = new AasxMenuListOfArgDefs()
                             .Add("File", "Filename and path of file to exported.")
@@ -174,7 +174,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                     MenuItem = new AasxMenuItem()
                     {
                         Name = "ExportUml",
-                        Header = "Export Submodel as UML …",
+                        Header = "Export Submodel as UML â€¦",
                         HelpText = "Export UML of Submodel in multiple common formats.",
                         ArgDefs = new AasxMenuListOfArgDefs()
                             .Add("File", "Filename and path of file to exported.")
@@ -192,7 +192,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                     MenuItem = new AasxMenuItem()
                     {
                         Name = "ExportSmtAsciiDoc",
-                        Header = "Export Submodel as AsciiDoc SMT spec …",
+                        Header = "Export Submodel as AsciiDoc SMT spec â€¦",
                         HelpText = "Export Submodel and referenced arctifacts to an integrated " +
                             "AsciiDoc document.",
                         ArgDefs = new AasxMenuListOfArgDefs()
@@ -211,7 +211,7 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                     MenuItem = new AasxMenuItem()
                     {
                         Name = "ImportTimeSeries",
-                        Header = "Read time series values into SubModel …",
+                        Header = "Read time series values into SubModel â€¦",
                         HelpText = "Import sets of time series values from an table in common format.",
                         ArgDefs = new AasxMenuListOfArgDefs()
                                 .Add("File", "Filename and path of file to imported.")
@@ -228,13 +228,25 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                     MenuItem = new AasxMenuItem()
                     {
                         Name = "BulkChangeSemanticIds",
-                        Header = "Bulk change of semanticIds …",
+                        Header = "Bulk change of semanticIds â€¦",
                         HelpText = "Bulk change of semanticIds in package file given by a list of changes.",
                         ArgDefs = new AasxMenuListOfArgDefs()
                                 .Add("File", "Filename and path of file to imported.")
                                 .Add("Format", "Format to be 'Excel'.")
                                 .Add("Record", "Record data", hidden: true)
                                 .AddFromReflection(new ImportTimeSeriesRecord())
+                    }
+                });
+
+                // export SMT AsciiDoc
+                res.Add(new AasxPluginResultSingleMenuItem()
+                {
+                    AttachPoint = "Plugins",
+                    MenuItem = new AasxMenuItem()
+                    {
+                        Name = "SmtTemplateStartGen",
+                        Header = "SMT template template: Start generate â€¦",
+                        HelpText = "Use SMT template template and start generation of target elements."
                     }
                 });
 
@@ -325,6 +337,13 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                         {
                             await AnyUiDialogueBulkChangeSemanticId.BulkChangeSemanticIdDialogBased(
                                 _log, ticket, displayContext);
+                            return new AasxPluginResultBase();
+                        }
+
+                        if (cmd == "smttemplatestartgen")
+                        {
+                            await GenerateSmt.SmtTemplateTemplateStart(
+                                _options, _log, ticket, displayContext, _options);
                             return new AasxPluginResultBase();
                         }
                     }
