@@ -47,6 +47,7 @@ namespace AasxPluginExportTable.Smt
         protected Aas.ISubmodel _srcSm = null;
         protected ExportTableOptions _optionsAll = null;
         protected ExportSmtRecord _optionsSmt = null;
+        protected ImportExportTableRecord _fileSpecificOptionsTable = null;
         protected string _tempDir = "";
         protected StringBuilder _adoc = new StringBuilder();
         protected bool _singleFile = true;
@@ -72,6 +73,29 @@ namespace AasxPluginExportTable.Smt
             if (header?.HasContent() == true)
                 _adoc.AppendLine("");
             _adoc.AppendLine(header + text);
+        }
+
+        protected ImportExportTableRecord ProcessTableRecord(string header, Aas.IBlob blob)
+        {
+            // any content
+            if (blob?.Value == null || blob.Value.Length < 1)
+                return null;
+
+            // get text
+            var json = System.Text.Encoding.UTF8.GetString(blob.Value);
+
+            // get object
+            try
+            {
+                var res = Newtonsoft.Json.JsonConvert.DeserializeObject<ImportExportTableRecord>(json);
+                return res;
+            }
+            catch (Exception ex)
+            {
+                _log?.Error(ex, $"when processing file specific table preset from element {blob.IdShort}");
+            }
+
+            return null;
         }
 
         protected static string EscapedText(string input)
@@ -278,6 +302,13 @@ namespace AasxPluginExportTable.Smt
                 return;
             }
             var optionsTable = _optionsAll.Presets[_optionsSmt.PresetTables];
+
+            // overriden by file
+            if (_fileSpecificOptionsTable != null)
+            {
+                _log?.Info("ExportSMT: Processing AASX package specific table presets for conversion!");
+                optionsTable = _fileSpecificOptionsTable;
+            }
 
             // check arguments
             var q = refel.HasExtensionOfName("ExportSmt.Args");
@@ -636,6 +667,8 @@ namespace AasxPluginExportTable.Smt
                         ProcessTextBlob("", blob);
                     if (semId.Matches(defs.CD_CoverPage.GetCdReference(), mm))
                         ProcessTextBlob("", blob);
+                    if (semId.Matches(defs.CD_TableRecord.GetCdReference(), mm))
+                        _fileSpecificOptionsTable = ProcessTableRecord("", blob);
                     if (semId.Matches(defs.CD_Heading1.GetCdReference(), mm))
                         ProcessTextBlob("== ", blob);
                     if (semId.Matches(defs.CD_Heading2.GetCdReference(), mm))

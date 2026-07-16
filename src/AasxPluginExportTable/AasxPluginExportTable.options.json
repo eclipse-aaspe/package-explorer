@@ -250,8 +250,8 @@
         "",
         "%md=headline%",
         "[SME type]\r\nidShort %bg=#0029cc% %fg=white%",
-        "semanticId\r\nDescription@en %bg=#0029cc% %fg=white%",
-        "[valueType]\r\nexample %bg=#0029cc% %fg=white%",
+        "semantic id(s)\r\nDefinition@en Description@en %bg=#0029cc% %fg=white%",
+        "[valueType]\r\nexample\r\n(unit) %bg=#0029cc% %fg=white%",
         "card. %bg=#0029cc% %fg=white%"
       ],
       "Body": [
@@ -266,7 +266,10 @@
         // "%SME.semanticId[0].value%\r\n%brpost%%SME.supplSemIds[br-label=supplementalSemanticId]%%CD.definition@en%\r\n%SME.description@en%",
         "%SME.packSemIds[fmt=4]%%CD.definition@en%\r\n%SME.description@en%",
         // -- end of
-        "[%Property.valueType%]\r\n%brpost%%SME.value%",
+        // MIHO 2026-07-16: Improve value column
+        // "[%Property.valueType%]\r\n%brpost%%SME.value%",
+        "%SME.packValue[fmt=4]%",
+        // -- end of
         "%SME.multiplicity%"
       ]
     },

@@ -22,8 +22,8 @@ namespace AasxPredefinedConcepts
     {
         public static SmeGeneral Static = new SmeGeneral();
 
-        public Aas.ConceptDescription
-            CD_UnitOfMeasure;
+        public Aas.Qualifier
+            Qual_UnitOfMeasure;
 
         public SmeGeneral()
         {
@@ -31,10 +31,9 @@ namespace AasxPredefinedConcepts
             this.DomainInfo = "AAS Submodel elements - General information";
 
             // definitions
-            CD_UnitOfMeasure = CreateSparseConceptDescription("en", "IRI",
-                "SME_UnitOfMeasure",
-                "https://admin-shell.io/SubmodelElements/UnitOfMeasure/1/0",
-				"Used a template qualifier, defines a unit of meausure (symbol).");
+            Qual_UnitOfMeasure = CreateSparseQualifier(Aas.QualifierKind.TemplateQualifier,
+                "SME/UnitOfMeasure", Aas.DataTypeDefXsd.String,
+                "https://admin-shell.io/SubmodelElements/UnitOfMeasure/1/0");
 
             // reflect
             AddEntriesByReflection(this.GetType(), useAttributes: false, useFieldNames: true);

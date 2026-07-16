@@ -515,7 +515,7 @@ namespace AasxPluginExportTable.Table
             /// with {refName}[fmt=3] to have the ids and long labels in one line above
             /// with {refName}[fmt=4] to have the ids and long labels in one line above with extra spacing after
             /// </summary>
-            private void repPackSemIds(string head, string refName,
+            protected void repPackSemIds(string head, string refName,
                 Aas.IReference semId,
                 List<Aas.IReference> supIds,
                 List<Aas.IReference> isCaseOf)
@@ -595,6 +595,103 @@ namespace AasxPluginExportTable.Table
                     rep(
                         head + refName + $"[fmt={fmt}]",
                         value);
+                }
+            }
+
+            /// <summary>
+            /// Adds different potential cell contents w.r.t to value, example value, valueType
+            /// with {refName}[fmt=1] just [valueType] value|exampleValue
+            /// with {refName}[fmt=2] just [valueType] value|exampleValue (unit|SME/unit)
+            /// with {refName}[fmt=3] [valueType] value|exampleValue valueId|exampleValueId 
+            /// with {refName}[fmt=4] [valueType] value|exampleValue (unit|SME/unit) valueId|exampleValueId 
+            /// Leading idea: [double] 3.1415 (kg)
+            /// </summary>
+            protected void repPackValueInfo(string head, string refName,
+                Aas.IReferable rf,
+                Aas.IConceptDescription cd)
+            {
+                if (refName == null || rf == null)
+                    return;
+
+                // valueType
+                var valueType = "";
+                if (rf is Aas.IProperty rfProp)
+                    valueType = "[" + Aas.Stringification.ToString(rfProp.ValueType) + "]";
+
+                // value
+                var value = "";
+                if (rf is Aas.ISubmodelElement rfSme)
+                {
+                    // idea: protect length
+                    value = "" + AdminShellUtil.ShortenWithEllipses(rfSme.ValueAsText(), 80);
+
+                    var q = rfSme.FindQualifierOfType(
+                                    AasxPredefinedConcepts.Qualifiers.AasSmtQualifiers.CreateQualifierSmtExampleValue("").Type);
+                    // idea: do not protect length as it is intentional
+                    if (q?.Value?.HasContent() == true)
+                        value = q?.Value;
+                }
+
+                // unit
+                var unit = "";
+                if (rf is Aas.ISubmodelElement rfSme2)
+                {
+                    var q = rfSme2.FindQualifierOfType(
+                                    AasxPredefinedConcepts.SmeGeneral.Static.Qual_UnitOfMeasure.Type);
+                    if (q?.Value?.HasContent() == true)
+                        unit = "(" + q.Value + ")";
+                }
+                if (cd?.GetIEC61360()?.Unit != null)
+                {
+                    unit = "(" + cd.GetIEC61360().Unit + ")";
+                }
+
+                // valueId
+                var vid = (rf as Aas.IProperty)?.ValueId
+                          ?? (rf as Aas.IMultiLanguageProperty)?.ValueId;
+                var valueId = "";
+                if (vid?.IsValid() == true)
+                {
+                    valueId = "" + vid?.ToStringExtended(1) + "";
+                }
+
+                // just take it simple and do it case by case
+                for (int fmt = 1; fmt <= 4; fmt++)
+                {
+                    string[] cells = null;
+
+                    if (fmt == 1)
+                    {
+                        cells = new[] { valueType, value };
+                    }
+
+                    if (fmt == 2)
+                    {
+                        cells = new[] { valueType, value, unit };
+                    }
+
+                    if (fmt == 3)
+                    {
+                        cells = new[] { valueType, value, valueId };
+                    }
+
+                    if (fmt == 4)
+                    {
+                        cells = new[] { valueType, value, unit, valueId };
+                    }
+
+                    var cellStr = "";
+                    foreach (var c in cells)
+                        if (c?.HasContent() == true)
+                        {
+                            if (cellStr.HasContent())
+                                cellStr += "\r\n%BRPOST%";
+                            cellStr += c;
+                        }
+
+                    rep(
+                        head + refName + $"[fmt={fmt}]",
+                        cellStr);
                 }
             }
 
@@ -694,10 +791,13 @@ namespace AasxPluginExportTable.Table
                         repMultiplicty(head, sme.Qualifiers);
                         repReference(head, "semanticId", sme.SemanticId);
                         repReferenceList(head, "supplSemIds", sme.SupplementalSemanticIds);
+
                         repPackSemIds(head, "packSemIds",
                             sme.SemanticId,
                             sme.SupplementalSemanticIds,
                             cd?.IsCaseOf);
+
+                        repPackValueInfo(head, "packValue", sme, cd);
 
                         //-2- SME.value
 

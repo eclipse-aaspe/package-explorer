@@ -25,6 +25,7 @@ namespace AasxPredefinedConcepts
         public Aas.ConceptDescription
             CD_TextBlock,
             CD_CoverPage,
+            CD_TableRecord,
             CD_Heading1,
             CD_Heading2,
             CD_Heading3,
@@ -54,6 +55,11 @@ namespace AasxPredefinedConcepts
                 "CoverPage",
                 "http://admin-shell.io/aasx-package-explorer/functions/asciidoc/coverpage/1/0",
                 @"Contents and definitions for the start of the document.");
+
+            CD_TableRecord = CreateSparseConceptDescription("en", "IRI",
+                "TableRecord",
+                "http://admin-shell.io/aasx-package-explorer/functions/asciidoc/tablerecord/1/0",
+                @"Redefinition of the table format to be used in a particular SMT specification.");
 
             CD_Heading1 = CreateSparseConceptDescription("en", "IRI",
                 "Heading1",

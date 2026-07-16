@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -62,6 +62,7 @@ namespace AasxPluginExportTable.Smt
 
             // try set correct table preset index
             for (int tpi = 0; tpi < pluginOptionsTable.Presets.Count; tpi++)
+                // TODO (HOMI, 2026-07-16): This is may be not the best solution
                 if (pluginOptionsTable.Presets[tpi].Name?.ToLower().Contains("ascii") == true)
                 {
                     record.PresetTables = tpi;
