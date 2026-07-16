@@ -26,6 +26,11 @@ namespace AasxPluginTechnicalData
 
     public class TechnicalDataOptions : AasxPluginLookupOptionsBase
     {
+        /// <summary>
+        /// Set in sync with main app options
+        /// </summary>
+        public bool MatchCdNoVersion = false;
+
         public List<TechnicalDataOptionsRecord> Records = new List<TechnicalDataOptionsRecord>();
 
         /// <summary>
@@ -63,5 +68,17 @@ namespace AasxPluginTechnicalData
 
             return opt;
         }
+
+        /// <summary>
+        /// Copied (!) from main option!
+        /// </summary>
+        /// <returns></returns>
+        public MatchMode GetCdMatchMode()
+        {
+            if (MatchCdNoVersion)
+                return MatchMode.IdNoVersion;
+            return MatchMode.Identification;
+        }
+
     }
 }

@@ -751,8 +751,11 @@ namespace Extensions
             if (string.IsNullOrEmpty(cdId))
                 return null;
 
+            var cdIdRaw = MatchModeUtil.FilterId(cdId, matchMode);
+
             var conceptDescription = env.AllConceptDescriptions()
-                .Where(c => c.Id.Equals(cdId)).FirstOrDefault();
+                .Where(c => MatchModeUtil.FilterId(c.Id, matchMode).Equals(cdId)).FirstOrDefault();
+
             return conceptDescription;
         }
 

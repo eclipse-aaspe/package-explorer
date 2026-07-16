@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -912,7 +912,8 @@ namespace AasxPackageLogic
                 var ci = theSubmodel.ToCaptionInfo();
                 this.Caption = td + ((theSubmodel.Kind != null && theSubmodel.Kind == Aas.ModellingKind.Template) ? "<T> " : "") + ci.Item1;
                 this.Info = ci.Item2;
-                this._cachedCD = this.theEnv?.FindConceptDescriptionByReference(theSubmodel.SemanticId);
+                this._cachedCD = this.theEnv?.FindConceptDescriptionByReference(theSubmodel.SemanticId,
+                                    Options.Curr.GetCdMatchMode());
             }
             else
             {
@@ -981,7 +982,8 @@ namespace AasxPackageLogic
                 var ci = theSubmodel.ToCaptionInfo();
                 this.Caption = td + ((theSubmodel.Kind != null && theSubmodel.Kind == Aas.ModellingKind.Template) ? "<T> " : "") + ci.Item1;
                 this.Info = ci.Item2;
-                this._cachedCD = this.theEnv?.FindConceptDescriptionByReference(theSubmodel.SemanticId);
+                this._cachedCD = this.theEnv?.FindConceptDescriptionByReference(theSubmodel.SemanticId,
+                                    Options.Curr.GetCdMatchMode());
             }
         }
 
@@ -1223,7 +1225,8 @@ namespace AasxPackageLogic
                                 ;
                             }
 
-                            this._cachedCD = this.theEnv.FindConceptDescriptionByReference(sme.SemanticId);
+                            this._cachedCD = this.theEnv.FindConceptDescriptionByReference(sme.SemanticId,
+                                                Options.Curr.GetCdMatchMode());
                         }
 
                         var iecprop = this._cachedCD?.GetIEC61360();
@@ -1893,7 +1896,8 @@ namespace AasxPackageLogic
                         ;
 
                     // try find in CDs
-                    var vrpCD = env?.FindConceptDescriptionByReference(vlp.ValueId);
+                    var vrpCD = env?.FindConceptDescriptionByReference(vlp.ValueId,
+                                        Options.Curr.GetCdMatchMode());
                     if (vrpCD != null && tiCDs?.CdSortOrder == VisualElementEnvironmentItem.ConceptDescSortOrder.BySme)
                     {
                         // nice, add "real" CD
@@ -1920,7 +1924,8 @@ namespace AasxPackageLogic
                 && dsiec?.UnitId?.IsValid() == true)
             {
                 // look up unit CD
-                var unitCD = env?.FindConceptDescriptionByReference(dsiec.UnitId);
+                var unitCD = env?.FindConceptDescriptionByReference(dsiec.UnitId,
+                                    Options.Curr.GetCdMatchMode());
                 if (unitCD != null)
                 {
                     // add "real" CD

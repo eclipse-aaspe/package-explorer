@@ -17,12 +17,18 @@ using AasxPluginExportTable.Uml;
 using AasxPluginExportTable.TimeSeries;
 using AasxPluginExportTable.Table;
 using AdminShellNS;
+using Extensions;
 
 namespace AasxPluginExportTable
 {
     public class ExportTableOptions : AasxPluginOptionsBase
     {
         public string TemplateIdConceptDescription = "www.example.com/ids/cd/DDDD_DDDD_DDDD_DDDD";
+
+        /// <summary>
+        /// Set in sync with main app options
+        /// </summary>
+        public bool MatchCdNoVersion = false;
 
         public string SmtExportHtmlCmd = "";
         public string SmtExportHtmlArgs = "";
@@ -47,5 +53,17 @@ namespace AasxPluginExportTable
             var opt = new ExportTableOptions();
             return opt;
         }
+
+        /// <summary>
+        /// Copied (!) from main option!
+        /// </summary>
+        /// <returns></returns>
+        public MatchMode GetCdMatchMode()
+        {
+            if (MatchCdNoVersion)
+                return MatchMode.IdNoVersion;
+            return MatchMode.Identification;
+        }
+
     }
 }

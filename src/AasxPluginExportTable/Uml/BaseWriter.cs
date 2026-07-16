@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -105,6 +105,7 @@ namespace AasxPluginExportTable.Uml
                     && _options?.ClassesFromConcepts == true
                     && rf is Aas.IHasSemantics ihs)
             {
+                // TODO (MIHO, 2026-07-16): get options for matchmode
                 var cd = _env?.FindConceptDescriptionByReference(ihs.SemanticId);
                 if (cd?.IdShort?.HasContent() == true
                     && rf.IdShort.Trim() != cd.IdShort.Trim())

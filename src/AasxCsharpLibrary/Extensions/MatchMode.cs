@@ -22,6 +22,10 @@ namespace Extensions
     public class MatchModeUtil
     {
 
+        /// <summary>
+        /// Removes the version information
+        /// from URI/IRI and IRDI.
+        /// </summary>
         public static string IriIrdiRemoveVersion(string id)
         {
             // access
@@ -41,7 +45,16 @@ namespace Extensions
             return id;
         }
 
-
+        /// <summary>
+        /// If required by match mode, removes the version information
+        /// from URI/IRI and IRDI.
+        /// </summary>
+        public static string FilterId(string id, MatchMode mm)
+        {
+            if (mm == MatchMode.IdNoVersion)
+                return IriIrdiRemoveVersion(id);
+            return id;
+        }
 
     }
 }

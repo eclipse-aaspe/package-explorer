@@ -692,7 +692,8 @@ namespace AasxPluginTechnicalData
                         semantics = "" + sme.SemanticId?.ToStringExtended(2);
 
                         // find better property name (prio 2 and prio 3)
-                        var cd = package?.AasEnv?.FindConceptDescriptionByReference(sme.SemanticId);
+                        var cd = package?.AasEnv?.FindConceptDescriptionByReference(sme.SemanticId,
+                                    _options.GetCdMatchMode());
                         if (cd != null)
                         {
                             // unit?

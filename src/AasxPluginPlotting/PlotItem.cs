@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -311,6 +311,7 @@ namespace AasxPluginPlotting
                 temp.Add(npi);
 
                 // try access CD
+                // TODO (MIHO, 2026-07-16): get options for matchmode
                 var cd = package?.AasEnv?.FindConceptDescriptionByReference(sme.SemanticId);
                 if (cd?.GetIEC61360()?.Unit != null)
                     npi.DisplayUnit = cd.GetIEC61360().Unit;

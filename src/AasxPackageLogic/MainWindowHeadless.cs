@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2022 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -1205,7 +1205,8 @@ namespace AasxPackageLogic
                 foreach (var rf in rfToCheck)
                     foreach (var x in rf.Descend())
                         if (x is Aas.ISubmodelElement sme && sme.SemanticId != null
-                            && ticket.Env.FindConceptDescriptionByReference(sme.SemanticId) == null
+                            && ticket.Env.FindConceptDescriptionByReference(sme.SemanticId,
+                                            Options.Curr.GetCdMatchMode()) == null
                             && sme.SemanticId.IsValid() && sme.SemanticId.Count() == 1
                             && !cdsMissing.Contains(sme.SemanticId.Keys[0].Value))
                             cdsMissing.Add(sme.SemanticId.Keys[0].Value);

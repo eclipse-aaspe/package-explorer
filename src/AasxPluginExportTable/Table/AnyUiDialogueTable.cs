@@ -558,6 +558,7 @@ namespace AasxPluginExportTable.Table
         }
 
         private static void ExportTable_EnumerateSubmodel(
+            ExportTableOptions options,
             List<ExportTableAasEntitiesList> list, Aas.IEnvironment env,
             bool broadSearch, bool actInHierarchy, int depth,
             Aas.IReferable coll,
@@ -589,18 +590,21 @@ namespace AasxPluginExportTable.Table
                 {
                     // gather data for this entity
                     var sme2 = ci;
-                    var cd = env.FindConceptDescriptionByReference(sme2?.SemanticId);
+                    var cd = env.FindConceptDescriptionByReference(sme2?.SemanticId,
+                                    options.GetCdMatchMode());
 
                     // add
                     listItem.Add(new ExportTableAasEntitiesItem(depth, sme2, cd,
                         parentRf: coll as Aas.IReferable,
-                        parentCd: env?.FindConceptDescriptionByReference((coll as Aas.IHasSemantics)?.SemanticId)));
+                        parentCd: env?.FindConceptDescriptionByReference((coll as Aas.IHasSemantics)?.SemanticId,
+                                            options.GetCdMatchMode())));
 
                     // go directly deeper?
                     if (!broadSearch && ci != null &&
                         ci is Aas.IReferable
                         && depth < maxDepth)
                         ExportTable_EnumerateSubmodel(
+                            options,
                             list, env, broadSearch: false, actInHierarchy,
                             depth: 1 + depth, ci, maxDepth);
                 }
@@ -613,6 +617,7 @@ namespace AasxPluginExportTable.Table
                         if (ci != null && ci is Aas.IReferable
                             && depth < maxDepth)
                             ExportTable_EnumerateSubmodel(
+                                options,
                                 list, env, broadSearch: true, actInHierarchy,
                                 depth: 1 + depth, ci, maxDepth);
             }
@@ -633,7 +638,7 @@ namespace AasxPluginExportTable.Table
         {
             // prepare list of items to be exported
             var list = new List<ExportTableAasEntitiesList>();
-            ExportTable_EnumerateSubmodel(list, env, broadSearch: false,
+            ExportTable_EnumerateSubmodel(options, list, env, broadSearch: false,
                 actInHierarchy: record.ActInHierarchy, depth: 1, rf, maxDepth);
 
             if (fn == null)

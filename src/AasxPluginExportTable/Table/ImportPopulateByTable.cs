@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -394,7 +394,8 @@ namespace AasxPluginExportTable.Table
                 return null;
 
             // first test, if the CD already exists
-            var test = env.FindConceptDescriptionByReference(context.Sme.SemanticId);
+            var test = env.FindConceptDescriptionByReference(context.Sme.SemanticId,
+                                _options.GetCdMatchMode());
             if (test != null)
                 return new ContextResult() { Elem = test };
 

@@ -79,25 +79,6 @@ namespace AasxPluginExportTable.Smt
             }
         }
 
-        //protected static string IriIrdiRemoveVersion(string id)
-        //{
-        //    // access
-        //    if (id == null)
-        //        return null;
-
-        //    // if id starts with 4 digits, it is an IRDI
-        //    var m = Regex.Match(id, @"((\d{4,4}).*)(#\d{2,4})");
-        //    if (m.Success && m.Groups.Count >= 1)
-        //        id = m.Groups[1].ToString();
-
-        //    // if id starts with 'http', it is an IRDI
-        //    m = Regex.Match(id, @"((http:).*?)(/\d{1,4}){1,2}");
-        //    if (m.Success && m.Groups.Count >= 1)
-        //        id = m.Groups[1].ToString();
-
-        //    return id;
-        //}
-
         protected static void RemoveVersionInfo(Aas.IReference rfr)
         {
             // access

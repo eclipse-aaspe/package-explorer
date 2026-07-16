@@ -1561,6 +1561,7 @@ namespace AasxPluginPlotting
                     if (pdp != null && ds.DataPoint == null)
                     {
                         ds.DataPoint = pdp;
+                        // TODO (MIHO, 2026-07-16): get options for matchmode
                         ds.DataPointCD = _package?.AasEnv?.FindConceptDescriptionByReference(pdp.SemanticId);
                     }
 
@@ -1615,6 +1616,7 @@ namespace AasxPluginPlotting
                         if (ds.DataPoint == null)
                         {
                             ds.DataPoint = pdp;
+                            // TODO (MIHO, 2026-07-16): get options for matchmode
                             ds.DataPointCD = _package?.AasEnv?.FindConceptDescriptionByReference(pdp.SemanticId);
                         }
 

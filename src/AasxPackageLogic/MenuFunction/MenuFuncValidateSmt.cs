@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2019 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -183,7 +183,8 @@ namespace AasxPackageExplorer
                             "Non-structural elements features unknown kind of semanticId!", rf.GetReference());
 
                     // find a CD?
-                    var cd = Env.FindConceptDescriptionByReference(sem.SemanticId);
+                    var cd = Env.FindConceptDescriptionByReference(sem.SemanticId,
+                                    Options.Curr.GetCdMatchMode());
                     if (cd == null)
                     {
                         NumCdMissed++;

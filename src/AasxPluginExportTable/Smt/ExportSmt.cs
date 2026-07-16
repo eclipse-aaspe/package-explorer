@@ -369,7 +369,8 @@ namespace AasxPluginExportTable.Smt
                 foundCd = cd;
             if (target is Aas.ISubmodelElement sme)
             {
-                var cd2 = _package?.AasEnv?.FindConceptDescriptionByReference(sme.SemanticId);
+                var cd2 = _package?.AasEnv?.FindConceptDescriptionByReference(sme.SemanticId,
+                                                _optionsAll.GetCdMatchMode());
                 if (cd2 != null)
                     foundCd = cd2;
             }
@@ -420,7 +421,8 @@ namespace AasxPluginExportTable.Smt
                 // find CD with more fine details?
                 if (!noDesc)
                 {
-                    var cdf = _package?.AasEnv?.FindConceptDescriptionByReference(vrp.ValueId);
+                    var cdf = _package?.AasEnv?.FindConceptDescriptionByReference(vrp.ValueId,
+                                                    _optionsAll.GetCdMatchMode());
                     var details = "" + cdf?.Description?.GetDefaultString();
                     _adoc.AppendLine($"|{(details?.HasContent() == true ? details : "-")} ");
                 }

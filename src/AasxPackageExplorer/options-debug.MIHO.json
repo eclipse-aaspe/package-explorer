@@ -80,6 +80,8 @@
     "http://localhost:5001/api/v3.0/",
     "http://localhost{{\"*\" : \":8081\", \"AAS-REG\" : \":8082\", \"SM-REG\" : \":8083\", \"DIS\" : \":8084\"}}/"
   ]
+  /* If set, finding ConceptDescription will ignore version information. */,
+  "MatchCdNoVersion": true
   /* Maximum parallel read operations, such as HTTP downloads. */,
   "MaxParallelReadOps": 10
   /* Maximum parallel write operations, such as HTTP uploads. */,

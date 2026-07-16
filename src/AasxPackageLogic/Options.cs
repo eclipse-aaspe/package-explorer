@@ -84,6 +84,12 @@ namespace AasxPackageLogic
             }
         }
 
+        //
+        //
+        // Report
+        //
+        //
+
         public enum ReportOptionsFormat { Markdown, Html }
 
         private static string MdEsc(string st)
@@ -330,6 +336,10 @@ namespace AasxPackageLogic
             "Presets for base addresses for Registries and Repositories.",
             Cmd = "-known-endpoints")]
         public List<KnownEndpointDescription> KnownEndpoints = new List<KnownEndpointDescription>();
+
+        [OptionDescription(Description = "If set, finding ConceptDescription will ignore version information.",
+            Cmd = "-match-cd-no-version")]
+        public bool MatchCdNoVersion = false;
 
         [OptionDescription(Description = "Maximum parallel read operations, such as HTTP downloads.")]
         public int MaxParallelReadOps = 20;
@@ -1175,6 +1185,14 @@ namespace AasxPackageLogic
                 CreateDefaultReference = GetDefaultEmptyReference,
             };
         }
+
+        public MatchMode GetCdMatchMode()
+        {
+            if (MatchCdNoVersion)
+                return MatchMode.IdNoVersion;
+            return MatchMode.Identification;
+        }
+
     }
 
     public static class OptionJsonWriter

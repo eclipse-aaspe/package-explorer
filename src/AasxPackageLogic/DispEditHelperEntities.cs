@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -3326,7 +3326,8 @@ namespace AasxPackageLogic
             if (submodel?.SemanticId?.Keys != null && submodel.SemanticId.Keys.Count > 0)
             {
                 // cd is easy
-                var cd = env.FindConceptDescriptionByReference(submodel.SemanticId);
+                var cd = env.FindConceptDescriptionByReference(submodel.SemanticId,
+                                Options.Curr.GetCdMatchMode());
 
                 // available?
                 if (cd == null)
@@ -4534,7 +4535,8 @@ namespace AasxPackageLogic
 
             Aas.IConceptDescription jumpToCD = null;
             if (sme?.SemanticId != null && sme.SemanticId.Keys.Count > 0)
-                jumpToCD = env?.FindConceptDescriptionByReference(sme.SemanticId);
+                jumpToCD = env?.FindConceptDescriptionByReference(sme.SemanticId,
+                            Options.Curr.GetCdMatchMode());
 
             if (jumpToCD != null && editMode)
             {
@@ -4824,7 +4826,8 @@ namespace AasxPackageLogic
                         {
                             if (sme.SemanticId != null && sme.SemanticId.Keys.Count > 0)
                             {
-                                var cd = env.FindConceptDescriptionByReference(sme.SemanticId);
+                                var cd = env.FindConceptDescriptionByReference(sme.SemanticId,
+                                                Options.Curr.GetCdMatchMode());
                                 if (cd != null)
                                 {
                                     if (cd.IdShort == null || cd.IdShort.Trim() == "")
@@ -4884,7 +4887,8 @@ namespace AasxPackageLogic
 				if (sme.SemanticId != null && sme.SemanticId.Keys.Count > 0 && !nestedCds)
                 {
                     // CD
-                    var cd = env.FindConceptDescriptionByReference(sme.SemanticId);
+                    var cd = env.FindConceptDescriptionByReference(sme.SemanticId,
+                                    matchMode: Options.Curr.GetCdMatchMode());
 
                     // available
                     if (cd == null)

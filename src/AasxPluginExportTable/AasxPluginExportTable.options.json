@@ -1,5 +1,6 @@
 {
   "TemplateIdConceptDescription": "www.example.com/ids/cd/DDDD_DDDD_DDDD_DDDD",
+  "MatchCdNoVersion": true,
   // the following options, if Docker (Desktop) is installed:
   "SmtExportHtmlCmd": "docker",
   "SmtExportPdfCmd": "docker",
