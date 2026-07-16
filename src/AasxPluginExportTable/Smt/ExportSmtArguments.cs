@@ -78,6 +78,11 @@ namespace AasxPluginExportTable
         /// </summary>
         public string[] idShorts = null;
 
+        /// <summary>
+        /// Set to remove version information on semantic (ids) while copying
+        /// </summary>
+        public bool removeVersion = false;
+
         // ReSharper enable UnassignedField.Global
 
         public static ExportSmtArguments Parse(string json)

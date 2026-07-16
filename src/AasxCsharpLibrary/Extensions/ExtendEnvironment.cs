@@ -745,7 +745,8 @@ namespace Extensions
         #region ConceptDescription Queries
 
         public static IConceptDescription FindConceptDescriptionById(
-            this AasCore.Aas3_1.IEnvironment env, string cdId)
+            this AasCore.Aas3_1.IEnvironment env, string cdId,
+            MatchMode matchMode = MatchMode.Identification)
         {
             if (string.IsNullOrEmpty(cdId))
                 return null;
@@ -756,12 +757,13 @@ namespace Extensions
         }
 
         public static IConceptDescription FindConceptDescriptionByReference(
-            this AasCore.Aas3_1.IEnvironment env, IReference rf)
+            this AasCore.Aas3_1.IEnvironment env, IReference rf,
+            MatchMode matchMode = MatchMode.Identification)
         {
             if (rf == null)
                 return null;
 
-            return env.FindConceptDescriptionById(rf.GetAsIdentifier());
+            return env.FindConceptDescriptionById(rf.GetAsIdentifier(), matchMode);
         }
 
         #endregion
