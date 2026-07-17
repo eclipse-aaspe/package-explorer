@@ -228,7 +228,7 @@
         // MIHO 2026-07-12: Improve semId header of the table
         // "%font=bold%semanticId: %bg=#0029cc% %fg=white%",
         // "%Parent.semanticId[0].value% %colspan=3%",
-        "%font=bold%Semantic id(s): %bg=#0029cc% %fg=white%",
+        "%font=bold%Semantic ID(s): %bg=#0029cc% %fg=white%",
         "%Parent.packSemIds[fmt=3]% %colspan=3%",
         // -- end of
         "",
@@ -250,7 +250,7 @@
         "",
         "%md=headline%",
         "[SME type]\r\nidShort %bg=#0029cc% %fg=white%",
-        "semantic id(s)\r\nDefinition@en Description@en %bg=#0029cc% %fg=white%",
+        "Semantic ID(s)\r\nDefinition@en Description@en %bg=#0029cc% %fg=white%",
         "[valueType]\r\nexample\r\n(unit) %bg=#0029cc% %fg=white%",
         "card. %bg=#0029cc% %fg=white%"
       ],

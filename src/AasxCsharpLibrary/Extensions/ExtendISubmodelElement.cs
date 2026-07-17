@@ -1075,6 +1075,35 @@ namespace Extensions
                         yield return (T)submodelElement;
         }
 
+        /// <summary>
+        /// This iterator looks for the "architectural masterpiece" of SML + SMC combination.
+        /// First it looks for the 1st occurence of an SML denoted by <c>semIdList</c> and
+        /// then it looks for type-specific all occurences of a SME <c>semIdElem</c>, which
+        /// shall be of specific type.
+        /// Note: Is thought to be also <c>null</c>-safe.
+        /// </summary>
+        public static IEnumerable<T> FindAllSemanticIdInAListAs<T>(this List<ISubmodelElement> submodelELements,
+            IReference semIdList,
+            IReference semIdElem,
+            MatchMode matchMode = MatchMode.Strict,
+            bool byPassSemIdElem = false)
+        where T : ISubmodelElement
+        {
+            // access
+            if (submodelELements == null)
+                yield break;
+
+            // SML
+            var sml = submodelELements.FindFirstSemanticIdAs<SubmodelElementList>(semIdList, matchMode);
+
+            // now the elements
+            if (sml?.Value != null)
+                foreach (var submodelElement in sml.Value)
+                    if (submodelElement != null && submodelElement is T)
+                        if (byPassSemIdElem || (submodelElement.SemanticId?.Matches(semIdElem, matchMode) == true))
+                            yield return (T)submodelElement;
+        }
+
         public static T FindFirstSemanticIdAs<T>(this List<ISubmodelElement> submodelElements,
             IKey semId, MatchMode matchMode = MatchMode.Strict)
             where T : ISubmodelElement

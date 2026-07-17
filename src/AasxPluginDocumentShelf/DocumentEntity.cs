@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -35,7 +35,7 @@ namespace AasxPluginDocumentShelf
 
         public event DocumentEntityEvent DragStart = null;
 
-        public enum SubmodelVersion { Default = 0, V10 = 1, V11 = 2, V12 = 3 }
+        public enum SubmodelVersion { Default = 0, V10 = 1, V11 = 2, V12 = 3, V20 = 4 }
 
         public SubmodelVersion SmVersion = SubmodelVersion.Default;
 
@@ -79,7 +79,7 @@ namespace AasxPluginDocumentShelf
 
             public FileInfo() { }
 
-            public FileInfo(string aasId, string smId, Aas.File file)
+            public FileInfo(string aasId, string smId, Aas.IFile file)
             {
                 Path = file?.Value;
                 MimeType = file?.ContentType;
@@ -752,25 +752,259 @@ namespace AasxPluginDocumentShelf
                             defs12.CD_TranslationOf?.GetReference(), ent);
 
                         // add
-                        ent.SmVersion = DocumentEntity.SubmodelVersion.V11;
+                        ent.SmVersion = DocumentEntity.SubmodelVersion.V12;
                         its.Add(ent);
 
                         //
                         // add actions?
                         //
 
+                        var thisSmcVer = smcVer;
                         ent.AddPreviewFile = (ent2, path2, contentType2) =>
                         {
                             var fl2 = new Aas.File(contentType2,
                                 idShort: "PreviewFile",
                                 semanticId: defs12.CD_PreviewFile?.GetReference(),
                                 value: path2);
-                            smcVer.Add(fl2);
-                            ent.PreviewFile = new DocumentEntity.FileInfo("" + aas?.Id, "" + subModel?.Id, fl);
+                            thisSmcVer.Add(fl2);
+                            ent.PreviewFile = new DocumentEntity.FileInfo("" + aas?.Id, "" + subModel?.Id, fl2);
                             return true;
                         };
                     }
                 }
+
+            // ok
+            return its;
+        }
+
+        public static ListOfDocumentEntity ParseSubmodelForV20(
+            AdminShellPackageEnvBase thePackage,
+            Aas.IAssetAdministrationShell aas,
+            Aas.ISubmodel subModel,
+            AasxPredefinedConcepts.IdtaHandoverDocumentationV20 defs20,
+            string defaultLang,
+            int selectedDocClass, AasxLanguageTuple selectedLanguage)
+        {
+            // set a new list
+            var its = new ListOfDocumentEntity();
+            if (thePackage == null || subModel == null || defs20 == null)
+                return its;
+
+            // look for Documents
+            foreach (var smcDoc in
+                subModel.SubmodelElements.FindAllSemanticIdInAListAs<Aas.SubmodelElementCollection>(
+                    defs20.CD_Documents?.GetReference(),
+                    defs20.CD_Document?.GetReference(),
+                    MatchMode.Relaxed))
+            {
+                // access
+                if (smcDoc == null || smcDoc.Value == null)
+                    continue;
+
+                // look immediately for DocumentVersion, as only with this there is a valid List item
+                foreach (var smcVer in
+                    smcDoc.Value.FindAllSemanticIdInAListAs<Aas.SubmodelElementCollection>(
+                        defs20.CD_DocumentVersions?.GetReference(),
+                        defs20.CD_DocumentVersion?.GetReference(),
+                        MatchMode.Relaxed))
+                {
+                    // access
+                    if (smcVer == null || smcVer.Value == null)
+                        continue;
+
+                    //
+                    // try to lookup info in smcDoc and smcVer
+                    //
+
+                    // take the 1st title
+                    var title = "" + smcVer.Value.FindFirstSemanticIdAs<Aas.IProperty>(
+                            defs20.CD_Title?.GetReference(), MatchMode.Relaxed)?.Value;
+
+                    // could be also a multi-language title
+                    foreach (var mlp in
+                        smcVer.Value.FindAllSemanticIdAs<Aas.MultiLanguageProperty>(
+                            defs20.CD_Title?.GetReference(), MatchMode.Relaxed))
+                        if (mlp.Value != null)
+                            title = mlp.Value.GetDefaultString(defaultLang);
+
+                    // some with sub title
+                    var subTitle = "" + smcVer.Value.FindFirstSemanticIdAs<Aas.Property>(
+                            defs20.CD_Subtitle?.GetReference(), MatchMode.Relaxed)?.Value;
+                    foreach (var mlp in
+                        smcVer.Value.FindAllSemanticIdAs<Aas.MultiLanguageProperty>(
+                            defs20.CD_Subtitle?.GetReference(), MatchMode.Relaxed))
+                        if (mlp.Value != null)
+                            subTitle = mlp.Value.GetDefaultString(defaultLang);
+
+                    if (subTitle.HasContent())
+                        title += System.Environment.NewLine + subTitle;
+
+                    // have multiple opportunities for orga
+                    var orga = "" + smcVer.Value.FindFirstSemanticIdAs<Aas.Property>(
+                            defs20.CD_OrganizationOfficialName?.GetReference(),
+                            MatchMode.Relaxed)?.Value;
+                    if (orga.Trim().Length < 1)
+                        orga = "" + smcVer.Value.FindFirstSemanticIdAs<Aas.Property>(
+                                defs20.CD_OrganizationShortName?.GetReference(),
+                                MatchMode.Relaxed)?.Value;
+
+                    // try find language
+                    // collect country codes
+                    var countryCodesStr = new List<string>();
+                    var countryCodesEnum = new List<AasxLanguageTuple>();
+
+                    // NOTE (MIHO, 2026-07-17): There is a quirk in the SMT spec.
+                    // Try to solve the issue
+                    foreach (var cclp in smcVer.Value.FindAllSemanticIdInAListAs<Aas.IProperty>(
+                        defs20.CD_Language?.GetReference(),     // should be: Languages
+                        null,                                   // should be: language
+                        MatchMode.Relaxed,
+                        byPassSemIdElem: true))
+                    { 
+                        // language code
+                        var candidate = "" + cclp.Value;
+                        if (candidate.Length < 1)
+                            continue;
+
+                        // convert to country codes and add
+                        var le = AasxLanguageHelper.Languages.FindByLang(candidate).FirstOrDefault();
+                        if (le != null)
+                        {
+                            countryCodesEnum.Add(le);
+                            countryCodesStr.Add(le.CountryCode);
+                        }
+                    }
+
+                    var okLanguage =
+                        selectedLanguage == null
+                        || (selectedLanguage.IsAny() == true
+                            // make only exception, if no language not all (not only the preferred
+                            // of LanguageSelectionToISO639String) are in the property
+                            || countryCodesStr.Count < 1
+                            || countryCodesEnum.Count((cc) => cc.LangCode?.ToLower().Trim()
+                                == selectedLanguage.LangCode?.ToLower().Trim()) > 0);
+
+                    // try find a 2770 classification
+                    var okDocClass = false;
+                    foreach (var smcClass in
+                        smcDoc.Value.FindAllSemanticIdInAListAs<Aas.SubmodelElementCollection>(
+                            defs20.CD_DocumentClassifications?.GetReference(),
+                            defs20.CD_DocumentClassification?.GetReference(),
+                            MatchMode.Relaxed))
+                    {
+                        // access
+                        if (smcClass?.Value == null)
+                            continue;
+
+                        // shall be a 2770 classification
+                        var classSys = "" + smcClass.Value.FindFirstSemanticIdAs<Aas.Property>(
+                                defs20.CD_ClassificationSystem?.GetReference(),
+                                MatchMode.Relaxed)?.Value;
+                        if (classSys.ToLower().Trim() != VDI2770v11.Vdi2770Sys.ToLower())
+                            continue;
+
+                        // class id
+                        var classId = "" + smcClass.Value.FindFirstSemanticIdAs<Aas.Property>(
+                                defs20.CD_ClassId?.GetReference(),
+                                MatchMode.Relaxed)?.Value;
+
+                        // evaluate, if in selection
+                        okDocClass = okDocClass ||
+                            (classId.Trim().Length < 1 ||
+                            classId.Trim()
+                                .StartsWith(
+                                    DefinitionsVDI2770.GetDocClass(
+                                        (DefinitionsVDI2770.Vdi2770DocClass)selectedDocClass)));
+
+                    }
+
+                    // success for selections?
+                    if (!(selectedDocClass < 1 || okDocClass) || !okLanguage)
+                        continue;
+
+                    // further info
+                    var further = "";
+                    foreach (var fi in
+                        smcVer.Value.FindAllSemanticIdAs<Aas.Property>(
+                            defs20.CD_Version?.GetReference(), MatchMode.Relaxed))
+                        further += " \u00b7 version: " + fi.Value;
+                    foreach (var fi in
+                        smcVer.Value.FindAllSemanticIdAs<Aas.Property>(
+                            defs20.CD_DocumentIdentifier?.GetReference(), MatchMode.Relaxed))
+                        further += " \u00b7 id: " + fi.Value;
+                    foreach (var fi in
+                        smcVer.Value.FindAllSemanticIdAs<Aas.Property>(
+                            defs20.CD_StatusSetDate?.GetReference(),
+                            MatchMode.Relaxed))
+                        further += " \u00b7 date: " + fi.Value;
+                    if (further.Length > 0)
+                        further = further.Substring(2);
+
+                    // construct entity
+                    var ent = new DocumentEntity(title, orga, further, countryCodesStr.ToArray());
+                    ent.ReferableHash = String.Format(
+                        "{0:X14} {1:X14}", thePackage.GetHashCode(), smcDoc.GetHashCode());
+
+                    // for updating data, set the source elements of this document entity
+                    ent.SourceElementsDocument = smcDoc.Value;
+                    ent.SourceElementsDocumentVersion = smcVer.Value;
+
+                    // file informations
+                    foreach (var fl in smcVer.Value.FindAllSemanticIdInAListAs<Aas.IFile>(
+                        defs20.CD_DigitalFile?.GetReference(),  // should be: Languages
+                        null,                                   // should be: language
+                        MatchMode.Relaxed,
+                        byPassSemIdElem: true))
+                    {
+                        if (fl == null)
+                            continue;
+                        ent.DigitalFile = new DocumentEntity.FileInfo("" + aas?.Id, "" + subModel?.Id, fl);
+                        break;
+                    }
+
+                    foreach (var fl in smcVer.Value.FindAllSemanticIdInAListAs<Aas.IFile>(
+                        defs20.CD_PreviewFile?.GetReference(),     // should be: Languages
+                        null,                                   // should be: language
+                        MatchMode.Relaxed,
+                        byPassSemIdElem: true))
+                    {
+                        if (fl == null)
+                            continue;
+                        ent.PreviewFile = new DocumentEntity.FileInfo("" + aas?.Id, "" + subModel?.Id, fl);
+                        break;
+                    }
+
+                    // relations
+                    SearchForRelations(smcVer.Value, DocumentEntity.DocRelationType.DocumentedEntity,
+                        defs20.CD_DocumentedEntity?.GetReference(), ent);
+                    SearchForRelations(smcVer.Value, DocumentEntity.DocRelationType.RefersTo,
+                        defs20.CD_RefersToEntities?.GetReference(), ent);
+                    SearchForRelations(smcVer.Value, DocumentEntity.DocRelationType.BasedOn,
+                        defs20.CD_BasedOn?.GetReference(), ent);
+                    SearchForRelations(smcVer.Value, DocumentEntity.DocRelationType.TranslationOf,
+                        defs20.CD_TranslationOfEntities?.GetReference(), ent);
+
+                    // add
+                    ent.SmVersion = DocumentEntity.SubmodelVersion.V20;
+                    its.Add(ent);
+
+                    //
+                    // add actions?
+                    //
+
+                    var thisSmcVer = smcVer;
+                    ent.AddPreviewFile = (ent2, path2, contentType2) =>
+                    {
+                        var fl2 = new Aas.File(contentType2,
+                            idShort: "PreviewFile",
+                            semanticId: defs20.CD_PreviewFile?.GetReference(),
+                            value: path2);
+                        thisSmcVer.Add(fl2);
+                        ent.PreviewFile = new DocumentEntity.FileInfo("" + aas?.Id, "" + subModel?.Id, fl2);
+                        return true;
+                    };
+                }
+            }
 
             // ok
             return its;

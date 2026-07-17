@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -234,6 +234,9 @@ namespace AasxPluginDocumentShelf
             var mm = AasxPluginsGlobal.SubmodelCheckOnlyId ? MatchMode.Relaxed : MatchMode.Strict;
             var defs11 = AasxPredefinedConcepts.VDI2770v11.Static;
             var defs12 = AasxPredefinedConcepts.IdtaHandoverDocumentationV12.Static;
+            var defs20 = AasxPredefinedConcepts.IdtaHandoverDocumentationV20.Static;
+            if (_submodel.SemanticId.MatchesExactlyOneKey(defs20?.SM_HandoverDocumentation?.GetSemanticKey(forceSemId: true), mm))
+                _renderedVersion = DocumentEntity.SubmodelVersion.V20;
             if (_submodel.SemanticId.MatchesExactlyOneKey(defs12?.SM_HandoverDocumentation?.GetSemanticKey(), mm))
                 _renderedVersion = DocumentEntity.SubmodelVersion.V12;
             if (_submodel.SemanticId.MatchesExactlyOneKey(defs11?.SM_ManufacturerDocumentation?.GetSemanticKey(), mm))
@@ -244,6 +247,8 @@ namespace AasxPluginDocumentShelf
                 _renderedVersion = DocumentEntity.SubmodelVersion.V11;
             if (foundRec.ForceVersion == DocumentEntity.SubmodelVersion.V12)
                 _renderedVersion = DocumentEntity.SubmodelVersion.V12;
+            if (foundRec.ForceVersion == DocumentEntity.SubmodelVersion.V20)
+                _renderedVersion = DocumentEntity.SubmodelVersion.V20;
             _selectedVersion = _renderedVersion;
 
             // set usage info
@@ -255,7 +260,10 @@ namespace AasxPluginDocumentShelf
             // make new list box items
             _renderedEntities = new List<DocumentEntity>();
             // ReSharper disable ExpressionIsAlwaysNull
-            if (_renderedVersion == DocumentEntity.SubmodelVersion.V12)
+            if (_renderedVersion == DocumentEntity.SubmodelVersion.V20)
+                _renderedEntities = ListOfDocumentEntity.ParseSubmodelForV20(
+                    _package, _aas, _submodel, defs20, defaultLang, (int)_selectedDocClass, _selectedLang);
+            else if (_renderedVersion == DocumentEntity.SubmodelVersion.V12)
                 _renderedEntities = ListOfDocumentEntity.ParseSubmodelForV12(
                     _package, _aas, _submodel, defs12, defaultLang, (int)_selectedDocClass, _selectedLang);
             else if (_renderedVersion == DocumentEntity.SubmodelVersion.V11)

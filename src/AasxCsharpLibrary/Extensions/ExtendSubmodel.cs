@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -345,9 +345,9 @@ namespace Extensions
         ///  If instance, return semanticId as one key.
         ///  If template, return identification as key.
         /// </summary>
-        public static Key GetSemanticKey(this Submodel submodel)
+        public static Key GetSemanticKey(this Submodel submodel, bool forceSemId = false)
         {
-            if (submodel.Kind == ModellingKind.Instance)
+            if (submodel.Kind == ModellingKind.Instance || forceSemId)
                 return submodel.SemanticId.GetAsExactlyOneKey();
             else
                 return new Key(KeyTypes.Submodel, submodel.Id);

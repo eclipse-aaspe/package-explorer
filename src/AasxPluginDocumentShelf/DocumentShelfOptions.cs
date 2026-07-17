@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2018-2023 Festo SE & Co. KG <https://www.festo.com/net/de_de/Forms/web/contact_international>
 Author: Michael Hoffmeister
 
@@ -80,6 +80,11 @@ namespace AasxPluginDocumentShelf
             rec.AllowSubmodelSemanticId.Add(
                 AasxPredefinedConcepts.IdtaHandoverDocumentationV12.Static
                     .SM_HandoverDocumentation.GetSemanticKey());
+
+            // V2.0
+            rec.AllowSubmodelSemanticId.Add(
+                AasxPredefinedConcepts.IdtaHandoverDocumentationV20.Static
+                    .SM_HandoverDocumentation.GetSemanticKey(forceSemId: true));
 
             //
             // further models for CAD
