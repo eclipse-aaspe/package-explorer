@@ -31,7 +31,7 @@
 	</div>
 	<div class="modal-footer">
 		@{
-			var layout = MessageBoxFlyout.LayoutButtons(ddmp.DialogButtons, ddmp.ExtraButtons);
+			var layout = LayoutButtons(ddmp.DialogButtons, ddmp.ExtraButtons);
 			foreach (var btn in layout)
 			{
 				@if (btn.Primary)
@@ -53,6 +53,41 @@
 
 	[Parameter]
 	public AnyUiDialogueDataBase DialogueData { get; set; }
+
+	public class ButtonLayout
+	{
+		public string Title { get; set; }
+		public AnyUiMessageBoxResult FinalResult { get; set; }
+		public bool Primary { get; set; }
+	}
+
+	public IEnumerable<ButtonLayout> LayoutButtons(AnyUiMessageBoxButton buttons, string[] extraButtons)
+	{
+		var result = new List<ButtonLayout>();
+		if (buttons == AnyUiMessageBoxButton.OK)
+			result.Add(new ButtonLayout { Title = "OK", FinalResult = AnyUiMessageBoxResult.OK, Primary = true });
+		if (buttons == AnyUiMessageBoxButton.OKCancel)
+		{
+			result.Add(new ButtonLayout { Title = "Cancel", FinalResult = AnyUiMessageBoxResult.Cancel });
+			result.Add(new ButtonLayout { Title = "OK", FinalResult = AnyUiMessageBoxResult.OK, Primary = true });
+		}
+		if (buttons == AnyUiMessageBoxButton.YesNo)
+		{
+			result.Add(new ButtonLayout { Title = "No", FinalResult = AnyUiMessageBoxResult.No });
+			result.Add(new ButtonLayout { Title = "Yes", FinalResult = AnyUiMessageBoxResult.Yes, Primary = true });
+		}
+		if (buttons == AnyUiMessageBoxButton.YesNoCancel)
+		{
+			result.Add(new ButtonLayout { Title = "Cancel", FinalResult = AnyUiMessageBoxResult.Cancel });
+			result.Add(new ButtonLayout { Title = "No", FinalResult = AnyUiMessageBoxResult.No });
+			result.Add(new ButtonLayout { Title = "Yes", FinalResult = AnyUiMessageBoxResult.Yes, Primary = true });
+		}
+		var extraResults = new[] { AnyUiMessageBoxResult.Extra0, AnyUiMessageBoxResult.Extra1, AnyUiMessageBoxResult.Extra2, AnyUiMessageBoxResult.Extra3 };
+		if (extraButtons != null)
+			for (var i = 0; i < extraButtons.Length && i < extraResults.Length; i++)
+				result.Add(new ButtonLayout { Title = extraButtons[i], FinalResult = extraResults[i] });
+		return result;
+	}
 
 	public void LeaveResult(AnyUiMessageBoxResult? result)
 	{

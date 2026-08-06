@@ -1,10 +1,10 @@
-﻿  <Project Sdk="Microsoft.NET.Sdk">
+  <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <OutputType>Library</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <UseWindowsForms>true</UseWindowsForms>
-    <UseWPF>true</UseWPF>
+    <UseWindowsForms>false</UseWindowsForms>
+    <UseWPF>false</UseWPF>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Used to access the XML summary for Options.cs -->
@@ -51,12 +51,9 @@
     <ProjectReference Include="..\AasxBammRdfImExport\AasxBammRdfImExport.csproj" />
     <ProjectReference Include="..\AasxCore.Samm2_2_0\AasxCore.Samm2_2_0.csproj" />
     <ProjectReference Include="..\AasxFileServerRestLibrary\AasxFileServerRestLibrary.csproj" />
-    <ProjectReference Include="..\AasxIntegrationBaseWpf\AasxIntegrationBaseWpf.csproj" />
     <ProjectReference Include="..\AasxIntegrationBase\AasxIntegrationBase.csproj" />
-    <ProjectReference Include="..\AasxOpenidClient\AasxOpenidClient.csproj" />
     <ProjectReference Include="..\AasxPredefinedConcepts\AasxPredefinedConcepts.csproj" />
     <ProjectReference Include="..\AasxSchemaExport\AasxSchemaExport.csproj" />
-    <ProjectReference Include="..\AasxSignature\AasxSignature.csproj" />
     <ProjectReference Include="..\AnyUi\AnyUi.csproj" />
     <ProjectReference Include="..\jsoncanonicalizer\jsoncanonicalizer.csproj" />
     <ProjectReference Include="..\SSIExtension\SSIExtension.csproj" />
@@ -69,7 +66,7 @@
     -->
   </ItemGroup>
 
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="echo %25date%25 &gt; &quot;$(ProjectDir)\Resources\BuildDate.txt&quot;" />
+  <Target Name="GenerateBuildDate" BeforeTargets="PrepareResources">
+    <WriteLinesToFile File="$(ProjectDir)Resources/BuildDate.txt" Lines="$([System.DateTime]::UtcNow.ToString('O'))" Overwrite="true" />
   </Target>
 </Project>

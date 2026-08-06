@@ -22,7 +22,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Media;
-using System.Xaml;
 using VDS.RDF.Parsing;
 using VDS.RDF;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;

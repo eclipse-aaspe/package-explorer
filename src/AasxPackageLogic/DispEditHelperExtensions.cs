@@ -27,7 +27,6 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
-using System.Xaml;
 using static AasxPackageLogic.AasSmtQualifiers;
 using static AasxPackageLogic.DispEditHelperMiniModules;
 using Aas = AasCore.Aas3_1;
