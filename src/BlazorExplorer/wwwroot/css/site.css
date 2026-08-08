@@ -132,16 +132,43 @@ dialog header {
 
     .dropdown-item .dropdown-item-texticon {
         position: absolute;
-        top: -0.18rem;
-        left: -1.6rem;
-        font-size: 1.3rem;
-        font-weight: 300;
-        color: #0028cd !important
+        top: 0.05rem;
+        left: -1.45rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1rem;
+        height: 1rem;
+        border: 1px solid #0028cd;
+        border-radius: 2px;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 1;
+        color: #0028cd !important;
+    }
+
+    .dropdown-item .dropdown-item-texticon.checked {
+        background-color: #ffffff;
     }
 
 /* dropdown in top nav menu */
 .dropdown-toggle {
     color: #ffffff !important;
+}
+
+.navbar,
+.navbar .container,
+.navbar .navbar,
+.navbar-nav,
+.nav-item.dropdown {
+    overflow: visible !important;
+}
+
+.top-row,
+.main .top-row {
+    overflow: visible !important;
+    z-index: 1050;
 }
 
 .dropdown-menu {
@@ -153,6 +180,60 @@ dialog header {
     color: black;
     padding: 5px;
     background-color: #f0f0f0;
+    max-height: calc(100vh - 7rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1060;
+}
+
+
+.navbar-nav > .nav-item.dropdown > .dropdown-menu.show {
+    position: fixed !important;
+    top: 3.25rem !important;
+    bottom: 0.75rem !important;
+    left: var(--aasx-menu-left, 0.75rem) !important;
+    right: auto !important;
+    min-width: 24rem;
+    max-width: calc(100vw - 1.5rem);
+    max-height: none !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+    transform: none !important;
+}
+
+.navbar-nav > .nav-item.dropdown > .dropdown-menu.show .dropdown-menu.show {
+    display: block !important;
+}
+
+.dropdown-menu .dropdown-menu {
+    position: static !important;
+    transform: none !important;
+    float: none !important;
+    width: auto;
+    min-width: 100%;
+    max-height: none;
+    margin: 2px 0 4px 0.75rem;
+    padding: 3px 0 3px 0.75rem;
+    overflow: visible;
+    border-width: 0 0 0 2px;
+    border-color: #b8b8b8;
+    box-shadow: none;
+}
+
+.dropdown-menu .dropdown-toggle::after {
+    transform: rotate(90deg);
+}
+
+.dropdown-menu .nav-item {
+    width: 100%;
+}
+
+.dropdown-menu .nav-link {
+    display: block;
+    width: 100%;
+    padding-top: 0.15rem !important;
+    padding-bottom: 0.15rem !important;
+    line-height: 1.25rem;
 }
 
 /* Lower left panel, repository / container list items / infos with AAS / AssetId .. */

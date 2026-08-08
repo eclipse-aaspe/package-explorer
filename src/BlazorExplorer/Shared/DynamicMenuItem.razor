@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web
 @using MW.Blazor
 @using AasxIntegrationBase
 @using AnyUi
@@ -33,7 +33,7 @@
     if (mi is AasxMenuItem mii && !mii.Hidden)
     {
         // clean header
-        var header = ("" + mii.Header).Replace("_", "");
+        var header = CleanMenuText(("" + mii.Header).Replace("_", ""));
 
         if (mii.Childs == null || mii.Childs.Count < 1)
         {
@@ -56,18 +56,18 @@
                             {
                                 if (mii.IsChecked)
                                 {
-                                    <span class="dropdown-item-texticon" id="nbi_dit_@(mii.Name)">&#x2611;</span>
+                                    <span class="dropdown-item-texticon checked" id="nbi_dit_@(mii.Name)" aria-hidden="true">X</span>
                                 }
                                 else
                                 {
-                                    <span class="dropdown-item-texticon">&#x2610;</span>
+                                    <span class="dropdown-item-texticon" id="nbi_dit_@(mii.Name)" aria-hidden="true"></span>
                                 }
                             }
                             <span style="display: inline-block; overflow: hidden; width: @((0.6*maxHeaderWidth).ToString(CultureInfo.InvariantCulture))rem; vertical-align:top">
                                 @header
                             </span>
                             <span style="display: inline-block; vertical-align:top">
-                                @("" + mii.InputGesture)
+                                @CleanMenuText("" + mii.InputGesture)
                             </span>
                         </div>
                     </a>
@@ -85,8 +85,8 @@
             }
 
             <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" style="@styleDD" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    @mii.Header
+                <a class="nav-link dropdown-toggle" style="@styleDD" id="navbarDropdown" role="button" aria-expanded="false">
+                    @header
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         
@@ -111,6 +111,13 @@
 
     [Parameter] public int Depth { get; set; }
 
+    private static string CleanMenuText(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return string.Empty;
+        return text.Replace("\uFFFD", string.Empty).TrimEnd();
+    }
+
     public void ClickOnItem(AasxMenuItemBase mi)
     {
         // toggle menu item?
@@ -120,10 +127,7 @@
             mii.IsChecked = !mii.IsChecked;
 
             // prepare header again            
-            var header = (mii.IsChecked) ? "&#x2611;" : "&#x2610;";
-
-            // send of
-            JsRuntime.InvokeVoidAsync("setNavBarItem", "nbi_dit_" + mii.Name, header);
+            JsRuntime.InvokeVoidAsync("setNavBarItemChecked", "nbi_dit_" + mii.Name, mii.IsChecked);
         }
 
         // in any case call the top menu
