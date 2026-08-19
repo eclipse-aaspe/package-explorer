@@ -139,12 +139,20 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                     new ColumnDefinition() { Width = new GridLength(1.0, GridUnitType.Star) });
 
                 // New: two instances of the AASPE crash because of Cef
-                var settings = new CefSharp.Wpf.CefSettings
+                try
                 {
-                    CachePath = $"C:\\Temp\\CEFCache_{Process.GetCurrentProcess().Id}"
-                };
-                if (Cef.IsInitialized != true)
-                    Cef.Initialize(settings);
+                    var settings = new CefSharp.Wpf.CefSettings
+                    {
+                        CachePath = $"C:\\Temp\\CEFCache_{Process.GetCurrentProcess().Id}"
+                    };
+                    if (Cef.IsInitialized != true)
+                        Cef.Initialize(settings, performDependencyCheck: true);
+                }
+                catch (Exception ex)
+                {
+                    _log.Error(ex, "CefSharp initialization failed, browser plugin disabled");
+                    return null;
+                }
 
                 // ok, start
                 this._browser = new CefSharp.Wpf.ChromiumWebBrowser();
