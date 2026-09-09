@@ -141,8 +141,12 @@ namespace AasxIntegrationBase // the namespace has to be: AasxIntegrationBase
                 // New: two instances of the AASPE crash because of Cef
                 try
                 {
+                    var pluginDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
                     var settings = new CefSharp.Wpf.CefSettings
                     {
+                        BrowserSubprocessPath = Path.Combine(pluginDir, "CefSharp.BrowserSubprocess.exe"),
+                        LocalesDirPath = Path.Combine(pluginDir, "locales"),
+                        ResourcesDirPath = pluginDir,
                         CachePath = $"C:\\Temp\\CEFCache_{Process.GetCurrentProcess().Id}"
                     };
                     if (Cef.IsInitialized != true)
