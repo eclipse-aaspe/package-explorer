@@ -98,9 +98,17 @@ namespace AasxPackageExplorer
             {
                 // setup
                 var res = BrowserContainer.browserPlugin.InvokeAction(actionName, startUrl);
-                if (res != null && res is AasxPluginResultBaseObject)
+                if (res != null && res is AasxPluginResultBaseObject rbo && rbo.obj is Grid grid)
                 {
-                    BrowserContainer.theOnscreenBrowser = (res as AasxPluginResultBaseObject).obj as Grid;
+                    BrowserContainer.theOnscreenBrowser = grid;
+                }
+                else
+                {
+                    // Plugin failed to provide a browser (e.g. CefSharp init failed); use fallback
+                    BrowserContainer.browserPlugin = null;
+                    this.theFallbackBrowser = new FakeBrowser();
+                    this.browserHandlesFiles = fallbackBrowserHandlesFiles;
+                    GoToContentBrowserAddress(startUrl);
                 }
             }
 
