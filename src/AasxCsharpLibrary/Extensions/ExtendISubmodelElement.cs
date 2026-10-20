@@ -1023,6 +1023,7 @@ namespace Extensions
                 return default(T);
             sme.IdShort = ids;
             sme.SemanticId = semanticId.Copy();
+            sme.Description = conceptDescription.Description?.Copy();
             if (category != null)
                 sme.Category = category;
 
